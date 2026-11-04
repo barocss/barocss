@@ -1,10 +1,6 @@
 # CAD Studio handover — current entry
 
-**Latest (2026-11-01): Claude → Codex hand-over.** Read [notes/codex-handoff-2026-11-01/README.md](notes/codex-handoff-2026-11-01/README.md) first; it supersedes the entry text below, which is kept as history.
-
-Read [state.yaml](state.yaml) first for the current code baseline, Work identities,
-verification receipts, blockers and next actions. Then read [roadmap.md](roadmap.md)
-and [protocol.md](protocol.md). The coordinator alone updates these current records.
+**Latest (2026-11-04):** Start with the [current continuation handoff](notes/claude-handoff-2026-11-02/README.md), then the [roadmap](roadmap.md) and [decisions](decisions.md). D513 qualifies the bounded nested-card freshness correction. Earlier operating and coordination text below is historical; the current handoff and owner directions take precedence.
 
 The [owner roadmap](notes/owner-roadmap-2026-10-22.md) defines the full product
 goal. The [message example](notes/coordination-message-pattern-2026-10-22.md)

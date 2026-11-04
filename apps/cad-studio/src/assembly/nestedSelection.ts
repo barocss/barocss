@@ -118,12 +118,14 @@ export interface NestedCard {
 }
 
 /** The read-only card of a nested selection; null when the path leads to no shown part. */
-export function nestedCard(doc: StudioDoc, path: string, entry: PlacedEntry | undefined): NestedCard | null {
+export function nestedCard(doc: StudioDoc, path: string, entry: PlacedEntry | undefined, current: boolean): NestedCard | null {
   const found = nestedInstance(doc, path); if (!found) return null;
-  const at = nestedBodyIndexes(path, entry), mine = entry && at ? at.map(k => entry.bodies[k]) : [];
-  const unknown = !entry || !at || !mine.length || mine.some(b => b.massRef !== undefined);
+  // A stale entry cannot attribute current names to old faces or publish old quantities.
+  const have = current ? entry : undefined;
+  const at = nestedBodyIndexes(path, have), mine = have && at ? at.map(k => have.bodies[k]) : [];
+  const unknown = !have || !at || !mine.length || mine.some(b => b.massRef !== undefined);
   return {
-    path, title: found.names.join(' › '), bodies: mine.length, pending: !entry, ...(at ? {} : { unavailable: true as const }),
+    path, title: found.names.join(' › '), bodies: mine.length, pending: !have, ...(at ? {} : { unavailable: true as const }),
     volume: unknown ? null : mine.reduce((v, b) => v + (b.volume ?? 0), 0),
     ...(found.inst.part ? { part: found.inst.part } : {}),
     placement: { in: found.parent.name, position: found.inst.position, rotation: found.inst.rotation },

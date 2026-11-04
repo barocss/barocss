@@ -2137,7 +2137,11 @@ export function App() {
         onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
         onApply={applyCut} onCancel={() => setCutDraft(null)} />}
       {!rendering && !sketch && !measure && !!nestedSelected && (() => {
-        const card = nestedCard(doc, nestedSelected, instanceBodies.get(hostsOf(instanceSel)[0]));
+        const host = hostsOf(instanceSel)[0], entry = instanceBodies.get(host);
+        // The card describes the displayed variant/context, just like its evaluated bodies.
+        const inst = shownDoc.instances?.find(i => i.id === host), source = instanceSources.get(host);
+        const current = entry && inst && source?.ok ? entry.sourceKey === source.key && samePlacement(entry.inst, inst) : false;
+        const card = nestedCard(shownDoc, nestedSelected, entry, current);
         return card ? <NestedPartPanel card={card} /> : null;
       })()}
       {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {

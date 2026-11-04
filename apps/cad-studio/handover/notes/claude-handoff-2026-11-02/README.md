@@ -8,6 +8,8 @@ source_request: "Prepare a Claude handoff prompt after all current work is pushe
 last_updated: 2026-11-04
 ---
 
+D513 fixes the reproduced transient nested-card mismatch: 13 affected tests, fresh Studio/final Model types and root Studio pass. The same public trigger gives 87 recognized samples, zero mixed and six pending. [Evidence](../nested-card-freshness-2026-11-04/README.md). D514 is the owner-selected native-edge display correction pending publication. Parallel D509 remains WIP with historical GUI/native/Studio06/Aux08 evidence; current reconciliation/docs/preview are NOT_RUN. This supersedes older next-MAIN and D509-current claims below.
+
 D512 qualifies the existing C4 nested selection/card and fresh BOM across the retained parent revision: 2/2 public groups, two Docs, two fresh native captures and two bindings. The sub1/p2 card retains its path while position z0→5 and folded face n3.top→n4.top update; BOM changes nested Qty2 to Qty1/1. Five fresh tests and final High saved review pass. No product change, ideal Hole or aggregate mass-precision certificate; core NOT_MEASURED and HOLDs remain. [Evidence](../nested-selection-bom-revision-2026-11-04/README.md).
 
 This supersedes older next-MAIN navigation. Next MAIN is a remaining-acceptance source audit; no next runtime item is selected yet. D509 remains separate applied WIP with bounded GUI/native PASS and Studio/aux/docs NOT_RUN.

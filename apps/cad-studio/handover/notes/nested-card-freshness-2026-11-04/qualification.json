@@ -1,0 +1,119 @@
+{
+  "work_id": "D513",
+  "status": "PASS_BOUNDED_NESTED_CARD_FRESHNESS",
+  "priority": "C4",
+  "rows": [
+    10,
+    16
+  ],
+  "tier": "small",
+  "parentHEAD": "d7e868a84146a7efd16a4838cd33e4143ffdbefc",
+  "change": "Read shownDoc and admit evaluated entries only with current source key and placement. Stale entries show pending without old face attribution or quantities.",
+  "tests": {
+    "affected": 13,
+    "pass": 13,
+    "fail": 0,
+    "skip": 0,
+    "new": 4,
+    "retained": 9
+  },
+  "checks": {
+    "scopedLint": "PASS",
+    "studioTypes": "PASS_FRESH",
+    "modelTypes": "PASS_FINAL_AFTER_LAST_TEST_EDIT",
+    "diff": "PASS"
+  },
+  "originalProduct": "FAIL_REPRODUCED_MIXED_METADATA_AND_OLD_QUANTITY",
+  "originalRunner": "PASS_CONTROLLED_DEFECT_OBSERVATION",
+  "originalSamples": {
+    "recognized": 88,
+    "mixed": 9,
+    "pending": 0
+  },
+  "fixedSamples": {
+    "recognized": 87,
+    "mixed": 0,
+    "pending": 6,
+    "unclassified": 0,
+    "phases": [
+      "A",
+      "B"
+    ],
+    "overflow": 0
+  },
+  "actualStudio": "PASS_ROOT_EXECUTED",
+  "sourcePins": 1686,
+  "sourceEqualAfterCleanupAndRootImages": true,
+  "rootViewedImages": 3,
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "newNativeCaptures": 0,
+  "physicalOracleRuns": 0,
+  "nativeAPhysicalReuses": 1,
+  "nativeProducerSubset": 466,
+  "preservedFailures": [
+    "Original pure reproduction exact-integer observer assertion; saved raw numerical evidence qualified without SUT replay.",
+    "Original product transient mismatch remains historical FAIL."
+  ],
+  "notRun": [
+    "Full kernel: no B-rep change",
+    "Independent B physical certificate",
+    "Placed Worker volume/centroid certificate",
+    "General variants and all-CAD acceptance"
+  ],
+  "coreCompletion": "NOT_MEASURED",
+  "globalAcceptanceDenominator": "UNENUMERATED",
+  "legacy43Percent": "FROZEN_HISTORICAL",
+  "parallelD509": "Separate 33-path WIP preserved. GUI/native/Studio06/Aux08 are historical tested-source evidence; current reconciliation, documentation and preview NOT_RUN.",
+  "models": {
+    "implementationAndTests": "GPT-6.1 Sol Medium",
+    "actualStudioAndImageReview": "root"
+  },
+  "issues": {
+    "538": "OPEN_EPIC_BROADER_ACCEPTANCE_UNMET_NO_COMMENT_OR_CLOSE"
+  },
+  "evidence": {
+    "originalStudio": {
+      "path": "/tmp/barocss-d513-studio-original-run01/receipt.json",
+      "sha256": "cc35681a6ccb242e56a74345744952486d431783477e9bac7066258e753c189d"
+    },
+    "originalSavedReview": {
+      "path": "/tmp/barocss-d513-studio-original-saved01/qualification.json",
+      "sha256": "d1e56f83269609c56bc8429deb3037a63cfe24891867696bf70e2e5d8bf7216a"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d513-checks01/receipt.json",
+      "sha256": "a0f083cee31a91e3e6f2331277e23c99ee47a66b0fae0db27197d7023766cfc5"
+    },
+    "fixedStudio": {
+      "path": "/tmp/barocss-d513-studio-fixed-run01/receipt.json",
+      "sha256": "b4bdafa802b7a7c19fbcaea061e83847c05928bb6280c5ac9ee4bfaf9096a13f"
+    },
+    "fixedClassification": {
+      "path": "/tmp/barocss-d513-studio-fixed-run01/03-observer-classification-before-expectations.json",
+      "sha256": "b39bedbb125c7e7254a112297b1dcfbfe81d6293e51887d860c28bf32e12d193"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d514-root/d513-actual-root-review.json",
+      "sha256": "f2db3fcd541d89f8ab69bbfff715621d9be8f5543775b16f5c2f9bde4ff2fefb"
+    },
+    "fixedConfig": {
+      "path": "/tmp/barocss-d513-studio-driver02/config.json",
+      "sha256": "555575bde315785cb7e05d0afc241fdda565e3fe211daa95e21cd18674e2ca7b"
+    }
+  },
+  "handoverNavigation": {
+    "status": "PASS",
+    "path": "/tmp/barocss-d514-root/navigation01.json",
+    "sha256": "722e92654470b0f0f0ae3e6989ac98887825fa9364fdd445a05c1477c8df349c",
+    "newBroken": 0
+  },
+  "D509WipPreservation": {
+    "status": "PASS",
+    "paths": 33,
+    "sha256": "3d1754ed2dfea6e7e0e6b9870be199aa1097d7dfdaaaeb892f273c965dad84d1"
+  }
+}

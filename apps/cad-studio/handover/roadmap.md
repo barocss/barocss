@@ -6,6 +6,8 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Active priority authority — D445
 
+D513 fixes the reproduced C4 nested-card transient mismatch. The same public revision/Undo/Redo control now has zero mixed samples and six pending samples in 87 recognized samples; 13 affected tests and fresh Studio/Model types pass. [Evidence](notes/nested-card-freshness-2026-11-04/README.md). D514 is the separate owner-selected native-edge display correction pending publication.
+
 D512 qualifies the existing C4 nested selection/card and fresh BOM across the retained parent revision: 2/2 public groups, two Docs, two fresh native captures and two bindings. The sub1/p2 card retains its path while position z0→5 and folded face n3.top→n4.top update; BOM changes nested Qty2 to Qty1/1. Five fresh tests and final High saved review pass. No product change, ideal Hole or aggregate mass-precision certificate; core NOT_MEASURED and HOLDs remain. [Evidence](notes/nested-selection-bom-revision-2026-11-04/README.md).
 
 D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](notes/patterned-material-bom-mass-2026-11-04/README.md).
@@ -14,18 +16,20 @@ The [D445 core CAD priority decision](notes/core-cad-priority-2026-11-02/README.
 
 Sketch editing, solid modeling, feature history, native files and local-project versions already exist. An open feature family or collaboration scope does not mean those daily functions are absent. Report reproduced defects separately from unverified breadth and unsupported extensions.
 
-| Priority | User outcome and boundary | Related rows |
-| --- | --- | --- |
-| C1 | Reliable everyday part workflow: sketch dimensions/constraints → extrude/revolve → union/cut/hole/fillet → upstream dimension edit/rebuild/reference retention → measure/UndoRedo/refusal retention → native/local-project Save and fresh Open. | 07, 08, 09, 12, 16, 30 |
-| C2 | Frequent modeling robustness and throughput: ordinary Boolean, fillet, chamfer, hole, pattern, shell and draft within current public scopes. Kernel changes address concrete blockers; preserve #2258/#2266 boundaries. | 03, 07, 08, 20, 21 |
-| C3 | Useful engineering handoff: ordinary STEP/STL/3MF units, explicit losses and independent reads; part drawing dimensions, sections and model updates. Uncommon cone/format variants wait unless a real task or C1 needs them. | 01, 02, 04, 11, 12, 13 |
-| C4 | Basic assemblies: placement, mates, BOM and related drawings; no Motion activation. | 10 |
-| C5 | Usability and scale: Viewer/GPU, selection, latency, large assemblies and the later owner UI discussion. Daily functional defects may move to C1/C2; no workspace/menu/icon redesign starts now. | 05, 06, 15, 20, 21, 22, 23, 32 |
-| C6 | Advanced surfaces, modeling and generality. A targeted core-enabling fix may move earlier only when needed; broad NURBS/fitter and existing HOLDs remain. | 07, 08, 24, 25, 30, 31, 34 |
-| C7 | Ecosystem: customer files, formats, catalogs and PDM retain owner gates. | 26, 28, 29 |
-| C8 | Separately held manufacturing, paths, Motion, experiments, release and browser CI. Preserve delivered proofs without automatic activation. | 14, 17, 18, 19, 27, 33 |
+| Priority | User outcome and boundary | Related rows | Current scope / next |
+| --- | --- | --- | --- |
+| C1 | Reliable everyday part workflow: sketch dimensions/constraints → extrude/revolve → union/cut/hole/fillet → upstream dimension edit/rebuild/reference retention → measure/UndoRedo/refusal retention → native/local-project Save and fresh Open. | 07, 08, 09, 12, 16, 30 | Bounded daily-part case D447/D448 qualified; general workflow acceptance remains open. |
+| C2 | Frequent modeling robustness and throughput: ordinary Boolean, fillet, chamfer, hole, pattern, shell and draft within current public scopes. Kernel changes address concrete blockers; preserve #2258/#2266 boundaries. | 03, 07, 08, 20, 21 | Known reproduced C1/C2 list has first-pass closeout through D476; unverified breadth remains separate. |
+| C3 | Useful engineering handoff: ordinary STEP/STL/3MF units, explicit losses and independent reads; part drawing dimensions, sections and model updates. Uncommon cone/format variants wait unless a real task or C1 needs them. | 01, 02, 04, 11, 12, 13 | Bounded drawing/exchange profiles qualified; ASME PDF mismatch remains owner-deferred. |
+| C4 | Basic assemblies: placement, mates, BOM and related drawings; no Motion activation. | 10 | D511 material/BOM, D512 settled nested revision and D513 transient card fix pass; nested in-place editing remains separate. |
+| C5 | Usability and scale: Viewer/GPU, selection, latency, large assemblies and the later owner UI discussion. Daily functional defects may move to C1/C2; no workspace/menu/icon redesign starts now. | 05, 06, 15, 20, 21, 22, 23, 32 | Owner-selected D514 native-edge selection correction pending publication; conditional row20 drag-cadence audit follows. |
+| C6 | Advanced surfaces, modeling and generality. A targeted core-enabling fix may move earlier only when needed; broad NURBS/fitter and existing HOLDs remain. | 07, 08, 24, 25, 30, 31, 34 | Advanced generality remains open; existing fitter/NURBS HOLDs remain. |
+| C7 | Ecosystem: customer files, formats, catalogs and PDM retain owner gates. | 26, 28, 29 | Customer files, downloads, catalogs and PDM keep owner gates. |
+| C8 | Separately held manufacturing, paths, Motion, experiments, release and browser CI. Preserve delivered proofs without automatic activation. | 14, 17, 18, 19, 27, 33 | Manufacturing, Motion/Physics, release and browser CI remain held. |
 
 Current bounded checkpoints and next work:
+
+Parallel D509 remains 33-path WIP. Its prior GUI/native/Studio06/Aux08 results are historical tested-source evidence; current reconciliation and documentation/preview are NOT_RUN after the authorized D513/D514 source changes. Whole-CAD completion remains NOT_MEASURED; no fixed acceptance denominator is implied.
 
 - **C3 leader Note D510:** D510 qualifies the existing view-attached leader Note lifecycle across two sheets (6/6 groups). Text/history/project/view ownership pass; physical and signature certification remain NOT_RUN. [Evidence](notes/view-attached-leader-note-2026-11-04/README.md). One fresh selected test, eight exact-source reuses and 2,199 saved predicates are separate counts. Next MAIN source audit is D511 C4 driven-pattern material/BOM coherence; actual NOT_RUN. D509 remains source-approved/unadopted at this checkpoint. This supersedes older parked-leader/next-MAIN navigation below.
 
