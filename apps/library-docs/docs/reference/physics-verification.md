@@ -71,6 +71,51 @@ preserved with their original source/proof; neither changed physics criteria.
 See `examples/physics-stack-dynamic-next-2276/RESULTS.md` on this branch.
 No new solver/profile, moving8, mobile, equipment validation or deployment follows.
 
+## Two cubes sharing a floor and a bounded coupled chain
+
+Two separated2kg cubes and a finite static floor pass actual Source/compiled
+World checks at60/120/240Hz, with9Worlds/1022accepted steps per graph including
+restore4. Each cube's still-free flight is checked until its own first contact.
+Both later floor contacts coexist; exact rotated projection bounds prove a
+positive0.5m cube separation. Public representative plane/boundary checks use
+1e-12m, independently of SI1e-10. Same Native desktop verifies all257states/
+words at120Hz, left contact27/right47, actual GPU motion and desktop controls.
+This is independent support, not a dynamically coupled stack. See
+`examples/physics-two-cubes-floor-2276/RESULTS.md`.
+
+The preserved first vertical upper/lower/floor chain fails on coupling at27 in
+both actual graphs. Independent global position/normal projections measure
+velocity error0.008623153568856012m/s and position error2.934570312507212e-5m
+against1e-10; representative geometry fails1e-12m. The engine accepted27steps
+but only26independently pass. Exact Source/Native reproducibility does not
+establish physical correctness. First failures/loaded inputs remain preserved.
+A package-private global normal/all-pair position repair now runs through the
+sole public World. It uses real inertia and generated point impulses, checks
+their applied wrench/KKT, and prepares fresh geometric representatives before
+the shared commit. The zero restitution/friction, awake dynamic/static box
+regime requires direct broadphase; AABB explicitly refuses. Typed candidate
+failure does not fall back to the old iterative law.
+
+Actual strict Source and canonical Native32/256 trajectories pass. Each graph
+uses6Worlds/786accepted steps including256 coupled,4restore+4continuation and
+522 regression steps. All257 coupled states/words match. Independent full
+reference maxima: velocity3.159e-15m/s, position2.887e-15m, representative
+face/bounds8.882e-16m against unchanged1e-10SI/1e-12m gates. Terminal256
+mutations are rejected, including a1e-11m point shift. Actual known numeric
+refusals preserve state/model/clock/log; empty retries equal paid clean states.
+Unexpected Error/object/null retain identity in separate instrumented provider
+copies, which are explicitly not canonical-provider trajectories.
+
+Actual same-Native desktop passes256steps, all257 public states/words,2187
+changed GPU pixels, separate kinetic/potential display and1280/1440/1920
+controls with no page/console errors. The executable
+[two-cube example](/packages/physics/profiles-and-lifecycle#two-cubes-and-a-floor)
+passes2 tests. This qualifies the aligned equal2kg cubes/floor at120Hz through
+256steps. Rotated anisotropic contact still refuses with NUMERIC_LIMIT and
+retained state; friction, elastic networks and general moving8 remain outside.
+No screenshot is used as a physical oracle. See
+`examples/physics-coupled-cubes-floor-2276/RESULTS.md`. HOLDs and original gates remain.
+
 ## Sphere-pair CCD checkpoint
 
 Exact represented endpoint/radius predicates fix an observed false graze: the

@@ -35,7 +35,8 @@ import { prepareForcedRotation } from './rigid-forced-rotation.js';
 import { prepareStackStep } from './stack/prepare-step.js';
 import { STATIONARY_MAX_STEPS, admitStationaryCommands } from './stack/stationary-profile.js';
 import { prepareStationaryOutput } from './stack/public-output.js';
-import { ContactPairAccumulator } from './contact-contribution.js';
+import { ContactPairAccumulator, type CompletedContactPair } from './contact-contribution.js';
+import { prepareFrictionlessIsland } from './stack/frictionless-island.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -93,6 +94,14 @@ function publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity
 
 export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld {
   const admitted = admitModel(model, options);
+  const islandMode = admitted.options.profile === 'rigid-persistent-box-v1' &&
+    admitted.joints.length === 0 && admitted.bodies.some(body => body.kind === 'dynamic') &&
+    admitted.bodies.every(body => (body.kind === 'dynamic' || body.kind === 'static') &&
+      body.shape.kind === 'box' && !body.sleeping && !body.sensor && !body.ccd &&
+      !body.collisionFilter && body.restitution === 0 && body.frictionStatic === 0 && body.frictionDynamic === 0);
+  if (islandMode && admitted.options.broadPhase !== 'direct') {
+    error('INVALID_CONFIG', 'frictionless island requires direct broadPhase');
+  }
   const dt = admitted.options.fixedStepSeconds;
   const domainKind = admitted.domain?.kind ?? null;
   const domainId = admitted.domain?.data.id ?? null;
@@ -250,8 +259,11 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
       else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
+      let preparationPhase: FailureDetails['phase'] = 'prepare-output';
+      try {
       const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
-      const next = bodies.map(copyBody);
+      preparationPhase = 'candidate';
+      let next = bodies.map(copyBody);
       const motorImpulses = joints.map(() => 0);
       const nextSleepFrames = sleepFrames.slice();
       if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
@@ -325,6 +337,17 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3,
         ...(joint.motorImpulseNms === undefined ? {} :
           { motorImpulseNms: motorImpulses[index] }) }));
+      let islandContributions: readonly CompletedContactPair[] = [];
+      if (islandMode) {
+        const prepared = prepareFrictionlessIsland(next, pairs, { jointCount: joints.length });
+        next = prepared.candidateBodies;
+        preparationPhase = 'prepare-output';
+        nextPairStats.eligiblePairs = prepared.pairStats.eligiblePairs;
+        nextPairStats.candidatePairs = prepared.pairStats.candidatePairs;
+        nextPairStats.aabbTests = prepared.pairStats.aabbTests;
+        for (const contact of prepared.contacts) found.set(`${contact.aId}\u0000${contact.bId}`, contact);
+        islandContributions = prepared.pairContributions;
+      } else {
       const bounds = useAabb ? next.map(bodyBounds) : null;
       for (let pass = 0; pass < SOLVER_PASSES; pass++) {
         if (bounds && pass > 0) for (let index = 0; index < next.length; index++) {
@@ -426,6 +449,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           if (reaction.angleRad !== undefined) nextJoints[index].angleRad = reaction.angleRad;
         }
       }
+      } // Existing pair/joint iteration belongs only to the non-island route.
+      preparationPhase = 'prepare-output';
       if (disjointHinges) {
         if (found.size !== 0 || sensed.size !== 0) {
           error('NUMERIC_LIMIT', 'disjoint hinge contact profile is unsupported');
@@ -444,6 +469,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         const previous = activePairs.get(key);
         return { ...(current ?? previous!), phase: current ? previous ? 'stay' : 'begin' : 'end' };
       });
+      preparationPhase = 'validation';
       validateResult(next, nextContacts);
       if (ccd.kind === 'box-pair' && !axisAlignedBox(next[ccd.boxIndex])) {
         error('NUMERIC_LIMIT', 'box CCD contact rotated outside the admitted profile');
@@ -458,7 +484,15 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
         }
       }
-      contactContributions.finish();
+      if (!islandMode) contactContributions.finish();
+      else for (const pair of islandContributions) {
+        if (!next.some(body => body.id === pair.aId) || !next.some(body => body.id === pair.bId) ||
+          [pair.onA, pair.onB].some(side => [side.linearImpulseNs, side.angularImpulseAboutWorldOriginNms]
+            .some(vector => vector.length !== 3 || vector.some(value => !Number.isFinite(value))))) {
+          error('NUMERIC_LIMIT', 'unsafe completed island contribution');
+        }
+      }
+      preparationPhase = 'prepare-output';
       const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);
       // All candidate, output and recording allocations finish before shared commit.
       const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
@@ -476,6 +510,14 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       stepIndex++;
       if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
       return state;
+      } catch (failure) {
+        if (!islandMode || !(failure instanceof PhysicsError)) throw failure;
+        const enriched = new PhysicsError(failure.code, failure.message, {
+          operation: owner ? 'record' : 'step', phase: failure.code === 'WORLD_LIMIT' ? 'budget' : preparationPhase,
+          domain: 'rigid', entityIds: [...failure.details.entityIds], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+        enriched.stack = failure.stack;
+        throw enriched;
+      }
     },
     query(input): QueryResult {
       ensureActive();
@@ -523,7 +565,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     catch (failure) {
       if (!(failure instanceof PhysicsError)) throw failure;
       const enriched = new PhysicsError(failure.code, failure.message, {
-        operation, phase: stationaryMode && ['candidate','validation','prepare-output','budget'].includes(failure.details.phase) && failure.details.accepted !== null ? failure.details.phase :
+        operation, phase: (stationaryMode || islandMode) && ['candidate','validation','prepare-output','budget'].includes(failure.details.phase) && failure.details.accepted !== null ? failure.details.phase :
           ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
           failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
         domain: domainKind ?? 'rigid', entityIds: domainId && failure.details.entityIds.length === 0 ? [domainId] : failure.details.entityIds,

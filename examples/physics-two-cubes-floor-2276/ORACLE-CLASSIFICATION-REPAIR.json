@@ -1,0 +1,24 @@
+{
+  "status": "TWO_PHYSICAL_CLASSIFICATIONS_REPAIRED_PAID_SIX_REPLIES_BYTE_EQUAL",
+  "old": {
+    "path": "examples/physics-two-cubes-floor-2276/baseline/oracle-classification-v1/oracle.py",
+    "bytes": 25038,
+    "sha256": "7c3d5ad146b3b2c09853cd2b92c86879dcc0f687493dc06b29168e45aa7a59f7"
+  },
+  "new": {
+    "path": "examples/physics-two-cubes-floor-2276/oracle.py",
+    "bytes": 25432,
+    "sha256": "7e423164dfeaa5ac58ef63edfed9e954e809cfdc880bcef8ad9ae35123a3ee54"
+  },
+  "reason": "Keep actual-output physical violations separate from invalid request/schema; preserve earlier violations.",
+  "criteriaUnchanged": [
+    "strict gap_x > 0",
+    "identical squared-time contact bracket"
+  ],
+  "productionChanged": false,
+  "newWorldCalls": 0,
+  "oldReceiptsUnchanged": true,
+  "savedPacketReaudit": "examples/physics-two-cubes-floor-2276/evidence/reference-reaudit-02/result.json",
+  "controls": "examples/physics-world-p5-2276/evidence/two-cubes-floor-oracle-controls-02/result.json",
+  "newBuildEmissionParity": "output/playwright/two-cubes-floor/floor-desktop02/emission-parity.json"
+}

@@ -94,6 +94,7 @@ export const providerManifest = {
     "stack/contact-types.ts": "7191984e5ee106de91c68ce4efb6c40afe8f5122b7a53e0ad2c5762191edfb47",
     "stack/edge-contact.ts": "58f1189ab830195628fe485e7885351595a86bbdbe6341d7b02ea9ff63aa9184",
     "stack/face-contact.ts": "37dcbd7601ad05b403207e5030dd04c64582169eed59631338cd41942e1c1063",
+    "stack/frictionless-island.ts": "7721f76f9122112c5bf8aaff202f27ce4cbc5fbe47560f8591264d4c17728e6f",
     "stack/full-pair-apply.ts": "d4c7e503337e318d1dae9d2f93ad7310e078f2123159894542014a4945ef3f04",
     "stack/full-pair-core.mjs": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46",
     "stack/full-pair-exact.mjs": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32",
@@ -118,6 +119,6 @@ export const providerManifest = {
     "stack/world-types.ts": "57d1a3d76c3caea2d7a9b649838615c0c5e0812fa4a51c9956527c332f60a2a0",
     "types.ts": "f7c6b5ebf7732fc412d324192e55087cdeaa7d44e5228091bd8f8a05a9038666",
     "validation.ts": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af",
-    "world.ts": "48544b577b7490040ce96691b883808f45977c601c4ab053e51081674062717e"
+    "world.ts": "6e307bfdb38937c6e30bcbbf921d6cea0a6896845243ad49e35dcb0c5dd37954"
   }
 } as const;

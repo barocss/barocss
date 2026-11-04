@@ -22,7 +22,9 @@ correction. See `examples/physics-stack-stationary-world-2276/RESULTS.md`.
 
 This is unforced equilibrium maintenance of eight fixed-mass yaw-only cubes,
 not general eight-body falling, restitution, frictional settling or collapse.
-The existing persistent solver retains its four-body cap and8x8 loops. No old
+The persistent profile retains its four-body cap. Its new direct zero-material
+box island uses one global normal/position candidate; other contact laws retain
+their existing8x8 loops. No old
 failure is rewritten as PASS, and the previous QR/runtime/storage results below
 remain historical. Current support supersedes their present-tense API status
 only for this new stationary profile. No legacy solver/factory fallback.
@@ -44,8 +46,8 @@ Next implementation order:
    topology, coupled rotation, friction and simultaneous impacts keep separate
    NO_GO entries until verified. Do not repurpose the stationary certificate.
 
-Completion date for general moving8 remains UNKNOWN until the first small-island
-results. All Studio/manufacturing/equipment/old-worker HOLDs, tolerances,
+Completion date for general moving8 remains UNKNOWN. The bounded small-island
+milestones below do not predict its completion. All Studio/manufacturing/equipment/old-worker HOLDs, tolerances,
 first failures and deployment prohibition remain. Existing workers are not resumed.
 
 ### Gravity and delayed-impact milestone
@@ -70,6 +72,49 @@ Next is two moving cubes plus a floor with separated collision events, then a
 small simultaneous normal-contact problem using independent momentum/energy
 and matrix certificates. Rotating/frictional/general moving8 remains NO_GO or
 NOT_QUALIFIED. Keep numerical and actual desktop proof in the same feature stage.
+
+### Two-cube floor milestone and preserved first coupled failure
+
+The separated floor case now passes public Source/Native, each9Worlds and1022
+accepted steps including4restore replay steps. Three dt cases use896primary
+steps. Independent1e-12m public representative geometry and original SI gates
+pass; matched0.1s position/energy errors converge at first order. Actual same-
+Native desktop accepts256steps, all257states/words equal the paid numerical
+packet,5969GPU pixels change, and all three desktop widths/controls pass.
+See `examples/physics-two-cubes-floor-2276/RESULTS.md`. The observer's original
+trace-failure classification bug is preserved; two unchanged physical criteria
+now retain physical violations, and all six paid valid replies remain byte-exact.
+
+The preserved original vertical-chain baseline has Source/Native NO_GO at27:
+one World per graph accepts27 but independently passes26. Maximum projected
+velocity error0.008623153568856012m/s and position error2.934570312507212e-5m
+exceed original1e-10 gates. Representative geometry also fails1e-12m. All28
+observed states are word-equal across graphs; determinism is not accuracy.
+The old engine committed that bad state, rather than refusing it. Exact loaded
+inputs and first failures are preserved before any library repair.
+
+The private batch normal/position candidate now passes the actual captured
+FREE27 phase in Source and strict NodeNext Native, with8 actual point impulse
+applications and independent full wrench/KKT checks. Projected velocity error
+is4.441e-16m/s and position error5.552e-17m; strict geometry remains1e-12m.
+The exact isotropy identity is used only for exactly equal local inertias;
+all15 private boundary calls per graph pass. This is not a public accepted
+step or trajectory. No8x8 increase, rest snap, reference-solver copy or fallback.
+Actual common World32 and256 now pass Source/compiled independent references.
+Each graph's6Worlds/786accepted steps comprise256 coupled +8restore/continuation
+and522 affected-regression steps;786 is not the coupled trajectory length.
+Maximum coupled velocity/position errors are3.159e-15m/s and2.887e-15m,
+representative geometry8.882e-16m. Real public known-error/refusal controls retain
+state/clock/model/log and retry; unexpected identity is checked in explicitly
+untrusted diagnostic copies. Actual same-Native desktop verifies all257states/
+numeric words,2187 changed GPU pixels and three desktop widths. This supports
+the stated aligned2kg two-cube/floor120Hz case through256steps, not all admitted
+boxes. AABB for this zero-material island is explicitly rejected at creation;
+rotated anisotropic input still refuses exact tensor symmetry with retained state.
+Next is a source-frozen3DOF reference and bounded three-cube/floor campaign
+within the existing4body cap; expand only after its own gates pass. See
+`examples/physics-coupled-cubes-floor-2276/RESULTS.md`. General moving8 and all
+Studio/manufacturing/equipment/old-worker HOLDs remain unchanged. No deployment.
 
 ## Previous priority review, preserved before stationary qualification
 

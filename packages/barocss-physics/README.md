@@ -15,8 +15,15 @@ See [stationary World results](../../examples/physics-stack-stationary-world-227
 Existing1/2-body impact dynamics also pass11 fresh desktop checks with current
 emitted Physics, including numerical bounce values, actual upward travel and
 changed GPU pixels. See [current motion desktop results](../../examples/physics-motion-desktop-2276/RESULTS.md).
-Next are independently checked small-island gravity trajectories with desktop
-motion in the same stage, before moving multi-body expansion. No deployment.
+The new direct, zero-friction/restitution box island uses one global normal and
+all-pair position solve through the same World. The aligned2kg two-cube/floor
+case passes256 primary steps in Source/actual compiled paths, independent
+global projection/geometry gates, record/restore/failure controls and same-Native
+desktop full257-state/word parity. Existing cap4 and tolerances stay fixed;
+that zero-material regime explicitly rejects AABB, and rotated anisotropic
+contact still refuses exact tensor symmetry. Original first failures remain.
+See [coupled dynamics results](../../examples/physics-coupled-cubes-floor-2276/RESULTS.md).
+Three-cube/floor validation is next; general moving8 is not qualified. No deployment.
 
 The finite box CCD checkpoint accepts both signs of the identity quaternion
 without changing orientation/angular thresholds. Source/compiled20-case checks

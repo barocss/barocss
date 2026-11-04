@@ -13,7 +13,7 @@ profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(comman
 | Selection | Capacity and combinations | Numerical scope and evidence route |
 | --- | --- | --- |
 | `profile:'rigid-discrete-v1'` | 1–32 spheres, oriented boxes or capsules; optional `broadPhase:'aabb'` | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. See [verification](/reference/physics-verification). |
-| `profile:'rigid-persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Up to four clipped points for face-normal box contacts and bounded impulse reuse. Minimum material restitution applies above the strict 0.5 m/s closing-speed switch; centered principal-axis zero-friction impacts have separate source/native and desktop evidence. Edge/edge and non-box pairs use the one-point path. Recorded centred and 0.05 m offset fixtures do not qualify arbitrary stacks. |
+| `profile:'rigid-persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Awake, unfiltered dynamic/static boxes with zero restitution/friction and no joints/sensors/CCD use one global normal and all-pair position solve, with `broadPhase:'direct'` required and no failure fallback. Other material/role combinations retain their bounded manifold/contact laws. Minimum material restitution applies above the strict 0.5 m/s closing-speed switch. Selected centered and offset fixtures do not qualify arbitrary stacks. |
 | `profile:'rigid-stationary-cube-stack-v1'` | Exactly eight1kg half0.25m cubes and the original static floor;1200steps; direct broad phase, dt1/120, g=[0,-9.81,0], yaw-only poses, zero motion, original materials and empty commands | Exact32-point stationary witness; no fallback. Original three equilibrium scenes pass independent1200-step checks, public Source/compiled paths and actual desktop body-word parity. Unsupported contact chains refuse. This maintains equilibrium; falling, bounce, frictional settling and collapse are outside this profile. |
 | `profile:'rigid-large-v1'` | 1–64 bodies; requires `broadPhase:'aabb'`; requires an empty `joints` array; excludes CCD and persistent-box contact | Fixed collision filters and contact-island sleep. The named 63-sphere floor probe is a capacity case, not a general 64-body stack certificate. |
 | Anchored fixed or hinge joints | At most eight records. Each static/kinematic A connects to a uniquely jointed dynamic B | Body-local initial anchors must coincide within `1e-6` m. A hinge uses unit `axisWorld` and limits within ±π/2 that include zero. Connected bodies do not collide. |
@@ -46,6 +46,26 @@ NO_GO: its accepted aggregate tangent is not in the reported normal plane, and
 the accepted paired contact witness fails independent native geometry. Existing
 centered impact and support results remain bounded proofs. No general tilted
 contact, contact-cache accuracy or stable-stack claim follows from admission.
+
+### Two cubes and a floor
+
+The zero-friction island shares the common World, clock and recorder. Supply
+only initial conditions and commands. Render the accepted body state after a
+step. The renderer does not solve contacts or advance time.
+
+<<< @/../samples/physics-island.test.mjs#two-cubes-floor-model
+
+<<< @/../samples/physics-island.test.mjs#two-cubes-floor-step
+
+This executable example covers two aligned2kg cubes, a prescribed static floor,
+gravity−9.81m/s², zero restitution/friction and a1/120s step. The32/256-step Source
+and actual compiled World checks pass the unchanged independent global
+projection and1e-12m representative-geometry gates. The original step27 failure
+is preserved. Actual restore/continuation, failure recovery and same-Native
+desktop rendering also pass, with separate receipts in
+[Physics verification](/reference/physics-verification).
+Admission alone does not qualify arbitrary mass ratios, tilted boxes, friction,
+simultaneous elastic impact or moving eight-body stacks.
 
 ### Isolated noncubic rotor
 

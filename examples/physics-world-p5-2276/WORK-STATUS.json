@@ -3,11 +3,11 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "rigid-stationary-cube-stack-v1: unforced equilibrium maintenance only",
-    "status": "PRIVATE_ORIGINAL_3600_PUBLIC_SOURCE_NATIVE_3600_AND_DESKTOP_3600_PASS",
-    "scope": "ALIGNED/OFFSET/YAW each1200 all original private gates plus exact Fraction witness; public root/replay Source/Native exactbodywordparity; real Chrome WebGPU each1200. Not moving eight-body dynamics.",
-    "results": "examples/physics-stack-stationary-world-2276/RESULTS.md",
-    "canonicalAdoption": "SOLE_PUBLIC_WORLD_BOUNDED_PROFILE_LOCAL"
+    "profile": "rigid-persistent-box-v1: aligned2kg two-dynamic-cube/floor, e0/friction0/direct120Hz",
+    "status": "PUBLIC_SOURCE_NATIVE_256_RESTORE_FAILURE_AND_DESKTOP_PASS",
+    "scope": "256 primary coupled transitions/257 full states; eachgraph campaign6Worlds786accepted incl8restore/continuation and522regressions. ActualNative desktop2Worlds256steps ALLnumericwords+GPU2187pixels/3desktopwidths. No general moving8/anisotropic/frictional claim.",
+    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_GLOBAL_ZERO_MATERIAL_ISLAND_LOCAL"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Stationary original/public/desktop3600 locally PASS. New small dynamic gravity-fall and delayed-pair SourceNative each11World1018steps, independent Fraction/convergence and actual desktop512steps/fullstate+word+GPU motion PASS. Next two cubes plus floor with separated events, then small simultaneous normal island. General moving8 remains NO_GO/NOT_QUALIFIED.",
+  "active": "Two-cube/floor StageA separated PASS. StageB coupled productionisland now actualpublic32/256 SourceNative independentPASS,6World786accepted pergraph incl256main/8restore+continue/522regression. Failurecontrols7World13returned pergraph PASS; actualNative desktop2World256steps257ALLwords+2187changedGPUpixels/3desktopwidths PASS. OldfirstNO_GO27/tool/type/tensor/observerfailures preserved. Next3dynamiccubes+floor independent3DOFreference SOURCE_IN_PROGRESS,notqualified. HOLD/gates unchanged; nodeploy.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -524,11 +524,11 @@
     "graph": "Native public World",
     "worlds": 1,
     "acceptedSteps": 2,
-    "tangentPlaneResidualNs": 7.191714115138252e-09,
+    "tangentPlaneResidualNs": 7.191714115138252e-9,
     "tangentPlaneGateNs": 1e-12,
     "acceptedPairedWitnessGapM": [
-      8.508678180235096e-06,
-      5.6915981142408475e-05
+      0.000008508678180235096,
+      0.000056915981142408475
     ],
     "pairedWitnessGateM": 1e-12,
     "privateBoxConstruction": {
@@ -666,7 +666,7 @@
     "actualImpulseOnBNs": [
       -0.06810993686254845,
       0.09728269579179234,
-      -2.174053310893481e-05
+      -0.00002174053310893481
     ],
     "publishedImpulseOnBNs": [
       0,
@@ -758,7 +758,7 @@
     "queryPoints": 19,
     "anchorChecks": 513,
     "firstFailure": "currentTangentPlane",
-    "firstFailureResidualNs": 9.141407414550243e-05,
+    "firstFailureResidualNs": 0.00009141407414550243,
     "gateNs": 1e-12,
     "firstFailureLocation": "step2 firstwarm actual application;record6 outerpass0",
     "coverage": "REAL_BRANCH_REACHED_PHYSICAL_NO_GO_NOT_QUALIFIED",
@@ -1586,7 +1586,7 @@
     "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
     "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
     "gates": [
-      "fresh32-pair exact/B\u00e9zout audit",
+      "fresh32-pair exact/Bézout audit",
       "freshA10",
       "oneB6fullphysical+independent",
       "oneparent-plus-fullchildCPUcostdecision"
@@ -1666,8 +1666,8 @@
       "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
       "childLifetimeCpuNs": 299711000,
       "resourceBefore": {
-        "userSeconds": 0.0,
-        "systemSeconds": 0.0
+        "userSeconds": 0,
+        "systemSeconds": 0
       },
       "resourceAfter": {
         "userSeconds": 0.288052,
@@ -1975,8 +1975,8 @@
       "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
       "childLifetimeCpuNs": 254303000,
       "resourceBefore": {
-        "userSeconds": 0.0,
-        "systemSeconds": 0.0
+        "userSeconds": 0,
+        "systemSeconds": 0
       },
       "resourceAfter": {
         "userSeconds": 0.24182599999999999,
@@ -2385,8 +2385,8 @@
       "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
       "childLifetimeCpuNs": 234927000,
       "resourceBefore": {
-        "userSeconds": 0.0,
-        "systemSeconds": 0.0
+        "userSeconds": 0,
+        "systemSeconds": 0
       },
       "resourceAfter": {
         "userSeconds": 0.223626,
@@ -2541,5 +2541,41 @@
     "generalMovingEightBodies": "NO_GO_NOT_QUALIFIED",
     "mobileTests": false,
     "deployment": false
+  },
+  "twoCubesFloor": {
+    "results": "examples/physics-two-cubes-floor-2276/RESULTS.md",
+    "numerical": "SOURCE_NATIVE_PASS_9_WORLDS_1022_STEPS_EACH",
+    "desktop": "PASS_2_WORLDS_256_ACCEPTED_257_STATES",
+    "firstContacts120Hz": [
+      27,
+      47
+    ],
+    "gpuChangedPixels": 5969,
+    "strictPublicGeometryGateM": 1e-12,
+    "coupledDynamicChain": false,
+    "referenceRepair": "two output failure classifications only;6paid replies byteexact;0newWorldcalls",
+    "deployment": false,
+    "mobile": false
+  },
+  "coupledCubesFloor": {
+    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
+    "baseline": "examples/physics-coupled-cubes-floor-2276/evidence/baseline-02/result.json",
+    "status": "SOURCE_NATIVE_PHYSICAL_NO_GO_STEP27",
+    "worldsPerGraph": 1,
+    "engineAcceptedPerGraph": 27,
+    "independentlyPassedPerGraph": 26,
+    "velocityErrorMps": 0.008623153568856012,
+    "positionErrorM": 0.00002934570312507212,
+    "repair": "PRIVATE_CANDIDATE_SOURCE_ONLY",
+    "publicRepair": "NOT_RUN",
+    "desktopRepair": "NOT_RUN",
+    "oldFailureAndLoadedSourcesPreserved": true
+  },
+  "stationaryEightMilestone": {
+    "profile": "rigid-stationary-cube-stack-v1: unforced equilibrium maintenance only",
+    "status": "PRIVATE_ORIGINAL_3600_PUBLIC_SOURCE_NATIVE_3600_AND_DESKTOP_3600_PASS",
+    "scope": "ALIGNED/OFFSET/YAW each1200 all original private gates plus exact Fraction witness; public root/replay Source/Native exactbodywordparity; real Chrome WebGPU each1200. Not moving eight-body dynamics.",
+    "results": "examples/physics-stack-stationary-world-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_BOUNDED_PROFILE_LOCAL"
   }
 }
