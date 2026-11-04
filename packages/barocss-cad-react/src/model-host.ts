@@ -8,6 +8,16 @@ import type { ModelLifecycle } from './components.js';
 
 import type {ExistingViewerSink,ModelHostOptions} from './ports.js';
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message || error.name;
+  if (error && typeof error === 'object') {
+    const fields = error as Record<string, unknown>;
+    const words = ['title', 'hint', 'detail'].map(key => fields[key]).filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+    if (words.length) return [...new Set(words)].join(' ');
+  }
+  return String(error);
+}
+
 export class ModelHost implements ModelLifecycle {
   private adapter: EngineAdapter;
   private sink: ExistingViewerSink;
@@ -52,7 +62,7 @@ export class ModelHost implements ModelLifecycle {
   private settle() { const pending = this.barrier; this.barrier = null; pending?.resolve(); }
   invalid(error: unknown) {
     if (this.disposed) return;
-    this.error = error instanceof Error ? error.message : String(error);
+    this.error = errorMessage(error);
     this.pendingModel = false; this.desired = null;
     this.adapter.invalid(error); this.settle();
   }
@@ -80,7 +90,7 @@ export class ModelHost implements ModelLifecycle {
     this.settle();
     void job.then(async outcome => {
       if (outcome.kind === 'stale') { this.ignored++; return; }
-      if (outcome.kind === 'failed') { if (this.desired?.fingerprint === model.fingerprint) this.error = String(outcome.error); return; }
+      if (outcome.kind === 'failed') { if (this.desired?.fingerprint === model.fingerprint) this.error = errorMessage(outcome.error); return; }
       await this.whenStable();
       if (!this.current(outcome.owner)) { this.ignored++; return; }
       if (this.native?.owner !== outcome.owner) this.native = { owner: outcome.owner, bodies: outcome.result.bodies };
@@ -89,7 +99,7 @@ export class ModelHost implements ModelLifecycle {
       else this.ignored++;
     }).catch(error => {
       if (!this.disposed && owner && this.adapter.state.desired === owner)
-        this.error = error instanceof Error ? error.message : String(error);
+        this.error = errorMessage(error);
     });
   }
   private async whenStable() {
@@ -103,8 +113,10 @@ export class ModelHost implements ModelLifecycle {
     const owner = this.native?.owner;
     const current = !!owner && this.current(owner);
     const body = current ? this.native!.bodies[0] : null;
-    return { status: this.disposed ? 'disposed' : this.error ? 'failed' : current && this.rendered === owner ? 'ready' : 'pending',
-      error: this.error, pendingModel: this.pendingModel, checkpoints: this.checkpoints, requests: this.requests,
+    // A settled Worker can fail without an active submit promise to set the local error.
+    const error = this.error ?? (this.state?.phase === 'failed' ? errorMessage(this.state.error) : null);
+    return { status: this.disposed ? 'disposed' : (this.error !== null || this.state?.phase === 'failed') ? 'failed' : current && this.rendered === owner ? 'ready' : 'pending',
+      error, pendingModel: this.pendingModel, checkpoints: this.checkpoints, requests: this.requests,
       merges: this.merges, ignored: this.ignored, submitted: this.submitted,
       currentDocument: this.desired?.doc ?? null, documentJSON: this.desired ? JSON.stringify(this.desired.doc) : null,
       fingerprint: this.desired?.fingerprint ?? null, nativeOwner: owner ?? null, renderedOwner: this.rendered,

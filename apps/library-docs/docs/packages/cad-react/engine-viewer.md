@@ -32,6 +32,8 @@ export async function connectCADView(
 
 Construct/connect after React commit, such as in an owning effect, and clean up when the application unmounts. Guard an asynchronous Viewer creation against an already-retired mount; the repository App examples show this pattern. ModelHost's constructor is inert: `connect()` installs subscriptions. Keep the engine, massPolicy and lifecycle identities stable for the intended lifetime.
 
+A Worker failure after a successful frame also makes `ModelHost.read()` report `failed`, with readable title, hint and detail. It does not restart the borrowed engine or resubmit automatically. In the repository `App` and `ProfileApp` examples, the engine owner can provide an optional `onRestart` callback that calls its existing client's `restart()` and returns whether it succeeded. The private Retry button uses that explicit callback, then rerenders the current declaration with the same Part, host, parameter values and feature IDs. A refused or thrown restart keeps the failure visible. Reset changes only the example's parameter. A Viewer startup failure has no connected host and does not offer Worker Retry; recreating that Viewer remains the caller's responsibility.
+
 ## Required ports and ownership
 
 Import these public types from `@barocss/cad-react/engine`:

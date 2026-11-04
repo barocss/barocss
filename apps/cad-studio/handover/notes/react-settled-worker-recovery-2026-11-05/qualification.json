@@ -1,0 +1,200 @@
+{
+  "workId": "D528",
+  "priority": "P0-R08",
+  "rows": [
+    16
+  ],
+  "historicalCategory": "C5",
+  "tier": "FEATURE",
+  "baseline": "18776c7ff912c97c3d952fde8aeed76b0eb46fb5",
+  "status": "BOUNDED_SETTLED_WORKER_FAILURE_AND_EXPLICIT_RETRY_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentSourceReview": "APPROVED; GPT-6.1 Sol Medium",
+  "checks": {
+    "original14": {
+      "pass": 4,
+      "fail": 10
+    },
+    "fixedNew17": {
+      "pass": 17,
+      "fail": 0
+    },
+    "related": {
+      "pass": 22,
+      "fail": 0
+    },
+    "controlledTotal": 39,
+    "docsSamples": {
+      "pass": 185,
+      "fail": 0
+    },
+    "ReactTypes": "PASS",
+    "consumerTypes": "PASS",
+    "exampleTypes": "PASS after external typeRoots configuration repair",
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActual": {
+    "baseline": "PASS_HARNESS_PRODUCT_FAILURE_REPRODUCED",
+    "fixed": "PASS",
+    "fault": "One deliberate malformed request to the owned native Worker, not an organic failure",
+    "sourcePaths": 1231,
+    "sourceChanges": 0,
+    "baselineStates": 3,
+    "fixedStates": 6,
+    "fixedContexts": 2,
+    "unknownPageErrors": 0,
+    "unknownConsoleErrors": 0,
+    "downloads": 0,
+    "retryCalls": 1,
+    "requestsBeforeFault": 2,
+    "requestsAfterRecovery": 3,
+    "sameRadius": 8,
+    "sameRecoveredDoc": true,
+    "sameBoundedViewerPixelDigest": true,
+    "returnedStudioDocExact": true,
+    "returnedStudioBodies": 1,
+    "rootViewed": [
+      "repro05/03",
+      "fixed01/03",
+      "fixed01/04",
+      "fixed01/06"
+    ],
+    "cleanup": "All owned contexts/Chrome/static HTTP/Studio Vite closed"
+  },
+  "retainedFailures": [
+    "Original controlled Host3 and DOM7 assertions",
+    "repro01-03 dev-only WebSocket/console infrastructure errors",
+    "repro04 late harness edit invalidated source custody; product unchanged",
+    "external examples-tsconfig attempt1 missing installed Node type root:11 configuration errors"
+  ],
+  "notRun": [
+    "Organic fault frequency",
+    "Native browser retry false/throw/startup/disposal races; controlled cases only",
+    "Native Save/export or independent physical oracle",
+    "Packed consumer, whole Studio production build, whole kernel, CI/mobile/release/develop integration",
+    "R09 observation ownership and broad CAD React completion"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "sourcePins": {
+    "packages/barocss-cad-react/src/model-host.ts": "4e362e3538d6464375ef4945764d6b0881d28a228aae40b2a8f1090756e5fdc6",
+    "packages/barocss-cad-react/examples/App.tsx": "b3371d1256b71de0cf4430a63389fad5d800c1938c58ee5f18b8a5759d8df902",
+    "packages/barocss-cad-react/examples/ProfileApp.tsx": "a5b12bf52d0f66ccd23cb557c1692ab91d813bdc9b2afb8c10d4e55c2e8049fd",
+    "packages/barocss-cad-react/examples/ExampleShell.tsx": "19b2c9ce622b86df7d26c0a7262dad7aabcc969fadab4ae3bfe823f55bc808b0",
+    "packages/barocss-cad-react/tests/settled-worker-failure.test.mjs": "7ddfdbb63adee4da3c4dd330a06b50021387a8374253830077234983709b9254",
+    "packages/barocss-cad-react/tests/example-retry.test.mjs": "9c0c2ea1afc49a2141f9e73dc3c91e09f8dcaa87a072265579970271aded387e",
+    "packages/barocss-cad-react/tests/engine-failure-current-browser.mjs": "aecfb8e4b4a415a3d006ecf686205ecda567c7af9bdbf974be575bfa8d64ae84",
+    "packages/barocss-cad-react/tests/engine-failure-studio-fixture.tsx": "6a47e261995f1f0eb91305e4c86eb3e2ff2d220c97012b249e061f03356b02a6",
+    "packages/barocss-cad-react/tests/native-worker-failure-observer.mjs": "a7c90479ab1b0118fff2462591a4e8ee6f8831675bed20a81d1ac109cbc19eb9",
+    "apps/library-docs/docs/packages/cad-react/engine-viewer.md": "721a2075ce798116a46e2e2d9162db19e2df0ebe860a00674f49696a1fd302f7"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d528-baseline-controls01/tests.log",
+      "sha256": "bb582d66b13843007094f612906820ed76992a113d546701c4eb0e71156c005e"
+    },
+    {
+      "path": "/tmp/barocss-d528-baseline-dom01/tests.log",
+      "sha256": "674f29bed9096e31153323b449780438efef088a424dab0bb89bdffb1850579a"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/consumer-types.log",
+      "sha256": "c619ee4e5b3a102c63c1b29297a38d1a05c41c6a4a3340c4765ea112ee5515bf"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/docs-samples.log",
+      "sha256": "e92628728996f6ee8e5866a9990c94b2b0875537367014e1266e628fff8bd0a8"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/driver-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/examples-types.log",
+      "sha256": "8048bfee176e278e0653aacb11e1ea08bc55122f92e450d137ef12e7c2d6860e"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/examples-types02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/new-tests.log",
+      "sha256": "13a88f1fddab3917b078f0fcf35cb86bc3cb57a17dfce3e3810b3deea95df8e4"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/react-lint.log",
+      "sha256": "b4a1eced578d6d0c346ae6065036ff0efc3ec36bc067bb4dfe39a16319e3e2f5"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/react-types.log",
+      "sha256": "ddbd989c56c51e7ec5061885e06a85461439a9ffee360f275cb9566eb7a7f989"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/related-tests.log",
+      "sha256": "4148a7a9ab67eef42e3372af291aa7293b04012796ba297552ae38647357886c"
+    },
+    {
+      "path": "/tmp/barocss-d528-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro01/receipt.json",
+      "sha256": "e7cb29d23ce011badca10b9d0ec44fde009bfb88d8fd3c296bd5f2a98de36c7c"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro01-meta/run.log",
+      "sha256": "b86db979d7d04c5669dea926d48461b3a294faee191b28ef9c7e8b26b7a90687"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro02/receipt.json",
+      "sha256": "4f49a060bc20dd7b791b89900b7affd0d9f373136fbf18216f883bc2e278b235"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro02-meta/run.log",
+      "sha256": "72b090de4ce798de21d905196f9cb231f5f56720bc262398646afcbb1a3e2212"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro03/receipt.json",
+      "sha256": "89e18229ba8f5e912d8c0479475f0891b0307f4cb850e36b2df3203ea86d9898"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro03-meta/run.log",
+      "sha256": "143bf12affe34ba9d53cbb3c68173e64c7c3de0e964cbaa4f2b192d40f394441"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro04/receipt.json",
+      "sha256": "cf8da6d26f4f9643b55f6e5c7cccd485b00344599c50c76ebbf83e6d322243ff"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro04-meta/run.log",
+      "sha256": "016afb84f337c8d80dd90abcd77cf193aae7d24b318f4bb86f49c93f6c8b7b74"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro05/receipt.json",
+      "sha256": "af3deb3a4436f8fbeb223438662177d097d97289e0dda0d21720df9c018d7edb"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-repro05-meta/run.log",
+      "sha256": "b6b502e21569ccaa2d7bc179c1ad9eadb0d176a7797d3873bf8cc27d97fba214"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-fixed01/receipt.json",
+      "sha256": "47c082415b73e0c5784b99406e4547c3e82b1bd6db6e19ea9f457dd6bb53fdf5"
+    },
+    {
+      "path": "/tmp/barocss-d528-worker-fixed01-meta/run.log",
+      "sha256": "ef3a793359aad15512c12aefba5565c20f85885c74a818964b13ae4eaabe8c55"
+    }
+  ]
+}
