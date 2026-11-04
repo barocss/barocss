@@ -220,6 +220,27 @@ remain. See `examples/physics-contact-convergence-2276/RESULTS.md` and its
 
 **490 후속 데이터 감사:** 실제490 capture 감사는 거부 직전 closing velocity −1.0932118170260969e-7m/s를 확인했다. 원래1e-10 한계를 넘으므로 roundoff-only로 분류하지 않는다. 저장된384..489 진단에서는478 normal-direction error1.0310569142331814e-12가1e-12를 넘었고,488 rest velocity .04905m/s·angular velocity .0981rad/s,489 position error4.089e-4m가 관측됐다. 따라서 원인은490보다 앞설 수 있다. 이 데이터 감사의 independentTrajectoryAdded는0이며 두512·세384 자격을 넓히지 않는다.
 
+### Six-sample public library and Viewer gate
+
+`physics-sample-gallery-2276` adds six different finite library consumers:
+projectile64,elastic-box64,sphere-roll64,sphere-ccd1,principal-spin64,coupled-two128.
+Actual Source and canonical each pass12Worlds/770accepted steps including
+385repeat steps,385independent primary transitions,six reference replies,six
+invalid-command owner-preservation controls and full state/word parity. One
+Source observer-negative X perturbation is correctly rejected. Sphere rolling
+reaches no-slip by18; omega residual6.979e-16rad/s. Projectile continuous-position
+defect remains.0218m at64/120s; small discrete residuals are not continuous accuracy.
+Actual Viewer HiDPI02passes7Worlds/385steps/six complete Native packet captures,
+actual GPU changes,three desktop sizes/DPR1→2,zero errors/owned context closed.
+First desktop01resize-observer synchronization failure is preserved. Current
+package dist's121runtime modules match the paid canonical copy. Reusable local
+`dev.mjs` builds/serves with current dist and no paid receipt dependency.
+No production solver/export or tolerance changed. This finite gallery does not
+close478/488drift or490,original full-three512,moving8,G3,mechanisms or coupling.
+Next algorithm dependency stays contact/velocity/position coherence and the
+onset of aligned-rest drift, with original independent/public/full-horizon gates.
+See `examples/physics-sample-gallery-2276/RESULTS.md`. Existing HOLDs stay; no deploy.
+
 ## Previous priority review, preserved before stationary qualification
 
 | Main track | Current qualified boundary |

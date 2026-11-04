@@ -1,6 +1,6 @@
 {
   "asOf": "2026-11-04",
-  "branch": "codex/physics-contact-convergence-2276",
+  "branch": "codex/physics-sample-gallery-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
     "profile": "rigid-persistent-box-v1: aligned equal2kg two/three cubes/floor; direct e0/friction0",
@@ -1591,7 +1591,7 @@
     "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
     "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
     "gates": [
-      "fresh32-pair exact/Bézout audit",
+      "fresh32-pair exact/B\u00e9zout audit",
       "freshA10",
       "oneB6fullphysical+independent",
       "oneparent-plus-fullchildCPUcostdecision"
@@ -2676,5 +2676,37 @@
       "causeMayPrecede490": true,
       "qualifiedPrefixUnchanged": "two512_three384"
     }
+  },
+  "latestSampleGallery": {
+    "status": "SIX_BOUNDED_PUBLIC_SAMPLES_AND_ACTUAL_HIDPI_PASS",
+    "results": "examples/physics-sample-gallery-2276/RESULTS.md",
+    "baseCommit": "f17bd7ef3",
+    "eachNumericalGraph": {
+      "worlds": 12,
+      "acceptedStepsIncludingRepeat": 770,
+      "independentlyPassedPrimarySteps": 385,
+      "positiveReferenceReplies": 6,
+      "typedRefusalOwnerControls": 6
+    },
+    "sourceNegativeObserverControls": 1,
+    "desktop": {
+      "proofId": "gallery-desktop-02",
+      "worldsIncludingZeroReset": 7,
+      "steps": 385,
+      "completeNativePacketCaptures": 6,
+      "actualDPR2": true,
+      "mobile": false,
+      "sourceIntegrity": true,
+      "errors": 0,
+      "firstDesktop01FailurePreserved": true
+    },
+    "productionAlgorithmChanged": false,
+    "wholeEngineComplete": false,
+    "originalLongThree512": "NO_GO_UNCHANGED",
+    "currentPackageRuntimeFilesMatchCanonical": 121,
+    "reusablePreview": "node examples/physics-sample-gallery-2276/dev.mjs",
+    "nextAlgorithmDependency": "478/488onset-of-rest-drift and490contact/velocity/positioncoherence; independent+SourceNative+originalfull512gates first",
+    "holds": "Studio/manufacturing/equipment/oldworkers unchanged;CADReact otherWork",
+    "publication": false
   }
 }

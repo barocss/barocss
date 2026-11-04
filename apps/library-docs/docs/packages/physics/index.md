@@ -16,6 +16,32 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 
 For CAD, GPU and Viewer host ownership, see [host integration](./host-integration).
 
+## Run the local sample gallery
+
+The repository gallery has six independently checked finite examples: projectile,
+elastic box, sphere sliding/rolling, one sphere CCD event, principal anisotropic
+spin before contact, and two-cube floor support. Select a case, then use Step or
+Run. Reset restores the authored initial model. Worker owns the sole World;
+Viewer receives accepted poses. The desktop HiDPI tests compare complete Native
+states and commands as well as actual GPU pixel changes.
+
+With workspace dependencies present and Physics already built, run from the
+repository root:
+
+```sh
+node examples/physics-sample-gallery-2276/dev.mjs
+```
+
+If `packages/barocss-physics/dist/index.js` is absent, first run
+`pnpm --filter @barocss/physics build:library`. The preview uses that compiled
+package only; it does not install dependencies or build Physics automatically.
+Open the loopback address printed by the server. Numerical qualification uses
+a separate authenticated verification entry, not saved answers as animation.
+
+This is a local experimental library and Viewer host. The three-cube long
+horizon remains NO_GO. It does not qualify arbitrary CAD contact, mechanisms,
+physical fluid/cloth coupling, Studio or real equipment. Existing HOLDs remain.
+
 ## Choose the owning API
 
 | Need | Owning entry or API | Scope |

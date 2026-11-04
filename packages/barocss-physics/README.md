@@ -48,6 +48,16 @@ completed512/512 campaign. Full UI/checkpoint remain NOT_RUN behind the failed
 full numerical prerequisite. The [completion audit](../../examples/physics-contact-convergence-2276/LIBRARY-STATUS.md)
 keeps the library NOT_COMPLETE. Viewer receives accepted poses; it does not own
 a second solver or clock. Studio/React/HOLD and no-deployment boundaries remain.
+Six distinct [public library samples](../../examples/physics-sample-gallery-2276/README.md)
+now pass Source/canonical analytic checks, exact repeat/word parity and actual
+HiDPI Viewer: projectile, elastic box, sphere sliding/rolling, one sphere CCD
+event, principal anisotropic spin and two-cube support. Each numerical graph
+has12Worlds/770steps including repeats; the desktop has7Worlds/385steps and six
+complete Native captures. `node examples/physics-sample-gallery-2276/dev.mjs`
+uses current built Physics dist, without paid receipt paths. This extends finite
+consumer evidence, not production solvers, general material/contact support or
+the failed full-three512 horizon. All HOLDs and first failures remain.
+
 See [anisotropic library results](../../examples/physics-anisotropic-inertia-2276/RESULTS.md)
 and [CAD consumer readiness](../../examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md).
 CAD/CAD-model primitive flows and GPU CPU mesh admission pass; CAD Studio has no
