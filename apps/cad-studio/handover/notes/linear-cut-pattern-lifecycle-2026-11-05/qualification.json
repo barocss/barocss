@@ -1,0 +1,314 @@
+{
+  "workId": "D534",
+  "priority": "P1",
+  "rows": [
+    "08",
+    "12",
+    "16"
+  ],
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "e1c740130f989c606fb163726f5f2c84e8c0b0e1",
+  "status": "PASS_BOUNDED_LINEAR_CUT_PATTERN_LIFECYCLE",
+  "models": {
+    "driver": "GPT-6.1 Sol Medium",
+    "geometryOracle": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "newVersionedSources": [
+    "apps/cad-studio/test/linear-cut-pattern-lifecycle-browser.mjs",
+    "apps/cad-studio/test/linear-cut-pattern-lifecycle-oracles.mjs"
+  ],
+  "oldDrivers": "D373 and D533 unchanged; original creation/count2 loop not replayed",
+  "input": {
+    "file": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/linear-cut-pattern-closeout-2026-10-31/run-01/accepted.bcad",
+    "sha256": "020a7942b1fb4cc177b13c43bf0561c2002094ea5afc82ca3841cbccd900944c",
+    "bytes": 1695,
+    "authority": "retained accepted antecedent only"
+  },
+  "semanticDeltas": [
+    "A: n2.max[0]4->6 and delete only n3.made, retain n1.made",
+    "B: n6.spacing16->12",
+    "C: n6.count3->4",
+    "D: add n6.suppressed:true; output stays n6/b6, one original cut",
+    "Unsuppress removes flag and restores exact C",
+    "E: post-Open n6.spacing12->10 only"
+  ],
+  "controlled": {
+    "native": {
+      "status": "PASS_SIX_NATIVE_STATES_AND_TYPED_INVALID_REFUSAL",
+      "sourcePaths": 472,
+      "newClasses": 5,
+      "antecedentS": 1,
+      "typedInvalidSpacing0": "ok:false/CadPartError/PARAMETER/n6: spacing must not be zero; expected refusal, not an unexpected capture failure"
+    },
+    "independentPython": {
+      "status": "PASS_FIVE_DECLARED_NATIVE_NUMERICAL_STATES",
+      "cases": 5,
+      "source": "Frozen final inspector/source closure binds original native results; no native rerun",
+      "antecedentS": "Excluded from five new oracle cases"
+    },
+    "focused": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "selector": "linear-feature-pattern-command api-linear-feature-pattern editFields"
+    }
+  },
+  "physical": {
+    "scope": "Five declared disjoint straight integer-prism states; original stock/difference operands, no copied stock",
+    "formula": {
+      "V": "18000-40*w*m",
+      "Mx": "540000-40*w*(m*(8+w/2)+s*m*(m-1)/2)",
+      "My": "270000-400*w*m",
+      "Mz": "5*V",
+      "centroid": "[Mx/V,My/V,5]",
+      "massDensity1G": "V/1000 at1g/cm3 MMGS"
+    },
+    "effectiveM": "authored count if active,1 if suppressed",
+    "globalBounds": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        60,
+        30,
+        10
+      ]
+    ],
+    "independentAuthority": [
+      "No product imports",
+      "Literal dimensions/cut-center moments",
+      "Exact Fraction oriented planar boundary integration over original outer and inner loops",
+      "Original topology/twins/ownership/connectivity and genus=m",
+      "Six stock plane roles + four walls/cavity + two rectangular rims/cavity",
+      "Original rational line/bilinear D1 and optional pcurve lifts"
+    ],
+    "nativeAuthority": "Original full BRep bytes; default/strict/output validity; public massPropertiesOf and separate brepMassProperties MMGS. Native observer is not independent.",
+    "expectedVolumesMM3": {
+      "A": 17280,
+      "B": 17280,
+      "C": 17040,
+      "D": 17760,
+      "E": 17040
+    },
+    "sameVolumeSpacingChecks": "A/B and C/E require different centroids and complete nominal cut boundaries; volume/global bounds alone cannot pass.",
+    "maximumActualVolumeRelativeError": 8.421247238638225e-16,
+    "maximumActualCentroidAbsoluteMM": 4.973799150320701e-14,
+    "maximumGeometryWitnessErrors": {
+      "maximumEndpointGapMM": 0,
+      "maximumPcurveLiftGapMM": 7.32410687763558e-15,
+      "maximumCarrierResidualMM": 0,
+      "maximumIndependentProbePointGapMM": 0,
+      "maximumIndependentD1ComponentGapMM": 3.552713678800501e-15,
+      "maximumIndependentEdgeProbeGapMM": 0,
+      "maximumOutwardNormalComponentError": 0
+    },
+    "budgets": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsBoundaryCarrierD1EndpointPcurveAbsoluteMM": 1e-09,
+      "unitNormalComponent": 1e-09,
+      "density1MassAbsoluteG": 1e-09
+    },
+    "pcurves": "Original optional fields present48/96/120 per observed topology; independently lifted, not synthesized.",
+    "limits": "No full-domain/general geometry, inertia or displayed default-catalog mass certificate.",
+    "maximumActualDensity1MassAbsoluteG": 1.42109e-14,
+    "exactCentroidSpacingChanges": {
+      "A_to_B_Cx": "1/6 mm",
+      "C_to_E_Cx": "12/71 mm"
+    }
+  },
+  "selectedActionGroups": [
+    {
+      "action": "source Width4 to6",
+      "status": "PASS"
+    },
+    {
+      "action": "Spacing16 to12",
+      "status": "PASS"
+    },
+    {
+      "action": "Count3 to4",
+      "status": "PASS"
+    },
+    {
+      "action": "history Spacing0 Apply refusal retains C",
+      "status": "PASS"
+    },
+    {
+      "action": "FIRST Undo after refusal restores B",
+      "status": "PASS"
+    },
+    {
+      "action": "Redo exact C",
+      "status": "PASS"
+    },
+    {
+      "action": "Suppress to one original cut D",
+      "status": "PASS"
+    },
+    {
+      "action": "Unsuppress exact C",
+      "status": "PASS"
+    },
+    {
+      "action": "own project Save C",
+      "status": "PASS"
+    },
+    {
+      "action": "Close/same-context reload/fresh project Open C",
+      "status": "PASS"
+    },
+    {
+      "action": "post-Open Spacing12 to10 E",
+      "status": "PASS"
+    }
+  ],
+  "rootActualStudio": {
+    "status": "PASS",
+    "snapshots": 18,
+    "contexts": 1,
+    "physicalBindings": 11,
+    "nativeCaptures": 5,
+    "exactWholeDocReuses": 6,
+    "sourcePaths": 757,
+    "sourceUnchangedThroughCleanup": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "downloads": 0,
+    "refusalObservation": [
+      {
+        "label": "history-spacing0-Apply-refusal",
+        "actualReason": "Sizes must be greater than zeroThe design was not changed. Adjust the values and try again.Detailsspacing must not be zero",
+        "nativeCategoryAuthority": "PARAMETER from focused native control; GUI records actual specific reason",
+        "previewClaim": "NONE"
+      }
+    ],
+    "ownSave": {
+      "namespace": "projects/D534-2d98ab59-55ac-4e82-a70b-94948d2f674a",
+      "path": "D534-linear-cut-pattern.bcad",
+      "bytes": 1506,
+      "sha256": "b2574f2fc3060043dce5b292f1da92aa92ebd5617e995d067cb87f65fa271450",
+      "exactAcceptedDoc": true
+    },
+    "rootViewed": [
+      "02-A-width6-spacing16-count3",
+      "08-spacing0-Apply-refused",
+      "12-D-pattern-suppressed-original-cut-only",
+      "15-own-project-reopened-C",
+      "17-E-postOpen-width6-spacing10-count4"
+    ],
+    "cleanup": [
+      {
+        "ownedProject": "D534-2d98ab59-55ac-4e82-a70b-94948d2f674a",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "exactExecutedSourcesPreserved": true,
+    "persistenceLimits": "C persisted/reopened, E subsequent in-memory edit; same-context reload, not cold process restart or E resave."
+  },
+  "checks": {
+    "syntaxBothNewModules": "PASS",
+    "finalModelTypesAfterLastDriverEdit": "PASS",
+    "diff": "PASS",
+    "HighSavedReview": "PASS bounded saved original Doc/native/consumer/source and independent scalar/boundary arithmetic audit; no product/native/browser rerun."
+  },
+  "fail": [],
+  "notRun": [
+    "Historical D373 original creation/count2 loop rerun",
+    "Contact/overlap/other-axis/circular/general feature patterns",
+    "Full-domain/inertia/displayed-catalog-mass certificate",
+    "Fresh OCP/external reader/download",
+    "Full kernel/Studio build, packed/declaration consumers, new CI/mobile/paid live/release/develop merge",
+    "Cold process persistence or E resave"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "B01_B10": "NOT_ADJUDICATED",
+  "sourcePins": {
+    "apps/cad-studio/test/linear-cut-pattern-lifecycle-browser.mjs": "252f57a498c55a186a1c7d21751ca15719b44e6ce6890d3eba1090273dc52993",
+    "apps/cad-studio/test/linear-cut-pattern-lifecycle-oracles.mjs": "e69d42aaa53d382a396b3c8a624a308f34358d652b3777494ef80f2f9e044e3c",
+    "apps/cad-studio/test/flow-helper.mjs": "3aaf23e8a0078a9411b8f8d2bbbc05e42a304a89cf96e59bf2faae3d313cfe6c",
+    "packages/barocss-cad-model/src/app/commands.ts": "4ca09b32f834da00a840b065b1cd30f8cd9c815dce912e4b7546fea600456f8d",
+    "packages/barocss-cad-model/src/app/editFields.ts": "86a0017245a75c023e6eb23abfbda7716c055e6dfa139e79f00384afb7c3c50c",
+    "packages/barocss-cad-model/src/engine/doc.ts": "b35d4dedc69cb4921489084cd1c52e6fe0770b03916fd5000553b6728fdbe799",
+    "packages/barocss-cad-model/src/engine/part.ts": "2f92406182ee602b66f414f0ccf9bf15311298386b92aae88c6b3a52b8ff2e2c",
+    "packages/barocss-cad/src/part/part-model.ts": "355decd0abd692fccf77dbbc93c6b5605a578d0a6315bff0a75ff67dd5cb991d",
+    "packages/barocss-cad/src/part/part-transform.ts": "7e9b401b76e008a229aadbf624645a6433be7216d36b0ded9263381ce8a9af1d"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d534-admission01/receipt.json",
+      "sha256": "dd70954e1b4f02605fafd23b4f821e25bcaaa4da8672358bfaa2f1ea2bfbd033"
+    },
+    {
+      "path": "/tmp/barocss-d534-admission01/run.mjs",
+      "sha256": "a4dcfaac836d7db36f101965775d1330463e754c59e269a6798f31739f1a09d6"
+    },
+    {
+      "path": "/tmp/barocss-d534-admission01/executed-oracles-snapshot.mjs",
+      "sha256": "e69d42aaa53d382a396b3c8a624a308f34358d652b3777494ef80f2f9e044e3c"
+    },
+    {
+      "path": "/tmp/barocss-d534-admission01/run.log",
+      "sha256": "b0492888d5b078b43febed5904733b29a19605858182dce257e47bc89dd9970c"
+    },
+    {
+      "path": "/tmp/barocss-d534-oracle01/receipt.json",
+      "sha256": "abd116776c51acfc220b535dee8382358508c188fdac5c91f2975dbf4421713f"
+    },
+    {
+      "path": "/tmp/barocss-d534-oracle01/run.mjs",
+      "sha256": "52789c0b1f5d4131704d0d3b7a96ed57c0e97bc3f32394440b364347f9f1788c"
+    },
+    {
+      "path": "/tmp/barocss-d534-oracle01/executed-oracles.mjs",
+      "sha256": "e69d42aaa53d382a396b3c8a624a308f34358d652b3777494ef80f2f9e044e3c"
+    },
+    {
+      "path": "/tmp/barocss-d534-oracle01/run.log",
+      "sha256": "4cf6c10d67abcf8e92501f23112c8776809472fe6c579f2c685cc9c8de433ebf"
+    },
+    {
+      "path": "/tmp/barocss-d534-checks01/focused.log",
+      "sha256": "479343318ab5423f48d40ea12c0cd78216d73611f8965f4625b7abc48aff7df9"
+    },
+    {
+      "path": "/tmp/barocss-d534-checks01/browser-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d534-checks01/oracle-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d534-checks01/final-model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d534-studio01/receipt.json",
+      "sha256": "933740bd8d435423798675951fbea18ea24a07733638f836b63205e16e63d99e"
+    },
+    {
+      "path": "/tmp/barocss-d534-studio01/executed-linear-cut-pattern-lifecycle-browser.mjs",
+      "sha256": "252f57a498c55a186a1c7d21751ca15719b44e6ce6890d3eba1090273dc52993"
+    },
+    {
+      "path": "/tmp/barocss-d534-studio01/executed-linear-cut-pattern-lifecycle-oracles.mjs",
+      "sha256": "e69d42aaa53d382a396b3c8a624a308f34358d652b3777494ef80f2f9e044e3c"
+    },
+    {
+      "path": "/tmp/barocss-d534-studio01/14-own-native-opfs-save.bcad",
+      "sha256": "b2574f2fc3060043dce5b292f1da92aa92ebd5617e995d067cb87f65fa271450"
+    },
+    {
+      "path": "/tmp/barocss-d534-studio01-meta/run.log",
+      "sha256": "ff70ca1ccb8d0c7bc81d80f42ca2c64d3ad2936c8e518c6696fcb725a466ccb8"
+    }
+  ]
+}
