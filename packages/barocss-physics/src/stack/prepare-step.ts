@@ -6,8 +6,9 @@ import { detect, validateResult } from '../collision.js';
 import { ID, MAX_STEP_DISPLACEMENT_M } from '../limits.js';
 import { adaptContactGeometry } from './geometry-adapter.js';
 import { NormalPhaseFailure, solveStackNormal } from './normal-bridge.js';
-import type { FrozenStackPatch } from './normal-bridge.js';
-import type { NormalProblem, NormalSolverResult } from './normal-solver.js';
+import type { FrozenStackPatch, StackNormalResult } from './normal-bridge.js';
+import type { NormalProblem } from './normal-solver.js';
+import type { StationaryResult } from './stationary-normal.js';
 import { PositionPhaseFailure, runFullPairPositionPhase } from './full-pair-phase.js';
 import type { FullPairPositionAttempt, FullPairPositionStats, PointLedger, PositionPair } from './world-types.js';
 
@@ -18,7 +19,8 @@ export interface StackStepDiagnostics {
   geometryPatches: FrozenStackPatch[];
   pointLedger: PointLedger[];
   normalProblem: NormalProblem | null;
-  normalResult: NormalSolverResult | null;
+  normalResult: StackNormalResult | null;
+  stationaryNormalWitness: StationaryResult | null;
   positionAttempt: FullPairPositionAttempt | null;
   positionStats: FullPairPositionStats | null;
 }
@@ -75,6 +77,10 @@ function admitted(bodies: readonly Body[], dt: number, gravity: Vec3): void {
     }
   }
   validateResult(bodies as Body[], []);
+  requireStack(equal(gravity, [0, -9.81, 0]) && bodies.every((body: Body) =>
+    body.velocityMps.every((value: number) => value === 0) &&
+    body.angularVelocityRadps.every((value: number) => value === 0)),
+    'stationary profile requires original gravity and zero before motion');
 }
 
 function sortedPairs(bodies: readonly Body[]): PositionPair[] {
@@ -97,7 +103,7 @@ export function prepareStackStep(bodies: readonly Body[], dt: number, gravity: V
   const next = bodies.map(copyBody);
   const diagnostics: StackStepDiagnostics = {
     beforeBodies: bodies.map(copyBody), freeBodies: null, velocityBodies: null,
-    geometryPatches: [], pointLedger: [], normalProblem: null, normalResult: null,
+    geometryPatches: [], pointLedger: [], normalProblem: null, normalResult: null, stationaryNormalWitness: null,
     positionAttempt: null, positionStats: null,
   };
   try {
@@ -134,6 +140,7 @@ export function prepareStackStep(bodies: readonly Body[], dt: number, gravity: V
     const normal = solveStackNormal(next, diagnostics.geometryPatches);
     diagnostics.normalProblem = normal.problem;
     diagnostics.normalResult = normal.result;
+    diagnostics.stationaryNormalWitness = normal.stationaryWitness;
     diagnostics.pointLedger = normal.pointLedger;
     diagnostics.velocityBodies = next.map(copyBody);
     const position = runFullPairPositionPhase(next, pairs);
@@ -145,6 +152,7 @@ export function prepareStackStep(bodies: readonly Body[], dt: number, gravity: V
     if (caught instanceof NormalPhaseFailure) {
       diagnostics.normalProblem = caught.problem;
       diagnostics.normalResult = caught.result;
+      diagnostics.stationaryNormalWitness = caught.stationaryWitness;
     }
     if (caught instanceof PositionPhaseFailure) {
       diagnostics.positionAttempt = caught.attempt;

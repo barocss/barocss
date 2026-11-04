@@ -1,14 +1,47 @@
 # Physics verification
 
 This page records bounded numerical evidence available on this independent development branch. It does not clear
-the existing Physics, Studio or manufacturing HOLDs. Historical two-hinge failures and stable eight-box stacks remain
-NO_GO. A new bounded disjoint-hinge qualification is recorded separately below. No measured machine validation,
+the existing Physics, Studio or manufacturing HOLDs. Historical two-hinge and eight-box failures remain preserved.
+A new stationary-only eight-cube qualification and bounded disjoint-hinge qualification are recorded separately below. General moving eight-box dynamics remain NO_GO. No measured machine validation,
 manufacturing approval or deployment follows from these results.
 
 Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-and-frames) and
 [Profiles and lifecycle](/packages/physics/profiles-and-lifecycle) before selecting a test. For prescribed joint
 motion, use [Robot motion](/guide/robot-motion). A supported input is not a claim that every admitted parameter
 has been verified to the errors below.
+
+## Stationary eight-cube World and actual desktop checkpoint
+
+`rigid-stationary-cube-stack-v1` uses the same public World/clock/recorder.
+The independent private ALIGNED/OFFSET/YAW campaign passes1200 steps each,
+including original32-point contacts,36-row position, ledger, quality, complete
+archive recovery and additional exact Fraction certificate checks. Original
+scene limits170s/owner180s and shared293601280-byte cap remain; actual evidence
+uses186002682 bytes. Global64MiB/RSS is not qualified.
+
+Strict NodeNext Source and actual compiled root/replay each pass public controls
+and all3600 body-word comparisons. Actual desktop Chrome WebGPU also accepts
+all3600 steps; its full captured body streams equal the independently checked
+private traces exactly. GPU vertices/markers, camera, controls and1280/1440/1920
+widths pass. No mobile tests. Source/native failure tests preserve state/log/
+clock, including20 injected throws per nonzero first-step gap bank. The gap has
+one independent physical step, not a long-trajectory certificate.
+
+This profile maintains unforced equilibrium. Near-zero visible movement is
+expected. Eight1kg half0.25m cubes, yaw-only initial poses, zero motion, fixed
+floor/materials/gravity/dt1/120 and empty commands are required. Generated
+contact-chain and exact witness checks can still refuse unsupported geometry.
+The persistent-box cap remains4; recorder caps remain512frames/1MiB. A1200-frame
+observation is not a PhysicsRecording. General falling/collapse/frictional
+settling of eight bodies remains unqualified. See this branch's
+`examples/physics-stack-stationary-world-2276/RESULTS.md`.
+
+The same-stage dynamic screen check reuses existing1/2-body centered impact
+with actual emitted Physics. Eleven desktop checks pass six presets and verify
+post-impact velocity0.5m/s, impulse5Ns and energy0.25J for the minimum restitution
+case; the body travels upward and actual GPU pixels change. This is zero-gravity,
+zero-friction impact, not a gravity-driven eight-body test. Next are small-island
+gravity trajectories and corresponding desktop motion before expansion.
 
 ## Sphere-pair CCD checkpoint
 

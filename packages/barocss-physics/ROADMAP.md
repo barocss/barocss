@@ -1,7 +1,7 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: p5_done_bounded_localselected_p4_no_go
+status: stationary_stack_local_pass_moving_multibody_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-04
@@ -9,13 +9,52 @@ last_updated: 2026-11-04
 
 # Physics library design and roadmap
 
-## Current priority review (2026-11-04)
+## Current qualified result and next dynamics stage (2026-11-04)
+
+The sole public World now has `rigid-stationary-cube-stack-v1`. The exact
+32-point stationary certificate and independent Fraction checks precede the
+original full ALIGNED/OFFSET/YAW1200 campaign, which passes all3600 steps with
+the unchanged geometry/position/ledger/quality gates and resource limits.
+Source and actual compiled root/replay each pass public controls and all3600
+body frames; actual Chrome WebGPU also passes all3600 steps with exact body-word
+parity. Fault/restore tests include a separately qualified nonzero first gap
+correction. See `examples/physics-stack-stationary-world-2276/RESULTS.md`.
+
+This is unforced equilibrium maintenance of eight fixed-mass yaw-only cubes,
+not general eight-body falling, restitution, frictional settling or collapse.
+The existing persistent solver retains its four-body cap and8x8 loops. No old
+failure is rewritten as PASS, and the previous QR/runtime/storage results below
+remain historical. Current support supersedes their present-tense API status
+only for this new stationary profile. No legacy solver/factory fallback.
+
+Existing1/2-body centered impact dynamics are implemented separately. A fresh
+desktop adapter loads actual build15 Physics root/replay and the existing
+Source Viewer/GPU. Eleven real desktop checks pass, including six impact
+presets, numerical outgoing velocity/impulse/energy, actual upward travel and
+changed GPU pixels. This is not moving eight-body qualification.
+
+Next implementation order:
+
+1. Reuse existing gravity/free-flight and1/2-body impact evidence; identify the
+   missing small-island normal-motion contract before adding a solver.
+2. Qualify a gravity-driven single-body trajectory, then two contacting cubes,
+   using independent ballistic/momentum/energy references and fixed dt refinement.
+   Include failure rollback, common World/recorder and desktop motion in each stage.
+3. Expand to moving multi-body contact only after those gates pass. Changing
+   topology, coupled rotation, friction and simultaneous impacts keep separate
+   NO_GO entries until verified. Do not repurpose the stationary certificate.
+
+Completion date for general moving8 remains UNKNOWN until the first small-island
+results. All Studio/manufacturing/equipment/old-worker HOLDs, tolerances,
+first failures and deployment prohibition remain. Existing workers are not resumed.
+
+## Previous priority review, preserved before stationary qualification
 
 | Main track | Current qualified boundary |
 | --- | --- |
 | P0–P2 | Bounded common World and rigid recorder contracts/runtime pass locally. |
 | P3 / P5 | Selected disjoint hinges and fixed visual domain profiles pass; general mechanisms/coupling do not. |
-| P4 | ALIGNED1200 passes live; OFFSET hits shared evidence capacity. Whole original three-scene exit remains NO_GO. |
+| P4 | Historical QR result: ALIGNED1200 passes live; OFFSET hits shared evidence capacity. The new stationary-only qualification is above; moving stacks remain NO_GO. |
 | P6 / P7 | Full physical domain coupling and connected-mechanism/control exits remain open. |
 
 ### Current library implementation priority

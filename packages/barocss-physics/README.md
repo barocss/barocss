@@ -4,6 +4,20 @@ The [library design and development roadmap](ROADMAP.md) defines the unreleased 
 its staged verification. The root uses the P0 model/options contract. P5a private cloth/fluid kernels passed their bounded two-step source/native gates; the P5b common-World cutover is implemented with qualification pending. Existing HOLDs,
 public admission limits and original NO_GO receipts remain in force.
 
+The new `rigid-stationary-cube-stack-v1` uses that same World for unforced
+equilibrium maintenance of eight1kg yaw-only cubes on the original floor.
+Independent original ALIGNED/OFFSET/YAW1200-step checks, actual public
+Source/compiled paths and desktop WebGPU body-word parity pass locally.
+This does not support falling/collapse of eight bodies. The persistent-box
+cap remains4, recorder caps512frames/1MiB, and all historical failures remain.
+See [stationary World results](../../examples/physics-stack-stationary-world-2276/RESULTS.md).
+
+Existing1/2-body impact dynamics also pass11 fresh desktop checks with current
+emitted Physics, including numerical bounce values, actual upward travel and
+changed GPU pixels. See [current motion desktop results](../../examples/physics-motion-desktop-2276/RESULTS.md).
+Next are independently checked small-island gravity trajectories with desktop
+motion in the same stage, before moving multi-body expansion. No deployment.
+
 The finite box CCD checkpoint accepts both signs of the identity quaternion
 without changing orientation/angular thresholds. Source/compiled20-case checks
 and9desktop GPU checks pass; see

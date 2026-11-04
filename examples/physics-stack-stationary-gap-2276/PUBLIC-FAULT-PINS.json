@@ -1,0 +1,372 @@
+{
+  "status": "SOURCE_ONLY_NEW_PUBLIC_GAP_FAULT_TEST_NOT_EXECUTED",
+  "paidPrivateResult": "examples/physics-stack-stationary-gap-2276/evidence/gap-01/result.json",
+  "testGroups": 6,
+  "faultCases": 20,
+  "files": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Python": {
+      "bytes": 5080352,
+      "sha256": "9fbad407dcddb437d1cdc70a57274c6a179a0a835662870b4628e750b91f5066"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload/_posixsubprocess.cpython-313-darwin.so": {
+      "bytes": 72720,
+      "sha256": "09012330b24d018a77cce34d9ccdaf7baf566797689574b5b334071f59855d56"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload/resource.cpython-313-darwin.so": {
+      "bytes": 70896,
+      "sha256": "43a24e37fee07b309645c06527f1e723594fffd4cb2d5906bbdba6eaf244bcd2"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/selectors.py": {
+      "bytes": 19457,
+      "sha256": "4b8a60cfbb619d080f87dffe1578372e56e8c0ac826f043224a154cf7b77606d"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py": {
+      "bytes": 89486,
+      "sha256": "21ecc4c8f4fcf641974fc0d9cc28e97b07670ed1cef7e9d96769b31bb8345586"
+    },
+    "examples/physics-motion-nogo-2276/stack-study.py": {
+      "bytes": 22180,
+      "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+    },
+    "examples/physics-p4-position-witness-reference-2276/bank.json": {
+      "bytes": 24544,
+      "sha256": "8e64eab38c59f669f92b15f15e5fc7d60e0588419c9a5ed7544036637611dc13"
+    },
+    "examples/physics-rigid-contact-reference/fixtures.mjs": {
+      "bytes": 909,
+      "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+    },
+    "examples/physics-rigid-contact-reference/geometry-reference.py": {
+      "bytes": 23429,
+      "sha256": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26"
+    },
+    "examples/physics-rigid-coupled-position-diagnostic/coverage-reference.py": {
+      "bytes": 13825,
+      "sha256": "8cdc81967b2484be55deb0c2df9c1b9191d739653347682538429186ac940b7a"
+    },
+    "examples/physics-rigid-coupled-position-reference/linear-reference.py": {
+      "bytes": 12233,
+      "sha256": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac"
+    },
+    "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py": {
+      "bytes": 13283,
+      "sha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841"
+    },
+    "examples/physics-rigid-full-pair-position-world/full-pair-reference.py": {
+      "bytes": 17313,
+      "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b"
+    },
+    "examples/physics-rigid-full-pair-position-world/nine-row-reference.py": {
+      "bytes": 2239,
+      "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference.py": {
+      "bytes": 23351,
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+    },
+    "examples/physics-rigid-signed-closure-world/reference.py": {
+      "bytes": 38960,
+      "sha256": "46f184b22679d928fef6fdb2f90ce219448a51af08803ad2e68680bf9f68c056"
+    },
+    "examples/physics-rigid-signed-separation-reference/reference.py": {
+      "bytes": 22829,
+      "sha256": "5e820f2b03d20007a0f74bedc4f122edcc6cf9b80cda7f794cba5837f142cdda"
+    },
+    "examples/physics-rigid-signed-separation-reference/signed-linear-reference.py": {
+      "bytes": 12426,
+      "sha256": "902b9b95d5f03e42de6e02b7e4cd51712eea7c9218d5096fc92fc64d82a72d93"
+    },
+    "examples/physics-stack-reference-prepared-2276/BANK.json": {
+      "bytes": 3400,
+      "sha256": "2c901f366b7fcc09d37d8efdc0a9df2d014a21a7125090c603d2d54909cefd54"
+    },
+    "examples/physics-stack-reference-prepared-2276/CONTRACT.md": {
+      "bytes": 8960,
+      "sha256": "a31b8543a948e192f86810d5467d140e0ad46a3470704a4e2e2271da1f108c9f"
+    },
+    "examples/physics-stack-reference-prepared-2276/PINS.json": {
+      "bytes": 6870,
+      "sha256": "fe23b719d2904f773d7898b91f809b329b4f1d1755d300859e32de255dc90f37"
+    },
+    "examples/physics-stack-reference-prepared-2276/candidate.py": {
+      "bytes": 8420,
+      "sha256": "9df6b0842f22095b0d9a55a506a3f6b05dfd711c6211ce9e8794114232c8d7f0"
+    },
+    "examples/physics-stack-reference-prepared-2276/probe.py": {
+      "bytes": 1511,
+      "sha256": "9fcbc576b792651530a5313861aa272ccfc1a181e29c5d0f00cfb1a3c532286e"
+    },
+    "examples/physics-stack-reference-prepared-2276/tests.py": {
+      "bytes": 8955,
+      "sha256": "41618cdc231371c9c8b70d841431a83d28d808aefc533e5bca2093cc3558f4c8"
+    },
+    "examples/physics-stack-solver-2276/trajectory-reference.py": {
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    "examples/physics-stack-stationary-complete-2276/reference-wrapper.py": {
+      "bytes": 2307,
+      "sha256": "19d2870c5722ec17cf7aec1134d79d44c1e357ba05673e66e59d576239bf022f"
+    },
+    "examples/physics-stack-stationary-gap-2276/CONTRACT.md": {
+      "bytes": 6519,
+      "sha256": "f71a6f2b959916220d16feeea40a72e95947923ada0e7aadd591c6325bfd6a2f"
+    },
+    "examples/physics-stack-stationary-gap-2276/PINS.json": {
+      "bytes": 18050,
+      "sha256": "f50d18f2f342630f4d532f41255e5d73214dca5dd2d3fbcb3e40c5fcee5a2d59"
+    },
+    "examples/physics-stack-stationary-gap-2276/PUBLIC-FAULT-ADMISSION.md": {
+      "bytes": 6216,
+      "sha256": "0037dba3f2d3b35455aa96d153640592e0a5c1ed9f497f7c171f0b4612ad1e7e"
+    },
+    "examples/physics-stack-stationary-gap-2276/evidence/gap-01/record-words.f64le": {
+      "bytes": 78176,
+      "sha256": "94dc4e86c8b1608e4160dcf1a2eac61e4a0cd4da31f51928e018b818147c36d3"
+    },
+    "examples/physics-stack-stationary-gap-2276/evidence/gap-01/result.json": {
+      "bytes": 3540,
+      "sha256": "564d2aafe61cb197c8f52752b9b531e34cd1d4acaa8f721cc59634c137a91146"
+    },
+    "examples/physics-stack-stationary-gap-2276/evidence/gap-01/step-0.f64le.gz": {
+      "bytes": 292,
+      "sha256": "3b4e305bb7110b3fe89a26964238b0a17f8ca167ae5ef3ac2a4d24f085f734f8"
+    },
+    "examples/physics-stack-stationary-gap-2276/evidence/gap-01/step-0.jsonl.gz": {
+      "bytes": 17147,
+      "sha256": "34064529d6404f4e20b8d9ff7928cc2c2ecc6af1ce2fa3ad5425b730d888016a"
+    },
+    "examples/physics-stack-stationary-gap-2276/public-fault.test.mjs": {
+      "bytes": 12874,
+      "sha256": "23e0127ba4d03ccc8e81a1bb814c1bf44329414f16ef1d934c7ad70a1b80de0d"
+    },
+    "examples/physics-stack-stationary-gap-2276/runner.mjs": {
+      "bytes": 14351,
+      "sha256": "6745ea4f078e969f388d736478b3aae5808e3e29a0c22dd5737b603bb67b7a58"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/capsule-contact.js": {
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/collision.js": {
+      "bytes": 15257,
+      "sha256": "a42979046e9f32c9fe16323617975b4d3a80aa71f44a74330208b0003c491457"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/contact-contribution.js": {
+      "bytes": 3983,
+      "sha256": "ef2eea7731343f2584baea3280515163ca23602cd3219049ea5d0296e7bce57e"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/contact-tangent.js": {
+      "bytes": 2713,
+      "sha256": "d5a3e6a0a2fef8000b219df53569c571a6d75b6a854b5266dd84fda3c58df9d0"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/internal-types.js": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/limits.js": {
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/math.js": {
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/edge-contact.js": {
+      "bytes": 3306,
+      "sha256": "cd35a636c99773c087204ead2e3f797b9b803624d6883d1906b8d4bff2af0c34"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/face-contact.js": {
+      "bytes": 6143,
+      "sha256": "f00894e179c5317e77367991e6a30b1858ddf637282ccce40318b36873d20349"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-apply.js": {
+      "bytes": 3288,
+      "sha256": "7f8d7bc1a0540ae85de4684a571ce70f08efd536f34bb67ad111cced690377d7"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-core.mjs": {
+      "bytes": 6177,
+      "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-exact.mjs": {
+      "bytes": 7675,
+      "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-input.mjs": {
+      "bytes": 5935,
+      "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-linear.mjs": {
+      "bytes": 6168,
+      "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-phase.js": {
+      "bytes": 5612,
+      "sha256": "e82291e4014b98666367fe33bdf7e996f3b3c544c881dc5967b1b06ad6311c32"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-rows.js": {
+      "bytes": 7852,
+      "sha256": "9810df91101ff635dcfe9c0610a4cc35d4b88dd340ce9cef67406ee5afcaffe9"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/full-pair-solver.mjs": {
+      "bytes": 9940,
+      "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/geometry-adapter.js": {
+      "bytes": 1393,
+      "sha256": "203477a61d5a9bf7d2afa2d66114e2bcff360fd6d0c123c659166d6c4dc1ac27"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/geometry.js": {
+      "bytes": 2057,
+      "sha256": "225329ca8c8359cd1e3278e7bb40951087841182cc07e1581e48f1cea691e43f"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/normal-bridge.js": {
+      "bytes": 10232,
+      "sha256": "ab372a977dd99af31c36384dd1c637a193adc27c4b38d4b846e9e5b0b140eab7"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/prepare-step.js": {
+      "bytes": 8009,
+      "sha256": "4329d143d07d09de2ee6070996fd6863e20cfe65011bbf7caf68999c82a27cce"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/sat-feature.js": {
+      "bytes": 5108,
+      "sha256": "75558bcb2392da27b81e8f0ae17cbb446ceccb191e4ec536280140da9bde7359"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/signed-sat.js": {
+      "bytes": 6746,
+      "sha256": "0c6d102bb26183d6f0789615bb66d9b44afedc52774dd575603308ebf859547c"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/stationary-normal.js": {
+      "bytes": 17039,
+      "sha256": "0315c168703d37c4372d45a778d3a2681ea42024bbd36f9d8c79e588d1276fc2"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/strict-line.js": {
+      "bytes": 19275,
+      "sha256": "2314ce1450bc4d54148895c3498a511b793fd34e37aba03295f03501adcf51b3"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/stack/witness.js": {
+      "bytes": 1043,
+      "sha256": "efd1289164059156211e7a382d69a6382e88dd0253f3e3c58a082268d20c3aa9"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/dist/validation.js": {
+      "bytes": 14590,
+      "sha256": "7a16fbadf07097048276364818d8851d77f980fe84a30dc79529eadcb2fabe2c"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/canonical-provider/package.json": {
+      "bytes": 1602,
+      "sha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/provenance.json": {
+      "bytes": 15104,
+      "sha256": "a2b02ca2670c6f882a453f18daf883cd87a84af784dd5e8b849577c92afb3fd7"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/test-helpers/examples/physics-rigid-contact-reference/fixtures.mjs": {
+      "bytes": 909,
+      "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/test-helpers/examples/physics-stack-library-2276/io.mjs": {
+      "bytes": 7661,
+      "sha256": "33e266bb0d9d6b86e9890b1aaef0c730a96754c90daab698d22b0bc9e2c89a97"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/test-helpers/examples/physics-stack-solver-2276/verification.js": {
+      "bytes": 16075,
+      "sha256": "6b1ccdf9d97caef4c42e0ec5faaaa206cd47141df0842b523618e629ce178b80"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/test-helpers/examples/physics-stack-stationary-library-2276/witness-wire.mjs": {
+      "bytes": 1864,
+      "sha256": "e2abf3a01e3fad36d418ef9edd3d0d0ad20a228533f21f43a9c50b9c279b5331"
+    },
+    "examples/physics-stack-stationary-library-2276/evidence/canonical-stationary-02/test-helpers/package.json": {
+      "bytes": 1210,
+      "sha256": "1d575b89482ff9234d5605033fcd24677eed9c4a32824fe34be156d44ab0496b"
+    },
+    "examples/physics-stack-stationary-witness-2276/checker.py": {
+      "bytes": 13012,
+      "sha256": "2bf19818ab0900db84fdb847648aae0e6dd0765fb9b0e0dc59970a7f0bdb7360"
+    },
+    "examples/physics-stack-stationary-world-2276/fault-run.mjs": {
+      "bytes": 4039,
+      "sha256": "ec6a97ae1a98ce2cb7fde8703e139b1f6480113d9b96d51ed9022ebb95868236"
+    },
+    "examples/physics-stack-stationary-world-2276/fault.test.mjs": {
+      "bytes": 2930,
+      "sha256": "532884a164b06512312b5c044bcb573c8789797279868018e371be4bb161a031"
+    },
+    "examples/physics-stack-stationary-world-2276/model.mjs": {
+      "bytes": 1928,
+      "sha256": "18704570ddfff09a92219a14024f6c7303aa30eb4f45abcebc3490a3f133fc5e"
+    },
+    "examples/physics-stack-wholepath-2276/evidence/profile-01/profile.pstats": {
+      "bytes": 30032,
+      "sha256": "032b6cba78bbbface48dc8bccdf253b0c56c3563a4b2f4f4adfc5570a5e44fc5"
+    },
+    "examples/physics-stack-wholepath-2276/evidence/profile-01/result.json": {
+      "bytes": 8332,
+      "sha256": "fc4890a82cf514b9417c8184dfe7d6e4bbf1641ea41822bb7c58e07808e1294f"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl": {
+      "bytes": 27751,
+      "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw": {
+      "bytes": 52515,
+      "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl": {
+      "bytes": 35695,
+      "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdout.raw": {
+      "bytes": 122825,
+      "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdin.jsonl": {
+      "bytes": 27832,
+      "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdout.raw": {
+      "bytes": 52607,
+      "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdin.jsonl": {
+      "bytes": 35351,
+      "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdout.raw": {
+      "bytes": 121814,
+      "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdin.jsonl": {
+      "bytes": 28793,
+      "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdout.raw": {
+      "bytes": 54072,
+      "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl": {
+      "bytes": 35594,
+      "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdout.raw": {
+      "bytes": 123188,
+      "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-gap-01/result.json": {
+      "bytes": 3092,
+      "sha256": "8ede2d7ee14b1f6b885bfa792da881a1df3e331df8d99e3c1a64ddf24b2271b1"
+    }
+  }
+}

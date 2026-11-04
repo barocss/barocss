@@ -1,0 +1,5 @@
+# New-profile closed-phase progress helper
+
+SOURCE_AUTHORED_NOT_EXECUTED. Exact copy of the old phase helper except runtimeFramesCompared is replaced by trajectoryFramesObserved and stationaryFraction requested/replied/resolved/passed must equal selected steps with zero shadow replies. No old runtime05 output is read or fabricated. All existing phase/reference/archive/baseline960/terminal241/three-credit checks remain unchanged. Output<=64KiB, exclusive write, existing prepaid8MiB metadata, progress only: recovery/final authentication/clean CPU/campaign acceptance remain required.
+
+Three old test bodies are copied with explicit counter projection from immutable paid old prefix05/full03 fixtures. These are synthetic new-schema counter fixtures, not stationary physical or Fraction execution evidence. The fourth group requires every exact counter, rejects missing/short/shadow counters, and confirms no runtimeFramesCompared field is manufactured. Old3 PASS cannot certify this changed helper; Root must run new4 and bind the exact source/fixture/receipt.

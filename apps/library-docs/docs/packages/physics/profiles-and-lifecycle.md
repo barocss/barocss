@@ -14,6 +14,7 @@ profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(comman
 | --- | --- | --- |
 | `profile:'rigid-discrete-v1'` | 1–32 spheres, oriented boxes or capsules; optional `broadPhase:'aabb'` | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. See [verification](/reference/physics-verification). |
 | `profile:'rigid-persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Up to four clipped points for face-normal box contacts and bounded impulse reuse. Minimum material restitution applies above the strict 0.5 m/s closing-speed switch; centered principal-axis zero-friction impacts have separate source/native and desktop evidence. Edge/edge and non-box pairs use the one-point path. Recorded centred and 0.05 m offset fixtures do not qualify arbitrary stacks. |
+| `profile:'rigid-stationary-cube-stack-v1'` | Exactly eight1kg half0.25m cubes and the original static floor;1200steps; direct broad phase, dt1/120, g=[0,-9.81,0], yaw-only poses, zero motion, original materials and empty commands | Exact32-point stationary witness; no fallback. Original three equilibrium scenes pass independent1200-step checks, public Source/compiled paths and actual desktop body-word parity. Unsupported contact chains refuse. This maintains equilibrium; falling, bounce, frictional settling and collapse are outside this profile. |
 | `profile:'rigid-large-v1'` | 1–64 bodies; requires `broadPhase:'aabb'`; requires an empty `joints` array; excludes CCD and persistent-box contact | Fixed collision filters and contact-island sleep. The named 63-sphere floor probe is a capacity case, not a general 64-body stack certificate. |
 | Anchored fixed or hinge joints | At most eight records. Each static/kinematic A connects to a uniquely jointed dynamic B | Body-local initial anchors must coincide within `1e-6` m. A hinge uses unit `axisWorld` and limits within ±π/2 that include zero. Connected bodies do not collide. |
 | One dynamic fixed joint | Exactly two dynamic spheres, no other bodies or joints | Inverse mass/inertia distribute corrections. The recorded equal-mass impulse fixture does not qualify general joint networks. |
@@ -35,8 +36,8 @@ is at most 1 N·m·s. It stops pushing outward at a hinge limit. Exceeding the r
 
 Discrete static friction now solves both tangent constraints. Centered anisotropic cuboid impacts and original sphere/static-box branch inputs have separate numerical and desktop proof. The persistent manifold friction solver has its own cache/iteration law and is not qualified by those discrete results. General off-center normal/tangent coupling remains unqualified.
 
-The public persistent-box limit remains four bodies. Private nine-body studies do not raise it or
-activate the original eight-box experiment. The disjoint-hinge profile has a separate qualification;
+The public persistent-box limit remains four bodies. The separate stationary cube profile uses
+the sole common World API and qualifies only the named equilibrium cases. It does not extend moving persistent-box dynamics. The disjoint-hinge profile has a separate qualification;
 it does not admit connected two-link mechanisms. Keep historical NO_GO results and unresolved causes alongside later
 bounded results in [Physics verification](/reference/physics-verification).
 

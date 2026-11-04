@@ -3,18 +3,18 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "P4 original eight-box ALIGNED complete live scene",
-    "status": "ALIGNED_LIVE1200_CONFIRMED_WHOLE_THREE_SCENE_NO_GO",
-    "scope": "ALIGNED1200 alloriginalindependentgates/fullarchive/finalsourceauth/cleanCPU169.46208579209633s. OFFSET328hostcommitted then sharedcap;YAWNOT_RUN. Campaigncontiguous1200, originalIndependentFullPhysics false.",
-    "results": "examples/physics-stack-complete-2276/FULL-05-RESULTS.md",
-    "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
+    "profile": "rigid-stationary-cube-stack-v1: unforced equilibrium maintenance only",
+    "status": "PRIVATE_ORIGINAL_3600_PUBLIC_SOURCE_NATIVE_3600_AND_DESKTOP_3600_PASS",
+    "scope": "ALIGNED/OFFSET/YAW each1200 all original private gates plus exact Fraction witness; public root/replay Source/Native exactbodywordparity; real Chrome WebGPU each1200. Not moving eight-body dynamics.",
+    "results": "examples/physics-stack-stationary-world-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_BOUNDED_PROFILE_LOCAL"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
     "P1": "COMMON_WORLD_BOUNDED_LOCAL_PASS",
     "P2": "RIGID_RECORDING_BOUNDED_LOCAL_PASS",
     "P3": "SELECTED_DISJOINT_HINGE_PASS_NOT_GENERAL_MECHANISMS",
-    "P4": "ORIGINAL_EIGHT_BOX_NO_GO",
+    "P4": "STATIONARY_EIGHT_CUBE_PROFILE_LOCAL_PASS_GENERAL_MOVING_STACK_NO_GO",
     "P5": "DONE_BOUNDED_LOCALSELECTED_RENDER_SDK_IMPLEMENTATION_NOT_RUN",
     "P6a": "PRIVATE_IMPULSE_LEAF_PASS_FULL_COUPLING_NOT_SUPPORTED",
     "P6b": "NOT_STARTED",
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "OPT10 Source/Native new32+retained banks+boundary19/run14 physicalwordparity/canonicalbuild13/actualESM32 PASS. Fresh completeprefix07 48steps/425916words/195oldwirepairs PASS. L227 single80MiB storage screen NO_GO5707/10803 preserved, notadopted. Next sameauthenticated32point exactstationary witness and independent original gates before trajectories/API. Original OPT09ALIGNED1200 PASS, OFFSETcapacity and wholeP4 NO_GO preserved.",
+  "active": "Stationary exact32point/48DOF witness, original3600 independent checks, actual soleWorld SourceNative3600 and desktop3600 PASS. Current Native1/2body dynamic impact desktop11checks PASS. Next gravity-driven small-island trajectory before moving multibody extension. All old failures/HOLDs/gates preserved.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -2473,5 +2473,40 @@
     "scope": "Original3cases; SourceNative clean3World each and26rawfiles; Tx4World/6attempt/4accepted each20audits38rawfiles; desktopafter-selected7checks18audits6wholepacketparity",
     "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
     "canonicalAdoption": "NOT_RUN"
+  },
+  "priorNumericalMilestoneBeforeStationaryFull3600": {
+    "profile": "P4 original eight-box ALIGNED complete live scene",
+    "status": "ALIGNED_LIVE1200_CONFIRMED_WHOLE_THREE_SCENE_NO_GO",
+    "scope": "ALIGNED1200 alloriginalindependentgates/fullarchive/finalsourceauth/cleanCPU169.46208579209633s. OFFSET328hostcommitted then sharedcap;YAWNOT_RUN. Campaigncontiguous1200, originalIndependentFullPhysics false.",
+    "results": "examples/physics-stack-complete-2276/FULL-05-RESULTS.md",
+    "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
+  },
+  "stationaryWorld": {
+    "privateComplete": "examples/physics-stack-stationary-complete-2276/evidence/full-01/campaign-result.json",
+    "publicSource": "examples/physics-stack-stationary-world-2276/evidence/public-source-01/result.json",
+    "publicNative": "examples/physics-stack-stationary-world-2276/evidence/public-native-02/result.json",
+    "desktop": "output/playwright/stationary-stack/desktop-formal-01",
+    "sourceNativeFaultGroups": 6,
+    "sourceNativeNonzeroGapFaultGroups": 6,
+    "gapTrajectoryBeyondFirstIndependentStep": "NOT_QUALIFIED",
+    "originalSharedEvidenceBytes": 186002682,
+    "originalSharedEvidenceCapBytes": 293601280,
+    "publicMaxSteps": 1200,
+    "recordingMaxFramesUnchanged": 512,
+    "persistentBodyCapUnchanged": 4,
+    "generalMovingEightBodies": "NO_GO",
+    "realEquipment": "NOT_VALIDATED",
+    "deployment": false,
+    "mobileTests": false
+  },
+  "currentNativeMotionDesktop": {
+    "result": "output/playwright/persistent-impact/motion-native-01/report.json",
+    "status": "CURRENT_NATIVE_MOTION_DESKTOP_CONFIRMED",
+    "checks": 11,
+    "scope": "existing1/2body centered no-gravity/no-friction impact; actual Native Physics, Source Viewer/GPU",
+    "outgoingSpeedMps": 0.5,
+    "normalImpulseNs": 5,
+    "postImpactEnergyJ": 0.25,
+    "generalEightBodyDynamics": false
   }
 }

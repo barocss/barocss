@@ -1,0 +1,30 @@
+{
+  "status": "ROOT_SAME32_SOURCE_NATIVE_FRACTION_FLOAT_CONFIRMED",
+  "scope": "Same authenticated original32 plus fixed32banks/11Fraction eachgraph/rawparity/10checker controls; no trajectory/full/API",
+  "actualResult": "examples/physics-stack-stationary-witness-2276/evidence/same32-02/result.json",
+  "actualResultPin": {
+    "bytes": 18798,
+    "sha256": "c6d74f45835b4014f159878e5e2a60727a617c03693aabeb8a3ba27890afd75c"
+  },
+  "guards": {
+    "examples/physics-world-p5-2276/evidence/stationary-same32-02/result.json": {
+      "bytes": 2987,
+      "sha256": "8226f6c92a580923fc636c222a37d483e91f0fcfb6f522691a047313e7f4e6fe"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-protocol-node-01/result.json": {
+      "bytes": 3205,
+      "sha256": "9677ac1147318824a2266fc3ca95347dd9813b04c922dcf82741a610f3344192"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-protocol-python-01/result.json": {
+      "bytes": 3098,
+      "sha256": "2f9e52d15a47a80eef0b4e0a84341f62c008772cded77c78b39d620409adcd56"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-checker-bank-01/result.json": {
+      "bytes": 3165,
+      "sha256": "4fb3223c6e904ad8f698bfbc7cd71cd5e0d022b190bf4bdf36f358a612d6f91b"
+    }
+  },
+  "firstCompilerFailure": "examples/physics-stack-stationary-witness-2276/evidence/same32-01/result.json",
+  "publicAPI": false,
+  "full1200": false
+}

@@ -32,6 +32,9 @@ import { FLUID_MAX_STEPS } from './fluid/constants.js';
 import { validateRotationResult } from './rotation-validation.js';
 import { prepareFreeRotation } from './rigid-free-rotation.js';
 import { prepareForcedRotation } from './rigid-forced-rotation.js';
+import { prepareStackStep } from './stack/prepare-step.js';
+import { STATIONARY_MAX_STEPS, admitStationaryCommands } from './stack/stationary-profile.js';
+import { prepareStationaryOutput } from './stack/public-output.js';
 import { ContactPairAccumulator } from './contact-contribution.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
@@ -93,7 +96,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   const dt = admitted.options.fixedStepSeconds;
   const domainKind = admitted.domain?.kind ?? null;
   const domainId = admitted.domain?.data.id ?? null;
-  const stepLimit = domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;
+  const stationaryMode = admitted.stationary;
+  const stepLimit = stationaryMode ? STATIONARY_MAX_STEPS : domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;
   // Only this clearable holder owns runtime definitions and accepted domain buffers.
   let domainState: DomainRuntime | null = null;
   if (admitted.domain?.kind === 'cloth') {
@@ -179,6 +183,47 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         error('WORLD_LIMIT', 'recording command limit reached');
       }
       const actions = parseCommands(admittedCommands, bodies);
+      if (stationaryMode) {
+        admitStationaryCommands(admittedCommands);
+        let phase: FailureDetails['phase'] = 'prepare-output';
+        try {
+          const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
+          phase = 'candidate';
+          const prepared = prepareStackStep(bodies, dt, gravity);
+          phase = 'prepare-output';
+          const output = prepareStationaryOutput(prepared, activePairs);
+          const next = prepared.candidateBodies;
+          phase = 'validation';
+          validateResult(next, output.contacts);
+          phase = 'prepare-output';
+          const nextJoints: PhysicsJointState[] = [], nextCcdHits: PhysicsCcdHit[] = [];
+          const nextPersistentPoints = new Map<string, PointImpulse>(), nextSleepFrames = next.map(() => 0);
+          const state = publicState(next, output.contacts, output.events, nextJoints, nextCcdHits,
+            output.pairStats, stepIndex + 1, dt, identity, colliderIds);
+          const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
+          const preparedCommandCount = owner ? owner.commandCount + admittedCommands.length : 0;
+          // Stationary shared commit: all candidate/output/log work finished; assignments only.
+          bodies = next;
+          contacts = output.contacts;
+          events = output.events;
+          jointStates = nextJoints;
+          ccdHits = nextCcdHits;
+          pairStats = output.pairStats;
+          activePairs = output.activePairs;
+          persistentPoints = nextPersistentPoints;
+          sleepFrames = nextSleepFrames;
+          stepIndex++;
+          if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
+          return state;
+        } catch (failure) {
+          if (!(failure instanceof PhysicsError)) throw failure;
+          const enriched = new PhysicsError(failure.code, failure.message, {
+            operation: owner ? 'record' : 'step', phase: failure.code === 'WORLD_LIMIT' ? 'budget' : phase,
+            domain: 'rigid', entityIds: [...failure.details.entityIds], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+          enriched.stack = failure.stack;
+          throw enriched;
+        }
+      }
       if (domainState) {
         if (admittedCommands.length !== 0) error('INVALID_COMMAND', 'visual domain commands are unsupported');
         const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
@@ -478,7 +523,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     catch (failure) {
       if (!(failure instanceof PhysicsError)) throw failure;
       const enriched = new PhysicsError(failure.code, failure.message, {
-        operation, phase: ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
+        operation, phase: stationaryMode && ['candidate','validation','prepare-output','budget'].includes(failure.details.phase) && failure.details.accepted !== null ? failure.details.phase :
+          ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
           failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
         domain: domainKind ?? 'rigid', entityIds: domainId && failure.details.entityIds.length === 0 ? [domainId] : failure.details.entityIds,
         accepted: { stepIndex, timeSeconds: stepIndex * dt } });

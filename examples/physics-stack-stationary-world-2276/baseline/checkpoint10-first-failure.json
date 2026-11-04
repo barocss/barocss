@@ -1,0 +1,19 @@
+{
+  "status": "IO_HARNESS_SELF_SELECTION_FAILURE_PRESERVED",
+  "reason": "The stationary-* receipt selection included its own still-running guard, whose final result did not exist yet. No archive was created and no physics calls occurred.",
+  "resolution": "Keep source bytes unchanged; use a fresh stack-stationary-* guard outside the selected receipt prefix. The terminal first failure will then be included.",
+  "pins": {
+    "examples/physics-stack-library-2276/checkpoint-10.py": {
+      "bytes": 10664,
+      "sha256": "8e6f581767fdeceef4cf41176a16b5d475c4e6a1727c677bed0f7a911b535d40"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-checkpoint10-01/result.json": {
+      "bytes": 3269,
+      "sha256": "61c711c90202fd587ecfa7cac3b134dcba307e0d5169aa6b83f25940bf8e755f"
+    },
+    "examples/physics-world-p5-2276/evidence/stationary-checkpoint10-01/stderr.raw": {
+      "bytes": 1700,
+      "sha256": "c9c835ee3fe0ef396b0cd9c9e058536f6d398a4934764c5161d46d142ed93b88"
+    }
+  }
+}
