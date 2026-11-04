@@ -1,0 +1,88 @@
+{
+  "workId": "D505",
+  "status": "PARTIAL_BOUNDED_TEXT_WORKFLOW_PASS_INCIDENTAL_CAPTURE_CUSTODY_FAIL",
+  "workflow": "PASS_FOUR_BOUNDED_PUBLIC_GROUPS_FIVE_REQUIRED_TEXT_CONSUMERS",
+  "originalRunnerStatus": "PASS",
+  "incidentalCaptureCustody": "FAIL_FIRST_GENERIC_PREOPEN_JSON_HTML_PNG_OVERWRITTEN",
+  "wholeCaptureCustody": "NOT_PASS",
+  "firstGenericBytes": "UNAVAILABLE_NOT_RECONSTRUCTED",
+  "requiredEvidence": "ALL_FIVE_UNIQUE_RAW_DOC_WORKER_SVG_PNG_AND_ORIGINAL_RECEIPT_INTACT",
+  "groups": 4,
+  "requiredTextConsumers": 5,
+  "independentNativeCaptures": 0,
+  "physicalOracles": 0,
+  "independentPhysicalGeometry": "NOT_RUN_TEXT_PERSISTENCE_SCOPE",
+  "sourceChanges": 0,
+  "freshProductTests": 43,
+  "reusedStorageProductTests": 7,
+  "buildLintTypesExactSourcePins": 1853,
+  "savedAudit": {
+    "checks": 260,
+    "unexpectedFailures": 0,
+    "runtimeReruns": 0,
+    "productTestsExecuted": 0
+  },
+  "futureHelper": {
+    "sourceOnlyControls": 9,
+    "productRuntime": "NOT_RUN",
+    "originalHelper": "UNMODIFIED"
+  },
+  "cleanup": {
+    "wrapperPins": 1865,
+    "helperPins": 1866,
+    "allExactCurrentThroughCleanup": true,
+    "rootViewedRequiredImages": 5,
+    "ownPID": 75940,
+    "ownPIDAbsent": true,
+    "ownProject": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "evidence": [
+    {
+      "path": "/tmp/barocss-d505-workflow-run01/receipt.json",
+      "sha256": "f0fad747d23917fc4a4f319dc8191e1e0509eda2871cdb5ca06cb0c1cafc9fbd"
+    },
+    {
+      "path": "/tmp/barocss-d505-root-review01/review.json",
+      "sha256": "f55c7e7a8be67682b209d9d8f192199651aeea8cdc82386b6cc511b880492419"
+    },
+    {
+      "path": "/tmp/barocss-d505-saved-audit01/qualification.json",
+      "sha256": "1200428c1a9961631cece0dbf156490aedf57c866d42f7334c68f6e0d5b3459a"
+    },
+    {
+      "path": "/tmp/barocss-d505-saved-audit01/audit.py",
+      "sha256": "17b1d5cc039ae129a515f37d557d96c33c08bf4a1be7f6104437e6a817b0d83a"
+    },
+    {
+      "path": "/tmp/barocss-d505-project-helper02/source-controls.json",
+      "sha256": "a5ab6f31d9513f1cdf8c7015c0dc7afe036779620c27231b3058f252afc4a267"
+    },
+    {
+      "path": "/tmp/barocss-d505-checks01/receipt.json",
+      "sha256": "a15c56bc9b7b2ab957804b87c3bf860f67ad2297aa05a38d6951e878bd4fb652"
+    },
+    {
+      "path": "/tmp/barocss-d505-root-prep01/reuse-checks01.json",
+      "sha256": "ebea1f2cb732e69e2aebe9121669758903fd42ea8de21cf38bb63a7838e68dcc"
+    }
+  ],
+  "retainedFailure": {
+    "duplicateLabel": "own-project-open-before-expectation",
+    "cause": "Adapted helper reused one incidental capture label on two public project Opens. Source preparation did not prevent collision.",
+    "preserved": "Both original state Docs in original aggregate receipt; all five required unique evidence sets intact.",
+    "lost": "First incidental generic JSON/HTML/PNG bytes unavailable. No fabricated reconstruction or whole-custody PASS.",
+    "response": "New TMP-only explicit unique-label guard; no passing product replay."
+  },
+  "limits": [
+    "No independent native geometry/mass proof; current Worker retention only.",
+    "No PDF/golden/export/download/standards/manufacturing/mobile/full-raster or general layout certificate.",
+    "No new product feature, geometry or person-loaded data.",
+    "D409 first Undo/Redo retained without repetition; no enum refusal invented.",
+    "D501 PARTIAL/custody FAIL, tapped positive NOT_RUN, core NOT_MEASURED, frozen43, broad issues open and HOLDs unchanged."
+  ]
+}
