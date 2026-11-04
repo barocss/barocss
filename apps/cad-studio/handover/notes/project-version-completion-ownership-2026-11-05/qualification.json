@@ -1,0 +1,133 @@
+{
+  "workId": "D521",
+  "priority": "P0-R01",
+  "rows": [
+    12,
+    16
+  ],
+  "date": "2026-11-05",
+  "tier": "SMALL",
+  "baseline": "bb40861ac364e06eb68d8031843c3ff31e057327",
+  "status": "BOUNDED_FIX_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "rootActualStudio": {
+    "baseline": "REPRODUCED_PRODUCT_FAIL",
+    "fixed": "PASS",
+    "case": "real native OPFS branch switch A, Open B, release A close return, public Save B",
+    "outerSourcePaths": 1420,
+    "helperSourcePaths": 292,
+    "changedDuringRuns": 0,
+    "producerDelta": [
+      "apps/cad-studio/src/storage/useProject.ts"
+    ],
+    "screenshotsReviewed": 4,
+    "rootReviewed": [
+      "baseline05",
+      "baseline06",
+      "fixed06",
+      "fixed07"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "checks": {
+    "baselineControlled": {
+      "pass": 2,
+      "fail": 17,
+      "cancelled": 0
+    },
+    "finalNewOwnershipTests": {
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0
+    },
+    "relatedExistingTests": {
+      "pass": 57,
+      "evidence": "50 unchanged-source passes fromchecks01,7storage passes fromcorrect-cwdchecks02; newtest final29 fromchecks03"
+    },
+    "uniqueAffectedControlledTests": 86,
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "driverSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "retainedFailures": [
+    {
+      "attempt": "baseline-controls01",
+      "kind": "HARNESS_AND_PRODUCT",
+      "productAssertionFailures": 9,
+      "cancelled": 10,
+      "reason": "makeVersion unchanged fixture refused before expected hold; corrected input and explicit early-completion assertion"
+    },
+    {
+      "attempt": "fixed-checks01",
+      "pass": 84,
+      "fail": 2,
+      "reasons": [
+        "new conflict-reload test paused earlier metadata read; corrected fromread2toread3 without weakening expectation",
+        "existing storage test executed from repository cwd; rerun from apps/cad-studio"
+      ]
+    },
+    {
+      "attempt": "fixed-checks02",
+      "kind": "TYPE_CHECK",
+      "reason": "new positive merge control lacked conflict union narrowing; added explicit runtime non-conflict assertion"
+    }
+  ],
+  "limits": [
+    "Native A write already committed and is not rolled back",
+    "Same-path edits retain the completed persisted log/current branch/tag but never take a stale replacement Doc; next edited version snapshot/branch tested",
+    "Actual GUI covers branch-to-B only; close/detach/merge/edit/conflict boundaries controlled, not all separately run in Studio",
+    "No fresh numeric geometry/oracle/full-fit/raster qualification",
+    "No full kernel, production build, mobile, release or develop merge",
+    "Epic530 stays open; broader document acceptance and R02 remain"
+  ],
+  "evidence": {
+    "baselineControlsFirst": {
+      "path": "/tmp/barocss-d521-baseline-controls01/checks.log",
+      "sha256": "cd89718576b0b69cd5f845f6154aa82a5c1aff8f9e0112c61dc2cb85bcf74f2f"
+    },
+    "baselineControls": {
+      "path": "/tmp/barocss-d521-baseline-controls02/checks.log",
+      "sha256": "aa5c411ea974ca3282d63a8b05f22875c2dc1b9629c397503498051b2acc13ba"
+    },
+    "baselineStudio": {
+      "path": "/tmp/barocss-d521-studio-repro01/receipt.json",
+      "sha256": "a7cb5699cd08a6329ce6d2e4ae9ad5c2f1d76a31a57e51cafbe4e32cc442c1ff"
+    },
+    "fixedChecksFirst": {
+      "path": "/tmp/barocss-d521-fixed-checks01/tests.log",
+      "sha256": "990fb5fe6b13164ad72fceb579574eeae94049fd6125df33bc12ed6ceba908c7"
+    },
+    "fixedChecksSecond": {
+      "path": "/tmp/barocss-d521-fixed-checks02/tests.log",
+      "sha256": "47f89770a7d931b3f8486eeeb58ff10e0c3d5597e53c7fc7263e95f5022ae542"
+    },
+    "fixedChecksFinal": {
+      "path": "/tmp/barocss-d521-fixed-checks03/tests.log",
+      "sha256": "d322a1669968a3d774178f9a92ca2bb3f25e4afe313d2d2fa81c42517dfc560c"
+    },
+    "StudioTypes": {
+      "path": "/tmp/barocss-d521-fixed-checks03/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    "ModelTypes": {
+      "path": "/tmp/barocss-d521-fixed-checks03/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    "fixedStudio": {
+      "path": "/tmp/barocss-d521-studio-fixed01/receipt.json",
+      "sha256": "2becd8f01e4ecc9c044809170e486d5a66a3452902d8b31b4b8ebf0bcbbc7bf9"
+    },
+    "fixedSourceCheck": {
+      "path": "/tmp/barocss-d521-studio-fixed01-meta/source-after-check.json",
+      "sha256": "6060243819281566766b3d8a6584bae4ec9ee728e66041087f42fe1425f333f4"
+    }
+  }
+}

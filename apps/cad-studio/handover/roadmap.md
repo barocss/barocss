@@ -1,15 +1,15 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-04 · Authority: D520 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-05 · Priority authority: D520 · Latest delivery: D521 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D519 package-and-Studio source audit complete; no audit finding has new runtime qualification or a delivered fix. D520 replans documentation only.
-- **Next MAIN:** D521 / P0-R01, reproduce delayed Studio version-write completion across document/project changes, then address the first confirmed defect. Read [P0 acceptance](roadmap-tracks/01-reliability.md) before implementation.
+- **Current position:** [D521](notes/project-version-completion-ownership-2026-11-05/README.md) fixes the reproduced P0-R01 version-completion overwrite.29 new/57 related controlled checks and root actual Studio pass; broad file/recovery acceptance remains open. D519 remains a source audit and D520 a documentation-only replan.
+- **Next MAIN:** D522 / P0-R02, reproduce project autosave/recovery failure visibility and add only the missing current-owner feedback. Read [P0 acceptance](roadmap-tracks/01-reliability.md) before implementation.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
-- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 newly listed acceptance items, zero newly qualified by this plan; this is backlog state, not0% CAD completion.
+- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01 has a bounded D521 closeout, R02–R12 remain open. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
 
 ## Product order
@@ -18,7 +18,7 @@ P0 findings that can lose work, export stale geometry or misattribute results ta
 
 | Order | Deliverable and boundary | Current position | Detailed acceptance |
 | --- | --- | --- | --- |
-| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |12 source/contract findings queued; runtime reproduction NOT_RUN. First R01, then R02–R12 by dependencies and confirmed impact. | [Reliability queue](roadmap-tracks/01-reliability.md) |
+| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |R01 bounded correction qualified by D521. R02 next; R03–R12 remain source/contract work by dependencies and confirmed impact. | [Reliability queue](roadmap-tracks/01-reliability.md) |
 | **P1** | Useful daily parts: constrained sketch, extrude/revolve, Boolean, hole/finish/pattern, upstream edit, stable refs, measure/history and Save/Open | Existing combined and individual workflows qualified at cited scopes; no whole-family completion. Audit the remaining representative workflows rather than replay all successful prefixes. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P2** | Engineering drawings and exchange: dimensions/sections/details, revisions, units, explicit losses, independent reads | Existing drawing/exchange profiles qualified; current 3MF and facade-loss gaps belong to P0. ASME PDF mismatch remains deferred. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P3** | Static assemblies: placement, mates, nested selection, linked revisions, material/BOM/drawings | D511/D512 bounded workflows and D513 card fix qualified. No generic assembly or dynamics completion. | [Core workflows](roadmap-tracks/02-core-workflows.md) |

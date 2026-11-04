@@ -100,11 +100,25 @@ export function useProject(cb: ProjectCallbacks) {
         return true;
       } catch (e) { if (!current()) return false; fail('The placed parts could not be checked', e); return true; }
     };
-    /** The log written back; on a change meanwhile, read again and said. */
-    const keepLog = async (store: ProjectStore, part: string, log: VersionLog) => {
-      try { tags.current.log = (await writeVersions(store, part, log, { expect: tags.current.log })).tag; set({ log }); return true; }
-      catch (e) {
-        if (e instanceof BarocssError && e.code === 'STORAGE_CHANGED') { await loadLog(store, part); return fail('The versions changed elsewhere', new Error('Another window or program changed them: they are read again. Try once more.')); }
+    const versionOwner = (): OpenOwner => ({ request: opening.current, session: projectSession.current,
+      store: live.current.store ?? undefined, path: live.current.part, scope: call.current.currentOpenScope?.() });
+    // A completed write still owns its log/tag after a document edit, but cannot return a replacement document.
+    const currentVersion = (owner: OpenOwner) => currentOpen({ ...owner, scope: undefined });
+    /** The log written back; stale receipts and conflict reloads cannot enter another document's project view. */
+    const keepLog = async (store: ProjectStore, part: string, log: VersionLog, owner = versionOwner()) => {
+      const expect = tags.current.log;
+      try {
+        const written = await writeVersions(store, part, log, { expect });
+        if (!currentVersion(owner)) return false;
+        tags.current.log = written.tag; set({ log }); return true;
+      } catch (e) {
+        if (!currentVersion(owner)) return false;
+        if (e instanceof BarocssError && e.code === 'STORAGE_CHANGED') {
+          try { await loadLog(store, part, () => currentVersion(owner)); }
+          catch (readError) { return currentVersion(owner) ? fail('The versions could not be read', readError) : false; }
+          if (!currentVersion(owner)) return false;
+          return fail('The versions changed elsewhere', new Error('Another window or program changed them: they are read again. Try once more.'));
+        }
         return fail('The version was not kept', e);
       }
     };
@@ -204,11 +218,15 @@ export function useProject(cb: ProjectCallbacks) {
       },
       /** A version of the document: saved first (a version is a save with a name), then recorded. */
       async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string } = {}) {
+        const owner = versionOwner();
         if (!(await actions.save(doc, name))) return false;
+        // A first Save may assign this session's path. It must not borrow a newer Open or document edit.
+        if (!currentOpen({ ...owner, path: undefined })) return false;
+        owner.path = live.current.part;
         const { store, part, log } = live.current;
         try {
           const next = log ? makeVersion(log, doc, { at: now(), name: o.versionName, note: o.note }).log : makeVersions(doc, { at: now(), name: o.versionName, note: o.note });
-          return keepLog(store!, part!, next);
+          return keepLog(store!, part!, next, owner);
         } catch (e) { return fail('No version made', e); }
       },
       /** A version's document, to work on (history is not rewound: saving it makes a new version). */
@@ -220,7 +238,8 @@ export function useProject(cb: ProjectCallbacks) {
       /** Work switched to a branch: its head's document returned for the App to open. */
       async switchBranch(name: string, working: StudioDoc, discard = false): Promise<StudioDoc | null> {
         const { store, part, log } = live.current; if (!store || !part || !log) return null;
-        try { const r = applyBranch(log, name, working, { discard }); return (await keepLog(store, part, r.log)) ? r.doc : null; }
+        const owner = versionOwner();
+        try { const r = applyBranch(log, name, working, { discard }); return (await keepLog(store, part, r.log, owner)) && currentOpen(owner) ? r.doc : null; }
         catch (e) { fail('Could not switch', e); return null; }
       },
       /** The agent's side (DA-9): the log a turn carries, and the log a turn brings back. */
@@ -238,10 +257,11 @@ export function useProject(cb: ProjectCallbacks) {
       /** A branch merged into the current one; the conflicts returned for the person to answer. */
       async merge(from: string, working: StudioDoc, resolve?: Resolutions): Promise<MergeResult | null> {
         const { store, part, log } = live.current; if (!store || !part || !log) return null;
+        const owner = versionOwner();
         try {
           const r = applyMerge(log, { from, working, at: now(), resolve, note: `merged from ${from}` });
           if ('conflicts' in r) return r;
-          return (await keepLog(store, part, r.log)) ? r : null;
+          return (await keepLog(store, part, r.log, owner)) && currentOpen(owner) ? r : null;
         } catch (e) { fail('Could not merge', e); return null; }
       },
     };

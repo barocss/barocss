@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D521: refuse late version log/tag/Doc publication into a newer project owner;29 new controlled checks and root actual OPFS Studio pass](notes/project-version-completion-ownership-2026-11-05/README.md).
+
 Record summaries retain their time-of-writing scope and status. Use [the current roadmap](roadmap.md) for the active queue and present state; older next-item text below is historical.
 
 - [D520: rebuild current roadmap, preserve all34 scope rows/history, queue P0 safety and D521 version ownership; documentation only](notes/cad-roadmap-replan-2026-11-04/README.md).

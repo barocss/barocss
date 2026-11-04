@@ -1,8 +1,8 @@
 ---
-work_id: D520
+work_id: D521
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
-last_updated: 2026-11-04
+last_updated: 2026-11-05
 ---
 
 # CAD continuation — current entry point
@@ -31,7 +31,9 @@ Node must be22.19.0; before each commit verify easylogic <cyberuls@gmail.com>. U
 
 ## Next item
 
-**D521 / P0-R01: delayed project-version completion ownership.** First read the existing Open/Save ownership tests and actual keepLog/switchBranch/merge/VersionsPanel→App path. Reproduce A's delayed version write followed by B Open, close/detach or an intervening edit. Fix the first confirmed current-document/log/tag ownership defect; do not rebuild Save/Open or generic version storage. If the suspected sequence is not reachable, document its actual protecting contract and the remaining scope instead of inventing a defect.
+[D521](../project-version-completion-ownership-2026-11-05/README.md) fixes the reproduced late version-completion overwrite.29 new and57 related controlled tests, Studio/final Model types and root's same real-OPFS branch-to-B flow pass. Broader actual GUI merge/close/edit cases remain separate. Native writes already completed are not rolled back; same-path edits keep the actual persisted log/tag but never take an old replacement Doc.
+
+**D522 / P0-R02: project autosave/recovery failure visibility.** First reproduce project.autosave's silent rejection and unreadable recovery handling under the current owner. Keep existing Save/Open behavior, dirty state and valid recovery copies. Add bounded existing-notice feedback with stale-result guards; do not redesign UI or file formats. This is FEATURE if new failure feedback is introduced: one independent review, affected checks and root's actual Studio flow.
 
 Use the selected SMALL/FEATURE/FULL tier, required checks and root's own actual desktop Studio flow. One bounded category milestone gets one decision and normal push. Reuse eligible passing antecedents; preserve first failures and rerun only failed/changed steps with necessary setup. Every announcement names P priority, row IDs, concrete acceptance and measured coverage. Whole CAD/core readiness remains NOT_MEASURED; frozen legacy43% is not current progress.
 
@@ -49,6 +51,6 @@ Read and retain the [previous handoff §5](../codex-handoff-2026-11-01/README.md
 
 Run one heavy job under gate.sh at a time. Do not write anything in the worktree while an actual Studio flow runs. Terminate only owned PIDs. The last test edit requires final Model tsc; whole kernel runs remain B-rep-core-only. Public API/geometry/tolerance changes need FULL review/mutations; new behavior needs FEATURE review/actual; private bounded repair needs SMALL checks/actual. Numerical claims require independent physical/native evidence, not display geometry or hashes alone. Raw logs/screenshots/archives stay outside Git; record commands/counts in small decision notes/qualification JSON.
 
-D519/D520 do not claim new Studio/runtime/physical PASS. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
+D519/D520 do not claim new Studio/runtime/physical PASS; D521 adds only its recorded bounded controlled and actual Studio proof. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
 
 The exact previous handoff remains in [history-through-D518.md](history-through-D518.md). Its old next-item/WIP/latest statements are historical; use current roadmap for state. Earlier [D445](../core-cad-priority-2026-11-02/README.md) and [D446](../develop-integration-2026-11-02/README.md) remain scope/integration records, not current execution order.
