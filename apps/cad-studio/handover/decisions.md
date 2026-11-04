@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D501: record seven observed ordinary countersink workflow groups with original angular-observer failure, root output-routing error, overall runner FAIL and irrecoverable receipt-custody FAIL; 11,560 High saved-evidence checks qualify the bounded physical workflow while runner/custody FAIL remain](notes/ordinary-countersink-workflow-2026-11-04/README.md).
+
 - [D500: qualify one existing ordinary counterbore depth/source/history/two-refusal/project lifecycle; seven desktop groups and 12,755 final High saved-evidence checks pass](notes/ordinary-counterbore-workflow-2026-11-04/README.md).
 
 - [D498: qualify one existing ordinary blind Hole depth/source/history/refusal/project lifecycle; seven desktop groups and10037 final High saved-evidence checks pass](notes/ordinary-blind-hole-workflow-2026-11-04/README.md).

@@ -1,0 +1,297 @@
+{
+  "work_id": "D501",
+  "status": "PARTIAL_D501_PHYSICAL_WORKFLOW_QUALIFIED_RUNNER_AND_RECEIPT_CUSTODY_FAIL",
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "geometryAndSavedAudit": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "overallRunner": "FAIL",
+  "receiptCustody": "FAIL_ORIGINAL_RUN01_RECEIPT_BYTES_UNRECOVERABLE",
+  "highFinal": {
+    "status": "PARTIAL_D501_PHYSICAL_WORKFLOW_QUALIFIED_RUNNER_AND_RECEIPT_CUSTODY_FAIL",
+    "path": "/tmp/barocss-d501-high-final01/qualification.json",
+    "sha256": "2617668180e3ae009a42d0be9cfca57d32ba3c55a6b6879da00627a1457c8d3b",
+    "manifest": {
+      "path": "/tmp/barocss-d501-high-final01/manifest.json",
+      "sha256": "0a52db9bce39130a85c977f77385623cfcf522c6c186c93e8d50660af1870028"
+    },
+    "savedEvidenceChecks": 11560,
+    "unexpectedAuditFailures": 0,
+    "productTestsSeparate": {
+      "fresh": 0,
+      "reused": 23
+    },
+    "execution": "Saved evidence/hash/independent Fraction rational arithmetic only; no product/test/native/oracle/SUT replay.",
+    "aggregate": {
+      "nativeCaptures": 4,
+      "exactWholeDocReuses": 5,
+      "freshWorkerBindings": 9,
+      "originalA": 1,
+      "recoveryBindings": 8,
+      "newRunsByAuditor": 0
+    },
+    "missingRequiredIndependentPhysicalWorkflowEvidence": [],
+    "missingAggregateMetadata": "Original run01 receipt exact bytes unavailable; historical SHA provenance only.",
+    "overallRunner": "FAIL_PRESERVED",
+    "receiptCustody": "FAIL_PRESERVED",
+    "runtimeSourceGuard": "NOT_RELAXED"
+  },
+  "sourceAudit": {
+    "path": "/tmp/barocss-d501-source-audit01/manifest.json",
+    "sha256": "76aa834f0fdcea3570a463e1c4409edc13d6095a6df75f73dae2b8e1dd6b4fad"
+  },
+  "geometryOriginal": {
+    "path": "/tmp/barocss-d501-geometry01/manifest.json",
+    "sha256": "2044b99483b4a8ca0b2c8a0f4b1a1895f5401acfd3c968f41359c691ab13de1f"
+  },
+  "geometryCorrectedObserver": {
+    "path": "/tmp/barocss-d501-geometry02/manifest.json",
+    "sha256": "f30dd1172e7474c39b91002b940e42da16f1d074aef462310687a9245e8edf09"
+  },
+  "input": {
+    "path": "/tmp/barocss-d501-geometry02/seed.bcad",
+    "sha256": "0c602dc99f33ab44ec37fd84a5fd70adb4ee6b23c9e2d61fd71eebde6ffffd0d"
+  },
+  "observedGroups": {
+    "originalPublicCreation": "QUALIFIED_BY_FINAL_HIGH_FROM_INDEPENDENT_ORIGINAL_A_DOC_NATIVE_WORKER_HISTORY_SELECTION_IMAGE_AND_SAVED_CORRECTED_ORACLE",
+    "remainingSix": {
+      "edit-countersink10": "PASS",
+      "source-H12-fixedcountersink10": "PASS",
+      "FIRSTUndo-B-Redo-C": "PASS",
+      "Diameter0-and-positive-CS4-refusals-retain-C": "PASS",
+      "owned-project-Open-C": "PASS",
+      "postOpen-countersink8": "PASS"
+    }
+  },
+  "counts": {
+    "aggregatePhysicalWorkflowGroups": 7,
+    "aggregateNativeCaptures": 4,
+    "aggregateFreshBindings": 9,
+    "aggregateExactWholeDocReuses": 5,
+    "recoveryGroups": 6,
+    "recoveryNewCaptures": 3,
+    "recoveryFreshBindings": 8,
+    "recoveryExactWholeDocReuses": 5,
+    "originalPickOnlyMappingEvaluations": 1,
+    "recoveryPickOnlyMappingEvaluations": 0,
+    "seedStrictPhysicalCaptures": 0,
+    "seedPhysicalOracles": 0
+  },
+  "physicalContract": {
+    "coordinates": "r=2,R=countersink/2,t=R-r,z0=H-t,apexZ=H-R; rho=sqrt((x-20)^2+y^2)",
+    "material": "80x40xH stock minus r2throughfullH and ONLY upper annular conical excess rho fromr2 to(r+u),z=z0+u,u\u2208[0,t]",
+    "volume": "(3200-4*pi)*H - pi*(2*t^2+t^3/3)",
+    "firstMomentZ": "(3200-4*pi)*H^2/2 - pi*(z0*(2*t^2+t^3/3)+4*t^3/3+t^4/4)",
+    "centroid": "[20,0,firstMomentZ/volume]",
+    "bounds": {
+      "min": [
+        -20,
+        -20,
+        0
+      ],
+      "max": [
+        60,
+        20,
+        "H"
+      ]
+    },
+    "topology": "One strict closedsolid/shell, Euler0/genus1, open throughbore. Complete entity graph/coedge twins/ordered loops/physical continuity; counts observed not genericadmission.",
+    "surfaces": "Six outwardstockplanes; inwardr2cylinder trimmedZ0..z0; inward45\u00b0cone rho=z-apexZ trimmedZz0..H/rho2..R. No annularshoulder or blindfloor.",
+    "coneNormal": "Outwardfrommaterial into cavity: [-(x-20)/rho,-y/rho,+1]/sqrt2. Exact rational homogeneous derivatives, face sense applied.",
+    "threeRims": [
+      {
+        "radius": 2,
+        "z": 0,
+        "adjacency": [
+          "pilot",
+          "stock-bottom"
+        ]
+      },
+      {
+        "radius": 2,
+        "z": "H-(R-2)",
+        "adjacency": [
+          "pilot",
+          "cone"
+        ]
+      },
+      {
+        "radius": "R",
+        "z": "H",
+        "adjacency": [
+          "cone",
+          "stock-top"
+        ]
+      }
+    ],
+    "carrierTrimBoundary": "Oversized carrier poles/domain do not define material bounds. Independent carrier probes establish support; original finite trimcurves/vertices establish current physical extents/rims."
+  },
+  "budgets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsCarrierRadiusAxisEndpointPcurveAbsoluteMM": 1e-09,
+    "coneNormalComponentAbsolute": 1e-09,
+    "density1MassAbsoluteG": 1e-09,
+    "nativeStrict": "Current strict policy/tolerancecap unchanged. No toleranceweakening.",
+    "finiteWitnesses": "Complete original graph and trims; independent3line/9curvededge/5pcurve/5x5surface plus9interior rationalconenormals. No full parameter-domain theorem.",
+    "pcurvePresence": "Originaloptional policy unchanged; everyactualpresent pcurve checked against nativeedge tolerance AND1e-9, never synthesized."
+  },
+  "originalObserverStop": {
+    "status": "FAIL_OBSERVER_ANGLE_QUANTIZATION_WRAP_NOT_ESTABLISHED_PRODUCT_FAILURE",
+    "criterion": "max angular gap <= pi/2 + 1e-9 unchanged",
+    "triage": {
+      "path": "/tmp/barocss-d501-triage01/qualification.json",
+      "sha256": "7a98ce78309cb1e10f683fce9a54891976420dfd86c9a5ea38852094471f3b42"
+    },
+    "negativeControls": [
+      {
+        "name": "full-original-pilot",
+        "expectedAcceptance": true,
+        "actualAcceptance": true,
+        "status": "PASS"
+      },
+      {
+        "name": "original-pilot-upper-half-only",
+        "expectedAcceptance": false,
+        "actualAcceptance": false,
+        "status": "PASS"
+      },
+      {
+        "name": "full-original-cone",
+        "expectedAcceptance": true,
+        "actualAcceptance": true,
+        "status": "PASS"
+      },
+      {
+        "name": "original-cone-upper-half-only",
+        "expectedAcceptance": false,
+        "actualAcceptance": false,
+        "status": "PASS"
+      }
+    ],
+    "savedA": {
+      "path": "/tmp/barocss-d501-triage01/saved-first-state-oracle.stdout.json",
+      "sha256": "f98867767363e2d2f1a93cc65b1c73e9a5e4c31775b8e5f320d4d5d21b9b69e9"
+    },
+    "remainingOnlyRecovery": "No A native/oracle replay or new A physical binding"
+  },
+  "rootRoutingIncident": {
+    "accountability": "Root launcher run-studio02.sh supplied a wrong CLI output path run01 while sealed config.output named run02. Recovery overwrote the original nonproducer aggregate receipt.",
+    "originalReceipt": {
+      "formerPath": "/tmp/barocss-d501-workflow-run01/receipt.json",
+      "historicalSHA256": "fc07187a110955e96dc48e7695b53a2adc269fabe207093e5ab3789d70c7981c",
+      "bytesCustody": "FAIL_UNRECOVERABLE_NO_EXACT_BACKUP_NO_HASH_RECONSTRUCTION"
+    },
+    "quarantineReceipt": {
+      "path": "/tmp/barocss-d501-root-routing-error-quarantine01/receipt.json",
+      "sha256": "0e4bff72c83adfae25cc56a7fbc4670590f75d1e62f10f2417edea13ead93b3d"
+    },
+    "quarantinedFiles": 318,
+    "sourceGuard": "FAIL_PRESERVED_NOT_WEAKENED",
+    "soleChangedInput": "Original nonproducer aggregate receipt; all product/native producer and other inputs exact",
+    "custodyReview": {
+      "path": "/tmp/barocss-d501-custody-incident01/qualification.json",
+      "sha256": "f9bacf1055831e2edc7f03f2c38a6c42cf3435f0ff7bf732823da73108f75d89"
+    },
+    "independentOriginalAFiles": 11,
+    "custodySavedChecks": 52,
+    "custodySourcePins": 23,
+    "rootRecoveryReview": {
+      "path": "/tmp/barocss-d501-root/recovery02-review-with-custody-fail.json",
+      "sha256": "1db5518cd36fe122562d3a8f7d69c2618e9adc032d5df726fd021b8cbba9734e"
+    },
+    "originalRootFailureReview": {
+      "path": "/tmp/barocss-d501-root/actual01-failure-review.json",
+      "sha256": "756c89e27d8842c2a88b68ec5f182ea4655e52e8079d3cdb9f0b9a63a9837f93"
+    }
+  },
+  "sourceAndCleanup": {
+    "originalWrapperHelperPinsExact": [
+      2617,
+      2618
+    ],
+    "recoveryFrozenInputs": 2645,
+    "recoveryUnchangedInputs": 2644,
+    "nativeProducerPinsExact": 1944,
+    "rootCurrentNativeProductInputs": "EXACT",
+    "sourceGuardOverall": "FAIL_SOLE_AGGREGATE_RECEIPT_COLLISION",
+    "rootReviewedImages": 10,
+    "recoveryWrapperPIDGone": 85790,
+    "originalWrapperPIDGone": 79005,
+    "recoveryCleanup": [
+      {
+        "ownedProject": "D501-countersink-run02",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "prevention": {
+    "sourceControls": {
+      "path": "/tmp/barocss-d501-root/output-guard-source-controls03.json",
+      "sha256": "080bf113c7743f5da4ac1ca320d58e0a583bac20c066973fbc47018f8be82bcd"
+    },
+    "negativeControls": [
+      {
+        "case": "historic-wrong-CLI-run01",
+        "status": "REJECTED_AS_REQUIRED",
+        "reason": "CLI output differs from sealed config.output"
+      },
+      {
+        "case": "existing-output",
+        "status": "REJECTED_AS_REQUIRED",
+        "reason": "output overlaps a pinned input"
+      },
+      {
+        "case": "pinned-output-overlap",
+        "status": "REJECTED_AS_REQUIRED",
+        "reason": "output overlaps a pinned input"
+      }
+    ],
+    "futurePolicy": "Use sealed config.output only; reject CLI divergence, input/output overlap and existing output before product startup",
+    "launcher03": "NOT_RUN_NO_REPEAT_OF_ALREADY_OBSERVED_PRODUCT_GROUPS",
+    "originalLostReceipt": "NOT_RESTORED_NOT_FABRICATED"
+  },
+  "checks": {
+    "freshProductTests": 0,
+    "reusedProductTests": 23,
+    "currentReuse": {
+      "path": "/tmp/barocss-d501-root/unchanged-reuse01.json",
+      "sha256": "c1257844d783abad73bf40151f2e5ad9078eee97ffb1126fcacbaff8d1baa978"
+    },
+    "D500Tests": 11,
+    "D498Tests": 12,
+    "currentRepositoryPins": 1845,
+    "D494SemanticBuildLintStudioFinalModelTypesPins": 1841,
+    "newBuildTypesLintFullKernel": "NOT_RUN_UNCHANGED_RECEIPTS_REUSED"
+  },
+  "nativeObservedErrorsRecoveryOnly": {
+    "volumeAbsoluteMM3": 1.7062120605260134e-09,
+    "volumeRelative": 5.367216681936893e-14,
+    "centroidAbsoluteMM": 7.407408020299044e-13,
+    "boundsAbsoluteMM": 0
+  },
+  "proofBoundary": "One captured massPropertiesOf bound to original BRep plus independent analytic/support/trim proof. No separate brepMass or dual native integration claim. Physical workflow must remain separate from overall runner and receipt-custody FAIL.",
+  "limits": [
+    "High final saved audit pending; no unqualified D501 PASS.",
+    "Countersink zero omission is source-observed only; refusal uses main Diameter0 and positive Countersink \u00d84 equal to pilot.",
+    "Palette partly occludes stock; full-fit/raster/inertia NOT_MEASURED.",
+    "No other axis/type/pattern/clearance/manufacturing/PDF/mobile/export/download/install/paid/browserCI/release."
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "issue536": "OPEN_NO_COMMENT_OR_CLOSE"
+  },
+  "next": {
+    "main": "PROVISIONAL_D502_EXISTING_ORDINARY_TAPPED_COSMETIC_HOLE_SOURCE_EVIDENCE_AUDIT_ONLY_IF_GAP",
+    "parallelD499": "CONTROLLED_44_TESTS_TYPES_API_TYPES_LINT_PASS_ACTUAL_NOT_RUN_ORIGINAL_FIXTURE_FAIL_PRESERVED_PRIVATE_WIP"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED"
+}
