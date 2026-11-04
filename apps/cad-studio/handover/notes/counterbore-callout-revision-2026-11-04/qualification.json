@@ -1,0 +1,228 @@
+{
+  "work_id": "D503",
+  "status": "PASS_SIX_BOUNDED_COUNTERBORE_CALLOUT_SOURCE_REVISION_PROJECT_GROUPS",
+  "tier": "SMALL_EXISTING_C3_MEASUREMENT_NO_PRODUCT_CHANGE",
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "geometryAndSavedAudit": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "sourceAudit": {
+    "path": "/tmp/barocss-d503-source-audit01/manifest.json",
+    "sha256": "342cd1e4c96f7f68f6fccc53a0c00008e85613d55aa8fa6eea1c3c880d84cf47"
+  },
+  "geometryContract": {
+    "path": "/tmp/barocss-d503-geometry01/manifest.json",
+    "sha256": "476a2c9730038418ea26b502f6a6f07346659c1be59ad77a5b5dc85f07c143f5"
+  },
+  "input": {
+    "path": "/tmp/barocss-d500-workflow-run01/06-H12-D4-public-saved-opfs.bcad",
+    "sha256": "f2866bb360876da5e0c804382525d19cc91d2c54d4a1a268ff929056b4299529",
+    "bytes": 1535,
+    "model": "H12 pilotD4 through + counterboreD8 depth4; no authored drawing"
+  },
+  "groups": {
+    "publicAutoAndIssueA": "PASS_ORIGINAL_SAVED_A_RETAINED_NOT_REPLAYED",
+    "sourceDepth2LiveStaleA": "PASS",
+    "FIRSTUndoDepth4RedoDepth2": "PASS",
+    "issueBCurrentDepth2": "PASS",
+    "ownedProjectOpenBDepth2": "PASS",
+    "postOpenDepth4StaleB": "PASS"
+  },
+  "counts": {
+    "recoveryGroups": 5,
+    "newCaptures": 3,
+    "freshBindings": 6,
+    "reuses": 3,
+    "aggregateGroups": 6,
+    "aggregateCaptures": 4,
+    "aggregateBindings": 7,
+    "aggregateReuses": 3
+  },
+  "actualDimensionObservation": {
+    "count": 6,
+    "compoundId": "d4",
+    "canonicalOwner": "n2",
+    "nominalDiameter": 4,
+    "depth4Text": "\u00d84 THRU  CBORE \u00d88 \u00d7 4 DEEP",
+    "depth2Text": "\u00d84 THRU  CBORE \u00d88 \u00d7 2 DEEP",
+    "IDsOrigin": "Actual public Auto output, not borrowed or hardcoded before observation"
+  },
+  "currentSourceContract": "Live callout from current Doc after projection readiness; issue stale warning separate. No freeze-until-Update assumption.",
+  "signatureAllowance": {
+    "missingPreEditASigAdditions": 11,
+    "authority": "Independent original A native/display named edge arithmetic; only missing .sig additions allowed",
+    "preservation": "Undo restores unsigned A; Redo/project preserve validated B/C cache bytes"
+  },
+  "originalRun01": {
+    "runnerStatus": "FAIL_KEY_ORDER_ONLY_F_SAME_EXPECTED_JSON_WAIT",
+    "receipt": {
+      "path": "/tmp/barocss-d503-workflow-run01/receipt.json",
+      "sha256": "11eb70107a2a2cdb23f94a71c7ac409aed93af042fad6f562e4bed44d043d17b"
+    },
+    "originalASHA256": "3db6fc6cc6698df947ddf115a8c52a817b85f3cc3ea3877fc572b3197cbc9241",
+    "nativeOracleA": "PASS_RETAINED_NO_REPLAY",
+    "custody": "EXACT_RECEIPT_AND_A_BYTES_PRESERVED",
+    "triage": {
+      "path": "/tmp/barocss-d503-triage01/qualification.json",
+      "sha256": "86b4577d88c366d56c39f01ab538d79e1229889a2d2326553bd0527c30432506"
+    },
+    "savedTriageChecks": 9990,
+    "observerCorrection": "Semantic deepEqual expected; f.same/changed waits use captured actual JSON. Exact wholeDoc physical SHA key unchanged; no criteria change."
+  },
+  "recovery02": {
+    "status": "PASS",
+    "receipt": {
+      "path": "/tmp/barocss-d503-workflow-run02/receipt.json",
+      "sha256": "d1f9317a234cde7f605ae0477b0c07f2b1e8677bd946977de2dff83c6e672b95"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d503-root/recovery02-review.json",
+      "sha256": "17f168d063130b01dd3d28a36a8837d4813a9ea605b29192d3575be35cbc8db2"
+    },
+    "necessaryAntecedent": "Public exact actual A Open only; no Auto/issueA/nativeA/oracleA/pickmap replay",
+    "sourceWrapperPins": 2631,
+    "helperPins": 2633,
+    "nativeProducerPins": 1945,
+    "sourceThroughCleanupCurrent": "EXACT",
+    "rootImagesIncludingOriginalA": 7,
+    "ownWrapperPIDGone": 78976,
+    "cleanup": [
+      {
+        "ownedProject": "D503-counterbore-drawing-run02",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "highFinal": {
+    "status": "PASS_SIX_BOUNDED_COUNTERBORE_CALLOUT_SOURCE_REVISION_PROJECT_GROUPS_SAVED_AUDIT",
+    "path": "/tmp/barocss-d503-high-final01/qualification.json",
+    "sha256": "8092c59031f006b452498e182e9942ec5dfb183fa018540b8713b491f11b7ac2",
+    "manifest": {
+      "path": "/tmp/barocss-d503-high-final01/manifest.json",
+      "sha256": "084e287ae59617330886ba6093a82510d5b38edc6eb1567aab6f6a3b6a3a4558"
+    },
+    "savedEvidenceChecks": 24872,
+    "unexpectedFindings": 0,
+    "productTestsSeparate": 28,
+    "aggregate": {
+      "groups": 6,
+      "nativeCaptures": 4,
+      "exactWholeDocReuses": 3,
+      "freshNativeWorkerSVGBindings": 7
+    },
+    "signaturePolicy": "Exactly11independentlyvalidatedPRE-EDIT A missingref.sig additions atB; UndoexactunsignedA,Redo/laterB/C/Dretain11. No unknowncache stripping/reducedDoc keys.",
+    "execution": "Savedfilehash/JSON/XML/integergraph/Fraction-rational/scalar audit only. Zero new native/oracle/product/browser/test/build/SUT execution.",
+    "auditorPreparationStop": {
+      "originalScript": "audit.py",
+      "stop": "KeyError:image at final root image metadata lookup after all physical/source checks. Root actual01 review has images:[one] array.",
+      "correctedScript": "audit02.py",
+      "correction": "Read actual images[0] and require exactlyone originalrootimage; no physical target, source, evidence, budget or product change.",
+      "nativeOracleSUTReplay": false
+    }
+  },
+  "checks": {
+    "freshExistingModelTests": 15,
+    "freshExistingStudioTests": 13,
+    "freshTotal": 28,
+    "receipt": {
+      "path": "/tmp/barocss-d503-checks01/receipt.json",
+      "sha256": "9846ff58a964eb70692a54463c2317a821704a368e095b63942d01922d5c97cb"
+    },
+    "commands": [
+      {
+        "name": "model-hole-callout-independent-location",
+        "argv": [
+          "node",
+          "scripts/test.mjs",
+          "drawing-parameter-hole-callout.test.ts",
+          "drawing-independent-locations.test.ts"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 2.396,
+        "observedTAPCounts": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "studio-current-revision-print",
+        "argv": [
+          "node",
+          "scripts/test.mjs",
+          "drawing-revision-print.test.ts"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.289,
+        "observedTAPCounts": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.191,
+        "observedTAPCounts": {}
+      }
+    ],
+    "unchangedReuse": {
+      "path": "/tmp/barocss-d503-root/unchanged-reuse01.json",
+      "sha256": "bd4865bf15e5176fd00b5c2f00f549ba4065bd3f34734554d93859d402464df8"
+    },
+    "D494BuildLintStudioFinalModelTypesPins": 1841,
+    "widerOldD486Receipt": "NOT_BROADLY_REUSED_FOUR_CHANGED_INPUTS",
+    "newProductOrTestEdits": 0,
+    "fullKernelPDFGolden": "NOT_RUN"
+  },
+  "nativeErrorsRecoveryOnly": {
+    "volumeAbsoluteMM3": 8.003553375601768e-11,
+    "volumeRelative": 2.096608736445214e-15,
+    "centroidAbsoluteMM": 5.684341886080802e-14,
+    "boundsAbsoluteMM": 0
+  },
+  "limits": [
+    "Observed unauthored title follows current opened filename/project label; no authored-title mutation or title/raster/SVG wholebyte equality certificate.",
+    "One current counterbore callout/native/Worker/SVG/issue/project workflow only; no standards/export/PDF/fullC3 qualification.",
+    "Finite physical/support/trim witnesses; no full parameter-domain, second native mass integration or inertia claim.",
+    "No row/font/data load, helix, new geometry variant, mobile/download/install/paid/release/HOLD change."
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "issues536And540": "OPEN",
+    "D501": "PARTIAL_RUNNER_RECEIPT_CUSTODY_FAIL_PRESERVED",
+    "D502PositiveM6": "NOT_RUN_NO_ELIGIBLE_PERSON_LOADED_DATA"
+  },
+  "next": {
+    "decision": "D505",
+    "scope": "Retained D409 ordinary ASME drawing-text Save/Open and post-edit persistence source/evidence audit",
+    "status": "SOURCE_AUDIT_PROPOSED_RUNTIME_NOT_RUN_UNTIL_D499_D503_PUBLICATION",
+    "parallelReservation": "D504 CAD React design + Polygon",
+    "preserve": "Existing typography requirement only; no new standards/PDF/font/row/kernel admission"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED",
+  "draftDestination": "apps/cad-studio/handover/notes/counterbore-callout-revision-2026-11-04/qualification.json"
+}
