@@ -10,7 +10,7 @@ Portaled geometry and directly supplied unsupported async builtins refuse. A wra
 
 ## Geometry and references
 
-Supported sources are the declared Rectangle/Circle profiles, profile-based Extrude/Revolve, Union/Difference composition and existing Model Translate/Rotate nodes. Typed refs and Definitions reuse outputs within one Part. Profiles and solids have different kinds. Child and ref input are exclusive. IDs track supported mounted identities and keys, not persistent source-code identity after reload.
+Supported sources are the declared Rectangle/Circle/Polygon profiles, profile-based Extrude/Revolve, Union/Difference composition and existing Model Translate/Rotate nodes. Typed refs and Definitions reuse outputs within one Part. Profiles and solids have different kinds. Child and ref input are exclusive. IDs track supported mounted identities and keys, not persistent source-code identity after reload.
 
 No native face/UV producer, arbitrary region/open-wire source, face query, sketch-constraint graph, surface extrusion, general topology picking or source-to-saved-document reconnection is exposed by this API. The backend may have capabilities that this package does not expose. The React layer adds no Boolean, transform, B-rep, numerical-tolerance or renderer algorithm.
 
@@ -22,10 +22,13 @@ No native face/UV producer, arbitrary region/open-wire source, face query, sketc
 | Rotate | Existing x/y/z axis, finite angle with absolute value≤3600; optional finite pivot | W80 bracket, Z90°/Z180°, explicit origin pivot |
 | Translate | Three finite coordinates, explicit indexed checks | dx30/50 with y40,z5, after that rotation |
 | Revolve | Closed profile child/ref; required sketch x/y axis, finite angle in `(0,360]`, optional finite2D origin | Rectangle `[10,20]..[20,50]`, y axis, omitted origin,90°/180°/360° and public Reset90° |
+| Polygon | One closed ordered profile; 3..1024 dense finite coordinate pairs; optional ProfileRef; native outline validity remains authoritative | Selected convex pentagon widths 60/80, height 8; public invalid recovery, Reset and returned-document Studio Open pass |
 | Source restore | Supported mounted identity/key reuse | Exact original/returned finite example Doc/frame |
 | Studio handoff | Existing document reader/normalization | Public Open of the exact returned actual document |
 
 No general arbitrary-angle, arbitrary-width, arbitrary-component, full parameter-domain or inertia-accuracy certificate follows. Native sampling is finite. Worker mesh bounds/frame pixels are consumer observations, not a replacement for original native B-rep geometry.
+
+Polygon adds no repair or tolerance rules. The native length, area, simplicity and contact limits still decide whether a declared outline can produce a solid. A valid points array does not certify a valid native outline. D504 measures only a convex pentagonal plate at widths 60 and 80 mm, with omitted plane/from and an extrusion distance of 8 mm. That selected native/Worker/Viewer/Studio proof passes; broader outlines remain outside it.
 
 ## Current evidence
 
@@ -48,3 +51,13 @@ Four selected GUI states and public Studio Open pass. Collapse/reopen and 1200 m
 There is no npm publication, portable engine implementation, standalone packaged Worker or distribution output at this checkpoint. The package manifest declares the existing React19.2.3 peer environment. The consumer owns engine construction, exclusive evaluation use, mass provenance, Worker URL/CSP/cache setup and borrowed-resource cleanup. Internal application helpers and Studio imports are not public package exports.
 
 No mobile validation, PDF/export convenience, standards/manufacturing acceptance, full-kernel/baseline suite, browser CI, deployment or release is claimed here. A documentation category is not publication of the package or site. Existing project HOLDs and physical proof boundaries remain in force.
+
+## Polygon checkpoint
+
+The package has 57 controlled tests, package/API-example types and lint PASS. The current positive sequence is width 60 → 80 → blank-input refusal → valid 80 recovery → Reset 60, with four Ready GUI observations. The exact returned document opens through public Studio Open and Frame all. Two native captures and three exact-document subproof reuses bind five positive consumers, including that Studio observation. These are not five native captures.
+
+The selected convex pentagon is `[[0,0],[width,0],[width,50],[10,50],[0,40]]`, extruded by 8 mm. At widths 60 and 80, independent areas are 2950 and 3950 mm², volumes 23600 and 31600 mm³, and centroid Z is 4 mm. Each native result has seven faces, fifteen edges, ten vertices, genus 0 and thirty observed pcurves. Separate output mass and actual B-rep integration satisfy unchanged relative-volume and absolute centroid/boundary/pcurve/D1/normal budgets of 1e-9. Maximum relative volume error is 2.303e-16 and centroid error is 1.422e-14 mm. This is finite native evidence, not an inertia, arbitrary-outline, concave-polygon, Polygon-Revolve or all-75-kinds certificate.
+
+The immediate invalid-input capture retained the previous frame but sampled the inspector before it settled from Ready. A separate public UI observation waits for Error, retains the visible finite-coordinate alert and previous frame, and submits no extra native request. Its two Ready states are antecedents only: it adds zero physical captures, oracles, reuses or consumer bindings. Its first self-pin/private-tmp alias preflight stopped before any browser or output; a corrected expected-hash config preserved the code and original evidence. The primary integrated flow passed on its first execution.
+
+All 24 actual Markdown examples pass type checking against the current API. The widened ProfileHandle contract was checked for the complete program, including the two new Polygon examples. This is separate from native physical qualification. The category has 20 pages and 13 logical components: six operation adapters, three profile producers and four structural elements. The 75-kind table is source inventory, not completion.

@@ -9,8 +9,8 @@ export interface ModelLifecycle {
   complete(model: Compiled): void;
   detached(): void;
 }
-type Kind = 'part' | 'rectangle' | 'circle' | 'extrude' | 'revolve' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
-export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' }
+type Kind = 'part' | 'rectangle' | 'circle' | 'polygon' | 'extrude' | 'revolve' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
+export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' | 'polygon' }
 export interface SolidHandle { readonly kind: 'extrude' | 'revolve' | 'union' | 'difference' | 'translate' | 'rotate' }
 export type ProfileRef = React.RefObject<ProfileHandle | null>;
 export type SolidRef = React.RefObject<SolidHandle | null>;
@@ -63,6 +63,7 @@ class Session {
       const p = entry.props, nested = children(entry).map(node), meta = { key: entry.key, identity: entry.token, ...(entry.binding ? {bind:entry.binding} : {}) };
       switch (entry.kind) {
         case 'rectangle': return { ...meta, kind: 'rectangle', min: p.min as Point2, max: p.max as Point2 };
+        case 'polygon': return { ...meta, kind: 'polygon', points: p.points as readonly Point2[] };
         case 'circle': return { ...meta, kind: 'circle', center: p.center as Point2, radius: p.radius as number };
         case 'revolve': return {...meta,kind:entry.kind,axis:p.axis,angle:p.angle,...(p.origin===undefined?{}:{origin:p.origin}),...(p.profile===undefined?{children:nested}:{profile:p.profile,...(nested.length?{children:nested}:{})})} as NodeIR;
         case 'extrude': return { ...meta, kind: 'extrude', distance: p.distance as number,
@@ -133,6 +134,8 @@ function Host({ kind, props, binding, children }: { kind: Exclude<Kind, 'part'>;
 }
 export function Rectangle({ref,...props}: {min:Point2;max:Point2;ref?:ProfileRef}) { return <Host kind="rectangle" props={props} binding={ref}/>; }
 export function Circle({ref,...props}: {center:Point2;radius:number;ref?:ProfileRef}) { return <Host kind="circle" props={props} binding={ref}/>; }
+export interface PolygonProps { points: readonly Point2[]; ref?: ProfileRef }
+export function Polygon({ref,...props}: PolygonProps) { return <Host kind="polygon" props={props} binding={ref}/>; }
 export type ExtrudeProps = {distance:number;from?:number;ref?:SolidRef} & ({children:React.ReactNode;profile?:never}|{profile:ProfileRef;children?:never});
 export function Extrude({ref,children,...props}:ExtrudeProps) {return <Host kind="extrude" props={props} binding={ref}>{children}</Host>;}
 export function Union({ref,children}:{ref?:SolidRef;children:React.ReactNode}) {return <Host kind="union" props={{}} binding={ref}>{children}</Host>;}

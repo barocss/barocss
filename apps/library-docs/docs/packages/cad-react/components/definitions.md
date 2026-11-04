@@ -31,6 +31,8 @@ Insert the returned composition as the single output of a Part with a connected 
 
 Place Definitions alongside the single Part output. A consumer may appear earlier in JSX: the compiler resolves references in the committed graph. Use ProfileRef for an extrusion source and SolidRef for a target or transform source.
 
+Rectangle, Circle and Polygon can declare profile tokens in this group. A synchronous ordinary component can pass its optional ref to Polygon. D504 controlled tests cover Polygon forward references through ordinary React components. This reference support does not qualify every native outline.
+
 Definitions alone is not a Part solid output. Missing, duplicate, cross-Part, wrong-kind and cyclic references refuse. Callback refs and ref.current are not dependency tokens. Definitions has no own ref or native-ID prop.
 
 ## References and identity

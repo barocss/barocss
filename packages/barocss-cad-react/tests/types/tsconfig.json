@@ -15,7 +15,8 @@
   "include": [
     "public-api.tsx",
     "../../examples/**/*.tsx",
-    "revolve-api.tsx"
+    "revolve-api.tsx",
+    "polygon-api.tsx"
   ],
   "extends": "../../tsconfig.json"
 }

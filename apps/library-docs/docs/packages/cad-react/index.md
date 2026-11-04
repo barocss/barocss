@@ -8,7 +8,7 @@ The current package is TypeScript source in this repository. It is not a publish
 
 | Operation | Components | Result |
 |---|---|---|
-| Closed planar profile | `Rectangle`, `Circle` | Profile input for Extrude or Revolve |
+| Closed planar profile | `Rectangle`, `Circle`, `Polygon` | Profile input for Extrude or Revolve |
 | Solid extrusion | `Extrude` | Existing native extrusion of one profile |
 | Solid revolution | `Revolve` | Existing sketch-axis revolution of one closed profile |
 | Solid union | `Union` | Join at least two realized solids |
@@ -46,11 +46,15 @@ For the complete existing ModelNode inventory and the missing adapter backlog, r
 
 | Entry point | Runtime exports |
 |---|---|
-| `@barocss/cad-react` | `Part`, `Rectangle`, `Circle`, `Extrude`, `Revolve`, `Union`, `Difference`, `Target`, `Tools`, `Definitions`, `Translate`, `Rotate`, `CompositionCompiler`, `IrError` |
+| `@barocss/cad-react` | `Part`, `Rectangle`, `Circle`, `Polygon`, `Extrude`, `Revolve`, `Union`, `Difference`, `Target`, `Tools`, `Definitions`, `Translate`, `Rotate`, `CompositionCompiler`, `IrError` |
 | `@barocss/cad-react/engine` | `ModelHost` |
 | `@barocss/cad-react/viewer` | `ExistingViewerHost` |
 
 All public type exports are listed with their contracts on the component, references and engine pages. The package exports no custom React hook. Examples use normal `React.useRef`, `React.useState` and effects; these are React APIs, not CAD geometry-query hooks.
+
+## Polygon checkpoint
+
+The Polygon producer adds ordered closed-profile inputs without manual native IDs. Read its [component contract](/packages/cad-react/components/polygon). D504 has 57 controlled tests, package/API types and lint passing, plus selected width-60/80 pentagon Worker/Viewer, independent native and exact returned-document Studio evidence. The full domain design in `packages/barocss-cad-react/design/` specifies proposed unexported sketch/entity/constraint, selection, datum, assembly, drawing, resource and view contracts; it does not claim all Model storage kinds are delivered.
 
 ## Current evidence
 

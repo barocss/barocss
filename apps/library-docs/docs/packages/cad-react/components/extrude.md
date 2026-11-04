@@ -30,7 +30,7 @@ Insert the returned composition as the single output of a Part with a connected 
 
 ## Composition and validation
 
-Extrude accepts Rectangle/Circle output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
+Extrude accepts Rectangle/Circle/Polygon output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
 
 Zero/nonfinite distance or nonfinite from refuses. Both child and profile, multiple profiles, a solid token as profile, and arbitrary face/region descriptors refuse. Surface/face extrusion supported elsewhere in Studio is not automatically admitted here.
 
@@ -39,6 +39,8 @@ Zero/nonfinite distance or nonfinite from refuses. Both child and profile, multi
 The result is a solid handle of kind extrude. Feature IDs and the profile sketch linkage are automatic; source props do not expose native node indices.
 
 ## Measured boundary
+
+The Polygon producer uses the same profile child/ref contract. D504 qualifies the selected convex pentagon at widths 60 and 80 mm and an extrusion height of 8 mm, with current native, Worker, Viewer and returned-document Studio evidence. Other outlines remain outside that physical proof. Numeric declaration checks do not replace native outline validity.
 
 The measured Bracket uses floor6, wall56 and declared overcut tools, with original widths80/100 and selected W80 transforms. Positive/negative distance input support is not a runtime certificate for all heights/directions.
 

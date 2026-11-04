@@ -86,6 +86,10 @@ The Width example measures 80→100→Reset80. Transform measures A(30,90°)→B
 
 Global translation followed by automatic framing may leave pixels identical. The proof checks world document, centroid/bounds and fresh owners instead of forcing a pixel difference. Exact return document/frame is a finite observation, not general raster precision.
 
+## Polygon inspector
+
+`examples/PolygonApp.tsx` uses the same existing engine/Viewer lifecycle and InspectorGroup/NumericField controls. Its Width prop drives a pentagonal plate; Reset restores 60 mm. The selected sequence uses 60 mm, 80 mm, blank-input refusal, valid 80 mm recovery and Reset to 60 mm. Current Worker/Viewer ownership, public collapse/reopen, idle behavior and the returned-document Studio Open pass. Separate settled-error UI proof retains the previous frame without an extra request. This adds no explanatory overlay or new renderer.
+
 ## Revolved section inspector
 
 `examples/RevolveApp.tsx` connects the same existing engine/Viewer lifecycle to `RevolvedSection`. The [complete Revolve recipe](/packages/cad-react/components/revolve) uses rectangle `[10,20]..[20,50]`, axis y and omitted origin. The actual Angle field measures 90°→180°→360°→public Reset 90°. Working collapse/reopen and 1200 ms idle leave the geometry and owners stable. The returned document opens through public Studio Open and Frame all. No arbitrary-axis, Circle or explicit-origin physical certificate follows from these selected states. See [current evidence](/packages/cad-react/limits#current-evidence); final saved-data review passes 41014 saved checks plus five post-write 64-hex document checks.

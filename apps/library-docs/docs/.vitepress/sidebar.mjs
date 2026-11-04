@@ -104,6 +104,7 @@ export const sidebar = [
           { text: 'Part', link: '/packages/cad-react/components/part', lane: 'outer' },
           { text: 'Rectangle', link: '/packages/cad-react/components/rectangle', lane: 'outer' },
           { text: 'Circle', link: '/packages/cad-react/components/circle', lane: 'outer' },
+          { text: 'Polygon', link: '/packages/cad-react/components/polygon', lane: 'outer' },
           { text: 'Extrude', link: '/packages/cad-react/components/extrude', lane: 'outer' },
           { text: 'Revolve', link: '/packages/cad-react/components/revolve', lane: 'outer' },
           { text: 'Union', link: '/packages/cad-react/components/union', lane: 'outer' },

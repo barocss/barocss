@@ -42,7 +42,7 @@ A profile token cannot be used as a solid operand, and a solid token cannot be a
 
 | Public type | Meaning |
 |---|---|
-| `ProfileHandle` | Readonly kind `rectangle` or `circle` |
+| `ProfileHandle` | Readonly kind `rectangle`, `circle` or `polygon` |
 | `SolidHandle` | Readonly kind `extrude`, `revolve`, `union`, `difference`, `translate` or `rotate` |
 | `ProfileRef` | React object ref containing `ProfileHandle|null` |
 | `SolidRef` | React object ref containing `SolidHandle|null` |

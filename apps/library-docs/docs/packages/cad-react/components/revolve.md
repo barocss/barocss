@@ -31,9 +31,11 @@ Place this composition as the single output inside a Part with a connected lifec
 
 ## Composition and validation
 
-Rectangle and Circle are the current closed profile adapters. Use one child or one profile reference. Definitions can hold a referenced profile; Boolean operations and Translate/Rotate can consume the resulting solid. Declaration tests for those combinations do not qualify every combination as a native physical case.
+Rectangle, Circle and Polygon are the current closed profile adapters. Use one child or one profile reference. Definitions can hold a referenced profile; Boolean operations and Translate/Rotate can consume the resulting solid. Declaration tests for those combinations do not qualify every combination as a native physical case.
 
 Angles that are zero, negative, nonfinite or greater than 360° are refused. Invalid axes, sparse/nonfinite explicit origins, missing/wrong-kind references, mixed child/ref and wrong cardinality refuse. Staged native IDs commit only on accepted compilation. Compiler refusal retains its prior accepted source; ModelHost invalidation clears its current desired document. A stale visible shape does not establish current acceptance.
+
+Polygon can feed this profile contract, but no Polygon Revolve physical certificate is claimed by D504.
 
 There is no public sketch ID, arbitrary vector axis, direction, selected face, open wire or native-face provider prop. Existing backend geometry restrictions still apply.
 

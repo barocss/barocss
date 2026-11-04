@@ -12,7 +12,8 @@ export interface Identity {
 }
 export type Rectangle = Identity & { kind: 'rectangle'; min: Point2; max: Point2 };
 export type Circle = Identity & { kind: 'circle'; center: Point2; radius: number };
-export type Profile = Rectangle | Circle;
+export type Polygon = Identity & { kind: 'polygon'; points: readonly Point2[] };
+export type Profile = Rectangle | Circle | Polygon;
 export type Extrude = Identity & { kind: 'extrude'; distance: number; from?: number } & (
   | { children: readonly Profile[]; profile?: never }
   | { profile: RefToken; children?: never }
@@ -41,6 +42,7 @@ export interface BodyRef { node: number; side: 'solid' }
 export type NativeNode =
   | { id: string; kind: 'sketch'; profile: 'rectangle'; min: [number, number]; max: [number, number] }
   | { id: string; kind: 'sketch'; profile: 'circle'; center: [number, number]; radius: number }
+  | { id: string; kind: 'sketch'; profile: 'polygon'; points: [number, number][] }
   | { id: string; kind: 'extrude'; sketch: number; height: number; from?: number }
   | {id:string;kind:'revolve';sketch:number;axis:'x'|'y';angle:number;origin?:[number,number]}
   | { id: string; kind: 'union'; left: BodyRef; right: BodyRef }
@@ -70,7 +72,7 @@ export type CompileResult = { ok: true; changed: boolean; value: Compiled }
 interface RecordNode { node: Node; path: string }
 interface IdRecord { id: string; kind: NativeNode['kind'] }
 const fail = (code: ErrorCode, message: string): never => { throw new IrError(code, message); };
-const geometric = (kind: string) => ['rectangle', 'circle', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate'].includes(kind);
+const geometric = (kind: string) => ['rectangle', 'circle', 'polygon', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate'].includes(kind);
 const solid = (kind: string) => ['extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref'].includes(kind);
 const list = (n: Node): readonly Node[] => 'children' in n && n.children !== undefined ? n.children : [];
 const pair = (value: Point2): [number, number] => {
@@ -102,7 +104,7 @@ export class CompositionCompiler {
         const keys = new Set<string>();
         return children.map((node, index) => {
           if (!node || typeof node !== 'object' || typeof node.kind !== 'string') fail('TYPE', 'Expected realized typed host node');
-          if (!['rectangle', 'circle', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
+          if (!['rectangle', 'circle', 'polygon', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
             fail('UNSUPPORTED_CAPABILITY', `Unsupported geometry capability: ${node.kind}`);
           }
           if (node.key !== undefined) {
@@ -176,7 +178,7 @@ export class CompositionCompiler {
           if (expected !== 'solid') fail('TYPE', 'Solid reference cannot be used as a profile producer');
           return lower(resolve(n.ref), 'solid');
         }
-        const actual = n.kind === 'rectangle' || n.kind === 'circle' ? 'profile' : solid(n.kind) ? 'solid' : 'slot';
+        const actual = n.kind === 'rectangle' || n.kind === 'circle' || n.kind === 'polygon' ? 'profile' : solid(n.kind) ? 'solid' : 'slot';
         if (actual !== expected) fail('TYPE', `Expected ${expected}, received ${actual}`);
         if (states.get(r.path) === 'active') fail('CYCLE', 'Geometry reference cycle');
         if (states.get(r.path) === 'done') return indices.get(r.path)!;
@@ -191,6 +193,22 @@ export class CompositionCompiler {
           case 'circle':
             if (!Number.isFinite(n.radius) || n.radius <= 0) fail('INVALID_PARAMETER', 'Positive finite radius required');
             index = emit({ id: id(r, 'region', 'sketch'), kind: 'sketch', profile: 'circle', center: pair(n.center), radius: n.radius }); break;
+          case 'polygon': {
+            if (!Array.isArray(n.points) || n.points.length < 3 || n.points.length > 1024) {
+              fail('INVALID_PARAMETER', 'Polygon requires 3 to 1024 points');
+            }
+            const points: [number, number][] = [];
+            for (let i = 0; i < n.points.length; i++) {
+              if (!Object.hasOwn(n.points, i)) fail('INVALID_PARAMETER', 'Polygon points must be dense finite coordinate pairs');
+              const point = n.points[i];
+              if (!Array.isArray(point) || point.length !== 2 || !Object.hasOwn(point, 0) || !Object.hasOwn(point, 1)
+                || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
+                fail('INVALID_PARAMETER', 'Polygon points must be dense finite coordinate pairs');
+              }
+              points.push([point[0], point[1]]);
+            }
+            index = emit({ id: id(r, 'region', 'sketch'), kind: 'sketch', profile: 'polygon', points }); break;
+          }
           case 'extrude': {
             const sketch = lower(input(r, 'profile'), 'profile');
             if (!Number.isFinite(n.distance) || n.distance === 0 || !Number.isFinite(n.from ?? 0)) fail('INVALID_PARAMETER', 'Finite nonzero extrusion distance required');

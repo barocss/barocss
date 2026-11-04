@@ -11,7 +11,7 @@ Each supported React element has its own props, complete example, logical/native
 | [Part](/packages/cad-react/components/part) | [Extrude](/packages/cad-react/components/extrude) | [Target](/packages/cad-react/components/target) | [Translate](/packages/cad-react/components/translate) |
 | [Rectangle](/packages/cad-react/components/rectangle) | [Union](/packages/cad-react/components/union) | [Tools](/packages/cad-react/components/tools) | [Rotate](/packages/cad-react/components/rotate) |
 | [Circle](/packages/cad-react/components/circle) | [Difference](/packages/cad-react/components/difference) | [Definitions](/packages/cad-react/components/definitions) | |
-| | [Revolve](/packages/cad-react/components/revolve) | | |
+| [Polygon](/packages/cad-react/components/polygon) | [Revolve](/packages/cad-react/components/revolve) | | |
 
 ## Part
 
@@ -30,8 +30,13 @@ Each supported React element has its own props, complete example, logical/native
 |---|---|---|
 | `Rectangle` | `min:[x,y]`, `max:[x,y]`, optional `ref:ProfileRef` | Closed profile with strictly positive X/Y extents |
 | `Circle` | `center:[x,y]`, positive finite `radius`, optional `ref:ProfileRef` | Closed circular profile |
+| `Polygon` | `points:readonly [x,y][]` with 3..1024 dense finite pairs, optional `ref:ProfileRef` | Closed ordered profile |
 
 Supply dense finite coordinate tuples. These components are profile producers, not standalone solid bodies. They do not expose a native face, a selected region, an arbitrary wire or a sketch-constraint editor.
+
+## Polygon
+
+[Polygon](/packages/cad-react/components/polygon) accepts a readonly array of 3..1024 ordered dense finite coordinate pairs and optional `ProfileRef`. It produces one closed profile through existing polygon sketch storage. `PolygonProps` is exported. Native validity and refusal remain authoritative; no points are repaired, removed or resampled. D504 tests and the selected width-60/80 pentagon native/Worker/Viewer and returned-document Studio flow pass. This does not qualify arbitrary outlines or Polygon-based Revolve.
 
 ## Extrude
 

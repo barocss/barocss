@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D504: deliver selected Polygon profile, current Worker/Viewer/Studio and settled public error evidence; 57 tests and final High audit pass; 24 current code examples, seven nav tests and eleven changed docs routes pass](notes/cad-react-polygon-design-2026-11-04/README.md).
+
 - [D505: qualify four drawing-text persistence groups; preserve incidental capture-custody FAIL](notes/ordinary-drawing-text-persistence-2026-11-04/README.md).
 
 - [D503: qualify six bounded counterbore callout/current-source/issue/history/project groups with 24,872 High saved checks; retain original key-order observer failure and remaining-only recovery](notes/counterbore-callout-revision-2026-11-04/README.md).

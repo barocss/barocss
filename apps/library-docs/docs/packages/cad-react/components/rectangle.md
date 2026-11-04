@@ -30,7 +30,7 @@ Insert the returned composition as the single output of a Part with a connected 
 
 Place Rectangle under Extrude, or declare it in Definitions and pass its ProfileRef to an extrusion. Coordinates are local geometry, not pixel positions or a native face selection.
 
-Zero or reversed extents refuse. Supply dense finite two-coordinate tuples. A Rectangle cannot be a Union/Target/transform solid input and cannot be the sole solid output of Part. No arbitrary polygon, rounded-corner or sketch-constraint prop is exposed.
+Zero or reversed extents refuse. Supply dense finite two-coordinate tuples. A Rectangle cannot be a Union/Target/transform solid input and cannot be the sole solid output of Part. Rectangle has no arbitrary-polygon, rounded-corner or sketch-constraint prop. Use the separate Polygon producer for an ordered closed outline; its native geometry limits and evidence scope remain separate.
 
 ## References and identity
 

@@ -1,0 +1,494 @@
+{
+  "work_id": "D504",
+  "status": "PASS_BOUNDED_POLYGON_DOMAIN_DESIGN_AND_CURRENT_DOCUMENTATION",
+  "tier": "FEATURE_EXISTING_POLYGON_PROFILE_ADAPTER_AND_DOMAIN_SOURCE_PLAN",
+  "parentHead": "39286b4a5cf422fe6c77d5629a7af3bf897d91fd",
+  "scope": "Only exact pentagon widths60/80,height8 and returnedReset60 Open+Frame",
+  "package": "private 0.0.0-experimental workspace source",
+  "controlledTests": 57,
+  "commands": [
+    {
+      "label": "controlled",
+      "command": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+      "args": [
+        "--test",
+        "tests/adapter.test.mjs",
+        "tests/compiler.test.mjs",
+        "tests/model-host.test.mjs",
+        "tests/polygon-model-host.test.mjs",
+        "tests/polygon.test.mjs",
+        "tests/react-host.test.mjs",
+        "tests/react-polygon.test.mjs",
+        "tests/react-revolve.test.mjs",
+        "tests/react-transforms.test.mjs",
+        "tests/revolve.test.mjs",
+        "tests/transforms.test.mjs",
+        "tests/viewer-sink.test.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "exit": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "package-types",
+      "command": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+      "args": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "exit": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "api-types",
+      "command": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+      "args": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/types/tsconfig.json"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "exit": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "lint",
+      "command": "pnpm",
+      "args": [
+        "run",
+        "lint"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "exit": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "diff-check",
+      "command": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "packages/barocss-cad-react",
+        "apps/library-docs/docs/packages/cad-react"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "exit": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "receipts": {
+    "primary": {
+      "path": "/tmp/barocss-d504-root/primary-actual-review01.json",
+      "sha256": "4a524262d8e13ba0ecb22dcdcff49a5abe28c70796c9a3e5c9e04ae23fedf84e"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d504-checks-run01/receipt.json",
+      "sha256": "8f34d3f88682edafc15308bc4f324a471e7da01ff7c6c86e45dab9f47178c523"
+    },
+    "gui": {
+      "path": "/tmp/barocss-d504-gui-run01/browser.receipt.json",
+      "sha256": "78d0c16abe602df72a6e26f0f61bd46f9d7f7661eba346433750b8cb440b5869"
+    },
+    "native": {
+      "path": "/tmp/barocss-d504-native-run01/receipt.json",
+      "sha256": "cd4944e6aa752e523cfe3ad123ecc9084c760a32e7120633158e02b9379d5ee5"
+    },
+    "studio": {
+      "path": "/tmp/barocss-d504-studio-run01/receipt.json",
+      "sha256": "9a8ea8fa2ed019f458319217db4b33b14fe408cfb55e7aa0de7cf09639a2d981"
+    },
+    "rootFinal": {
+      "path": "/tmp/barocss-d504-root/final-actual-review02.json",
+      "sha256": "45cb33dd250ea9f80d8ee37d4fd40e80b9b562de3eb3df7241d17faede3e1ef1"
+    },
+    "high": {
+      "path": "/tmp/barocss-d504-high-final01/saved-qualification.json",
+      "sha256": "5a01e33d0b9ff4f4817d995feed00a92fa7cea21fd07e8332a25c391d529387a"
+    },
+    "highManifest": {
+      "path": "/tmp/barocss-d504-high-final01/manifest.json",
+      "sha256": "f0fd4cd43ad579554b2ba8319f0f25c352e83fc8800abf5520c65ff37652093c"
+    },
+    "auxiliaryErrorUI": {
+      "path": "/tmp/barocss-d504-ui-error-run01/browser.receipt.json",
+      "sha256": "112b6c08b61740fe18bf6196843b36059d54cfe1f5158a25f06d4f5deab85993"
+    },
+    "auxiliaryPreflightStop": {
+      "path": "/tmp/barocss-d504-root/ui-error-preflight01-preserved.json",
+      "sha256": "e6c24babfa45ef8c61b4b745cf90ebb1b3166d48176c7aeaddc0f3cf9edfc12c"
+    },
+    "docs01PreservedTypeExtractionFail": {
+      "path": "/tmp/barocss-d504-docs-checks01/receipt.json",
+      "sha256": "7bdf28b816acc909a12b4d9cd30605985aa6b4c6b4d9b27a3ca2c3d0a12095f2"
+    },
+    "docs02TypesAndNav": {
+      "path": "/tmp/barocss-d504-docs-checks02/receipt.json",
+      "sha256": "e966a825c85484e6fd660dbf249deefa30f6d7b76f969eb652b174665c2a7ef6"
+    },
+    "docs03CurrentSite": {
+      "path": "/tmp/barocss-d504-docs-checks03/receipt.json",
+      "sha256": "aa9241b275eddd139b151b36f3b322af2adc0356fa673d6f2b85a83f386d26e2"
+    },
+    "docsPreview": {
+      "path": "/tmp/barocss-d504-docs-preview-run01/receipt.json",
+      "sha256": "ef0afcade1568cceb49751bbf5c663abf1bb1fc81d15c8f27cfc334659d2ea1d"
+    },
+    "rootDocsReview": {
+      "path": "/tmp/barocss-d504-root/docs-preview01-review.json",
+      "sha256": "1f1bdd577f93523dcf5cbdb573e580c02ca59502ef3a562752caeac3b3a0b1e6"
+    }
+  },
+  "primaryPhysical": {
+    "nativeCaptures": 2,
+    "exactDocReuses": 3,
+    "positiveConsumerBindings": 5,
+    "positiveGUI": 4,
+    "Studio": 1,
+    "classes": [
+      {
+        "width": 60,
+        "documentSHA256": "5cc62acad98c77ef7746b2ac392bdc0941d4f5ca11f91d74552e3587e17af211",
+        "nativeBRepSHA256": "89ee6164d0293004d6de33ff9cc91467bfec95f838d9640a985151046124db25",
+        "areaExact": "2950",
+        "sourceFirstMomentsXYExact": [
+          "269500/3",
+          "218000/3"
+        ],
+        "volumeExact": "23600",
+        "centroidExact": [
+          "5390/177",
+          "4360/177",
+          "4"
+        ],
+        "actualBRepBoundaryVolumeExact": "23600",
+        "actualBRepBoundaryCentroidExact": [
+          "5390/177",
+          "4360/177",
+          "4"
+        ],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 7,
+          "loops": 7,
+          "coedges": 30,
+          "edges": 15,
+          "vertices": 10
+        },
+        "genus": 0,
+        "Euler": 2,
+        "observedPcurves": 30,
+        "bounds": {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            60,
+            50,
+            8
+          ]
+        }
+      },
+      {
+        "width": 80,
+        "documentSHA256": "dd0b10ca8cddf1e933cb5881105a697766e40445560f4519ac732bfb1dca98c9",
+        "nativeBRepSHA256": "04783920edb20847e84680a9da9694b6cb3fc4ed7a629989128fe94b691ee3fd",
+        "areaExact": "3950",
+        "sourceFirstMomentsXYExact": [
+          "479500/3",
+          "293000/3"
+        ],
+        "volumeExact": "31600",
+        "centroidExact": [
+          "9590/237",
+          "5860/237",
+          "4"
+        ],
+        "actualBRepBoundaryVolumeExact": "31600",
+        "actualBRepBoundaryCentroidExact": [
+          "9590/237",
+          "5860/237",
+          "4"
+        ],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 7,
+          "loops": 7,
+          "coedges": 30,
+          "edges": 15,
+          "vertices": 10
+        },
+        "genus": 0,
+        "Euler": 2,
+        "observedPcurves": 30,
+        "bounds": {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50,
+            8
+          ]
+        }
+      }
+    ],
+    "budgets": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsBoundaryPcurveCarrierD1AbsoluteMM": 1e-09,
+      "unitNormalComponent": 1e-09,
+      "density1MassAbsoluteG": 1e-09
+    },
+    "nativeDualMassMaximumErrors": {
+      "volumeRelative": 2.3025182323365273e-16,
+      "centroidAbsoluteMM": 1.4210854715202004e-14,
+      "density1MassAbsoluteG": 7.105427357601002e-15
+    },
+    "savedAuditChecks": 23209,
+    "savedAuditIsNotProductTests": true
+  },
+  "auxiliaryUI": {
+    "receipt": {
+      "path": "/tmp/barocss-d504-ui-error-run01/browser.receipt.json",
+      "sha256": "112b6c08b61740fe18bf6196843b36059d54cfe1f5158a25f06d4f5deab85993"
+    },
+    "counts": {
+      "readyAntecedents": 2,
+      "settledErrorUICases": 1,
+      "nativeCaptures": 0,
+      "physicalOracleRuns": 0,
+      "physicalReuses": 0,
+      "physicalConsumerBindings": 0
+    },
+    "ownIPCClosed": "PASS_OWNED_IPC_CLOSE",
+    "ownPIDAbsent": true,
+    "wrapperPins": 4653,
+    "runnerPins": 4654,
+    "allCurrentEqualThroughRootReview": true,
+    "rootViewedImage": {
+      "path": "/tmp/barocss-d504-ui-error-run01/03-settled-public-error-before-assert.png",
+      "sha256": "c459164e90170710b742ca73c832a0ed670bc1249cf05fe8d1a59cf3d91f7745"
+    },
+    "originalPreflightFail": {
+      "path": "/tmp/barocss-d504-root/ui-error-preflight01-preserved.json",
+      "sha256": "e6c24babfa45ef8c61b4b745cf90ebb1b3166d48176c7aeaddc0f3cf9edfc12c"
+    },
+    "boundary": "First config lacked canonical /private/tmp observer self pin; correct guard refused before output/browser. New expected-hash aliases in config02 only; code/original evidence unchanged. Only prior missing settled-error UI observed; two Ready states are necessary antecedents."
+  },
+  "custody": {
+    "GUI": 4642,
+    "native": 4646,
+    "outer": 4654,
+    "helper": 3252,
+    "compiledNativeInputs": 467,
+    "executionCleanupHighAndRootReview": "PASS_CURRENT_AT_RECORDED_CHECKPOINT",
+    "postAuditFinalProseDelta": "Explicit; original full pin equality is not claimed after README/design/library/handover prose edits",
+    "runtimeExampleTestSidebarBytes": "UNCHANGED"
+  },
+  "documentation": {
+    "status": "PASS_CURRENT_TYPES_NAV_SITE_AND_DESKTOP_ROUTES",
+    "categoryPages": 20,
+    "logicalComponents": 13,
+    "operations": 6,
+    "profiles": 3,
+    "structure": 4,
+    "modelKindSourceInventory": 75,
+    "actualFences": 24,
+    "prior22BodiesByteExact": true,
+    "TSCReuse": "All24 actual fences freshly pass current API in checks02 after correcting extractor filenames; exact program/API/nav reuse only for later nine prose-only deltas in checks03.",
+    "types": "PASS_ALL_24_CURRENT_API",
+    "navTests": "PASS_7_CURRENT_SCOPE",
+    "siteCheck": "PASS_CURRENT_93_REGISTERED_PAGES_55_SHOTS_940_LABELS",
+    "siteBuild": "PASS_CURRENT_FINAL_PROSE",
+    "changedRoutePreview": "PASS_11_CHANGED_ROUTES_ROOT_VIEWED",
+    "changedRoutes": 11,
+    "unchangedPageSourceEligibility": 9,
+    "visibleComponentLinks": 13,
+    "wrapperPins": 3475,
+    "runnerPins": 3476,
+    "ownPreviewPIDAbsent": 87070,
+    "errors": 0,
+    "mobile": "NOT_RUN_OWNER_RULE",
+    "typeAndNavReuse": {
+      "status": "PASS_SOURCE_ELIGIBLE_02_ALL24_TYPES_AND7_NAV_REUSE_ONLY",
+      "receipt": {
+        "path": "/tmp/barocss-d504-docs-checks02/receipt.json",
+        "sha256": "e966a825c85484e6fd660dbf249deefa30f6d7b76f969eb652b174665c2a7ef6"
+      },
+      "reusedCommands": [
+        {
+          "name": "all-24-actual-markdown-types",
+          "argv": [
+            "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+            "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc",
+            "--noEmit",
+            "-p",
+            "/tmp/barocss-d504-docs-prep02/extracted/tsconfig.json"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 15.059,
+          "observedTAPCounts": {}
+        },
+        {
+          "name": "sidebar-scope-tests",
+          "argv": [
+            "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+            "--test",
+            "scripts/sidebar-scopes.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 0.097,
+          "observedTAPCounts": {
+            "tests": 7,
+            "pass": 7,
+            "fail": 0,
+            "skipped": 0
+          }
+        }
+      ],
+      "all24CurrentMarkdownBodiesAndExtractedFilesExact": true,
+      "previousSourcePinsChecked": 3005,
+      "onlyChangedPreviouslyPinnedPaths": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/components/extrude.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/components/polygon.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/examples.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/index.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/limits.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/README.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/README.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/component-catalogue.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/implementation-batches.md"
+      ],
+      "allowedProseDelta": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/index.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/examples.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/components/polygon.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/components/extrude.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs/docs/packages/cad-react/limits.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/README.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/README.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/implementation-batches.md",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/component-catalogue.md"
+      ],
+      "sourceAPIRuntimeTestsSidebarAndNavClosureExact": true,
+      "currentSiteCheckBuildPreview": "NOT_RUN_NEW_PROSE_REVISION",
+      "noPreviewPremark": true
+    },
+    "commands": [
+      {
+        "name": "all-24-actual-markdown-types",
+        "argv": [
+          "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+          "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "/tmp/barocss-d504-docs-prep02/extracted/tsconfig.json"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 15.059,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "sidebar-scope-tests",
+        "argv": [
+          "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+          "--test",
+          "scripts/sidebar-scopes.test.mjs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.097,
+        "observedTAPCounts": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "current-docs-check",
+        "argv": [
+          "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+          "scripts/check-docs.mjs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 25.443,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "current-site-build",
+        "argv": [
+          "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+          "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/vitepress/bin/vitepress.js",
+          "build",
+          "docs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/library-docs",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 14.852,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "git-diff-check",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.208,
+        "observedTAPCounts": {}
+      }
+    ]
+  },
+  "design": "B1 selected Polygon implemented; all remaining proposed components unexported; B2 source plan next",
+  "preservedStops": [
+    "Additional Node config checks01 NOT_RUN superseded before57controlled test execution to serialize D505 publication",
+    "Immediate invalid UI capture sampled previous Ready timing; retained frame/freshness boundary preserved",
+    "Auxiliary config01 missing canonical observer self-pin/private-tmp alias stopped before any browser/output; config02 expected-hash aliases only; no source/runtime correction",
+    {
+      "status": "FAIL_PRESERVED_EXTRACTION_CONTEXT_ONLY",
+      "receipt": {
+        "path": "/tmp/barocss-d504-docs-checks01/receipt.json",
+        "sha256": "7bdf28b816acc909a12b4d9cd30605985aa6b4c6b4d9b27a3ca2c3d0a12095f2"
+      },
+      "cause": "Extractor named examples--1/2 while unchanged Markdown imports ./Bracket and ./TransformedBracket. New extractor restores actual module filenames; all24 code bodies/API unchanged.",
+      "recovery": "One complete affected24-module program plus unrun nav/check/build/diff passes in02. Nine later prose-only cleanup deltas reuse exact program/API/nav; affected site check/build/diff pass in03."
+    }
+  ],
+  "limits": [
+    "Only declared convex pentagon widths60/80,height8; no general polygon/concave/Revolve polygon/inertia/all75 certificate",
+    "No native geometry/repair/tolerance/API/Worker/renderer change; no FaceUV/newgeometry/HOLD release",
+    "No persisted Studio re-edit/project lifecycle,mobile,download,PDF,standards,distribution,deploy or release"
+  ],
+  "main": "D505 required workflow PASS with incidental capture-custody FAIL preserved; D506 Notes prepared NOT_RUN",
+  "global": "Core NOT_MEASURED; legacy43 frozen; all HOLDs unchanged",
+  "executionHead": "39286b4a5cf422fe6c77d5629a7af3bf897d91fd"
+}
