@@ -49,6 +49,7 @@ export function useProject(cb: ProjectCallbacks) {
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
   const opening = useRef<object>({}), projectSession = useRef<object>({}), reading = useRef(0);
   const saves = useRef({ path: null as string | null, next: 0, success: 0 });
+  const autosaves = useRef<{ owner: OpenOwner; next: number; settled: number; warned: boolean } | null>(null);
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
   // (The versions a turn's call asked for and did not have: sent with the next turn, DA-9.)
@@ -156,9 +157,16 @@ export function useProject(cb: ProjectCallbacks) {
           if (!current()) return false;
           await loadLog(store, path, current);
           if (!current()) return false;
-          const a = await readAutosave(store, path);
-          if (!current()) return false;
-          if (a && 'doc' in a) set({ offered: a.doc });
+          // Recovery is optional. Its failure must not undo a valid file Open or block its ready callback.
+          try {
+            const a = await readAutosave(store, path);
+            if (!current()) return false;
+            if (a && 'doc' in a) set({ offered: a.doc });
+            else if (a && 'error' in a) call.current.onError('The recovery copy could not be read', `${a.error} The project file is open. The recovery copy has not been applied.`);
+          } catch (e) {
+            if (!current()) return false;
+            call.current.onError('The recovery copy could not be read', `${say(e)} The project file is open. The recovery copy has not been applied.`);
+          }
           if (!(await checkLinked(r.doc, store, current, scope => { owner.scope = scope; })) || !current()) return false;
           if (owner.scope) call.current.onOpenReady?.(owner.scope);
           return true;
@@ -199,7 +207,28 @@ export function useProject(cb: ProjectCallbacks) {
         }
       },
       /** The work kept in the project a moment after a change (no-op until the document has a path there). */
-      async autosave(doc: StudioDoc) { const { store, part } = live.current; if (store && part) await writeAutosave(store, part, doc).catch(() => {}); },
+      async autosave(doc: StudioDoc) {
+        const { store, part } = live.current; if (!store || !part) return;
+        const owner = versionOwner();
+        let state = autosaves.current;
+        // Edits share one outage notice; another Open/project/path gets its own warning state.
+        if (!state || !currentVersion(state.owner)) {
+          state = { owner, next: 0, settled: 0, warned: false }; autosaves.current = state;
+        }
+        const order = ++state.next;
+        try {
+          await writeAutosave(store, part, doc);
+          if (autosaves.current !== state || !currentVersion(owner) || order < state.settled) return;
+          state.settled = order; state.warned = false;
+        } catch (e) {
+          // A failure belongs to the document that asked for this copy, not a later edit or successful write.
+          if (autosaves.current !== state || !currentOpen(owner) || order < state.settled) return;
+          state.settled = order;
+          if (state.warned) return;
+          state.warned = true;
+          call.current.onError('Automatic recovery is unavailable', `${say(e)} The latest recovery copy could not be confirmed. Save to keep your current work.`);
+        }
+      },
       /** The offered autosave answered: restored (the caller commits it) or discarded. */
       async settleOffered(restore: boolean) { const { store, part, offered } = live.current; set({ offered: null }); if (!restore && store && part) await clearAutosave(store, part).catch(() => {}); return restore ? offered : null; },
 

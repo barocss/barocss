@@ -1,0 +1,141 @@
+{
+  "workId": "D522",
+  "priority": "P0-R02",
+  "rows": [
+    12
+  ],
+  "date": "2026-11-05",
+  "tier": "FEATURE",
+  "baseline": "b4f03462fc3f3fb461af47007476de520560d70b",
+  "status": "BOUNDED_FIX_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentSourceReview": "APPROVED (GPT-6.1 Sol Medium; no blocking findings)",
+  "checks": {
+    "baselineControlled": {
+      "pass": 7,
+      "fail": 5,
+      "total": 12
+    },
+    "fixedControlled": {
+      "pass": 99,
+      "fail": 0,
+      "new": 13,
+      "related": 86
+    },
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "browserAndSchedulerSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActualStudio": {
+    "baseline": "REPRODUCED_PRODUCT_FAIL",
+    "fixed": "PASS",
+    "case": "current browser-project native autosave write denial, outage dedup, successful write and new outage",
+    "injection": "test-only NotAllowedError at real native writable.write before forwarding; adapter abort is real",
+    "sourcePaths": 290,
+    "sourceChangesDuringRuns": 0,
+    "producerDelta": [
+      "apps/cad-studio/src/storage/useProject.ts"
+    ],
+    "rootViewed": [
+      "baseline03/02",
+      "fixed01/02",
+      "fixed01/03",
+      "fixed01/05"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "retainedFailures": [
+    {
+      "run": "repro01",
+      "kind": "HARNESS_FAIL",
+      "reason": "Render defaults to Appearance; driver omitted public Scene tab before Grid"
+    },
+    {
+      "run": "repro02",
+      "kind": "HARNESS_FAIL_AFTER_PRODUCT_REPRODUCTION",
+      "reason": "Project list is hidden during Render; activePath DOM lookup was null. Driver now reports NOT_OBSERVABLE_IN_RENDER and verifies current file name/native paths instead."
+    }
+  ],
+  "limits": [
+    "Actual flow covers current A outage only; stale errors and malformed/permission recovery Open are controlled, not separate GUI flows",
+    "Linked-part continuation is source-reviewed, without a dedicated linked recovery-error case",
+    "Rejected receipt may follow a committed native write when postcommit tag lookup fails; warning says latest copy could not be confirmed",
+    "No global toast priority or UI redesign qualification",
+    "No host quota exhaustion, numerical geometry oracle, full kernel, production build, CI, mobile, release or develop integration",
+    "Whole CAD/core NOT_MEASURED; epic530 remains open"
+  ],
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d522-baseline-controls01/tests.log",
+      "sha256": "97eb30a65a30f4e3c32c7f3730d3155c3c1f75699feafefdec902ff12e87f850"
+    },
+    {
+      "path": "/tmp/barocss-d522-fixed-checks01/tests.log",
+      "sha256": "ddcdf36aca1780b119104433190283a3fe5bd386235f14b48377999d18b2cd83"
+    },
+    {
+      "path": "/tmp/barocss-d522-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d522-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro01/receipt.json",
+      "sha256": "37a8ad32b294c8d3b62389359a02502452244f4eabbff016863731f90557fd6f"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro01-meta/run.log",
+      "sha256": "66f40b286f55b9912a8495c95ec1cde1c4df3394ca8639ee4c0ccbd543240322"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro02/receipt.json",
+      "sha256": "2417357cc68df22831d506ce2c7e61dc7d84f3f7d633bc5610c0167c2fc23c3c"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro02-meta/run.log",
+      "sha256": "1ca1a7523da3f60c2fe4ffef21b360828a904ff6589c5ab22645f60be268a93e"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro03/receipt.json",
+      "sha256": "897e8919123d064346b210802ca0aab7d727670153edd4e1ffa62529c615e20a"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro03-meta/run.log",
+      "sha256": "cb31e471ef431d53a51338cff71fe1fc5e3258073185255e85a944f505cc17b7"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-fixed01/receipt.json",
+      "sha256": "4e4b0dcd9a53476b025655b8e04f11f487ad89ae5f3e7acf8a14813a3290f0ed"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-fixed01-meta/run.log",
+      "sha256": "b538a815658bdb5da50099f32a2233502ff43fda8eba38577dc6050c10b35d89"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-repro03/02-first-autosave-rejected.png",
+      "sha256": "57b597c9d97be93516e39ebd377474efd2534e523945aaddc3c55a2c5802aa2b"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-fixed01/02-first-autosave-rejected.png",
+      "sha256": "d8cc1e1ece8859f3a6c14b6e6232d6013ac761ca01a7057c1a3a6e6162985261"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-fixed01/03-same-outage-rejected-again.png",
+      "sha256": "031b51d9a4e88b606ff6707395b7104fcc1db84a136c19269b0e0bd5a3b69835"
+    },
+    {
+      "path": "/tmp/barocss-d522-studio-fixed01/05-new-outage-warning.png",
+      "sha256": "add2428f0617078a2abe7cfd249241d166ead45ae450f2d66cc56dd0835e706d"
+    }
+  ]
+}
