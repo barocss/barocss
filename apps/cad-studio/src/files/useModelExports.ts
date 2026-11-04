@@ -135,19 +135,35 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
 
   /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
   const exportThreeMf = async () => {
-    if (!fresh) { onNotice({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => {
+    const latest = stepLatest.current, owner = currentStepOwner(latest);
+    const visible = (latest.model.shown.instances ?? []).filter(i => !i.hidden);
+    const complete = (m: ModelExportContext) => (m.shown.instances ?? []).every(i => i.hidden || m.instanceBodies.has(i.id));
+    if (!owner.fresh || !complete(latest.model)) {
+      latest.onNotice({ title: 'Not written yet', hint: 'The part and every visible placed part must be up to date before 3MF export. Wait for evaluation, or fix a failed part.', detail: '' }); return;
+    }
+    const current = () => {
+      const next = currentStepOwner(stepLatest.current);
+      return next.fresh && complete(stepLatest.current.model) && owner.doc === next.doc && owner.shown === next.shown && owner.evaluated === next.evaluated && owner.name === next.name;
+    };
+    // Use the same shown decoration/assembly and evaluated feature prefix that own the visible bodies.
+    const captured = { ...latest.model.shown, nodes: latest.model.evaluated.nodes, outputs: latest.model.evaluated.outputs };
+    const parts = [{ doc: captured, bodies: latest.model.bodies }, ...visible.map(i => {
       // (Roadmap 10 ①: each body in the definition's colours and material, this occurrence's own over them.)
-      const bodies = instanceBodies.get(i.id)!.bodies;
+      const bodies = latest.model.instanceBodies.get(i.id)!.bodies;
       // (Roadmap 10 ⑤: a cut part's bodies name their features in the cut part's nodes.)
-      return { doc: withCutNodes(i.doc, i, doc), bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, doc, bodies).targets) };
+      return { doc: withCutNodes(i.doc, i, captured), bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, captured, bodies).targets) };
     })];
-    const model = threeMfModelOf(doc, parts, fileName);
-    const r = typeof model === 'string' ? { error: model } : await write3mf(model);
-    if ('error' in r) { onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
-    downloadBytes(r.bytes, `${fileName}.3mf`, 'model/3mf');
-    const s = r.stats, open = s.openEdges + s.repeatedEdges;
-    onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
+    try {
+      const model = threeMfModelOf(captured, parts, owner.name);
+      const r = typeof model === 'string' ? { error: model } : await write3mf(model);
+      if (!current()) return;
+      if ('error' in r) { latest.onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
+      downloadBytes(r.bytes, `${owner.name}.3mf`, 'model/3mf');
+      const s = r.stats, open = s.openEdges + s.repeatedEdges;
+      latest.onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(captured) ? `${draftWarning(captured)} ` : ''}${captured.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
+    } catch (e) {
+      if (current()) latest.onNotice({ title: 'Could not write 3MF', hint: e instanceof Error ? e.message : String(e), detail: '' });
+    }
   };
 
   const changeStlQuality = (value: string) => {

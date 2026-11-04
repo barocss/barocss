@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D523: refuse stale/incomplete 3MF and late ZIP output;29 checks, actual Studio and independent assembly file reads pass](notes/three-mf-current-assembly-2026-11-05/README.md).
+
 - [D522: report current autosave/recovery failures, retain valid files and suppress stale notices;99 checks, independent review and root Studio pass](notes/project-autosave-feedback-2026-11-05/README.md).
 
 - [D521: refuse late version log/tag/Doc publication into a newer project owner;29 new controlled checks and root actual OPFS Studio pass](notes/project-version-completion-ownership-2026-11-05/README.md).
