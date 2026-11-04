@@ -76,6 +76,8 @@ commands into the document. Calling the facade does not control an open Studio s
   Further field changes and final combined checks are pending. Native robot files retain their format-specific SI units.
 - **Results are plain data.** Mass results contain `volume` in mm³, `mass` in g, `centroid` in mm and
   `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³.
+  It must be positive and finite. Both facades refuse other numeric densities with `BarocssError`,
+  code `DENSITY`, from `facade`.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's
   value names, with no unit in the name: `box({ w, d, h })`, `hole(face, { d, x, y })`, `fillet(edges, { radius })`.
   Where no command names a value, the option is named for it: `mass({ density })`. Two verbs are named for their

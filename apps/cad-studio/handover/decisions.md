@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D526: align public Model positive-finite density refusal;29 tests,4 mutant kills, multiple audits and root material/BOM Studio pass](notes/public-model-density-2026-11-05/README.md).
+
 - [D525: qualify current-owner GPU recovery/startup and preserve newer notices;81 checks, independent review and actual recovery/terminal Save pass](notes/viewport-recovery-ownership-2026-11-05/README.md).
 
 - [D524: compare owned full mesh inputs and exclude previous shared upload;47 checks, High review and root native smoke pass; native collision UNKNOWN](notes/gpu-mesh-input-ownership-2026-11-05/README.md).

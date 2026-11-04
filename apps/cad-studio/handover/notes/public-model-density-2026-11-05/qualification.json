@@ -1,0 +1,263 @@
+{
+  "workId": "D526",
+  "priority": "P0-R06",
+  "rows": [
+    4,
+    16
+  ],
+  "date": "2026-11-05",
+  "tier": "FULL (public API only)",
+  "baseline": "804f5d1b331851720067d8d45d2ccd2f799096ff",
+  "status": "BOUNDED_PUBLIC_CONTRACT_FIX_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentReviews": [
+    "APPROVED_PLAN: shared positive-finite density and precedence boundary",
+    "APPROVED final source/test audit1: GPT-6.1 Sol Medium",
+    "APPROVED final source/mutation audit2: separate GPT-6.1 Sol Medium"
+  ],
+  "checks": {
+    "originalFirst": {
+      "pass": 8,
+      "fail": 14,
+      "productContractFailures": 8,
+      "overstrictAnalyticCentroidAssertions": 6
+    },
+    "correctedOriginal": {
+      "pass": 14,
+      "fail": 8,
+      "total": 22
+    },
+    "fixedUniqueTests": {
+      "pass": 29,
+      "fail": 0,
+      "new": 22,
+      "related": 7
+    },
+    "externalMutationRuns": [
+      {
+        "variant": "baseline",
+        "result": "PASS",
+        "tests": 22,
+        "passed": 22,
+        "failed": 0,
+        "cancelled": 0,
+        "exitCode": 0,
+        "overrides": 1
+      },
+      {
+        "variant": "remove-guard",
+        "result": "KILLED",
+        "tests": 22,
+        "passed": 14,
+        "failed": 8,
+        "cancelled": 0,
+        "exitCode": 1,
+        "overrides": 1
+      },
+      {
+        "variant": "finite-only",
+        "result": "KILLED",
+        "tests": 22,
+        "passed": 17,
+        "failed": 5,
+        "cancelled": 0,
+        "exitCode": 1,
+        "overrides": 1
+      },
+      {
+        "variant": "positive-only",
+        "result": "KILLED",
+        "tests": 22,
+        "passed": 20,
+        "failed": 2,
+        "cancelled": 0,
+        "exitCode": 1,
+        "overrides": 1
+      },
+      {
+        "variant": "allow-zero",
+        "result": "KILLED",
+        "tests": 22,
+        "passed": 18,
+        "failed": 4,
+        "cancelled": 0,
+        "exitCode": 1,
+        "overrides": 1
+      }
+    ],
+    "allMutantFailedCasesWereAssertions": true,
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "refusalDocsReadOnlyCheck": "PASS; existing DENSITY call-site does not change scanner output",
+    "driverMutationSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActualStudio": {
+    "status": "PASS_VALID_CONSUMER_REGRESSION",
+    "note": "Studio bodyMass/BOM bypass the public guard; no invalid API claim from GUI",
+    "sourcePaths": 293,
+    "changedDuringRun": 0,
+    "oracles": 5,
+    "literalBox": [
+      20,
+      10,
+      10
+    ],
+    "volumeMm3": 2000,
+    "densitiesGPerCm3": [
+      2.7,
+      7.85
+    ],
+    "massG": [
+      5.4,
+      15.7
+    ],
+    "centralInertiaGmm2": [
+      [
+        90,
+        225,
+        225
+      ],
+      [
+        261.6666666666667,
+        654.1666666666666,
+        654.1666666666666
+      ]
+    ],
+    "displayTolerance": {
+      "massG": 0.05,
+      "inertiaGmm2": 0.5
+    },
+    "bomRootQuantity": 1,
+    "rootViewed": [
+      "03-steel-body",
+      "04-steel-bom",
+      "09-fresh-own-open-steel-bom"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "localArtifactDownloads": 1,
+    "networkDependencyDownloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "limits": [
+    "Guard applies when the mass adapter is reached; no public bad-body/evaluation error precedence policy is added",
+    "Direct core invalid-density/unknown-volume precedence is local to massOf",
+    "Public declared entries are source-bundled, not emitted package/tarball consumer proof",
+    "Invalid/nonfinite arbitrary density is not reachable through the finite catalog UI; direct public tests supply that proof",
+    "Analytic API values use existing1e-9 relative/absolute oracle; displayed Studio values use declared rounding tolerances",
+    "No new overflow, mass provenance, borrowed observation, schema, geometry/tolerance or bodyMass policy",
+    "No whole kernel, production build, docs sample rerun (snippets unchanged), CI, mobile, release or develop integration",
+    "Whole CAD/core NOT_MEASURED; broader engineering/public API epics remain open"
+  ],
+  "sourcePins": {
+    "packages/barocss-cad-model/src/api/core.ts": "5f31a5fc07b24cc94a102c6bb41dc7b10bf79a31c8a59992b97b491b9558e275",
+    "packages/barocss-cad-model/test/api-density.test.ts": "c9620ebd479d8a99c9a26206ee2d611c2eb6c7c428fde9031e1857cc5ace6d82",
+    "packages/barocss-cad-model/scripts/test-api-density-mutations.mjs": "93227f9593e6df5a4b4180c6cb39be827d7e03e026ad6103dd9d092cd8bcbb1c",
+    "apps/library-docs/docs/packages/api.md": "9f157290a0ae2e072b419cbe4ff0dd9123009ae082790534f21d200cdf1bb4ad",
+    "apps/cad-studio/test/public-density-material-browser.mjs": "2998ed079044573d9f8778b947f7e1f89fef5a3ad8a0d1e531ecaeba68e5443a"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d526-baseline-controls01/tests.log",
+      "sha256": "5a417fba5df1a603b861f1e0c05b9094d98b80b06e4ced97b05be8ab3bbc7ca9"
+    },
+    {
+      "path": "/tmp/barocss-d526-baseline-controls02/tests.log",
+      "sha256": "73d7d34f12d9da4c3403b0a98390f7606293d8b704dbd01579c3979242dda3e6"
+    },
+    {
+      "path": "/tmp/barocss-d526-fixed-checks01/tests.log",
+      "sha256": "87483cb8e219678ed0f4184208d7518e3b200958da7dfdf4e896b6af4df9a9b3"
+    },
+    {
+      "path": "/tmp/barocss-d526-fixed-checks01/mutations.log",
+      "sha256": "7110bf44c2cf663d557f2b105a08a90fd25640c7c6a76843d3b53f15066a59fb"
+    },
+    {
+      "path": "/tmp/barocss-d526-fixed-checks01/refusals.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d526-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d526-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/summary.json",
+      "sha256": "9aeb2b9c4dd59ba5e25d58b1d1c5c70c1739c2227fdd29b1e3088ce97cc742e2"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/baseline.log",
+      "sha256": "6f2a9693a1fcc9173c4235e86d246264848dcf1584aa9e8cb6f96edce1b39c3e"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/remove-guard.log",
+      "sha256": "af7fbf339bbbf0bdab043b27439f68f7e0f7d0dbb0292e9ccd97413191a2e92c"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/finite-only.log",
+      "sha256": "e1a915665c662838ef4ef045eddc80c4e23f1f4edd7a31358e9f264359b45fa3"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/positive-only.log",
+      "sha256": "c5ac1cee4f5ad057298ee49c67c94c672c291c74fa22fffd5ec84d415eb68528"
+    },
+    {
+      "path": "/tmp/barocss-d526-mutations01/allow-zero.log",
+      "sha256": "65b3830ca069834a4ee473a94788b6ae97a3f3808ba0823dd419f3c25835e59f"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/receipt.json",
+      "sha256": "e035b2f04a2dce8f880ac713578f6771d9d7b1d98c8f9d5956d33bc707013703"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01-meta/run.log",
+      "sha256": "f51993430ca1b424f41b2e8a7c7835576de1ba00f6bde8329e4a33d9218f35bc"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/03-steel-body.png",
+      "sha256": "361028c8c482fbb5f58566888608f3645c75dd26079373a49751c27cb0f7460c"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/04-steel-bom.png",
+      "sha256": "0693de9baaf79c0a80a2045dcbdeab84d538e0845f956b33a3d1083524801bf9"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/09-fresh-own-open-steel-bom.png",
+      "sha256": "3717aa3407994bc55da2da614bd69d3513c4350a818fbe145bca5077ed866064"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/02-aluminium-consumer-oracle.json",
+      "sha256": "b18b7d638606e60b16951ea8d34d00b9992304341381f77fe0a14cd15581cd3f"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/04-steel-consumer-oracle.json",
+      "sha256": "2b3897f92c2457cbcc1710b21c265e8d6ea5a365c6004ea7234890867ff58b32"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/05-undo-aluminium-oracle.json",
+      "sha256": "eeca6c9a52fa727d0b1b8b0fb8dceb72cda0d266009e3d4b3adc49339c9d550f"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/06-redo-steel-oracle.json",
+      "sha256": "7e8987175d773c64fa6eedf866d0c3d917f8f88ed4b6bee823a1a501ad8bed1d"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/09-fresh-own-open-consumer-oracle.json",
+      "sha256": "2b3897f92c2457cbcc1710b21c265e8d6ea5a365c6004ea7234890867ff58b32"
+    },
+    {
+      "path": "/tmp/barocss-d526-studio-fixed01/07-steel-native-box.bcad",
+      "sha256": "bbe7238384c074b103dd0c8758011dc094c300dc6d11eee5ad932d3a96dff9df"
+    }
+  ]
+}

@@ -24,6 +24,7 @@ export function bodiesOf(doc: StudioDoc): BodyResult[] {
 
 /** A body's mass properties at a density (g/cm³). */
 export function massOf(body: BodyResult, density: number): MassResult {
+  if (!(Number.isFinite(density) && density > 0)) throw refuse('DENSITY', `a density must be a positive number of g/cm³, not ${density}`);
   const props = bodyMass(body, density);
   if (!props || body.volume === null) throw refuse('MASS_UNKNOWN', `the body ${body.key} has no volume the core could work out`, 'evaluate');
   return { volume: body.volume, mass: props.mass, centroid: props.centroid, inertia: props.inertia.map(row => [...row]) };

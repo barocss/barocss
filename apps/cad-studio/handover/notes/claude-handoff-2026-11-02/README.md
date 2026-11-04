@@ -1,5 +1,5 @@
 ---
-work_id: D525
+work_id: D526
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-05
@@ -31,17 +31,11 @@ Node must be22.19.0; before each commit verify easylogic <cyberuls@gmail.com>. U
 
 ## Next item
 
-[D521](../project-version-completion-ownership-2026-11-05/README.md) fixes the reproduced late version-completion overwrite.29 new and57 related controlled tests, Studio/final Model types and root's same real-OPFS branch-to-B flow pass. Broader actual GUI merge/close/edit cases remain separate. Native writes already completed are not rolled back; same-path edits keep the actual persisted log/tag but never take an old replacement Doc.
+Latest delivery [D526](../public-model-density-2026-11-05/README.md) aligns public Model density refusal with CAD.29 tests,4 behavioral mutant kills, multiple independent audits, Studio/final Model types and read-only refusal docs check pass. Root actual finite-material/BOM/UndoRedo/Save/Open plus5 independent display-arithmetic checks pass; this UI path bypasses the facade. Packed consumer, overflow/provenance/observation changes and general geometry are not claimed.
 
-[D522](../project-autosave-feedback-2026-11-05/README.md) adds current-owner autosave/recovery error feedback.13 new/86 related controlled checks, Studio/final Model types, independent FEATURE review and root actual native-OPFS outage/reset flow pass. Separate stale/corrupt recovery GUI flows remain NOT_RUN; linked continuation is source-reviewed. Prior valid bytes and dirty state remain intact in injected aborted writes.
+Earlier R01–R05 bounded records are linked from the [P0 queue](../../roadmap-tracks/01-reliability.md). Retain D524's native-collision UNKNOWN and unchanged cross-copy tolerances, and D525's controlled-only startup/disposal/Undo-action boundaries. The current index owns status; the handoff does not repeat the decision ledger.
 
-[D523](../three-mf-current-assembly-2026-11-05/README.md) fixes actual stale 3MF output.29 controlled checks, Studio/final Model types, focused source review and root actual move/source-edit/Save/fresh Open pass. Independent ZIP/XML checks bind every emitted box, current coordinates, units and chosen occurrence material/colour. Failed/missing source and delayed ZIP GUI cases remain controlled-only; no new general geometry qualification.
-
-[D524](../gpu-mesh-input-ownership-2026-11-05/README.md) repairs controlled full-input GPU reuse and previous-own-shape sharing.47 tests, Studio/final Model types, High source review and root actual native edit/selection/Undo/Redo pass. Original/fixed native inputs agree across9 states; ordinary flow has no equal-legacy-signature collision. Broader native collision UNKNOWN. Cross-instance G10 tolerances are unchanged; do not claim byte-exact shared-copy equality.
-
-[D525](../viewport-recovery-ownership-2026-11-05/README.md) selectively corrects/adopts D517 recovery source.81 checks, Studio/final Model types, independent FEATURE review and root real-device success/newer-error/terminal-save flows pass. Startup/disposal/renderer-replacement and Undo-action notice ownership are controlled-only. Terminal acquisition rejection is injected, with one exact expected native console diagnostic retained; unknown errors are zero. D524 cache changes remain.
-
-**D526 / P0-R06: public Model density guard.** Confirm public Model mass accepts invalid density while CAD facade already refuses it with BarocssError/DENSITY/facade. Add only the existing positive-finite guard to Model massOf. FULL public-contract checks need multiple independent audits and mutations, valid-density/default-material/unknown-mass controls, declared public-entry consumer, and root actual Studio material/BOM smoke. Preserve MMGS numbers, mass method/provenance and existing bodyMass/Studio consumers. Do not introduce an overflow/tolerance policy or blanket kernel run.
+**D527 / P0-R07: evaluation memo ownership.** evalMemo.ts has module-global kept Map keyed only by document evaluationKey, despite per-callback wrappers. Reproduce distinct callbacks sharing success/pending results. Move the existing16-entry Map into each rememberedEvaluate wrapper, preserving WeakMap/idempotence, LRU and same-promise refusal/rejection eviction. SMALL private repair; affected memo/reference/history tests and root actual reference-Open/history consumer. Do not invent callback equivalence or claim performance improves; new callback identities may lose unsafe shared cache hits.
 
 Use the selected SMALL/FEATURE/FULL tier, required checks and root's own actual desktop Studio flow. One bounded category milestone gets one decision and normal push. Reuse eligible passing antecedents; preserve first failures and rerun only failed/changed steps with necessary setup. Every announcement names P priority, row IDs, concrete acceptance and measured coverage. Whole CAD/core readiness remains NOT_MEASURED; frozen legacy43% is not current progress.
 
@@ -59,6 +53,6 @@ Read and retain the [previous handoff §5](../codex-handoff-2026-11-01/README.md
 
 Run one heavy job under gate.sh at a time. Do not write anything in the worktree while an actual Studio flow runs. Terminate only owned PIDs. The last test edit requires final Model tsc; whole kernel runs remain B-rep-core-only. Public API/geometry/tolerance changes need FULL review/mutations; new behavior needs FEATURE review/actual; private bounded repair needs SMALL checks/actual. Numerical claims require independent physical/native evidence, not display geometry or hashes alone. Raw logs/screenshots/archives stay outside Git; record commands/counts in small decision notes/qualification JSON.
 
-D519/D520 do not claim new Studio/runtime/physical PASS; D521–D525 add only their recorded bounded controlled and actual Studio proofs. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
+D519/D520 do not claim new Studio/runtime/physical PASS; D521–D526 add only their recorded bounded controlled and actual Studio proofs. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
 
 The exact previous handoff remains in [history-through-D518.md](history-through-D518.md). Its old next-item/WIP/latest statements are historical; use current roadmap for state. Earlier [D445](../core-cad-priority-2026-11-02/README.md) and [D446](../develop-integration-2026-11-02/README.md) remain scope/integration records, not current execution order.
