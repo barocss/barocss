@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D546: qualify scripted sheet bracket folded/flat/DXF lifecycle10/10; accept finite B04 v1 at26/26 action groups,28 actual bindings](notes/b04-sheet-bracket-2026-11-05/README.md).
 - [D545: measure real delayed Open fit at two profiles; settled camera/pixels equal manual Frame all, retain palette occlusion without a product repair](notes/project-open-framing-2026-11-05/README.md).
 
 - [D544: qualify separate current Pipe/Loft consumers16/16 with18 actual joins and original raw/legacy numerical custody; settled Open-framing observation remains](notes/b04-pipe-loft-consumers-2026-11-05/README.md).

@@ -1,0 +1,189 @@
+{
+  "decision": "D546",
+  "tier": "SMALL_PROOF_ONLY_NO_PRODUCT_CHANGE",
+  "parent": "dbc362016",
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "13",
+      "16"
+    ],
+    "wholeCadCore": "NOT_MEASURED",
+    "B03": "NOT_ADJUDICATED_TAPPED_DATA_BLOCKED",
+    "B04v1": "ACCEPTED_26_OF_26_SELECTED_ACTION_GROUPS",
+    "selectedMatrix": {
+      "pipe": 8,
+      "loft": 8,
+      "sheet": 10,
+      "total": 26
+    },
+    "planningCorrection": "Original prose28 corrected to arithmetic26; all selected groups unchanged",
+    "actualB04Bindings": 28
+  },
+  "PASS": {
+    "constructionEvaluateCallbacks": 2,
+    "newFinalNativeClasses": 2,
+    "typedGuards": 1,
+    "independentFoldedFlatControls": 2,
+    "actualAttempts": 1,
+    "selectedSheetGroups": 10,
+    "currentWorkerNewPythonBindings": 10,
+    "nativeCapturesDuringActual": 0,
+    "newControlPacketReuses": 10,
+    "snapshots": 19,
+    "sourcePins": 980,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "actualOwnedLocalExports": 1,
+    "installedReaderInvocations": 1,
+    "rootOriginalPngViews": 8,
+    "syntaxChecks": 2,
+    "finalModelTypes": "/tmp/barocss-d546-checks01/final-model-types01.log",
+    "cleanup": [
+      {
+        "ownedProject": "D546-b6bc088a-dcfd-4bee-8dea-1075583aef8d",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "highSavedAudit": "PASS_NUMERICAL_AUTHOR_REVIEWER_INDEPENDENT_OF_BROWSER_AUTHOR",
+    "mediumFinalDocumentReview": "PASS",
+    "changedDocumentRelativeLinks": 1154
+  },
+  "FAIL": {
+    "newDeclaredRuntimeFailures": 0,
+    "planningArithmetic": "28 ->26 correction, no scope/budget change",
+    "historicalFailures": "PRESERVED",
+    "legacyNavigationChecker": {
+      "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "exit": 1,
+      "line": 67,
+      "reason": "D418 validator requires compatibility marker removed by D520 current-index replacement; current paths pass separate scoped check"
+    }
+  },
+  "NOT_RUN": [
+    "General geometry/Boolean/full-domain theorem",
+    "All72 original pcurves absent; UV NOT_EXERCISED/null",
+    "New manual sheet creation/person-loaded input/live agent",
+    "Shop-calibrated K/table/manufacturing/CAM",
+    "Cold-process recovery/final resave",
+    "New full-kernel suite/mobile/external acquisition/paid live",
+    "Develop integration/release",
+    "Full current Markdown fragment acceptance: old D418 checker is incompatible with D520 index"
+  ],
+  "roles": {
+    "numericalAuthorSavedReviewer": "GPT-6.1 Sol High; not additional independent numerical-source reviewer",
+    "browserAuthor": "GPT-6.1 Sol Medium",
+    "executionOriginalPngReview": "Root"
+  },
+  "sourceOrigin": {
+    "kind": "CONTROLLED_SCRIPTED_D121_CURRENT_DISPATCH_TOOL_NOT_HISTORICAL_STUDIO_DOC",
+    "sourceDocumentSHA256": "e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab",
+    "runtimeFile": "/tmp/barocss-d546-control01/runtime-config.json",
+    "seedPath": "/tmp/barocss-d546-control01/A-actual.bcad",
+    "seedBytes": 933,
+    "seedSHA256": "e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab"
+  },
+  "controls": {
+    "receiptFile": "/tmp/barocss-d546-control01/receipt.json",
+    "receiptSHA256": "040ef06820504255de8ba0648b9cd7fce93917a15072fed980e529fa7ba6504b",
+    "pinsFile": "/tmp/barocss-d546-preflight01/source-pins.json",
+    "pinsSHA256": "3a010e33ef33c50c6cf0be30a1027ba91fa1c9a564860215372890aa4e673546",
+    "matchedPins": 655,
+    "constructionEvaluateCalls": 2,
+    "packets": [
+      {
+        "label": "NEW-current-D546-control-A",
+        "file": "/tmp/barocss-d546-control01/A-native-before-assert.json",
+        "sha256": "47259cdb9da43b50ea787d31ef9d4b8775c521a1e3c258f9941f021acaadd290"
+      },
+      {
+        "label": "NEW-current-D546-control-B",
+        "file": "/tmp/barocss-d546-control01/B-native-before-assert.json",
+        "sha256": "40a5a4a25c1f2b39d8f43d47075b7aebe364aa35d1d767c10cfb994af03e5d18"
+      }
+    ]
+  },
+  "readerRuntime": {
+    "receipt": "/tmp/barocss-d546-reader01/receipt.json",
+    "receiptSHA256": "7b31f32396d11caab8ec8b55488953602716c7a672101f3be85b6587de5aeb4a",
+    "runtime": "/tmp/barocss-d546-reader01/runtime.json",
+    "files": [
+      {
+        "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/scripts/dxf-oracle.py",
+        "bytes": 4916,
+        "sha256": "9a24b5e1d1632fd4629e4449f2a73007a2fd6fff84a25a21142700bb1b8e3a47"
+      },
+      {
+        "path": "/Users/user/.cache/barocss-ezdxf/lib/python3.12/site-packages/ezdxf/__init__.py",
+        "bytes": 3034,
+        "sha256": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0"
+      },
+      {
+        "path": "/opt/homebrew/Cellar/python@3.12/3.12.9/Frameworks/Python.framework/Versions/3.12/bin/python3.12",
+        "bytes": 52640,
+        "sha256": "57cf3be3dbf9a808f1be48b8eebb91bd69c04512d4a4c0e5b618cff33ac44850"
+      },
+      {
+        "path": "/Users/user/.cache/barocss-ezdxf/pyvenv.cfg",
+        "bytes": 136,
+        "sha256": "dbe07005cbbfc4c8a7acdb0b163aec946794d2419959b58124f2181614e56d70"
+      }
+    ],
+    "actualInvocations": 1
+  },
+  "actualReceipt": {
+    "path": "/tmp/barocss-d546-studio01/receipt.json",
+    "sha256": "8da462dace57ca37be46c808563ba0566c9970b929e88e077045000fc1fa3612"
+  },
+  "ownedSave": {
+    "namespace": "projects/D546-b6bc088a-dcfd-4bee-8dea-1075583aef8d",
+    "path": "D546-sheet-bracket.bcad",
+    "bytes": 2133,
+    "sha256": "1cc0b4aada16537bf00ae3719d0ca2bfb0d1c5aaf8d5843fc450dc478655ab7d"
+  },
+  "actualDxf": {
+    "path": "/tmp/barocss-d546-studio01/09-actual-browser-export-B-AC1015.dxf",
+    "suggestedFilename": "D546-sheet-bracket-Sheet_profile_T2_1_bend-flat.dxf",
+    "bytes": 6465,
+    "sha256": "f3d243cc56d6781c1994d339ae5f4b661384d61da338f2379efe48a3a883fb60",
+    "readerInputSHA256": "f3d243cc56d6781c1994d339ae5f4b661384d61da338f2379efe48a3a883fb60",
+    "readerOutputSHA256": "bd26bef2d9336e7d881915f67bf63b30ed9c16277dcf85524bb3e21f89f99545",
+    "readerSHA256": "9a24b5e1d1632fd4629e4449f2a73007a2fd6fff84a25a21142700bb1b8e3a47",
+    "readerExit": 0,
+    "readerSignal": null,
+    "readerError": null,
+    "documentSHA256": "8374e0b33405f241f96d2d6b465a42474cb30cfd88c5faaf2b40d03b65991739",
+    "nativeBRepSHA256": "a2bf71cb154b610f7d42d9884ab4be16aec79bb8b433766fc47875fc75115506",
+    "authority": "Actual FlatPatternDialog local download; native hash is separately paired current controlled physical-class provenance, never embedded DXF or Worker native bytes",
+    "apiBytesEqualObservedOnly": true
+  },
+  "helpers": {
+    "numerical": "ff2d1c53e05a2b8bed405ab400e58309176fc739620f16f366de34216ea52d93",
+    "browser": "dde8e08060b8e322b72de218cc2ce2af78158cfa37a20c7de7796ddd77b0ff83"
+  },
+  "budgets": {
+    "nativeVolumeRelative": 1e-09,
+    "coordinatesMassBoundaryNormalAbsolute": 1e-09,
+    "flatLengthAreaRelative": 1e-12
+  },
+  "commands": [
+    "node /tmp/barocss-d546-preflight01/bundle.mjs",
+    "node /tmp/barocss-d546-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D546_SOURCE_FROZEN=1 node test/b04-sheet-bracket-browser.mjs /tmp/barocss-d546-studio01"
+  ],
+  "openIssues": [
+    534,
+    551,
+    2230,
+    2231,
+    2272
+  ]
+}
