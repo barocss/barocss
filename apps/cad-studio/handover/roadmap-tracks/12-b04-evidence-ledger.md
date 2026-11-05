@@ -1,0 +1,36 @@
+# B04 v1 — Pipe, copied-section Loft and bent-sheet candidates
+
+[Baseline contract](04-product-baseline.md) · [P1 queue](02-core-workflows.md) · [Current roadmap](../roadmap.md)
+
+**Status: NOT_ADJUDICATED.** These are independent finite candidate categories, not equal scoring units or a completed-category denominator. Existing implementations and retained actual evidence are not automatically current consumer acceptance. No overall baseline/CAD percentage follows.
+
+| Candidate | Exact supported boundary | Retained proof and current decision |
+| --- | --- | --- |
+| B04-PIPE | One rectangular run–bend–run Pipe, bendR10/90/+X; source Depth and straight-run edits retain the original profile/path, native dimensions/mass/boundaries and references, with invalid retention/FIRST Undo/Redo/own project re-edit. | [D472](../notes/rectangular-pipe-workflow-2026-11-03/README.md) retains public creation and original four admitted positive combinations. [D544 selected current supplement](../notes/b04-pipe-loft-consumers-2026-11-05/README.md) freezes three existing positive classes from its exact saved source; root current native/independent proof and nine actual Worker/Python joins pass8/8 selected groups. This is public Pipe/native sweep, not the separate faceted Sweep-curve command or arbitrary spine/frame support. |
+| B04-LOFT | One ordinary no-guide copied-section Loft; section2 height30/40/50 and invalid0 retain the exact numeric sections and original bound-source provenance, dimensions/mass/trim refs and project re-edit. | [D473](../notes/ordinary-loft-height-workflow-2026-11-03/README.md) retains source-height/history/refusal/project proof, with D357 original public copy/non-follow creation. [D544](../notes/b04-pipe-loft-consumers-2026-11-05/README.md) qualifies fresh current40→50→30→post50 at8/8 selected groups and nine actual joins. Original W70 source sketches and W60 numeric copied sections remain distinct. No guided/rational/multi-span/general Loft authority. |
+| B04-SHEET | One supported constant-thickness sheet bracket with bends and holes; independently check folded geometry, declared K/flat length/units/DXF scope, edit/refusal/history and own project Open. | D115–D121 retained sheet implementation and acceptance are in the [decision archive](../decisions-history-through-D417.md). D121's scripted two-leg-hole L bracket and separate PCB enclosure use brief-supplied K0.44. Their existing source/control/actual evidence needs exact-scope adjudication; D544 does not qualify this category or imply missing implementation. No sheet case matrix or current runtime PASS is frozen here. |
+
+## D544 selected category batch
+
+[D544](../notes/b04-pipe-loft-consumers-2026-11-05/README.md) freezes two independent saved Docs and eight groups/nine actual consumer joins each. Its planned16 selected workflow cells are not16 CAD features or a whole-B04 denominator. Pipe classes are(18,4,12), (18,2,12), (12,2,12); Loft classesH40/50/30. Old exact manifests/oracles and narrow sweep/Loft producer files remain unchanged, but Model/compiler/editFields and owning dispatch changed; fresh current native captures are selected. Preserve original whole-Doc/PartDoc/all-output BRep custody before assertions; legacy views may add only their explicitly joined original checks.
+
+Public creation is retained at its historical scope. Native/physical source and fresh current Worker observations stay separate; rounded labels/meshes are not independent truth. Each refused edit must retain the accepted Doc/body/history, then FIRST document Undo/Redo. Save/Open is same-context unless cold-process evidence is separately obtained. Absent optional pcurves remain NOT_EXERCISED/null.
+
+## Independent sheet and scope gates
+
+D121 tool fixtures prove controlled scripted L2 behavior, not a live model's choice or a new paid run. K0.44 comes from the brief; neither its flat nor generated DXF certifies a shop-calibrated bend allowance/material/process. Owner-provided shop tables remain distinct from packaged examples; do not invent one, install an external reader or download sources without prior permission. Sheet geometry/flat/DXF consumer qualification does not lift manufacturing/equipment/P2/PG11, fitter/NURBS/thicken, release or mobile gates.
+
+Accept B04 only when every explicitly frozen required subcase is supported and passes; keep missing custody/current-consumer and unsupported/HOLD states explicit. Do not merge the three Docs into one synthetic end-to-end part or silently omit sheet to close B04. B03 positive tapped remains separately unresolved and is not part of this denominator. Whole CAD/core remains NOT_MEASURED.
+
+
+Live issue intake retains [#2230](https://github.com/barocss/barocss/issues/2230) rigid sheet/report carry, [#2231](https://github.com/barocss/barocss/issues/2231) DXF roles/options/angle semantics and [#2272](https://github.com/barocss/barocss/issues/2272) formed/flat/process staging as open research boundaries. They do not authorize new Move/Mirror metadata, cut-only export, advanced forming or machine qualification in this D544 selection. Existing flat/DXF behavior must be measured before any proposed profile change; no replacement exporter or repeated sheet implementation follows.
+
+
+## D544 current consumer supplements
+
+Both selected independent cases pass8/8 groups,16/16 selected cells, with six fresh current native classes/two typed guards and18 fresh actual Worker/new-Python joins. Root34snapshots/786unchanged pins/owned cleanup pass; numerical module author reviews saved evidence, with that role stated. Creation stays historical. Pipe39non-null pcurves per state exercise finite lifting; Loft0 remains NOT_EXERCISED/null. This does not accept the independent sheet category or whole B04.
+
+D544 Open screenshots record a visibility observation: most Pipe is offscreen immediately after fresh Worker output; Loft is partly cropped. Existing project fit waits300ms, so neither a settled full-fit PASS nor a lasting fit defect is established yet. D545 measures this exact everyday-reopen consumer before any repair and then returns to independent sheet intake. Source geometry/Doc/persistence remain independently qualified. No owner UI redesign or manufacturing gate is lifted.
+
+
+Read-only sheet intake locates the preserved D414 reader at `/Users/user/.cache/barocss-ezdxf/bin/python` (CPython3.12.9/ezdxf1.4.5 installed metadata; execution NOT_RUN), distinct from default Python with no ezdxf. No download/install is authorized or needed. Current D121 L-bracket calls are `packages/barocss-cad-model/test/fixtures/sheet-l-bracket.calls.json`,1826bytes/SHA `4452e164457bcb22cc50093a2b52094d40ddcc3374f6423ee1571bff44dd11a5`; native conformance antecedent `packages/barocss-cad/conformance/r12/accept-l-bracket.json`,3685bytes/SHA `961e5a90a2ea69d69b9a480ad8165cfbe322b1a9f2c1553d7498d4a4c277a45e`. These are scripted/canonical antecedents, not historical person-authored Studio OPFS. Old D121 centroid explicitly comes from the kernel; it is not an independent centroid oracle. Any selected new lifecycle must close that numerical gap and record its actual source provenance before admission.

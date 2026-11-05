@@ -1,0 +1,181 @@
+{
+  "decision": "D544",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "1100b1d176e2973977c8d786462cbb349c6dc4a3",
+  "productSourceChanges": 0,
+  "roles": {
+    "numericalSourceAndSavedEvidenceReview": "GPT-6.1 Sol High author/reviewer; no extra independent reviewer identity",
+    "browserAuthor": "GPT-6.1 Sol Medium",
+    "controlledAndActualExecution": "Root"
+  },
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "independentCaseSelectedGroups": "8/8 each;16/16 selected cells",
+    "wholeB04": "NOT_ADJUDICATED_SHEET_SEPARATE",
+    "wholeB03": "NOT_ADJUDICATED_POSITIVE_TAPPED_DATA_BLOCKED",
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "currentNativePositiveClasses": 6,
+    "currentTypedRefusals": 2,
+    "independentPythonStates": 6,
+    "nativeSourcePins": 479,
+    "actualAttempts": 1,
+    "freshWorkerPythonBindings": 18,
+    "newActualNativeCaptures": 0,
+    "exactNewCurrentControlReuses": 18,
+    "snapshots": 34,
+    "globalSourcePins": 786,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootOriginalPngViews": 8,
+    "helperSyntax": 2,
+    "finalModelTypes": "/tmp/barocss-d544-checks01/final-model-types01.log",
+    "numericalAuthorSavedControlAudit": "PASS",
+    "numericalAuthorSavedActualAudit": "PASS"
+  },
+  "FAIL": {
+    "newControlledOracleActualRuntimeFailures": 0,
+    "historicalPreparationCustodyFailures": "PRESERVED_NOT_REWRITTEN"
+  },
+  "OPEN_OBSERVATION": {
+    "projectOpenFraming": "Immediate fresh-Worker Pipe Open PNG shows only terminal end;300ms scheduled fit has not been measured at a settled time. D545 short actual diagnosis selected before any product repair.",
+    "viewportFit": "No full-object fit/left-palette visibility acceptance"
+  },
+  "NOT_RUN": [
+    "Public creation: retained original scope only",
+    "Sheet lifecycle/new live-agent/shop-table/manufacturing acceptance",
+    "Full-domain/general sweep/Loft geometry or arbitrary frame law",
+    "Loft optional UV: original0non-null, NOT_EXERCISED/null",
+    "Cold process and final post-Open resave",
+    "Full kernel: no B-rep-core change",
+    "Mobile/exchange/develop integration/release"
+  ],
+  "maxima": {
+    "nativeVolumeRelative": 9.327163386319716e-16,
+    "density1MassAbsoluteG": 4.263256414560601e-14,
+    "workerVolumeRelative": 5.238689482212067e-16,
+    "workerCentroidAbsoluteMM": 7.105427357601002e-15,
+    "maximumEndpointGapMM": 0,
+    "maximumRationalEdgeObservationGapMM": 7.105427357601002e-15,
+    "maximumRationalPointObservationGapMM": 3.552713678800501e-15,
+    "maximumIndependentD1ComponentGapMM": 7.105427357601002e-15,
+    "maximumOutwardNormalComponentError": 2.220446049250313e-16,
+    "maximumPcurveLiftGapMM": 0
+  },
+  "budgets": {
+    "nativeVolumeRelative": 1e-09,
+    "coordinateCentroidBoundaryD1PcurveMM": 1e-09,
+    "normalComponent": 1e-09,
+    "density1MassAbsoluteG": 1e-09
+  },
+  "pcurvesPerState": {
+    "pipe": {
+      "nonnull": 39,
+      "null": 17,
+      "finiteLiftStatus": "EXERCISED",
+      "maximumLiftMM": 0
+    },
+    "loft": {
+      "nonnull": 0,
+      "null": 24,
+      "finiteLiftStatus": "NOT_EXERCISED",
+      "maximumLiftMM": null
+    }
+  },
+  "actualSeal": {
+    "path": "/tmp/barocss-d544-studio01/category-index.sealed.json",
+    "sha256": "e41775d6fb8521b8b4d5166a2a867d55a0b22636520cc7e59ef298fe776520c7"
+  },
+  "children": [
+    {
+      "caseId": "pipe",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerPythonBindings": 9,
+      "snapshots": 17,
+      "newNativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d544-studio01/pipe/receipt.json",
+        "sha256": "d8bfbe24fd6095c5a8affff4c8ecaac219b46e5defce41125338c9b706475aec"
+      },
+      "saveC": {
+        "namespace": "projects/D544-pipe-161417cc-fbae-4eb7-8369-2688ed647e8c",
+        "path": "D544-pipe.bcad",
+        "bytes": 855,
+        "sha256": "c17ab55291bd47836468fcf550d9d627d366e57ed0928c73b828e62fbe94d4b2",
+        "exactAcceptedDoc": true
+      },
+      "cleanup": [
+        {
+          "ownedProject": "D544-pipe-161417cc-fbae-4eb7-8369-2688ed647e8c",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "caseId": "loft",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerPythonBindings": 9,
+      "snapshots": 17,
+      "newNativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d544-studio01/loft/receipt.json",
+        "sha256": "c87dd08e8ee07cfb92f4966f8af0cea40dd3615a5354820f01845a95d72bbdb7"
+      },
+      "saveC": {
+        "namespace": "projects/D544-loft-a57f6555-0e79-4ec8-adb1-bf5a615d8ec5",
+        "path": "D544-loft.bcad",
+        "bytes": 2458,
+        "sha256": "ca1d60a011fb590730f747ad7d4577e0ae54074ef380398726488c97c7ed0dd1",
+        "exactAcceptedDoc": true
+      },
+      "cleanup": [
+        {
+          "ownedProject": "D544-loft-a57f6555-0e79-4ec8-adb1-bf5a615d8ec5",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  ],
+  "controlledReceiptSHA256": "ff51f4a8c1f4b5d1d2e5ad1b786ddbac4be909de0306f1752f16c1a636a32548",
+  "independentReceiptSHA256": "90d2ba76781e61a6e168b78dc477378131354e46c94832b92e0952d585621833",
+  "moduleHashes": {
+    "oracle": "33ed11b42df4664391599931e4ee60c087c566eb9200393cd4dc14e7d4417b95",
+    "browser": "7bee39f517f9ae9ad39f646091ea123e58b63d9209f2fb43cca4121f1a70dd8b",
+    "expandedInspector": "9830a4d484a6b9b7c6e2b6f9f796520080971699a9872dda0a7ba24ddf6a5403",
+    "expandedPython": "8eafb2eccf1d39d6b73d5bc32e6a4dbdbd20279616b4da45d4c51481bd0ce665"
+  },
+  "commands": [
+    "node /tmp/barocss-d544-preflight01/bundle.mjs",
+    "node /tmp/barocss-d544-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D544_SOURCE_FROZEN=1 node test/b04-pipe-loft-browser.mjs /tmp/barocss-d544-studio01"
+  ],
+  "issues": {
+    "534": "OPEN_BROAD_FEATURE_ACCEPTANCE_UNMET",
+    "551": "OPEN_GENERAL_GRAPH_ACCEPTANCE_UNMET",
+    "2230_2231_2272": "OPEN_RESEARCH_GATES_UNCHANGED",
+    "commentsPosted": 0,
+    "closed": 0
+  },
+  "next": "D545 functional project-Open framing measurement; then independent B04 sheet selection"
+}

@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D544: qualify separate current Pipe/Loft consumers16/16 with18 actual joins and original raw/legacy numerical custody; settled Open-framing observation remains](notes/b04-pipe-loft-consumers-2026-11-05/README.md).
+
 - [D543: qualify selected current Chamfer consumer8/8 and retain separate Fillets; preserve inventory preparation FAIL and tapped-data boundary](notes/b03-finish-consumer-2026-11-05/README.md).
 
 - [D542: qualify four separate partial-Revolve/Hole-depth current consumers32/32 with36 actual bindings; preserve observer and historical custody failures](notes/b03-depth-category-2026-11-05/README.md).
