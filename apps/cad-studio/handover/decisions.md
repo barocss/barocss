@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D548: qualify issued-B two-sheet post-Open source/SVG consumers10/10 by retained six-group prefix and four-group continuation; preserve all failures and separate setup](notes/two-sheet-postopen-svg-2026-11-05/README.md).
 - [D547: qualify retained reverse Subtract original-parent edit/refusal/FIRST history/project lifecycle8/8 at unchanged native budgets](notes/reverse-subtract-lifecycle-2026-11-05/README.md).
 - [D546: qualify scripted sheet bracket folded/flat/DXF lifecycle10/10; accept finite B04 v1 at26/26 action groups,28 actual bindings](notes/b04-sheet-bracket-2026-11-05/README.md).
 - [D545: measure real delayed Open fit at two profiles; settled camera/pixels equal manual Frame all, retain palette occlusion without a product repair](notes/project-open-framing-2026-11-05/README.md).

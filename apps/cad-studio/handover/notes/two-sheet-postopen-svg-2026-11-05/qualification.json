@@ -1,0 +1,231 @@
+{
+  "decision": "D548",
+  "tier": "SMALL_PRIVATE_QUALIFIER_AND_OBSERVATION_ONLY",
+  "parent": "d7046f63fd511a6a21c98f4fc3220265557d3a5c",
+  "status": "QUALIFIED_BY_EXACT_PREFIX_AND_CONTINUATION_WITH_RETAINED_FAILURES",
+  "scope": {
+    "priority": "P2",
+    "rows": [
+      "11",
+      "12",
+      "13",
+      "16"
+    ],
+    "wholeCadCore": "NOT_MEASURED",
+    "wholeB06": "NOT_ADJUDICATED",
+    "selectedGroups": 10,
+    "qualifiedGroups": 10,
+    "composition": {
+      "Studio02PrefixGroups": 6,
+      "Studio05NewGroups": 4,
+      "Studio05SetupBindingsNotGroups": 1,
+      "qualifiedBindings": 11,
+      "bothSheetObservations": 22,
+      "contributingSnapshots": 44
+    },
+    "productChanges": "NONE"
+  },
+  "PASS": {
+    "freshCurrentNativeClasses": 2,
+    "separateTypedGuard": 1,
+    "independentNativeDrawingClasses": 2,
+    "currentNativeProducerPins": 497,
+    "actualNativeEvaluationsAcrossQualifiedConsumers": 0,
+    "actualCurrentNativeClassReuses": 11,
+    "finalSyntaxChecks": 2,
+    "finalModelTypes": "/tmp/barocss-d548-checks01/final-model-types05.log",
+    "rootOriginalPngViews": 13,
+    "independentHighSourceSavedAudit": "PASS",
+    "tailSourcePins": 813,
+    "sourceChanges": 0,
+    "tailPageErrors": 0,
+    "tailConsoleErrors": 0,
+    "actualSvgFiles": 2,
+    "actualIndependentSvgReads": 2,
+    "tailOwnedCleanup": [
+      {
+        "ownedProject": "D548-94976ac6-8b9b-4c97-8d0d-95bfb29f1f16",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "finalMediumDocumentReview": "PASS",
+    "changedDocumentLocalPathLinks": 1143
+  },
+  "FAIL": [
+    {
+      "attempt": "Studio01",
+      "reason": "Private qualifier conflated padded DOM and file A4 viewBox",
+      "receipt": "/tmp/barocss-d548-studio01/receipt.json",
+      "sha256": "4a76698b4b4b59eb2660fc023270cbfa7a4155f26845c466366678e24d81aa83",
+      "qualifiedGroups": 0
+    },
+    {
+      "attempt": "Studio02",
+      "reason": "Close project locator hidden after two-sheet Save observation",
+      "receipt": "/tmp/barocss-d548-studio02/receipt.json",
+      "sha256": "dac47cda36203025ae5c748e647e25171209c08d6770be73f9188a074a058879",
+      "qualifiedPrefixGroups": 6
+    },
+    {
+      "attempt": "Studio03",
+      "reason": "Preparation compared count/hash envelope to hash map",
+      "receipt": "/tmp/barocss-d548-studio03-preparation/receipt.json",
+      "sha256": "c65de90a88da328e8db8539aee0b143644c1072886ea5f5f63ff946c36e82b0c",
+      "StudioResourcesLaunched": 0
+    },
+    {
+      "attempt": "Studio04",
+      "reason": "Project click completion timeout with requested panel visible; cause UNKNOWN, user interrupted unresolved shutdown",
+      "receipt": "/tmp/barocss-d548-studio04/receipt.json",
+      "sha256": "b611d45f3540a56833f9d2717991bdc7d585c588610ced80804d3872778672d5",
+      "qualifiedGroups": 0,
+      "originalOrderlyCleanup": "NOT_CONFIRMED"
+    }
+  ],
+  "NOT_RUN": [
+    "New creation/NextC",
+    "PDF owner-deferred mismatch/golden update/DXF",
+    "Cold-process recovery/final resave",
+    "General drawing/hidden-line/hatch/raster/font/standards accuracy",
+    "Full kernel/mobile/external acquisition/paid live",
+    "Develop integration/release",
+    "Whole B06/CAD or aggregate percentage",
+    "Full Markdown fragment acceptance; original D418 checker is incompatible with D520 index, retained in D546"
+  ],
+  "tail": {
+    "receipt": "/tmp/barocss-d548-studio05/receipt.json",
+    "sha256": "83f1e1712e7a665fca911b5afb37b85677e1e06f2b12ca2071125afb0baad532",
+    "groups": 4,
+    "setupBindings": 1,
+    "freshWorkerPythonBindings": 5,
+    "snapshots": 20,
+    "sheetObservations": 10,
+    "nativeCaptures": 0,
+    "sourcePins": 813,
+    "ownedSave": {
+      "namespace": "projects/D548-94976ac6-8b9b-4c97-8d0d-95bfb29f1f16",
+      "path": "D548-issued-B-two-sheets.bcad",
+      "bytes": 3892,
+      "sha256": "4c157be03f88a8280cd0b89ea619b0f29e4b57a1b779b044e603c3dfae86cc10"
+    },
+    "runtimeOwnership": {
+      "nodePID": 63522,
+      "nodePPID": 63477,
+      "startedAt": "2026-11-05T04:13:29.503Z",
+      "serverURL": "http://127.0.0.1:63531/"
+    },
+    "closeDiagnostics": [
+      {
+        "label": "CONTEXT",
+        "startedAt": "2026-11-05T04:13:42.765Z",
+        "completedAt": "2026-11-05T04:13:42.773Z",
+        "status": "CLOSED"
+      },
+      {
+        "label": "BROWSER",
+        "startedAt": "2026-11-05T04:13:42.773Z",
+        "completedAt": "2026-11-05T04:13:43.820Z",
+        "status": "CLOSED"
+      },
+      {
+        "label": "SERVER",
+        "startedAt": "2026-11-05T04:13:43.820Z",
+        "completedAt": "2026-11-05T04:13:43.824Z",
+        "status": "CLOSED"
+      }
+    ]
+  },
+  "svgExports": [
+    {
+      "path": "/tmp/barocss-d548-studio05/08-actual-SVG-sheet1-H10-actual.svg",
+      "sheetIndex": 0,
+      "bytes": 7349,
+      "sha256": "77efd2885f5fbc81e9877351f9c6b95696fd3e8fb19ba6616ac1825cdc1c7c4a",
+      "documentSHA256": "9a6507a96cd251efb1ad02ebca7cfd7bb0bc84ae468908af8ba772a3c3462e86",
+      "nativeBRepSHA256": "27f9fa6dfc468ee39c75a1aa920844ec350b15f652dd4de4924e4d6c808330ae",
+      "filename": "D548-issued-B-two-sheets-sheet-1.svg",
+      "title": "D548-issued-B-two-sheets",
+      "currentFilename": "D548-issued-B-two-sheets",
+      "authority": "Actual current-sheet Export SVG after own project OpenH10; original file and selected DOM preserved; native hash is a paired physical-class observation, not embedded SVG or Worker BRep"
+    },
+    {
+      "path": "/tmp/barocss-d548-studio05/09-actual-SVG-sheet2-H10-actual.svg",
+      "sheetIndex": 1,
+      "bytes": 4118,
+      "sha256": "723443d8067007835a36da2b2699746d416561c4fdc4ebecede9b4f05d4dcbba",
+      "documentSHA256": "9a6507a96cd251efb1ad02ebca7cfd7bb0bc84ae468908af8ba772a3c3462e86",
+      "nativeBRepSHA256": "27f9fa6dfc468ee39c75a1aa920844ec350b15f652dd4de4924e4d6c808330ae",
+      "filename": "D548-issued-B-two-sheets-sheet-2.svg",
+      "title": "D548-issued-B-two-sheets",
+      "currentFilename": "D548-issued-B-two-sheets",
+      "authority": "Actual current-sheet Export SVG after own project OpenH10; original file and selected DOM preserved; native hash is a paired physical-class observation, not embedded SVG or Worker BRep"
+    }
+  ],
+  "budgets": {
+    "nativeVolumeRelative": 1e-09,
+    "nativeGeometryNormalMassAbsolute": 1e-09,
+    "existingFourDecimalSerializedPaperResidual": 1e-12
+  },
+  "maxima": {
+    "nativeAndWorkerCentroidAbsoluteMM": 1.7763568394002505e-15,
+    "nativeVolumeRelative": 0,
+    "massAbsoluteG": 0,
+    "geometryResiduals": 0,
+    "presentPcurves": 24,
+    "finiteUvLiftMM": 0,
+    "serializedPaperResidualMM": 0
+  },
+  "helpers": {
+    "numericalFinal": "8fd7491c1c4dad12491d446276cfd46668debe61ab14668fbc3acc2294f8fec5",
+    "pythonFinal": "d746ba720d91c8aee42008c2274220b18ff071a7b97e82f0acaca9126f3c393f",
+    "browserFinal": "031d848cc6b8d49829aff4a1f86090c68404cef21182d09ae9fd247f4113b5dd"
+  },
+  "compatibility": {
+    "path": "/tmp/barocss-d548-preflight02/compatibility.json",
+    "sha256": "58e04839aef7fe7539dd0d6784ac83084a3759ba63959c3c1606d627df647e21",
+    "nativeEvaluations": 0,
+    "scope": "One private DOM/file viewport check; native producer/preflight/config unchanged"
+  },
+  "savedOnlyRequalification": {
+    "path": "/tmp/barocss-d548-savedrequal01/receipt.json",
+    "sha256": "bc37921e53be25abb1cd55d7a7e4064864f614f5e88ff14c6f11ae9d6142c9a9",
+    "newNativeWorkerStudioObservations": 0
+  },
+  "ownedProcessAbsence": {
+    "path": "/tmp/barocss-d548-studio05/owned-process-absence.json",
+    "sha256": "c87abf9ab056e7f9ab1e49e5ca817ccc51dc3c4475924b48dcdf12e312d843b9",
+    "node": 63522,
+    "chrome": 63540,
+    "absent": true
+  },
+  "browserStderr": {
+    "CVDisplayLink": 14,
+    "allocatorWarning": 1,
+    "ProduceSkiaDuringClose": 1,
+    "chromeExitCode": 0,
+    "pageConsoleErrors": 0,
+    "rasterQualification": "NOT_RUN"
+  },
+  "roles": {
+    "originalNumericalAuthor": "GPT-6.1 Sol High",
+    "browserAndDiagnosticAuthor": "GPT-6.1 Sol Medium",
+    "rootShortSchemaAndCustodyCorrections": "Root",
+    "finalSourceAndSavedTailReviewer": "GPT-6.1 Sol High independent of Medium author; no execution",
+    "executionPngReviewPidAbsence": "Root"
+  },
+  "commands": [
+    "node /tmp/barocss-d548-preflight01/run.mjs",
+    "node /tmp/barocss-d548-oracle01/run.mjs",
+    "node /tmp/barocss-d548-saved-requal-run.mjs /tmp/barocss-d548-savedrequal01",
+    "node /tmp/barocss-d548-preflight02/seal.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "DEBUG=pw:browser,pw:api D548_SOURCE_FROZEN=1 D548_CONTINUE_FROM_SAVED_B=1 node test/two-sheet-postopen-svg-browser.mjs /tmp/barocss-d548-studio05"
+  ],
+  "issueDisposition": {
+    "540": "OPEN broader acceptance unmet",
+    "2287": "OPEN later P4 research/reference only, full body read, no UI/HOLD change"
+  }
+}

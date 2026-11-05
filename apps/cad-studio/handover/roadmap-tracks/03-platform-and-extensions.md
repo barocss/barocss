@@ -6,6 +6,8 @@ This queue preserves implemented support and names the missing acceptance. The 3
 
 ## P4 — GPU, Viewer, interaction and scale
 
+Owner's later-reference intake: [#2287](https://github.com/barocss/barocss/issues/2287), read in full on2026-11-05, is RESEARCH/P4 BACKLOG for contextual Inspector organization, command entrypoint consistency, tree/list/foldout state, actionable errors and focus/keyboard/transaction ownership. Reuse existing Inspector/HUD/Command.available/Palette/dock behavior and retained evidence first; select one uncovered desktop flow before any change. This does not select a Unity-style redesign, new shared UI package, assets/dependency download, mobile testing or an immediate MAIN task. Owner workspace/menu/icon redesign HOLD remains. Full official-reference review and new product/accessibility execution for this issue are NOT_RUN; its requirements are proposals, not missing-feature or parity claims.
+
 Rows [05](../roadmap-rows/05.md), [06](../roadmap-rows/06.md), [15](../roadmap-rows/15.md), [20](../roadmap-rows/20.md), [21](../roadmap-rows/21.md), [22](../roadmap-rows/22.md), [23](../roadmap-rows/23.md), [32](../roadmap-rows/32.md). GPU owns device/resources/render contracts; Viewer owns its native/display facade; Model owns geometry identity; Studio owns selection, preview and user feedback. P0-R04/R05 owns the newly audited equality/recovery boundaries before breadth work.
 
 ### Current architecture and scope
