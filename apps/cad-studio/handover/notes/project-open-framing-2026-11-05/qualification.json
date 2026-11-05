@@ -1,0 +1,213 @@
+{
+  "decision": "D545",
+  "tier": "SMALL_MEASUREMENT_NO_PRODUCT_REPAIR",
+  "parent": "77f5a1bf51681f8043f1edf6ac5eed1c8ec825ef",
+  "scope": {
+    "priority": "SHORT_P4_BEFORE_RETURN_TO_P1_SHEET",
+    "rows": [
+      "05",
+      "20",
+      "21"
+    ],
+    "wholeCadCore": "NOT_MEASURED",
+    "wholeB03": "NOT_ADJUDICATED_TAPPED_DATA_BLOCKED",
+    "wholeB04": "NOT_ADJUDICATED_SHEET_SEPARATE",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "actualAttempts": 1,
+    "independentCases": 2,
+    "currentWorkerNewPythonBindings": 8,
+    "newStandaloneNativeCapturesOrEvaluations": 0,
+    "exactEligibleD544CPacketReuses": 8,
+    "snapshots": 10,
+    "globalSourcePins": 781,
+    "nativeReusePins": 479,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootOriginalPngViews": 6,
+    "syntaxChecks": 1,
+    "finalModelTypes": "/tmp/barocss-d544-checks01/d545-final-model-types01.log",
+    "independentHighDriverAndSavedActualReview": "PASS",
+    "bothActualSourceIdentifiedCallbacksObserved": true,
+    "observerRestoredBothCases": true,
+    "allFiniteSamplesInsideFullCanvas": true,
+    "settledCameraAndPixelsEqualManualFrameAll": true
+  },
+  "FAIL": {
+    "newDeclaredMeasurementRuntimeFailures": 0,
+    "lastingStaleProjectFitDefectReproduced": false,
+    "historicalFailures": "PRESERVED"
+  },
+  "OPEN": {
+    "loftPaletteHitTestOcclusion": "4/68 sample records, one unique original vertex [0,0,0], hit Rectangular cut pattern palette button; same after manual Frame all",
+    "UIRedesign": "HOLD_UNCHANGED"
+  },
+  "NOT_RUN": [
+    "Product repair: no lasting stale-fit defect established",
+    "Full-object/all-view/all-domain/raster or pointer-transparent overlay visibility",
+    "Fast edit/new Open/Close/unmount or deliberately delayed Worker cancellation races (existing contract retained)",
+    "Latency benchmark or maximum delay SLA",
+    "New native physics/geometry classes or new public creation",
+    "Sheet lifecycle/cold-process persistence/final resave",
+    "Full kernel/mobile/download/develop integration/release"
+  ],
+  "instrumentation": {
+    "driverAuthor": "GPT-6.1 Sol Medium",
+    "sourceSavedEvidenceReviewer": "GPT-6.1 Sol High independent of D545 driver author",
+    "executionAndPngReview": "Root",
+    "timerInstrumentationSHA256": "ab0f9f1535de7a8eea24628371cc68a833e4581a7273fe25448f184112cb710f",
+    "policy": "Passive source-identified real300ms timer, original callback/this/args/return/delay preserved; no forced callback/fit/Doc/selection",
+    "occlusionAuthority": "DOM hit test only, separately root PNG-reviewed"
+  },
+  "actualSeal": {
+    "path": "/tmp/barocss-d545-studio01/category-index.sealed.json",
+    "sha256": "a8de7aff7f471308f422a626fc252e35cd41814656e3c10e744ffa7865d3eb61"
+  },
+  "driverSHA256": "50997af13a322f056474d6bd03e59ab2b9b3da9d3912a71defdefff94edef070",
+  "children": [
+    {
+      "caseId": "pipe",
+      "receipt": {
+        "file": "/tmp/barocss-d545-studio01/pipe/receipt.json",
+        "sha256": "a3bdaef0bb079789c491b17ceb7bed4b71dd43de9431c5c288cf89f7bd8f4f11"
+      },
+      "freshWorkerPythonBindings": 4,
+      "snapshots": 5,
+      "savedC": {
+        "namespace": "projects/D545-pipe-3d09dbcd-9055-4257-bbaf-7fc0f856fc15",
+        "path": "D545-pipe.bcad",
+        "bytes": 855,
+        "sha256": "c17ab55291bd47836468fcf550d9d627d366e57ed0928c73b828e62fbe94d4b2",
+        "exactAcceptedDoc": true
+      },
+      "timer": {
+        "requestedDelayMS": 300,
+        "firedAfterScheduleMS": 301.90000009536743,
+        "callbackFinishedAfterPublicClickMS": 386.2999999523163,
+        "firstFreshWorkerAfterPublicClickMS": 281,
+        "settledAfterCallbackMS": 554.9000000953674
+      },
+      "finiteSampleCounts": {
+        "status": "MEASURED_FINITE_SAMPLES",
+        "immediate": {
+          "total": 156,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 156,
+          "occludedInsideCanvas": 93,
+          "unoccluded": 63
+        },
+        "settled": {
+          "total": 156,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 156,
+          "occludedInsideCanvas": 0,
+          "unoccluded": 156
+        },
+        "publicFrameAll": {
+          "total": 156,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 156,
+          "occludedInsideCanvas": 0,
+          "unoccluded": 156
+        },
+        "wholeObjectAllViews": "NOT_CLAIMED",
+        "productRepair": "NONE"
+      },
+      "settledManualCameraEyeEqual": true,
+      "settledManualMaximumSamplePixelDelta": 0.0,
+      "settledOccludedUniquePhysicalPoints": 0,
+      "observerRestored": "RESTORED",
+      "ownedNamespaceCleanup": {
+        "ownedProject": "D545-pipe-3d09dbcd-9055-4257-bbaf-7fc0f856fc15",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "resourceCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "caseId": "loft",
+      "receipt": {
+        "file": "/tmp/barocss-d545-studio01/loft/receipt.json",
+        "sha256": "5faa423dd7bfc3b5837cbbf8b221bca8b257043f9ef057f08834d4c7909b68de"
+      },
+      "freshWorkerPythonBindings": 4,
+      "snapshots": 5,
+      "savedC": {
+        "namespace": "projects/D545-loft-55635dc0-85ce-4f67-a8bd-77dadfa403e5",
+        "path": "D545-loft.bcad",
+        "bytes": 2458,
+        "sha256": "ca1d60a011fb590730f747ad7d4577e0ae54074ef380398726488c97c7ed0dd1",
+        "exactAcceptedDoc": true
+      },
+      "timer": {
+        "requestedDelayMS": 300,
+        "firedAfterScheduleMS": 302.5,
+        "callbackFinishedAfterPublicClickMS": 390.19999980926514,
+        "firstFreshWorkerAfterPublicClickMS": 281.39999985694885,
+        "settledAfterCallbackMS": 546
+      },
+      "finiteSampleCounts": {
+        "status": "MEASURED_FINITE_SAMPLES",
+        "immediate": {
+          "total": 68,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 68,
+          "occludedInsideCanvas": 5,
+          "unoccluded": 63
+        },
+        "settled": {
+          "total": 68,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 68,
+          "occludedInsideCanvas": 4,
+          "unoccluded": 64
+        },
+        "publicFrameAll": {
+          "total": 68,
+          "nonfinite": 0,
+          "outsideCanvas": 0,
+          "insideCanvas": 68,
+          "occludedInsideCanvas": 4,
+          "unoccluded": 64
+        },
+        "wholeObjectAllViews": "NOT_CLAIMED",
+        "productRepair": "NONE"
+      },
+      "settledManualCameraEyeEqual": true,
+      "settledManualMaximumSamplePixelDelta": 0.0,
+      "settledOccludedUniquePhysicalPoints": 1,
+      "observerRestored": "RESTORED",
+      "ownedNamespaceCleanup": {
+        "ownedProject": "D545-loft-55635dc0-85ce-4f67-a8bd-77dadfa403e5",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "resourceCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  ],
+  "commands": [
+    "node --check apps/cad-studio/test/project-open-framing-browser.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D545_SOURCE_FROZEN=1 node test/project-open-framing-browser.mjs /tmp/barocss-d545-studio01"
+  ],
+  "issues": {
+    "529": "OPEN_BROAD_WORKSPACE_ACCEPTANCE_UNMET",
+    "commentsPosted": 0,
+    "closed": 0
+  },
+  "next": "D546/P1 B04 existing constant-thickness sheet bracket source/folded/flat/DXF consumer selection"
+}
