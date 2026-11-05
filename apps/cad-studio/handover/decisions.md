@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D542: qualify four separate partial-Revolve/Hole-depth current consumers32/32 with36 actual bindings; preserve observer and historical custody failures](notes/b03-depth-category-2026-11-05/README.md).
+
 - [D541: qualify true circular flange/shaft11/11 through actual public creation and lifecycle, with original rational torus authority and receipt cleanup](notes/flanged-shaft-composition-2026-11-05/README.md).
 
 - [D540: qualify full-Revolve boss source Depth8/8 through retained downstream features and current Studio; B03 remains unadjudicated](notes/revolve-boss-depth-2026-11-05/README.md).

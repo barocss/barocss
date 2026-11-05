@@ -1,0 +1,241 @@
+{
+  "decision": "D542",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "af6825ae0b21da1f3b32d51226a75953eeadb3ce",
+  "productSourceChanges": 0,
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "selectedWorkflowCells": "32/32",
+    "independentCases": 4,
+    "wholeB03": "NOT_ADJUDICATED",
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "joinedCurrentNativePositiveClasses": 12,
+    "currentNativeTypedRefusals": 6,
+    "independentPythonStates": 12,
+    "actualStudioAttempts": 1,
+    "freshWorkerPythonBindings": 36,
+    "actualSnapshots": 72,
+    "actualNewNativeCaptures": 0,
+    "exactNewCurrentControlPacketReuses": 36,
+    "sourcePins": 803,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootOriginalPngViews": 8,
+    "helperSyntax": 2,
+    "finalModelTypes": "/tmp/barocss-d542-checks01/final-model-types01.log",
+    "independentSourceSavedControlsReview": "PASS",
+    "independentSavedActualAudit": "PASS"
+  },
+  "FAIL": {
+    "originalControl01": "TypeError reading missing private STEP bounds at countersink A; original receipt preserved",
+    "historicalD501AggregateCustody": "FAIL_UNRECOVERABLE_UNCHANGED",
+    "actualStudioFailures": 0
+  },
+  "NOT_RUN": [
+    "New public creation: retained historical scope only",
+    "Whole B03, general finishing and positive tapped without eligible person-loaded data",
+    "Partial/countersink pcurve lift: original fields absent",
+    "Full-domain/general geometry and independent external file interchange",
+    "Cold process and final post-Open resave",
+    "Full kernel: no B-rep-core change",
+    "Mobile/develop integration/release"
+  ],
+  "maximaFromActualOracles": {
+    "volumeRelative": 5.951930730982414e-14,
+    "massAbsoluteG": 1.8943480981750287e-12,
+    "centroidAbsoluteMM": 5.547328171542545e-13,
+    "maximumEndpointGapMM": 4.440892098500626e-16,
+    "maximumCarrierGapMM": 7.105427357601002e-15,
+    "maximumRationalObservationGapMM": 2.2792336392712698e-14,
+    "maximumOutwardNormalComponentError": 1.5543122344752192e-15,
+    "maximumPcurveLiftGapMM": 1.0950198975068616e-14
+  },
+  "budgets": {
+    "relativeVolume": 1e-09,
+    "coordinateCentroidBoundaryMM": 1e-09,
+    "normalComponent": 1e-09,
+    "density1MassAbsoluteG": 1e-09
+  },
+  "pcurvesPerPositiveState": {
+    "partial": {
+      "nonnull": 0,
+      "total": 24,
+      "status": "NOT_EXERCISED"
+    },
+    "blind": {
+      "nonnull": 36,
+      "total": 36,
+      "status": "EXERCISED_FINITE"
+    },
+    "counterbore": {
+      "nonnull": 48,
+      "total": 48,
+      "status": "EXERCISED_FINITE"
+    },
+    "countersink": {
+      "nonnull": 0,
+      "total": 48,
+      "status": "NOT_EXERCISED"
+    }
+  },
+  "actualCategoryIndex": {
+    "path": "/tmp/barocss-d542-studio01/category-index.sealed.json",
+    "sha256": "47c7cae6be3adb76c89c25f02c985af0764124130583485717d47c0b9416a9ba"
+  },
+  "children": [
+    {
+      "caseId": "partial",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerBindings": 9,
+      "snapshots": 17,
+      "nativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d542-studio01/partial/receipt.json",
+        "sha256": "53f91644556271e9e619434cdb71e5a09137548809a6514bd0ede2f0ce438ac2"
+      },
+      "save": {
+        "namespace": "projects/D542-partial-255c462f-21fa-4977-86eb-4a8c311c49b0",
+        "path": "D542-partial.bcad",
+        "bytes": 607,
+        "sha256": "a6da22f7f7bf95069d813fb30daa1600288b006a702adcabc404a0daadc84859",
+        "exactAcceptedDoc": true
+      },
+      "sourcePins": 803,
+      "cleanup": [
+        {
+          "ownedProject": "D542-partial-255c462f-21fa-4977-86eb-4a8c311c49b0",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "caseId": "blind",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerBindings": 9,
+      "snapshots": 17,
+      "nativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d542-studio01/blind/receipt.json",
+        "sha256": "eb996572f4511399526c68de3072be8f065edbf7fd39b00ba4a450cd1ee48a7b"
+      },
+      "save": {
+        "namespace": "projects/D542-blind-5f041998-cd54-4c88-b73d-db0c4ada85c8",
+        "path": "D542-blind.bcad",
+        "bytes": 1321,
+        "sha256": "bcb4a40a52962bf67ef4af6e017d5f70a62fb347655457c26105e0c841c9a99d",
+        "exactAcceptedDoc": true
+      },
+      "sourcePins": 803,
+      "cleanup": [
+        {
+          "ownedProject": "D542-blind-5f041998-cd54-4c88-b73d-db0c4ada85c8",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "caseId": "counterbore",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerBindings": 9,
+      "snapshots": 19,
+      "nativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d542-studio01/counterbore/receipt.json",
+        "sha256": "3aa084d3f6ce8c44c0b5291ad878fe8feb862ee9ee45e5066659c8029143a086"
+      },
+      "save": {
+        "namespace": "projects/D542-counterbore-311ce832-86f5-49b4-a6c9-6111b2f54fab",
+        "path": "D542-counterbore.bcad",
+        "bytes": 1535,
+        "sha256": "db820bc881ec312479527720475355cd0616ce8005802073e2e13f97c7eb45ab",
+        "exactAcceptedDoc": true
+      },
+      "sourcePins": 803,
+      "cleanup": [
+        {
+          "ownedProject": "D542-counterbore-311ce832-86f5-49b4-a6c9-6111b2f54fab",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "caseId": "countersink",
+      "acceptedGroups": 8,
+      "declaredGroups": 8,
+      "workerBindings": 9,
+      "snapshots": 19,
+      "nativeCaptures": 0,
+      "exactNewCurrentControlReuses": 9,
+      "receipt": {
+        "file": "/tmp/barocss-d542-studio01/countersink/receipt.json",
+        "sha256": "296bc2733d1995e06ba3d06cdafc53d26b4b8f7c856097bd9ba85b1ff00e4b2d"
+      },
+      "save": {
+        "namespace": "projects/D542-countersink-9310bfdf-fed8-401b-8e7c-77a902e9e546",
+        "path": "D542-countersink.bcad",
+        "bytes": 1327,
+        "sha256": "bd808a8911a7bfbf33735a144035392c2f37ea2ccae9d6c96a90125bf7d9b7c6",
+        "exactAcceptedDoc": true
+      },
+      "sourcePins": 803,
+      "cleanup": [
+        {
+          "ownedProject": "D542-countersink-9310bfdf-fed8-401b-8e7c-77a902e9e546",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  ],
+  "commands": [
+    "node /tmp/barocss-d542-preflight01/bundle.mjs",
+    "D542_REUSE_COUNTERSINK_A_FROM=/tmp/barocss-d542-control01/countersink/A-native-before-assert.json node /tmp/barocss-d542-preflight02/bundle.mjs",
+    "node /tmp/barocss-d542-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D542_SOURCE_FROZEN=1 node test/b03-depth-category-browser.mjs /tmp/barocss-d542-studio01"
+  ],
+  "issues": {
+    "534": "OPEN_ALL_ADOPTED_FEATURES_NOT_MET",
+    "551": "OPEN_GENERAL_GRAPH_ACCEPTANCE_NOT_MET",
+    "commentsPosted": 0,
+    "closed": 0
+  },
+  "sourceModules": {
+    "oracle": "c9418ff07f98c66e9aae608fb8e01c005793dfd9f6f0803c2455e6b768fcba5e",
+    "browser": "7bd9fddfedbd86f6789cd4eab61788ab479747608ae605b84b8002645d86934a",
+    "expandedInspector": "25e056e633153f23fdb9c7aad45ea516b89e66f2ae3e2454bfeb3a7b764361c3",
+    "expandedPython": "0d50d563eedc2b69c12bc15f5fcd46e7b1bbfbe999e39be60a7e33c81240dc05"
+  },
+  "maximaFromActualWorker": {
+    "volumeRelative": 1.2900943e-13,
+    "centroidAbsoluteMM": 3.2976644e-13
+  }
+}
