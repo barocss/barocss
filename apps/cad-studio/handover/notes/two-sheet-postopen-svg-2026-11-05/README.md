@@ -129,3 +129,6 @@ PASS: selected10/10 by6+4 composition, current native2/typedguard1, independent2
 Next D549/P2 intake selects the explicitly unqualified actual SVG output of the existing D455 Section A/Detail B profile. Read retained creation/edit/history/project/physical proof and exact source custody before freezing an export consumer; do not recreate implemented section/detail or repeat its qualified workflow just for counts. Keep original1e-9 native analytic and separate SVG serialization/approximation boundaries, existing Hatch limits and all PDF/HOLD rules.
 
 Final Medium document review PASS. Root changed-document local-path validation checks1143 links with0missing and confirms10 selected groups/11bindings including setup; git diff --check PASS. This scoped validation does not relabel the incompatible D418 full-navigation checker PASS. No product/source changes after final helper/types/actual verification.
+
+
+Additive D549 counter clarification: zero new native evaluations in the actual-driver reuse discussion means zero new standalone controlled inspector calls made by that driver. It does not mean the actual Studio Worker/provider performs no native computation. Internal Worker/kernel evaluation counts were NOT_MEASURED. Original raw captures, source pins, qualified consumer counts and all failure/cleanup records remain unchanged.

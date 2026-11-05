@@ -227,5 +227,12 @@
   "issueDisposition": {
     "540": "OPEN broader acceptance unmet",
     "2287": "OPEN later P4 research/reference only, full body read, no UI/HOLD change"
+  },
+  "counterMeaningClarificationD549": {
+    "legacyField": "PASS.actualNativeEvaluationsAcrossQualifiedConsumers",
+    "recordedValue": 0,
+    "preciseMeaning": "New standalone controlled inspector calls made by the actual driver while reusing exact current native packets",
+    "actualWorkerProviderNativeEvaluationCount": "NOT_MEASURED",
+    "evidenceAndQualifiedConsumerCounts": "UNCHANGED"
   }
 }

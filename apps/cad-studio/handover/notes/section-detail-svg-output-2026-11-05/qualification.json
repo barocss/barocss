@@ -1,0 +1,301 @@
+{
+  "decision": "D549",
+  "tier": "SMALL_EXISTING_OUTPUT_PRIVATE_PROOF",
+  "parent": "1baee9f66a925331a44833f861b72696bdce5d70",
+  "status": "QUALIFIED_FIRST_ACTUAL_RUN",
+  "scope": {
+    "priority": "P2",
+    "rows": [
+      "11",
+      "12",
+      "13",
+      "16"
+    ],
+    "selectedGroups": 3,
+    "qualifiedGroups": 3,
+    "wholeCadCore": "NOT_MEASURED",
+    "wholeB06": "NOT_ADJUDICATED",
+    "productChanges": "NONE"
+  },
+  "PASS": {
+    "currentPhysicalClasses": 1,
+    "controlledCalls": {
+      "sourceEvaluate": 1,
+      "explicitSplitEvaluate": 1,
+      "controlledSectionProvider": 0,
+      "projectViews": 1,
+      "nativeCutProjection": 1,
+      "cutRings": 1
+    },
+    "independentControls": 1,
+    "actualAttempts": 1,
+    "actualGroups": 3,
+    "freshDocUiPythonObservations": 3,
+    "newActualDrawingPairs": 1,
+    "exactCurrentPairReuses": 2,
+    "newControlledInspectorCallsDuringStudio": 0,
+    "actualInternalWorkerNativeCalls": "NOT_MEASURED",
+    "currentPhysicalClassReuses": 3,
+    "controlPins": 492,
+    "actualSourcePins": 791,
+    "sourceChanges": 0,
+    "snapshots": 3,
+    "rootOriginalPngViews": 3,
+    "actualSvgDownloads": 1,
+    "actualIndependentSvgReads": 1,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "finalSyntaxChecks": 2,
+    "finalModelTypes": "/tmp/barocss-d549-checks01/final-model-types02.log",
+    "sourceAndSavedHighAudit": "PASS",
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "FAIL": {
+    "declaredNativeOracleStudioRuntimeFailures": 0,
+    "sourceReviewBeforeActual": {
+      "status": "BLOCKED_SOURCE_VERSION_NOT_EXECUTED",
+      "oldBrowserSHA256": "5eca515334357d40210c6f2fb5c359e2721c3a09dd82e0d7a3337165d51f48a8",
+      "fivePrivatePlumbingFindings": "RESOLVED_BEFORE_FIRST_ACTUAL"
+    },
+    "optionalAuditProbe": "AUDIT_ONLY_UNSUPPORTED_V8_BYTE_ROUNDTRIP_ASSUMPTION_NOT_ACCEPTANCE_OR_PRODUCT_FAILURE",
+    "historicalD455": "PRESERVED"
+  },
+  "OPEN": {
+    "existingDrawingCompletenessWarnings": [
+      "HOLE_SIZE_MISSING",
+      "HOLE_NOT_LOCATED",
+      "OVERALL_MISSING"
+    ],
+    "annotationList": "EMPTY_RETAINED_SOURCE",
+    "broaderENG01to08": "NOT_ADJUDICATED"
+  },
+  "NOT_RUN": [
+    "New creation/height edits/refusal/UndoRedo/project loop",
+    "PDF/DXF/held golden mismatch",
+    "General curves/visibility/hatch/raster/font/print/standards/performance",
+    "Full kernel/mobile/external acquisition/paid live/develop integration/release",
+    "Actual internal Worker/kernel evaluation count",
+    "Whole B06/CAD or aggregate percentage"
+  ],
+  "source": {
+    "seedPath": "/tmp/barocss-d455-workflow-run02/section-detail-05-opfs-saved.bcad",
+    "seedBytes": 1767,
+    "seedSHA256": "ddd7b9b7a5303f5ac9f092ae557e88a1a7cff2cd7280b31fc16bfeb0e77d8fb1",
+    "compactDocSHA256": "026cec39e73c3d46ba399e86ec23fc72124cc1dcf1f4c77f26c49232405297a8",
+    "nativeBRepSHA256": "859ced0c726deb63d1f5b7669a517801e6f32d2778403cdb5e3b89f6f3fb075e",
+    "sourceRevision": "bafe7e865f28d750",
+    "historicalNativeReuse": 0,
+    "oldSourcePins": {
+      "total": 2407,
+      "equal": 2339,
+      "changed": 68,
+      "missing": 0
+    }
+  },
+  "currentExpected": {
+    "footprintAreaMM2": "2319.52876713083220382497486303039130938451439617",
+    "volumeMM3": "27834.3452055699864458996983563646957126141727540",
+    "massDensity1G": "27.834345205569986445899698356364695712614172754",
+    "centroidMM": [
+      "30.4834813927265673215689468873972477612997475645",
+      "19.9839044544179673056287897224190748601819784439",
+      "6"
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        60,
+        40,
+        12
+      ]
+    }
+  },
+  "geometry": {
+    "counts": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 9,
+      "loops": 11,
+      "coedges": 42,
+      "edges": 21,
+      "vertices": 14
+    },
+    "genus": 1,
+    "eulerCharacteristic": 0,
+    "carrierRoles": [
+      "back",
+      "bore",
+      "bottom",
+      "farFillet",
+      "front",
+      "left",
+      "right",
+      "top"
+    ],
+    "pcurveCount": 42,
+    "pcurvePresence": "ORIGINAL_OPTIONAL_FIELDS_ONLY",
+    "maximumEndpointGapMM": 0,
+    "maximumPcurveLiftGapMM": 1.0048591735576161e-14,
+    "maximumIndependentProbePointGapMM": 7.105427357601002e-15,
+    "maximumIndependentD1ComponentGapMM": 1.3766765505351941e-14,
+    "maximumIndependentEdgeProbeGapMM": 7.105427357601002e-15,
+    "maximumOutwardNormalComponentError": 4.3298697960381105e-15,
+    "nominalCaps": [
+      {
+        "z": 0,
+        "loopAreasMM2": [
+          2398.0685834705773,
+          78.53981633974485
+        ],
+        "materialAreaMM2": 2319.5287671308324
+      },
+      {
+        "z": 12,
+        "loopAreasMM2": [
+          2398.0685834705773,
+          78.53981633974486
+        ],
+        "materialAreaMM2": 2319.5287671308324
+      }
+    ],
+    "currentFilletVerticalBoundaries": [
+      {
+        "xy": [
+          60,
+          37
+        ],
+        "edgeId": "n2_e5",
+        "lengthMM": 12
+      },
+      {
+        "xy": [
+          57,
+          40
+        ],
+        "edgeId": "n2_e8",
+        "lengthMM": 12
+      }
+    ],
+    "historicalSignatureAuthority": "Exact retained H10 identity metadata only; original H12 resulting boundaries and full footprint checked independently",
+    "pcurveStatus": "EXERCISED_FINITE_ORIGINAL_UV_LIFTS",
+    "proofBoundary": "Declared complete rational graph/carriers/circular cap trims and finite point/D1/normal/optional UV witnesses of this exact H12 plate; no general-domain or Boolean theorem."
+  },
+  "massErrors": {
+    "massProperties": {
+      "volumeRelative": 9.348324266916057e-17,
+      "massAbsoluteG": 2.033610658781405e-15,
+      "centroidAbsoluteMM": 3.3918485683217063e-15
+    },
+    "brepMass": {
+      "volumeRelative": 3.827548971550533e-15,
+      "massAbsoluteG": 1.0454779970523363e-13,
+      "centroidAbsoluteMM": 1.0430659020834013e-14
+    }
+  },
+  "actualWorkerPair": {
+    "key": "f21b1190-ac7d-472b-ae6c-9469260c35c5/1/6",
+    "path": "/tmp/barocss-d549-studio01/01-current-Open-H12-original-worker-pair.v8",
+    "sha256": "e976a314a5179f2f94992646aee286018834ef4128a06fe099103c0217fd5d25",
+    "firstObservedLabel": "01-current-Open-H12"
+  },
+  "actualSvg": {
+    "sheetIndex": 0,
+    "sha256": "b9f4964b3f0903be631529f19b7f064f7d7296ab00c63d06847187a2e2b3042e",
+    "documentSHA256": "026cec39e73c3d46ba399e86ec23fc72124cc1dcf1f4c77f26c49232405297a8",
+    "nativeBRepSHA256": "859ced0c726deb63d1f5b7669a517801e6f32d2778403cdb5e3b89f6f3fb075e",
+    "filename": "section-detail-05-opfs-saved.svg",
+    "title": "section-detail-05-opfs-saved",
+    "path": "/tmp/barocss-d549-studio01/02-actual-SVG-H12-original.svg",
+    "authority": "Actual public current-sheet SVG; Doc/fresh Worker/current native class association is metadata, not embedded BRep"
+  },
+  "svgBytes": 12927,
+  "selectedCapCoordinateMaximumErrorSheetMM": 3.743153551738487e-05,
+  "budgets": {
+    "nativeAbsoluteMM": 1e-09,
+    "nativeVolumeRelative": 1e-09,
+    "nativeCentroidAbsoluteMM": 1e-09,
+    "density1MassAbsoluteG": 1e-09,
+    "SVGCoordinateEnvelopeSheetMM": 5.0001e-05
+  },
+  "actualReceipt": {
+    "path": "/tmp/barocss-d549-studio01/receipt.json",
+    "sha256": "b6ece86275ff36cd266c4c5f39e9697629656a6242813cc5bf1c963c58f1c756"
+  },
+  "helpers": {
+    "numerical": "a24cb8bf775af4b83639a3c818456889d2c5ee809c76dece958135ae0778713d",
+    "browser": "29ecd23dac841046783669a82819ea6edf8335e628e218a6e81ccf9ace51119d",
+    "python": {
+      "hash": "96d1c40e16691f582122d49bac2377536a9a4816e1b34f037b2eff3b6b449bb1",
+      "productImports": 0
+    }
+  },
+  "network": {
+    "allowedLocalOrNonHttp": 2225,
+    "fontCssFulfilledEmpty": 1,
+    "otherExternalAcquisition": 0
+  },
+  "browserStderr": {
+    "CVDisplayLink": 12,
+    "allocatorWarning": 1,
+    "pageConsoleErrors": 0,
+    "chromeExitCode": 0,
+    "rasterQualification": "NOT_RUN"
+  },
+  "runtimeOwnership": {
+    "nodePID": 28892,
+    "nodePPID": 28848,
+    "startedAt": "2026-11-05T04:51:45.772Z",
+    "serverURL": "http://127.0.0.1:52480/"
+  },
+  "resourceCloseDiagnostics": [
+    {
+      "label": "CONTEXT",
+      "startedAt": "2026-11-05T04:51:53.919Z",
+      "completedAt": "2026-11-05T04:51:53.939Z",
+      "status": "CLOSED"
+    },
+    {
+      "label": "BROWSER",
+      "startedAt": "2026-11-05T04:51:53.939Z",
+      "completedAt": "2026-11-05T04:51:55.642Z",
+      "status": "CLOSED"
+    },
+    {
+      "label": "SERVER",
+      "startedAt": "2026-11-05T04:51:55.642Z",
+      "completedAt": "2026-11-05T04:51:55.649Z",
+      "status": "CLOSED"
+    }
+  ],
+  "ownedProcessAbsence": {
+    "path": "/tmp/barocss-d549-studio01/owned-process-absence.json",
+    "sha256": "f8ea8843305c09e8a6acf889c7f6562a49b847e8e87f648ca519126041a91953",
+    "node": 28892,
+    "chrome": 28910,
+    "absent": true
+  },
+  "roles": {
+    "numericalAuthorSourceSavedReviewer": "GPT-6.1 Sol High",
+    "browserAuthor": "GPT-6.1 Sol Medium",
+    "browserSourceReviewer": "Sol High independent of Medium author, not a second numerical author/source review",
+    "executionPngLivePidReview": "Root"
+  },
+  "commands": [
+    "node /tmp/barocss-d549-preflight01/run.mjs",
+    "node /tmp/barocss-d549-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "DEBUG=pw:browser,pw:api D549_SOURCE_FROZEN=1 node test/section-detail-svg-browser.mjs /tmp/barocss-d549-studio01"
+  ],
+  "issues": {
+    "540": "OPEN broader engineering acceptance unmet",
+    "2287": "LATER_P4_REFERENCE_HOLD_UNCHANGED"
+  }
+}
