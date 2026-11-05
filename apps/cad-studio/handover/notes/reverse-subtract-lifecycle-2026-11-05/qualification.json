@@ -1,0 +1,143 @@
+{
+  "decision": "D547",
+  "tier": "SMALL_PROOF_ONLY",
+  "parent": "17bef6608c9b26ca9b964af431c072c071ec7557",
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "wholeCadCore": "NOT_MEASURED",
+    "groups": 8,
+    "baselineAcceptanceChange": "NONE"
+  },
+  "PASS": {
+    "nativePositiveClasses": 2,
+    "nativeTypedGuards": 1,
+    "independentClasses": 2,
+    "actualAttempts": 1,
+    "actualGroups": 8,
+    "currentWorkerNewPythonBindings": 8,
+    "nativeCapturesDuringActual": 0,
+    "newCurrentNativeReuses": 8,
+    "snapshots": 14,
+    "sourcePins": 785,
+    "controlProducerPins": 480,
+    "rootOriginalPngViews": 6,
+    "syntaxChecks": 2,
+    "finalModelTypes": "/tmp/barocss-d547-checks01/final-model-types01.log",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "presentPcurvesPerClass": 24,
+    "finiteUvLiftMaximumMM": 0,
+    "cleanup": [
+      {
+        "ownedProject": "D547-2e402d42-6c58-479b-8ec7-eca72e8d633b",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "savedAudit": "PASS",
+    "mediumFinalDocumentReview": "PASS",
+    "changedDocumentLocalPathLinks": 1055
+  },
+  "FAIL": {
+    "newDeclaredRuntimeFailures": 0,
+    "historicalD452HelperFailure": "PRESERVED"
+  },
+  "NOT_RUN": [
+    "New creation/general or curved Boolean/empty/Keep/contact",
+    "Cold-process recovery/final resave",
+    "Full-domain/all-view/automatic-fit/raster theorem",
+    "Full kernel/mobile/acquisition/paid live/develop integration/release",
+    "Full Markdown fragment acceptance; D418 checker incompatibility is retained in D546"
+  ],
+  "roles": {
+    "numericalAuthor": "GPT-6.1 Sol High",
+    "browserAuthor": "GPT-6.1 Sol Medium",
+    "browserSourceReviewer": "Sol High independent of Medium browser author",
+    "savedReviewer": "PASS_SOL_HIGH_NUMERICAL_AUTHOR_SAVED_REVIEWER_NOT_SECOND_NUMERICAL_SOURCE_REVIEWER",
+    "root": "Serial execution and original PNG review"
+  },
+  "seed": {
+    "file": "/tmp/barocss-d452-workflow-run02/reverse-difference-created.bcad",
+    "bytes": 742,
+    "sha256": "33939ab021eb196e3fe8177b633ca2ba0767e79bfd03bcaf1ea728cffe9bbde4",
+    "authority": "Exact historical D452 actual reverse Subtract creation; no new creation claim"
+  },
+  "controls": {
+    "receiptFile": "/tmp/barocss-d547-control01/receipt.json",
+    "receiptSHA256": "948cb0ca45753dd26d908a059635f1dfffb426ce7615c95c39aa4bdefe1db0d8",
+    "runtimeFile": "/tmp/barocss-d547-control01/runtime-config.json",
+    "runtimeSHA256": "a481b7fefd20c883debb2685c280fbf79688f9ccd4a8708ef74e0ddcfa99a909",
+    "pinsFile": "/tmp/barocss-d547-preflight01/source-pins.json",
+    "pinsSHA256": "206f8bd53d875972d91aabfb83af8e24de53d3830ece60d368dd3834f7a4a410",
+    "matchedPins": 480,
+    "packets": [
+      {
+        "label": "NEW-current-D547-control-A",
+        "file": "/tmp/barocss-d547-control01/A-native-before-assert.json",
+        "sha256": "b26ab45e7f9ba4abe6593b428d18dd711a27236e03c73692ff439bb4e2504fa5"
+      },
+      {
+        "label": "NEW-current-D547-control-B",
+        "file": "/tmp/barocss-d547-control01/B-native-before-assert.json",
+        "sha256": "6ae20b70937d518fced7914e8da82c3f842844feaac9319f6eed8961263ef57c"
+      }
+    ]
+  },
+  "separateControlledGuard": {
+    "file": "/tmp/barocss-d547-control01/negative1-native-before-assert.json",
+    "sha256": "b6db0bb2c9eaaa171ac4fd1229ff3881c1fa570406fa4f7d019aba851435d88d",
+    "error": {
+      "name": "CadPartError",
+      "code": "PARAMETER",
+      "feature": "n3",
+      "message": "n3: height must not be zero"
+    },
+    "authority": "Controlled native classification; actual UI and accepted-source retention are captured separately"
+  },
+  "ownedSave": {
+    "namespace": "projects/D547-2e402d42-6c58-479b-8ec7-eca72e8d633b",
+    "path": "D547-reverse-subtract.bcad",
+    "bytes": 1771,
+    "sha256": "dcd0cb083ee800f026b225575ef8bfd4bf4a407fc10f916de10b75f5db8b3801"
+  },
+  "actualReceipt": {
+    "path": "/tmp/barocss-d547-studio01/receipt.json",
+    "sha256": "361bcf75715814a0d745c5e6958955d35aee5a0adfb06789e4e1e8e99ffbb3c5"
+  },
+  "helpers": {
+    "numerical": "be121eeb38aca639fc00711daa04695150825657a240b669a71c6ed90abf900a",
+    "browser": "3ed761699eaf7ee9d3678316258fb74c0795561758806606c1eb3d16122cf053",
+    "independentPython": "96c1020a4432849e2f54323934b6e11790d2a36cc6b597d014a9a9387f4d66bd"
+  },
+  "budgets": {
+    "nativeVolumeRelative": 1e-09,
+    "massCoordinateBoundaryD1NormalAbsolute": 1e-09
+  },
+  "maxima": {
+    "nativeWorkerVolumeRelative": 5.684341886080802e-16,
+    "centroidAbsoluteMM": 7.105427357601002e-14,
+    "density1MassAbsoluteG": 1.7763568394002505e-15,
+    "D1ComponentGapMM": 7.105427357601002e-15
+  },
+  "commands": [
+    "node /tmp/barocss-d547-preflight01/run.mjs",
+    "node /tmp/barocss-d547-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D547_SOURCE_FROZEN=1 node test/reverse-subtract-browser.mjs /tmp/barocss-d547-studio01"
+  ],
+  "openIssues": [
+    534,
+    535,
+    551
+  ]
+}
