@@ -1,0 +1,144 @@
+{
+  "decision": "D543",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "eff38d9dcd6c3484d62f199129de563e0b9aa5d2",
+  "productSourceChanges": 0,
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "selectedCurrentChamferSupplement": "8/8",
+    "retainedFillets": "Separate D538 outerR2 and D541 circularR1; no stitched Doc",
+    "wholeB03": "NOT_ADJUDICATED",
+    "positiveTapped": "NOT_RUN_NO_ELIGIBLE_PERSON_LOADED_DATA",
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "freshControlledNativeClasses": 2,
+    "independentPythonClasses": 2,
+    "nativeControlPins": 475,
+    "freshWorkerPythonBindings": 8,
+    "nativeActualCaptures": 0,
+    "exactNewCurrentControlReuses": 8,
+    "snapshots": 14,
+    "sourcePins": 772,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootOriginalPngViews": 6,
+    "syntaxModules": 2,
+    "finalModelTypes": "/tmp/barocss-d543-checks01/final-model-types02.log",
+    "independentSourceSavedControlReview": "PASS",
+    "rootNormalizationFixReview": "PASS",
+    "independentSavedActualAudit": "PASS"
+  },
+  "FAIL": {
+    "originalPreparation01": "Required absolute seed path compared to normalized relative capsule key;0bindings/0snapshots/no server/Chrome launch",
+    "preparation01Receipt": {
+      "path": "/tmp/barocss-d543-studio01/receipt.json",
+      "sha256": "611e92f18e3e9397e6f13e35e96c9aa51cd328b5cacd559f7401e628c76cf87e"
+    },
+    "actual02RuntimeFailures": 0,
+    "historicalD533ReadinessFailure": "PRESERVED",
+    "historicalD542ObserverFailure": "PRESERVED",
+    "historicalD501CustodyFailure": "PRESERVED"
+  },
+  "NOT_RUN": [
+    "New public creation or NodeEditor invalid Apply (selected refusal is preview/Cancel)",
+    "UV lift: all original42coedge fields null; raw emptyaggregate0 is not UVPASS",
+    "Whole B03 and positive tapped without eligible person-loaded data",
+    "Cold process and final post-Open resave",
+    "Full-domain/general finishing and inertia/catalog-mass certificate",
+    "Full kernel: no B-rep-core change",
+    "Mobile/exchange/develop integration/release"
+  ],
+  "maximaFromActualIndependentOracles": {
+    "volumeRelative": 4.617554084806694e-16,
+    "centroidAbsoluteMM": 1.4210854715202004e-14,
+    "maximumEndpointGapMM": 0,
+    "maximumCarrierResidualMM": 3.3306690738754696e-15,
+    "maximumIndependentProbePointGapMM": 1.0658141036401503e-14,
+    "maximumIndependentD1ComponentGapMM": 7.105427357601002e-15,
+    "maximumIndependentEdgeProbeGapMM": 7.105427357601002e-15,
+    "maximumOutwardNormalComponentError": 1.3322676295501878e-15
+  },
+  "nativeTopology": {
+    "solids": 1,
+    "shells": 1,
+    "faces": 9,
+    "loops": 11,
+    "edges": 21,
+    "coedges": 42,
+    "vertices": 14,
+    "genus": 1
+  },
+  "independentUV": {
+    "status": "NOT_EXERCISED",
+    "maximumPcurveLiftGapMM": null,
+    "rawOracleOutput": "Preserved unchanged; empty-loop zero aggregate is not a zero-error UV proof"
+  },
+  "budgets": {
+    "volumeRelative": 1e-09,
+    "coordinatesCentroidBoundaryD1MM": 1e-09,
+    "normalComponent": 1e-09,
+    "density1MassAbsoluteG": 1e-09
+  },
+  "actual02": {
+    "path": "/tmp/barocss-d543-studio02/receipt.json",
+    "sha256": "5d4a65d75de0b5c7a12ec3f12e73bdb45886c9937a263a23c22870584642d91c",
+    "savedA": {
+      "namespace": "projects/D543-140e5aa8-435e-490f-8fd3-c5b44211e88d",
+      "path": "D543-chamfer-consumer.bcad",
+      "bytes": 1764,
+      "sha256": "40b9c14075769846fb44d686a3a1dbc8cb229de33888098de2a5e517f3d80788",
+      "exactAcceptedDoc": true
+    },
+    "cleanup": [
+      {
+        "ownedProject": "D543-140e5aa8-435e-490f-8fd3-c5b44211e88d",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "native01": {
+    "receiptSHA256": "fc05f97df212ac6b26c673076d7016230ae373882d099796f73984ff409f282a",
+    "sourcePinSHA256": "ae9c68ec773d1f332c12fb13647dbbc41ae76006e40484d12b1d919808f26928"
+  },
+  "independent01": {
+    "receiptSHA256": "0feda2461d4b394ce795b37c32570b0e2c5c34d1bed2d7b7171a08320b7ee029"
+  },
+  "moduleHashes": {
+    "oracle": "508bdf6eab132bbc54e9f1dcb2b3b471ed95041492b519adaf9e4c8470478f8d",
+    "browser01": "79ccff26a75ec9a4b325e7f2cc5e1275b8ccc1d8a95e5459e1a15bb2790383bb",
+    "browser02": "fc2a830136a6b62516e7ba16a97555017d8572a7ee2bcf589e5dcc16e6478478",
+    "expandedInspector": "b13d68c91607d45f569565a0160d88979ec26313736d023cfc20f4971d733b29",
+    "expandedPython": "ceeef16bdf966923551e7bf7782f0a9156e8812e0296b9d49d9adb9887930096"
+  },
+  "commands": [
+    "node /tmp/barocss-d543-preflight01/bundle.mjs",
+    "node /tmp/barocss-d543-oracle01/run.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "D543_SOURCE_FROZEN=1 node test/b03-finish-consumer-browser.mjs /tmp/barocss-d543-studio01",
+    "D543_SOURCE_FROZEN=1 node test/b03-finish-consumer-browser.mjs /tmp/barocss-d543-studio02"
+  ],
+  "next": "D544/P1 B04 exact Pipe/Loft and independent sheet evidence intake",
+  "issues": {
+    "534": "OPEN_UNMET_BROAD_FEATURES",
+    "551": "OPEN_UNMET_GENERAL_GRAPH",
+    "commentsPosted": 0,
+    "closed": 0
+  },
+  "maximaFromActualWorker": {
+    "volumeRelative": 4.617554084806694e-16,
+    "centroidAbsoluteMM": 1.4210854715202004e-14
+  }
+}
