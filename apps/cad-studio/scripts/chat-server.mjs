@@ -12,7 +12,12 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '..');
 const out = mkdtempSync(join(tmpdir(), 'cad-studio-chat-server-'));
 await build({
-  entryPoints: { chatServer: join(root, 'server/chatServer.ts'), cadMcp: join(root, 'server/cadMcp.ts') },
+  entryPoints: {
+    chatServer: join(root, 'server/chatServer.ts'),
+    cadMcp: join(root, 'server/cadMcp.ts'),
+    localTaskRun: join(root, 'server/taskRun/localServiceEntry.ts'),
+    taskRunWorker: join(root, 'server/taskRun/workerEntry.ts'),
+  },
   outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22', outExtension: { '.js': '.mjs' }, logLevel: 'warning',
 });
 const { createChatServer } = await import(pathToFileURL(join(out, 'chatServer.mjs')).href);

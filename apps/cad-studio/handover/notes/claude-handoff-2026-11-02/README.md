@@ -1,5 +1,5 @@
 ---
-work_id: D618
+work_id: D619
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -173,7 +173,9 @@ D617 reads the two selected height targets through Studio chat, reports unresolv
 
 D618 exports the reviewed Studio plan and exact native source as one file. The explicit CLI start produces two held candidates. Studio opens one terminal-approved checkpoint and retains the original saved file. [D618](../../notes/studio-local-task-handoff-2026-11-11/README.md).
 
-Next MAIN is D619 / P0 automation, B09 follow-up, rows 04, 12 and 16. Add a deliberate Studio action to start the verified local handoff on the existing local service. Use an owned run destination, one writer and a bounded worker profile. Show startup status and refusals in Studio and keep terminal publication. Qualify the exact local path and two-task pending result. [#2402](https://github.com/barocss/barocss/issues/2402).
+D619 starts the verified saved plan directly from local Studio. Desktop verifies two held candidates, exact-source refusal, durable replay and a terminal-approved checkpoint. [D619](../../notes/studio-start-local-run-2026-11-11/README.md).
+
+Next MAIN is D620 / P0 automation, B09 follow-up, rows 04, 12 and 16. Open a held candidate from the existing Studio run row through the verified read-only review path. Bind the candidate to the owned run and exact current baseline. Keep publication with the terminal operator. Qualify both candidate previews and a stale refusal in desktop Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

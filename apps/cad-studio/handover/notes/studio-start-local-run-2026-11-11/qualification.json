@@ -1,0 +1,248 @@
+{
+  "decision": "D619",
+  "tier": "FULL interface",
+  "baseCommit": "98d10bda8ca770ac559ad791bebe103fc0da26ca",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d619-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio, local service, real workers and terminal",
+      "result": "PASS",
+      "command": "D619_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --start",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "49734aa3b166a832111b45201dd15f0721a86144e4d8563c458fac903e262688",
+      "pinnedSources": 790,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "02-stale-and-blocked",
+        "03-new-ready-plan",
+        "05-terminal-approved"
+      ],
+      "visualReview": "PASS",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "handoffSHA256": "22d2c86316f43f0d7bb2bfad2ccdfee524719bbdcae72a895b67244ebe9df980",
+          "originalBytesPreserved": true,
+          "sameContentReplacementRefused": true,
+          "sameTagByteChangeRefused": true,
+          "blockedOfferHasNoAction": true,
+          "geometryMm3": [
+            1200,
+            384
+          ],
+          "approvals": 1
+        },
+        {
+          "readyRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+          "blockedRevision": "1cd8d717e0b7a461f7f888f1d27007a7cd83fe5fb4fa3913a0ac492be35ff4f3",
+          "resolvedRevision": "430a4d7ce48e3b65bc9e2af177c5b278538d1b91ca610ec237c5f76203106551",
+          "targetHeights": [
+            [
+              6,
+              4
+            ],
+            [
+              6
+            ],
+            [
+              6,
+              5
+            ]
+          ],
+          "cliPlanMatches": true,
+          "staleRefused": true,
+          "authoredID": "check_spec",
+          "savedSourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+          "projectBytesUnchanged": true,
+          "documentWrites": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop-final.log",
+      "logSHA256": "ed1bf7f7bbe3eee89870438f5176c474ee4e1a5e931fca08db295408976fcc32"
+    },
+    {
+      "label": "Independent authored target and scope oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop-final/task-plan-agent-oracle.py\" < \"$EVIDENCE/desktop-final/authored-targets-oracle-input.json\"",
+      "scriptSHA256": "101272178d213640e254e998b0413963aa4ed59f2b7766f35af455ee12917d36",
+      "stdoutSHA256": "0f3cbfaecd36b1604f261fdf15ca4cb39a8a281c1436eb0f66379f5f7b6ecef2",
+      "measurements": {
+        "status": "PASS",
+        "targetHeights": [
+          [
+            6,
+            4
+          ],
+          [
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "productImports": 0
+      }
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 165,
+      "failCount": 0,
+      "log": "studio-suite-final.log",
+      "logSHA256": "cb1d925e59132b4e963f2b0a30f1bb812dd7a1be8801d221fcb6e280eb67cccd"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan task-execution toolset",
+      "passCount": 23,
+      "failCount": 0,
+      "log": "model-suite.log",
+      "logSHA256": "8fda39c7ff2e909607aaed42844ef8faa771c2933806fa54f278c5d22ec1ee8f"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 34,
+      "log": "eslint.log",
+      "logSHA256": "4b1a0517df330ec9a477dbb6af5c5dd777a3871f4a24a10881488a9ab24a6931"
+    },
+    {
+      "label": "Isolated HTTP admission overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "9af1104fcf1a042bde37664fe17abc8a573efca86c9e24e960a786fe2658eb8e",
+      "variants": {
+        "baseline": "PASS",
+        "accept-remote-studio": "KILLED",
+        "accept-origin-host-mismatch": "KILLED",
+        "accept-without-intent": "KILLED",
+        "accept-text-handoff": "KILLED",
+        "ignore-stream-size": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "3d34a4a3286f631c90a071009a712b13b5c55ad66a821c0e9a2a8129b64d9191"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build.log",
+      "logSHA256": "9acac7342a10751dbc32c426fb92aa69aba4bb3fed5ac8b5dfd69f3b95e97fab"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Local service bundle launcher syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/scripts/chat-server.mjs",
+      "log": "server-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "label": "First desktop attempt",
+      "result": "FAIL",
+      "cause": "The test attached its request listener before creating a page. The run stopped before the product exercise. The root stopped only its own lingering chat process.",
+      "log": "desktop.log",
+      "logSHA256": "f3e331c121c1eea24ebfed2258a180c9d55791db057fb809a8b3f1ab17c943cd"
+    },
+    {
+      "label": "Second desktop attempt",
+      "result": "FAIL",
+      "cause": "The locator could not find the exact status in a container with child text. Captured DOM and run record show both held candidates.",
+      "log": "desktop-r2.log",
+      "logSHA256": "ce7aeb3028ce8e5ec035ddfd5f41f2fd02ec8ae4c1de8e2efc9f1273e030e453"
+    },
+    {
+      "label": "Third desktop attempt",
+      "result": "FAIL",
+      "cause": "The source watcher reported a ChatPanel event. Product assertions had passed. The final run had zero watcher events and identical source capsules before and after cleanup.",
+      "log": "desktop-r3.log",
+      "logSHA256": "d8756a1e35556f898a58cac84ada8360af779db75b2f399f2aee9f996621fbb2"
+    },
+    {
+      "label": "First focused Studio run",
+      "result": "FAIL",
+      "cause": "Fetch replaced the test Host header. The HTTP harness switched to an explicit Node HTTP request.",
+      "passCount": 164,
+      "failCount": 1,
+      "log": "studio-suite.log",
+      "logSHA256": "cf78bb00646861ed7d7cbb166277af94b12d0ebacc1a71d87199aa0b479b2cea"
+    }
+  ],
+  "reviews": [
+    {
+      "lane": "code",
+      "result": "PASS",
+      "notes": "Final read-only review verified process and blob isolation, sorted replay, retry ownership and retained chat status."
+    },
+    {
+      "lane": "architecture",
+      "result": "PASS",
+      "notes": "Final read-only review verified loopback and redirect guards, existing writer protocol and terminal-only publication."
+    }
+  ],
+  "notRun": [
+    "whole suites",
+    "live providers",
+    "remote start",
+    "other task profiles",
+    "mobile"
+  ]
+}

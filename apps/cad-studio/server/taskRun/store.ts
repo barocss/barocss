@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
-  closeSync, fsyncSync, linkSync, mkdirSync, openSync, readFileSync,
+  closeSync, fsyncSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync,
   readdirSync, realpathSync, renameSync, unlinkSync, writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -227,11 +227,13 @@ export class TaskRunStore {
     if (!id(runId) || runId.length > 120) issue('RUN_CORRUPT', 'Invalid run name.');
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     directory = realpathSync(directory);
-    const store = new TaskRunStore(directory, takeOwner(directory), afterWrite);
-    try {
-      try { readFileSync(join(directory, 'run.json')); issue('RUN_EXISTS', 'A run already exists.'); } catch (error) {
+    const requireAbsentRecord = () => {
+      try { lstatSync(join(directory, 'run.json')); issue('RUN_EXISTS', 'A run already exists.'); } catch (error) {
         if (!errno(error, 'ENOENT')) throw error;
       }
+    };
+    const store = new TaskRunStore(directory, takeOwner(directory, requireAbsentRecord), afterWrite);
+    try {
       mkdirSync(store.objects, { recursive: true, mode: 0o700 });
       syncDirectory(directory);
       const accepted = store.writeNative(doc);

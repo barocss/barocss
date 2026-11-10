@@ -21,7 +21,7 @@ import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, ver
 import { MAX_TASK_CANDIDATE_BYTES, readCandidateReview, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
-import type { TaskRunOffer } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunLaunch, type TaskRunOffer } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -96,8 +96,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
   const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
 
-  const exportTaskRun = async (offer: TaskRunOffer, sourceKey: string) => {
-    if (sessionBlocked('exporting a task run')) return;
+  const withTaskRunHandoff = async <T>(offer: TaskRunOffer, sourceKey: string, action: string,
+    use: (handoff: Uint8Array, file: string) => T) => {
+    if (sessionBlocked(action)) return;
     const scope = currentOpenScope(), sourceDoc = docNow.current, token = saveDocumentToken.current, name = fileNameNow.current;
     const current = () => isOpenCurrent(scope) && saveDocumentToken.current === token && docNow.current === sourceDoc && fileNameNow.current === name;
     try {
@@ -109,10 +110,34 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       const handoff = await encodeTaskRunHandoff(offer, source.bytes);
       if (!current() || !source.current()) return;
       await source.verify();
-      if (current() && source.current()) downloadBytes(handoff, name + TASK_RUN_HANDOFF_EXT, 'application/octet-stream');
+      if (current() && source.current()) return use(handoff, name + TASK_RUN_HANDOFF_EXT);
     } catch (error) {
-      if (current()) setToast({ title: 'Could not export task run', hint: error instanceof Error ? error.message : String(error), detail: '' });
+      if (current()) throw error;
     }
+  };
+
+  const exportTaskRun = async (offer: TaskRunOffer, sourceKey: string) => {
+    try {
+      await withTaskRunHandoff(offer, sourceKey, 'exporting a task run',
+        (handoff, file) => downloadBytes(handoff, file, 'application/octet-stream'));
+    } catch (error) {
+      setToast({ title: 'Could not export task run', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  };
+
+  const startTaskRun = async (offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined> => {
+    if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
+    return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
+      const res = await fetch('/api/chat/task-runs/start', {
+        method: 'POST', redirect: 'error',
+        headers: { 'content-type': 'application/octet-stream', 'x-barocss-task-run': 'start' },
+        body: new Blob([handoff as BlobPart]),
+      });
+      const value = await res.json().catch(() => null);
+      if (!res.ok || typeof value?.directory !== 'string' || !Array.isArray(value.tasks))
+        throw new Error(typeof value?.error === 'string' ? value.error : 'The local task run service did not respond.');
+      return value as TaskRunLaunch;
+    });
   };
 
   const captureImportOwner = () => {
@@ -237,5 +262,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, meshImport, editRepair };
 }

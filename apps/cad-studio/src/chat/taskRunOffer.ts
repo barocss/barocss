@@ -2,6 +2,8 @@ import { isObj } from '@barocss/cad-model/util/guards';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 
+export const isLocalTaskRunHost = (host: string) => host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
+
 export interface TaskRunTarget {
   id: string;
   requirementId: string;
@@ -14,6 +16,14 @@ export interface TaskRunOffer {
   revision: string;
   occurrences: [string, string];
   targets: [TaskRunTarget, TaskRunTarget];
+}
+
+export interface TaskRunLaunch {
+  directory: string;
+  runId: string;
+  phase: string;
+  reused: boolean;
+  tasks: { id: string; phase: string; reason?: string }[];
 }
 
 export interface TaskRunChatOutput {

@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { loadCadLibrary } from '@barocss/cad';
 import { checkLibraryForSharing, sharingRefusal } from '@barocss/cad-model/library/sharing';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -23,7 +23,9 @@ import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
-import { readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
+import { isLocalTaskRunHost, readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
+import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
+import { createLocalTaskRuns, LocalRunRequestError } from './taskRun/localService';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -49,6 +51,8 @@ export interface ChatServerOptions {
   origins?: string[];
   /** The team's library folder (LIB4, D64; default CAD_STUDIO_TEAM_LIBRARIES; none: no team libraries). */
   teamLibraries?: string;
+  /** Private root for local task runs, set by the server operator. */
+  taskRunDir?: string;
 }
 
 /** The studio's own origins: the Vite dev server (52020) and preview server (4173), on 127.0.0.1 and localhost. */
@@ -155,6 +159,24 @@ function readBody(req: IncomingMessage): Promise<string> {
     req.on('error', reject);
   });
 }
+function readTaskRunBody(req: IncomingMessage): Promise<Buffer> {
+  const limit = MAX_TASK_RUN_HANDOFF_BYTES;
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = Number(req.headers['content-length'] ?? 0) > limit ? limit + 1 : 0;
+    const oversized = () => reject(new LocalRunRequestError(413, 'The task run handoff is too large.'));
+    if (size > limit) oversized();
+    req.on('data', (chunk: Buffer) => {
+      if (size > limit) return;
+      size += chunk.length;
+      if (size > limit) { chunks.length = 0; oversized(); }
+      else chunks.push(chunk);
+    });
+    req.on('end', () => { if (size <= limit) resolve(Buffer.concat(chunks, size)); });
+    req.on('error', reject);
+  });
+}
+
 const sendJson = (res: ServerResponse, status: number, body: unknown) => { res.statusCode = status; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(body)); };
 
 export function createChatServer(options: ChatServerOptions) {
@@ -186,10 +208,28 @@ export function createChatServer(options: ChatServerOptions) {
     s.at = now; return s;
   };
   const teamDir = options.teamLibraries ?? process.env.CAD_STUDIO_TEAM_LIBRARIES ?? null;
+  const startTaskRun = createLocalTaskRuns(options.taskRunDir ?? process.env.CAD_STUDIO_TASK_RUN_DIR ?? join(homedir(), '.barocss', 'cad-task-runs'));
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
+    if (req.method === 'POST' && path === '/task-runs/start') {
+      const origin = req.headers.origin && URL.parse(req.headers.origin);
+      if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
+        || req.headers['x-barocss-task-run'] !== 'start')
+        return sendJson(res, 403, { error: 'Start the local task run from Studio.' });
+      if (req.headers['content-type'] !== 'application/octet-stream')
+        return sendJson(res, 415, { error: 'Expected a binary task run handoff.' });
+      try {
+        return sendJson(res, 200, await startTaskRun(await readTaskRunBody(req)));
+      } catch (error) {
+        if (error instanceof LocalRunRequestError) {
+          if (error.status === 413) res.setHeader('connection', 'close');
+          return sendJson(res, error.status, { error: error.message });
+        }
+        return sendJson(res, 500, { error: 'Could not read the handoff or access the local task run directory.' });
+      }
+    }
     if (req.method === 'GET' && path === '/status') {
       const v = await claudeVersion();
       return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });

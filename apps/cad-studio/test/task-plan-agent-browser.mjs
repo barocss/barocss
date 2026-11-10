@@ -1,13 +1,14 @@
-// D617 actual Studio chat, local chat server and stdio MCP. Run with the heavy gate and frozen sources.
+// Actual Studio chat, local chat server and stdio MCP. Run with the heavy gate and frozen sources.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2), handoffMode = mode === '--handoff', repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), startMode = mode === '--start';
+const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
 await mkdir(output);
@@ -28,10 +29,12 @@ const pins = [
   'packages/barocss-cad-model/src/chat/tools-v2.json',
   'apps/cad-studio/src/files/taskRunHandoff.ts', 'apps/cad-studio/src/chat/taskRunOffer.ts',
   'apps/cad-studio/test/fixtures/task-run-terminal.py',
-  ...['host', 'store', 'thread', 'workerEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
+  'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ChatPanel.tsx',
+  'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
+  ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { fixtureDoc } from './test/task-run-fixture';
@@ -59,13 +62,13 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP. Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const project = startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -113,7 +116,8 @@ const [code] = await closed;
 process.exitCode = code ?? 1;
 `;
   await writeFile(wrapper, wrapperSource, { mode: 0o700, flag: 'wx' });
-  const env = { ...process.env, CAD_STUDIO_CLAUDE: wrapper, CAD_STUDIO_CHAT_ORIGINS: origin };
+  const runRoot = join(output, 'service-runs');
+  const env = { ...process.env, CAD_STUDIO_CLAUDE: wrapper, CAD_STUDIO_CHAT_ORIGINS: origin, CAD_STUDIO_TASK_RUN_DIR: runRoot };
   for (const key of ['CAD_SCRIPTED_COST_USD', 'CAD_SCRIPTED_SLEEP_MS', 'CAD_SCRIPTED_MARK', 'CAD_AB_LOG']) delete env[key];
   const chat = spawn(process.execPath, [join(f.app, 'scripts/chat-server.mjs')], { cwd: f.app, env, stdio: ['ignore', 'pipe', 'pipe'] });
   const closed = once(chat, 'close');
@@ -123,6 +127,8 @@ process.exitCode = code ?? 1;
     stdout += chunk;
     if (stdout.includes('chat server on')) done(true);
   }));
+  const isStart = request => new URL(request.url()).pathname === '/api/chat/task-runs/start' && request.method() === 'POST';
+  const requests = [];
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
 
   async function turn(label, calls) {
@@ -153,6 +159,7 @@ process.exitCode = code ?? 1;
     assert.ok(await Promise.race([ready, closed.then(() => false), new Promise(done => setTimeout(() => done(false), 15000).unref())]), stderr || 'Local chat server did not start');
     f.phase = 'save the current Studio model and read its plan through the actual agent';
     await f.newPage();
+    f.page.on('request', request => { if (isStart(request)) requests.push(request); });
     const source = await f.inspect('fixture', {});
     await open('housing.bcad', source);
     await button('Project and versions').click();
@@ -174,7 +181,7 @@ process.exitCode = code ?? 1;
     assert.equal(first.events[0].summary, '2 local height targets ready');
     await f.same(source);
     await f.snapshot('01-ready-plan');
-    let handoff;
+    let handoff, studioRun;
     if (handoffMode) {
       f.phase = 'click export and retain the exact project bytes in the handoff';
       await f.page.evaluate(() => {
@@ -212,6 +219,85 @@ process.exitCode = code ?? 1;
       assert.equal(receipt.sourceSHA256, sha256(saved));
       await writeFile(handoff, bytes);
 
+      const start = row.getByRole('button', { name: 'Start local run', exact: true });
+      if (startMode) {
+        f.phase = 'explicitly start two held local candidates and reuse the existing run';
+        assert.equal(requests.length, 0);
+        await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
+        const endpoint = origin + '/api/chat/task-runs/start';
+        const headers = { origin, 'x-barocss-task-run': 'start', 'content-type': 'application/octet-stream' };
+        const invalid = await f.page.request.post(endpoint, { headers, data: Buffer.concat([bytes, Buffer.from(' ')]), maxRedirects: 0 });
+        assert.equal(invalid.status(), 400);
+        assert.match((await invalid.json()).error, /saved source does not match/);
+        await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
+        const key = sha256(JSON.stringify({ occurrences: ['p1', 'p2'], source: sha256(saved) }));
+        await mkdir(join(runRoot, key), { recursive: true, mode: 0o700 });
+        await writeFile(join(runRoot, key, 'writer-1.json'), JSON.stringify({ epoch: 1, pid: process.pid, id: 'interrupted-writer' }), { mode: 0o600 });
+        await writeFile(join(runRoot, key, 'released-1.json'), JSON.stringify('interrupted-writer'), { mode: 0o600 });
+        await f.page.evaluate(() => {
+          const fetchImpl = window.fetch;
+          window.__d619RequestHashes = [];
+          window.fetch = function (input, init) {
+            if (input === '/api/chat/task-runs/start') {
+              const hash = init.body.arrayBuffer().then(bytes => crypto.subtle.digest('SHA-256', bytes))
+                .then(bytes => [...new Uint8Array(bytes)].map(value => value.toString(16).padStart(2, '0')).join(''));
+              window.__d619RequestHashes.push(hash);
+            }
+            return fetchImpl.call(this, input, init);
+          };
+        });
+        const launch = async () => {
+          const [reply] = await Promise.all([f.page.waitForResponse(response => isStart(response.request())), start.click()]);
+          assert.equal(reply.status(), 200, await reply.text());
+          const request = reply.request();
+          assert.equal((await request.allHeaders()).origin, origin);
+          assert.equal((await request.allHeaders())['x-barocss-task-run'], 'start');
+          assert.equal(await f.page.evaluate(() => window.__d619RequestHashes.at(-1)), sha256(bytes));
+          return reply.json();
+        };
+        const firstLaunch = await launch();
+        studioRun = firstLaunch.directory;
+        assert.equal(firstLaunch.reused, false);
+        assert.equal(firstLaunch.phase, 'active');
+        assert.equal(relative(runRoot, studioRun).length, 64);
+        assert.match(relative(runRoot, studioRun), /^[a-f0-9]{64}$/);
+        assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
+        assert.deepEqual(firstLaunch.tasks.map(task => [task.id, task.phase]), [['p1', 'awaiting-decision'], ['p2', 'awaiting-decision']]);
+        await row.getByText('Local run started · active', { exact: true }).waitFor();
+        await row.getByText('p1 · awaiting decision', { exact: true }).waitFor();
+        await row.getByText('p2 · awaiting decision', { exact: true }).waitFor();
+        const runJson = join(studioRun, 'run.json'), initial = await readFile(runJson);
+        const { record } = JSON.parse(initial);
+        assert.deepEqual(record.commits, []);
+        assert.equal(record.pending, undefined);
+        assert.equal(record.epoch, 2);
+        assert.equal(record.accepted.sha256, sha256(saved));
+        assert.deepEqual(record.state.tasks.map(task => task.candidate.geometry.volumeMm3), [1200, 384]);
+        await f.same(source);
+        await f.snapshot('06-local-run-started');
+        assert.deepEqual(await launch(), { ...firstLaunch, reused: true });
+        await row.getByText('Existing local run · active', { exact: true }).waitFor();
+        assert.deepEqual(await readFile(runJson), initial);
+        assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
+        const reversed = {
+          offer: { ...receipt.offer, occurrences: [...receipt.offer.occurrences].reverse(), targets: [...receipt.offer.targets].reverse() },
+          sourceSHA256: receipt.sourceSHA256,
+        };
+        const canonical = value => value === null || typeof value !== 'object' ? JSON.stringify(value)
+          : Array.isArray(value) ? '[' + value.map(canonical).join(',') + ']'
+          : '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical(value[key])).join(',') + '}';
+        const reverseHeader = Buffer.from(JSON.stringify({ receipt: reversed, digest: sha256(canonical(reversed)) }));
+        const reversePrefix = Buffer.from(bytes.subarray(0, 12));
+        reversePrefix.writeUInt32LE(reverseHeader.length, 8);
+        const reused = await f.page.request.post(endpoint, { headers,
+          data: Buffer.concat([reversePrefix, reverseHeader, saved]), maxRedirects: 0 });
+        assert.equal(reused.status(), 200, await reused.text());
+        assert.deepEqual(await reused.json(), { ...firstLaunch, reused: true });
+        assert.deepEqual(await readFile(runJson), initial);
+        f.report.observations.push({ studioRunStarted: true, explicitPostCount: requests.length,
+          durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: 2, acceptedBaselineSHA256: record.accepted.sha256 });
+      }
+
       f.phase = 'refuse a same-tag byte change during the final project read';
       await f.page.evaluate(() => {
         const read = File.prototype.arrayBuffer;
@@ -227,18 +313,30 @@ process.exitCode = code ?? 1;
           return buffer;
         };
       });
-      await row.getByRole('button', { name: 'Export task run', exact: true }).click();
-      await f.waitToast(/The saved source moved/);
-      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
-      await f.dismissToasts();
+      if (startMode) {
+        await start.click();
+        await row.getByText(/The saved source moved/).waitFor();
+        assert.equal(requests.length, 2);
+      } else {
+        await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+        await f.waitToast(/The saved source moved/);
+        assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+        await f.dismissToasts();
+      }
 
       f.phase = 'refuse the old offer after opening a byte-identical model as another file';
       await openFile('other-housing.bcad', saved);
       await f.same(source);
-      await row.getByRole('button', { name: 'Export task run', exact: true }).click();
-      await f.waitToast(/The saved source moved/);
-      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
-      await f.dismissToasts();
+      if (startMode) {
+        await start.click();
+        await row.getByText(/The saved source moved/).waitFor();
+        assert.equal(requests.length, 2);
+      } else {
+        await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+        await f.waitToast(/The saved source moved/);
+        assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+        await f.dismissToasts();
+      }
     }
 
     f.phase = 'open a changed source and report its unresolved target';
@@ -260,6 +358,7 @@ process.exitCode = code ?? 1;
       const denied = f.page.locator('details.chat-tool').filter({ hasText: 'Local height plan blocked · 1 issue' });
       await denied.locator('summary').click();
       assert.equal(await denied.getByRole('button', { name: 'Export task run', exact: true }).count(), 0);
+      assert.equal(await denied.getByRole('button', { name: 'Start local run', exact: true }).count(), 0);
     }
     await f.same(blocked);
     await f.snapshot('02-stale-and-blocked');
@@ -280,8 +379,8 @@ process.exitCode = code ?? 1;
     assert.deepEqual(f.report.downloads, []);
     await f.snapshot('03-new-ready-plan');
     if (handoffMode) {
-      f.phase = 'explicit CLI launch makes two candidates and returns one terminal approval to Studio';
-      const run = join(output, 'run'), argv = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
+      f.phase = 'return one terminal approval to Studio';
+      const run = studioRun ?? join(output, 'run'), argv = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
       const invoke = async (label, ...args) => {
         const result = spawnSync(argv[0], [...argv.slice(1), ...args], { cwd: f.app, encoding: 'utf8', timeout: 30000 });
         await writeFile(join(output, label + '.stdout.json'), result.stdout);
@@ -289,7 +388,8 @@ process.exitCode = code ?? 1;
         assert.equal(result.status, 0, result.error?.message ?? result.stderr);
         return JSON.parse(result.stdout);
       };
-      const launched = await invoke('handoff-start', 'start', run, '--handoff', handoff);
+      const launched = startMode ? await invoke('studio-run-status', 'status', run)
+        : await invoke('handoff-start', 'start', run, '--handoff', handoff);
       assert.deepEqual(launched.tasks.map(task => [task.id, task.phase, task.geometry.volumeMm3]),
         [['p1', 'awaiting-decision', 1200], ['p2', 'awaiting-decision', 384]]);
       assert.equal(launched.accepted.sha256, sha256(saved));

@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import type { TaskRunChatOutput, TaskRunOffer } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer } from '../chat/taskRunOffer';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
@@ -47,7 +47,11 @@ export interface ChatPanelProps {
   /** CG6: the project's version log for a turn (storage/useProject: its index and the documents the turn needs), and the turn's brought back. */
   versions?: import('../storage/useProject').ProjectActions['chat'];
   onOutboxSent?(id: number): void;
-  taskRun?: { sourceKey(): string | undefined; export(offer: TaskRunOffer, sourceKey: string): Promise<void> };
+  taskRun?: {
+    sourceKey(): string | undefined;
+    export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
+    start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
+  };
   /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
   scope?: object | null;
   /** Whether a turn is running (the studio does not swap the document under one). */
@@ -150,7 +154,7 @@ export function ChatPanel(props: ChatPanelProps) {
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
               {m.parts.map(p => p.type === 'text' ? p.text : '').join('')}</Message>
-          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRun={running || props.blocked ? undefined : props.taskRun} />)}</Fragment>)}
+          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} />)}</Fragment>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
       {!!rowFiles.length && <div className="chat-thumbs pending" aria-label="Attached row files">{rowFiles.map((file, index) => <span key={index}>{file.name}<button type="button" className="tool tiny" aria-label={`Remove row file ${index + 1}`} onClick={() => setRowFiles(list => list.filter((_, k) => k !== index))}>×</button></span>)}</div>}
@@ -175,7 +179,7 @@ export function ChatPanel(props: ChatPanelProps) {
 }
 
 /** One part of an assistant message: a run of text, a tool call (a proposal's linked card under its `propose`), a notice, the thinking. */
-function ChatPart({ part: p, ...props }: { part: StudioMessage['parts'][number] } & ChatPanelProps) {
+function ChatPart({ part: p, taskRunBlocked, ...props }: { part: StudioMessage['parts'][number]; taskRunBlocked: boolean } & ChatPanelProps) {
   if (p.type === 'text') return <Message from="assistant">{p.text}</Message>;
   if (p.type === 'data-notice') return <Message from="notice">{p.data.text}</Message>;
   // (O17c: the model's thinking, when the CLI streams it — one collapsed line.)
@@ -188,11 +192,44 @@ function ChatPart({ part: p, ...props }: { part: StudioMessage['parts'][number] 
   return <>
     <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}>
       <code>{brief(p.input)}</code>
-      {taskRun && props.taskRun ? <>
-        <ul>{taskRun.offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
-        <button className="ghost" type="button" onClick={() => void props.taskRun?.export(taskRun.offer, taskRun.sourceKey)}>Export task run</button>
-      </> : null}
+      {taskRun && props.taskRun && <TaskRunActions plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} />}
     </Tool>
     {proposal && <ProposalLink proposal={proposal} stale={!!props.proposalStale?.(proposal)} busy={!!props.proposalBusy} onAccept={() => props.onAcceptProposal?.(proposal)} onReject={() => props.onRejectProposal?.(proposal)} />}
+  </>;
+}
+
+function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked }: {
+  plan: NonNullable<TaskRunChatOutput['taskRun']>;
+  actions: NonNullable<ChatPanelProps['taskRun']>;
+  blocked: boolean;
+}) {
+  const busy = useRef(false);
+  const [starting, setStarting] = useState(false);
+  const [result, setResult] = useState<TaskRunLaunch>();
+  const [error, setError] = useState('');
+  async function start() {
+    if (busy.current) return;
+    busy.current = true;
+    setStarting(true);
+    setResult(undefined);
+    setError('');
+    try {
+      const launched = await actions.start(offer, sourceKey);
+      if (launched) setResult(launched);
+      else setError('The saved source is no longer current. Save and inspect it again.');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not start the local task run.');
+    } finally { busy.current = false; setStarting(false); }
+  }
+  return <>
+    <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
+    <button className="ghost" type="button" disabled={blocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
+    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={blocked || starting} onClick={() => void start()}>{starting ? 'Starting local run…' : 'Start local run'}</button>}
+    {error && <div role="status">{error}</div>}
+    {result && <div role="status">
+      <span>{(result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
+      <ul>{result.tasks.map(task => <li key={task.id}>{task.id} · {task.phase.replaceAll('-', ' ')}{task.reason ? ' · ' + task.reason : ''}</li>)}</ul>
+      <code title={result.directory}>{result.directory}</code>
+    </div>}
   </>;
 }

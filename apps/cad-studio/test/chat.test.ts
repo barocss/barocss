@@ -1,8 +1,9 @@
+import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { createServer, request as httpRequest } from 'node:http';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
@@ -684,6 +685,42 @@ test('the chat server refuses other sites: Origin or Host must be the studio’s
     assert.equal((await fetch(`${other.url}/status`, { headers: STUDIO })).status, 403);
   } finally { await other.close(); }
   assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
+});
+
+test('D619 local task start requires the exact loopback origin, intent, binary type and size', async () => {
+  const work = scratch(), taskRunDir = join(work, 'runs'), fake = fakeClaude(() => []);
+  const srv = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: work, taskRunDir,
+    origins: [...DEFAULT_ORIGINS, 'https://studio.example'] }));
+  const path = `${srv.url}/task-runs/start`;
+  const headers = { ...STUDIO, host: '127.0.0.1:52020', 'x-barocss-task-run': 'start', 'content-type': 'application/octet-stream' };
+  const post = (overrides: Record<string, string>, withOrigin = true) => new Promise<number>((resolve, reject) => {
+    const { origin, ...requestHeaders } = { ...headers, ...overrides };
+    const req = httpRequest(path, { method: 'POST', headers: { ...requestHeaders, ...(withOrigin ? { origin } : {}) } },
+      res => { res.resume(); resolve(res.statusCode ?? 0); });
+    req.on('error', reject);
+    req.end('bad');
+  });
+  try {
+    assert.equal(await post({ origin: 'https://attacker.example' }), 403);
+    assert.equal(await post({ origin: 'https://studio.example', host: 'studio.example' }), 403);
+    assert.equal(await post({ host: 'localhost:52020' }), 403);
+    assert.equal(await post({ 'x-barocss-task-run': '' }), 403);
+    assert.equal(await post({ 'content-type': 'text/plain' }), 415);
+    assert.equal(await post({}, false), 403);
+    for (const declared of [true, false]) {
+      const oversized = await new Promise<number>((resolve, reject) => {
+        const req = httpRequest(path, { method: 'POST', headers: { ...headers,
+          ...(declared ? { 'content-length': MAX_TASK_RUN_HANDOFF_BYTES + 1 } : {}) } },
+        res => { res.resume(); resolve(res.statusCode ?? 0); });
+        req.on('error', reject);
+        if (declared) { req.flushHeaders(); req.end(); }
+        else { req.write(Buffer.alloc(MAX_TASK_RUN_HANDOFF_BYTES)); req.end('x'); }
+      });
+      assert.equal(oversized, 413);
+    }
+    assert.equal(existsSync(taskRunDir), false);
+    assert.equal(fake.spawned.length, 0);
+  } finally { await srv.close(); }
 });
 
 test('assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply', async () => {

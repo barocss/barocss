@@ -11,11 +11,12 @@ import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
 import { decodeCandidateReview, encodeCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
   TASK_CANDIDATE_EXT, type CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
-import { MAX_TASK_RUN_HANDOFF_BYTES, readTaskRunHandoff } from '../../src/files/taskRunHandoff';
+import { MAX_TASK_RUN_HANDOFF_BYTES } from '../../src/files/taskRunHandoff';
 import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
 import { deriveLocalRunPlan, localRunPlanInputs } from './localPlan';
 import { candidateReviewFor, TaskRunStore, type RunLimits, type RunRecord } from './store';
+import { localRunStatus, prepareTaskRunHandoff, startLocalTaskRun } from './start';
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
@@ -90,9 +91,7 @@ async function readStart(args: readonly string[]) {
   }
   if (args.length === 2 && args[0] === '--handoff') {
     const bytes = readLocalFile(args[1], MAX_TASK_RUN_HANDOFF_BYTES, 'task run handoff');
-    const { doc, offer, sourceSHA256 } = await readTaskRunHandoff(bytes);
-    const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences);
-    return { doc, config, tasks: config.targets.map(target => ({ id: target.id, height: target.heightMm })) };
+    return prepareTaskRunHandoff(bytes);
   }
   if (args.length !== 1 || args[0] === '--plan' || args[0] === '--handoff') throw new Error(HELP);
   const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
@@ -125,16 +124,6 @@ async function confirmReviewedDecision(run: string, operation: string, task: str
   };
   return { token, guard };
 }
-function status(record: RunRecord) {
-  const { state } = record;
-  return {
-    runId: record.runId, epoch: record.epoch, phase: state.phase, specRevision: state.specRevision, accepted: record.accepted,
-    budget: state.budget, next: state.phase !== 'active' ? state.phase : record.pending ? 'committing' : 'select a task',
-    tasks: state.tasks.map(t => ({ id: t.id, phase: t.phase, reason: t.reason, attempts: t.attempts,
-      candidateDigest: t.candidate?.candidateDigest, geometry: t.candidate?.geometry })),
-  };
-}
-
 export async function taskRunMain(argv: readonly string[], io: Io): Promise<number> {
   const [command, directory, ...args] = argv;
   const print = (value: unknown) => io.stdout.write(JSON.stringify(value) + '\n');
@@ -152,17 +141,13 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       return 0;
     }
     if (command === 'start') {
-      const { doc, config, tasks } = await readStart(args);
-      host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate);
-      const active = host;
-      const run = ({ id, height }: typeof tasks[number]) => active.dispatch('initial:' + id, id, threadWorker(worker, height), 'height-mm:' + height);
-      const outcomes = config.limits.concurrent === 2 ? await Promise.all(tasks.map(run)) : [await run(tasks[0]), await run(tasks[1])];
-      print({ ...status(active.snapshot), outcomes });
-      return outcomes.every(outcome => outcome.phase === 'completed') ? 0 : 1;
+      const started = await startLocalTaskRun(directory, await readStart(args));
+      print(started);
+      return started.outcomes.every(outcome => outcome.phase === 'completed') ? 0 : 1;
     }
 
     const run = realpathSync(directory);
-    if (command === 'status' && !args.length) { print(status(TaskRunStore.inspect(run))); return 0; }
+    if (command === 'status' && !args.length) { print(localRunStatus(TaskRunStore.inspect(run))); return 0; }
     if (command === 'review') {
       const [task, output] = args;
       if (args.length !== 2 || !output.toLowerCase().endsWith(TASK_CANDIDATE_EXT)) throw new Error(HELP);
@@ -212,7 +197,7 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
     } else if (command === 'decide') {
       const held = record.state.tasks.find(item => item.id === task);
       if (!held?.candidate || !held.attempt || held.phase !== 'awaiting-decision') throw new Error('No current candidate is awaiting this decision.');
-      if (!confirmed) print({ ...status(host.snapshot), task, decision: value });
+      if (!confirmed) print({ ...localRunStatus(host.snapshot), task, decision: value });
       const token = confirmed?.token ?? await operator(`${value} ${task} ${held.candidate.candidateDigest.slice(0, 12)}`);
       outcome = await host.decide({ operationId: operation, runId: record.runId, epoch: record.epoch, taskId: task,
         attemptId: held.attempt.id, specRevision: held.candidate.specRevision, candidateDigest: held.candidate.candidateDigest, approved: value === 'approve' }, token);
@@ -222,11 +207,11 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       outcome = host.revisePolicy(operation, task, value === '1' ? 1 : 2, await operator(`policy ${task} ${short}`));
     } else if (command === 'answer' && args.length === 4 && Number.isSafeInteger(Number(value))) {
       const answers = JSON.parse(readFileSync(file, 'utf8')) as Record<string, string | number | null>;
-      print({ ...status(host.snapshot), task, batch: Number(value), answers });
+      print({ ...localRunStatus(host.snapshot), task, batch: Number(value), answers });
       outcome = await host.answer({ operationId: operation, runId: record.runId, epoch: record.epoch, specRevision: record.state.specRevision,
         taskId: task, batch: Number(value), answers }, await operator(`answer ${task} ${short}`));
     } else throw new Error(HELP);
-    print({ ...status(host.snapshot), outcome });
+    print({ ...localRunStatus(host.snapshot), outcome });
     return outcome.phase === 'completed' ? 0 : 1;
   } catch (error) {
     io.stderr.write(`cad-cli task-run: ${error instanceof Error ? error.message : String(error)}\n`);
