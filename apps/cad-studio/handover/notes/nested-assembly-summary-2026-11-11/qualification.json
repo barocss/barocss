@@ -1,0 +1,45 @@
+{
+  "decision": "D603",
+  "parent": "92381486f41bbb1e1a913d18ce6ce449fd6e9663",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "2658768a5d4f7bc2a8d2886a0442fb16c3b18649e81910e399e6520145a18a30",
+    "pass": ["A01", "A02", "A03", "A04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D603_SOURCE_FROZEN=1 node test/nested-requirement-scope-browser.mjs <output> --summary", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test nested-references flexible-subassembly api-assembly instance-looks instance-patterns wire-welds frame-tslot-interfaces tool-contract", "status": "PASS", "pass": 109},
+    {"command": "pnpm --dir apps/cad-studio test chat cad-external toolset-mcp tool-contract-mcp nested-selection", "status": "PASS", "pass": 47},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit && pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/assembly.ts packages/barocss-cad-model/test/{nested-references,wire-welds}.test.ts", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node <external>/mutations.mjs <repo> <output>", "status": "PASS", "killed": 5},
+    {"command": "node --check apps/cad-studio/test/nested-requirement-scope-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "review": [
+    {"model": "GPT-6.1 Sol Medium", "status": "APPROVE", "scope": "public tool and product compatibility"},
+    {"model": "GPT-6.1 Sol High", "status": "CLEAR", "scope": "placement, failure and geometry boundaries"}
+  ],
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "../d602-2026-11-11/first/before-mcp.jsonl", "sha256": "5dd35fdbd90e83a924c14dbb654c7d701aa10b4d7df1c1a612199dd0aa4874e7", "observation": "Both visible nested-only hosts reported zero bodies, zero volume and no bounds."},
+    {"status": "FAIL", "receipt": "first-model-tsc.log", "sha256": "acdc841e2b9ce9dbe7fb731a4f11cc9c997097ce1491dd4ebf840ab1f9fcfc09", "observation": "The refusal fixture used an incomplete sketch association. The final fixture uses the typed association shape."}
+  ],
+  "evidence": {
+    "directory": "d603-2026-11-11",
+    "receiptSHA256": "2c0786779a1420fdfc4d9525369e0d872a71cc557f47397d3336a345f2d87708",
+    "sourceCapsuleSHA256": "1d0e914ff41777da5afd2046973211ca4ea1e0a8430174596b859291e11fc718",
+    "inputNativeSHA256": "021bb3c5f818fe36c2b3a3ab22578b01dc3467a001b117b8d37833c879ac5846",
+    "savedNativeSHA256": "ace3f0beff40a7d90678ddae6850e75ce7a5e4c080525366441826a6cf4fba2f",
+    "brokenHostMcpSHA256": "4feebcb03d3d204f477394ba7bde1934c0b0c777faecbff0e47a8b51975a68c3",
+    "mutationLogSHA256": "7782e2cfcce21d8749948ebcf7a55ac3f7a2310c7a98b2b24dd231084ec83be0",
+    "unchangedSourcePins": 769,
+    "desktopStates": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["final/reopened-0"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["positive full-path requirement evidence", "general curved-mesh parity", "live providers", "whole browser", "whole kernel", "mobile"]
+}

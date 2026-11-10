@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, type EvalResult } from '../src/engine/evaluate';
 import { WireReceiver, WireSender, evaluatedPart } from '../src/engine/wireDoc';
 import { contentKey, evaluationKey } from '../src/engine/evalMemo';
@@ -70,6 +70,22 @@ test('REVIEW-M3 nested placed-part welds cross recursively and affect the produc
   assert.deepEqual(facts(ok(back.instances![0].doc)), facts(ok(s.weld(3))));
   assert.notEqual(evaluationKey(assembly(s.doc)), evaluationKey(doc));
   assert.notEqual(evaluationKey(doc), evaluationKey(assembly(s.weld(2))));
+});
+
+test('a placed assembly summary moves derived weld beads as well as authored bodies', async () => {
+  const sub: StudioDoc = { ...scene(5).weld(3), instances: [
+    { id: 'p1', name: 'Child', doc: rectanglePart(2, 1, 3), position: [0, 0, 0], rotation: [0, 0, 0] },
+  ] };
+  const root: StudioDoc = { ...emptyDoc(), instances: [
+    { id: 'p1', name: 'Welded module', doc: sub, position: [1000, 0, 0], rotation: [0, 0, 0] },
+  ] };
+  const out = await dispatchTool({ doc: root, bodies: [] }, 'assembly', { action: 'get' }, async doc => evaluateDoc(doc, 1));
+  assert.ok(!out.isError && !out.changed, out.content);
+  const [host] = JSON.parse(out.content).instances;
+  assert.equal(host.error, undefined);
+  assert.equal(host.bodies, 4);
+  assert.equal(host.volume, 568686);
+  assert.deepEqual(host.world_bounds, { min: [980, -20, 0], max: [1500, 20, 800] });
 });
 
 test('REVIEW-M3 no-bead controls: absent/empty welds share keys; an unsized record stays two bodies', () => {

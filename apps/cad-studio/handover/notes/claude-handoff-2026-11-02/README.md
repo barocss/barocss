@@ -1,5 +1,5 @@
 ---
-work_id: D602
+work_id: D603
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -141,7 +141,9 @@ D601 keeps the original saved failure visible after Studio approval widens a tol
 
 D602 verifies both reused child IDs in actual Studio and retains the current explicit MCP refusal for full nested paths. The same assembly query reported zero bodies and volumes for both nested-only hosts. The assembly scope belongs to row 10. [D602](../../notes/nested-requirement-scope-2026-11-11/README.md).
 
-Next MAIN is D603 / P0 automation, B09 follow-up, rows 04, 10 and 16. Repair the reproduced zero-body and zero-volume summary in `assembly.get` for nested-only hosts. Reuse the current placed assembly evaluator and verify body counts, volumes and world bounds against the D602 fixture and actual Studio. Preserve explicit evaluation failures. Resume nested requirement evidence scope after this accuracy repair.
+D603 repairs the zero body and volume summary for the D602 nested-only hosts. Desktop Studio and MCP agree before and after Save/Open. A failed host keeps its error and the other host keeps its numeric result. [D603](../../notes/nested-assembly-summary-2026-11-11/README.md).
+
+Next MAIN is D604 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Add exact root-scoped read-only requirement evidence for visible nested occurrence paths. Reuse the D602 fixture to verify local measurements, effective occurrence materials, same-ID isolation and refusal for stale, missing or ambiguous paths. Qualify through actual MCP and Studio Save/Open. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

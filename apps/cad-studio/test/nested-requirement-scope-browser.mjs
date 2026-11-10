@@ -4,8 +4,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || mode === '--summary');
+const summaryMode = mode === '--summary';
 const pins = [
   'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/scripts/cad-mcp.mjs', 'apps/cad-studio/server/cadMcp.ts',
   'apps/cad-studio/src/ui/NestedPartPanel.tsx', 'apps/cad-studio/src/assembly/nestedSelection.ts',
@@ -55,8 +57,9 @@ for path, height, density, expected_verdict in [('p1/p1', 4, 2.7e-3, 'pass'), ('
 print(json.dumps({'status':'PASS','scopeCount':2,'volumeToleranceMm3':1e-8}))
 `;
 const f = await createFlow({
-  name: 'nested-requirement-scope', envFrozen: 'D602_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
-  inspectorSource, oracleSource, qualification: 'Nested occurrence identity and current read-only evidence boundary',
+  name: 'nested-requirement-scope', envFrozen: summaryMode ? 'D603_SOURCE_FROZEN' : 'D602_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  inspectorSource, oracleSource, qualification: summaryMode ? 'Nested assembly summary measured against Studio and native geometry'
+    : 'Nested occurrence identity and current read-only evidence boundary',
   limits: ['Two authored nested leaves with a reused child ID. Evidence for a nested path currently refuses. Immediate-parent documents are positive controls, not substitutes for assembly-scoped evidence.'],
 });
 
@@ -131,6 +134,43 @@ function rows(data) {
   }));
 }
 
+function checkSummary(reply) {
+  assert.equal(reply.error, false, JSON.stringify(reply));
+  const actual = reply.body.instances.map(({ id, bodies, volume, world_bounds, error }) => ({ id, bodies, volume, world_bounds, error }));
+  assert.deepEqual(actual, [
+    { id: 'p1', bodies: 1, volume: 800, world_bounds: { min: [30, 0, 8], max: [50, 10, 12] }, error: undefined },
+    { id: 'p2', bodies: 1, volume: 1400, world_bounds: { min: [60, 0, 15], max: [80, 10, 22] }, error: undefined },
+  ]);
+  return actual;
+}
+
+async function checkStudioBounds(actual) {
+  const expected = actual.map(({ id, world_bounds }) => ({ id, ...world_bounds }));
+  await f.page.waitForFunction(expected => {
+    const bounds = window.__studioInstanceBounds?.();
+    return bounds?.length === expected.length && expected.every(({ id, min, max }) => {
+      const item = bounds.find(item => item.id === id);
+      return item?.min && item.max && [item.min, item.max].every((coords, index) =>
+        coords.every((value, axis) => Math.abs(value - [min, max][index][axis]) < 1e-6));
+    });
+  }, expected);
+}
+
+async function checkBrokenHost() {
+  const broken = structuredClone(initial);
+  broken.instances[0].doc.instances[0].doc.nodes[1].height = 0;
+  const file = join(output, 'broken-host.bcad');
+  await writeFile(file, JSON.stringify(broken));
+  const [listed] = await mcp(file, 'broken-host', [assembly]);
+  assert.equal(listed.error, false, JSON.stringify(listed));
+  const [bad, healthy] = listed.body.instances;
+  assert.equal(typeof bad.error, 'string');
+  assert.ok(bad.error.length > 0);
+  assert.deepEqual([bad.bodies, bad.volume, bad.world_bounds], [undefined, undefined, undefined]);
+  assert.deepEqual([healthy.bodies, healthy.volume, healthy.error], [1, 1400, undefined]);
+  f.report.failedHost = bad.error;
+}
+
 async function selectLeaves(label) {
   const card = f.page.getByRole('complementary', { name: 'Nested part', exact: true });
   const volumes = {};
@@ -165,6 +205,7 @@ await f.run(async () => {
   const [listed, root, left, right, short] = await mcp(original, 'before', [assembly, evidence('base'), ...paths.map(path => evidence(path)), evidence('p1')]);
   assert.equal(listed.error, false);
   assert.deepEqual(listed.body.instances.flatMap(i => i.parts_inside.map(p => p.path)), paths);
+  if (summaryMode) f.report.initialAssemblySummary = checkSummary(listed);
   const before = report(root, 'base');
   assert.deepEqual(rows(before).height, [2, 'pass']);
   requireRefusal(left, /OUTPUT_INPUT.*No part p1\/p1/);
@@ -192,6 +233,7 @@ await f.run(async () => {
   await f.openFile(original, 2);
   await f.same(initial);
   const studio = await selectLeaves('before');
+  if (summaryMode) await checkStudioBounds(f.report.initialAssemblySummary);
   await f.page.keyboard.press('Escape');
   const edited = await f.setParameter('H', 3, 'root-height-edited');
   assert.deepEqual(edited.doc.instances, initial.instances);
@@ -216,9 +258,14 @@ await f.run(async () => {
   await f.openFile(savedFile, 2);
   await f.same(edited.doc);
   assert.deepEqual(await selectLeaves('reopened'), studio);
-  const [stale, current, newLeft, newRight] = await mcp(savedFile, 'reopened', [
-    evidence('base', before.revision), evidence('base'), ...paths.map(path => evidence(path)),
+  const [stale, current, newLeft, newRight, reopenedAssembly] = await mcp(savedFile, 'reopened', [
+    evidence('base', before.revision), evidence('base'), ...paths.map(path => evidence(path)), ...(summaryMode ? [assembly] : []),
   ]);
+  if (summaryMode) {
+    f.report.reopenedAssemblySummary = checkSummary(reopenedAssembly);
+    await checkStudioBounds(f.report.reopenedAssemblySummary);
+    await checkBrokenHost();
+  }
   requireRefusal(stale, /OUTPUT_STALE/);
   assert.deepEqual(rows(report(current, 'base')).height, [3, 'fail']);
   requireRefusal(newLeft, /OUTPUT_INPUT.*No part p1\/p1/);

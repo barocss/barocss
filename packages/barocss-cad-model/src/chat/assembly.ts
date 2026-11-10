@@ -6,12 +6,12 @@ import { readConnector, validateBallOptions, validateFastenedOptions, validateUn
 import { checkPartDelete } from '../frames/skeleton';
 import { firstProblem } from '../engine/refusal';
 import { tslotInterfaces } from '../frames/interfaces';
-import type { PartInstance, StudioDoc } from '../engine/doc';
-import type { BodyResult, EvalResult } from '../engine/evaluate';
+import { placedBase, placedDoc, type PartInstance, type StudioDoc } from '../engine/doc';
+import { placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { tableOf, tablesFor, withDatums } from '../assembly/faces';
 import { hostOf, nestedParts, occurrenceProblem, splitPart } from '../engine/occurrences';
 import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateFace, type MateKind, type Vec3 } from '../assembly/mates';
-import { rotationMatrix } from '../engine/placement';
+import { placementOf, rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
 import { faceTableOf } from '../assembly/faces';
@@ -74,23 +74,60 @@ function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces
   return out.length ? { member_interfaces: out } : {};
 }
 
+async function nestedGeometry(inst: PartInstance, parent: StudioDoc, evaluate: Evaluate) {
+  try {
+    const placed = await evaluate(placedDoc(inst, parent));
+    if (!placed?.ok) return { error: placed?.error.title ?? 'The placed sub-assembly did not evaluate.' };
+    const bodies = [...placed.bodies];
+    if (bodies.some(body => body.element?.kind === 'weld-bead')) {
+      const origin = await evaluate(placedBase(inst, parent));
+      if (!origin?.ok) return { error: origin?.error.title ?? 'The sub-assembly welds did not evaluate at the origin.' };
+      // Weld records produce derived bodies after the authored transforms. Place the origin meshes as Studio does.
+      const { m, t } = placementOf(inst);
+      for (const [index, body] of bodies.entries()) {
+        if (body.element?.kind !== 'weld-bead') continue;
+        const bead = origin.bodies.find(item => item.key === body.key && item.element?.kind === 'weld-bead');
+        if (!bead) return { error: `The placed weld ${body.key} has no origin body.` };
+        const mesh = bead.mesh;
+        bodies[index] = placeBody({ ...bead, mesh: { ...mesh, positions: mesh.positions.slice(), normals: mesh.normals.slice(), edgeLines: mesh.edgeLines.slice() } }, m, t);
+      }
+    }
+    const total = bodies.reduce<number | null>((sum, { volume }) =>
+      sum === null || volume === null || !Number.isFinite(volume) || volume < 0 ? null : sum + volume, 0);
+    const rounded = total === null ? null : r3(total);
+    const volume = Number.isFinite(rounded) ? rounded : null;
+    const bounds = boundsOf(bodies), min = bounds.min.map(r3), max = bounds.max.map(r3);
+    const world_bounds = min.every((value, axis) => Number.isFinite(value) && Number.isFinite(max[axis]) && value <= max[axis])
+      ? { min, max } : undefined;
+    return { bodies: bodies.length, volume, world_bounds };
+  } catch (error) {
+    if (!isRefusal(error)) throw error;
+    return { error: error.message };
+  }
+}
+
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
-    const r = await evaluate(bodyDocOf(inst)), bodies = r?.ok ? r.bodies : [];
-    const { min, max } = boundsOf(bodies), flex = inst.doc.instances?.length && inst.doc.mates?.length ? instanceJointsOf(doc, inst.id) : null;
+    const nested = !!inst.doc.instances?.length;
+    const own = !nested || inst.doc.nodes.length || inst.doc.direct ? await evaluate(bodyDocOf(inst)) : null;
+    const bodies = own?.ok ? own.bodies : [];
+    const { min, max } = boundsOf(bodies), flex = nested && inst.doc.mates?.length ? instanceJointsOf(doc, inst.id) : null;
+    const geometry = nested ? await nestedGeometry(inst, doc, evaluate) : {
+      bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
+      ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
+      ...(own && !own.ok ? { error: own.error.title } : {}),
+    };
     return {
       id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}), ...(inst.pattern ? { pattern: inst.pattern.id, k: inst.pattern.k } : {}),
-      feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
-      ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
-      ...(r && !r.ok ? { error: r.error.title } : {}),
+      feature_count: inst.doc.nodes.length, ...geometry,
       ...memberInterfaceList(bodies),
       // (A sub-assembly: the parts inside it by path, to name in a mate as `sub1/p2`; its faces as the mate reads them, folded.)
       ...(flex?.joints.length ? { joints: flex.joints.map(j => ({ key: j.key, type: j.type, value: j.value, ...(j.lower !== undefined ? { lower: j.lower } : {}), ...(j.upper !== undefined ? { upper: j.upper } : {}) })), joints_note: 'this occurrence\'s own values (degrees, mm); set them with place_part "joints"' } : {}),
       ...(flex?.problem && inst.joints ? { joint_problem: flex.problem } : {}),
       // (Roadmap 10 ①: the keys a body's look is set by, for a part with no parts inside — place_part "looks".)
-      ...(!inst.doc.instances?.length && bodies.length ? { body_keys: bodies.map(b => lookKey(inst.doc.nodes, b)) } : {}),
+      ...(!nested && bodies.length ? { body_keys: bodies.map(b => lookKey(inst.doc.nodes, b)) } : {}),
       ...(inst.looks ? { looks: instanceLooksListing(doc, inst.id), looks_note: 'this occurrence\'s own looks over its part\'s; "held" ones name a body a new revision no longer has' } : {}),
-      ...(inst.doc.instances?.length ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
+      ...(nested ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
       ...(detail !== null && hostOf(detail) === inst.id ? mateFaces(tablesFor(doc)(detail) ?? {}) : {}),
     };
   }));

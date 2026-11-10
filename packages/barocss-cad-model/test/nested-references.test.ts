@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepsFor, evaluateDoc } from '../src/engine/evaluate';
+import { brepsFor, evaluateDoc, type EvalResult } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { isRefusal } from '../src/engine/refusal';
@@ -139,6 +139,55 @@ test('the model\'s tablesFor now sees nested faces: the sub-assembly folded, a p
   assert.equal(t('p9'), undefined);
   // (A plain part and the base read as before.)
   assert.ok(t('p2')!['n1.top'] && t('base')!['n1.top']);
+});
+
+test('assembly summaries measure the placed nested bodies and distinguish an unavailable result from empty geometry', async () => {
+  const leaf = rectanglePart(2, 1, 3);
+  const sub = addPart(addPart(emptyDoc(), { name: 'Near', doc: leaf }).doc,
+    { name: 'Far', doc: leaf, position: [4, 4, 0] }).doc;
+  const root = addPart(addPart(emptyDoc(), { name: 'Nested', doc: sub, position: [10, 20, 30], rotation: [0, 0, 45] }).doc,
+    { name: 'Top-level control', doc: leaf }).doc;
+  const get = async (doc: StudioDoc, run: (doc: StudioDoc) => Promise<EvalResult | null> = evaluate) => {
+    const out = await dispatchTool({ doc, bodies: [] }, 'assembly', { action: 'get' }, run);
+    assert.ok(!out.isError && !out.changed && out.state.doc === doc, out.content);
+    return JSON.parse(out.content).instances;
+  };
+  const [nested, ordinary] = await get(root);
+  assert.deepEqual([nested.bodies, nested.volume], [2, 12]);
+  assert.deepEqual(nested.world_bounds, { min: [9.293, 20, 30], max: [11.414, 27.778, 33] });
+  assert.deepEqual(nested.parts_inside.map((item: { path: string }) => item.path), ['p1/p1', 'p1/p2']);
+  assert.equal(nested.body_keys, undefined);
+  assert.deepEqual([ordinary.bodies, ordinary.volume, ordinary.body_keys], [1, 6, ['b1']]);
+
+  const [hidden] = await get(edited(root, 'p1', hideFirst));
+  assert.deepEqual([hidden.bodies, hidden.volume, hidden.parts_inside[0].hidden], [1, 6, true]);
+  const [empty] = await get(edited(root, 'p1', d => inNested(hideFirst(d), 'p2', i => ({ ...i, hidden: true }))));
+  assert.deepEqual([empty.bodies, empty.volume, empty.world_bounds, empty.error], [0, 0, undefined, undefined]);
+
+  const [failed, stillGood] = await get(root, async doc => doc.nodes.length > leaf.nodes.length ? null : evaluate(doc));
+  assert.match(failed.error, /did not evaluate/);
+  assert.deepEqual([failed.bodies, failed.volume, failed.world_bounds], [undefined, undefined, undefined]);
+  assert.deepEqual([stillGood.bodies, stillGood.volume], [1, 6]);
+
+  const [unknownVolume] = await get(root, async doc => {
+    const result = await evaluate(doc);
+    if (!result.ok || result.bodies.length < 2) return result;
+    return { ...result, bodies: result.bodies.map((body, index) => index ? body : { ...body, volume: null }) };
+  });
+  assert.deepEqual([unknownVolume.bodies, unknownVolume.volume, unknownVolume.error], [2, null, undefined]);
+  assert.deepEqual(unknownVolume.world_bounds, nested.world_bounds);
+
+  const [invalidPlacement] = await get({ ...root, instances: root.instances!.map(inst =>
+    inst.id === 'p1' ? { ...inst, position: [20000, 20, 30] } : inst) });
+  assert.equal(typeof invalidPlacement.error, 'string');
+  assert.deepEqual([invalidPlacement.bodies, invalidPlacement.volume, invalidPlacement.world_bounds], [undefined, undefined, undefined]);
+
+  const [refused] = await get(edited(root, 'p1', d => ({ ...d, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 1],
+      association: { kind: 'planar-face-outline-inset', version: 1, source: { node: 1, side: 'solid' }, sourceFeature: 'n1', face: 'n1.top', insetMM: 0.25 } },
+  ] })));
+  assert.match(refused.error, /BAD_REFERENCE/);
+  assert.equal(refused.volume, undefined);
 });
 
 test('chat: add_mate with a path moves the sub-assembly; get_assembly lists the nested parts with their paths and faces by path', async () => {
