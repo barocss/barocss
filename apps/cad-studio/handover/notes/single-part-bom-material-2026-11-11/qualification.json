@@ -1,0 +1,32 @@
+{
+  "decision": "D588",
+  "parent": "eb9b46c64626a98f2eeb9037974c306e0a2e9bed",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrixSHA256": "48857791eca3444c448f7593717c33caf2f0b5bcc8077a956aacc5191d1c21da",
+  "matrix": {"pass": ["S01", "S02", "S03", "S04"], "fail": []},
+  "commands": [
+    {"command": "pnpm --dir packages/barocss-cad-model test bom- team-assembly team-freshness api-density api-material-preview-invalid tool-contract", "status": "PASS", "pass": 77, "fail": 0},
+    {"command": "pnpm --dir apps/cad-studio test bom-linked-ui bom-nested-ui team-bundle tool-contract-mcp toolset-mcp drawing-commit-roundtrip", "status": "PASS", "pass": 21, "fail": 0},
+    {"command": "pnpm --dir packages/barocss-cad-model type-check && pnpm --dir apps/cad-studio type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/bom/bom.ts packages/barocss-cad-model/test/bom-base.test.ts", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/single-part-bom-material-browser.mjs", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D588_SOURCE_FROZEN=1 node test/single-part-bom-material-browser.mjs <external-output-directory> <D587-saved-opfs.bcad>", "status": "PASS"}
+  ],
+  "evidence": {
+    "directory": "d588-2026-11-11",
+    "baselineFailureReceiptSHA256": "07cb4d095d8f5a0f32054c807fa937b11e9dd5d82bcaaaeb8860fdcf7e338941",
+    "finalReceiptSHA256": "be59514160d1a327a7faab3ba9881ee6ba7c0dbd7fa940f641d8b87d3cbdf2aa",
+    "inputNativeSHA256": "5e4bb90c37af41cc22015f0610c13b558b402642caaa2d6ca190c5ed4fc7a254",
+    "unchangedSourcePins": 297,
+    "sourceCapsuleSHA256": "4140ee2a97ca619cfadf4e2b1440a764471b44f49e0fc1fb35234c1d2b549464",
+    "studioStates": 3,
+    "oracleCases": 2,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"],
+    "visualReview": "02-body-steel"
+  },
+  "notRun": ["full kernel", "broad browser", "mobile", "release"]
+}

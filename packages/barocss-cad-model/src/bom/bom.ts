@@ -7,6 +7,8 @@ import type { ModelNode, PartInstance, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
 import { massProperties } from '../analysis/analysis';
+import { partMaterial } from '../app/bodies';
+import { materialData } from '../library/materials';
 import { bomBodies, bomViewOf, cacheBomEvaluation, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './core';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
@@ -40,11 +42,18 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   const nestedDocs = (insts: readonly PartInstance[] | undefined, under: string): [string, StudioDoc][] => (insts ?? []).flatMap(i => i.hidden && under ? [] : [[`${under}${i.id}`, i.doc] as [string, StudioDoc], ...nestedDocs(i.doc.instances, `${under}${i.id}/`)]);
   const docs: [string, StudioDoc][] = [['base', doc], ...nestedDocs(doc.instances, '')];
   const made: MadeLine[] = [];
+  let baseMaterial: string | null = null;
   let baseMass = 0, baseBound: ReturnType<typeof massBoundField> = {}, baseLumps: ReturnType<typeof lumpsField> = {};
   for (const [index, [part, d]] of docs.entries()) {
     const bodies = bomBodies(read(d), index === 0 ? 'base' : `base/${part}`);
     // (O169: by the document's materials, as a placed part's mass is — a body's own massG is the default material's.)
-    if (index === 0) { baseMass = (massProperties(d, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0); baseBound = massBoundField(d, bodies); baseLumps = lumpsField(bodies); }
+    if (index === 0) {
+      baseMass = (massProperties(d, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
+      baseBound = massBoundField(d, bodies);
+      baseLumps = lumpsField(bodies);
+      const { id } = partMaterial(d, bodies);
+      if (id && materialData(id)) baseMaterial = id;
+    }
     for (const l of elementLines(d, bodies)) {
       if (l.bought || l.kind === 'gusset' || l.kind === 'end-cap') continue; // (plates: their own BOM lines, FRk1)
       const id = `${part}:${l.item}`, row = l.row?.id ?? null, m = made.find(x => x.kind === l.kind && x.size === l.size && x.row === row);
@@ -53,7 +62,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
     }
   }
   // (A part with no placed parts: itself, one, as a line.)
-  if (single) view.parts.unshift({ id: 'base', name, material: null, mass: r6(baseMass), ...baseBound, ...baseLumps, library: null, shape: '' });
+  if (single) view.parts.unshift({ id: 'base', name, material: baseMaterial, mass: r6(baseMass), ...baseBound, ...baseLumps, library: null, shape: '' });
   return { view, bom: deriveBom(view), made, single, ...(shopRows.some(p => p.rows.length) ? { shopRows } : {}) };
 }
 

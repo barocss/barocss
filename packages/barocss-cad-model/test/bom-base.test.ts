@@ -4,6 +4,8 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { bomPanelData } from '../src/bom/bom';
+import { part } from '../src/api/index';
+import { withLook } from '../src/app/bodies';
 import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { personFile } from './person-file';
 
@@ -34,6 +36,29 @@ test('O169: a frame as the base with a placed plate — its members a made line 
 
 test('O169: a single frame part (no placed parts) stays its own one line, weighed by its material (steel), not by the default\'s density', async () => {
   const data = await bomPanelData(await frame(false), evaluate);
-  assert.deepEqual([data.single, data.bom.lines.map(l => [l.item, l.qty]), data.bom.lines.some(l => l.member)], [true, [['this part', 1]], false]);
+  assert.deepEqual([data.single, data.bom.lines.map(l => [l.item, l.qty, l.material]), data.bom.lines.some(l => l.member)], [true, [['this part', 1, 'steel']], false]);
   assert.ok(Math.abs(data.bom.totalMass - A * 2520 * STEEL) < 1e-2 && Math.abs(data.bom.totalMass - A * 2520 * AL) > 1, String(data.bom.totalMass));
+});
+
+test('the standalone BOM lists one known material only when every body uses it', async () => {
+  const doc = part().box({ w: 20, d: 10, h: 10 }).box({ w: 20, d: 10, h: 10, x: 40 }).doc;
+  const result = evaluateDoc(doc, 1);
+  assert.ok(result.ok);
+  assert.equal(result.bodies.length, 2);
+  const [first, second] = result.bodies;
+  const aluminium: StudioDoc = { ...doc, brief: { version: 1, material: { basis: 'stated', value: 'al6061', source: 'Use 6061 aluminium.' } } };
+  const cases = [
+    { name: 'empty', doc: emptyDoc(), material: null, mass: 0 },
+    { name: 'unset', doc, material: null, mass: 10.8 },
+    { name: 'shared brief', doc: aluminium, material: 'al6061', mass: 10.8 },
+    { name: 'one steel override', doc: withLook(aluminium, first, { material: 'steel' }), material: null, mass: 21.1 },
+    { name: 'both steel overrides', doc: withLook(withLook(aluminium, first, { material: 'steel' }), second, { material: 'steel' }), material: 'steel', mass: 31.4 },
+    { name: 'same unavailable ID', doc: withLook(withLook(doc, first, { material: 'missing-alloy' }), second, { material: 'missing-alloy' }), material: null, mass: 10.8 },
+  ];
+  for (const sample of cases) {
+    const { bom } = await bomPanelData(sample.doc, evaluate);
+    assert.deepEqual(bom.lines.map(line => [line.parts, line.qty, line.material, line.mass]),
+      [[['base'], 1, sample.material, sample.mass]], sample.name);
+    assert.equal(bom.totalMass, sample.mass, sample.name);
+  }
 });

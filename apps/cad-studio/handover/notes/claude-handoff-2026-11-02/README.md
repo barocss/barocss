@@ -1,5 +1,5 @@
 ---
-work_id: D587
+work_id: D588
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -111,7 +111,9 @@ D586 qualifies the local two-worker CAD CLI and six process crash boundaries wit
 
 D587 records B09 v1 at 8/9 passing groups. Direct CLI authoring refused solver sketch metadata. The typed-seed continuation passed actual Studio preview, approval, edit, history, project Save and fresh Open. The final BOM has the correct mass but omits the known material. [D587](../../notes/b09-editable-consumer-2026-11-11/README.md).
 
-Next MAIN is D588 / P0, B09, rows 04, 10 and 16. Reproduce and repair the standalone BOM material omission in the existing Model producer and test actual Studio. Then review #2279.
+D588 repairs the known standalone BOM material field. Actual Studio changes material and verifies mass and first Undo. Two actual stdio MCP reads return the expected material and mass. [D588](../../notes/single-part-bom-material-2026-11-11/README.md).
+
+Next MAIN is D589 / P0, B09, rows 04, 15 and 16. Review the existing provenance and diagnostic paths for #2279 and select one current Studio requirement result across an accepted revision change.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
