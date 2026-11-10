@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D573 — keep unsaved Variants inputs with their document](notes/variant-document-draft-2026-11-10/README.md).
+
 - [D572 — insert and place the library part shown in Studio](notes/library-source-selection-2026-11-10/README.md).
 
 - [D571 — clear the copy notice with its body clipboard](notes/body-clipboard-notice-2026-11-10/README.md).

@@ -1,0 +1,148 @@
+{
+  "workId": "D573",
+  "parent": "e02c6d29afc55fc9849fd3c603931408d059bf46",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D573-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d573-2026-11-10",
+    "frozenSourcesPerRun": 298
+  },
+  "fixtureSha256": {
+    "a": "0c09095ea4627a9c04c3990e2c15f254c9e78fab4d6880e64d7701ce6add18df",
+    "b": "8bd1d577082b941662ed6a73b0ff3a7f6ce08be4c833e8d1b70dba511f3bb47e",
+    "noInputs": "f0187786aadcd61853bccad4493bd6f2bffba88599babcbff3f2eb15024de2e0"
+  },
+  "driverSha256": "68485ff87f529704ecac4c563a35f12100aa2cc4495800f254db7fbc676bc74c",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": {
+      "original": "f806a85a7a51e6d0efbbb77df3fe8445b774101ccf7141056c3ea60c5acb4b44",
+      "fixed": "69e2a6fee84f1113a4c33683001d107a038f86346eae87d93db03fbc659fabdb"
+    },
+    "apps/cad-studio/src/state/useVariants.ts": {
+      "original": "3cd3dbdc43aedc545e095c1e5344be1f3519b2393b38c17afdb0bd170ba507c9",
+      "fixed": "bd73afe69ca265f1556c60dac8b419b30f521f1f103f76f7dcfe08e16b0d74fa"
+    }
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D573_SOURCE_FROZEN=1 node test/variant-document-draft-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "snapshots": 4,
+      "physicalChecks": 4,
+      "wallSeconds": 12.65,
+      "nodePID": 37866,
+      "chromePID": 37887,
+      "receiptSha256": "ddbc399409c927d774791cdcc00e03656f1fa756404d69bca9bf195ed8bee53c",
+      "observations": [
+        {
+          "label": "panel-open",
+          "firstHeight": 40,
+          "requests": [
+            {
+              "id": 6,
+              "revision": 6,
+              "parameters": {
+                "HeightB": 40
+              }
+            }
+          ],
+          "volume": 2000.0000000000002
+        },
+        {
+          "label": "panel-closed",
+          "firstHeight": 40,
+          "requests": [
+            {
+              "id": 6,
+              "revision": 6,
+              "parameters": {
+                "HeightB": 40
+              }
+            }
+          ],
+          "volume": 2000.0000000000002
+        }
+      ]
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "snapshots": 6,
+      "physicalChecks": 18,
+      "wallSeconds": 17.98,
+      "nodePID": 39858,
+      "chromePID": 39879,
+      "receiptSha256": "9c7c101a9fa46938de91adf3441601e4e0e9bab430bf74d064c818a352bb9ab9",
+      "observations": [
+        {
+          "label": "panel-open",
+          "firstHeight": 10,
+          "requests": [
+            {
+              "id": 6,
+              "revision": 6,
+              "parameters": {
+                "HeightB": 10
+              }
+            }
+          ],
+          "volume": 500.00000000000006
+        },
+        {
+          "label": "panel-closed",
+          "firstHeight": 10,
+          "requests": [
+            {
+              "id": 8,
+              "revision": 8,
+              "parameters": {
+                "HeightB": 10
+              }
+            }
+          ],
+          "volume": 500.00000000000006
+        }
+      ]
+    }
+  ],
+  "absoluteTolerance": 1e-09,
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/variant-document-draft-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs o11-variability o11-agent",
+      "status": "PASS",
+      "pass": 10,
+      "fail": 0,
+      "logSha256": "94a4447c3d5653e46e682411c748f4d65d2ee259df8b7038b6c3f3f691a737e0"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs project-open-ownership project-version-ownership edit-in-place stop-work-ownership",
+      "status": "PASS",
+      "pass": 88,
+      "fail": 0,
+      "logSha256": "fafed03b1f28f9f08d0c5832a109bf1cf59bc18a09309537e1e076a881985aa4"
+    }
+  ],
+  "issue2362": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

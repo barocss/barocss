@@ -2,7 +2,7 @@
 // document is variantOf(master, values) — the active variant's values (doc.variability.active) with the person's working
 // values on top (unsaved edits in the Variants card) — and App evaluates that. Saving, updating, deleting and switching
 // go through the agent's own set_variants (chat/variability), one undoable commit each.
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { InputValue } from '@barocss/cad-model/engine/schema/variability';
 import type { Problem } from '@barocss/cad-model/assembly/mates';
@@ -16,6 +16,7 @@ export type Values = Record<string, InputValue>;
  * in (F) would add them here as their own source.
  */
 export interface ValueSet { name: string; source: 'master' | 'variant'; values: Values }
+const NO_DRAFT: Values = {};
 export const MASTER = 'Master';
 export function valueSets(doc: StudioDoc): ValueSet[] {
   const v = doc.variability; if (!v) return [];
@@ -25,6 +26,7 @@ export function valueSets(doc: StudioDoc): ValueSet[] {
 export interface VariantsState {
   /** The active set's values (the master's defaults when none is active), and the working values over them. */
   base: Values; working: Values; setWorking(next: Values): void;
+  resetDocumentDraft(): void;
   /** The document shown (the master itself when every value is its default), and what its mates leave unmet. */
   shown: StudioDoc; problems: Problem[]; error: string | null;
   /** What is shown when it is not the master: the active variant's name, or that the values are unsaved. */
@@ -32,10 +34,15 @@ export interface VariantsState {
 }
 
 export function useVariants(doc: StudioDoc): VariantsState {
-  const [working, setWorking] = useState<Values>({});
+  const [{ scope, working }, setDraft] = useState(() => ({ scope: {}, working: NO_DRAFT }));
+  const setWorking = useCallback((next: Values) => {
+    setDraft(current => current.scope === scope && current.working !== next ? { scope, working: next } : current);
+  }, [scope]);
+  // Call with an accepted document switch so the next render cannot evaluate the old draft on the new master.
+  const resetDocumentDraft = useCallback(() => setDraft({ scope: {}, working: NO_DRAFT }), []);
   const v = doc.variability, active = v?.variants?.find(x => x.name === v.active);
   // (Another set made active — by the card, the agent or an undo — starts from its own values.)
-  useEffect(() => { setWorking({}); }, [v?.active, active?.values]);
+  useEffect(() => { setWorking(NO_DRAFT); }, [v?.active, active?.values, setWorking]);
   const base = useMemo<Values>(() => v ? { ...Object.fromEntries(v.inputs.map(i => [i.name, i.default])), ...(active?.values ?? {}) } : {}, [v, active]);
   const out = useMemo(() => {
     if (!v) return { shown: doc, problems: [] as Problem[], error: null };
@@ -44,5 +51,5 @@ export function useVariants(doc: StudioDoc): VariantsState {
     catch (e) { if (isRefusal(e, ...VARIANT_CODES)) return { shown: doc, problems: [] as Problem[], error: e.message }; throw e; }
   }, [doc, v, base, working]);
   const showing = out.shown === doc ? null : active && !Object.keys(working).some(k => working[k] !== active.values[k]) ? active.name : `${active?.name ?? MASTER}, edited`;
-  return { base, working, setWorking, ...out, showing };
+  return { base, working, setWorking, resetDocumentDraft, ...out, showing };
 }

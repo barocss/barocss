@@ -691,6 +691,7 @@ export function App() {
   // (Roadmap 10 ⑧: an edited part evaluates with the rows it inherits from its assembly, as a placed part does; the authored document is unchanged, carryOver keeps its own rows.)
   const evalDoc = useMemo(() => inPlace ? resolveShopRows(doc, inPlace.assembly).doc : doc, [doc, inPlace?.assembly]);
   const variants = useVariants(evalDoc), shownDoc = variants.shown; shownVariant.current = variants.showing;
+  const { resetDocumentDraft } = variants;
   const shownDocNow = useRef(shownDoc); shownDocNow.current = shownDoc;
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
@@ -1412,8 +1413,9 @@ export function App() {
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
     clearBodyClipboard();
+    resetDocumentDraft();
     return { doc, marker, documentBoundary: true };
-  }, [clearBodyClipboard]);
+  }, [clearBodyClipboard, resetDocumentDraft]);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1505,6 +1507,7 @@ export function App() {
     try {
       if (!commit(next, false, true)) return;
       clearBodyClipboard();
+      resetDocumentDraft();
       if (!fromProject) { project.detach(); setCompareBase(null); }
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }

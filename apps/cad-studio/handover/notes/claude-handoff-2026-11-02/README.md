@@ -1,5 +1,5 @@
 ---
-work_id: D572
+work_id: D573
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -81,7 +81,9 @@ D571 clears the Copy notice on five clipboard invalidation paths in actual Studi
 
 D572 fixes Studio Insert and Place resolving the embedded library instead of the selected local replacement. Desktop checks verify the 12 mm replacement, an identical-name/version case, first Undo and Redo, and native Save and fresh Open. [#2361](https://github.com/barocss/barocss/issues/2361) remains open for the remaining acceptance cases. [D572](../library-source-selection-2026-11-10/README.md).
 
-Next MAIN is D573, P0 rows 12 and 16. Check whether an unsaved Variants input from document A affects the master after opening document B. [#2362](https://github.com/barocss/barocss/issues/2362).
+D573 clears unsaved Variants inputs at accepted document boundaries. Studio verifies the first B evaluation, malformed and cancelled Open, ordinary Reset, Save and Update, and Undo/Redo across Open. [#2362](https://github.com/barocss/barocss/issues/2362) remains open for remaining acceptance. [D573](../variant-document-draft-2026-11-10/README.md).
+
+Next MAIN is D574, P0 rows 09 and 16. Check whether a delayed Finish response applies after editing or cancelling an ordinary sketch. [#2364](https://github.com/barocss/barocss/issues/2364).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
