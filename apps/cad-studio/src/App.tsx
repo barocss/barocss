@@ -117,7 +117,7 @@ import { useVariants } from './state/useVariants';
 import { VariantsPanel } from './ui/VariantsPanel';
 // (CG6: a project — a folder or one kept in this browser — its documents' versions and branches: src/storage/.)
 import { useProject } from './storage/useProject';
-import { VersionsPanel, type VersionComparison } from './storage/VersionsPanel';
+import { VersionsPanel, currentComparisonVersion, type VersionComparison } from './storage/VersionsPanel';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
@@ -480,7 +480,10 @@ export function App() {
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
-  const [compareOverlay, setCompareOverlay] = useState<ProposalOverlay | null>(null);
+  const [versionDiff, setVersionDiff] = useState<{ source: VersionComparison; doc: StudioDoc; overlay: ProposalOverlay } | null>(null);
+  const workingComparison = useMemo(() => compareBase && !compareBase.target && currentComparisonVersion(project.view, compareBase) ? compareBase : null,
+    [compareBase, project.view]);
+  const compareOverlay = versionDiff?.source === workingComparison && versionDiff.doc === doc ? versionDiff.overlay : null;
   useEffect(() => { void project.loadRecent(); }, []);
   useEffect(() => {
     if (!dirty || inPlace) return;
@@ -1629,11 +1632,12 @@ export function App() {
   useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
   // (CG6: a version compared with the working document — its geometry's difference on the same overlay, version → working.)
   useEffect(() => {
-    if (!compareBase || compareBase.store !== project.view.store || compareBase.path !== project.view.part) { setCompareOverlay(null); return; }
-    const at = revision.current++, key = `version:${compareBase.id}`;
-    void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(compareBase.doc, doc, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setCompareOverlay('error' in reply.result ? null : reply.result); });
-    return () => lanes.cancel('proposal-diff');
-  }, [compareBase, doc, project.view.store, project.view.part]);
+    if (!workingComparison) { setVersionDiff(null); return; }
+    const at = revision.current++, key = `version:${workingComparison.id}`;
+    void lanes.run('version-diff', { revision: at, source: key }, () => engine.proposalDiff(workingComparison.doc, doc, at, { revision: modelHash(doc), proposal: key }))
+      .then(reply => { if (!reply.stale) setVersionDiff('error' in reply.result ? null : { source: workingComparison, doc, overlay: reply.result }); });
+    return () => lanes.cancel('version-diff');
+  }, [workingComparison, doc]);
   const { setRequirement, answerQuestions, acceptAll, refTool, addDrawingFile, addReferenceFile, placeRef, removeRef, confirmBrief } =
     useSpecificationActions({ doc, bodies, commit, engine, revision, setToast, setChat, setChatOutbox });
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.

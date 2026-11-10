@@ -19,10 +19,16 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { ApprovedRequirementChecks } from './ApprovedRequirementChecks';
 import { approvedRequirementComparison } from './approvedRequirementCompare';
 
-export type VersionComparison = {
-  id: string; doc: StudioDoc; snapshot: string;
+type ComparedVersion = { id: string; doc: StudioDoc; snapshot: string };
+export type VersionComparison = ComparedVersion & {
   store: NonNullable<ProjectActions['view']['store']>; path: string;
+  target?: ComparedVersion;
 };
+/** A comparison source still belongs to this project, document and branch. */
+export function currentComparisonVersion(view: ProjectActions['view'], comparing: VersionComparison | null, list?: ReturnType<typeof versionsOf>) {
+  if (!comparing || !view.log || comparing.store !== view.store || comparing.path !== view.part) return undefined;
+  return (list ?? versionsOf(view.log)).find(item => item.id === comparing.id && item.snapshot === comparing.snapshot);
+}
 
 const KIND = { folder: 'folder', browser: 'in this browser', memory: 'in memory', cloud: 'cloud' } as const;
 const when = (at: string) => new Date(at).toLocaleString();
@@ -46,7 +52,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
-  /** Compare the working document with a version's (its id and document), or stop (null). */
+  /** Compare a saved version with the working document or another version, or stop (null). */
   onCompare(base: VersionComparison | null): void;
   comparing: VersionComparison | null;
   /** A document of the project placed in this one, linked by its path. */
@@ -62,10 +68,14 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   const [answers, setAnswers] = useState<Record<string, Side>>({});
   const list = useMemo(() => log ? versionsOf(log) : [], [log]);
   const head = log ? headOf(log).id : null;
-  const version = comparing ? list.find(item => item.id === comparing.id && item.snapshot === comparing.snapshot) : undefined;
-  const comparedFrom = version && comparing?.store === view.store && comparing.path === view.part ? comparing.doc : null;
-  const compared = useMemo(() => comparedFrom ? changesOf(comparedFrom, doc) : null, [comparedFrom, doc]);
-  const approval = useMemo(() => comparedFrom ? approvedRequirementComparison(comparedFrom, doc) : null, [comparedFrom, doc]);
+  const version = currentComparisonVersion(view, comparing, list);
+  const selected = version ? comparing : null;
+  const target = selected?.target;
+  const targetVersion = target ? list.find(item => item.id === target.id && item.snapshot === target.snapshot) : undefined;
+  const comparedFrom = selected?.doc;
+  const comparedTo = target ? (targetVersion ? target.doc : null) : doc;
+  const compared = useMemo(() => comparedFrom && comparedTo ? changesOf(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
+  const approval = useMemo(() => comparedFrom && comparedTo ? approvedRequirementComparison(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
   const others = log ? log.branches.filter(b => b.name !== log.current) : [];
   const linkedCount = useMemo(() => new Set((doc.instances ?? []).flatMap(i => linkedPath(i.part?.source) !== null ? [i.part!.id] : [])).size, [doc.instances]);
 
@@ -117,18 +127,34 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
       <span title={`${v.id} · ${when(v.at)}${v.note ? ` · ${v.note}` : ''}`}>{v.name ?? <span className="text-muted-foreground">{v.parents.length > 1 ? v.note ?? 'merge' : when(v.at)}</span>}{v.name && v.parents.length > 1 && <span className="text-muted-foreground"> · merge</span>}</span>
       {v.id === head && <span className="shrink-0 rounded-full border border-[var(--accent)] px-1.5 text-[10px] leading-4 text-[var(--accent)]">latest</span>}
       <Button variant="ghost" size="xs" aria-label={`Compare ${v.name ?? v.id}`} onClick={() => {
-        if (comparedFrom && version?.id === v.id) { onCompare(null); return; }
+        if (selected?.id === v.id) { onCompare(null); return; }
         if (!log || !view.store || !view.part) return;
         try { onCompare({ id: v.id, doc: readVersion(log, v.id), store: view.store, path: view.part, snapshot: v.snapshot }); }
         catch { onCompare(null); }
-      }}>{comparedFrom && version?.id === v.id ? 'Hide' : 'Compare'}</Button>
+      }}>{selected?.id === v.id ? 'Hide' : 'Compare'}</Button>
       <Button variant="ghost" size="xs" aria-label={`Restore ${v.name ?? v.id}`} onClick={() => { const d = project.restore(v.id); if (d) onOpen(d); }}>Restore</Button>
     </li>)}</ul>
+    {selected && (list.length > 1 || target) && <label className={ROW}>Compare to
+      <NativeSelect aria-label="Compare to" value={target?.id ?? ''} onChange={event => {
+        const id = event.currentTarget.value;
+        if (!id) { onCompare({ ...selected, target: undefined }); return; }
+        const next = list.find(item => item.id === id && item.id !== selected.id);
+        if (!log || !next) return;
+        try { onCompare({ ...selected, target: { id, snapshot: next.snapshot, doc: readVersion(log, id) } }); }
+        catch { onCompare(null); }
+      }}>
+        <option value="">Working document</option>
+        {list.filter(item => item.id !== selected.id).map(item => <option key={item.id} value={item.id}>{item.name ?? item.id}</option>)}
+        {target && !targetVersion && <option value={target.id} disabled>Saved version unavailable</option>}
+      </NativeSelect>
+    </label>}
     {compared && <div className="mt-1 text-[11px]" role="status" aria-label="Compared changes">
-      <div className="text-muted-foreground">From the version to the working document{compared.same ? ': the same' : ''}</div>
+      <div className="text-muted-foreground">{targetVersion ? `${version?.name ?? version?.id} → ${targetVersion.name ?? targetVersion.id} · saved versions`
+        : 'From the version to the working document'}{compared.same ? ': the same' : ''}</div>
       <ul className="m-0 list-disc pl-4">{changeLines(compared).map((l, k) => <li key={k}>{l}</li>)}</ul>
     </div>}
-    {approval && <ApprovedRequirementChecks key={`${version?.id}:${approval.proposal}:${approval.revisions.after}`} comparison={approval} evaluate={evaluate} />}
+    {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.after}`}
+      comparison={approval} evaluate={evaluate} historical={!!targetVersion} />}
 
     {log && <>
       <div className="card-title" style={{ marginTop: 8 }}>BRANCHES · {log.branches.length}</div>

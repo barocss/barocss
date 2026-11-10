@@ -1,5 +1,5 @@
 ---
-work_id: D594
+work_id: D595
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -125,7 +125,9 @@ D593 verifies the placed candidate and the −200 mm³ delta in desktop Studio. 
 
 D594 shows approved requirement transitions in the existing Versions panel. The project reload keeps the native file, version log and snapshots byte-identical. [D594](../../notes/approved-requirement-version-compare-2026-11-11/README.md).
 
-Next MAIN is D595 / P0, automation, rows 04, 12 and 16. Read the original failure and approved recovery after a later working edit without restoring either saved model.
+D595 compares the first failed snapshot and the approved saved snapshot while the later failing model stays open. [D595](../../notes/historical-approval-evidence-2026-11-11/README.md).
+
+Next MAIN is D596 / P0, project recovery, rows 12 and 16. Reproduce the unreadable automatic recovery copy seen during D595 reload. Then return to the controlled dimensioned-drawing to editable-native workflow.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

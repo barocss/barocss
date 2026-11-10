@@ -1,0 +1,49 @@
+{
+  "decision": "D595",
+  "parent": "1a88b3aa27ed725854a7c3de2f172b942cb7b3b0",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "ee566611486543959edade77db05d30cd4a93f216a1cee0acf2650e6f2923e68",
+    "pass": ["V01", "V02", "V03"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D595_SOURCE_FROZEN=1 node test/approved-requirement-compare-browser.mjs <output> <D592-final-desktop> historical", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare project-open-ownership project-version-ownership storage-version-snapshot tool-contract-mcp version-tools-mcp", "status": "PASS", "pass": 77},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence proposals.test team-freshness versions", "status": "PASS", "pass": 41},
+    {"command": "pnpm --dir apps/cad-studio type-check && pnpm --dir packages/barocss-cad-model type-check", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/approved-requirement-compare-browser.mjs && git diff --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "baseline/receipt.json",
+    "sha256": "10166c5274fca3b844a28c8b5ab6c8fdd782376b975dc38acbd056cb304cc4ac",
+    "observation": "The working revision failed after the edit and Versions had no saved comparison target."
+  },
+  "separateObservation": {
+    "status": "FAIL",
+    "scope": "Automatic recovery read after reload",
+    "receipt": "final-desktop/05-reopened-version-evidence.json",
+    "followUp": "D596"
+  },
+  "evidence": {
+    "directory": "d595-2026-11-11/final-desktop",
+    "receiptSHA256": "1e62f44789881970cf9162efbf338a3fd65fd089ca5ebd840eb35b7d1fe58a5b",
+    "sourceCapsuleSHA256": "67ad5ba9f74dd9f1345ce661e27d676a73289c92089c21b1c4e0b02a0ed96041",
+    "versionLogSHA256BeforeExternalWriter": "fb6b0409361cd5b71f0f8c70f7e63f3da1ad6cc38b9eacce1d62b6b22a24b403",
+    "snapshotSHA256": [
+      "e3ebc44a72e03f8e95944246ebdd55b1c7de23d01b73cfbaab21864041e1f5e1",
+      "5ff0614170080b7cf3cf54b3e83e4bd8893dcca51247e184e1bc3b39bc4455ff",
+      "81a8a4a9a82e256ffd8620262f66f04ae197c2d88e2d934b3a742e01fcaf4242"
+    ],
+    "desktopStates": 10,
+    "unchangedSourcePins": 300,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["08-historical-recovery", "09-working-view-restored"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["nested occurrence matching", "broad defect lifecycle", "whole browser", "whole kernel", "live providers", "mobile", "release"]
+}

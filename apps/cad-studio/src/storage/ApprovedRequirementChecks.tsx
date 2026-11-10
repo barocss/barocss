@@ -31,10 +31,11 @@ function Checks({ comparison, part, evaluate }: { comparison: Comparison; part: 
   </>;
 }
 
-export function ApprovedRequirementChecks({ comparison, evaluate }: { comparison: Comparison; evaluate: Evaluate }) {
+export function ApprovedRequirementChecks({ comparison, evaluate, historical }: { comparison: Comparison; evaluate: Evaluate; historical: boolean }) {
   const [part, setPart] = useState(comparison.scopes[0].id);
-  return <section className="mt-2" aria-label="Approved requirement checks">
-    <strong>{comparison.proposal} · Approved requirement checks</strong>
+  const label = historical ? 'Saved approval checks' : 'Approved requirement checks';
+  return <section className="mt-2" aria-label={label}>
+    <strong>{comparison.proposal} · {label}</strong>
     <NativeSelect aria-label="Requirement occurrence" value={part} onChange={event => setPart(event.currentTarget.value)}>
       {comparison.scopes.map(scope => <option key={scope.id} value={scope.id}>{scope.label}{scope.id !== 'base' ? ` (${scope.id})` : ''}</option>)}
     </NativeSelect>

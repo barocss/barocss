@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D595 — read saved approval evidence after a later edit](notes/historical-approval-evidence-2026-11-11/README.md).
 - [D594 — compare saved failures with approved requirement checks](notes/approved-requirement-version-compare-2026-11-11/README.md).
 - [D593 — preview geometry at the affected placement](notes/placed-proposal-preview-2026-11-11/README.md).
 - [D592 — link Studio approval to requirement evidence](notes/proposal-approval-evidence-2026-11-11/README.md).
