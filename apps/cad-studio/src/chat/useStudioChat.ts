@@ -18,6 +18,7 @@ import { revisionOf } from '@barocss/cad-model/util/revision';
 import { holdSweeps } from '@barocss/cad-model/engine/blobs';
 import { chatStatus, newChatBlobs, type ChatStatus } from './client';
 import { imageUrl, type ChatImage } from './images';
+import { MAX_CONVERSATION_IMAGE_TRACES } from './imageLimits';
 import { StudioTransport, type StudioMessage, type TurnDone, type TurnInputs } from './transport';
 import { scriptedChat, scriptedTransport, withTurnEnd } from './scripted';
 import { turnMoved, versionsToMerge } from '../app/editInPlace';
@@ -143,6 +144,10 @@ export function useStudioChat(props: ChatPanelProps) {
   const notice = (text: string) => chat.setMessages(list => [...list, noticeMessage(text)]);
   const setAutonomy = (n: number) => { setAutonomyState(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } };
 
+  const imageLimitNotice = (count: number) => traces.current.length + count > MAX_CONVERSATION_IMAGE_TRACES
+    ? `A conversation can use up to ${MAX_CONVERSATION_IMAGE_TRACES} images. Remove pending images or start a new conversation.`
+    : null;
+
   /** One turn: what was typed (or the studio's message), the attachments and the selection as context. */
   const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[]): Promise<boolean> => {
     if (running || turn.current || !statusRef.current?.enabled || latest.current.blocked) return false;
@@ -191,5 +196,5 @@ export function useStudioChat(props: ChatPanelProps) {
 
   /** A new conversation: a new CLI session, its quotes, rows, traces and blobs forgotten. */
   const reset = () => { session.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); traces.current = []; chatBlobs.current = newChatBlobs(); chat.setMessages([]); };
-  return { status, autonomy, setAutonomy, messages: chat.messages, running, send, stop: () => void chat.stop(), reset, notice };
+  return { status, autonomy, setAutonomy, messages: chat.messages, running, send, stop: () => void chat.stop(), reset, notice, imageLimitNotice };
 }

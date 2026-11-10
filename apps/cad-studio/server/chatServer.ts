@@ -22,6 +22,7 @@ import type { StateFile } from './cadMcp';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
+import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -215,7 +216,7 @@ export function createChatServer(options: ChatServerOptions) {
     const images = (body.images ?? []) as TurnImage[];
     // (What the user typed this conversation, A6.2: the tools check a quote said to be theirs against it.)
     if (body.turns !== undefined && (!Array.isArray(body.turns) || body.turns.length > 500 || body.turns.some(t => typeof t !== 'string' || t.length > 20000))) return sendJson(res, 400, { error: '"turns" is a list of the user\'s messages (at most 500, each at most 20 000 characters).' });
-    if (body.traces !== undefined && (!Array.isArray(body.traces) || body.traces.length > 16 || body.traces.some(t => typeof t !== 'object' || !t || !Array.isArray((t as { layers?: unknown }).layers)))) return sendJson(res, 400, { error: '"traces" is a list of image traces.' });
+    if (body.traces !== undefined && (!Array.isArray(body.traces) || body.traces.length > MAX_CONVERSATION_IMAGE_TRACES || body.traces.some(t => typeof t !== 'object' || !t || !Array.isArray((t as { layers?: unknown }).layers)))) return sendJson(res, 400, { error: '"traces" is a list of image traces.' });
 
     // The document's mesh blobs (D45): kept per conversation on disk, each received once; a turn names them, and
     // one naming blobs this server does not have is answered 409 with their hashes (the studio sends them then).

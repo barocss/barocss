@@ -7,8 +7,10 @@ import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, scenario] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(scenario === undefined || scenario === '--capacity');
+const capacity = scenario === '--capacity';
 const app = join(repo, 'apps/cad-studio');
 const drawingPath = 'apps/cad-studio/test/fixtures/dimensioned-angle-bracket.svg';
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
@@ -20,7 +22,7 @@ const bundled = await build({
 });
 const dependencies = Object.keys(bundled.metafile.inputs);
 const f = await createFlow({
-  output, name: 'drawing-image-intake', envFrozen: 'D598_SOURCE_FROZEN', initialFiles: [...pins, ...dependencies],
+  output, name: 'drawing-image-intake', envFrozen: capacity ? 'D599_SOURCE_FROZEN' : 'D598_SOURCE_FROZEN', initialFiles: [...pins, ...dependencies],
   requiredFrozen: pins, qualification: 'Desktop image attachment through the real local Chat server and read-only MCP calls',
   limits: ['The CLI fixture records provider input and calls the real MCP tools. Live model interpretation is outside this control.'],
 });
@@ -82,19 +84,32 @@ async function raster(svg) {
   return Buffer.from(encoded, 'base64');
 }
 
-async function attach(buffer, name = filename) {
+async function attachFiles(files) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Attach image').click()]);
-  await chooser.setFiles({ name, mimeType: 'image/png', buffer });
+  await chooser.setFiles(files.map(({ name, buffer }) => ({ name, mimeType: 'image/png', buffer })));
+}
+
+async function attach(buffer, name = filename) {
+  await attachFiles([{ name, buffer }]);
+}
+
+const promptFor = (description, calls) => description + ' script ' + JSON.stringify({ calls });
+const chatInput = () => f.page.getByRole('textbox', { name: 'Chat message', exact: true });
+const isTurn = response => new URL(response.url()).pathname === '/api/chat/turn' && response.request().method() === 'POST';
+
+async function requestTurn(prompt) {
+  await chatInput().fill(prompt);
+  const [response] = await Promise.all([f.page.waitForResponse(isTurn), button('Send').click()]);
+  return response;
 }
 
 async function turn(description, calls) {
-  const prompt = description + ' script ' + JSON.stringify({ calls });
-  const input = f.page.getByRole('textbox', { name: 'Chat message', exact: true });
-  await input.fill(prompt);
-  const [response] = await Promise.all([
-    f.page.waitForResponse(r => new URL(r.url()).pathname === '/api/chat/turn' && r.request().method() === 'POST'),
-    button('Send').click(),
-  ]);
+  const prompt = promptFor(description, calls);
+  return readTurn(await requestTurn(prompt), description, calls);
+}
+
+async function readTurn(response, description, calls) {
+  const prompt = promptFor(description, calls);
   assert.equal(response.status(), 200);
   const events = (await response.text()).split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
   assert.equal(events.at(-1)?.end, 'done');
@@ -119,6 +134,90 @@ function checkAttachment(turn, data, index) {
   assert.deepEqual(turn.request.images, [image]);
   assert.ok(turn.request.text.includes(`image ${index} (${filename}, traced into `));
   assert.equal(turn.record.images.length, index);
+}
+
+async function checkCapacity(a, b, original) {
+  f.phase = 'fill the real conversation to 16 image traces';
+  const revisions = [a, b], accepted = [];
+  let full, first;
+  for (let start = 0; start < 16; start += 4) {
+    const files = Array.from({ length: 4 }, (_, i) => {
+      const index = start + i;
+      return { buffer: revisions[index % 2], name: `drawing-${index + 1}.png` };
+    });
+    await attachFiles(files);
+    await pending().nth(3).waitFor();
+    const calls = start === 0 ? [imageLayers(1)] : start === 12 ? [imageLayers(1), imageLayers(16), imageLayers()] : [];
+    full = await turn(`Read drawing group ${start / 4 + 1}.`, calls);
+    assert.deepEqual(full.request.images, files.map(({ buffer }) => ({ media_type: 'image/png', data: buffer.toString('base64') })));
+    for (const { name } of files) {
+      assert.ok(full.request.text.includes(`image ${accepted.length + 1} (${name}, traced into `));
+      accepted.push(name);
+    }
+    assert.equal(full.record.images.length, accepted.length);
+    if (start === 0) first = full.tools[0];
+  }
+  assert.deepEqual(full.tools.map(tool => tool.error), [false, false, false]);
+  assert.deepEqual(full.tools[0], first);
+  assert.deepEqual(full.tools[1], full.tools[2]);
+  assert.notDeepEqual(full.tools[0], full.tools[1]);
+  await f.snapshot('01-sixteen-accepted');
+
+  f.phase = 'refuse a seventeenth image without dispatch and keep the typed draft';
+  const rejectedName = 'drawing-17.png', rejectedText = 'Keep this draft if the drawing is refused.';
+  await attach(a, rejectedName);
+  await pending().waitFor();
+  const attempted = [];
+  const observeAttempt = response => { if (isTurn(response)) attempted.push(response); };
+  f.page.on('response', observeAttempt);
+  let notice;
+  try {
+    await chatInput().fill(rejectedText);
+    await button('Send').click();
+    const message = f.page.locator('.chat-log').getByText(/image traces|16 images/i).last();
+    await message.waitFor();
+    notice = await message.textContent();
+  } finally { f.page.off('response', observeAttempt); }
+  const draft = await chatInput().inputValue();
+  const stillPending = await pending().count();
+  await f.snapshot('02-overflow-refusal');
+  if (stillPending) await button('Remove ' + rejectedName).click();
+
+  f.phase = 'text-only retry keeps image 1 and image 16 with the original session';
+  const calls = [imageLayers(1), imageLayers(16), imageLayers(), imageLayers(17)];
+  const retry = await requestTurn(promptFor(rejectedText, calls));
+  const observed = {
+    overflowStatus: attempted[0]?.status() ?? null,
+    overflowTraceCount: attempted[0]?.request().postDataJSON().traces?.length ?? null,
+    followUpStatus: retry.status(), followUpTraceCount: retry.request().postDataJSON().traces.length,
+    notice, draft, stillPending,
+  };
+  f.report.observations.push(observed);
+  await f.snapshot('03-text-after-overflow');
+  assert.deepEqual(
+    [observed.overflowStatus, observed.overflowTraceCount, observed.followUpStatus, observed.followUpTraceCount, draft, stillPending],
+    [null, null, 200, 16, rejectedText, 1],
+  );
+  assert.match(notice, /start a new conversation/i);
+  const follow = await readTurn(retry, rejectedText, calls);
+  assert.deepEqual(follow.record.images, full.record.images);
+  assert.deepEqual(follow.record.turns, [...full.record.turns, follow.prompt]);
+  assert.equal(follow.record.resume, 'scripted');
+  assert.equal(follow.request.images, undefined);
+  assert.deepEqual(follow.tools.slice(0, 3), full.tools);
+  assert.equal(follow.tools[3].error, true);
+
+  f.phase = 'new conversation can attach an image again at index 1';
+  await button('New conversation').click();
+  await attach(b);
+  await pending().waitFor();
+  const fresh = await turn('Read the first drawing of the new conversation.', [imageLayers(1)]);
+  checkAttachment(fresh, b.toString('base64'), 1);
+  assert.equal(fresh.record.resume, null);
+  assert.deepEqual(fresh.record.turns, [fresh.prompt]);
+  assert.deepEqual(fresh.tools[0], full.tools[1]);
+  await f.same(original);
+  await f.snapshot('04-new-conversation');
 }
 
 try {
@@ -161,6 +260,11 @@ try {
     assert.notEqual(sha256(a), sha256(b));
     await writeFile(join(output, 'rev-a.png'), a);
     await writeFile(join(output, 'rev-b.png'), b);
+    if (capacity) {
+      await checkCapacity(a, b, original);
+      assert.deepEqual(f.report.downloads, []);
+      return;
+    }
     f.phase = 'desktop sends revision A to the local provider and trace tool';
     await attach(a);
     await pending().waitFor();

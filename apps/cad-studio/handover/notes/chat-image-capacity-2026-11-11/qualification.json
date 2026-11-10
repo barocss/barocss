@@ -1,0 +1,40 @@
+{
+  "decision": "D599",
+  "parent": "d6bd8ff9543281a127eca3b05539cbcaf7b89976",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "152c2ba84397af7965c7addd9dba758bf4ca26343691159186bbadbf1e016646",
+    "pass": ["C01", "C02", "C03", "C04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D599_SOURCE_FROZEN=1 node test/drawing-image-intake-browser.mjs <output> --capacity", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D598_SOURCE_FROZEN=1 node test/drawing-image-intake-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test chat o17-scripted o17-transport toolset-mcp", "status": "PASS", "pass": 32},
+    {"command": "pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/drawing-image-intake-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "baseline/receipt.json",
+    "sha256": "3450e4aba03cef53bbac2aa2740356b8a6fd2d372c109305b9a8add204e6ed7c",
+    "overflow": {"http": 400, "traces": 17},
+    "textRetry": {"http": 400, "traces": 17},
+    "draftRetained": false
+  },
+  "evidence": {
+    "directory": "d599-2026-11-11",
+    "fixedReceiptSHA256": "b2ead68ee692890a59d14544a1e874dcf1f86c1c362ff45d97a1f03a00053859",
+    "d598RegressionReceiptSHA256": "f8a32cf816f4ea993514b51a33eac2c2e39585427ce01f362423b6d38febb3bf",
+    "sourceCapsuleSHA256": "e3e83e7ce9905edd152e224a95c8d3dcdcc5adf2901a92482c6b395953dd4c31",
+    "unchangedSourcePinsPerFixedRun": 952,
+    "desktopStates": {"capacity": 4, "d598Regression": 5},
+    "capacityMcpCalls": 9,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["fixed/02-overflow-refusal"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["live image interpretation", "live multi-worker delivery", "whole browser", "whole kernel", "mobile"]
+}

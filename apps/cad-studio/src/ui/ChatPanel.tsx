@@ -110,6 +110,8 @@ export function ChatPanel(props: ChatPanelProps) {
   };
   const send = () => {
     if (running || !status?.enabled || props.blocked || (!text.trim() && !images.length && !rowFiles.length)) return;
+    const limit = chat.imageLimitNotice(images.length);
+    if (limit) { chat.notice(limit); return; }
     const typed = text, attached = images, rows = rowFiles;
     setText(''); setImages([]); setRowFiles([]);
     void chat.send(typed, attached, rows, chips);

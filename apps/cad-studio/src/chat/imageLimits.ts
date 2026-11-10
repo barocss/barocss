@@ -1,0 +1,1 @@
+export const MAX_CONVERSATION_IMAGE_TRACES = 16;
