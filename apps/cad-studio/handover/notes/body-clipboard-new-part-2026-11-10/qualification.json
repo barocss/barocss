@@ -1,0 +1,63 @@
+{
+  "workId": "D560",
+  "parent": "0acec0dcbcdaaa43cc1f033bcdc049263a38115b",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d560-2026-11-10"
+  },
+  "driverSha256": "5460737c8d8cb20d214536a4929257dd50188a55cdfbc8f21ebae74a4b10ca32",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d",
+    "packages/barocss-cad-model/src/engine/ids.ts": "2c6bbf0c7a628392685676c3259ff7b22bfa8a79e1e68b886b9ee1753ebd1e75"
+  },
+  "physicalOracle": {
+    "originalSize": [
+      12,
+      13,
+      14
+    ],
+    "originalVolume": 2184,
+    "newSize": [
+      8,
+      9,
+      11
+    ],
+    "newVolume": 792,
+    "sharedKey": "b1",
+    "absoluteTolerance": 1e-09,
+    "freshPasteOffsetX": 18,
+    "finalCentroidX": [
+      4,
+      22
+    ]
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-new-part-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D560_SOURCE_FROZEN=1 node test/body-clipboard-new-part-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 13.16,
+    "snapshots": 12,
+    "physicalJoins": 3,
+    "frozenPins": 298,
+    "receiptSha256": "b5fb0e968b417dacc012fca89a1a296fe372379f9ca3741d5c79a3735baba252",
+    "ownedPID": 14307,
+    "chromePID": 14309
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}
