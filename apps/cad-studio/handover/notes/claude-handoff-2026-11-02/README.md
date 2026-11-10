@@ -1,5 +1,5 @@
 ---
-work_id: D566
+work_id: D567
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -69,7 +69,9 @@ D565 verifies that deleting the copied body leaves Paste inert while other bodie
 
 D566 fixes same-document clipboard rebinding when a new edit reuses an ID from an undone branch. Actual Studio retains normal Redo and prevents the old clipboard from duplicating the new b1. [D566](../body-clipboard-history-branch-2026-11-10/README.md).
 
-Next MAIN is D567, P0 rows 12 and 16. Check same-key clipboard isolation across browser project autosave Restore. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
+D567 verifies same-key clipboard isolation on Restore of a real browser-project autosave. Exact Undo and Redo pass, and the saved native document is retained. [D567](../body-clipboard-project-autosave-2026-11-10/README.md).
+
+Next MAIN is D568, P0 rows 12 and 16. Check that the two admitted copies survive native Save into a browser project and a fresh public Open of those bytes. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

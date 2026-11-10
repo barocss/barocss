@@ -1,0 +1,67 @@
+{
+  "workId": "D567",
+  "parent": "3c2401ae7961ce01c412babc3b50ef04231c33a4",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d567-2026-11-10"
+  },
+  "driverSha256": "8cbd07e60426b4c8d51d9bef1be199b313cec6d2e5b632c4d02c9ac85c0110db",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "139ea8147f6a1e4a2a98ed10615f1a41c0c7bd754d7c4a29033fd7931327bf2f",
+    "apps/cad-studio/src/storage/useProject.ts": "db1a02625b8e6b93b0b8888a82bd1f3bb533c9d15e6ae01d93a2fa05a133eb00",
+    "apps/cad-studio/src/storage/project.ts": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad",
+    "apps/cad-studio/src/storage/VersionsPanel.tsx": "f28c03d0aa3032f8180be6470d67942fe37ad69567e10569ac715ca44ccb8a14",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "4dec8c9eb5678d6cd99e3d994ec520d2b9bd994d0f81f10d174226b48397b1f6",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d"
+  },
+  "physicalOracle": {
+    "savedSize": [
+      10,
+      10,
+      10
+    ],
+    "savedVolume": 1000,
+    "recoveredSize": [
+      10,
+      10,
+      11
+    ],
+    "recoveredVolume": 1100,
+    "sharedKey": "b1",
+    "freshPasteOffsetX": 20,
+    "absoluteTolerance": 1e-09
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-project-autosave-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-replacement-helper.mjs",
+      "status": "PASS"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D567_SOURCE_FROZEN=1 node test/body-clipboard-project-autosave-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 12.73,
+    "snapshots": 9,
+    "physicalJoins": 4,
+    "frozenPins": 299,
+    "receiptSha256": "5cc57c97895c7786a799340b194aa2e0335ab3b0380c8ed6a8d01a69673c1077",
+    "ownedPID": 90543,
+    "chromePID": 90564
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED",
+  "helperSha256": "cc2733421d2ffc9388a4dddec4bf9a5739928debc22db8625ed20b03670804c6"
+}
