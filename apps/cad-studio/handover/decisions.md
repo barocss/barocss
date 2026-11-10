@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D551: adopt one shared Python invocation contract after two actual Studio consumer comparisons](notes/studio-oracle-pilot-2026-11-10/README.md).
+
 - [D550: qualify Auto-dimension, first Undo/Redo, native Save/Open and annotated SVG in six actual Studio groups](notes/section-detail-auto-dimensions-2026-11-05/README.md).
 
 - [D549: qualify existing Section A/Detail B actual SVG output3/3; one real current Worker pair, exact reuse and new whole-body physical proof](notes/section-detail-svg-output-2026-11-05/README.md).

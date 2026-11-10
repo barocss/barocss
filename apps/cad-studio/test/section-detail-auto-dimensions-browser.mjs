@@ -1,7 +1,6 @@
 // Root only. Use Node 22 from apps/cad-studio under the heavy gate.
 // D550_SOURCE_FROZEN=1 node test/section-detail-auto-dimensions-browser.mjs NEW_OUTPUT FROZEN_RUNTIME
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, join, relative, resolve } from 'node:path';
 import { serialize } from 'node:v8';
@@ -352,32 +351,14 @@ async function qualify(label, key, consumer, extra = {}) {
     label, doc: consumer.doc, documentJSON: consumer.documentJSON, expectedDoc: states[key].doc,
     seedDoc, physicalReuse, drawingRead: drawingReads[key], consumer, ...extra,
   };
-  const inputPath = join(output, `${label}-oracle-input.json`);
-  const inputBytes = JSON.stringify(input, null, 2);
-  await writeFile(inputPath, inputBytes);
-  const run = spawnSync('python3', ['-I', join(output, `${name}-oracle.py`)], {
-    input: inputBytes, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 120000,
+  const result = await f.runOracle(input, label, {
+    expectedStatus: oracleStatus, maxBuffer: 64 * 1024 * 1024, timeout: 120000,
   });
-  const stdoutPath = join(output, `${label}-oracle.stdout.json`);
-  const stderrPath = join(output, `${label}-oracle.stderr.txt`);
-  await writeFile(stdoutPath, run.stdout ?? '');
-  await writeFile(stderrPath, run.stderr ?? '');
-  const result = {
-    label, inputPath, inputSHA256: sha256(inputBytes), stdoutPath, stderrPath,
-    exit: run.status, signal: run.signal, error: run.error ? String(run.error) : null,
-  };
-  await writeJSON(`${label}-oracle-exit.json`, result);
-  f.report.oracles.push(result);
-  await f.persist();
-  assert.equal(run.error, undefined);
-  assert.equal(run.status, 0, run.stderr);
-  result.stdout = JSON.parse(run.stdout);
-  assert.equal(result.stdout.status, oracleStatus);
-  assert.equal(result.stdout.label, label);
-  assert.equal(result.stdout.documentSHA256, sha256(consumer.documentJSON));
-  f.report.groups.push({ label, state: key, documentSHA256: result.stdout.documentSHA256, status: 'PASS' });
+  assert.equal(result.label, label);
+  assert.equal(result.documentSHA256, sha256(consumer.documentJSON));
+  f.report.groups.push({ label, state: key, documentSHA256: result.documentSHA256, status: 'PASS' });
   f.report.reads.push({
-    label, documentSHA256: result.stdout.documentSHA256,
+    label, documentSHA256: result.documentSHA256,
     physicalDocumentSHA256: physicalReuse.physicalDocumentSHA256, nativeBRepSHA256: physicalReuse.nativeBRepSHA256,
     workerPairSHA256: consumer.workerPair.rawV8SHA256, observationMode: consumer.workerPair.observationMode,
   });

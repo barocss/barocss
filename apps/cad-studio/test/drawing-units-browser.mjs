@@ -43,6 +43,35 @@ const f = await createFlow({ name: 'drawing-units', envFrozen: 'DRAWING_UNITS_SO
   requiredFrozen: ['packages/barocss-cad-model/src/drawing/standard.ts'] });
 
 await f.run(async () => {
+  // Install the same route on the initial and fresh Open contexts before navigation.
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const newContext = f.browser.newContext.bind(f.browser);
+  f.report.networkEvents = [];
+  f.report.runtimeOwnership = { nodePID: process.pid, nodePPID: process.ppid, serverURL: origin };
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, serviceWorkers: 'block' });
+    try {
+      await context.route('**/*', async route => {
+        const request = route.request();
+        const url = new URL(request.url());
+        const type = request.resourceType();
+        if (type === 'font' || /(^|\.)fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
+          f.report.networkEvents.push({ url: url.href, type, action: 'FONT_FULFILLED_EMPTY' });
+          await route.fulfill({ status: 200, contentType: type === 'font' ? 'font/woff2' : 'text/css', body: '' });
+        } else if (['http:', 'https:'].includes(url.protocol) && url.origin !== origin) {
+          f.report.networkEvents.push({ url: url.href, type, action: 'NONLOCAL_HTTP_ABORTED' });
+          await route.abort();
+        } else {
+          await route.continue();
+        }
+      });
+      return context;
+    } catch (error) {
+      await context.close();
+      throw error;
+    }
+  };
+
   const fixture = resolve(f.app, 'test/fixtures/bracket.bcad');
   const sheetReady = () => f.page.waitForFunction(() => !!window.__studioDrawing?.() && !!document.querySelector('svg[aria-label="Drawing sheet"]'), null, { timeout: 60000 });
   const enterDrawing = async () => { if (!(await f.page.locator(SHEET).count())) await f.page.click('.mode button:text-is("Drawing")'); await sheetReady(); };

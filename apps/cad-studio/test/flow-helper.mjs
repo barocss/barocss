@@ -39,13 +39,48 @@ export async function capsule(repo, output, label, files) {
   return hashes;
 }
 
-/** Write the oracle input, run `python3 -I <script>` with it on stdin, write the oracle output / stderr beside it, record into report.oracles and assert exit 0 and status PASS; returns the parsed output. */
-export async function runOracleFile({ output, report, persist, script, input, label }) {
-  await writeFile(join(output, `${label}-oracle-input.json`), JSON.stringify(input, null, 2));
-  const check = spawnSync('python3', ['-I', script], { input: JSON.stringify(input), encoding: 'utf8', maxBuffer: 24 * 1024 * 1024 });
-  await writeFile(join(output, `${label}-oracle.json`), check.stdout ?? ''); await writeFile(join(output, `${label}-oracle.stderr.txt`), check.stderr ?? '');
-  report.oracles.push({ label, exit: check.status, stdout: check.stdout ? JSON.parse(check.stdout) : null, stderr: check.stderr }); await persist();
-  assert.equal(check.status, 0, `ORACLE ${label}: ${check.stderr}`); const parsed = JSON.parse(check.stdout); assert.equal(parsed.status, 'PASS'); return parsed;
+/** Run the independent Python oracle and retain the raw invocation before interpreting its status. */
+export async function runOracleFile({
+  output, report, persist, script, input, label,
+  expectedStatus = 'PASS', maxBuffer = 24 * 1024 * 1024, timeout,
+}) {
+  assert.ok(typeof expectedStatus === 'string' && expectedStatus.trim(), 'Oracle expected status must be nonempty');
+  assert.ok(Number.isInteger(maxBuffer) && maxBuffer > 0 && maxBuffer <= 64 * 1024 * 1024, 'Oracle buffer limit');
+
+  const inputPath = join(output, `${label}-oracle-input.json`);
+  const stdoutPath = join(output, `${label}-oracle.json`);
+  const stderrPath = join(output, `${label}-oracle.stderr.txt`);
+  const exitPath = join(output, `${label}-oracle-exit.json`);
+  const inputBytes = Buffer.from(JSON.stringify(input, null, 2));
+  await writeFile(inputPath, inputBytes);
+  const check = spawnSync('python3', ['-I', script], { input: inputBytes, maxBuffer, timeout });
+  const stdoutBytes = check.stdout ?? Buffer.alloc(0);
+  const stderrBytes = check.stderr ?? Buffer.alloc(0);
+  await Promise.all([writeFile(stdoutPath, stdoutBytes), writeFile(stderrPath, stderrBytes)]);
+
+  const custody = {
+    label, expectedStatus, inputPath, inputSHA256: sha256(inputBytes), stdoutPath, stderrPath, exitPath,
+    stdoutSHA256: sha256(stdoutBytes), stderrSHA256: sha256(stderrBytes),
+    exit: check.status, signal: check.signal, error: check.error ? String(check.error) : null,
+  };
+  await writeFile(exitPath, JSON.stringify(custody, null, 2));
+
+  let stdout = null;
+  let parseError = null;
+  try {
+    stdout = JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(stdoutBytes));
+  } catch (error) {
+    parseError = error.message;
+  }
+  const stderr = check.stderr?.toString('utf8') ?? null;
+  report.oracles.push({ ...custody, stdout, stderr, parseError });
+  await persist();
+
+  assert.equal(custody.error, null, `ORACLE ${label}: ${custody.error}`);
+  assert.equal(custody.exit, 0, `ORACLE ${label}: exit ${custody.exit}, signal ${custody.signal}\n${stderr ?? ''}`);
+  assert.equal(parseError, null, `ORACLE ${label}: malformed stdout JSON: ${parseError}`);
+  assert.equal(stdout?.status, expectedStatus, `ORACLE ${label}: expected status ${JSON.stringify(expectedStatus)}, got ${JSON.stringify(stdout?.status)}`);
+  return stdout;
 }
 
 /**
@@ -223,7 +258,9 @@ export async function createFlow(options) {
 
   // Oracle and product inspector.
   /** Run the embedded Python oracle (python3 -I, JSON on stdin) on `input`; see runOracleFile. */
-  f.runOracle = (input, label) => runOracleFile({ output, report, persist: f.persist, script: oracleScript, input, label });
+  f.runOracle = (input, label, { expectedStatus, maxBuffer, timeout } = {}) => runOracleFile({
+    output, report, persist: f.persist, script: oracleScript, input, label, expectedStatus, maxBuffer, timeout,
+  });
   /** Write `accepted` as <label>-doc.bcad, run the bundled product inspector on it (extra args JSON-encoded), keep stdout / stderr files, assert exit 0 and return the parsed read. */
   f.inspect = async (label, accepted, ...extra) => {
     const file = join(output, `${label}-doc.bcad`); await writeFile(file, JSON.stringify(accepted));

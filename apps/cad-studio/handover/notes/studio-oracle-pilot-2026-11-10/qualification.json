@@ -1,0 +1,187 @@
+{
+  "workId": "D551",
+  "status": "ADOPT_ONE_PRIVATE_ORACLE_CONTRACT",
+  "tier": "SMALL",
+  "priority": "P4",
+  "rows": [
+    22,
+    33,
+    11
+  ],
+  "baseHead": "bcb9a7b45d02cbe5b159fcb0dee8aece7942df74",
+  "node": "22.19.0",
+  "productChange": false,
+  "wholeCad": "NOT_MEASURED",
+  "evidenceRoot": "/Users/user/.cache/barocss-cad-evidence/d551-2026-11-10",
+  "comparison": {
+    "status": "PASS_D551_TWO_ACTUAL_ORACLE_CONSUMERS",
+    "custom": {
+      "before": {
+        "receiptSHA256": "1ce9f94c82a8a78dbf2fa553e31fe9a20ddffde9bd0cca5cabcbad3d0e85839d",
+        "wallSeconds": 22.77,
+        "resourceCloseSeconds": 1.7069999999999999,
+        "pins": 797,
+        "states": 7,
+        "oracles": 6,
+        "downloads": 2,
+        "ownedPIDs": [
+          99202,
+          99226
+        ],
+        "network": {
+          "FONT_FULFILLED_EMPTY": 2
+        }
+      },
+      "after": {
+        "receiptSHA256": "6a77837d0d0d356a3a9450511a39e13f49994b919d6de55db7fb649825021ed3",
+        "wallSeconds": 15.25,
+        "resourceCloseSeconds": 1.611,
+        "pins": 797,
+        "states": 7,
+        "oracles": 6,
+        "downloads": 2,
+        "ownedPIDs": [
+          26159,
+          26189
+        ],
+        "network": {
+          "FONT_FULFILLED_EMPTY": 2
+        }
+      },
+      "changedPins": [
+        "apps/cad-studio/test/flow-helper.mjs",
+        "apps/cad-studio/test/section-detail-auto-dimensions-browser.mjs"
+      ],
+      "actualFileComparisons": {
+        "04-owned-native-Save-original.bcad": {
+          "sameBytes": true,
+          "sha256": "f68c4c9748390f461962068c719a879d26d9b334e0a82a4d68221d8a5b431349"
+        },
+        "06-annotated-SVG-original.svg": {
+          "sameBytes": true,
+          "sha256": "2badc02ec01e159a0ffc64c78434d7949894bbd094d2a1412aadadd861a9926a"
+        }
+      }
+    },
+    "default": {
+      "before": {
+        "receiptSHA256": "9e26c6152da04af6bc41c98a2842cb30a27cbac39d29e213362d7708137c3224",
+        "wallSeconds": 14.2,
+        "resourceCloseSeconds": null,
+        "pins": 294,
+        "states": 3,
+        "oracles": 1,
+        "downloads": 5,
+        "ownedPIDs": [
+          10103,
+          10106
+        ],
+        "network": {
+          "FONT_FULFILLED_EMPTY": 2
+        }
+      },
+      "after": {
+        "receiptSHA256": "21d2c8446710fc41984e50755faa16aa2a3fca046c49a33795a8d7c8cf920640",
+        "wallSeconds": 12.78,
+        "resourceCloseSeconds": null,
+        "pins": 294,
+        "states": 3,
+        "oracles": 1,
+        "downloads": 5,
+        "ownedPIDs": [
+          26589,
+          26613
+        ],
+        "network": {
+          "FONT_FULFILLED_EMPTY": 2
+        }
+      },
+      "changedPins": [
+        "apps/cad-studio/test/flow-helper.mjs"
+      ],
+      "actualFileComparisons": {
+        "01-mm.svg": {
+          "sameBytes": true,
+          "sha256": "a3b5330089e3550b965bbcf3ff0ab8b888abedd0b7c63b40712eeaa66ed84abf"
+        },
+        "02-inch.svg": {
+          "sameBytes": true,
+          "sha256": "60c97a7750d1ea36505b479316242006a917dc2eb288ffa0c4d571ba98ac2318"
+        },
+        "03-dual.svg": {
+          "sameBytes": true,
+          "sha256": "a1be1ff9e3d64c4bf73c44dcc771cf70437f1d70644e11cc075b361eea8b4070"
+        },
+        "04-two-decimals.svg": {
+          "sameBytes": true,
+          "sha256": "356be870c19dd57361a07b22748e67cbe84e5877db4a8c88b26e196ea930b4e0"
+        },
+        "drawing-units.bcad": {
+          "sameBytes": true,
+          "sha256": "d5194e1d18e05e5589d741d3877f202a6ab403bdfbdc7cf7ce5103b5756dd483"
+        }
+      }
+    }
+  },
+  "gate": {
+    "first": {
+      "exit": 75,
+      "waitSeconds": 61,
+      "lastLoad": 75.93,
+      "studio": "NOT_RUN"
+    },
+    "second": {
+      "exit": 0,
+      "waitSeconds": 121,
+      "admittedLoad": 38.03,
+      "launches": 2
+    }
+  },
+  "commands": {
+    "focused": "node --test apps/cad-studio/test/flow-oracle.test.mjs",
+    "types": "pnpm --filter @barocss/cad-model type-check",
+    "custom": "D550_SOURCE_FROZEN=1 node test/section-detail-auto-dimensions-browser.mjs <new-output> <D550-frozen-runtime>",
+    "default": "DRAWING_UNITS_SOURCE_FROZEN=1 node test/drawing-units-browser.mjs <new-output>",
+    "comparison": "python3 <evidenceRoot>/compare-pilot.py"
+  },
+  "timingScope": {
+    "runtimeSamplePairs": 2,
+    "gateWaitMeasured": true,
+    "comparablePreparationAndVerificationTime": "NOT_MEASURED",
+    "activeAuthoringAndReworkTime": "NOT_MEASURED",
+    "speedupEstablished": false
+  },
+  "sourceSHA256": {
+    "flow-helper.mjs": "8161800f2a773cdba8760f65c22f284f585d6e93cf312021d2f8041b9520d147",
+    "flow-oracle.test.mjs": "380f166ae5716d7b3b6c4cc617fc9a533a06d4b466ddbd761ae0645cbbfa9b40",
+    "section-detail-auto-dimensions-browser.mjs": "f5b00ffc7f4918b38748f37990e7d127c9cb0bae8ead1f1efd85c700c4e1f694",
+    "drawing-units-browser.mjs": "2379ed44153b15a28ddda1e2297b512b4ebf8c6a7da33d5f0f5a5f4da746bf2a"
+  },
+  "receiptSHA256": {
+    "comparison01.json": "170a3deaf60316225810106f80d6ffd812d45f7a9238956fc99c5d9462efd511",
+    "focused01.log": "64b54aeba4c75704beddc2e4c8f44a8a348dc924615b01f46a62023bb737bc40",
+    "final-model-types01.log": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+    "gate-after-first.txt": "263faf61a593f8d5b0e9acc4a241659671a858bd4c50e426f799e69b348362fe",
+    "gate-after-second.log": "0b7bb63e6f19ec57cea447cd9fbc3be05a8d28467b0d2a17ce30081a3b7ccaff"
+  },
+  "PASS": [
+    "four syntax checks",
+    "six focused cases",
+    "final Model types",
+    "two actual after flows",
+    "seven unchanged independent joins",
+    "seven same-byte original files",
+    "owned cleanup and source custody"
+  ],
+  "FAIL": [
+    "first queue admission only"
+  ],
+  "NOT_RUN": [
+    "broader #2396 capsule/lifecycle/continuation contract",
+    "full kernel",
+    "mobile",
+    "paid AI"
+  ],
+  "issue2396": "OPEN_PARTIAL_ACCEPTANCE",
+  "next": "D552_P0_STALE_BODY_CLIPBOARD_REPRODUCTION"
+}

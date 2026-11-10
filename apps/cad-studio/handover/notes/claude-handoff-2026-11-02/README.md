@@ -1,5 +1,5 @@
 ---
-work_id: D550
+work_id: D551
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -37,7 +37,9 @@ D550 qualifies the recovered original H12 Section A and Detail B through Auto-di
 
 The original 1,767-byte input and the D455 helpers match their historical hashes after recovery. The original D549 native artifacts were unavailable. D550 captures one new current physical class with source and split evaluations, independent native proof, and 495 control pins. Two fresh Worker pairs and five exact pair reuses cover seven observations. The final 797 Studio pins and all owned cleanup checks pass. Actual Worker internal computation is NOT_MEASURED. D549 remains separately accepted at its historical 3/3 scope. [D549](../section-detail-svg-output-2026-11-05/README.md).
 
-Next MAIN is D551, the bounded #2396 shared validation pilot. Measure one selected improvement on two affected desktop consumers. Record comparable timings and unavailable fields. Decide adopt, revise or stop, then return to the next uncovered D520 workflow. [Pilot](../../roadmap-tracks/13-issue-followup-2026-11-10.md#one-studio-validation-pilot-after-d550).
+D551 adopts one shared Python invocation with default and explicit result status. Two actual after flows pass. The seven independent joins and seven original file outputs agree with the before flows. The first queue attempt timed out before either launch. The next queue admitted both runs. Whole development speed and the broader #2396 acceptance remain unmeasured. [D551](../studio-oracle-pilot-2026-11-10/README.md).
+
+Next MAIN is D552, the P0 same-tab stale body clipboard reproduction. Use the retained D326 A/B documents and confirm current body identity, history and same-document control before changing behavior. [#2310](https://github.com/barocss/barocss/issues/2310).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D550 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D551 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D550 / P2 qualifies Auto-dimension through first Undo/Redo, native Save/Open and annotated SVG in Studio 6/6. The exact recovered H12 input has fresh current native proof. Auto adds six source-linked dimensions and clears the three warnings on the selected sheet. Whole B06 remains NOT_ADJUDICATED. [D550](notes/section-detail-auto-dimensions-2026-11-05/README.md).
-- **Next MAIN:** D551 / #2396 bounded Studio validation pilot. Measure one shared improvement on two affected desktop consumers, then resume the next uncovered workflow in D520 order. Concrete safety blockers retain priority. [Pilot](roadmap-tracks/13-issue-followup-2026-11-10.md#one-studio-validation-pilot-after-d550).
+- **Current position:** D551 adopts a shared private Python invocation after two actual before/after Studio comparisons. Both after consumers pass and all seven file outputs match. D550 retains 6/6 selected P2 actions. [D551](notes/studio-oracle-pilot-2026-11-10/README.md).
+- **Next MAIN:** D552 / P0 diagnosis of [#2310](https://github.com/barocss/barocss/issues/2310). Reproduce same-tab Copy A, Open B and Paste with the same local body key and distinct geometry. Keep the original outcome and the valid same-document control.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
