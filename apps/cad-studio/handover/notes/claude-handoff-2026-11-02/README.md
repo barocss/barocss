@@ -1,5 +1,5 @@
 ---
-work_id: D589
+work_id: D590
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -115,11 +115,13 @@ D588 repairs the known standalone BOM material field. Actual Studio changes mate
 
 D589 maps the existing provenance and diagnostic contracts for #2279. Actual Studio distinguishes stale, failed and passing results after a held Worker reply and first Undo and Redo. [D589](../../notes/requirement-report-freshness-2026-11-11/README.md).
 
-Next MAIN is D590 / P0, B09 A01, rows 04, 07 and 16. Scope and qualify direct CLI creation of the existing two-length constrained rectangle. Reuse the solver and Studio consumer from D587.
+D590 accepts B09 v1 at 9/9. The CLI starts from empty, writes the same constrained plate and hands it to the local MCP and actual Studio workflow. The D587 refusal remains in its original record. [D590](../../notes/cli-constrained-rectangle-2026-11-11/README.md).
+
+Next MAIN is D591 / P0, automation, rows 04, 12 and 16. Scope one structured current-revision requirement evidence report for #2279 using the existing result contracts.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
-D537 remains the public driven-sketch v1 single named LINE contract; it does not add general/multiple/radius bindings or bound topology editing. B01 uses a separate fully-defined ordinary rectangle, not that mixed2DOF profile. All34 stable rows remain unchanged. Whole CAD/core NOT_MEASURED; B01 v1 accepted12/12 scoped groups, B02 v1 accepted11/11, B04 v1 accepted26/26, B09 v1 incomplete at 8/9 passing groups, B03, B05–B08 and B10 NOT_ADJUDICATED, no aggregate baseline percentage. Legacy43% is historical.
+D537 remains the public driven-sketch v1 single named LINE contract; it does not add general/multiple/radius bindings or bound topology editing. B01 uses a separate fully-defined ordinary rectangle, not that mixed2DOF profile. All34 stable rows remain unchanged. Whole CAD/core NOT_MEASURED; B01 v1 accepted12/12 scoped groups, B02 v1 accepted11/11, B04 v1 accepted26/26, B09 v1 accepted9/9, B03, B05–B08 and B10 NOT_ADJUDICATED, no aggregate baseline percentage. Legacy43% is historical.
 
 Use the required SMALL/FEATURE/FULL tier and root's own actual desktop Studio flow. One bounded category milestone gets one decision and normal push to origin/local/cad-dev. Ordinary implementation/tests use Sol Medium; difficult geometry uses Sol High. Heavy work is serial under gate.sh. All writers freeze through actual execution and cleanup. Reuse exact eligible evidence; preserve every first failure. Downloads/paid live need owner permission each time. No new develop merge, release or UI redesign follows.
 

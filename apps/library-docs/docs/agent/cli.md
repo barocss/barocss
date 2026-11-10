@@ -77,6 +77,32 @@ From `samples/cli.test.mjs`:
 
 <<< @/../samples/cli.test.mjs#run
 
+### Create a rectangle with two driving lengths
+
+The existing `feature()` call accepts a straight rectangle with two driving lengths on the default XY plane.
+The same node works with `features.add` over MCP. The native file keeps both lengths when you open the sketch
+in Studio.
+
+```js
+const plate = feature({
+  kind: "sketch",
+  profile: "rectangle",
+  min: [0, 0],
+  max: [20, 10],
+  outline: {
+    points: [[0, 0], [20, 0], [20, 10], [0, 10]],
+    lengths: { "0": 20, "1": 10 },
+    hv: { h: [0, 2], v: [1, 3] }
+  }
+});
+feature({ kind: "extrude", sketch: plate, height: 6 });
+```
+
+Give the four corners counter-clockwise from `min`. Edges 0 and 1 carry the width and depth in millimetres.
+The lengths must agree with the numeric bounds at the existing solver tolerance. Optional `sideTags.outer`
+contains four distinct side IDs of 1 to 32 letters, digits, underscores or hyphens. Names reserved for locked
+references, such as `ref0`, are refused. This input form covers one rectangle. Add a separate Hole feature for a cut.
+
 ### The other commands
 
 | Command | What it does | Exits 1 when |

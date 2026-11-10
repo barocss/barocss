@@ -5,6 +5,7 @@ import { encodeStudioFile, decodeStudioFile } from '../src/engine/container';
 import { readStudioDoc } from '../src/engine/migrate';
 import { toPartDocument } from '../src/engine/part';
 import { evaluateDoc } from '../src/engine/evaluate';
+import { checkNode } from '../src/chat/features';
 import { editFields } from '../src/app/editFields';
 import { profileOf } from '../src/sketch/loops';
 import { rectangleOutline, startPicking } from '../src/sketch/select';
@@ -135,4 +136,54 @@ for (const route of ['Width', 'parameter']) test(`fractional ${route} edit maps 
     const current = editFields(read.nodes, 1, read.parameters).find(field => field.label === label); assert.ok(current?.kind === 'number');
     assert.equal(current.get(read.nodes), 60.1);
   }
+});
+
+test('raw feature authoring admits a canonical two-length rectangle and preserves decimal intent', async () => {
+  const node = {
+    kind: 'sketch', profile: 'rectangle', min: [100, -3.3], max: [110.1, 1.5],
+    outline: { points: [[100, -3.3], [110.1, -3.3], [110.1, 1.5], [100, 1.5]], lengths: { 0: 10.1, 1: 4.8 }, hv: { h: [0, 2], v: [1, 3] } },
+    sideTags: { outer: ['a'.repeat(32), 'side-b', 'side-c', 'side-d'] },
+  } satisfies SketchNode;
+  assert.notEqual(node.max[0] - node.min[0], node.outline.lengths[0], 'binary64 span differs from the authored decimal');
+  assert.equal(checkNode(node, [], {}), null);
+  const authoredNode = { ...node, id: 'n0' };
+  const stored = await codec(documentOf(authoredNode));
+  assert.deepEqual(stored.nodes[0], authoredNode);
+  const shape = reopened(stored.nodes[0] as SketchNode);
+  checkLocks(shape, 2);
+  assert.deepEqual(shape.lengths, { 0: 10.1, 1: 4.8 });
+  assert.deepEqual(shape.ids, node.sideTags.outer);
+
+  const compact = { kind: 'sketch', profile: 'rectangle', min: node.min, max: [{ parameter: 'X' }, 1.5] };
+  assert.equal(checkNode(compact, [], { X: 110.1 }), null);
+  assert.equal(checkNode({ ...node, sideTags: undefined }, [], {}), null);
+});
+
+test('raw feature authoring refuses malformed or unsupported authored rectangle data', () => {
+  const node = finish(authored(2));
+  const outline = node.outline!;
+  const sparse = [...outline.points];
+  delete sparse[2];
+  const cases: [string, unknown, RegExp][] = [
+    ['nonstring kind', { ...node, kind: ['sketch'] }, /kind must be the string sketch/],
+    ['wrong length', { ...node, outline: { ...outline, lengths: { 0: 81, 1: 40 } } }, /driving lengths must match/],
+    ['missing length', { ...node, outline: { ...outline, lengths: { 0: 80 } } }, /edges 0 and 1/],
+    ['extra length', { ...node, outline: { ...outline, lengths: { 0: 80, 1: 40, 2: 80 } } }, /edges 0 and 1/],
+    ['duplicate axis edge', { ...node, outline: { ...outline, hv: { h: [0, 0], v: [1, 3] } } }, /horizontal edges/],
+    ['skewed corner', { ...node, outline: { ...outline, points: [outline.points[0], [60, -19], ...outline.points.slice(2)] } }, /four rectangle corners/],
+    ['sparse corner', { ...node, outline: { ...outline, points: sparse } }, /four rectangle corners/],
+    ['noncanonical anchor', { ...node, outline: { ...outline, points: [...outline.points.slice(1), outline.points[0]] } }, /four rectangle corners/],
+    ['extra member', { ...node, outline: { ...outline, rules: [] } }, /only points/],
+    ['duplicate tag', { ...node, sideTags: { outer: ['a', 'b', 'c', 'a'] } }, /distinct identifiers/],
+    ['overlong tag', { ...node, sideTags: { outer: ['a'.repeat(33), 'b', 'c', 'd'] } }, /distinct identifiers/],
+    ['bad tag', { ...node, sideTags: { outer: ['a', 'b', 'c', 'x]'] } }, /distinct identifiers/],
+    ['named bound', { ...node, min: [{ parameter: 'X' }, -20] }, /numeric min and max/],
+    ['additional region', { ...node, regions: [] }, /default XY plane/],
+    ['alternate plane', { ...node, plane: { origin: [0, 0, 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, /default XY plane/],
+    ['nonrectangular outline', { kind: 'sketch', profile: 'polygon', points: outline.points, outline }, /unknown field "outline"/],
+    ['nonfinite bound', { ...node, max: [Infinity, 20] }, /numeric min and max/],
+    ['unordered bound', { ...node, max: [-21, 20] }, /numeric min and max/],
+    ['outside solver envelope', { ...node, min: [10001, 0], max: [10081, 40], outline: { ...outline, points: [[10001, 0], [10081, 0], [10081, 40], [10001, 40]] } }, /valid numerical rectangle/],
+  ];
+  for (const [name, value, reason] of cases) assert.match(checkNode(value, [], { X: -20 }) ?? '', reason, name);
 });

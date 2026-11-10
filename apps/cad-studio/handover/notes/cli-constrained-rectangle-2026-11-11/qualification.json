@@ -1,0 +1,56 @@
+{
+  "decision": "D590",
+  "parent": "f21fbc4c5d52fa5b10277c55d980ac5ba9ffb34a",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "matrix": {
+    "originalB09SHA256": "db1d38f4aecafb3805d2fa8df30d83dedad8e9550f11c2ae274f6bcb9831cc68",
+    "admissionSupplementSHA256": "6a162bcd39cb59fdfaea07802926f5471c63b820b119d91ede99a809c79ab259",
+    "pass": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "C01", "C02", "C03"],
+    "fail": []
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D587_SOURCE_FROZEN=1 node test/b09-editable-consumer-browser.mjs <external-evidence-directory>", "status": "PASS", "entry": "Empty CLI document"},
+    {"command": "pnpm --dir packages/barocss-cad-model test sketch-rectangle-driving-retention sketch-reopen-parameters driven-sketch-contract script.test toolset.test tool-contract spec.test api-parameters bom-base", "status": "PASS", "pass": 97, "fail": 0, "finalAffectedSketchRerunPass": 15},
+    {"command": "pnpm --dir apps/cad-studio test cad-external batch-changes-mcp tool-contract-mcp toolset-mcp o17-scripted task-run-cli", "status": "PASS", "pass": 17, "fail": 0},
+    {"command": "pnpm --dir packages/barocss-cad-model type-check && pnpm --dir apps/cad-studio type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/features.ts packages/barocss-cad-model/src/chat/toolDefinitions.ts packages/barocss-cad-model/test/sketch-rectangle-driving-retention.test.ts", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/b09-editable-consumer-browser.mjs", "status": "PASS"},
+    {"command": "node <evidence>/mutations.mjs <evidence>", "status": "PASS", "detected": 6, "scope": "In-memory replacements of the shared admission check"},
+    {"command": "pnpm --dir apps/library-docs test:samples", "status": "PASS", "pass": 185, "fail": 0},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "pnpm --dir apps/library-docs check:docs", "status": "FAIL", "scope": "Inherited refusal table and API inventory expectations"}
+  ],
+  "docsBaseline": {
+    "status": "PASS",
+    "storedExposures": 6472,
+    "actualParentAndCurrentExposures": 6520,
+    "identicalFreshProcessInventorySHA256": "0d712df9086b519f1d247ac5b7d732562fd89b359df0818224e9649a9d72f186",
+    "identicalRegeneratedRefusalsSHA256": "b2dc339bdbfdff128e2ebeb02a8088bea9297bdd5643c09390eeb19d7ad29f3e",
+    "commands": [
+      "node <evidence>/compare-inventory.mjs current <evidence>/inventory-current.json",
+      "node <evidence>/compare-inventory.mjs parent <evidence>/inventory-parent.json",
+      "cmp <evidence>/inventory-current.json <evidence>/inventory-parent.json",
+      "git archive HEAD -- <refusal-generator-inputs> | tar -xf - -C <external-mirror>",
+      "node <external-mirror>/apps/library-docs/scripts/refusals.mjs --check",
+      "node <external-mirror>/apps/library-docs/scripts/refusals.mjs for parent and current inputs; cmp the generated tables"
+    ]
+  },
+  "evidence": {
+    "directory": "d590-2026-11-11/release-candidate",
+    "receiptSHA256": "a0bbddb23d68fbc4f0c3f8dd624747ecc69887497beafdd20ef7bdb2b68f55ab",
+    "savedNativeSHA256": "00188c9c1190309b2dbde67bcd95f83345dba6026d57312e0c737cdb3fe36f36",
+    "bomSHA256": "7f48116ace5caaeffee65b463191d8f8fb1ac76af310f2cc850f6d2967d198e2",
+    "documentRevision": "e42fe7ccf216cb1dce8b7587db48e1be423dd3f525cad0fc7eaacd575aed60f0",
+    "unchangedSourcePins": 947,
+    "sourceCapsuleSHA256": "229ee81bee94e137ea9397038deb60b8d20b9673a8af1d052f6e0ac5f7dc0874",
+    "desktopStates": 7,
+    "independentNativeStages": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["02-preview-keeps-eight", "07-fresh-open-ten"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["general outline authoring", "full kernel", "broad browser suite", "live providers", "mobile", "release"]
+}

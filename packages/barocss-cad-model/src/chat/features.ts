@@ -1,5 +1,6 @@
 import { sewNodeProblem } from '../engine/sew';
 import { ELLIPSE_SIDE_EDGE_REFUSAL, ellipseSideEdge } from '../sketch/ellipse';
+import { solveShape } from '../sketch/rules';
 import { thickenNodeProblem } from '../engine/thicken';
 import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
 import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
@@ -119,6 +120,44 @@ export function checkSectionRow(row: unknown, parameters: Record<string, number>
   return null;
 }
 
+/** A bounded authored rectangle must agree with the compact profile that builds its geometry. */
+function checkRectangleOutline(node: Record<string, unknown>): string | null {
+  const { outline, min, max, sideTags } = node;
+  const exactFields = (value: unknown, fields: readonly string[]): value is Record<string, unknown> =>
+    isObj(value) && Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key));
+  const point = (value: unknown): value is [number, number] =>
+    Array.isArray(value) && value.length === 2 && Number.isFinite(value[0]) && Number.isFinite(value[1]);
+  const same = (value: unknown, expected: readonly number[]) =>
+    Array.isArray(value) && value.length === expected.length && expected.every((n, i) => value[i] === n);
+  if (node.kind !== 'sketch') return 'kind must be the string sketch';
+  if (node.plane !== undefined || node.holes !== undefined || node.regions !== undefined) return 'use one rectangle on the default XY plane';
+  if (!point(min) || !point(max)) return 'use ordered numeric min and max bounds';
+  const [x0, y0] = min, [x1, y1] = max;
+  if (x0 >= x1 || y0 >= y1) return 'use ordered numeric min and max bounds';
+  if (!exactFields(outline, ['points', 'lengths', 'hv'])) return 'only points, lengths and hv are supported';
+  const points: [number, number][] = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const given = outline.points;
+  if (!Array.isArray(given) || given.length !== 4 || !points.every((p, i) => same(given[i], p))) {
+    return 'points must follow the four rectangle corners counter-clockwise from min';
+  }
+  const hv = { h: [0, 2], v: [1, 3] };
+  if (!exactFields(outline.hv, ['h', 'v']) || !same(outline.hv.h, hv.h) || !same(outline.hv.v, hv.v)) {
+    return 'keep horizontal edges 0 and 2 and vertical edges 1 and 3';
+  }
+  if (!exactFields(outline.lengths, ['0', '1'])) return 'supply driving lengths for edges 0 and 1';
+  const { 0: width, 1: depth } = outline.lengths;
+  // Match the existing numerical XY solver's linear residual in mm.
+  if (typeof width !== 'number' || !Number.isFinite(width) || typeof depth !== 'number' || !Number.isFinite(depth) ||
+      Math.abs(width - (x1 - x0)) > 1e-7 || Math.abs(depth - (y1 - y0)) > 1e-7) return 'driving lengths must match the rectangle bounds';
+  if (sideTags !== undefined) {
+    if (!exactFields(sideTags, ['outer']) || !Array.isArray(sideTags.outer) || sideTags.outer.length !== 4 ||
+        !Array.from(sideTags.outer).every(tag => typeof tag === 'string' && /^[A-Za-z0-9_-]{1,32}$/.test(tag)) ||
+        new Set(sideTags.outer).size !== 4) return 'sideTags.outer must contain four distinct identifiers';
+  }
+  const solved = solveShape({ kind: 'polygon', closed: true, points, hv, lengths: { 0: width, 1: depth } });
+  return solved.ok && solved.dof === 0 ? null : 'the two lengths must define a valid numerical rectangle';
+}
+
 /** Why the node cannot be appended to `nodes`, or null. */
 export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>, sections: readonly { id: string }[] = [], parts: readonly PartInstance[] | null = []): string | null {
   if (!isObj(node)) return 'A feature is an object with a "kind".';
@@ -130,7 +169,11 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const p = PROFILE[String(node.profile)];
     if (node.profile === 'band' || 'band' in node || 'construction' in node) return 'A band sketch and construction shapes are made in the Studio sketcher, not written in chat (v1).';
     if (!p) return `A sketch's "profile" is one of ${Object.keys(PROFILE).join(', ')}.`;
-    spec = { profile: 'any', ...p, ...ON_PLANE };
+    spec = { profile: 'any', ...p, ...ON_PLANE, ...(node.profile === 'rectangle' ? { 'outline?': 'any' } : {}) };
+    if (node.profile === 'rectangle' && node.outline !== undefined) {
+      const why = checkRectangleOutline(node);
+      if (why) return `sketch.outline: ${why}`;
+    }
   } else {
     if (!SPECS[kind]) return `Unknown feature kind "${kind}". Kinds: sketch, ${Object.keys(SPECS).join(', ')}.`;
     spec = SPECS[kind];

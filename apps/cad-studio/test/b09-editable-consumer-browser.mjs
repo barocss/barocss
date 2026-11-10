@@ -22,16 +22,16 @@ const pins = [
   'packages/barocss-cad-model/src/chat/features.ts',
   'packages/barocss-cad-model/src/chat/part/history.ts',
   'packages/barocss-cad-model/src/chat/tools.ts',
+  'packages/barocss-cad-model/src/chat/toolDefinitions.ts',
   'packages/barocss-cad-model/src/engine/container.ts',
 ];
 
 const inspectorSource = String.raw`
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { checkBrep, faceGeometry } from '@barocss/cad';
 import { documentRevision } from '@barocss/cad-model/team/bundle';
-import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
-import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { readStudioFile } from '@barocss/cad-model/engine/container';
 import { evaluateDoc, partBreps } from '@barocss/cad-model/engine/evaluate';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
@@ -51,7 +51,6 @@ if (arg.seed) {
   assert.ok(solved.ok && solved.dof === 0);
   const profile = profileOf([shape]);
   assert.ok('node' in profile);
-  writeFileSync(arg.seed, encodeStudioFile(withNode(emptyDoc(), profile.node)));
   console.log(JSON.stringify({ node: profile.node, dof: solved.dof }));
 } else {
   const read = await readStudioFile(readFileSync(arg.file));
@@ -110,9 +109,9 @@ print(json.dumps({'status':'PASS','stages':len(data['stages']),'areaMm2':area,'c
 
 const f = await createFlow({
   name: 'b09-editable-consumer', envFrozen: 'D587_SOURCE_FROZEN', output,
-  qualification: 'B09 v1 constrained plate authoring boundary and typed-seed consumer continuation',
+  qualification: 'B09 v1 constrained plate through CLI, stdio MCP, actual Studio and independent output',
   initialFiles: pins, requiredFrozen: pins, inspectorSource, oracleSource,
-  limits: ['One authored constrained through-hole plate. CLI creation of the solver-authored outline is a recorded B09 v1 failure. The continuation begins with a typed Model seed.', 'The local CLI and MCP use the existing grouped tools. The actual Studio accepts the saved proposal and edits the named height.'],
+  limits: ['One two-length constrained rectangle with a through-hole. General outline authoring stays outside this input family.', 'The local CLI and MCP use the existing grouped tools. The actual Studio accepts the saved proposal and edits the named height.'],
 });
 const cliEntry = join(repo, 'apps/cad-studio/scripts/cad-cli.mjs'), mcpEntry = join(repo, 'apps/cad-studio/scripts/cad-mcp.mjs');
 const path = join(f.output, 'D587-constrained-plate.bcad'), filename = 'D587-constrained-plate.bcad';
@@ -213,32 +212,51 @@ await f.run(async () => {
   };
 
   f.phase = 'CLI constrained part creation and failed script';
-  const seedPath = join(f.output, 'typed-constrained-sketch.bcad');
-  const { node } = await f.inspect('authored-sketch', {}, { seed: seedPath });
-  const authored = await readFile(seedPath);
-  const attempted = await cli('cli-authored-outline-refusal', ['run', '-', '-o', path], `feature(${JSON.stringify(node)})`, 1);
-  assert.match(attempted.stderr, /<stdin>:1:\d+: \[REFUSED\].*unknown field "outline"/);
-  await assert.rejects(readFile(path), { code: 'ENOENT' });
-  f.report.authoring = { status: 'FAIL', reason: 'The CLI feature tool refuses the authored sketch outline.' };
-  f.report.files.push({ file: seedPath, hash: sha256(authored), source: 'Typed Model sketch authoring' });
+  const { node } = await f.inspect('authored-sketch-input', {}, { seed: true });
+  const invalidNode = { ...node, outline: { ...node.outline, lengths: { 0: 21, 1: 10 } } };
   const requirements = [
     { id: 'W20', source: '20 mm width', hard: true, basis: 'stated', check: { query: { fn: 'bbox', axis: 'x' }, op: '==', value: 20, unit: 'mm', tol: 0.001 } },
     { id: 'H5-10', source: '5 to 10 mm height', hard: true, basis: 'stated', check: { query: { fn: 'bbox', axis: 'z' }, op: 'between', min: 5, max: 10, unit: 'mm' } },
   ];
   const script = [
+    `feature(${JSON.stringify(node)})`,
     'feature({kind:"extrude",sketch:0,height:6})',
     'feature({kind:"hole",parent:{node:1,side:"solid"},center:[5,5],radius:2,axis:"z"})',
     `requirements(${JSON.stringify(requirements)})`,
     'brief({material:{value:"al6061",basis:"stated",source:"Use 6061 aluminium."}})',
   ].join('\n');
-  const created = await cli('cli-create', ['run', '-', '--doc', seedPath, '-o', path, '--check'], script);
+  const created = await cli('cli-create', ['run', '-', '-o', path, '--check'], script);
   assert.equal(JSON.parse(created.stdout).checks.summary.pass, 2);
-  assert.deepEqual(await readFile(seedPath), authored);
   const initial = await readFile(path);
-  await native('cli-file', path, 6, false);
+  const made = await native('cli-file', path, 6, false);
+  const authored = { ...node, id: 'n0' };
+  assert.deepEqual(made.doc.nodes[0], authored);
+  f.report.authoring = { status: 'PASS', origin: 'CLI feature from empty document', sketchDof: made.dof };
   const bad = await cli('cli-bad-script', ['run', '-', '--doc', path, '-o', path], 'edit(node("n1"),{h:7})\nedit(node("n2"),{notAField:1})', 1);
   assert.match(bad.stderr, /<stdin>:2:\d+:.*REFUSED/);
   await sameBytes(initial);
+  const invalidScript = `edit(node("n1"),{h:7})\nfeature(${JSON.stringify(invalidNode)})`;
+  const invalid = await cli('cli-invalid-outline', ['run', '-', '--doc', path, '-o', path], invalidScript, 1);
+  assert.match(invalid.stderr, /<stdin>:2:\d+:.*sketch\.outline: driving lengths must match/);
+  await sameBytes(initial);
+
+  f.phase = 'stdio MCP authors the same sketch and rolls back a malformed second node';
+  const mcpSketch = join(f.output, 'mcp-authored-sketch.bcad');
+  await mcp(mcpSketch, async call => {
+    const help = await call('describe', { feature: 'sketch' });
+    assert.ok(help.nodes.some(line => line.includes('"outline"') && line.includes('two driving lengths')));
+    await call('features', { action: 'add', features: [node] });
+    const bytes = await readFile(mcpSketch);
+    assert.deepEqual(JSON.parse(bytes).nodes, [authored]);
+    const refused = await call('features', { action: 'add', features: [node, invalidNode] }, true);
+    assert.match(refused.error, /Feature 2 of 2.*sketch\.outline: driving lengths must match/);
+    assert.deepEqual(await readFile(mcpSketch), bytes);
+    const badKind = await call('features', { action: 'add', features: [{ ...node, kind: ['sketch'] }] }, true);
+    assert.match(badKind.error, /kind must be the string sketch/);
+    const locked = await call('features', { action: 'add', features: [{ ...node, sideTags: { outer: ['ref0', 'side-b', 'side-c', 'side-d'] } }] }, true);
+    assert.match(locked.error, /REFERENCE_LOCKED/);
+    assert.deepEqual(await readFile(mcpSketch), bytes);
+  });
 
   f.phase = 'stdio MCP inspect, revise and preserve a failed batch';
   await mcp(path, async (call, request) => {
@@ -371,6 +389,7 @@ await f.run(async () => {
     const parsed = JSON.parse(artifact.text);
     assert.equal(parsed.bom.totalQty, 1);
     assert.deepEqual(parsed.bom.lines[0].parts, ['base']);
+    assert.equal(parsed.bom.lines[0].material, 'al6061');
     assert.equal(fresh.doc.brief.material.value, 'al6061');
     const mass = await call('query', { action: 'mass' });
     assert.equal(mass.bodies[0].assumed, false);
