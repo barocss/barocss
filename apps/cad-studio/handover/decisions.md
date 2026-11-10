@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D611 — open a verified local worker checkpoint in Studio](notes/worker-checkpoint-intake-2026-11-11/README.md).
 - [D610 — trace a saved requirement regression after approval](notes/saved-requirement-regression-2026-11-11/README.md).
 - [D609 — read saved nested approval evidence in Studio chat](notes/agent-saved-approval-evidence-2026-11-11/README.md).
 - [D608 — compare a saved nested failure with its approved repair](notes/saved-nested-approval-comparison-2026-11-11/README.md).

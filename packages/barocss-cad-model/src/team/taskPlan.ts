@@ -48,6 +48,12 @@ export interface TaskPlan {
   readonly specification: Readonly<{ brief: StudioDoc['brief']; requirements: readonly Requirement[]; interfaces: Interfaces }>;
   readonly tasks: readonly BoundTask[];
 }
+
+/** The only authored change allowed by the local extrusion-height task. */
+export function taskHeightEdit(doc: StudioDoc, instance: PartInstance, index: number, height: number): { doc: StudioDoc; local: StudioDoc } {
+  const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? { ...node, height } : node) };
+  return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) } };
+}
 export interface TaskShape {
   minX: number; minY: number; width: number; depth: number;
   hole?: { x: number; y: number; radius: number };

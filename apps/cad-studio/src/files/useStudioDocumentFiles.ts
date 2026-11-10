@@ -14,6 +14,7 @@ import { currentDocumentSave } from '../state/saveOwnership';
 import type { useProject } from '../storage/useProject';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
+import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint } from './taskCheckpoint';
 import { useMeshImport } from './useMeshImport';
 
 interface StudioDocumentFileOptions {
@@ -54,7 +55,7 @@ interface StudioDocumentFileOptions {
 }
 
 /** What Open reads, said when it is given another kind of file. */
-const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
+const OPEN_READS = 'Open reads models (.bcad, .json), worker checkpoints (.bcad-run), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 
 /** File actions use the App's current document, dispatch and Worker ownership. */
 export function useStudioDocumentFiles({ document, ownership, worker, changes, fit, onNotice: setToast }: StudioDocumentFileOptions) {
@@ -122,11 +123,39 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     setDocState(next); setDirty(true);
   };
 
+  const openCheckpoint = async (file: File, current: () => boolean) => {
+    const refused = (hint: string) => setToast({ title: 'Could not open the worker checkpoint', hint, detail: '' });
+    if (file.size > MAX_TASK_CHECKPOINT_BYTES) { refused('The worker checkpoint exceeds the supported file size.'); return; }
+    const bytes = await file.arrayBuffer();
+    if (!current()) return;
+    const checkpoint = await readTaskCheckpoint(new Uint8Array(bytes), current);
+    if (!checkpoint || !current()) return;
+    const verified = await verifyTaskCheckpoint(checkpoint, d => engine.part(d, nextRevision(), 'read'), current);
+    if (!verified || !current()) return;
+    if ('error' in verified) { refused(verified.error); return; }
+    if (sessionBlocked('opening a worker checkpoint')) return;
+    // Keep the verified document exact. The standard native Open may repair references after adoption.
+    replaceDoc(verified.doc);
+    if (docNow.current !== verified.doc) return;
+    setRefProblems([]);
+    setFileName(file.name.slice(0, -TASK_CHECKPOINT_EXT.length));
+    setDirty(false);
+    fitImportedLater();
+    const { receipt } = verified;
+    setToast({ title: 'Worker checkpoint opened',
+      hint: `Task ${receipt.taskId} · Revision ${receipt.revision} · ${verified.checks} required checks passed`,
+      detail: `Accepted model SHA-256 ${receipt.accepted.sha256}` });
+  };
+
   const open = async (file: File) => {
     if (sessionBlocked('opening a file')) return;
     const scope = beginOpenIntent(), owner = captureImportOwner();
     setMeshAsk(null); setRepairAsk(null);
     try {
+      if (file.name.toLowerCase().endsWith(TASK_CHECKPOINT_EXT)) {
+        await openCheckpoint(file, owner.isCurrent);
+        return;
+      }
       if (isImportedFile(file.name)) {
         await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision }, mesh: meshImport, onNotice: setToast,
           changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });

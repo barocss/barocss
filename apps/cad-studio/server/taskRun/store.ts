@@ -9,8 +9,9 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { TaskCandidate, TaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
+import type { NativeRef, TaskCheckpoint } from '../../src/files/taskCheckpoint';
 
-export interface NativeRef { sha256: string; modelDigest: string }
+export type { NativeRef } from '../../src/files/taskCheckpoint';
 export type TaskPhase = 'ready' | 'running' | 'validating' | 'awaiting-decision' | 'committing' | 'completed' | 'failed' | 'cancelled' | 'stale';
 export interface TaskAttempt {
   id: string;
@@ -63,7 +64,7 @@ export type CommitIntent = {
   taskId: string;
   specRevision: string;
 } & ({ kind?: 'task'; candidateDigest: string } | { kind: 'spec'; questionDigest: string });
-type CommitReceipt = CommitIntent & { epoch: number; from: NativeRef; to: NativeRef };
+type CommitReceipt = CommitIntent & { epoch: number; from: NativeRef; to: NativeRef; plan?: TaskPlanRequest };
 export interface RunRecord {
   version: 1;
   runId: string;
@@ -227,6 +228,24 @@ export class TaskRunStore {
     return record;
   }
 
+  /** Export one committed task from a single read of the durable pointer. The native files are immutable. */
+  static readTaskCheckpoint(directory: string) {
+    const path = realpathSync(directory), record = recordAt(path), commit = record.commits.at(-1);
+    if (!commit || commit.kind === 'spec' || record.pending)
+      return issue('RUN_STALE', 'Export requires a committed task and no pending publication.');
+    const task = record.state.tasks.find(task => task?.id === commit.taskId), candidate = task?.candidate;
+    const operation = record.state.operations.find(op => op?.id === commit.operationId);
+    if (task?.phase !== 'completed' || !candidate || candidate.taskId !== commit.taskId || candidate.specRevision !== commit.specRevision ||
+        candidate.candidateDigest !== commit.candidateDigest || operation?.phase !== 'completed' ||
+        operation.code !== 'RUN_ACCEPTED' || operation.epoch !== commit.epoch)
+      return issue('RUN_CORRUPT', 'The committed task and its durable receipt disagree.');
+    const receipt: TaskCheckpoint = { runId: record.runId, revision: record.revision, taskId: commit.taskId,
+      operationId: commit.operationId, plan: commit.plan ?? record.state.plan,
+      specRevision: commit.specRevision, candidateDigest: commit.candidateDigest,
+      proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: record.accepted };
+    return { receipt, before: readObject(path, commit.from), accepted: readObject(path, record.accepted) };
+  }
+
   static open(directory: string, afterWrite?: (point: WritePoint) => void): TaskRunStore {
     directory = realpathSync(directory);
     const store = new TaskRunStore(directory, takeOwner(directory), afterWrite);
@@ -339,7 +358,7 @@ export class TaskRunStore {
     const { operationId: committed, taskId, specRevision, base } = pending;
     const common = { operationId: committed, taskId, specRevision, epoch: this.epoch, from: base, to: accepted };
     const receipt: CommitReceipt = pending.kind === 'spec' ? { ...common, kind: 'spec', questionDigest: pending.questionDigest }
-      : { ...common, candidateDigest: pending.candidateDigest };
+      : { ...common, candidateDigest: pending.candidateDigest, plan: record.state.plan };
     this.advance(record, { accepted, state, pending: undefined, commits: [...record.commits, receipt] });
   }
   close(): void {

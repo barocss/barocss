@@ -1586,7 +1586,8 @@ export function App() {
       canOpenImport: () => openAccepted(inPlaceNow.current) },
     worker: { engine, workerSessionNow, nextRevision: () => revision.current++,
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
-    changes: { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect },
+    changes: { replaceDoc, setDocState, setFileName, setDirty,
+      setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
     fit: () => viewport.current?.fit(),
     onNotice: setToast,
   });
@@ -1661,7 +1662,11 @@ export function App() {
     pushUndo(); if (!setDoc(next)) return;
     setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null); setDirty(true);
   };
-  const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs')) });
+  const showRefChoices = async (index: number) => {
+    const scope = currentOpenScope(), dispatch = saveDocumentToken.current;
+    const names = await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'));
+    if (isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === doc) setRefChoices({ index, names });
+  };
   /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */
   const exportSketchDxf = (index: number) => {
     const n = doc.nodes[index];
@@ -2233,7 +2238,7 @@ export function App() {
             onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
-          <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
+          <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A model, worker checkpoint or supported exchange file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
           <ToolIconButton key="tool8" aria-label="Save" data-tip="Save" data-tip-key="⌘S" data-tip-desc={project.view.store ? `Into ${project.view.store.name}` : undefined} onClick={save}><Icon name="save" /></ToolIconButton>,
           <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => { if (!sessionBlocked('opening the project')) setVersionsOpen(v => !v); }} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
           <ToolIconButton key="tool9" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={askStlExport}><Icon name="download" /></ToolIconButton>,
@@ -2247,7 +2252,7 @@ export function App() {
           <ToolIconButton key="tool13" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></ToolIconButton>,
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-run,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}

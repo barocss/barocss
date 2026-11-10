@@ -5,6 +5,7 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
 import { openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
 import { TaskRunStore, type RunLimits, type RunRecord } from './store';
@@ -12,7 +13,12 @@ import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
 interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm: Record<string, number> }
-const HELP = 'cad-cli task-run <start dir config.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad | decide dir operation task approve|reject | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+const HELP = 'cad-cli task-run <start dir config.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | decide dir operation task approve|reject | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+
+function checkExportPath(directory: string, output: string): void {
+  const parent = realpathSync(dirname(resolve(output))), inside = relative(realpathSync(directory), parent);
+  if (!isAbsolute(inside) && inside !== '..' && !inside.startsWith('..' + sep)) throw new Error('Export to a file outside the run store.');
+}
 
 async function operator(challenge: string) {
   if (!process.stdin.isTTY || !process.stderr.isTTY) throw new Error('This action requires a terminal operator.');
@@ -63,13 +69,23 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
     }
 
     if (command === 'status' && !args.length) { print(status(TaskRunStore.inspect(directory))); return 0; }
+    if (command === 'export' && args.length === 1 && args[0].toLowerCase().endsWith(TASK_CHECKPOINT_EXT)) {
+      const [output] = args;
+      checkExportPath(directory, output);
+      const { receipt, before, accepted } = TaskRunStore.readTaskCheckpoint(directory);
+      const bytes = encodeTaskCheckpoint(receipt, before, accepted);
+      const checked = await readTaskCheckpoint(bytes);
+      if (!checked || 'error' in checked) throw new Error(checked?.error ?? 'The worker checkpoint could not be checked.');
+      writeAtomic(output, bytes);
+      print({ checkpoint: receipt });
+      return 0;
+    }
     host = await TaskRunHost.open(directory, evaluate);
     const [operation, task, value, file] = args;
     const record = host.snapshot, short = record.state.specRevision.slice(0, 12);
     let outcome: HostOutcome;
     if (command === 'export' && args.length === 1 && /\.bcad$/i.test(operation)) {
-      const parent = realpathSync(dirname(resolve(operation))), inside = relative(realpathSync(directory), parent);
-      if (!isAbsolute(inside) && inside !== '..' && !inside.startsWith('..' + sep)) throw new Error('Export to a file outside the run store.');
+      checkExportPath(directory, operation);
       writeAtomic(operation, host.acceptedBytes);
       print({ accepted: record.accepted });
       return 0;

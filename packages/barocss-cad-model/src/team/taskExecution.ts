@@ -8,7 +8,7 @@ import { isObj } from '../util/guards';
 import { isUserToken, type UserToken } from './ecr';
 import { interfacesRevision } from './interfaces';
 import { integratePart, type Lease, type PartTrace } from './parts';
-import { isTaskPlan, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
+import { isTaskPlan, taskHeightEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
 
 type Identity = TaskPlanRequest['identity'];
 /** Host-owned inputs at the time a candidate or user decision is processed. */
@@ -154,8 +154,7 @@ export async function buildTaskCandidate(
   const staged = await integratePart(own, patch, context.leases, evaluate, context.sequence, { requireCompleteAssembly: true });
   if (staged.trace.decision !== 'applied') return failure('TASK_NATIVE_GATE', staged.trace.gates.flatMap(g => g.findings).find(f => f.code !== 'NOT_REACHED')?.message ?? 'the native candidate did not pass its gates');
   const candidate = staged.state.doc;
-  const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? { ...node, height } : node) };
-  const expected = { ...doc, instances: doc.instances!.map(i => i.id === instance.id ? { ...i, doc: local } : i) };
+  const { doc: expected, local } = taskHeightEdit(doc, instance, index, height);
   if (digestOf(candidate) !== digestOf(expected))
     return failure('TASK_SCOPE_CHANGED', 'the candidate changed something outside the owned extrusion height');
 
