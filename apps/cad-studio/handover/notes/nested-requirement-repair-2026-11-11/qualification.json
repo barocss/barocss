@@ -1,0 +1,37 @@
+{
+  "decision": "D606",
+  "parent": "c4eff4c6f6627ac41c26db05411e5fca4be9bca2",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "pass": ["R01", "R02", "R03"],
+  "fail": ["R04", "R05"],
+  "commands": [
+    {"command": "cd apps/cad-studio && D606_SOURCE_FROZEN=1 node test/nested-requirement-repair-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence nested-references tool-contract proposal", "status": "PASS", "pass": 53},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare nested-selection chat cad-external tool-contract-mcp edit-in-place", "status": "PASS", "pass": 59},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/nested-requirement-repair-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "evidence": {
+    "directory": "d606-2026-11-11",
+    "receiptSHA256": "e475e41bd801fc4c1733b760b0b0681c351f2ed3588425ace65bbdc18dc74bd4",
+    "sourceCapsuleSHA256": "3904a6408c20bcf50044a7a7b0349c2a5a70c1ea0d00efb2a17de7ac96213874",
+    "firstRootRefusalSHA256": "995ec2c1f94f08107c7c80a9b70b8c9d5c4222fa74dce86e54a6dcdc2a6ce5b7",
+    "rootBeforeMcpSHA256": "4147353841770e9074006e195da11ad82be7c93450ba99cc6de5239e6e2d1caa",
+    "privateHostMcpSHA256": "c61ef4e4e9b9730568260ea7ef2106b3aaaba3e52ae51d04f6b441aa4a644c2d",
+    "acceptedHostMcpSHA256": "18aa597c2cd7085d361c6e782d0a6290081830f42800878237136b861a25b1b5",
+    "acceptedRootMcpSHA256": "eb3be691dfee1bae286b5194de5208746efd40629b92016c491409cb87701f6c",
+    "originalRootSnapshotSHA256": "18bf58e74c939982b8653df592a275ee7a2a59492ce2e77c254eee76454ec19c",
+    "acceptedRootSnapshotSHA256": "ee02ae98f05698e26c3abb5dcb55c269e1ad0c08461e270a64b37723b14e2963",
+    "oracleSHA256": "7b632ef103cda5ea474255dc03aa557be8919db4b405a08acd54a81521a993cc",
+    "numericChecks": 8,
+    "unchangedSourcePins": 304,
+    "desktopStates": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["04-accepted-target", "05-saved-comparison"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["positive root nested proposal", "positive nested historical approval comparison", "production build", "whole browser", "whole kernel", "mobile", "live providers"]
+}
