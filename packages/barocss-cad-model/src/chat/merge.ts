@@ -28,6 +28,7 @@
 import { STUDIO_DOC_FIELDS, type BodyLook, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { featureId, nextSerial, serialOf } from '../engine/ids';
 import { canonical } from '../util/revision';
+import { requirementEvidenceRevision } from '../util/digest';
 import { renumber } from './features';
 import { nextProposalId, PLAN_CHARS, withHistory } from './proposals';
 import type { HistoryEntry, Op, Proposal, Risk, TurnCode, TurnConflict } from '../engine/schema/proposals';
@@ -70,6 +71,9 @@ export interface TurnEffect {
 export interface TurnOp { tool: string; args: Record<string, unknown>; order: string[]; made: string[]; effect: TurnEffect }
 /** A turn's patch (A7's on a base): the base's revision (`revisionOf`) and next serial, the ops in order. */
 export interface TurnPatch { id: string; by: { agent: string; model?: string }; base: string; nextId: number; ops: TurnOp[] }
+
+const isProposalAcceptance = (op: TurnOp) => op.tool === 'accept_proposal' || op.effect.history.some(entry => entry.kind === 'accept');
+const approvalConflict = 'proposal approval applies only to the original document. Review the current proposal before accepting.';
 
 const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
 /** A node with its index references as serials. */
@@ -218,8 +222,12 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   // (Every op waiting, without running anything — nothing to await, so no edit lands in between: the last resort.)
   if (o.deferAll !== undefined) {
-    const deferred = patch.ops.map((op, k): TurnConflict => ({ op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! }));
-    const p = staticProposal(now, patch, deferred);
+    const deferred = patch.ops.map((op, k): TurnConflict => isProposalAcceptance(op)
+      ? { op: k, tool: op.tool, code: 'TURN_NOT_REPLAYABLE', reason: approvalConflict }
+      : { op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! });
+    const replayable = deferred.filter(({ op }) => !isProposalAcceptance(patch.ops[op]));
+    if (!replayable.length) return { doc: now, applied: [], deferred, proposal: null };
+    const p = staticProposal(now, patch, replayable);
     return { doc: p.doc, applied: [], deferred, proposal: p.id };
   }
   // (The person's change, as an op's: what they changed, deleted, wrote, and what their new features use.)
@@ -241,6 +249,7 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   const late = { ids: new Set<string>(), parameters: new Set<string>(), fields: new Set<string>(), bodies: new Set<string>(), outputs: new Set<string>() };
   const paramsNow = Object.keys({ ...base.parameters, ...now.parameters });
   const conflictOf = (op: TurnOp, e: TurnEffect, w: Work): [TurnCode, string] | null => {
+    if (isProposalAcceptance(op)) return ['TURN_NOT_REPLAYABLE', approvalConflict];
     if (RESTORES.has(op.tool)) return ['TURN_NOT_REPLAYABLE', `it brings back a whole earlier state of the part, from before your edits`];
     const own = new Set(e.added.map(a => a.id)), uses = new Set<string>();
     for (const n of [...e.added, ...e.changed]) refsOf(n.node, uses);
@@ -317,8 +326,9 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   // (The history the applied ops added, after the person's.)
   for (const k of r!.applied) for (const h of patch.ops[k].effect.history) doc = withHistory(doc, historyOf(h));
-  if (!r!.deferred.length) return { doc, applied: r!.applied, deferred: [], proposal: null };
-  const withProposal = await deferredProposal({ doc, bodies, rowFiles: o.rowFiles }, patch, r!.deferred, ids, evaluate);
+  const replayable = r!.deferred.filter(({ op }) => !isProposalAcceptance(patch.ops[op]));
+  if (!replayable.length) return { doc, applied: r!.applied, deferred: r!.deferred, proposal: null };
+  const withProposal = await deferredProposal({ doc, bodies, rowFiles: o.rowFiles }, patch, replayable, ids, evaluate);
   return { doc: withProposal.doc, applied: r!.applied, deferred: r!.deferred, proposal: withProposal.id };
 }
 
@@ -350,7 +360,7 @@ function proposalRecord(doc0: StudioDoc, patch: TurnPatch, deferred: readonly Tu
   const plan = deferred.map(c => `${c.tool}: not applied — ${c.reason}`).join('\n');
   const p: Proposal = {
     id, title: `The rest of the chat turn (${n} change${n > 1 ? 's' : ''} not applied)`, status: 'open', by: patch.by, at: new Date().toISOString(),
-    plan: plan.slice(0, PLAN_CHARS), base: modelHash(doc0), ops: calls, ...(made ? { orders: made.orders } : {}), risk, summary: made?.summary ?? why,
+    plan: plan.slice(0, PLAN_CHARS), base: modelHash(doc0), ops: calls, ...(made ? { base_evidence_revision: requirementEvidenceRevision(doc0), orders: made.orders } : {}), risk, summary: made?.summary ?? why,
     ...(made?.checks ? { checks: made.checks } : {}), merge: { turn: patch.id, conflicts: [...deferred] },
   };
   const doc = withHistory({ ...doc0, proposals: [...(doc0.proposals ?? []), p] }, { kind: 'proposal', by: patch.by, proposal: id, summary: `${id} ${p.title}: ${deferred.map(c => c.code).join(', ')}`, risk });

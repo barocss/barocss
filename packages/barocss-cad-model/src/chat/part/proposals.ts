@@ -7,13 +7,14 @@ import { featureId } from '../../engine/ids';
 import { deleteFeatures, featureDependents, renumber } from '../features';
 import { factsOf } from '../observe';
 import { treeDiff } from '../transactions';
-import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, riskOf, riskRank, withHistory } from '../proposals';
+import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, proposalIsStale, riskOf, riskRank, withHistory } from '../proposals';
 import type { ChecksDelta, Proposal, Risk } from '../../engine/schema/proposals';
 import { checkSpec, modelHash } from '../spec';
 import { MUTATORS } from '../toolDefinitions';
 import { errorOf, moveOpsWith, runOps, type OpsRun } from './history';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, type CallOptions, json, fail, strings } from '../toolKit';
 import { isObj } from '../../util/guards';
+import { requirementEvidenceRevision } from '../../util/digest';
 
 /**
  * How far an agent may go on its own (D41), set per turn by the studio (`CAD_AUTONOMY`):
@@ -114,7 +115,8 @@ export async function proposalOfWith(dispatch: PartRun, state: ChatState, ops: u
     for (const id of [...(diff.requirements?.added ?? []), ...(diff.requirements?.changed ?? []), ...(diff.requirements?.deleted ?? [])]) if (hard.has(id)) hardChanged.add(id);
   }
   const risk = riskOf(state.doc, cur.doc, diff, broken.length, [...hardChanged]);
-  const summary = [diffLine(diff), ...(checks ? [`checks ${checks.before.pass}/${checks.before.fail}/${checks.before.unknown} → ${checks.after.pass}/${checks.after.fail}/${checks.after.unknown}`] : [])].filter(Boolean).join(', ') || 'no change';
+  const changes = diffLine(diff) || (risk.approval.length ? `${risk.approval.join(', ')} change` : '');
+  const summary = [changes, ...(checks ? [`checks ${checks.before.pass}/${checks.before.fail}/${checks.before.unknown} → ${checks.after.pass}/${checks.after.fail}/${checks.after.unknown}`] : [])].filter(Boolean).join(', ') || 'no change';
   return { ...run, checks, risk, summary };
 }
 export const countsOf = (s: { pass: number; fail: number; unknown: number }) => ({ pass: s.pass, fail: s.fail, unknown: s.unknown });
@@ -130,7 +132,8 @@ export interface Decider { agent: string; model?: string }
 export async function acceptProposalWith(dispatch: PartRun, state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}): Promise<{ state: ChatState; leftOut: string[] } | { error: string; stale?: true }> {
   const p = state.doc.proposals?.find(q => q.id === id), by = o.by ?? { agent: 'user' };
   if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
-  if (p.base !== modelHash(state.doc)) return { error: `${id} was made on a part that has changed since: rebase it and look at the result before accepting.`, stale: true };
+  const before = requirementEvidenceRevision(state.doc);
+  if (proposalIsStale(p, before)) return { error: `${id} has no current proposal revision: rebase it and look at the result before accepting.`, stale: true };
   const run = await runOps(dispatch, { ...state, policy: undefined }, p.ops, evaluate);
   if ('fail' in run) return { error: errorOf(run.fail) };
   let cur = run.cur, leftOut: string[] = [];
@@ -146,9 +149,10 @@ export async function acceptProposalWith(dispatch: PartRun, state: ChatState, id
     cur = { ...cur, doc: partial.doc, bodies: r.bodies };
   }
   const at = new Date().toISOString(), hash = modelHash(cur.doc);
-  const decided = { by: by.agent, at, model_hash: hash, ...(leftOut.length ? { left_out: leftOut } : {}), ...(p.rebased ? { note: 'rebased before it was accepted' } : {}) };
+  const evidence = by.agent === 'user' ? { evidence_revisions: { before, after: requirementEvidenceRevision(cur.doc) } } : {};
+  const decided = { by: by.agent, at, model_hash: hash, ...evidence, ...(leftOut.length ? { left_out: leftOut } : {}), ...(p.rebased ? { note: 'rebased before it was accepted' } : {}) };
   let doc: StudioDoc = { ...cur.doc, proposals: (state.doc.proposals ?? []).map(q => q.id === id ? { ...q, status: 'accepted' as const, decided } : q) };
-  doc = withHistory(doc, { kind: 'accept', by, proposed_by: p.by, proposal: id, model_hash: hash, summary: `${id} ${p.title}${leftOut.length ? ` (without ${leftOut.join(', ')})` : ''}`,
+  doc = withHistory(doc, { kind: 'accept', by, at, proposed_by: p.by, proposal: id, model_hash: hash, ...evidence, summary: `${id} ${p.title}${leftOut.length ? ` (without ${leftOut.join(', ')})` : ''}`,
     ...(p.prompt ? { prompt: p.prompt } : {}), ...(p.plan ? { plan: p.plan } : {}), ...(p.requirements ? { requirements: p.requirements } : {}), ...(p.rebased ? { base_was: p.rebased.original } : {}), risk: p.risk });
   return { state: { ...cur, doc }, leftOut };
 }
@@ -160,19 +164,22 @@ export async function acceptProposalWith(dispatch: PartRun, state: ChatState, id
 export async function rebaseProposalWith(dispatch: PartRun, state: ChatState, id: string, evaluate: Evaluate, by: Decider = { agent: 'user' }): Promise<{ state: ChatState; made: OpsRun & { checks?: ChecksDelta; risk: Risk; summary: string } } | { error: string }> {
   const p = state.doc.proposals?.find(q => q.id === id);
   if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
+  const revision = requirementEvidenceRevision(state.doc);
+  if (!proposalIsStale(p, revision)) return { error: `${id} was made on the part as it is: nothing to rebase.` };
   const now = modelHash(state.doc);
-  if (p.base === now) return { error: `${id} was made on the part as it is: nothing to rebase.` };
   // (O133: its ops' feature indices and the ids it made itself moved to the part as it is, when it says what they named.)
   let ops = p.ops;
   if (p.orders?.length === p.ops.length) {
     const moved = await moveOpsWith(dispatch, state, p.ops, p.orders, evaluate);
     if ('error' in moved) return { error: `${id} no longer applies: ${moved.error}` };
     ops = moved.ops;
+  } else if (p.base !== now && (p.merge || p.ops.some(op => typeof op.args?.index === 'number'))) {
+    return { error: `${id} has no feature order for the earlier model. Make a new proposal on the current document.` };
   }
   const made = await proposalOfWith(dispatch, state, ops, evaluate);
   if ('fail' in made) return { error: `${id} no longer applies: ${errorOf(made.fail)}` };
   const rebased = { original: p.rebased?.original ?? p.base, from: p.base, at: new Date().toISOString(), risk_was: p.rebased?.risk_was ?? p.risk };
-  const q: Proposal = { ...p, base: now, ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, rebased, ...(made.checks ? { checks: made.checks } : {}) };
+  const q: Proposal = { ...p, base: now, base_evidence_revision: revision, ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, rebased, ...(made.checks ? { checks: made.checks } : {}) };
   if (!made.checks) delete q.checks;
   const doc = withHistory({ ...state.doc, proposals: state.doc.proposals!.map(x => x.id === id ? q : x) }, { kind: 'rebase', by, proposal: id, base_was: p.base, model_hash: now, summary: `${id} rebased: ${made.summary}`, risk: made.risk });
   return { state: { ...state, doc }, made };
@@ -249,11 +256,12 @@ async function proposeTool(state: ChatState, args: Record<string, unknown>, eval
   const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
   const plan = typeof args.plan === 'string' ? args.plan : undefined;
   const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
-    ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
+    ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), base_evidence_revision: requirementEvidenceRevision(state.doc), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
   const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
   return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
 }
 async function acceptProposalTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, _options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
+  if (state.partOf) return fail(state, 'A placed part always needs the user\'s approval. Propose the edit from the assembly and name the part in the operation.');
   const id = String(args.id ?? ''), p = state.doc.proposals?.find(q => q.id === id);
   if (!p || p.status !== 'open') return fail(state, p ? `${id} is ${p.status} already.` : `No proposal "${id}"; open: ${(state.doc.proposals ?? []).filter(q => q.status === 'open').map(q => q.id).join(', ') || 'none'}.`);
   const env = typeof process !== 'undefined' ? process.env : undefined, by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
@@ -261,7 +269,7 @@ async function acceptProposalTool(state: ChatState, args: Record<string, unknown
   const early = level < 3 || p.risk.approval.length ? agentMayNotAccept(p, level) : null;
   if (early) return fail(state, early);
   // (Stale: made again on the part as it is, and shown; accepting it is a second call, D41.)
-  if (p.base !== modelHash(state.doc)) {
+  if (proposalIsStale(p, requirementEvidenceRevision(state.doc))) {
     const r = await rebaseProposalWith(dispatch, state, id, evaluate, by);
     if ('error' in r) return fail(state, r.error, { kept: `${id} stays open` });
     const q = r.state.doc.proposals!.find(x => x.id === id)!;
@@ -275,7 +283,11 @@ async function acceptProposalTool(state: ChatState, args: Record<string, unknown
 }
 async function listProposalsTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   const list = (state.doc.proposals ?? []).filter(p => args.all === true || p.status === 'open');
-  return { state, content: json({ proposals: list.map(({ ops, ...p }) => ({ ...p, ops: ops.length, stale: p.status === 'open' && p.base !== modelHash(state.doc) })) }), isError: false, changed: false, summary: `${list.length} proposal${list.length === 1 ? '' : 's'}` };
+  const revision = list.some(p => p.status === 'open') ? requirementEvidenceRevision(state.doc) : '';
+  return { state, content: json({ proposals: list.map(p => {
+    const { ops, ...details } = p;
+    return { ...details, ops: ops.length, stale: proposalIsStale(p, revision) };
+  }) }), isError: false, changed: false, summary: `${list.length} proposal${list.length === 1 ? '' : 's'}` };
 }
 
 /** The proposal group's handlers, by v1 tool name (R3). */

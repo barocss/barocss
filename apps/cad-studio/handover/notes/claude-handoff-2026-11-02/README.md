@@ -1,5 +1,5 @@
 ---
-work_id: D591
+work_id: D592
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -119,7 +119,9 @@ D590 accepts B09 v1 at 9/9. The CLI starts from empty, writes the same constrain
 
 D591 delivers a read-only requirement evidence artifact. The final actual Studio and MCP run distinguishes the failed and corrected saved revisions. [D591](../../notes/requirement-evidence-artifact-2026-11-11/README.md).
 
-Next MAIN is D592 / P0, automation, rows 04, 12 and 16. Check the existing proposal and accepted-history path for one matched failure-to-pass evidence chain after explicit Studio approval.
+D592 links a user-approved Studio occurrence edit to before and after evidence. Actual Save and fresh Open preserve the approval and the fresh MCP report. [D592](../../notes/proposal-approval-evidence-2026-11-11/README.md).
+
+Next MAIN is D593 / P0, automation and viewport, rows 04, 10 and 16. Fix the placed-part proposal preview that reports +0 mm³ for the real occurrence change. Use the same twin-plate fixture and retain base-only preview behavior.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

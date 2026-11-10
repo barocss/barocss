@@ -7,6 +7,8 @@ import { sha256Hex, sha256Text } from './sha256';
 export { sha256Hex, sha256Text };
 /** A value's content digest: the SHA-256 of its canonical JSON. */
 export const digestOf = (v: unknown) => sha256Text(canonical(v));
+/** The complete authored inputs of a requirement report. Root proposal and history logs do not affect the report. */
+export const requirementEvidenceRevision = (doc: StudioDoc) => digestOf({ ...doc, proposals: undefined, history: undefined });
 /** A part's revision digest: what it is (its document's revision fields) and where it is placed. */
 export const partDigest = (inst: NonNullable<StudioDoc['instances']>[number]) => digestOf({ doc: revisionContent(inst.doc), position: inst.position, rotation: inst.rotation, hidden: !!inst.hidden });
 /** Every part's revision digest, the base part's (its own features, when it has any) as `base`. */

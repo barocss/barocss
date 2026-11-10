@@ -6,6 +6,7 @@ import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previ
 import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory } from '../src/chat/proposals';
 import type { HistoryEntry } from '../src/engine/schema/proposals';
 import { modelHash } from '../src/chat/spec';
+import { requirementEvidenceRevision } from '../src/util/digest';
 import { readStudioDoc } from '../src/engine/migrate';
 import { defaultDrawing } from '../src/drawing/types';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -19,6 +20,52 @@ const parse = (content: string) => JSON.parse(content) as Record<string, any>;
 const HOLE = { tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d: 6, x: 10, y: 10 } } };
 const R1 = { id: 'R1', source: '40 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } };
 const R2 = { id: 'R2', source: 'at most 6000 mm³', hard: true, check: { op: '<=', query: { fn: 'volume' }, value: 6000 } };
+
+test('a requirement edit makes an open proposal stale even when the geometry is unchanged', async () => {
+  const initial = await stateOf(rectanglePart(40, 20, 8));
+  const withRule = (await runTool(initial, 'set_requirements', { requirements: [R2] }, evaluate)).state;
+  const pending = (await runTool(withRule, 'propose', { title: 'Hole', ops: [HOLE] }, evaluate)).state;
+  const edited = await runTool(pending, 'set_requirements', { requirements: [{ ...R2, check: { ...R2.check, value: 6200 } }] }, evaluate);
+  assert.equal(edited.isError, false, edited.content);
+  assert.equal(modelHash(edited.state.doc), modelHash(pending.doc));
+  assert.notDeepEqual(edited.state.doc.requirements, pending.doc.requirements);
+  const listed = await runTool(edited.state, 'list_proposals', {}, evaluate);
+  assert.equal(parse(listed.content).proposals[0].stale, true);
+  const outcome = await acceptProposal(edited.state, 'P1', evaluate);
+  assert.ok('error' in outcome && outcome.stale, 'the author must review the proposal against the changed requirement');
+  const rebased = await rebaseProposal(edited.state, 'P1', evaluate);
+  assert.ok('state' in rebased, JSON.stringify(rebased));
+  assert.deepEqual(rebased.made.checks?.newly_passing, ['R2']);
+  assert.equal(rebased.state.doc.proposals![0].base_evidence_revision, requirementEvidenceRevision(edited.state.doc));
+});
+
+test('an occurrence edit and a missing proposal revision both require a fresh review', async () => {
+  const plate = rectanglePart(4, 4, 10);
+  const occurrence: NonNullable<StudioDoc['instances']>[number] = { id: 'p1', name: 'Plate', doc: plate, position: [0, 0, 20], rotation: [0, 0, 0] };
+  const initial = await stateOf({ ...rectanglePart(40, 20, 8), instances: [occurrence] });
+  const pending = (await runTool(initial, 'propose', { title: 'Hole', ops: [HOLE] }, evaluate)).state;
+  const [proposal] = pending.doc.proposals!;
+  const moved: ChatState = { ...pending, doc: { ...pending.doc, instances: [{ ...occurrence, position: [5, 0, 20] }] } };
+  const legacy = { ...pending, doc: { ...pending.doc, proposals: [{ ...proposal, base_evidence_revision: undefined }] } };
+  for (const input of [moved, legacy]) {
+    assert.equal(modelHash(input.doc), proposal.base);
+    const refused = await acceptProposal(input, 'P1', evaluate);
+    assert.ok('error' in refused && refused.stale, JSON.stringify(refused));
+    const rebased = await rebaseProposal(input, 'P1', evaluate);
+    assert.ok('state' in rebased, JSON.stringify(rebased));
+    assert.equal(rebased.state.doc.proposals![0].status, 'open');
+    assert.equal(rebased.state.doc.proposals![0].base_evidence_revision, requirementEvidenceRevision(input.doc));
+  }
+  const unbound = { ...legacy, doc: { ...legacy.doc, proposals: [{ ...proposal, base_evidence_revision: undefined, orders: undefined,
+    ops: [{ tool: 'edit_feature', args: { index: 1, values: { h: 11 } } }] }] } };
+  const taller = (await runTool(unbound, 'edit_feature', { index: 1, values: { h: 10 } }, evaluate)).state;
+  const refused = await rebaseProposal(taller, 'P1', evaluate);
+  assert.ok('error' in refused && /no feature order/.test(refused.error), JSON.stringify(refused));
+  const historyOnly = { ...pending, doc: withHistory(pending.doc, { kind: 'prompt', by: { agent: 'user' }, prompt: 'Review' }) };
+  const accepted = await acceptProposal(historyOnly, 'P1', evaluate);
+  assert.ok('state' in accepted, JSON.stringify(accepted));
+  assert.equal(accepted.state.doc.history!.at(-1)?.evidence_revisions?.before, proposal.base_evidence_revision);
+});
 
 test('propose: worked out on a copy (diff, checks before and after, risk), the part unchanged, kept in the document', async () => {
   let s = await stateOf(rectanglePart(40, 20, 8));
@@ -223,6 +270,13 @@ test('accept in part: a feature left out takes what depends on it; a changed one
   assert.ok(!a.state.doc.nodes.some(n => n.kind === 'hole'));
   assert.equal(a.state.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[2]), 0), 10);
   assert.deepEqual(a.state.doc.proposals![0].decided!.left_out, ['n2']);
+  const evidence = { before: requirementEvidenceRevision(s.doc), after: requirementEvidenceRevision(a.state.doc) };
+  const decision = a.state.doc.proposals![0].decided!;
+  const history = a.state.doc.history!.at(-1)!;
+  assert.deepEqual(decision.evidence_revisions, evidence);
+  assert.deepEqual(history.evidence_revisions, evidence);
+  assert.equal(history.at, decision.at);
+  assert.notEqual(evidence.after, requirementEvidenceRevision(ghost.doc), 'the accepted result excludes the omitted feature');
   // Without the edit: the plate put back as it was (8 tall), the hole and box kept.
   const b = await acceptProposal(s, 'P1', evaluate, { leaveOut: ['n1'] });
   assert.ok('state' in b, JSON.stringify(b));

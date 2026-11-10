@@ -6,7 +6,7 @@ import { nextSerial, withIds } from '../src/engine/ids';
 import { acceptProposal, runTool, type ChatState } from '../src/chat/tools';
 import { captureOp, changedDuring, mergeTurn, type TurnPatch } from '../src/chat/merge';
 import { revisionOf } from '../src/util/revision';
-import { withHistory } from '../src/chat/proposals';
+import { rejectProposal, withHistory } from '../src/chat/proposals';
 
 // O133 (item 0, the owner's decision): a chat turn merged onto the part as the person left it — the agent's ops applied
 // where they do not collide with the person's edits made during the turn, the rest one proposal with typed reasons.
@@ -26,6 +26,30 @@ async function turn(base: ChatState, calls: [string, Record<string, unknown>][])
 async function edit(s: ChatState, tool: string, args: Record<string, unknown>): Promise<ChatState> { const r = await runTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); return r.state; }
 const node = (doc: StudioDoc, id: string) => doc.nodes.find(n => n.id === id) as unknown as Record<string, unknown> | undefined;
 const box = (x: number, h: number) => ({ command: 'box', values: { w: 10, d: 10, h, x, y: 0, z: 0 } });
+
+test('a concurrent chat merge cannot replace the user’s proposal decision or apply an old approval', async () => {
+  const part = await stateOf(rectanglePart(40, 20, 8));
+  const base = await edit(part, 'propose', { title: 'Taller', ops: [{ tool: 'edit_feature', args: { index: 1, values: { h: 10 } } }] });
+  const accepted = await acceptProposal(base, 'P1', evaluate, { by: { agent: 'chat' } });
+  assert.ok('state' in accepted, JSON.stringify(accepted));
+  assert.equal(accepted.state.doc.history?.at(-1)?.evidence_revisions, undefined);
+  const patch: TurnPatch = { id: 'T1', by: { agent: 'chat' }, base: revisionOf(base.doc), nextId: nextSerial(base.doc),
+    ops: [captureOp(base.doc, accepted.state.doc, 'accept_proposal', { id: 'P1' })] };
+  const rejected = rejectProposal(base.doc, 'P1');
+  assert.ok(!('error' in rejected));
+  const edited = await edit(base, 'set_requirements', { requirements: [{ id: 'CAP', source: '8 mm maximum', hard: true, check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 8 } }] });
+  for (const current of [rejected, edited.doc]) {
+    const merged = await mergeTurn(base.doc, current, patch, evaluate);
+    assert.deepEqual(merged.applied, []);
+    assert.deepEqual(merged.doc, current);
+    assert.equal(merged.proposal, null);
+    assert.equal(merged.deferred[0]?.code, 'TURN_NOT_REPLAYABLE');
+  }
+  const waiting = await mergeTurn(base.doc, rejected, patch, evaluate, { deferAll: 'Document changed again' });
+  assert.equal(waiting.doc, rejected);
+  assert.equal(waiting.proposal, null);
+  assert.equal(waiting.deferred[0]?.code, 'TURN_NOT_REPLAYABLE');
+});
 
 test('the README repro: a long turn and a box the person added meanwhile — both kept, no id meets another', async () => {
   const base = await stateOf(rectanglePart(40, 20, 8));

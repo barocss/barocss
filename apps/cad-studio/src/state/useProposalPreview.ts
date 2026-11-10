@@ -5,14 +5,15 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
 import type { PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
-import { rejectProposal } from '@barocss/cad-model/chat/proposals';
+import { proposalIsStale, rejectProposal } from '@barocss/cad-model/chat/proposals';
 import { modelHash } from '@barocss/cad-model/chat/spec';
+import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import type { EngineClient, ProposalOverlay } from '../engine/client';
 import type { Lanes } from '../engine/lanes';
 interface ProposalPreviewOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; marker: number | null; active: boolean; sketch: boolean };
   worker: { engine: EngineClient; lanes: Lanes; nextRevision(): number };
-  changes: { commit(next: StudioDoc, capture: false): boolean; setPreviewBodies: Dispatch<SetStateAction<BodyResult[] | null>> };
+  changes: { commit(next: StudioDoc): boolean; currentDoc(): StudioDoc; setPreviewBodies: Dispatch<SetStateAction<BodyResult[] | null>> };
   chatRowFiles: RefObject<PersonRowFiles | undefined>;
   onNotice(notice: FriendlyError): void;
 }
@@ -20,7 +21,7 @@ interface ProposalPreviewOptions {
 export function useProposalPreview({ model, worker, changes, chatRowFiles, onNotice: setToast }: ProposalPreviewOptions) {
   const { doc, bodies, marker, active, sketch } = model;
   const { engine, lanes, nextRevision } = worker;
-  const { commit, setPreviewBodies } = changes;
+  const { commit, currentDoc, setPreviewBodies } = changes;
   // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
   // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
   // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
@@ -32,13 +33,15 @@ export function useProposalPreview({ model, worker, changes, chatRowFiles, onNot
   const partEval = (d: StudioDoc) => engine.part(d, nextRevision(), 'agent');
   const resetForModelChange = () => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); };
   // (Only wanted to show an open proposal stale.)
-  const hashNow = useMemo(() => doc.proposals?.some(p => p.status === 'open') ? modelHash(doc) : '', [doc]);
+  const evidenceRevision = useMemo(() => doc.proposals?.some(p => p.status === 'open') ? requirementEvidenceRevision(doc) : '', [doc]);
+  const isStale = (p: Proposal) => proposalIsStale(p, evidenceRevision);
   const showProposal = async (p: Proposal, from: StudioDoc = doc) => {
     if (ghost?.id === p.id && from === doc) { setGhost(null); setPreviewBodies(null); return; }
     if (active || sketch || marker !== null) return;
     setProposalBusy(true);
     const tools = await import('@barocss/cad-model/chat/tools'), r = await tools.previewProposal({ doc: from, bodies, rowFiles: chatRowFiles.current }, p.id, partEval);
     setProposalBusy(false);
+    if (from !== currentDoc()) return;
     if ('error' in r) { setToast({ title: `${p.id} does not apply to the part as it is`, hint: r.error, detail: '' }); return; }
     setGhost({ id: p.id, bodies: r.bodies, after: true, full: r.doc, shown: r.doc, parts: tools.proposalParts(from, r.doc), leaveOut: [] }); setPreviewBodies(r.bodies);
   };
@@ -49,7 +52,7 @@ export function useProposalPreview({ model, worker, changes, chatRowFiles, onNot
     const r = await (await import('@barocss/cad-model/chat/tools')).rebaseProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval);
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} could not be rebased`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    if (!commit(r.state.doc, false)) return;
+    if (!commit(r.state.doc)) return;
     await showProposal(r.state.doc.proposals!.find(q => q.id === p.id)!, r.state.doc);
   };
   /** A feature of the shown proposal ticked or unticked: the ghost rebuilt without what is left out. */
@@ -61,6 +64,7 @@ export function useProposalPreview({ model, worker, changes, chatRowFiles, onNot
     setProposalBusy(true);
     const r = await partEval(partial.doc);
     setProposalBusy(false);
+    if (doc !== currentDoc()) return;
     if (!r.ok) { setToast({ title: `Without ${leaveOut.join(', ')} the part does not build`, hint: `${r.error.title}. ${r.error.hint}`, detail: '' }); return; }
     setGhost(g => g && { ...g, leaveOut, bodies: r.bodies, shown: partial.doc, after: true }); setPreviewBodies(r.bodies);
   };
@@ -81,9 +85,9 @@ export function useProposalPreview({ model, worker, changes, chatRowFiles, onNot
     const r = await (await import('@barocss/cad-model/chat/tools')).acceptProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval, { leaveOut });
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} could not be applied`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    if (!commit(r.state.doc, false)) return;
+    if (!commit(r.state.doc)) return;
     setGhost(null); setPreviewBodies(null);
   };
-  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next || !commit(next, false)) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } };
-  return { ghost, proposalOverlay, proposalBusy, hashNow, partEval, resetForModelChange, updateDiff, showProposal, rebaseIt, tickPart, flipGhost, acceptIt, rejectIt };
+  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next || !commit(next)) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } };
+  return { ghost, proposalOverlay, proposalBusy, evidenceRevision, isStale, partEval, resetForModelChange, updateDiff, showProposal, rebaseIt, tickPart, flipGhost, acceptIt, rejectIt };
 }

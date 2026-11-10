@@ -1,0 +1,48 @@
+{
+  "decision": "D592",
+  "parent": "d393940e3d0e6c02981e848c8761939a1d81fba4",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "804ca4b043057b8f7a8b83ce47b887ea4a9c7003be2c2895cf9da2a53408ea14",
+    "pass": ["A01", "A02", "A03", "A04", "A05"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D592_SOURCE_FROZEN=1 node test/proposal-evidence-browser.mjs <external-evidence-directory>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test proposals.test chat-merge requirement-evidence rebase-moves-ops toolset.test tool-contract", "status": "PASS", "pass": 40},
+    {"command": "pnpm --dir apps/cad-studio test cad-external tool-contract-mcp toolset-mcp chat.test", "status": "PASS", "pass": 34},
+    {"command": "node <evidence>/mutations.mjs <evidence>/mutants", "status": "PASS", "detected": 4},
+    {"command": "pnpm --dir packages/barocss-cad-model type-check && pnpm --dir apps/cad-studio type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/{chat/merge,chat/outputs,chat/part/proposals,chat/proposals,engine/schema/proposals,util/digest}.ts packages/barocss-cad-model/test/{proposals,chat-merge}.test.ts", "status": "PASS", "warnings": 1},
+    {"command": "node --check apps/cad-studio/test/proposal-evidence-browser.mjs && node apps/library-docs/scripts/agent-tools.mjs --check && git diff --check", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"}
+  ],
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "first-proposal-test.log", "observation": "Old criteria were accepted because the model hash stayed equal."},
+    {"status": "FAIL", "receipt": "first-merge-test.log", "observation": "Concurrent merge applied approval after the user rejected the proposal."},
+    {"status": "FAIL", "receipt": "first-desktop/receipt.json", "observation": "The harness counted a summary row as a requirement."},
+    {"status": "FAIL", "receipt": "final-desktop/02-rebase-keeps-approval-open.png", "observation": "Placed-part preview displayed a base-only +0 mm³ delta. D593."}
+  ],
+  "evidence": {
+    "directory": "d592-2026-11-11/final-desktop",
+    "receiptSHA256": "bc09f9da78317b06255eb92ffe7f6b6c8d72521b398ea113d0c4c54d6fa74d56",
+    "failedArtifactSHA256": "f66ef387609d54ef782621c9449f114573ec10d23d7bed9d55a2b9679d6dbf01",
+    "passedArtifactSHA256": "191f9a4b2a9728591154bc95e71fd1069e288d0503afe866f82708d98a9c2c8b",
+    "controlArtifactSHA256": ["70b4db6f63619c1c1b96f5ec2805b27e8c47a05ad8895d8eca4de2f0192e0936", "c1a6a5102ab4e1f5cf0a6a5cfe16088c4389e500687024236ec03ea20bb6edb0"],
+    "savedNativeSHA256": "37adb537927051da8cba225f099c3e217ef8634115a2857bdd194be1283eca60",
+    "sourceCapsuleSHA256": "dcfd687330130615116c5c99063dcbf3bd1288d09b52cab4685878941d929c73",
+    "evidenceRevisions": {
+      "before": "9204514ff2594276cf31ce50734e99688bb7ef9cb38edc9a26bbef78fd45f2ef",
+      "after": "39e1f6519bf4b4f41f1e8bd0bc9eff151378507875d0be248f533546481cd908"
+    },
+    "unchangedSourcePins": 305,
+    "desktopStates": 5,
+    "independentNumericChecks": 8,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["01-stale-control-occurrence", "02-rebase-keeps-approval-open", "05-reopened-user-history"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["durable defect closure", "in-place and nested occurrence evidence", "placed-index rebase breadth", "face-reference evidence", "aggregate docs", "whole kernel", "broad browser", "live providers", "mobile", "release"]
+}

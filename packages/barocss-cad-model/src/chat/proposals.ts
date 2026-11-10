@@ -10,8 +10,10 @@
 // when it is exceeded, and that is recorded. It is saved with the part — the studio says so and can strip it.
 import type { StudioDoc } from '../engine/doc';
 import type { TreeDiff } from './transactions';
-import type { Risk, HistoryEntry } from '../engine/schema/proposals';
+import type { Risk, HistoryEntry, Proposal } from '../engine/schema/proposals';
 
+/** Older or unworked proposals must be rebased to evaluate their risk against known inputs. */
+export const proposalIsStale = (proposal: Proposal, revision: string) => proposal.status === 'open' && proposal.base_evidence_revision !== revision;
 
 export const PROMPT_CHARS = 2000, PLAN_CHARS = 500, SUMMARY_CHARS = 240;
 /** The history's share of the file limit (4 MiB, CadPartLimits.fileBytes): about 400 kB. */

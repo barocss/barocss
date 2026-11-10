@@ -9,6 +9,8 @@ export interface Op { tool: string; args?: Record<string, unknown>; opId?: strin
 export interface Risk { level: 'low' | 'medium' | 'high'; features_touched: number; references_broken: number; hard_requirements_changed: string[]; approval: string[] }
 export interface ChecksDelta { before: Counts; after: Counts; newly_failing: string[]; newly_passing: string[] }
 export interface Counts { pass: number; fail: number; unknown: number }
+/** The authored report inputs immediately before and after the user applied a proposal. */
+export interface AcceptanceEvidence { before: string; after: string }
 export interface Proposal {
   id: string; title: string; status: 'open' | 'accepted' | 'rejected';
   by: { agent: string; model?: string }; at: string;
@@ -16,12 +18,14 @@ export interface Proposal {
   prompt?: string; plan?: string; requirements?: string[];
   /** The model it was made on, and the calls that make it. */
   base: string; ops: Op[];
+  /** The report revision on which the proposal was evaluated. An open proposal without it requires rebase. */
+  base_evidence_revision?: string;
   /** The feature ids in order before each op (O133): what an op's indices name, so a rebase moves them to the part as it is. */
   orders?: string[][];
   risk: Risk; checks?: ChecksDelta;
   /** One line: what it does (features added, changed, deleted; the checks' counts before → after). */
   summary: string;
-  decided?: { by: string; at: string; note?: string; model_hash?: string; left_out?: string[] };
+  decided?: { by: string; at: string; note?: string; model_hash?: string; left_out?: string[]; evidence_revisions?: AcceptanceEvidence };
   /**
    * Made again on a changed part (D41): the base it was first made on, the one before this rebase, when, and
    * the risk it had first (an agent may accept a rebase only when its risk is no higher and no hard requirement changes).
@@ -40,6 +44,8 @@ export interface HistoryEntry {
   prompt?: string; plan?: string; summary?: string; requirements?: string[];
   /** The model hash the step produced (a change, an accept). */
   model_hash?: string; proposal?: string; risk?: Risk;
+  /** For an accepted proposal, the revision pair used to match before and after requirement reports. */
+  evidence_revisions?: AcceptanceEvidence;
   /** An accept: who proposed it (its prompt, plan and requirements ride along); a rebase or accept: the base before. */
   proposed_by?: { agent: string; model?: string }; base_was?: string;
   /** For a compacted entry: how many it stands for, by kind, and their span. */

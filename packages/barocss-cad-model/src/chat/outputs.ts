@@ -11,7 +11,7 @@ import { bomPanelData, purchaseCsv } from '../bom/bom';
 import { assemblyPlacedBodies, clearanceMap } from '../team/clearanceMap';
 import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
 import { freshnessOf, requirementResults } from '../team/freshness';
-import { digestOf, sha256Hex } from '../util/digest';
+import { requirementEvidenceRevision, sha256Hex } from '../util/digest';
 import { camPackage } from '../machining/camPackage';
 import { printLayers } from '../print/layers';
 import { madeBodies } from '../engine/elements';
@@ -26,8 +26,6 @@ const file = (path: string, mime: string, data: string | Uint8Array) => {
 type Output = { content: Record<string, unknown>; summary: string } | { error: string };
 const bad = (message: string): Output => ({ error: `[OUTPUT_INPUT] ${message}` });
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
-// Evidence needs the complete authored inputs, including live direct curves and shop rows.
-const evidenceRevision = (doc: StudioDoc) => digestOf({ ...doc, proposals: undefined, history: undefined });
 
 export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult[], name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<Output> {
   const schema = OUTPUT_TOOLS.find(t => t.name === name);
@@ -48,7 +46,7 @@ export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult
   if (args.layers !== undefined && (!Array.isArray(args.layers) || args.layers.length < 1 || args.layers.length > 64 || !args.layers.every(k => Number.isInteger(k) && k >= 0) || new Set(args.layers).size !== args.layers.length)) return bad('layers must contain 1 to 64 distinct nonnegative integer indices.');
   try {
     const authoredRevision = documentRevision(doc);
-    const revision = name === 'output_requirement_evidence' ? evidenceRevision(doc) : authoredRevision;
+    const revision = name === 'output_requirement_evidence' ? requirementEvidenceRevision(doc) : authoredRevision;
     if (args.expectedRevision !== undefined && args.expectedRevision !== revision) return { error: `[OUTPUT_STALE] Expected document revision ${String(args.expectedRevision)}, current ${revision}.` };
     if (name === 'output_bom' || name === 'output_purchase_csv' || name === 'output_clearance' || name === 'output_bundle') {
       const preflight = async (source: StudioDoc, parent: StudioDoc | undefined, path: string, owner?: string): Promise<string | null> => {
@@ -82,7 +80,7 @@ export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult
       }
       const byId = new Map(requirements.map(requirement => [requirement.id, requirement]));
       if (byId.size !== requirements.length) return bad(`Part ${part} has duplicate requirement IDs.`);
-      const definitionRevision = evidenceRevision(source);
+      const definitionRevision = requirementEvidenceRevision(source);
       let evaluatedTarget = false, failedProbe = false;
       const checkedEvaluate: Evaluate = async input => {
         const result = await evaluate(input);

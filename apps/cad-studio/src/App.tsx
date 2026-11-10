@@ -852,7 +852,8 @@ export function App() {
   const pushUndo = () => { undoFor.current = { entry: { doc: docNow.current, marker: markerNow.current }, scope: replacementScope.current ?? acceptanceScope, base: doc, beforeInput: evaluatedRef.current }; };
   // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
   // `whole`: a new or opened document, nothing of the one before carried into it.)
-  const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
+  // A proposal replay uses the authored document, so its result needs no fields from the evaluated copy.
+  const commit = useCallback((next: StudioDoc, capture = true, whole = false, authored = false) => {
     if (!canChangeDocument()) return false;
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const nextFeatureIds = marker !== null ? new Set(next.nodes.map((_, i) => featureId(next.nodes, i))) : null;
@@ -860,7 +861,7 @@ export function App() {
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
-    if (!whole) next = carryOver(next, was, doc);
+    if (!whole && !authored) next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
     pushUndo();
@@ -1617,12 +1618,12 @@ export function App() {
     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
   const [failingOnly, setFailingOnly] = useState(false);
   const proposals = useProposalPreview({ model: { doc, bodies, marker, active: !!active, sketch: !!sketch }, worker: { engine, lanes, nextRevision: () => revision.current++ },
-    changes: { commit, setPreviewBodies }, chatRowFiles, onNotice: setToast });
-  const { ghost, proposalOverlay, proposalBusy, hashNow, partEval, acceptIt, rejectIt } = proposals;
+    changes: { commit: next => commit(next, false, false, true), currentDoc: () => docNow.current, setPreviewBodies }, chatRowFiles, onNotice: setToast });
+  const { ghost, proposalOverlay, proposalBusy, evidenceRevision, isStale, partEval, acceptIt, rejectIt } = proposals;
   const [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   routeContext.current = { blocked: busy || !fresh || !!parameterEdit || marker !== null || !!shownVariant.current || !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!ghost };
   useEffect(() => routeEditor.discardBlocked(), [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
-  useEffect(() => proposals.resetForModelChange(), [doc.nodes, doc.parameters]);
+  useEffect(() => proposals.resetForModelChange(), [doc.nodes, doc.parameters, evidenceRevision]);
   useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
   // (CG6: a version compared with the working document — its geometry's difference on the same overlay, version → working.)
   useEffect(() => {
@@ -2378,10 +2379,15 @@ export function App() {
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)
           if (merged) {
+            const why = merged.deferred[0]?.reason;
+            if (!merged.applied.length && !merged.proposal) {
+              if (why) setToast({ title: 'Chat turn left the document unchanged', hint: why, detail: '' });
+              return;
+            }
             if (!commit(next, true, true)) return;
             chatSelection.current = sel ?? null;
-            const n = merged.applied.length + merged.deferred.length, why = merged.deferred[0]?.reason;
-            setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `; ${merged.deferred.length} wait${merged.deferred.length > 1 ? '' : 's'} as ${merged.proposal}${why ? ` (${why})` : ''}` : ''}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
+            const n = merged.applied.length + merged.deferred.length;
+            setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `. Review ${merged.proposal}` : ''}.${why ? ` ${why}` : ''}`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
             return;
           }
           // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
@@ -2391,7 +2397,7 @@ export function App() {
           if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
         }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))}
-        proposals={doc.proposals} proposalStale={p => p.status === 'open' && p.base !== hashNow} proposalBusy={proposalBusy} onAcceptProposal={p => void acceptIt(p)} onRejectProposal={rejectIt} /></Suspense>} />
+        proposals={doc.proposals} proposalStale={isStale} proposalBusy={proposalBusy} onAcceptProposal={p => void acceptIt(p)} onRejectProposal={rejectIt} /></Suspense>} />
     </div>
   );
 }
