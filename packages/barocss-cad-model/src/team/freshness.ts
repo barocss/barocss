@@ -29,6 +29,7 @@ import { readInterfaces } from './interfaces';
 import { modelContent } from '../util/revision';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 import { isRefusal, refusal } from '../engine/refusal';
+import { nestedRequirementDoc, nestedRequirementScope } from './requirementScope';
 
 export type ResultKind = 'requirement' | 'check_spec' | 'keepout' | 'mass' | 'inertia' | 'dfm' | 'bom' | 'drawing';
 export type InputName = 'model' | 'material' | 'process' | 'interfaces' | 'references' | 'requirement' | 'requirements' | 'drafts' | 'drawing';
@@ -100,9 +101,20 @@ const partDoc = (doc: StudioDoc, part?: string) => {
   return inst ? withInstanceLooks(resolveShopTree(inst.doc, doc, part), inst) : undefined;
 };
 
+const nestedRequirementPart = (kind: ResultKind, part?: string): boolean =>
+  (kind === 'requirement' || kind === 'check_spec') && !!part?.includes('/');
+
+function resultPartDoc(doc: StudioDoc, kind: ResultKind, part?: string): StudioDoc | undefined {
+  if (!part || !nestedRequirementPart(kind, part)) return partDoc(doc, part);
+  const scope = nestedRequirementScope(doc, part);
+  return 'error' in scope ? undefined : nestedRequirementDoc(doc, scope);
+}
+
 /** A result stamped with what it read. */
 export function stamp(doc: StudioDoc, bodies: readonly BodyResult[], r: Omit<Result, 'fingerprint' | 'value' | 'number'> & { value?: unknown; number?: number | null }, o: { reads?: readonly InputName[]; faces?: readonly string[]; refs?: readonly string[] } = {}): Result {
-  const d = partDoc(doc, r.part) ?? doc, names = [...new Set([...READS[r.kind], ...(o.reads ?? [])])].sort();
+  const source = resultPartDoc(doc, r.kind, r.part);
+  if (!source && nestedRequirementPart(r.kind, r.part)) throw refusal('NO_PART', `No current part ${r.part} for requirement results.`);
+  const d = source ?? doc, names = [...new Set([...READS[r.kind], ...(o.reads ?? [])])].sort();
   const inputs: Fingerprint['inputs'] = {};
   for (const n of names) inputs[n] = inputOf(d, n, r.subject);
   const fingerprint: Fingerprint = { inputs };
@@ -117,7 +129,11 @@ export interface Unresolved { face: string; why: 'gone' | 'ambiguous' | 'renamed
 export interface Freshness { state: 'current' | 'stale' | 'unresolved'; changed: InputName[]; unresolved: Unresolved[] }
 /** A result against the document as it is: each input's digest again, each face matched again by A1's one matcher. */
 export async function freshnessOf(r: Result, doc: StudioDoc, evaluate: Evaluate): Promise<Freshness> {
-  const d = partDoc(doc, r.part), changed: InputName[] = [], unresolved: Unresolved[] = [];
+  const changed: InputName[] = [], unresolved: Unresolved[] = [];
+  const scope = r.part && nestedRequirementPart(r.kind, r.part) ? nestedRequirementScope(doc, r.part) : null;
+  if (scope && 'error' in scope)
+    return { state: 'unresolved', changed, unresolved: [{ face: r.part!, why: scope.why, candidates: [], message: scope.error }] };
+  const d = scope ? nestedRequirementDoc(doc, scope) : partDoc(doc, r.part);
   if (!d) return { state: 'unresolved', changed, unresolved: [{ face: r.part!, why: 'gone', candidates: [], message: `the part ${r.part} is gone` }] };
   for (const [n, dg] of Object.entries(r.fingerprint.inputs) as [InputName, string][]) if (inputOf(d, n, r.subject) !== dg) changed.push(n);
   const needBodies = !!r.fingerprint.faces || !!r.fingerprint.refs?.length;
@@ -208,7 +224,9 @@ function fromOutcome(o: Outcome): { status: ResultStatus; verdict?: Result['verd
 }
 /** Every requirement's verdict and the check_spec report, stamped. */
 export async function requirementResults(doc: StudioDoc, evaluate: Evaluate, run: string, part?: string): Promise<Result[]> {
-  const d = partDoc(doc, part)!, b = await bodiesOf(d, evaluate), bodies = b.ok ? b.bodies : [];
+  const d = resultPartDoc(doc, 'requirement', part);
+  if (!d) throw refusal('NO_PART', `No current part ${part} for requirement results.`);
+  const b = await bodiesOf(d, evaluate), bodies = b.ok ? b.bodies : [];
   const out: Result[] = [];
   const report = b.ok ? await checkSpec(d, bodies, evaluate) : null;
   for (const req of d.requirements ?? []) {

@@ -1,0 +1,50 @@
+{
+  "decision": "D604",
+  "parent": "942970f00509f5c4d03c53dbd811a29f12409fce",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "aae4bc69686b39ead2f73762b6d65c3197b16bb20a88c89cf133cd610a28562d",
+    "pass": ["E01", "E02", "E03", "E04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D604_SOURCE_FROZEN=1 node test/nested-requirement-scope-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence team-freshness instance-looks material-look shop-context-tools spec.test tool-contract toolset.test", "status": "PASS", "pass": 89},
+    {"command": "pnpm --dir apps/cad-studio test chat cad-external toolset-mcp tool-contract-mcp nested-selection approved-requirement-compare", "status": "PASS", "pass": 52},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit && pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/assembly/looks.ts packages/barocss-cad-model/src/team/{freshness,requirementScope}.ts packages/barocss-cad-model/src/chat/{outputDefinitions,requirementEvidence}.ts packages/barocss-cad-model/test/requirement-evidence.test.ts", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node <external>/mutations.mjs <repo> <output>", "status": "PASS", "killed": 5},
+    {"command": "node --check apps/cad-studio/test/nested-requirement-scope-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "review": [
+    {"model": "GPT-6.1 Sol Medium", "status": "APPROVE", "scope": "public output and direct-read compatibility"},
+    {"model": "GPT-6.1 Sol High", "status": "CLEAR", "scope": "local definition, effective material and supported geometry boundary"}
+  ],
+  "baseline": {
+    "receipt": "../d602-2026-11-11/first/before-mcp.jsonl",
+    "sha256": "5dd35fdbd90e83a924c14dbb654c7d701aa10b4d7df1c1a612199dd0aa4874e7",
+    "observation": "The existing MCP output explicitly refused nested paths."
+  },
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "first-model-tsc.log", "sha256": "d3769ec0f166ba04603ff87bc22346d6fa6f21453d40962624b795ef0d757843", "observation": "The unavailable-volume test did not narrow the nullable evaluator result. The final test guards for success."}
+  ],
+  "evidence": {
+    "directory": "d604-2026-11-11",
+    "receiptSHA256": "81b803d9f9b6bb68bad3d7f33454d72c74e0ec28089b8f9db7a620551dd4cfe0",
+    "sourceCapsuleSHA256": "869fe2956f1e3b93e5f673e7833c79e75fc76339916057f9b41f91fc2205afb3",
+    "savedNativeSHA256": "ace3f0beff40a7d90678ddae6850e75ce7a5e4c080525366441826a6cf4fba2f",
+    "reopenedMcpSHA256": "346f9544312c6269bbd4ba166db0adcd067f7682c24733a7a36b26a7fae2df01",
+    "oracleSHA256": "ff8d8adce72212406724d2a90c39d316bc6c4774fdfaae0573e39e9d299dfa30",
+    "mutationScriptSHA256": "2c9deecbebb4ac57c47031cff21d760c05d61e77a12f0970e6e428eb3b1c4ca6",
+    "mutationLogSHA256": "675099e2d89e05a700bfaebd85ecb0836dd06c35a57447440e0efb7febdfe067",
+    "unchangedSourcePins": 770,
+    "desktopStates": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["final/reopened-0"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["Studio nested requirement verdicts", "nested approval history", "positioned requirement measurements", "live providers", "whole browser", "whole kernel", "mobile"]
+}

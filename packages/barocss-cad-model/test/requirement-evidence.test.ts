@@ -3,12 +3,13 @@ import test from 'node:test';
 import { part, Location } from '../src/api';
 import { curvesSource } from '../src/engine/curveSource';
 import { importSource } from '../src/engine/direct';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 import type { Requirement } from '../src/engine/schema/spec';
 import { dispatchTool, type Evaluate } from '../src/chat/tools';
 import { v2Result } from '../src/chat/groups';
 import { documentRevision } from '../src/team/bundle';
+import { freshnessOf } from '../src/team/freshness';
 import { sha256Hex } from '../src/util/digest';
 
 const requirements: Requirement[] = [
@@ -76,6 +77,95 @@ test('evidence scopes same-definition occurrences and uses their material overri
   assert.deepEqual([l.part, r.part, l.verdict, r.verdict], ['p1', 'p2', 'pass', 'pass']);
   assert.ok(l.number > 0 && r.number > l.number);
   assert.equal((await read({ ...assembly, instances: [a, a] }, { part: 'p1' })).isError, true);
+});
+
+const instance = (id: string, doc: StudioDoc, looks?: PartInstance['looks']): PartInstance =>
+  ({ id, name: id, doc, position: [0, 0, 0], rotation: [0, 0, 0], ...(looks ? { looks } : {}) });
+const assembled = (...instances: PartInstance[]): StudioDoc => ({ ...emptyDoc(), instances });
+const aluminiumPlate: StudioDoc = { ...plate, brief: { version: 1,
+  material: { value: 'al6061', basis: 'stated', source: 'Aluminium 6061' },
+} };
+const updateChild = (doc: StudioDoc, at: number, change: (child: PartInstance) => PartInstance): StudioDoc =>
+  ({ ...doc, instances: doc.instances!.map((child, i) => i === at ? change(child) : child) });
+
+test('nested evidence stamps the entire path and respects root material overrides without treating colour as material', async () => {
+  const leaf = assembled(instance('p1', aluminiumPlate));
+  const inner = assembled(instance('p1', leaf));
+  const doc = assembled(instance('p1', inner, { 'p1/p1/b1': { material: 'steel' } }), instance('p2', inner));
+  const left = await report(doc, { part: 'p1/p1/p1' }), right = await report(doc, { part: 'p2/p1/p1' });
+  assert.equal(left.definitionRevision, right.definitionRevision);
+  assert.equal(left.revision, right.revision);
+  const [l, r] = [left, right].map(x => x.evidence[2].result);
+  assert.notEqual(l.id, r.id);
+  assert.deepEqual([l.part, r.part], ['p1/p1/p1', 'p2/p1/p1']);
+  assert.ok(Math.abs(l.number - 17.27) < 1e-8);
+  assert.ok(Math.abs(r.number - 5.94) < 1e-8);
+  const styled = updateChild(doc, 1, host => ({ ...host, looks: { 'p1/p1/b1': { color: '#ff9900' } } }));
+  assert.equal((await freshnessOf(r, styled, evaluate)).state, 'current');
+  const changed = updateChild(doc, 0, host => ({ ...host, looks: { 'p1/p1/b1': { material: 'al6061' } } }));
+  assert.deepEqual((await freshnessOf(l, changed, evaluate)).changed, ['material']);
+  assert.equal((await freshnessOf(r, changed, evaluate)).state, 'current');
+  const duplicate = updateChild(doc, 0, host => ({ ...host, doc: assembled(...host.doc.instances!, ...host.doc.instances!) }));
+  assert.equal((await freshnessOf(l, duplicate, evaluate)).unresolved[0].why, 'ambiguous');
+  assert.equal((await freshnessOf(r, duplicate, evaluate)).state, 'current');
+});
+
+test('nested evidence inherits ancestor shop rows with the nearest explicit override', async () => {
+  const section = (width: number) => ({ id: 'shop-section', name: 'Tube', source: 'Test drawing',
+    section: { kind: 'rect-tube' as const, width, height: 40, wall: 3, outerRadius: 0 } });
+  const member = withNode(emptyDoc(), { kind: 'frame-member', section: { kind: 'library', id: 'shop-section' }, start: [0, 0, 0], end: [100, 0, 0] });
+  const scoped = { ...member, requirements: [{ id: 'volume', source: 'Test tube volume', hard: true,
+    check: { query: { fn: 'volume' as const }, op: '==' as const, value: 44400, unit: 'mm3' } }] };
+  const inner = assembled(instance('p1', scoped));
+  const local = { ...inner, frames: { version: 1 as const, sections: [section(50)] } };
+  const doc: StudioDoc = { ...assembled(instance('p1', inner), instance('p2', local)), frames: { version: 1, sections: [section(40)] } };
+  const reports = await Promise.all(['p1/p1', 'p2/p1'].map(part => report(doc, { part })));
+  const [a, b] = reports.map(item => item.evidence[0].result);
+  assert.ok(Math.abs(a.number - (40 * 40 - 34 * 34) * 100) < 1e-7);
+  assert.ok(Math.abs(b.number - (50 * 40 - 44 * 34) * 100) < 1e-7);
+  assert.equal(a.verdict, 'pass');
+  assert.equal(b.verdict, 'fail');
+  assert.equal(scoped.frames, undefined);
+});
+
+test('nested evidence refuses unsafe scope before evaluating geometry', async () => {
+  const parent = assembled(instance('p1', aluminiumPlate)), root = assembled(instance('p1', parent));
+  const cut: StudioDoc = { ...parent, assemblyCuts: [
+    { id: 'c1', profile: { kind: 'circle', radius: 2 }, at: [5, 5, 0], dir: [0, 0, 1], depth: 'through', targets: ['p1'] },
+  ] };
+  const linked = withNode(aluminiumPlate, { kind: 'bearing', row: '6204', shaft: 0, step: 1, against: 'end',
+    housingRef: { part: 'p2', body: 'b1' }, housingClass: 'H7' });
+  const invalid: [StudioDoc, string, RegExp][] = [
+    [root, 'p1/p9', /No part/],
+    [root, 'p1//p1', /Invalid occurrence path/],
+    [assembled(instance('base', parent)), 'base/p1', /base is reserved/],
+    [assembled({ ...instance('p1', parent), hidden: true }), 'p1/p1', /hidden/],
+    [assembled(instance('p1', updateChild(parent, 0, child => ({ ...child, hidden: true })))), 'p1/p1', /hidden/],
+    [assembled(instance('p1', parent), instance('p1', parent)), 'p1/p1', /Ambiguous part/],
+    [assembled(instance('p1', cut)), 'p1/p1', /assembly cut/],
+    [assembled(instance('p1', assembled(instance('p1', parent)))), 'p1/p1', /sub-assembly/],
+    [assembled(instance('p1', assembled(instance('p1', linked)))), 'p1/p1', /linked bearing housing/],
+  ];
+  for (const [doc, part, why] of invalid) {
+    let calls = 0;
+    const result = await read(doc, { part }, async () => { calls++; return null; });
+    assert.equal(calls, 0);
+    assert.ok(result.isError && !result.changed);
+    assert.match(JSON.parse(result.content).error, why);
+    assert.equal(JSON.parse(result.content).files, undefined);
+  }
+});
+
+test('nested evidence refuses to publish a physical check without an available volume', async () => {
+  const doc = assembled(instance('p1', assembled(instance('p1', aluminiumPlate))));
+  const result = await read(doc, { part: 'p1/p1' }, async scoped => {
+    const measured = await evaluate(scoped);
+    if (!measured?.ok) throw new Error('Expected a successful nested evaluation');
+    return { ...measured, bodies: measured.bodies.map(body => ({ ...body, volume: null, massRef: undefined })) };
+  });
+  assert.ok(result.isError && !result.changed);
+  assert.match(JSON.parse(result.content).error, /OUTPUT_EVALUATION.*closed-body volume/);
+  assert.equal(JSON.parse(result.content).files, undefined);
 });
 
 test('evidence refuses stale revisions and ambiguous or malformed inputs before evaluation', async () => {

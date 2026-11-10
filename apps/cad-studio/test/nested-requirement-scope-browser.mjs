@@ -4,16 +4,14 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === undefined || mode === '--summary');
-const summaryMode = mode === '--summary';
 const pins = [
   'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/scripts/cad-mcp.mjs', 'apps/cad-studio/server/cadMcp.ts',
   'apps/cad-studio/src/ui/NestedPartPanel.tsx', 'apps/cad-studio/src/assembly/nestedSelection.ts',
   'packages/barocss-cad-model/src/engine/occurrences.ts', 'packages/barocss-cad-model/src/engine/container.ts',
   'packages/barocss-cad-model/src/chat/assembly.ts', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
-  'packages/barocss-cad-model/src/team/freshness.ts', 'packages/barocss-cad-model/src/engine/shopRows.ts',
+  'packages/barocss-cad-model/src/team/freshness.ts', 'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/engine/shopRows.ts',
   'packages/barocss-cad-model/src/assembly/looks.ts',
 ];
 const inspectorSource = String.raw`
@@ -54,13 +52,16 @@ for path, height, density, expected_verdict in [('p1/p1', 4, 2.7e-3, 'pass'), ('
     assert studio == expected
     assert local['height'] == [height, expected_verdict]
     assert math.isclose(local['mass'][0], expected * density, rel_tol=0, abs_tol=1e-8)
+    for stage in ['before', 'reopened']:
+        actual = data[stage][path]
+        assert actual['height'] == [height, expected_verdict]
+        assert math.isclose(actual['mass'][0], expected * 7.85e-3, rel_tol=0, abs_tol=1e-8)
 print(json.dumps({'status':'PASS','scopeCount':2,'volumeToleranceMm3':1e-8}))
 `;
 const f = await createFlow({
-  name: 'nested-requirement-scope', envFrozen: summaryMode ? 'D603_SOURCE_FROZEN' : 'D602_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
-  inspectorSource, oracleSource, qualification: summaryMode ? 'Nested assembly summary measured against Studio and native geometry'
-    : 'Nested occurrence identity and current read-only evidence boundary',
-  limits: ['Two authored nested leaves with a reused child ID. Evidence for a nested path currently refuses. Immediate-parent documents are positive controls, not substitutes for assembly-scoped evidence.'],
+  name: 'nested-requirement-scope', envFrozen: 'D604_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  inspectorSource, oracleSource, qualification: 'Root-scoped nested requirement evidence and desktop project Save/Open',
+  limits: ['Two authored nested leaves with a reused child ID. Requirement measurements use definition coordinates with occurrence material overrides.'],
 });
 
 const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 };
@@ -130,6 +131,7 @@ function requireRefusal(reply, pattern) {
 function rows(data) {
   return Object.fromEntries(data.evidence.filter(row => row.requirement).map(({ result, freshness }) => {
     assert.deepEqual([result.status, freshness.state, result.run], ['ok', 'current', data.revision]);
+    assert.equal(result.part ?? 'base', data.part);
     return [result.subject.toLowerCase(), [result.number, result.verdict]];
   }));
 }
@@ -205,12 +207,17 @@ await f.run(async () => {
   const [listed, root, left, right, short] = await mcp(original, 'before', [assembly, evidence('base'), ...paths.map(path => evidence(path)), evidence('p1')]);
   assert.equal(listed.error, false);
   assert.deepEqual(listed.body.instances.flatMap(i => i.parts_inside.map(p => p.path)), paths);
-  if (summaryMode) f.report.initialAssemblySummary = checkSummary(listed);
+  f.report.initialAssemblySummary = checkSummary(listed);
   const before = report(root, 'base');
   assert.deepEqual(rows(before).height, [2, 'pass']);
-  requireRefusal(left, /OUTPUT_INPUT.*No part p1\/p1/);
-  requireRefusal(right, /OUTPUT_INPUT.*No part p2\/p1/);
+  const reports = [report(left, paths[0]), report(right, paths[1])];
+  assert.ok(reports.every(item => item.revision === before.revision && item.documentRevision === before.documentRevision));
+  assert.notEqual(reports[0].definitionRevision, reports[1].definitionRevision);
+  assert.notEqual(reports[0].evidence[0].result.id, reports[1].evidence[0].result.id);
   requireRefusal(short, /OUTPUT_INPUT.*Part p1 has no requirements list/);
+  const [missing, malformed] = await mcp(original, 'bad-paths', [evidence('p1/p9'), evidence('p1//p1')]);
+  requireRefusal(missing, /OUTPUT_INPUT.*No part p1\/p9/);
+  requireRefusal(malformed, /OUTPUT_INPUT.*Invalid occurrence path/);
   const native = await f.inspect('native-leaves', {}, original);
 
   const local = {}, localRevisions = [];
@@ -228,12 +235,20 @@ await f.run(async () => {
   const [ambiguous] = await mcp(duplicate, 'ambiguous-local-host', [evidence('p1')]);
   requireRefusal(ambiguous, /OUTPUT_INPUT.*Ambiguous part p1/);
 
+  const ambiguousRoot = structuredClone(initial);
+  ambiguousRoot.instances[0].doc.instances.push(ambiguousRoot.instances[0].doc.instances[0]);
+  const ambiguousFile = join(output, 'ambiguous-root.bcad');
+  await writeFile(ambiguousFile, JSON.stringify(ambiguousRoot));
+  const [ambiguousPath, healthy] = await mcp(ambiguousFile, 'ambiguous-root', paths.map(path => evidence(path)));
+  requireRefusal(ambiguousPath, /OUTPUT_INPUT.*Ambiguous part p1\/p1/);
+  assert.deepEqual(rows(report(healthy, paths[1])), rows(reports[1]));
+
   f.phase = 'actual Studio selects the distinct leaf paths and saves a new root revision';
   await f.newPage();
   await f.openFile(original, 2);
   await f.same(initial);
   const studio = await selectLeaves('before');
-  if (summaryMode) await checkStudioBounds(f.report.initialAssemblySummary);
+  await checkStudioBounds(f.report.initialAssemblySummary);
   await f.page.keyboard.press('Escape');
   const edited = await f.setParameter('H', 3, 'root-height-edited');
   assert.deepEqual(edited.doc.instances, initial.instances);
@@ -258,20 +273,27 @@ await f.run(async () => {
   await f.openFile(savedFile, 2);
   await f.same(edited.doc);
   assert.deepEqual(await selectLeaves('reopened'), studio);
-  const [stale, current, newLeft, newRight, reopenedAssembly] = await mcp(savedFile, 'reopened', [
-    evidence('base', before.revision), evidence('base'), ...paths.map(path => evidence(path)), ...(summaryMode ? [assembly] : []),
+  const [stale, staleNested, current, newLeft, newRight, reopenedAssembly] = await mcp(savedFile, 'reopened', [
+    evidence('base', before.revision), evidence(paths[0], reports[0].revision), evidence('base'),
+    ...paths.map(path => evidence(path)), assembly,
   ]);
-  if (summaryMode) {
-    f.report.reopenedAssemblySummary = checkSummary(reopenedAssembly);
-    await checkStudioBounds(f.report.reopenedAssemblySummary);
-    await checkBrokenHost();
-  }
+  f.report.reopenedAssemblySummary = checkSummary(reopenedAssembly);
+  await checkStudioBounds(f.report.reopenedAssemblySummary);
+  await checkBrokenHost();
   requireRefusal(stale, /OUTPUT_STALE/);
-  assert.deepEqual(rows(report(current, 'base')).height, [3, 'fail']);
-  requireRefusal(newLeft, /OUTPUT_INPUT.*No part p1\/p1/);
-  requireRefusal(newRight, /OUTPUT_INPUT.*No part p2\/p1/);
-  await f.runOracle({ native, local, studio }, 'two-leaf-independent-oracle');
-  f.report.observations.push({ paths, local, studio, nestedEvidence: 'REFUSED', outerMaterialOverride: initial.instances[0].looks });
+  requireRefusal(staleNested, /OUTPUT_STALE/);
+  const newRoot = report(current, 'base');
+  assert.deepEqual(rows(newRoot).height, [3, 'fail']);
+  const reopened = [report(newLeft, paths[0]), report(newRight, paths[1])];
+  for (const [i, item] of reopened.entries()) {
+    assert.equal(item.revision, newRoot.revision);
+    assert.notEqual(item.revision, reports[i].revision);
+    assert.equal(item.definitionRevision, reports[i].definitionRevision);
+    assert.deepEqual(rows(item), rows(reports[i]));
+  }
+  const scoped = reports => Object.fromEntries(reports.map(item => [item.part, rows(item)]));
+  await f.runOracle({ native, local, studio, before: scoped(reports), reopened: scoped(reopened) }, 'two-leaf-independent-oracle');
+  f.report.observations.push({ paths, local, studio, nestedEvidence: scoped(reopened), outerMaterialOverride: initial.instances[0].looks });
   f.report.files.push({ file: original, hash: sha256(await readFile(original)) }, { file: savedFile, hash: sha256(saved) });
   assert.deepEqual(f.report.downloads, []);
 });

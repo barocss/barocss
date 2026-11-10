@@ -107,12 +107,17 @@ export function withInstanceLooks(d: StudioDoc, host: PartInstance): StudioDoc {
   return looked === host.doc ? d : { ...d, bodies: looked.bodies };
 }
 /** The part's document with only the occurrence's material overrides over it (colours and visibility left out): what a material digest reads. */
-export function materialLooksDocOf(host: PartInstance): StudioDoc {
-  const looked = looksDocOf(host);
-  if (looked === host.doc) return host.doc;
-  const bodies: Record<string, BodyLook> = { ...host.doc.bodies };
-  for (const [k, l] of Object.entries(looked.bodies ?? {})) if (l.material !== host.doc.bodies?.[k]?.material) bodies[k] = { ...host.doc.bodies?.[k], material: l.material };
-  return Object.keys(bodies).length === Object.keys(host.doc.bodies ?? {}).length && Object.keys(bodies).every(k => bodies[k] === host.doc.bodies?.[k]) ? host.doc : { ...host.doc, bodies };
+export function materialLooksDocOf(host: PartInstance, path: readonly string[] = []): StudioDoc {
+  const definition = path.length ? chainOf(host, path)?.at(-1)?.doc ?? host.doc : host.doc;
+  const looked = looksDocOf(host, path);
+  if (looked === definition) return definition;
+  let bodies = definition.bodies;
+  for (const [key, look] of Object.entries(looked.bodies ?? {})) {
+    if (look.material === definition.bodies?.[key]?.material) continue;
+    if (bodies === definition.bodies) bodies = { ...bodies };
+    bodies![key] = { ...definition.bodies?.[key], material: look.material };
+  }
+  return bodies === definition.bodies ? definition : { ...definition, bodies };
 }
 /** What of the occurrence's looks reaches the material of a nested part (the keys under a path): the materials only, for a freshness digest. */
 export const nestedMaterialLooks = (host: PartInstance): [string, string][] => Object.entries(host.looks ?? {}).filter(([k, l]) => k.includes('/') && l.material !== undefined).map(([k, l]) => [k, l.material!]);
