@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D587 — read, revise and reopen a constrained part](notes/b09-editable-consumer-2026-11-11/README.md).
 - [D586 — execute and recover a two-worker CAD run](notes/local-task-run-2026-11-11/README.md).
 - [D585 — commit one verified candidate per accepted revision](notes/candidate-atomicity-2026-11-11/README.md).
 - [D584 — bind native tasks to a design specification](notes/spec-task-contract-2026-11-11/README.md).

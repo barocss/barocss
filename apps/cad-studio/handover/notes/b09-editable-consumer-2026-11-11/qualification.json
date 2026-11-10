@@ -1,0 +1,63 @@
+{
+  "decision": "D587",
+  "parent": "867b333c2d3a57e1e47e9d8cac650c3884ed509a",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "matrix": {
+    "version": "B09-v1",
+    "sha256": "db1d38f4aecafb3805d2fa8df30d83dedad8e9550f11c2ae274f6bcb9831cc68",
+    "pass": ["A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09"],
+    "fail": ["A01"],
+    "continuation": "Typed Model sketch seed"
+  },
+  "commands": [
+    {
+      "command": "pnpm --dir apps/cad-studio test cad-external batch-changes-mcp tool-contract-mcp toolset-mcp candidates.test candidate-atomicity.test task-run-cli",
+      "status": "PASS",
+      "pass": 37,
+      "fail": 0
+    },
+    {
+      "command": "pnpm --dir packages/barocss-cad-model test sketch-rectangle-driving-retention sketch-reopen-parameters parameters.test proposals.test task-plan task-execution bom-base",
+      "status": "PASS",
+      "pass": 85,
+      "fail": 0
+    },
+    {
+      "command": "pnpm --dir apps/cad-studio type-check && pnpm --dir packages/barocss-cad-model type-check",
+      "status": "PASS"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/b09-editable-consumer-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && D587_SOURCE_FROZEN=1 node test/b09-editable-consumer-browser.mjs <external-evidence-directory>",
+      "status": "PASS",
+      "scope": "Typed-seed continuation and expected A01 refusal",
+      "browser": "Desktop Chrome WebGPU at 1440 × 1000",
+      "desktopStates": 7,
+      "nativeOracleStages": 5
+    }
+  ],
+  "evidence": {
+    "directory": "d587-2026-11-11/studio-release-candidate",
+    "receiptSHA256": "122dcb59425757aec68329c588eb275f9d33042d96e704b2506590f559d32ca2",
+    "savedNativeSHA256": "5e4bb90c37af41cc22015f0610c13b558b402642caaa2d6ca190c5ed4fc7a254",
+    "bomSHA256": "bff71d2c2d1176ac774889d76792bc86fca32e5a4aa171be2a3dc7bc6d0edb9b",
+    "documentRevision": "e42fe7ccf216cb1dce8b7587db48e1be423dd3f525cad0fc7eaacd575aed60f0",
+    "unchangedSourcePins": 947,
+    "sourceCapsuleSHA256": "e4ea7d27d7d728425267853a236b110f83f0772651f182071b7247e4b6567e34",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"],
+    "visualReview": ["02-preview-keeps-eight", "07-fresh-open-ten"]
+  },
+  "findings": {
+    "directOutlineAuthoring": "FAIL",
+    "standaloneBomMaterial": "FAIL",
+    "standaloneBomMassG": 5.061
+  },
+  "notRun": ["full kernel", "broad browser suite", "other sketch families", "external provider", "mobile", "release"]
+}
