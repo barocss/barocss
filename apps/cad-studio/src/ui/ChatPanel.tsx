@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
@@ -54,7 +54,7 @@ export interface ChatPanelProps {
   taskRun?: {
     reopened?: TaskRunLaunch;
     sourceKey(): string | undefined;
-    export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
+    export(plan: SavedTaskRunPlan): Promise<void>;
     start(plan: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
@@ -345,7 +345,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   return <>
     {plan && <>
       <ul>{plan.offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
-      {!plan.replaces && <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan.offer, plan.sourceKey)}>Export task run</button>}
+      {(!plan.replaces || result?.replacement) && <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan)}>Export task run</button>}
       {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : plan.replaces ? 'Start replacement' : repair ? 'Start repair' : 'Start local run'}</button>}
     </>}
     {startBlocked && !result && <div role="status">Check the saved working model and prepare the repair again.</div>}
@@ -377,6 +377,14 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
           {typeof working === 'object' && working.taskId === task.id && working.action === 'replan' ? 'Preparing…' : 'Prepare replacement'}
         </button>}
       </li>)}</ul>
+      {result.replacement && <details>
+        <summary>Replacement provenance</summary>
+        <div>Previous task {result.replacement.previous.taskId} · Attempt {result.replacement.previous.pin.attemptId}</div>
+        <div>Run revision {result.replacement.previous.revision}</div>
+        <code>{result.replacement.previous.runId}</code>
+        <div>Accepted model SHA-256 <code>{result.replacement.acceptedSHA256}</code></div>
+        <div>Task input digest <code>{result.replacement.inputDigest}</code></div>
+      </details>}
       {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval}
         workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval}
         prepareRepair={isLocalTaskRunHost(window.location.hostname) ? actions.prepareWorkingRepair : undefined}

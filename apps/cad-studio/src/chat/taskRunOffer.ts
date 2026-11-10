@@ -40,6 +40,12 @@ export interface TaskRunReplanSelection extends TaskRunBaselineRequest {
   pin: TaskRunReplanPin;
 }
 
+export interface TaskRunReplacementProvenance {
+  previous: TaskRunReplanSelection;
+  acceptedSHA256: string;
+  inputDigest: string;
+}
+
 export interface TaskRunRebuildRequest extends TaskRunBaselineRequest {
   revision: number;
   taskId: string;
@@ -67,6 +73,7 @@ export interface TaskRunStatus extends TaskRunLocator {
   revision: number;
   baselineDigest: string;
   checkpoint?: TaskRunCheckpointPin;
+  replacement?: TaskRunReplacementProvenance;
   approvals?: TaskRunCheckpointPin[];
   tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin; rebuild?: string; replan?: TaskRunReplanPin }[];
 }
@@ -106,6 +113,17 @@ function isTaskRunReplanPin(value: unknown): value is TaskRunReplanPin {
     && label(value.feature) && (value.field === 'height' || value.field === 'width');
 }
 
+export function isTaskRunReplanSelection(value: unknown): value is TaskRunReplanSelection {
+  return isObj(value) && Object.keys(value).length === 6 && isTaskRunLocator(value)
+    && hash(value.baselineDigest) && label(value.taskId) && isTaskRunReplanPin(value.pin)
+    && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0;
+}
+
+export function isTaskRunReplacementProvenance(value: unknown): value is TaskRunReplacementProvenance {
+  return isObj(value) && Object.keys(value).length === 3 && isTaskRunReplanSelection(value.previous)
+    && hash(value.acceptedSHA256) && hash(value.inputDigest);
+}
+
 export function matchesTaskRunReplan(status: TaskRunStatus, selection: TaskRunReplanSelection): boolean {
   if (status.runKey !== selection.runKey || status.runId !== selection.runId || status.revision !== selection.revision ||
       status.baselineDigest !== selection.baselineDigest) return false;
@@ -119,13 +137,15 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
     || (value.phase !== 'active' && value.phase !== 'paused' && value.phase !== 'stopped')
     || !Array.isArray(value.tasks) || !isLocalTaskCount(value.tasks.length)) return false;
-  const { checkpoint, approvals, tasks } = value;
+  const { checkpoint, approvals, tasks, replacement } = value;
   return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
     && (task.replan === undefined || (value.phase === 'active' && task.phase === 'stale' && isTaskRunReplanPin(task.replan)))
     && (task.rebuild === undefined || (value.phase === 'active' && task.phase === 'stale' && label(task.rebuild)))
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
+    && (replacement === undefined || (isTaskRunReplacementProvenance(replacement)
+      && replacement.previous.runId !== value.runId && tasks.length === 1 && tasks[0].id === replacement.previous.pin.occurrence))
     && new Set(tasks.map(task => task.id)).size === tasks.length
     && (checkpoint === undefined || (isTaskRunCheckpointPin(checkpoint)
       && tasks.some(task => task.id === checkpoint.taskId && task.phase === 'completed')))

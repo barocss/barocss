@@ -114,7 +114,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
 
   const withTaskRunHandoff = async <T>(offer: TaskRunOffer, sourceKey: string, action: string,
-    use: (handoff: Uint8Array, file: string) => T) => {
+    use: (handoff: Uint8Array, file: string) => T, replaces?: TaskRunReplanSelection) => {
     if (sessionBlocked(action)) return;
     const scope = currentOpenScope(), sourceDoc = docNow.current, token = saveDocumentToken.current, name = fileNameNow.current;
     const current = () => isOpenCurrent(scope) && saveDocumentToken.current === token && docNow.current === sourceDoc && fileNameNow.current === name;
@@ -124,7 +124,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       const source = await project.readTaskSource(sourceKey);
       if (!current() || !source.current()) return;
       const { encodeTaskRunHandoff } = await import('./taskRunHandoff');
-      const handoff = await encodeTaskRunHandoff(offer, source.bytes);
+      const handoff = await encodeTaskRunHandoff(offer, source.bytes, replaces);
       if (!current() || !source.current()) return;
       await source.verify();
       if (current() && source.current()) return use(handoff, name + TASK_RUN_HANDOFF_EXT);
@@ -133,10 +133,10 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
-  const exportTaskRun = async (offer: TaskRunOffer, sourceKey: string) => {
+  const exportTaskRun = async ({ offer, sourceKey, replaces }: SavedTaskRunPlan) => {
     try {
       await withTaskRunHandoff(offer, sourceKey, 'exporting a task run',
-        (handoff, file) => downloadBytes(handoff, file, 'application/octet-stream'));
+        (handoff, file) => downloadBytes(handoff, file, 'application/octet-stream'), replaces);
     } catch (error) {
       setToast({ title: 'Could not export task run', hint: error instanceof Error ? error.message : String(error), detail: '' });
     }
@@ -144,25 +144,22 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
 
   const startTaskRun = async ({ offer, sourceKey, replaces }: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined> => {
     if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
-    if (replaces) {
-      const owner = captureImportOwner();
-      await requireCurrentReplacement(replaces);
-      if (!owner.isCurrent()) return;
-    }
     return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
       const value = await localTaskRunJSON('start', new Blob([handoff as BlobPart]));
       const { directory, reused } = value;
       if (typeof directory !== 'string' || typeof reused !== 'boolean' || !isTaskRunStatus(value))
         throw new Error('The local task run service returned an invalid result.');
+      if (digestOf(value.replacement?.previous ?? null) !== digestOf(replaces ?? null))
+        throw new Error('The local task run returned different replacement provenance.');
       return { ...value, directory, reused };
-    });
+    }, replaces);
   };
 
   const checkedRunStatus = (run: TaskRunLocator & { revision: number }, value: unknown): TaskRunStatus => {
     if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
       throw new Error('The local task run service returned a different or older run status.');
-    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = value;
-    return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement } = value;
+    return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement };
   };
 
   const refreshTaskRun = async (run: TaskRunLocator & { revision: number }): Promise<TaskRunStatus> =>

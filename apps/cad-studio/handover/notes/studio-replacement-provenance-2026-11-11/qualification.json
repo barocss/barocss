@@ -1,0 +1,151 @@
+{
+  "decision": "D633",
+  "tier": "FULL interface",
+  "baseCommit": "a43fd1963defe2a15eec5d519f955a697e4fc33a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d633-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio replacement provenance and fresh Open",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D633_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --provenance",
+      "receiptSHA256": "d0e3b44ab1f6a795ddfea5ce26427ace71e17eeb01aba0ecce7639dbf82b40c4",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "provenance": {
+          "previous": {
+            "runKey": "20044e277bdde6969ac83b01af007331fc5f49fc1a88fff79063cdee4c940236",
+            "runId": "local-height:80351ef2-e094-4c84-b45a-aae47b83c45b",
+            "revision": 9,
+            "baselineDigest": "91f29008af8ed0016bad72f58b7bfb61d2e8368cfced520ddf339b4ae46e0d02",
+            "taskId": "p2",
+            "pin": {
+              "attemptId": "2:2:p2",
+              "occurrence": "p2",
+              "feature": "n1",
+              "field": "height"
+            }
+          },
+          "acceptedSHA256": "de5980bea4f628610ad5edd00daed0c532a5445ca21540877929aded5648547a",
+          "inputDigest": "39a9bc60c1d3be0d438f8f949b0b5a4e3d402b52bc8384e6f91b86eee925848f"
+        },
+        "reopenedRunId": "local-height:1a2a2419-3900-44cb-8381-c7d47e2994d6",
+        "rejectedWrongAttempt": true,
+        "originalAndReplacementRecordsUnchangedByReopen": true,
+        "workingModelPreserved": true
+      }
+    },
+    {
+      "label": "Desktop Studio owned baseline regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D630_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-baseline\" --baseline",
+      "receiptSHA256": "3e8c45fc9ce64b049ee5c2ac7a050b4c0d04556ff06ac39f9ed1c8783b8471b7",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop Studio stale rebuild regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D631_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-rebuild\" --rebuild",
+      "receiptSHA256": "dcf5f48299c97ca480c5988405d7ee9adac4073e0484fdc388c41fb6c99182af",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent provenance and native checkpoint reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/provenance-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "ec10327a0a1c43180ad1ea9e01c9a30fda2ebf095de1872bc0bf5955bdf83350",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "checksummedNativeInputs": 2,
+        "publishedRuns": 2,
+        "verifiedAttempt": "2:2:p2",
+        "previousAcceptedSHA256": "de5980bea4f628610ad5edd00daed0c532a5445ca21540877929aded5648547a",
+        "replacementSourceSHA256": "53618ad2e1420f456e64f81c878d9b3d559d1fb18ec792075cd0e612b398f4f3",
+        "finalSHA256": "ac1385ed850709919e7809af946a2f74725c922090fcfe8eed2fd5cb197458b8"
+      }
+    },
+    {
+      "label": "CLI refuses replacement without local service admission",
+      "result": "PASS",
+      "command": "node apps/cad-studio/scripts/cad-cli.mjs task-run start \"$EVIDENCE/cli-refused-run\" --handoff \"$EVIDENCE/desktop-final/replacement.bcad-task\"",
+      "expectedExitCode": 1,
+      "runDirectoryCreated": false
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 177,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Replacement export button file write",
+    "Desktop width replacement",
+    "Dependent replacement",
+    "Cross-host transfer",
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

@@ -1,5 +1,5 @@
 ---
-work_id: D632
+work_id: D633
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -201,7 +201,9 @@ D631 rebuilds a stale independent candidate from its Studio run card. Desktop ve
 
 D632 prepares an independent replacement for a stale task from one revised saved dimension. Desktop and independent native checks confirm that the old attempt cannot publish and the earlier accepted sibling stays intact. [D632](../studio-replan-stale-task-2026-11-11/README.md).
 
-Next MAIN is D633 / P0 automation, B09 follow-up, rows 04, 12 and 16. Retain a verifiable link from a replacement run to the exact stale task and attempt. Reopen the replacement in a fresh Studio session and verify that its provenance remains readable without changing the original run. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D633 records the original task, attempt, accepted native file SHA-256 and task input digest on a replacement run. Studio reopens the approved replacement in a fresh session with that provenance. [D633](../studio-replacement-provenance-2026-11-11/README.md).
+
+Next MAIN is D634 / P0 automation, B09 follow-up, rows 04, 10 and 16. Exercise the shared-interface conflict in the #2402 two-part pilot. Verify that an incompatible candidate or stale interface input cannot replace the accepted assembly, and that Studio still opens the exact accepted model. [#2399](https://github.com/barocss/barocss/issues/2399) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

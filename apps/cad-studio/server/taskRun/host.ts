@@ -13,6 +13,7 @@ import {
 } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan, type BoundTask, type TaskPlan, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf } from '@barocss/cad-model/util/digest';
+import type { TaskRunReplacementProvenance } from '../../src/chat/taskRunOffer';
 import { TaskRunStore, RunStoreError, type RunLimits, type RunOperation, type RunRecord, type RunState, type RunTask, type TaskAttempt, type WritePoint } from './store';
 
 export interface WorkerTicket {
@@ -119,7 +120,7 @@ function recoverState(record: RunRecord): RunState {
 export class TaskRunHost {
   private readonly controllers = new Map<string, AbortController>();
   private constructor(private readonly store: TaskRunStore, private readonly evaluate: Evaluate, private doc: StudioDoc, private plan: TaskPlan) {}
-  static async create(directory: string, runId: string, doc: StudioDoc, request: TaskPlanRequest, limits: RunLimits, limit: number, evaluate: Evaluate, afterWrite?: (point: WritePoint) => void) {
+  static async create(directory: string, runId: string, doc: StudioDoc, request: TaskPlanRequest, limits: RunLimits, limit: number, evaluate: Evaluate, afterWrite?: (point: WritePoint) => void, replacement?: TaskRunReplacementProvenance) {
     if (![1, 2].includes(limits.concurrent) || !positiveInt(limits.attemptsPerTask) || !positiveInt(limits.reservation)
       || !positiveInt(limits.leaseTicks) || !positiveInt(limits.timeoutMs) || limits.timeoutMs > 0x7fffffff || !positiveInt(limit)) {
       throw new Error('Invalid local run limits.');
@@ -131,7 +132,7 @@ export class TaskRunHost {
       limits: bounded, budget: { limit, used: 0, unknown: 0 }, operations: [],
       tasks: plan.tasks.map(task => ({ id: task.id, phase: 'ready', attempts: 0 })),
     };
-    return new TaskRunHost(TaskRunStore.create(path, runId, source, state, afterWrite), evaluate, source, plan);
+    return new TaskRunHost(TaskRunStore.create(path, runId, source, state, afterWrite, replacement), evaluate, source, plan);
   }
   static async open(directory: string, evaluate: Evaluate, afterWrite?: (point: WritePoint) => void, guard?: (record: RunRecord) => void) {
     const store = TaskRunStore.open(directory, afterWrite, guard);

@@ -9,7 +9,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { TaskCandidate, TaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
-import type { TaskRunTaskPhase } from '../../src/chat/taskRunOffer';
+import { isTaskRunReplacementProvenance, type TaskRunReplacementProvenance, type TaskRunTaskPhase } from '../../src/chat/taskRunOffer';
 import type { NativeRef, TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import type { CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 
@@ -76,6 +76,7 @@ export interface RunRecord {
   state: RunState;
   pending?: CommitIntent & { base: NativeRef; controlRevision: number; priorPhase: TaskPhase };
   commits: CommitReceipt[];
+  replacement?: TaskRunReplacementProvenance;
 }
 export type WritePoint = 'native-durable' | 'record-durable';
 interface Owner { epoch: number; pid: number; id: string }
@@ -168,6 +169,10 @@ function recordAt(directory: string): RunRecord {
     || !count(record.state.budget?.limit) || !count(record.state.budget?.used) || !count(record.state.budget?.unknown)) {
     return issue('RUN_CORRUPT', 'The run state has an invalid shape.');
   }
+  if (record.replacement !== undefined && (!isTaskRunReplacementProvenance(record.replacement) ||
+      record.replacement.previous.runId === record.runId || record.state.tasks.length !== 1 ||
+      record.state.tasks[0]?.id !== record.replacement.previous.pin.occurrence))
+    return issue('RUN_CORRUPT', 'The replacement provenance is invalid.');
   const seen = new Set<string>();
   let previous: NativeRef | undefined;
   for (const receipt of record.commits) {
@@ -256,7 +261,7 @@ export class TaskRunStore {
   private notifying = false;
   private constructor(private readonly directory: string, private readonly owner: Owner, private readonly afterWrite?: (point: WritePoint) => void) {}
 
-  static create(directory: string, runId: string, doc: StudioDoc, state: RunState, afterWrite?: (point: WritePoint) => void): TaskRunStore {
+  static create(directory: string, runId: string, doc: StudioDoc, state: RunState, afterWrite?: (point: WritePoint) => void, replacement?: TaskRunReplacementProvenance): TaskRunStore {
     if (!id(runId) || runId.length > 120) issue('RUN_CORRUPT', 'Invalid run name.');
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     directory = realpathSync(directory);
@@ -270,7 +275,7 @@ export class TaskRunStore {
       mkdirSync(store.objects, { recursive: true, mode: 0o700 });
       syncDirectory(directory);
       const accepted = store.writeNative(doc);
-      store.writeRecord({ version: 1, runId: runId + ':' + randomUUID(), epoch: store.owner.epoch, revision: 0, accepted, state, commits: [] });
+      store.writeRecord({ version: 1, runId: runId + ':' + randomUUID(), epoch: store.owner.epoch, revision: 0, accepted, state, commits: [], ...(replacement && { replacement }) });
       return store;
     } catch (error) {
       store.closeAfterError();

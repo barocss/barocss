@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { sha256 } from './flow-helper.mjs';
 import { taskRunTerminal } from './task-run-status-flow.mjs';
 
 const endpoint = '/api/chat/task-runs/';
 
-export async function taskRunReplanFlow({ f, row, launch, open, requests, runRoot }) {
+export async function taskRunReplanFlow({ f, row, launch, open, openFile, requests, runRoot, provenanceMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const button = (parent, name) => parent.getByRole('button', { name, exact: true });
   const original = button(row, 'Prepare replacement for p2');
@@ -74,7 +75,9 @@ export async function taskRunReplanFlow({ f, row, launch, open, requests, runRoo
   await f.snapshot('22-prepared-replacement');
 
   f.phase = 'start and review the replacement while preserving the prior run';
-  const started = await (await request('start', button(replacement, 'Start replacement'))).json();
+  const start = await request('start', button(replacement, 'Start replacement'));
+  const started = await start.json();
+  const handoff = start.request().postDataBuffer();
   assert.notEqual(started.runId, launch.runId);
   assert.deepEqual(started.tasks.map(task => [task.id, task.phase]), [['p2', 'awaiting-decision']]);
   assert.equal(requests.length, initialPosts + 1);
@@ -107,4 +110,72 @@ export async function taskRunReplanFlow({ f, row, launch, open, requests, runRoo
   await f.snapshot('24-approved-replacement');
   f.report.observations.push({ selectedOccurrence: 'p2', oldTargetMm: 4, revisedTargetMm: 5, earlierRunUnchanged: true,
     retiredApprovalRefused: true, unsavedAndChangedSiblingRefused: true, explicitStarts: 1, finalHeightsMm: [6, 5] });
+
+  if (provenanceMode) {
+    f.phase = 'verify server admission and reopen the durable replacement provenance';
+    const stored = JSON.parse(before.bytes).record;
+    const priorTask = stored.state.tasks.find(task => task.id === 'p2');
+    const expected = {
+      previous: { runKey: launch.runKey, runId: launch.runId, revision: stale.revision,
+        baselineDigest: stale.baselineDigest, taskId: 'p2', pin: stale.tasks[1].replan },
+      acceptedSHA256: stored.accepted.sha256,
+      inputDigest: priorTask.attempt.inputDigest,
+    };
+    assert.deepEqual(started.replacement, expected);
+    const acceptedRecord = await readFile(file);
+    assert.deepEqual(JSON.parse(acceptedRecord).record.replacement, expected);
+    const names = (await readdir(runRoot)).sort();
+    const origin = new URL(f.page.url()).origin;
+    const invalid = await f.page.request.post(origin + endpoint + 'start', {
+      headers: { origin, 'x-barocss-task-run': 'start', 'content-type': 'application/octet-stream' },
+      data: rewriteAttempt(handoff),
+    });
+    assert.equal(invalid.status(), 409);
+    assert.match((await invalid.json()).error, /stale task changed/);
+    assert.deepEqual((await readdir(runRoot)).sort(), names);
+
+    await writeFile(join(f.output, 'replacement.bcad-task'), handoff);
+    await f.newPage();
+    const unrelated = structuredClone(base);
+    unrelated.instances[0].doc.nodes[1].height = 8;
+    await open('unrelated-working-model.bcad', unrelated);
+    const [response] = await Promise.all([
+      f.page.waitForResponse(response => new URL(response.url()).pathname === endpoint + 'reopen'),
+      openFile('replacement.bcad-task', handoff),
+    ]);
+    assert.equal(response.status(), 200);
+    const reopened = await response.json();
+    assert.equal(reopened.runId, started.runId);
+    assert.equal(reopened.reused, true);
+    assert.deepEqual(reopened.replacement, expected);
+    const card = f.page.getByRole('region', { name: 'Reopened task run', exact: true });
+    await card.getByText('Replacement provenance', { exact: true }).click();
+    await card.getByText('Previous task p2 · Attempt ' + expected.previous.pin.attemptId, { exact: true }).waitFor();
+    await card.getByText(expected.previous.runId, { exact: true }).waitFor();
+    await card.getByText(expected.acceptedSHA256, { exact: true }).waitFor();
+    await card.getByText(expected.inputDigest, { exact: true }).waitFor();
+    await f.same(unrelated);
+    await request('status', button(card, 'Refresh local run status'));
+    await card.getByText(expected.inputDigest, { exact: true }).waitFor();
+    await f.snapshot('25-reopened-replacement-provenance');
+    assert.equal(requests.length, initialPosts + 1);
+    assert.deepEqual(await readFile(file), acceptedRecord);
+    assert.deepEqual(await readDurable(), before);
+    assert.deepEqual((await readdir(runRoot)).sort(), names);
+    f.report.observations.push({ provenance: expected, reopenedRunId: reopened.runId, rejectedWrongAttempt: true,
+      originalAndReplacementRecordsUnchangedByReopen: true, workingModelPreserved: true });
+  }
+}
+
+function rewriteAttempt(bytes) {
+  const length = bytes.readUInt32LE(8), prefix = Buffer.from(bytes.subarray(0, 12));
+  const envelope = JSON.parse(bytes.subarray(12, 12 + length));
+  envelope.receipt.replaces.pin.attemptId = 'unrecognized-attempt';
+  const canonical = value => JSON.stringify(value, (_key, entry) =>
+    entry && typeof entry === 'object' && !Array.isArray(entry)
+      ? Object.fromEntries(Object.keys(entry).sort().map(key => [key, entry[key]])) : entry);
+  envelope.digest = sha256(canonical(envelope.receipt));
+  const header = Buffer.from(JSON.stringify(envelope));
+  prefix.writeUInt32LE(header.length, 8);
+  return Buffer.concat([prefix, header, bytes.subarray(12 + length)]);
 }

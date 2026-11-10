@@ -1,6 +1,9 @@
+import { encodeStudioFile } from '@barocss/cad-model/engine/container';
+import { sha256Hex } from '@barocss/cad-model/util/digest';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import type { TaskRunReplacementProvenance, TaskRunReplanSelection } from '../../src/chat/taskRunOffer';
 import { readTaskRunHandoff } from '../../src/files/taskRunHandoff';
 import { TaskRunHost } from './host';
 import { deriveLocalRunPlan } from './localPlan';
@@ -8,6 +11,7 @@ import type { RunLimits, RunRecord } from './store';
 import { threadWorker } from './thread';
 
 interface LocalTaskRun {
+  replaces?: TaskRunReplanSelection;
   doc: StudioDoc;
   config: { name: string; plan: TaskPlanRequest; limits: RunLimits; budget: number };
   tasks: { id: string; valueMm: number; field: 'height' | 'width' }[];
@@ -20,9 +24,11 @@ export function localRunTargets(targets: ReturnType<typeof deriveLocalRunPlan>['
 }
 
 export async function prepareTaskRunHandoff(bytes: Uint8Array) {
-  const { doc, offer, sourceSHA256 } = await readTaskRunHandoff(bytes);
+  const { doc, offer, sourceSHA256, replaces } = await readTaskRunHandoff(bytes);
+  if (replaces && sha256Hex(encodeStudioFile(doc)) !== sourceSHA256)
+    throw new Error('Save the exact native model again before starting the replacement.');
   const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences);
-  return { doc, config, tasks: localRunTargets(config.targets) };
+  return { doc, config, offer, replaces, tasks: localRunTargets(config.targets) };
 }
 
 export function localRunStatus(record: RunRecord) {
@@ -59,11 +65,12 @@ export async function dispatchInitialTasks<Task, Outcome>(
   return outcomes;
 }
 
-export async function startLocalTaskRun(directory: string, { doc, config, tasks }: LocalTaskRun) {
+export async function startLocalTaskRun(directory: string, { doc, config, tasks, replaces }: LocalTaskRun, replacement?: TaskRunReplacementProvenance) {
+  if (replaces && !replacement) throw new Error('Start this replacement from the original local Studio run.');
   let revision = 0;
   const evaluate = async (model: StudioDoc) => evaluatePart(model, ++revision);
   const worker = new URL('./taskRunWorker.mjs', import.meta.url);
-  const host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate);
+  const host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate, undefined, replacement);
   try {
     const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), field + '-mm:' + valueMm);
     const outcomes = await dispatchInitialTasks(tasks, config.limits.concurrent, run);

@@ -9,8 +9,9 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
+import { planWorkingTaskReplacement } from '../../src/files/workingTaskReplacement';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { TaskRunHost } from './host';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
@@ -80,16 +81,17 @@ function syncDirectory(path: string) {
 
 type PreparedHandoff = Awaited<ReturnType<typeof prepareTaskRunHandoff>>;
 
-function handoffRunKey({ config, tasks }: PreparedHandoff) {
-  return digestOf({ source: config.sourceSHA256, occurrences: tasks.map(task => task.id).sort() });
+function handoffRunKey({ config, tasks, replaces }: PreparedHandoff) {
+  return digestOf({ source: config.sourceSHA256, occurrences: tasks.map(task => task.id).sort(), ...(replaces && { replaces }) });
 }
 
-function inspectHandoffRun(directory: string, runKey: string, { config, tasks }: PreparedHandoff, reused: boolean): TaskRunLaunch {
+function inspectHandoffRun(directory: string, runKey: string, { config, tasks, replaces }: PreparedHandoff, reused: boolean): TaskRunLaunch {
   const record = TaskRunStore.inspect(directory);
   const source = record.commits[0]?.from ?? record.accepted;
   const scopes = (plan: typeof config.plan) => plan.tasks.map(({ id, occurrence, feature, capability, units, frame }) =>
     ({ id, occurrence, feature, capability, units, frame })).sort((a, b) => a.id.localeCompare(b.id));
-  if (source.modelDigest !== config.modelDigest
+  if ((replaces && source.sha256 !== config.sourceSHA256) || source.modelDigest !== config.modelDigest
+    || digestOf(record.replacement?.previous ?? null) !== digestOf(replaces ?? null)
     || digestOf(record.state.plan.identity) !== digestOf(config.plan.identity)
     || digestOf(scopes(record.state.plan)) !== digestOf(scopes(config.plan))
     || digestOf(record.state.tasks.map(task => task.id).sort()) !== digestOf(tasks.map(task => task.id).sort()))
@@ -110,6 +112,26 @@ function reopenLocalTaskRun(root: string, prepared: PreparedHandoff): TaskRunLau
   }
 }
 
+async function verifyReplacement(root: string, { replaces, doc, offer }: PreparedHandoff): Promise<TaskRunReplacementProvenance | undefined> {
+  if (!replaces) return;
+  const { runKey, runId, baselineDigest } = replaces;
+  const baseline = readLocalTaskBaseline(root, { runKey, runId, baselineDigest });
+  const original = await readStudioFile(baseline.bytes);
+  if ('error' in original || original.notes.length || digestOf(original.doc) !== baselineDigest)
+    throw new LocalRunRequestError(409, 'The original local run baseline cannot be verified.');
+  try {
+    if (digestOf(planWorkingTaskReplacement(original.doc, doc, replaces.pin)) !== digestOf(offer))
+      throw new Error('The replacement targets do not match the revised model.');
+  } catch (error) {
+    throw new LocalRunRequestError(409, error instanceof Error ? error.message : 'The replacement plan is invalid.');
+  }
+  const record = readOwnedTaskRun(root, replaces);
+  const task = record.state.tasks.find(task => task.id === replaces.taskId);
+  if (!task?.attempt || record.accepted.sha256 !== baseline.sha256 || !matchesTaskRunReplan(taskRunStatus(runKey, record), replaces))
+    throw new LocalRunRequestError(409, 'The stale task changed. Refresh the local run before replanning.');
+  return { previous: replaces, acceptedSHA256: record.accepted.sha256, inputDigest: task.attempt.inputDigest };
+}
+
 async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Promise<TaskRunLaunch> {
   const key = handoffRunKey(prepared);
   root = resolve(root);
@@ -121,20 +143,20 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Prom
     syncDirectory(parent);
   }
   const directory = join(privateRoot, key);
-  try { mkdirSync(directory, { mode: 0o700 }); }
-  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; }
-  privateDirectory(directory);
-  syncDirectory(privateRoot);
-
-  const inspect = (reused = true) => inspectHandoffRun(directory, key, prepared, reused);
+  const inspect = (reused = true) => inspectHandoffRun(privateDirectory(directory), key, prepared, reused);
   try { return inspect(); }
   catch (error) {
     if (error instanceof LocalRunRequestError) throw error;
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
       throw new LocalRunRequestError(409, `Could not read the existing local run. Check ${directory}.`);
   }
+  const replacement = await verifyReplacement(privateRoot, prepared);
+  try { mkdirSync(directory, { mode: 0o700 }); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; }
+  privateDirectory(directory);
+  syncDirectory(privateRoot);
   try {
-    await startLocalTaskRun(directory, prepared);
+    await startLocalTaskRun(directory, prepared, replacement);
     return inspect(false);
   }
   catch (error) {
@@ -163,6 +185,7 @@ function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
   return { runKey, runId: record.runId, phase: record.state.phase, revision: record.revision,
     baselineDigest: record.accepted.modelDigest, checkpoint: checkpointPin(record),
     ...(approvals.length ? { approvals } : {}),
+    ...(record.replacement && { replacement: record.replacement }),
     tasks: record.state.tasks.map(task => ({
       id: task.id, phase: task.phase, reason: task.reason, review: reviewPin(record, task.id), rebuild: rebuildPin(record, task),
       replan: replanPin(record, task),
