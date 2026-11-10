@@ -1,6 +1,7 @@
 import type { TaskRunCheckpointRequest } from '../chat/taskRunOffer';
 import { modelHash } from '@barocss/cad-model/chat/spec';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import { compileTaskPlan, taskDimensionEdit, type BoundTask, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
@@ -28,6 +29,13 @@ export interface CheckpointReview {
   taskId: string;
   revision: number;
   proposalId: string;
+  occurrence: {
+    feature: string;
+    kind: 'sketch' | 'extrude';
+    definition?: PartInstance['part'];
+    pattern?: PartInstance['pattern'];
+    approvalAt: string;
+  };
   before: RequirementEvidence;
   approved: RequirementEvidence;
 }
@@ -129,7 +137,12 @@ export async function verifyTaskCheckpoint(checkpoint: NonNullable<Awaited<Retur
   const approved = result.after, rows = approved?.evidence.filter(row => row.requirement?.hard) ?? [];
   if (!approved || !rows.length || rows.some(row => !isCurrentRequirement(row, part, comparison.revisions.after) || row.result.verdict !== 'pass'))
     return refusal('The accepted task requirements did not pass the current native checks.');
-  const { taskId, revision, proposalId } = receipt;
-  const review: CheckpointReview = { taskId, revision, proposalId, before: result.before, approved };
+  const { taskId, revision, proposalId, scope } = receipt;
+  const instance = checkpoint.doc.instances?.find(instance => instance.id === part);
+  const approvalAt = checkpoint.doc.proposals?.find(proposal => proposal.id === proposalId)?.decided?.at;
+  if (!instance || !approvalAt) return refusal('The approved occurrence or decision is missing.');
+  const occurrence: CheckpointReview['occurrence'] = { feature: scope.feature,
+    kind: scope.field === 'width' ? 'sketch' : 'extrude', definition: instance.part, pattern: instance.pattern, approvalAt };
+  const review: CheckpointReview = { taskId, revision, proposalId, occurrence, before: result.before, approved };
   return { ...checkpoint, checks: rows.length, review };
 }

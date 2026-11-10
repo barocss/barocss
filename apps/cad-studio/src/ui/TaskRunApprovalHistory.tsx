@@ -1,11 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import { sameTaskRunCheckpoint, type TaskRunCheckpointPin, type TaskRunCheckpointRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { CheckpointApprovalChecks } from '../storage/ApprovedRequirementChecks';
 
 type ApprovalView = { pin: TaskRunCheckpointPin; review?: CheckpointReview; error?: string };
 
-export function TaskRunApprovalHistory({ run, read }: {
+interface WorkingReviewProps {
+  workingVersion: object;
+  checkWorking(review: CheckpointReview, current: () => boolean): Promise<WorkingApprovalChecks | undefined>;
+}
+
+function ApprovalChecks({ review, workingVersion, checkWorking }: WorkingReviewProps & { review: CheckpointReview }) {
+  const [check, setCheck] = useState<{ version: object; result?: WorkingApprovalChecks }>();
+  const pending = useRef<AbortController | undefined>(undefined);
+  useEffect(() => () => pending.current?.abort(), [workingVersion]);
+
+  async function inspectWorking() {
+    pending.current?.abort();
+    const controller = new AbortController();
+    pending.current = controller;
+    const current = () => !controller.signal.aborted;
+    setCheck({ version: workingVersion });
+    try {
+      const result = await checkWorking(review, current);
+      if (current()) setCheck({ version: workingVersion, result: result ?? { error: 'Check the working model again.' } });
+    } catch {
+      if (current()) setCheck({ version: workingVersion, result: { error: 'Could not check the working model.' } });
+    }
+  }
+
+  const selected = check?.version === workingVersion ? check : undefined;
+  const result = selected?.result;
+  return <>
+    <CheckpointApprovalChecks review={review} historical working={result && !('error' in result) ? result : undefined} />
+    <button className="ghost" type="button" disabled={!!selected && !result} onClick={() => void inspectWorking()}>
+      Check working model
+    </button>
+    {check && <div role="status">{!selected ? 'Working model changed. Check again.'
+      : !result ? 'Checking working model…' : 'error' in result ? result.error : null}</div>}
+  </>;
+}
+
+export function TaskRunApprovalHistory({ run, read, ...working }: WorkingReviewProps & {
   run: TaskRunStatus;
   read(request: TaskRunCheckpointRequest, current: () => boolean): Promise<CheckpointReview | undefined>;
 }) {
@@ -38,7 +75,7 @@ export function TaskRunApprovalHistory({ run, read }: {
         </button>
       </li>)}
     </ol>
-    {shown?.review ? <CheckpointApprovalChecks review={shown.review} historical />
+    {shown?.review ? <ApprovalChecks key={shown.pin.operationId} review={shown.review} {...working} />
       : shown && <div role="status">{shown.error ?? 'Checking approved task…'}</div>}
   </details>;
 }

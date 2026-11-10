@@ -14,6 +14,7 @@ import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
 import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
+import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
@@ -56,6 +57,8 @@ export interface ChatPanelProps {
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
+    workingVersion: object;
+    checkWorkingApproval(review: CheckpointReview, current: () => boolean): Promise<WorkingApprovalChecks | undefined>;
     readApproval(request: TaskRunCheckpointRequest, current: () => boolean): Promise<CheckpointReview | undefined>;
     review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
     modelViewBlocked: boolean;
@@ -303,7 +306,8 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
           title={actions.modelViewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
           onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
       </li>)}</ul>
-      {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval} />}
+      {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval}
+        workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval} />}
       <code title={result.directory}>{result.directory}</code>
     </div>}
   </>;

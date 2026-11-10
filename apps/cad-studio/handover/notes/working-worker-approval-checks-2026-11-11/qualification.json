@@ -1,0 +1,118 @@
+{
+  "decision": "D626",
+  "tier": "FULL interface",
+  "baseCommit": "90ede38e65aa2cdd938a576e3fd1354824643e17",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d626-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio historical and working checks",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D626_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --working",
+      "receiptSHA256": "08e48586fd13325dd1a266eb97c7fa40566c3f49082b833693a5bf312c231f5a",
+      "pinnedSources": 798,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "historicalMm": [
+          3,
+          5
+        ],
+        "currentPassMm": 5,
+        "currentFailMm": 7,
+        "revisions": [
+          "e0358cfe34a0df47c2cfeca58bc3e6799026771ebc9721aea1c6f82b09ea19e2",
+          "22b1d7589ee65717bc70d0dc9d6540763f4c881b525d0cae3d09cdc0eb5554aa",
+          "efb00748dd8edcda6c52b4581e368cb34e379789241b3cd1262a8a36c1c98cd9"
+        ],
+        "changedCriterionFlagged": true,
+        "lateWorkerRepliesRetired": 2,
+        "unrelatedSameOccurrenceKeyRefused": true
+      }
+    },
+    {
+      "label": "Desktop Studio two-task and historical checkpoint regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-two\" --width",
+      "receiptSHA256": "b85a6447d527e04449b793af4587f59a933eda53c0462a550cdea3024e08ed58",
+      "pinnedSources": 798,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run"
+    },
+    {
+      "label": "Independent working and historical input reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/working-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "6a57ee9b96dd28cb3a95609b7f69b23af6a8eef5db3d63970d7787afa843c570",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "approvedMm": 5,
+        "currentMm": 7,
+        "changedTargetMm": 7,
+        "verifiedRevisionHashes": 3
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence approved-requirement",
+      "pass": 38,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 174,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Nested occurrences and persistent identity across arbitrary external edits"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

@@ -1,5 +1,5 @@
 ---
-work_id: D625
+work_id: D626
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -187,7 +187,9 @@ D624 schedules three independent dimension tasks with two worker slots and one w
 
 D625 adds the Studio run card approval history. Desktop verifies the three immutable native pairs, revision-bound checks, request refusals and preserved working edit with Undo/Redo. [D625](../../notes/studio-worker-approval-history-2026-11-11/README.md).
 
-Next MAIN is D626 / P0 automation, B09 follow-up, rows 04, 12 and 16. Compare the selected historical approval with a fresh check on the current working occurrence. Preserve the historical verdict, flag an unavailable or changed requirement, and refuse a late result after a working edit or document replacement. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D626 adds the working-occurrence check to approval history. Desktop verifies a current failure, a changed criterion and two late Worker replies while the approval results stay fixed. [D626](../../notes/working-worker-approval-checks-2026-11-11/README.md).
+
+Next MAIN is D627 / P0 automation, B09 follow-up, rows 04, 12 and 16. Run one scoped repair task when only one placed occurrence has an unmet stated dimension. Use the saved working revision and the existing local planner, native verification and terminal approval. Verify Studio can publish and recheck the repaired part while the other occurrences retain their prior values. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

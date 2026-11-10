@@ -21,6 +21,7 @@ import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, ver
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
+import { readWorkingApprovalChecks } from './workingApprovalChecks';
 import { localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
 import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
   type TaskRunCheckpointRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
@@ -250,6 +251,18 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     return (await verifyCheckpoint(bytes, current, request))?.review;
   };
 
+  const checkWorkingApproval = async (review: CheckpointReview, selected: () => boolean) => {
+    const owner = captureImportOwner(), snapshot = docNow.current;
+    const current = () => selected() && owner.isCurrent() && snapshot === docNow.current;
+    try {
+      const result = await readWorkingApprovalChecks(snapshot, review,
+        doc => current() ? engine.part(doc, nextRevision(), 'read') : Promise.resolve(null));
+      if (current()) return result;
+    } catch (error) {
+      if (current()) throw error;
+    }
+  };
+
   const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
     if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
     const requireView = () => {
@@ -404,5 +417,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, checkWorkingApproval, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

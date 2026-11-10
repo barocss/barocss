@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D626 — compare an approved task with the working occurrence](notes/working-worker-approval-checks-2026-11-11/README.md).
 - [D625 — inspect worker approval history in Studio](notes/studio-worker-approval-history-2026-11-11/README.md).
 - [D624 — run three independent local CAD tasks](notes/three-occurrence-local-run-2026-11-11/README.md).
 - [D623 — edit rectangular profile width in a local worker run](notes/local-rectangle-width-task-2026-11-11/README.md).
