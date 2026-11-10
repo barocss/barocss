@@ -1,0 +1,44 @@
+{
+  "decision": "D591",
+  "parent": "80e34148f13dcab5cac7d64e7e2c2190327d1659",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "fe0e209a5bcd701dbd675f7b70ea7de4c4e65d328d56e4d1919a5575c89b966f",
+    "pass": ["E01", "E02", "E03", "E04", "E05"],
+    "fail": []
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D591_SOURCE_FROZEN=1 node test/requirement-evidence-browser.mjs <external-evidence-directory>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence tool-contract toolset.test team-freshness spec.test api-curve-feature-pattern", "status": "PASS", "pass": 56},
+    {"command": "pnpm --dir apps/cad-studio test cad-external tool-contract-mcp toolset-mcp", "status": "PASS", "pass": 11},
+    {"command": "node <evidence>/mutations.mjs <evidence>", "status": "PASS", "detected": 6},
+    {"command": "pnpm --dir packages/barocss-cad-model type-check && pnpm --dir apps/cad-studio type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/{outputs,outputDefinitions,contract,groups}.ts packages/barocss-cad-model/test/{requirement-evidence,tool-contract}.test.ts", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/requirement-evidence-browser.mjs && node apps/library-docs/scripts/agent-tools.mjs --check", "status": "PASS"},
+    {"command": "pnpm --dir apps/library-docs test:samples", "status": "PASS", "pass": 185},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "pnpm --dir apps/library-docs check:docs", "status": "FAIL", "scope": "Inherited refusal table and API inventory differences recorded in D590"}
+  ],
+  "evidence": {
+    "directory": "d591-2026-11-11/final-desktop",
+    "receiptSHA256": "94b960ec0324ba097518d86034921c2650140dd4efaa7f63fcfeecd4e9957224",
+    "failedArtifactSHA256": "6555849196478244de6f8a21474f10147bbda74dd5bf99c4a579e2989c64981d",
+    "passedArtifactSHA256": "c7a2e0e7910b9f3d71b56fd07a9eceef41535308d3732b9599b72a980378b7cd",
+    "savedNativeSHA256": "de7a37eec3699490a890d9e62038d36b12dc862a4cce8a6cb167f72aedb89e56",
+    "evidenceRevisions": [
+      "8f1e916096199fd06fa2eb273a13e7939372917ec3cb9d590fb81f1c40bd0c38",
+      "99650b060d7d043091a250035cd84f5625a49cdf29a018536f82cf6cfd9a07eb"
+    ],
+    "unchangedSourcePins": 305,
+    "sourceCapsuleSHA256": "6b8395deadbf091fc72363b574645be9e47d609d7cfcdfadf0eaea153564de0a",
+    "desktopStates": 4,
+    "independentNativeStates": 2,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["01-accepted-failure", "04-reopened-pass"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["durable defect resolution", "proposal approval-linked evidence", "nested occurrence selection", "broad checker coverage", "whole kernel", "broad browser", "live providers", "mobile", "release"]
+}

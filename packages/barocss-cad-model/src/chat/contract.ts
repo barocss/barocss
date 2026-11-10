@@ -24,6 +24,7 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
 const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
 const READ: Record<string, JsonSchema | null> = {
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_requirement_evidence: o({ revision: str, files: arr }, ['revision', 'files']),
   output_purchase_csv: o({ revision: str, files: arr }, ['revision', 'files']),
   output_clearance: o({ revision: str, files: arr }, ['revision', 'files']),
   output_cam_package: o({ revision: str, files: arr }, ['revision', 'files']),

@@ -34,6 +34,23 @@ A session from `samples/agent-mcp.test.mjs`:
 
 <<< @/../samples/agent-mcp.test.mjs#l2
 
+### Read requirement evidence for a saved revision
+
+Call the `requirements` tool with `{"action":"evidence"}` to read the base part. Pass `part` for an exact
+top-level occurrence ID. The checks use the selected part's local coordinates and apply its occurrence
+material overrides.
+
+The response contains `requirement-evidence.json` with its byte count and SHA-256. The file keeps authored
+source and confirmation data separate from the check result and its freshness. Use the returned
+`revision` as `expectedRevision` in a later call to require the same authored inputs. A mismatch refuses
+the report. The evidence revision includes the full authored inputs except the document's proposal and design
+history logs. The report also gives the standard `documentRevision`. The file's SHA-256 verifies the report
+bytes. A current pass requires a matching evidence revision, an `ok` result with a `pass` verdict, and
+`current` freshness.
+
+The local MCP server reads its document when the session starts. Start a fresh session on the saved file
+after Studio makes a change. Open proposals stay separate from the measurements in this report.
+
 ## cad-cli: scripts and checks
 
 ```bash

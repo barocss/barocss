@@ -80,7 +80,8 @@ The brief (the part's intent), the locked reference bodies it must fit (datums, 
 |---|---|---|
 | `requirements.set` | `set_requirements` | requirements: [{id, source, hard?, check}], replace? |
 | `requirements.check` | `check_spec` | validate? — every check against the part |
-| `requirements.brief` | `set_brief` | fields: {purpose \| process \| material \| …: {value, basis, source?, why?} \| null} — the intent, before the checks |
+| `requirements.evidence` | `output_requirement_evidence` | part?, expectedRevision? — pinned report |
+| `requirements.brief` | `set_brief` | fields — authored design intent |
 | `requirements.gaps` | `get_brief` | — the brief, its gaps and what it applies |
 | `requirements.references` | `get_references` | — the locked reference bodies, their faces, datums and keep-outs |
 | `requirements.reference` | `add_reference` | name, step \| mesh, at? — a locked reference body |

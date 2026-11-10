@@ -86,11 +86,12 @@ test('every read tool’s result matches its output schema and changes nothing',
   // (The output tools, through the dispatcher: a plate, a placed part on the document's stock, an approved baseline.)
   const evalDoc = async (d: StudioDoc) => evaluateDoc(d, 1), plate = rectanglePart(20, 15, 4);
   const stocked: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [{ id: 'shop', kind: 'block', size: [30, 25, 10], source: 'a test stock' }] }, instances: [{ id: 'p1', name: 'plate', doc: plate, position: [0, 0, 0], rotation: [0, 0, 0], grounded: true }] };
+  const checked: StudioDoc = { ...plate, requirements: [{ id: 'height', source: '4 mm high', hard: true, check: { query: { fn: 'bbox', axis: 'z' }, op: '==', value: 4 } }] };
   const pe = await evalDoc(plate); assert.ok(pe.ok);
   const looked = withLook(plate, pe.bodies[0], { material: 'al6061' }), view = await bomView(looked, evalDoc), draft = draftBaseline(looked, deriveBom(view), view);
   const review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('test'));
   const approved = (await moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('test'), evalDoc)).doc;
-  for (const [name, d, args] of [['output_bom', plate, {}], ['output_purchase_csv', plate, { withMade: true }], ['output_clearance', plate, {}], ['output_print_layers', plate, { layerHeight: 1 }], ['output_cam_package', stocked, { part: 'p1' }], ['output_bundle', approved, {}]] as [string, StudioDoc, object][]) {
+  for (const [name, d, args] of [['output_bom', plate, {}], ['output_requirement_evidence', checked, {}], ['output_purchase_csv', plate, { withMade: true }], ['output_clearance', plate, {}], ['output_print_layers', plate, { layerHeight: 1 }], ['output_cam_package', stocked, { part: 'p1' }], ['output_bundle', approved, {}]] as [string, StudioDoc, object][]) {
     const out = await dispatchTool({ doc: d, bodies: [] }, name, args, evalDoc);
     assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.equal(out.state.doc, d, `${name}: the document as it was`);
     assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
