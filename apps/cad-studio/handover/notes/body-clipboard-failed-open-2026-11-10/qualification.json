@@ -1,0 +1,66 @@
+{
+  "workId": "D559",
+  "parent": "d86e8dd7c0b77131d5a46559aa5a4ec7a7f966e6",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d559-2026-11-10"
+  },
+  "driverSha256": "0b8145ec4c42d79b1f81cc773b1a83b3247d6f5b6018a296e7de21dffeb21be9",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6",
+    "apps/cad-studio/src/files/useStudioDocumentFiles.ts": "45df5d8c11d8f7418b7e3fe17008d5c6cf8f996dedd462fb9d06c1cb20a9cb3a",
+    "apps/cad-studio/src/files/documentFile.ts": "08d77cecaef81bbf214726ddf066642c9fa66936076f7bf38fb57b7c2f9ee454",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d",
+    "packages/barocss-cad-model/src/engine/container.ts": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc",
+    "packages/barocss-cad-model/src/engine/migrate.ts": "e647a06a0c2edb56a1f925c89e802655da6c69992d1b2b75eb1fa913c0fe39e8"
+  },
+  "inputs": {
+    "05-malformed-refused": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+    "06-newer-schema-refused": "7683d87f4d5ad540d31fcb7e6bed637072f45aadafc8fa892d96e3175e2d71b1"
+  },
+  "physicalOracle": {
+    "size": [
+      12,
+      13,
+      14
+    ],
+    "volume": 2184,
+    "absoluteTolerance": 1e-09,
+    "firstPasteOffsetX": 22,
+    "nudgeOffsetX": 23,
+    "nextPasteOffsetX": 44,
+    "finalCentroidX": [
+      6,
+      28,
+      50
+    ]
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-failed-open-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D559_SOURCE_FROZEN=1 node test/body-clipboard-failed-open-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 12.76,
+    "snapshots": 13,
+    "physicalJoins": 4,
+    "frozenPins": 299,
+    "receiptSha256": "b1f1c5bd4bbdf28c0132502967b75aa500d74006b7bb83544f9f0b8687f67d49",
+    "ownedPID": 92887,
+    "chromePID": 92897
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

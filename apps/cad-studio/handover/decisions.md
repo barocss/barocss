@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D559 — verify clipboard and history after native Open refusals](notes/body-clipboard-failed-open-2026-11-10/README.md).
+
 - [D558 — preserve selection and Paste spacing during refused pending edits](notes/body-clipboard-pending-2026-11-10/README.md).
 
 - [D557 — extract Studio document file actions and qualify the desktop file lifecycle](notes/studio-document-files-2026-11-10/README.md).
