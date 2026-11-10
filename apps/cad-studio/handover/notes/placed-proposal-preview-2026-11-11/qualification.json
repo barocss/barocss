@@ -1,0 +1,42 @@
+{
+  "decision": "D593",
+  "parent": "6e2f7b53f9497c841d7f4d8c0e4d8f1fbeae10a6",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "a5a192a1c1b4f823ccd6a7eea312739acbb83fb59e173f2b1ffccca143c67c5b",
+    "pass": ["V01", "V02", "V03"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D593_SOURCE_FROZEN=1 node test/placed-proposal-preview-browser.mjs <output> <D592-pending.bcad> <D591-accepted-11.bcad>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test assembly-cut nested-selection instance-looks instance-pose viewport-recovery cad-external", "status": "PASS", "pass": 62},
+    {"command": "pnpm --dir packages/barocss-cad-model test proposals.test rebase-moves-ops requirement-evidence", "status": "PASS", "pass": 20},
+    {"command": "pnpm --dir apps/cad-studio type-check && pnpm --dir packages/barocss-cad-model type-check", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/placed-proposal-preview-browser.mjs && git diff --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "first-desktop/receipt.json",
+    "sha256": "00d62146a4f7577598e884528f4a3577a6b6ef11cfb7582f2a348d311ebbf4fe",
+    "observation": "The viewport kept both 11 mm placements and showed +0 mm³ after Preview."
+  },
+  "evidence": {
+    "directory": "d593-2026-11-11/final-desktop-verified",
+    "receiptSHA256": "993e5e86808db075a220ae35bb94e46be3f2cfcaa3f04399f9f704edae028063",
+    "sourceCapsuleSHA256": "42c7710ba122ccc79e54a2c9b374bffc61e08c819630867eef768aaca0fd86e8",
+    "assemblyInputSHA256": "e3ebc44a72e03f8e95944246ebdd55b1c7de23d01b73cfbaab21864041e1f5e1",
+    "baseInputSHA256": "83e0b09dcfc08cca1954165f6508f132ea5ab1e9f34dad0b36d6d3e60ce3171b",
+    "unchangedSourcePins": 295,
+    "desktopStates": 6,
+    "independentPlacedStates": 4,
+    "volumeDeltaMM3": -200,
+    "boundsToleranceMM": 0.000001,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["01-proposal-after", "02-proposal-before", "06-placement-unavailable"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["motion, section and render combinations", "whole assembly authoring", "nested occurrence evidence", "whole kernel", "broad browser", "live providers", "mobile", "release"]
+}

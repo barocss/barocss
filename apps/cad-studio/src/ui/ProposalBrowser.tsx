@@ -10,22 +10,28 @@ interface ProposalBrowserProps {
   bodies: BodyResult[];
   fresh: boolean;
   massReady: boolean;
+  placedPreviewEnabled: boolean;
   decidedShown: boolean;
   setDecidedShown: Dispatch<SetStateAction<boolean>>;
 }
 const volumeOf = (list: readonly BodyResult[]) => list.reduce((s, b) => s + (b.volume ?? 0), 0);
-export function ProposalBrowser({ controller, doc, bodies, fresh, massReady, decidedShown, setDecidedShown }: ProposalBrowserProps) {
+export function ProposalBrowser({ controller, doc, bodies, fresh, massReady, placedPreviewEnabled, decidedShown, setDecidedShown }: ProposalBrowserProps) {
   const { ghost, proposalBusy, isStale, showProposal, rebaseIt, tickPart, flipGhost, acceptIt, rejectIt } = controller;
   return <>{!!doc.proposals?.length && <div className="chat-proposals" role="list" aria-label="Proposals"><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
           <ToolIconButton size="tiny" state={decidedShown ? 'on' : 'idle'} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></ToolIconButton></div>
         {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
-          const shown = ghost?.id === p.id, stale = isStale(p), dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
+          const shown = ghost?.id === p.id, stale = isStale(p), base = volumeOf(bodies);
+          const placed = shown ? ghost.placed : null;
+          const problem = placed?.kind === 'unavailable' ? placed.reason : placed && !placedPreviewEnabled ? 'Placed preview is unavailable in the current view.' : null;
+          const delta = placed?.kind === 'ready' ? placed.volumeChange : 0;
+          const dv = shown && delta !== null ? volumeOf(ghost.bodies) - base + delta : null;
           return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
             <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
             <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''}{p.risk.approval.length ? ` · needs you (${p.risk.approval.join(', ')})` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
             {p.plan && <div className="proposal-plan">{p.plan}</div>}
-            {shown && fresh && !massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">…</span></div>}
-            {shown && fresh && massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
+            {shown && fresh && (problem ? <div className="muted proposal-dv">{problem}</div>
+              : <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{!massReady ? '…' : dv === null ? 'unavailable'
+                : `${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv))} mm³${!placed && base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}`}</span></div>)}
             {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
               <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
               <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}

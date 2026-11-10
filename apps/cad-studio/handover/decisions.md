@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D593 — preview geometry at the affected placement](notes/placed-proposal-preview-2026-11-11/README.md).
 - [D592 — link Studio approval to requirement evidence](notes/proposal-approval-evidence-2026-11-11/README.md).
 - [D591 — read requirement evidence for a saved revision](notes/requirement-evidence-artifact-2026-11-11/README.md).
 - [D590 — author a two-length rectangle from the CLI](notes/cli-constrained-rectangle-2026-11-11/README.md).

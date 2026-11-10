@@ -62,7 +62,7 @@ import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
-import { instanceEvaluationSources } from './viewport/instanceEvaluation';
+import { instanceEvaluationSources, withPlacedProposalBodies } from './viewport/instanceEvaluation';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
@@ -1617,7 +1617,7 @@ export function App() {
   const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning, specStale } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
   const [failingOnly, setFailingOnly] = useState(false);
-  const proposals = useProposalPreview({ model: { doc, bodies, marker, active: !!active, sketch: !!sketch }, worker: { engine, lanes, nextRevision: () => revision.current++ },
+  const proposals = useProposalPreview({ model: { doc, bodies, instances: instanceBodies, marker, active: !!active, sketch: !!sketch }, worker: { engine, lanes, nextRevision: () => revision.current++ },
     changes: { commit: next => commit(next, false, false, true), currentDoc: () => docNow.current, setPreviewBodies }, chatRowFiles, onNotice: setToast });
   const { ghost, proposalOverlay, proposalBusy, evidenceRevision, isStale, partEval, acceptIt, rejectIt } = proposals;
   const [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
@@ -1906,6 +1906,15 @@ export function App() {
   const instancesLooked = useMemo(() => instancesDrawn.map(it => { const looks = instanceLooks.get(it.id); return looks ? { ...it, looks } : it; }), [instancesDrawn, instanceLooks]);
   // (Roadmap 10 ⑥: the parts the shown step has not introduced yet are left out of the view — display only, the document is untouched.)
   const instancesStepped = useMemo(() => stepsDisp?.hidden.size ? instancesLooked.filter(it => !stepsDisp.hidden.has(it.id)) : instancesLooked, [instancesLooked, stepsDisp]);
+  const placedPreviewEnabled = !section && !rendering && !drawing && !cutDraft && !instDrag && !assembly.draft && !stepsDisp && !cageEd.session && !sketch && !active;
+  const placedProposal = placedPreviewEnabled && ghost?.after && ghost.placed?.kind === 'ready' ? ghost.placed.bodies : undefined;
+  const viewportInstances = useMemo(() => withPlacedProposalBodies(instancesStepped, placedProposal), [instancesStepped, placedProposal]);
+  const viewportPlacements = useMemo(() => withPlacedProposalBodies(instancesPlaced, placedProposal), [instancesPlaced, placedProposal]);
+  const viewportPicking = placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
+    const id = args[0].instance;
+    if (id && placedProposal.has(id)) return;
+    picking.onPick(...args);
+  } } : picking;
   const steppedSelection = useMemo(() => { const own = stepsDisp ? [...litSelection(viewportInstanceSel, stepsDisp.hidden)] : viewportInstanceSel; return stepsDisp?.highlight.length ? [...new Set([...own, ...stepsDisp.highlight])] : own; }, [viewportInstanceSel, stepsDisp]);
 
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
@@ -2236,7 +2245,7 @@ export function App() {
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
-        poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView}
+        poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced: viewportPlacements, cpuInstanceSection }} liveSection={sectionLiveView}
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
         bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection}
@@ -2248,7 +2257,7 @@ export function App() {
         annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays}
         pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })}
-        offsets={animatedOffsets} transforms={dragTransforms} instances={instancesStepped} clearance={clearanceDisplay}
+        offsets={animatedOffsets} transforms={dragTransforms} instances={viewportInstances} clearance={clearanceDisplay}
         isolatedInstances={displayScopeReason ? undefined : stepsDisp?.opaque ?? isolatedInstances}
         clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined}
         mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay}
@@ -2256,7 +2265,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={picking} sketchActions={sketchViewportActions} onCursor={onCursor}
+        picking={viewportPicking} sketchActions={sketchViewportActions} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
@@ -2373,7 +2382,7 @@ export function App() {
           Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
       <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
-        proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
+        proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
