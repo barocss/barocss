@@ -9,7 +9,7 @@ import { useSectionDisplay } from './viewport/useSectionDisplay';
 import { useAnalysisMaps } from './viewport/useAnalysisMaps';
 import { useClearancePreview, useManufacturingPreviews, usePmiPreview } from './viewport/useWorkspacePreviews';
 import { ViewDisplayControls } from './ui/ViewDisplayControls';
-import { isImportedFile, openImportedFile } from './files/importedFile';
+import { useStudioDocumentFiles } from './files/useStudioDocumentFiles';
 import { FeatureHistoryBar } from './ui/FeatureHistoryBar';
 import { FeatureHistoryMenu } from './ui/FeatureHistoryMenu';
 import { useRenderPlayback } from './viewport/useRenderPlayback';
@@ -30,7 +30,6 @@ import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
 import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
 import { SelectionInspector } from './ui/SelectionInspector';
-import { useMeshImport } from './files/useMeshImport';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
@@ -41,7 +40,6 @@ import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepa
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
 import { StepExportPanel } from './files/StepExportPanel';
-import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './files/documentFile';
 import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
 import { bandEdit, bandRemove } from './app/bandControls';
@@ -59,7 +57,6 @@ import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@ba
 import { Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
-import { currentDocumentSave } from './state/saveOwnership';
 import type { OpenScope } from './state/openOwnership';
 import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
@@ -72,7 +69,6 @@ import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skel
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { modelHash } from '@barocss/cad-model/chat/spec';
-import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { type BodyResult, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { signaturesOf, type Signature } from '@barocss/cad-model/engine/rematch';
@@ -161,7 +157,7 @@ const withPatterns = (d: StudioDoc): StudioDoc => d.instancePatterns?.length ? e
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from '@barocss/cad-model/chat/names';
 import { duplicateBody } from '@barocss/cad-model/chat/features';
-import { defaultDrawing, readDrawing, type DrawingSettings } from '@barocss/cad-model/drawing/types';
+import { defaultDrawing, type DrawingSettings } from '@barocss/cad-model/drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed } from '@barocss/cad-model/robot/ccd';
@@ -199,7 +195,7 @@ import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import { directNow, loadDirect } from '@barocss/cad-model/engine/directModule';
 import { FontUpload } from './app/fontUpload';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
-import { defaultRender, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { defaultRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes } from './ui/files';
 import { useBottomRow, HISTORY_LEFT, HISTORY_LEFT_RAIL } from './ui/useBottomRow';
 import { useFitChips } from './ui/useFitChips';
@@ -223,8 +219,6 @@ const ChatPanel = lazy(() => import('./ui/ChatPanel').then(m => ({ default: m.Ch
 const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({ default: m.DrawingWorkspace })));
 const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
 type ReferenceLabelOwner = { doc: StudioDoc; model: StudioDoc };
-/** What Open reads, said when it is given another kind of file. */
-const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
@@ -1547,29 +1541,6 @@ export function App() {
     if (!askDiscard && sessionChanged(s, docNow.current)) { setAskDiscard(true); return; }
     leaveInPlace(s, s.assembly, false);
   };
-  // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
-  // recovery copy and its blobs go.)
-  const writeFile = (d: StudioDoc, name: string) => {
-    try { writeDocumentFile(d, name); return true; }
-    catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
-  };
-  // (A copy still offered keeps its blobs: Restore can still bring it back.)
-  const save = () => {
-    if (sessionBlocked('saving')) return;
-    // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
-    if (project.view.store) {
-      const savedDoc = doc, owner = { token: saveAcceptanceScope, doc: savedDoc, name: fileNameNow.current };
-      void project.save(savedDoc, owner.name, () => {
-        if (!currentDocumentSave(owner, saveDocumentToken.current, docNow.current, fileNameNow.current)) return;
-        setDirty(false); clearRecovery();
-      });
-      return;
-    }
-    if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recovery?.doc ?? null);
-  };
-  /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
-  const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
-  // A mesh file waiting for its unit, and opening it as a part in that unit.
   // (A sheet's bend table from a file (R12.4, D120): checked, then set on the sheet feature its body starts from.)
   const loadBendTable = async (b: BodyResult, file?: File) => {
     if (!file) return;
@@ -1586,24 +1557,17 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const captureImportOwner = () => {
-    const scope = openIntent.current, dispatch = saveDocumentToken.current, session = workerSessionNow.current;
-    return { isCurrent: () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && workerSessionNow.current === session };
-  };
-  const fitImportedLater = () => {
-    const accepted = captureImportOwner();
-    setTimeout(() => { if (accepted.isCurrent()) viewport.current?.fit(); }, 300);
-  };
-  const openedImport = (next: StudioDoc, name: string) => {
-    if (!openAccepted(inPlaceNow.current)) { sessionBlocked('opening an import'); return false; }
-    replaceDoc(next); if (docNow.current !== next) return false;
-    setFileName(name); setDirty(true); fitImportedLater(); return true;
-  };
-  const meshImport = useMeshImport({ doc, engine, captureOwner: captureImportOwner,
-    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); },
-    nextRevision: () => revision.current++, onNotice: setToast, onOpened: openedImport, onCommit: commit });
+  const { open, save, saveShared, meshImport, editRepair } = useStudioDocumentFiles({
+    document: { doc, docNow, fileName, fileNameNow, recoveryDoc: recovery?.doc ?? null, project },
+    ownership: { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked,
+      canOpenImport: () => openAccepted(inPlaceNow.current) },
+    worker: { engine, workerSessionNow, nextRevision: () => revision.current++,
+      stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
+    changes: { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect },
+    fit: () => viewport.current?.fit(),
+    onNotice: setToast,
+  });
   const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage } = meshImport;
-  const editRepair = (index: number) => { beginOpenIntent(); setMeshAsk(null); setRepairAsk(null); return meshImport.editRepair(index); };
   /**
    * A mesh body's badges (M3, D47): repaired (its filled area; shows the fill faces and opens the repair again), an
    * open sheet (no volume, no Booleans), and where it crosses itself (marked in the viewport).
@@ -1632,32 +1596,6 @@ export function App() {
     }, 2000);
     return () => clearTimeout(t);
   }, [doc, undo, redo, repairAsk, inPlace]);
-  const open = async (file: File) => {
-    if (sessionBlocked('opening a file')) return;
-    const scope = beginOpenIntent(), owner = captureImportOwner();
-    setMeshAsk(null); setRepairAsk(null);
-    try {
-      if (isImportedFile(file.name)) {
-        await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
-          changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });
-        return;
-      }
-      // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
-      // tried as a model below.)
-      if (/\.[^./\\]+$/.test(file.name) && !/\.(bcad|json)$/i.test(file.name)) { setToast({ title: `Can’t open ${file.name}`, hint: OPEN_READS, detail: '' }); return; }
-      // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
-      const read = await readDocumentFile(file, () => isOpenCurrent(scope));
-      if (!read || !isOpenCurrent(scope)) return;
-      if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
-      const parsed = read.doc;
-      const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
-      replaceDoc(acceptedDoc); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
-      const accepted = openIntent.current, dispatch = saveDocumentToken.current;
-      if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
-      setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
-      void verifyOpened(acceptedDoc, accepted, dispatch);
-    } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
-  };
   const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
   const [failingOnly, setFailingOnly] = useState(false);
@@ -1700,23 +1638,6 @@ export function App() {
     setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null); setDirty(true);
   };
   const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs')) });
-  // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
-  // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
-  const verifyOpened = async (opened: StudioDoc, scope: OpenScope, dispatch: object) => {
-    const current = () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === opened;
-    // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
-    const v = await verifyDocumentFile(opened, d => engine.part(d, revision.current++, 'refs'), current);
-    if (!v || !current()) return;
-    setRefProblems(v.problems);
-    if (!v.changes.length && !v.problems.length) return;
-    const cur = docNow.current;
-    const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
-    // Apply only to this accepted dispatch, before any later edit or replacement.
-    if (cur.print === undefined) delete next.print; else next.print = cur.print;
-    if (cur.printPreview === undefined) delete next.printPreview; else next.printPreview = cur.printPreview;
-    setDocState(next); setDirty(true);
-
-  };
   /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */
   const exportSketchDxf = (index: number) => {
     const n = doc.nodes[index];

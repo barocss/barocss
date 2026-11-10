@@ -1,5 +1,5 @@
 ---
-work_id: D556
+work_id: D557
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -49,7 +49,9 @@ D555 extracts canvas pointer input into a private module. Viewport.tsx goes from
 
 D556 reproduces and fixes stale body Paste across Open Undo and Redo. The fixed desktop run retains the accepted document and normal same-document repeat Paste. [D556](../body-clipboard-history-2026-11-10/README.md).
 
-Next MAIN is D557, P0 rows 12 and 16. Check Paste during an owned pending evaluation. A refused attempt must preserve history, selection and the next paste offset. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
+D557 extracts Studio document file actions. App.tsx has 2,365 lines, down from 2,444. Native Open, malformed refusal, STL Cancel and exact browser project Save passed in Studio. [D557](../studio-document-files-2026-11-10/README.md).
+
+Next MAIN is D558, P0 rows 12 and 16. Check Paste during an owned pending evaluation. A refused attempt must preserve history, selection and the next paste offset. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

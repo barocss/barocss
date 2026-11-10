@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D557 — extract Studio document file actions and qualify the desktop file lifecycle](notes/studio-document-files-2026-11-10/README.md).
+
 - [D556 — prevent stale body Paste across Open Undo and Redo](notes/body-clipboard-history-2026-11-10/README.md).
 
 - [D555 — extract viewport pointer input and qualify selected desktop gestures](notes/viewport-pointer-input-2026-11-10/README.md).

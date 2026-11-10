@@ -1,0 +1,57 @@
+{
+  "workId": "D557",
+  "parent": "c2b9c9fbca85375703e1928a7b7834777ca241ed",
+  "tier": "SMALL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d557-2026-11-10"
+  },
+  "sourceBoundarySha256": "abc5936766f1758ef49a4c5f4b8eec19ae37484eb807358026a8479a429ce20e",
+  "sha256": {
+    "apps/cad-studio/src/App.tsx": "288c71dcd9fcec55d50832b26e8a7c607bdded9c016afbc809a3e79ab21e25aa",
+    "apps/cad-studio/src/files/useStudioDocumentFiles.ts": "45df5d8c11d8f7418b7e3fe17008d5c6cf8f996dedd462fb9d06c1cb20a9cb3a",
+    "apps/cad-studio/test/studio-document-files-browser.mjs": "2151e7a9721634f977782b114d05dcd244af9e85a31d4fb9dd453ab0363ed552"
+  },
+  "appLines": {
+    "before": 2444,
+    "after": 2365
+  },
+  "extractedModuleLines": 153,
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/studio-document-files-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "node scripts/test.mjs document-file imported-file-ownership mesh-import-ownership late-save-ownership",
+      "status": "PASS",
+      "passCount": 49,
+      "failCount": 0,
+      "sha256": "51f241936617f5dcd35d1844d12bec257c9bf1c5829d1446fde8ea2fde9d455e"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D557_SOURCE_FROZEN=1 node test/studio-document-files-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 10.12,
+    "groups": 4,
+    "snapshots": 5,
+    "frozenPins": 759,
+    "receiptSha256": "f538ea7bfc1ec23ff9e97251677ef516591be601132e2d989eaaf6d7eb19a5e9",
+    "ownedPID": 26617,
+    "chromePID": 26639
+  },
+  "wholeCad": "NOT_MEASURED"
+}

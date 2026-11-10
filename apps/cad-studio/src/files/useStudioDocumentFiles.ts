@@ -1,0 +1,153 @@
+import type { RefObject } from 'react';
+import { stripHistory } from '@barocss/cad-model/chat/proposals';
+import { readDrawing } from '@barocss/cad-model/drawing/types';
+import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
+import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { readRender } from '@barocss/cad-model/engine/render';
+import { clearRecovery } from '../app/recovery';
+import type { EngineClient } from '../engine/client';
+import type { OpenScope } from '../state/openOwnership';
+import { currentDocumentSave } from '../state/saveOwnership';
+import type { useProject } from '../storage/useProject';
+import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './documentFile';
+import { isImportedFile, openImportedFile } from './importedFile';
+import { useMeshImport } from './useMeshImport';
+
+interface StudioDocumentFileOptions {
+  document: {
+    doc: StudioDoc;
+    docNow: RefObject<StudioDoc>;
+    fileName: string;
+    fileNameNow: RefObject<string>;
+    recoveryDoc: StudioDoc | null;
+    project: Pick<ReturnType<typeof useProject>, 'save' | 'view'>;
+  };
+  ownership: {
+    saveAcceptanceScope: object;
+    saveDocumentToken: RefObject<object>;
+    beginOpenIntent(): OpenScope;
+    currentOpenScope(): OpenScope;
+    isOpenCurrent(scope: OpenScope): boolean;
+    sessionBlocked(action: string): boolean;
+    canOpenImport(): boolean;
+  };
+  worker: {
+    engine: EngineClient;
+    workerSessionNow: RefObject<number>;
+    nextRevision(): number;
+    stopImport(): void;
+  };
+  changes: {
+    replaceDoc(doc: StudioDoc): void;
+    setDocState(doc: StudioDoc): void;
+    setFileName(name: string): void;
+    setDirty(dirty: boolean): void;
+    setRefProblems(problems: RefProblem[]): void;
+    commit(doc: StudioDoc): boolean;
+    commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
+  };
+  fit(): void;
+  onNotice(notice: FriendlyError): void;
+}
+
+/** What Open reads, said when it is given another kind of file. */
+const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
+
+/** File actions use the App's current document, dispatch and Worker ownership. */
+export function useStudioDocumentFiles({ document, ownership, worker, changes, fit, onNotice: setToast }: StudioDocumentFileOptions) {
+  const { doc, docNow, fileName, fileNameNow, recoveryDoc, project } = document;
+  const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
+  const { engine, workerSessionNow, nextRevision, stopImport } = worker;
+  const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
+
+  // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
+  // recovery copy and its blobs go.)
+  const writeFile = (d: StudioDoc, name: string) => {
+    try { writeDocumentFile(d, name); return true; }
+    catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
+  };
+  // (A copy still offered keeps its blobs: Restore can still bring it back.)
+  const save = () => {
+    if (sessionBlocked('saving')) return;
+    // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
+    if (project.view.store) {
+      const savedDoc = doc, owner = { token: saveAcceptanceScope, doc: savedDoc, name: fileNameNow.current };
+      void project.save(savedDoc, owner.name, () => {
+        if (!currentDocumentSave(owner, saveDocumentToken.current, docNow.current, fileNameNow.current)) return;
+        setDirty(false); clearRecovery();
+      });
+      return;
+    }
+    if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recoveryDoc);
+  };
+  /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
+  const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
+
+  const captureImportOwner = () => {
+    const scope = currentOpenScope(), dispatch = saveDocumentToken.current, session = workerSessionNow.current;
+    return { isCurrent: () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && workerSessionNow.current === session };
+  };
+  const fitImportedLater = () => {
+    const accepted = captureImportOwner();
+    setTimeout(() => { if (accepted.isCurrent()) fit(); }, 300);
+  };
+  const openedImport = (next: StudioDoc, name: string) => {
+    if (!canOpenImport()) { sessionBlocked('opening an import'); return false; }
+    replaceDoc(next); if (docNow.current !== next) return false;
+    setFileName(name); setDirty(true); fitImportedLater(); return true;
+  };
+  const meshImport = useMeshImport({ doc, engine, captureOwner: captureImportOwner,
+    onStop: stopImport,
+    nextRevision, onNotice: setToast, onOpened: openedImport, onCommit: commit });
+  const { setMeshAsk, setRepairAsk } = meshImport;
+  const editRepair = (index: number) => { beginOpenIntent(); setMeshAsk(null); setRepairAsk(null); return meshImport.editRepair(index); };
+
+  // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
+  // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
+  const verifyOpened = async (opened: StudioDoc, scope: OpenScope, dispatch: object) => {
+    const current = () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === opened;
+    // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
+    const v = await verifyDocumentFile(opened, d => engine.part(d, nextRevision(), 'refs'), current);
+    if (!v || !current()) return;
+    setRefProblems(v.problems);
+    if (!v.changes.length && !v.problems.length) return;
+    const cur = docNow.current;
+    const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
+    // Apply only to this accepted dispatch, before any later edit or replacement.
+    if (cur.print === undefined) delete next.print; else next.print = cur.print;
+    if (cur.printPreview === undefined) delete next.printPreview; else next.printPreview = cur.printPreview;
+    setDocState(next); setDirty(true);
+  };
+
+  const open = async (file: File) => {
+    if (sessionBlocked('opening a file')) return;
+    const scope = beginOpenIntent(), owner = captureImportOwner();
+    setMeshAsk(null); setRepairAsk(null);
+    try {
+      if (isImportedFile(file.name)) {
+        await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision }, mesh: meshImport, onNotice: setToast,
+          changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });
+        return;
+      }
+      // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
+      // tried as a model below.)
+      if (/\.[^./\\]+$/.test(file.name) && !/\.(bcad|json)$/i.test(file.name)) { setToast({ title: `Can’t open ${file.name}`, hint: OPEN_READS, detail: '' }); return; }
+      // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
+      const read = await readDocumentFile(file, () => isOpenCurrent(scope));
+      if (!read || !isOpenCurrent(scope)) return;
+      if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
+      const parsed = read.doc;
+      const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
+      replaceDoc(acceptedDoc); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
+      const accepted = currentOpenScope(), dispatch = saveDocumentToken.current;
+      if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
+      setTimeout(() => { if (isOpenCurrent(accepted)) fit(); }, 300);
+      void verifyOpened(acceptedDoc, accepted, dispatch);
+    } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
+  };
+
+  return { open, save, saveShared, meshImport, editRepair };
+}
