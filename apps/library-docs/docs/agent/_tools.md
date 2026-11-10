@@ -56,18 +56,19 @@ Reads the part without changing it.
 
 ### `history`: History
 
-Snapshots of the part this session; versions and branches.
+Checkpoints, versions and branches.
 
 | Action | Handler | Arguments and notes |
 |---|---|---|
 | `history.checkpoint` | `checkpoint` | name |
 | `history.restore` | `restore` | name |
-| `history.best` | `restore_best` | — the best snapshot by the checks |
-| `history.diff` | `diff` | from?, to? — checkpoint names, "best" or "current" |
+| `history.best` | `restore_best` | — |
+| `history.diff` | `diff` | from?, to? |
 | `history.version` | `make_version` | name? |
 | `history.versions` | `list_versions` | — |
 | `history.restore_version` | `restore_version` | id |
 | `history.compare` | `compare_versions` | from?, to? |
+| `history.approval_evidence` | `approved_requirement_evidence` | from, to, part, later? |
 | `history.branch` | `make_branch` | name |
 | `history.switch` | `switch_branch` | branch |
 | `history.merge` | `merge_branch` | from, resolve? |
@@ -81,6 +82,7 @@ The brief (the part's intent), the locked reference bodies it must fit (datums, 
 | `requirements.set` | `set_requirements` | requirements: [{id, source, hard?, check}], replace? |
 | `requirements.check` | `check_spec` | validate? — every check against the part |
 | `requirements.evidence` | `output_requirement_evidence` | part?, expectedRevision? — pinned report |
+| `requirements.plan_tasks` | `inspect_local_task_plan` | occurrences, expectedRevision? |
 | `requirements.brief` | `set_brief` | fields — authored design intent |
 | `requirements.gaps` | `get_brief` | — the brief, its gaps and what it applies |
 | `requirements.references` | `get_references` | — the locked reference bodies, their faces, datums and keep-outs |

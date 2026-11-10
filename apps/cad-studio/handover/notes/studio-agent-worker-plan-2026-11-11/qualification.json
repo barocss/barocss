@@ -1,0 +1,226 @@
+{
+  "decision": "D617",
+  "tier": "FULL interface",
+  "baseCommit": "c7dc3cf5f0a711536f53b2933edf6e95c82ffbf3",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d617-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio, controlled chat and real MCP",
+      "result": "PASS",
+      "command": "D617_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\"",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "f9d6622f63fd3c2e2c7d0a16a0ac068a1fb193145271b235ec0b6a9ff756d6ae",
+      "pinnedSources": 780,
+      "states": [
+        "01-ready-plan",
+        "02-stale-and-blocked",
+        "03-new-ready-plan"
+      ],
+      "visualReview": "PASS",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "browserDownloads": 0,
+      "observation": {
+        "readyRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+        "blockedRevision": "1cd8d717e0b7a461f7f888f1d27007a7cd83fe5fb4fa3913a0ac492be35ff4f3",
+        "resolvedRevision": "430a4d7ce48e3b65bc9e2af177c5b278538d1b91ca610ec237c5f76203106551",
+        "targetHeights": [
+          [
+            6,
+            4
+          ],
+          [
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "cliPlanMatches": true,
+        "staleRefused": true,
+        "authoredID": "check_spec",
+        "savedSourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+        "projectBytesUnchanged": true,
+        "documentWrites": 0
+      },
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop-final.log",
+      "logSHA256": "4d24010f93077adc4783722596a3b2b0ab28787d2a9db541e78aabe8d6399685"
+    },
+    {
+      "label": "Independent authored target and scope oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop-final/task-plan-agent-oracle.py\" < \"$EVIDENCE/desktop-final/authored-targets-oracle-input.json\"",
+      "scriptSHA256": "101272178d213640e254e998b0413963aa4ed59f2b7766f35af455ee12917d36",
+      "stdoutSHA256": "0f3cbfaecd36b1604f261fdf15ca4cb39a8a281c1436eb0f66379f5f7b6ecef2",
+      "measurements": {
+        "status": "PASS",
+        "targetHeights": [
+          [
+            6,
+            4
+          ],
+          [
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "productImports": 0
+      }
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-plan-agent task-run-local-plan chat toolset-mcp tool-contract-mcp",
+      "passCount": 36,
+      "failCount": 0,
+      "log": "studio-suite.log",
+      "logSHA256": "116859c8505500a2248e4b156b7b9c76a41c1b0976c213488ddc55e310592634"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan task-execution toolset tool-contract shop-context-tools",
+      "passCount": 30,
+      "failCount": 0,
+      "toolAndPromptCharacters": 24999,
+      "toolAndPromptLimit": 25000,
+      "log": "model-suite.log",
+      "logSHA256": "a49ab55a04425c3883e5656c764840f15c27e51546002a2dceec3c1168b90cc1"
+    },
+    {
+      "label": "Model types after final test edit",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts paths>",
+      "errors": 0,
+      "existingWarnings": 35,
+      "log": "eslint.log",
+      "logSHA256": "ca2460efd01580b98ddc8433a56f5b2c21a9a327c02af56e243dedeb2bbfeb02"
+    },
+    {
+      "label": "Isolated regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations-final.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "b8e6eb32c5e0c6e87a482220adef49160c8d0a51b8494e1da271fe842c2bf4fc",
+      "variants": {
+        "baseline": "PASS",
+        "ignore-revision": "KILLED",
+        "ignore-blocker-evidence": "KILLED",
+        "allow-child-scope": "KILLED",
+        "rewrite-authored-id": "KILLED"
+      },
+      "log": "mutations-final.log",
+      "logSHA256": "560ebab3964987cf6b900e136f4f8192589345fa8b68e1fc087525319b5f5a9f"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build.log",
+      "logSHA256": "04e99934c3896c49bbaf4f4bb4cd3f3e6768fbc1794dd5fa9de91d488ff202e8"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Agent tool docs",
+      "result": "PASS",
+      "command": "node apps/library-docs/scripts/agent-tools.mjs --check",
+      "log": "agent-docs.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Refusal docs",
+      "result": "PASS",
+      "command": "node apps/library-docs/scripts/refusals.mjs --check",
+      "log": "refusal-docs.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "result": "FAIL",
+      "check": "Initial desktop observation",
+      "command": "D617_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\"",
+      "cause": "Playwright response text misdecoded the SSE middle dot while the browser transcript rendered it correctly.",
+      "logSHA256": "eb13901f76c97b1db4c39183bf131e0ff2a80f95877305c35037082640bb19ad",
+      "receiptSHA256": "b1bf148a49d33de502df0e59f4fdc1784728c2990f3505b3b26a91fd4e0d4316"
+    },
+    {
+      "result": "FAIL",
+      "check": "Initial isolated overlays",
+      "cause": "String replacement interpreted a literal dollar marker while building the child-scope variant.",
+      "logSHA256": "e78af5fdee20a116a197ac14cb0d2488a1e7c1bf470b04a4d01b4cd69998fa0e"
+    }
+  ],
+  "review": {
+    "code": "APPROVE",
+    "architecture": "CLEAR",
+    "resolved": [
+      "Keep plan definition at document root",
+      "Preserve authored IDs in both MCP response formats"
+    ]
+  },
+  "artifacts": {
+    "housing.bcad": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+    "cli-plan.json": "c4c5e75c2f95ad11a0b8cbb02afee5ee4a8aecab2f6fc8df155f41cb37c186da",
+    "scripted-tool-results.jsonl": "cb693060f8719ea237a040c5e37f00c1d219f51c7fcfdedb970fdde78919b26b",
+    "01-ready-plan.png": "df8e53462d3692ea9809f333695c49f7d2ed0f6def3b8c4a85827e91ddf21a1c",
+    "02-stale-and-blocked.png": "26e70485f5f9678d194a10f1eaa5149cd1f16790ac090eb5eb70916449420d94",
+    "03-new-ready-plan.png": "b248aeba0a57afbaa919d1ae3be23e26c07acf0656e12a6903130204493064db"
+  },
+  "notRun": [
+    "Studio launch handoff",
+    "Live model behavior",
+    "Other task families",
+    "Mobile",
+    "Whole suites"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "B09v1AcceptedGroups": "9/9",
+    "initialAcceptedScenarios": "4/10",
+    "wholeCadAndCore": "NOT_MEASURED"
+  }
+}

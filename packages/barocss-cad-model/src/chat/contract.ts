@@ -26,6 +26,13 @@ const versionPin = o({ id: str, snapshot: str, revision: str, evidenceRevision: 
 const READ: Record<string, JsonSchema | null> = {
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
   output_requirement_evidence: o({ revision: str, files: arr }, ['revision', 'files']),
+  inspect_local_task_plan: o({ revision: str, status: { type: 'string', enum: ['ready', 'blocked'] },
+    occurrences: { type: 'array', items: str },
+    tasks: { type: 'array', items: o({ occurrence: str, feature: str, field: { type: 'string', enum: ['height'] } }, ['occurrence', 'feature', 'field']) },
+    targets: { type: 'array', items: o({ id: str, requirementId: str, currentHeightMm: num, heightMm: num, toleranceMm: num },
+      ['id', 'requirementId', 'currentHeightMm', 'heightMm', 'toleranceMm']) },
+    issues: { type: 'array', items: o({ code: str, message: str, occurrence: str, inputs: { type: 'array', items: str } }, ['code', 'message']) },
+  }, ['revision', 'status', 'occurrences', 'tasks', 'targets', 'issues']),
   output_purchase_csv: o({ revision: str, files: arr }, ['revision', 'files']),
   output_clearance: o({ revision: str, files: arr }, ['revision', 'files']),
   output_cam_package: o({ revision: str, files: arr }, ['revision', 'files']),

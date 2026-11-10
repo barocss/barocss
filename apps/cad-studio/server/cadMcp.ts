@@ -97,7 +97,8 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         const unsaved = out.changed ? save('change') : logMoved || wantedMoved ? save('versions') : handler === 'select' ? save('select') : null;
         // (A read tool's result also as structured content, its output schema's shape; the text keeps the same JSON.)
         // (What the caller reads names v2 tools only, O105b: a handler's hint or refusal as its tool.action, a stored op as its v2 call.)
-        const text = handler === 'approved_requirement_evidence' && !out.isError ? out.content : v2Result(out.content);
+        const exactRead = handler === 'approved_requirement_evidence' || handler === 'inspect_local_task_plan';
+        const text = exactRead && !out.isError ? out.content : v2Result(out.content);
         const structured = !out.isError && !unsaved && outputSchemaOf(handler) ? structuredOf(text) : undefined;
         // (A change the store could not keep is said so, as an error: the part changed here but not on disk.)
         return reply(msg.id, { content: [{ type: 'text', text }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });

@@ -1,5 +1,5 @@
 ---
-work_id: D616
+work_id: D617
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -169,7 +169,9 @@ D615 completes two Studio reviews and exact terminal approvals on one local run.
 
 D616 derives both local work targets from a native Studio Save. The start command refuses stale source bytes or altered plan fields before creating the run. The planned run passes both candidate reviews, approvals, editable Save and 3MF readback. [D616](../../notes/saved-model-worker-plan-2026-11-11/README.md).
 
-Next MAIN is D617 / P0 automation, B09 follow-up, rows 04, 12 and 16. Expose the same authored-height plan to the Studio agent as a read-only action in the existing requirements tools. Share target derivation with the CLI and bind the result to the current model revision. Show the selected occurrences, targets and unresolved inputs in structured tool output. Qualify the actual Studio chat path with a controlled local tool call. [#2402](https://github.com/barocss/barocss/issues/2402).
+D617 reads the two selected height targets through Studio chat, reports unresolved input in structured data and refuses a stale revision. The same Model planning function drives the saved-file CLI. [D617](../../notes/studio-agent-worker-plan-2026-11-11/README.md).
+
+Next MAIN is D618 / P0 automation, B09 follow-up, rows 04, 12 and 16. Connect the inspected Studio plan to a user-owned local run handoff. Carry the exact saved source revision and selected occurrence IDs without retyping IDs or targets. Refuse a blocked or moved source and keep the existing terminal decision boundary. Use the local worker consumer and actual desktop Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -3,6 +3,8 @@
 import { saidIn } from '../brief';
 import { checkRequirement, checkSpec, expectedOf, newPolicy, updatePolicy, validateSuite } from '../spec';
 import type { Requirement } from '../../engine/schema/spec';
+import { inspectLocalHeightPlan } from '../../team/localHeightPlan';
+import { digestOf } from '../../util/digest';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, fail } from '../toolKit';
 
 async function setRequirementsTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
@@ -37,5 +39,24 @@ async function checkSpecTool(state: ChatState, args: Record<string, unknown>, ev
   return { state: { ...state, policy }, content: json({ ...report, ...(validation ?? {}), policy: out }), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
 }
 
+async function inspectLocalTaskPlanTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
+  const { occurrences, expectedRevision } = args;
+  if (!Array.isArray(occurrences) || occurrences.length !== 2 || new Set(occurrences).size !== 2
+    || !occurrences.every(id => typeof id === 'string' && !!id && id === id.trim() && id.length <= 128))
+    return fail(state, 'Select two distinct occurrence IDs.');
+  if (expectedRevision !== undefined && (typeof expectedRevision !== 'string' || !/^[a-f0-9]{64}$/.test(expectedRevision)))
+    return fail(state, 'expectedRevision must be a SHA-256 model revision.');
+  const revision = digestOf(state.doc);
+  if (expectedRevision !== undefined && revision !== expectedRevision)
+    return fail(state, '[OUTPUT_STALE] The model changed. Read the local task plan again.', { revision });
+  const inspection = inspectLocalHeightPlan(state.doc, occurrences, { projectId: 'studio', documentId: 'working-model' });
+  const issues = 'error' in inspection ? [inspection.error] : inspection.issues;
+  const tasks = 'error' in inspection ? [] : inspection.plan.tasks.map(task => task.writes);
+  const targets = 'error' in inspection ? [] : inspection.targets;
+  const status = issues.length ? 'blocked' : 'ready';
+  return { state, content: json({ revision, status, occurrences, tasks, targets, issues }), isError: false, changed: false,
+    summary: status === 'ready' ? '2 local height targets ready' : `${issues.length} local planning issue${issues.length === 1 ? '' : 's'}` };
+}
+
 /** The requirement group's handlers, by v1 tool name (R3). */
-export const REQUIREMENT_HANDLERS: Readonly<Record<string, PartHandler>> = { set_requirements: setRequirementsTool, check_spec: checkSpecTool };
+export const REQUIREMENT_HANDLERS: Readonly<Record<string, PartHandler>> = { set_requirements: setRequirementsTool, check_spec: checkSpecTool, inspect_local_task_plan: inspectLocalTaskPlanTool };

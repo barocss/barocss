@@ -321,6 +321,7 @@
 | `[BEARING_HOUSING_SCOPE]` | `engine` | no immediate owner occurrence … |
 | `[BEARING_ROW_UNKNOWN]` | `engine` | a bearing names the row "…", which the document's bearing rows do not hold (rows: …) |
 | `[BEND_TABLE]` | `chat` | … |
+| `[BOM_EVALUATION]` | `bom` | … (…): … |
 | `[BOM_INVALID]` | `team` | … |
 | `[BOOLEAN_REFUSED]` | `print` | a cavity (… triangles) could not be taken from the part even simplified to h/10: …; a coarser h makes a smaller cavity mesh |
 | `[BOUND]` | `chat` | a sketch point is bound to a parameter: change the parameter instead |
@@ -479,7 +480,7 @@
 | `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
 | `[NO_LINK]` | `robot` | no link … on the tree |
 | `[NO_MATE]` | `assembly` | No mate "…"; mates: …. |
-| `[NO_PART]` | `assembly` | No part "…"; parts: …. |
+| `[NO_PART]` | `assembly`, `team` | No part "…"; parts: …. |
 | `[NO_PATTERN]` | `assembly` | No pattern "…"; patterns: …. |
 | `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
 | `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |
@@ -497,10 +498,10 @@
 | `[OUTPUT_EVALUATION]` | `chat` | The selected part has no successfully evaluated bodies. |
 | `[OUTPUT_FAILED]` | `chat` | … |
 | `[OUTPUT_INPUT]` | `chat` | … |
-| `[OUTPUT_STALE]` | `chat` | Expected document revision …, current …. |
+| `[OUTPUT_STALE]` | `chat`, `chat/part` | Expected document revision …, current …. |
 | `[PARAMETER_EXISTS]` | `engine` | there is a parameter … already; set its value instead |
 | `[PARAMETER_NAME]` | `engine` | a parameter's name starts with a letter and has letters, digits and _ (up to 32), not … |
-| `[PARAMETER_UNBINDABLE]` | `engine` | feature …'s … can't take a parameter (its values that can are …) |
+| `[PARAMETER_UNBINDABLE]` | `engine`, `sketch` | feature …'s … can't take a parameter (its values that can are …) |
 | `[PARAMETER_UNKNOWN]` | `app`, `engine`, `sketch` | no parameter …; the parameters are … |
 | `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
@@ -510,6 +511,7 @@
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
 | `[PRINT_PREVIEW_INPUT]` | `engine` | …: … |
 | `[REFERENCE_LOCKED]` | `chat` | … is a reference: the user removes it, in the studio. |
+| `[REFUSED]` | `sketch` | Driven sketch: the edit changes a hole, region or side identity/order |
 | `[RESULT_NOT_OK]` | `team` | … cites …, which is ……: not a result to approve on |
 | `[RING_ROW]` | `engine` | a ring row is an object { id, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source \| estimate: true } |
 | `[RING_ROW_UNKNOWN]` | `engine` | a retaining ring names the row "…", which the document's ring rows do not hold (rows: …) |

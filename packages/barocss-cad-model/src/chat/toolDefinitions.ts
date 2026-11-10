@@ -360,6 +360,12 @@ export const TOOLS: ToolDefinition[] = [
   ...VERSION_TOOLS,
   ...ROBOT_TOOLS,
   ...OUTPUT_TOOLS,
+  {
+    name: 'inspect_local_task_plan',
+    description: 'Reads the local height plan for two selected placed occurrences. Use the occurrence IDs from assembly.get. Returns the exact model revision, feature scopes, authored targets in mm and issues that block the plan. A blocked plan cannot start. Pass the last returned revision as expectedRevision to detect changes. This call makes no edit or run.',
+    input_schema: { type: 'object', properties: { occurrences: { ...nameList, minItems: 2, maxItems: 2, uniqueItems: true },
+      expectedRevision: { type: 'string', pattern: '^[a-f0-9]{64}$' } }, required: ['occurrences'], additionalProperties: false },
+  },
   ...BRIEF_TOOLS.map(withPartArgument),
   ...QUESTION_TOOLS,
   ...REFERENCE_TOOLS,

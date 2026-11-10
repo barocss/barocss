@@ -385,6 +385,7 @@
        "set",
        "check",
        "evidence",
+       "plan_tasks",
        "brief",
        "gaps",
        "references",
