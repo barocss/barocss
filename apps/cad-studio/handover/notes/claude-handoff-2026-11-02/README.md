@@ -1,5 +1,5 @@
 ---
-work_id: D620
+work_id: D621
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -177,7 +177,9 @@ D619 starts the verified saved plan directly from local Studio. Desktop verifies
 
 D620 opens both held candidates from the local run row in Studio. Desktop verifies each occurrence preview, exact baseline refusal, a terminal retirement during review, and the unchanged offline review path. [D620](../../notes/studio-local-candidate-review-2026-11-11/README.md).
 
-Next MAIN is D621 / P0 automation, B09 follow-up, rows 04, 12 and 16. Refresh status and candidate pins from the same owned run in Studio after a terminal decision or rebuild. Read the run by its existing identifiers without resending source or acquiring a writer lease. Use the approved checkpoint as the working baseline and qualify the refreshed sibling review and refusal of the old attempt in desktop Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
+D621 adds explicit run status refresh, shared revisions across cards, stale preview retirement and a rebuilt sibling review. Desktop verifies both terminal approvals and the final checkpoint. [D621](../../notes/studio-local-run-status-2026-11-11/README.md).
+
+Next MAIN is D622 / P0 automation, B09 follow-up, rows 04, 12 and 16. Open the latest terminal-approved checkpoint directly from the existing owned run row. Reuse the verified native checkpoint intake and document ownership guards. Require an explicit Studio action, refuse a retired selection, and verify both approved checkpoints in desktop Studio without a manual file export. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

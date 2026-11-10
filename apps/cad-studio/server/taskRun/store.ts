@@ -9,11 +9,12 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { TaskCandidate, TaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
+import type { TaskRunTaskPhase } from '../../src/chat/taskRunOffer';
 import type { NativeRef, TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import type { CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 
 export type { NativeRef } from '../../src/files/taskCheckpoint';
-export type TaskPhase = 'ready' | 'running' | 'validating' | 'awaiting-decision' | 'committing' | 'completed' | 'failed' | 'cancelled' | 'stale';
+export type TaskPhase = TaskRunTaskPhase;
 export interface TaskAttempt {
   id: string;
   operationId: string;

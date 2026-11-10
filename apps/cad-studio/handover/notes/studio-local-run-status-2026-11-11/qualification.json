@@ -1,0 +1,360 @@
+{
+  "decision": "D621",
+  "tier": "FULL interface",
+  "baseCommit": "08f853de5425bf62cc38e9b383f55ab1d7c858c3",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d621-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio status, sibling rebuild and both terminal approvals",
+      "result": "PASS",
+      "command": "D621_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --status",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "a4e821e2e632b76e4761bd6e91f665fdc756abb65fc2638c58d62ade18f62216",
+      "pinnedSources": 791,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "09-old-preview-retired",
+        "10-refreshed-sibling",
+        "11-both-terminal-approved"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "expectedConsoleErrors": [],
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "runStatusSnapshots": [
+            {
+              "revision": 9,
+              "phases": [
+                "completed",
+                "stale"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 13,
+              "phases": [
+                "completed",
+                "awaiting-decision"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 137
+            }
+          ],
+          "staleSiblingPinRefused": true,
+          "sharedCards": 2,
+          "lateOlderStatusIgnored": true,
+          "lateHeldReviewRetired": true,
+          "statusAndReviewDidNotWrite": true,
+          "modelUploadsAfterLaunch": 0,
+          "firstApprovedBoundsMm": [
+            6,
+            3
+          ],
+          "finalBoundsMm": [
+            6,
+            4
+          ],
+          "originalSavedProjectUnchanged": true,
+          "terminalApprovals": 2
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "visualReview": "PASS",
+      "log": "desktop-final.log",
+      "logSHA256": "ac599d08daa0308a3e5c704233115ec94ba716e72f370e879f9bfdc8d40de960"
+    },
+    {
+      "label": "Desktop Studio D620 direct review regression",
+      "result": "PASS",
+      "command": "D620_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/review-regression\" --review",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "98636867eaf883542c5c271d039f84aa4f756c97ea44925aff25a2f0c34983cd",
+      "pinnedSources": 791,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "07-local-preview-p1",
+        "07-local-preview-p2",
+        "08-retired-candidate-refused",
+        "02-stale-and-blocked",
+        "03-new-ready-plan",
+        "05-terminal-approved"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "expectedConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ],
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "directReview": [
+            "p1",
+            "p2"
+          ],
+          "previewHeightsMm": [
+            [
+              6,
+              3
+            ],
+            [
+              5,
+              4
+            ]
+          ],
+          "volumeDeltaMm3": [
+            200,
+            96
+          ],
+          "competingInspectorBlocked": true,
+          "collapsedVersionsReopened": true,
+          "collapseRestoredBaseline": true,
+          "toolbarCloseRetiredLateReview": true,
+          "baselineBoundsRestored": true,
+          "runAndHistoryUnchangedByReview": true,
+          "malformedFinalResponseRefused": true,
+          "terminalRejectionRefused": true,
+          "wrongWorkingBaselineRefused": true
+        },
+        {
+          "handoffSHA256": "22d2c86316f43f0d7bb2bfad2ccdfee524719bbdcae72a895b67244ebe9df980",
+          "originalBytesPreserved": true,
+          "blockedOfferHasNoAction": true,
+          "geometryMm3": [
+            1200,
+            384
+          ],
+          "approvals": 1
+        },
+        {
+          "readyRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+          "blockedRevision": "1cd8d717e0b7a461f7f888f1d27007a7cd83fe5fb4fa3913a0ac492be35ff4f3",
+          "resolvedRevision": "430a4d7ce48e3b65bc9e2af177c5b278538d1b91ca610ec237c5f76203106551",
+          "targetHeights": [
+            [
+              6,
+              4
+            ],
+            [
+              6
+            ],
+            [
+              6,
+              5
+            ]
+          ],
+          "cliPlanMatches": true,
+          "staleRefused": true,
+          "authoredID": "check_spec",
+          "savedSourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+          "projectBytesUnchanged": true,
+          "documentWrites": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "review-regression.log",
+      "logSHA256": "92ea711f7dd51382b63bf6c670518692a5ed967a41376b7af962d94ad41725f9"
+    },
+    {
+      "label": "Independent native delivery and rectangle oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/delivery-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "b7556f45e91f7e7a1a3481763cef404c5914d5bdc8d2b60cfa451060cc0b24bc",
+      "measurements": {
+        "status": "PASS",
+        "productImports": 0,
+        "commitOrder": [
+          "p1",
+          "p2"
+        ],
+        "heightsMm": [
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "rectangularVolumeMm3": [
+          1200,
+          384
+        ]
+      },
+      "log": "oracle.log",
+      "logSHA256": "3423de746556c5284a560a27a18d7f05710bc777aec8ccbe493d1489c92213ad"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 169,
+      "failCount": 0,
+      "log": "studio-suite.log",
+      "logSHA256": "ee27bbd2a518e64061b47e8befa82934801704938495b07599b8877b7978cbe0"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 34,
+      "log": "eslint.log",
+      "logSHA256": "02cc00664590d91909c83f80588e6e0d50320566effeda294563df3e89313172"
+    },
+    {
+      "label": "Isolated status admission and response overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "5d521289790e735244bed5c4c9c2f97f8030f46535acf3e7472bbfd1208ed8b4",
+      "variants": {
+        "host-baseline": "PASS",
+        "http-baseline": "PASS",
+        "ignore-run-id": "KILLED",
+        "permit-extra-status-fields": "KILLED",
+        "permit-unchecked-run-key": "KILLED",
+        "ignore-old-status": "KILLED",
+        "accept-invalid-task-phase": "KILLED",
+        "ignore-origin-host-mismatch": "KILLED",
+        "increase-status-body-limit": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "9530652c189529896df6b976534fbcb0b94e8c1e8b14ec2a3479386876e4ea35"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "studio-build.log",
+      "logSHA256": "61bc29cd06e565174c2250666613cb18cd4faa2546704bdefd2e3887f9b0c0ce"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Status flow syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-status-flow.mjs",
+      "log": "status-driver-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "label": "First Studio type check",
+      "result": "FAIL",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "cause": "The response guard narrowed away launch-only fields. Final code retains directory and reuse metadata explicitly."
+    },
+    {
+      "label": "First mutation run",
+      "result": "FAIL",
+      "cause": "The invalid-phase fixture included a review pin and another guard caught it. The test now also covers an invalid phase with no review pin.",
+      "log": "mutations-first.log",
+      "logSHA256": "ff31be584e018510e7b0e44960440471333a3d8ef70efc2f0a0e766c94e1e2bf"
+    },
+    {
+      "label": "First desktop status run",
+      "result": "FAIL",
+      "cause": "The shared status cache overwrote the card-local reuse label. The cache now stores only status fields.",
+      "receiptSHA256": "2d7baa162d868f60f3930c59ebe757a889457a04f1f16582c7787263516407e9",
+      "log": "desktop.log",
+      "logSHA256": "f4d8ba35000a7573e2c12f23ffede73f99c865c6c7834293504c2fa49238e636"
+    }
+  ],
+  "reviews": [
+    {
+      "lane": "code",
+      "result": "PASS",
+      "notes": "Final review verified cache projection, revision gating and exact selected candidate fields."
+    },
+    {
+      "lane": "architecture",
+      "result": "PASS",
+      "notes": "Read-only status, one durable snapshot, terminal authority and shared revision order."
+    }
+  ],
+  "notRun": [
+    "whole suites",
+    "live providers",
+    "mobile",
+    "other task profiles",
+    "restoration across chat sessions"
+  ]
+}

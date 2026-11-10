@@ -752,6 +752,36 @@ test('D620 local candidate review rejects nonlocal, oversized and unowned reques
   } finally { await srv.close(); }
 });
 
+test('D621 local status accepts only a bounded identifier pair from loopback Studio', async () => {
+  const work = scratch(), taskRunDir = join(work, 'runs'), fake = fakeClaude(() => []);
+  const srv = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: work, taskRunDir,
+    origins: [...DEFAULT_ORIGINS, 'https://studio.example'] }));
+  const path = `${srv.url}/task-runs/status`, locator = { runKey: 'a'.repeat(64), runId: 'run' };
+  const valid = JSON.stringify(locator);
+  const headers = { ...STUDIO, host: '127.0.0.1:52020', 'x-barocss-task-run': 'status', 'content-type': 'application/json' };
+  const post = (overrides: Record<string, string>, body = valid) => new Promise<number>((resolve, reject) => {
+    const req = httpRequest(path, { method: 'POST', headers: { ...headers, ...overrides } }, res => {
+      res.resume();
+      resolve(res.statusCode ?? 0);
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+  try {
+    assert.equal(await post({ origin: 'https://studio.example', host: 'studio.example' }), 403);
+    assert.equal(await post({ host: 'localhost:52020' }), 403);
+    assert.equal(await post({ 'x-barocss-task-run': 'review' }), 403);
+    assert.equal(await post({ 'content-type': 'application/octet-stream' }), 415);
+    assert.equal(await post({}, valid + ' '.repeat(1024)), 413);
+    assert.equal(await post({}, '{'), 400);
+    assert.equal(await post({}, JSON.stringify({ ...locator, handoff: 'not allowed' })), 400);
+    assert.equal(await post({}, JSON.stringify({ ...locator, runKey: '../../etc' })), 400);
+    assert.equal(await post({}), 404);
+    assert.equal(existsSync(taskRunDir), false);
+    assert.equal(fake.spawned.length, 0);
+  } finally { await srv.close(); }
+});
+
 test('assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply', async () => {
   const s0 = await stateOf(rectanglePart(64, 32, 8));
   for (const level of ['2', '4']) {

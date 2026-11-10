@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import type { TaskRunLaunch, TaskRunReviewRequest } from '../../src/chat/taskRunOffer';
+import { isTaskRunLocator, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
 import { candidateReviewFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
@@ -93,8 +93,7 @@ async function launchLocalTaskRun(root: string, bytes: Uint8Array): Promise<Task
     if (digestOf(record.state.plan.identity) !== digestOf(config.plan.identity)
       || digestOf(record.state.tasks.map(task => task.id).sort()) !== digestOf(ids))
       throw new LocalRunRequestError(409, 'The existing local task run has a different source or selection.');
-    return { runKey: key, directory, runId: record.runId, phase: record.state.phase, reused,
-      tasks: record.state.tasks.map(({ id, phase, reason }) => ({ id, phase, reason, review: reviewPin(record, id) })) };
+    return { ...taskRunStatus(key, record), directory, reused };
   };
   try { return inspect(); }
   catch (error) {
@@ -122,6 +121,12 @@ export async function runLocalTaskHandoff(root: string, bytes: Uint8Array): Prom
   }
 }
 
+function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
+  return { runKey, runId: record.runId, phase: record.state.phase, revision: record.revision,
+    baselineDigest: record.accepted.modelDigest,
+    tasks: record.state.tasks.map(({ id, phase, reason }) => ({ id, phase, reason, review: reviewPin(record, id) })) };
+}
+
 function reviewPin(record: RunRecord, taskId: string) {
   try {
     const { attemptId, candidateDigest } = candidateReviewFor(record, taskId);
@@ -135,29 +140,48 @@ const sha = (value: unknown): value is string => typeof value === 'string' && /^
 const id = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 160;
 
 function readReviewRequest(value: unknown): TaskRunReviewRequest {
-  if (!isObj(value) || Object.keys(value).length !== 6 || !sha(value.runKey) || !id(value.runId)
+  if (!isObj(value) || Object.keys(value).length !== 6 || !isTaskRunLocator(value)
     || !id(value.taskId) || !id(value.attemptId) || !sha(value.candidateDigest) || !sha(value.baselineDigest))
     throw new LocalRunRequestError(400, 'Expected the local run, candidate and baseline IDs.');
   const { runKey, runId, taskId, attemptId, candidateDigest, baselineDigest } = value;
   return { runKey, runId, taskId, attemptId, candidateDigest, baselineDigest };
 }
 
-/** The service owns the root. A browser supplies only the identifiers from its launched run and current document. */
-export function readLocalTaskCandidate(root: string, request: unknown): string {
-  const { runKey, runId, taskId, attemptId, candidateDigest, baselineDigest } = readReviewRequest(request);
+function readOwnedTaskRun(root: string, { runKey, runId }: TaskRunLocator): RunRecord {
   try {
     const directory = privateDirectory(join(privateDirectory(resolve(root)), runKey));
     const record = TaskRunStore.inspect(directory);
     if (record.runId !== runId) throw new LocalRunRequestError(409, 'The local run changed. Start the plan again.');
-    if (record.accepted.modelDigest !== baselineDigest)
-      throw new LocalRunRequestError(409, 'Open the exact native baseline of this worker candidate first.');
-    const receipt = candidateReviewFor(record, taskId);
-    if (receipt.attemptId !== attemptId || receipt.candidateDigest !== candidateDigest)
-      throw new LocalRunRequestError(409, 'The worker candidate changed. Start the plan again to refresh its status.');
-    return encodeCandidateReview(receipt);
+    return record;
   } catch (error) {
     if (error instanceof LocalRunRequestError) throw error;
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new LocalRunRequestError(404, 'The local task run could not be found.');
+    throw new LocalRunRequestError(409, 'Could not read the local task run.');
+  }
+}
+
+export function readLocalTaskRunStatus(root: string, request: unknown): TaskRunStatus {
+  if (!isObj(request) || Object.keys(request).length !== 2 || !isTaskRunLocator(request))
+    throw new LocalRunRequestError(400, 'Expected the local run key and ID.');
+  const record = readOwnedTaskRun(root, request);
+  try { return taskRunStatus(request.runKey, record); }
+  catch { throw new LocalRunRequestError(409, 'Could not read the local task run status.'); }
+}
+
+/** The service owns the root. A browser supplies only the identifiers from its launched run and current document. */
+export function readLocalTaskCandidate(root: string, request: unknown): string {
+  const selection = readReviewRequest(request);
+  const { taskId, attemptId, candidateDigest, baselineDigest } = selection;
+  const record = readOwnedTaskRun(root, selection);
+  if (record.accepted.modelDigest !== baselineDigest)
+    throw new LocalRunRequestError(409, 'Open the exact native baseline of this worker candidate first.');
+  try {
+    const receipt = candidateReviewFor(record, taskId);
+    if (receipt.attemptId !== attemptId || receipt.candidateDigest !== candidateDigest)
+      throw new LocalRunRequestError(409, 'The worker candidate changed. Refresh the local run status.');
+    return encodeCandidateReview(receipt);
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) throw error;
     if (error instanceof RunStoreError && error.code === 'RUN_STALE')
       throw new LocalRunRequestError(409, 'This candidate is no longer awaiting review. Refresh the local run.');
     throw new LocalRunRequestError(409, 'Could not read the current worker candidate.');

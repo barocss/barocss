@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
@@ -51,6 +51,8 @@ export interface ChatPanelProps {
     sourceKey(): string | undefined;
     export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
+    refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
+    observe(status: TaskRunStatus): void;
     review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
     reviewBlocked: boolean;
   };
@@ -71,10 +73,27 @@ const brief = (input: unknown) => {
   return s.length > 140 ? s.slice(0, 137) + '…' : s;
 };
 
+interface RunStatuses {
+  current: ReadonlyMap<string, TaskRunStatus>;
+  remember(status: TaskRunStatus): void;
+}
+
 export function ChatPanel(props: ChatPanelProps) {
   const chat = useStudioChat(props), { status, autonomy, messages, running } = chat;
   useEffect(() => { props.onRunning?.(running); return () => props.onRunning?.(false); }, [running]);
   const [text, setText] = useState('');
+  const [runStatuses, setRunStatuses] = useState<ReadonlyMap<string, TaskRunStatus>>(() => new Map());
+  const runStatusesNow = useRef(runStatuses);
+  const rememberRunStatus = (snapshot: TaskRunStatus) => {
+    const prior = runStatusesNow.current.get(snapshot.runId);
+    if (prior && (prior.runKey !== snapshot.runKey || prior.revision >= snapshot.revision)) return;
+    const { runKey, runId, phase, revision, baselineDigest, tasks } = snapshot;
+    const status = { runKey, runId, phase, revision, baselineDigest, tasks };
+    const next = new Map(runStatusesNow.current).set(runId, status);
+    runStatusesNow.current = next;
+    setRunStatuses(next);
+    props.taskRun?.observe(status);
+  };
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);
   const imageDraftGeneration = useRef(0);
@@ -156,7 +175,7 @@ export function ChatPanel(props: ChatPanelProps) {
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
               {m.parts.map(p => p.type === 'text' ? p.text : '').join('')}</Message>
-          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} />)}</Fragment>)}
+          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} runStatuses={{ current: runStatuses, remember: rememberRunStatus }} />)}</Fragment>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
       {!!rowFiles.length && <div className="chat-thumbs pending" aria-label="Attached row files">{rowFiles.map((file, index) => <span key={index}>{file.name}<button type="button" className="tool tiny" aria-label={`Remove row file ${index + 1}`} onClick={() => setRowFiles(list => list.filter((_, k) => k !== index))}>×</button></span>)}</div>}
@@ -181,7 +200,7 @@ export function ChatPanel(props: ChatPanelProps) {
 }
 
 /** One part of an assistant message: a run of text, a tool call (a proposal's linked card under its `propose`), a notice, the thinking. */
-function ChatPart({ part: p, taskRunBlocked, ...props }: { part: StudioMessage['parts'][number]; taskRunBlocked: boolean } & ChatPanelProps) {
+function ChatPart({ part: p, taskRunBlocked, runStatuses, ...props }: { part: StudioMessage['parts'][number]; taskRunBlocked: boolean; runStatuses: RunStatuses } & ChatPanelProps) {
   if (p.type === 'text') return <Message from="assistant">{p.text}</Message>;
   if (p.type === 'data-notice') return <Message from="notice">{p.data.text}</Message>;
   // (O17c: the model's thinking, when the CLI streams it — one collapsed line.)
@@ -194,59 +213,78 @@ function ChatPart({ part: p, taskRunBlocked, ...props }: { part: StudioMessage['
   return <>
     <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}>
       <code>{brief(p.input)}</code>
-      {taskRun && props.taskRun && <TaskRunActions plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} />}
+      {taskRun && props.taskRun && <TaskRunActions plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} statuses={runStatuses} />}
     </Tool>
     {proposal && <ProposalLink proposal={proposal} stale={!!props.proposalStale?.(proposal)} busy={!!props.proposalBusy} onAccept={() => props.onAcceptProposal?.(proposal)} onReject={() => props.onRejectProposal?.(proposal)} />}
   </>;
 }
 
-function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked }: {
+function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses }: {
   plan: NonNullable<TaskRunChatOutput['taskRun']>;
   actions: NonNullable<ChatPanelProps['taskRun']>;
   blocked: boolean;
+  statuses: RunStatuses;
 }) {
   const busy = useRef(false);
-  const [starting, setStarting] = useState(false);
-  const [reviewing, setReviewing] = useState<string>();
-  const [result, setResult] = useState<TaskRunLaunch>();
+  const [working, setWorking] = useState<'start' | 'status' | { taskId: string }>();
+  const disabled = blocked || working !== undefined;
+  const [launch, setLaunch] = useState<TaskRunLaunch>();
+  const latest = launch && statuses.current.get(launch.runId);
+  const result = launch && latest?.runKey === launch.runKey ? { ...launch, ...latest } : launch;
   const [error, setError] = useState('');
   async function start() {
     if (busy.current) return;
     busy.current = true;
-    setStarting(true);
-    setResult(undefined);
+    setWorking('start');
     setError('');
     try {
       const launched = await actions.start(offer, sourceKey);
-      if (launched) setResult(launched);
-      else setError('The saved source is no longer current. Save and inspect it again.');
+      if (launched) {
+        statuses.remember(launched);
+        setLaunch(launched);
+      } else setError('The saved source is no longer current. Save and inspect it again.');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not start the local task run.');
-    } finally { busy.current = false; setStarting(false); }
+    } finally { busy.current = false; setWorking(undefined); }
+  }
+  async function refresh() {
+    if (busy.current || !result) return;
+    busy.current = true;
+    setWorking('status');
+    setError('');
+    try {
+      statuses.remember(await actions.refresh(result));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not refresh the local task run.');
+    } finally { busy.current = false; setWorking(undefined); }
   }
   async function review(task: TaskRunLaunch['tasks'][number]) {
     if (busy.current || !result || !task.review) return;
     busy.current = true;
-    setReviewing(task.id);
+    setWorking({ taskId: task.id });
     setError('');
     try {
-      await actions.review({ runKey: result.runKey, runId: result.runId, taskId: task.id, ...task.review });
+      const { attemptId, candidateDigest } = task.review;
+      await actions.review({ runKey: result.runKey, runId: result.runId, taskId: task.id, attemptId, candidateDigest });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not review the local worker candidate.');
-    } finally { busy.current = false; setReviewing(undefined); }
+    } finally { busy.current = false; setWorking(undefined); }
   }
   return <>
     <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
     <button className="ghost" type="button" disabled={blocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
-    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={blocked || starting || !!reviewing} onClick={() => void start()}>{starting ? 'Starting local run…' : 'Start local run'}</button>}
+    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : 'Start local run'}</button>}
     {error && <div role="status">{error}</div>}
     {result && <div role="status">
       <span>{(result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
+      <button className="ghost" type="button" aria-label="Refresh local run status" disabled={disabled} onClick={() => void refresh()}>
+        {working === 'status' ? 'Refreshing…' : 'Refresh status'}
+      </button>
       <ul>{result.tasks.map(task => <li key={task.id}><span>{task.id + ' · ' + task.phase.replaceAll('-', ' ') + (task.reason ? ' · ' + task.reason : '')}</span>
         {task.review && <button className="ghost" type="button" aria-label={`Review candidate ${task.id}`}
-          disabled={blocked || actions.reviewBlocked || starting || !!reviewing}
+          disabled={disabled || actions.reviewBlocked}
           title={actions.reviewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
-          onClick={() => void review(task)}>{reviewing === task.id ? 'Checking…' : 'Review'}</button>}
+          onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
       </li>)}</ul>
       <code title={result.directory}>{result.directory}</code>
     </div>}

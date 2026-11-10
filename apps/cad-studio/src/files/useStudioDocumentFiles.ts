@@ -8,6 +8,7 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { digestOf } from '@barocss/cad-model/util/digest';
+import { isObj } from '@barocss/cad-model/util/guards';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
 import type { EngineClient } from '../engine/client';
@@ -21,7 +22,8 @@ import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, ver
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
-import { isLocalTaskRunHost, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, isTaskRunStatus, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
+  type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -57,6 +59,7 @@ interface StudioDocumentFileOptions {
     onCheckpointOpened(review: CheckpointReview): void;
     onCandidateOpened(review: CandidateReview): void;
     onLocalCandidateReviewIntent(): void;
+    onTaskRunStatus(status: TaskRunStatus): void;
     commit(doc: StudioDoc): boolean;
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
@@ -74,7 +77,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
   const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
-  const candidateIntent = useRef<{ local: boolean }>(null);
+  const candidateIntent = useRef<{ local?: { request: TaskRunReviewRequest; status?: TaskRunStatus } }>(null);
   const cancelLocalCandidateReview = () => {
     if (candidateIntent.current?.local) candidateIntent.current = null;
   };
@@ -131,19 +134,44 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
+  const readLocalTaskRun = async (action: 'start' | 'review' | 'status', body: Blob | string) => {
+    if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to use a local task run.');
+    const res = await fetch('/api/chat/task-runs/' + action, {
+      method: 'POST', redirect: 'error',
+      headers: { 'content-type': typeof body === 'string' ? 'application/json' : 'application/octet-stream', 'x-barocss-task-run': action },
+      body,
+    });
+    const value: unknown = await res.json().catch(() => null);
+    if (!res.ok || !isObj(value))
+      throw new Error(isObj(value) && typeof value.error === 'string' ? value.error : 'The local task run service did not respond.');
+    return value;
+  };
+
   const startTaskRun = async (offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined> => {
     if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
     return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
-      const res = await fetch('/api/chat/task-runs/start', {
-        method: 'POST', redirect: 'error',
-        headers: { 'content-type': 'application/octet-stream', 'x-barocss-task-run': 'start' },
-        body: new Blob([handoff as BlobPart]),
-      });
-      const value = await res.json().catch(() => null);
-      if (!res.ok || typeof value?.directory !== 'string' || typeof value.runKey !== 'string' || !Array.isArray(value.tasks))
-        throw new Error(typeof value?.error === 'string' ? value.error : 'The local task run service did not respond.');
-      return value as TaskRunLaunch;
+      const value = await readLocalTaskRun('start', new Blob([handoff as BlobPart]));
+      const { directory, reused } = value;
+      if (typeof directory !== 'string' || typeof reused !== 'boolean' || !isTaskRunStatus(value))
+        throw new Error('The local task run service returned an invalid result.');
+      return { ...value, directory, reused };
     });
+  };
+
+  const refreshTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> => {
+    const value = await readLocalTaskRun('status', JSON.stringify({ runKey: run.runKey, runId: run.runId }));
+    if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
+      throw new Error('The local task run service returned a different or older run status.');
+    const { runKey, runId, phase, revision, baselineDigest, tasks } = value;
+    return { runKey, runId, phase, revision, baselineDigest, tasks };
+  };
+
+  const observeTaskRunStatus = (status: TaskRunStatus) => {
+    const { runKey, runId, revision } = status;
+    const local = candidateIntent.current?.local;
+    if (local && local.request.runKey === runKey && local.request.runId === runId && (!local.status || local.status.revision <= revision))
+      local.status = status;
+    changes.onTaskRunStatus(status);
   };
 
   const captureImportOwner = () => {
@@ -232,7 +260,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   };
 
   const openCandidate = async (file: File, owner: () => boolean) => {
-    const baseline = docNow.current, intent = { local: false };
+    const baseline = docNow.current, intent = {};
     candidateIntent.current = intent;
     const current = () => owner() && candidateIntent.current === intent;
     try {
@@ -255,20 +283,15 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       if (!ownership.canReviewLocalCandidate(occurrence)) throw new Error('Return to the current model view to review the candidate.');
     };
     requireView();
-    const baseline = docNow.current, owner = captureImportOwner(), intent = { local: true };
+    const baseline = docNow.current, owner = captureImportOwner();
+    const request: TaskRunReviewRequest = { ...selection, baselineDigest: digestOf(baseline) };
+    const intent = { local: { request, status: undefined as TaskRunStatus | undefined } };
     candidateIntent.current = intent;
     const current = () => owner.isCurrent() && candidateIntent.current === intent && docNow.current === baseline;
     changes.onLocalCandidateReviewIntent();
-    const request: TaskRunReviewRequest = { ...selection, baselineDigest: digestOf(baseline) };
     const read = async () => {
-      const res = await fetch('/api/chat/task-runs/review', {
-        method: 'POST', redirect: 'error',
-        headers: { 'content-type': 'application/json', 'x-barocss-task-run': 'review' },
-        body: JSON.stringify(request),
-      });
-      const value = await res.json().catch(() => null);
-      if (!res.ok || typeof value?.review !== 'string')
-        throw new Error(typeof value?.error === 'string' ? value.error : 'The local candidate service did not respond.');
+      const value = await readLocalTaskRun('review', JSON.stringify(request));
+      if (typeof value?.review !== 'string') throw new Error('The local candidate service returned an invalid result.');
       const receipt = decodeCandidateReview(value.review);
       if ('error' in receipt || receipt.runId !== request.runId || receipt.submission.taskId !== request.taskId
         || receipt.attemptId !== request.attemptId || receipt.candidateDigest !== request.candidateDigest
@@ -286,7 +309,10 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       if (!current()) return;
       if (!matchesCurrentCandidateReview(receipt, latest)) throw new Error('The worker candidate changed during review.');
       requireView(review.occurrence);
-      showCandidateReview({ ...review, localRun: request });
+      const status = intent.local.status;
+      if (status && retiresTaskRunReview(status, request, latest.revision))
+        throw new Error('The worker candidate changed during review.');
+      showCandidateReview({ ...review, localRun: { request, revision: latest.revision } });
     } catch (error) {
       if (current()) throw error;
     }
@@ -327,5 +353,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

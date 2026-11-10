@@ -21,7 +21,7 @@ export interface CandidateReviewReceipt {
   candidateDigest: string;
 }
 export interface CandidateReview {
-  localRun?: TaskRunReviewRequest;
+  localRun?: { request: TaskRunReviewRequest; revision: number };
   taskId: string;
   attemptId: string;
   candidateDigest: string;

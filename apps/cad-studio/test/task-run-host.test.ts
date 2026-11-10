@@ -11,7 +11,8 @@ import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
-import { LocalRunRequestError, readLocalTaskCandidate } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskCandidate, readLocalTaskRunStatus } from '../server/taskRun/localService';
+import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
@@ -96,6 +97,54 @@ if (!(await serveTaskThread(evaluate))) {
         fail({}, 409, /no longer awaiting review/);
         assert.deepEqual(host.snapshot.accepted, accepted);
         assert.deepEqual(host.snapshot.commits, []);
+      } finally { host.close(); }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  test('D621 owned status reads project one revision and retire only matching current candidate reviews', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-run-status-')), key = 'a'.repeat(64), dir = join(root, key);
+    try {
+      const host = await TaskRunHost.create(dir, 'housing', fixtureDoc(), fixturePlan, fixtureLimits, 8, evaluate);
+      try {
+        await host.dispatch('status-base', 'base', async ticket => reply(ticket, 6));
+        await host.dispatch('status-lid', 'lid', async ticket => reply(ticket, 4));
+        const locator = { runKey: key, runId: host.snapshot.runId };
+        const files = () => [readFileSync(join(dir, 'run.json')), readdirSync(dir).sort()];
+        const before = files(), initial = readLocalTaskRunStatus(root, locator);
+        assert.ok(isTaskRunStatus(initial));
+        assert.equal(initial.revision, host.snapshot.revision);
+        assert.equal(initial.baselineDigest, host.snapshot.accepted.modelDigest);
+        assert.deepEqual(initial.tasks.map(task => [task.phase, task.review?.attemptId]), host.snapshot.state.tasks.map(task => [task.phase, task.attempt?.id]));
+        const pin = initial.tasks[1].review!;
+        const candidate = { ...locator, taskId: 'lid', ...pin, baselineDigest: initial.baselineDigest };
+        assert.ok(!retiresTaskRunReview(initial, candidate, initial.revision));
+        assert.ok(!isTaskRunStatus({ ...initial, tasks: [{ ...initial.tasks[0], phase: 'invented', review: undefined }, initial.tasks[1]] }));
+        assert.ok(!isTaskRunStatus({ ...initial, tasks: [initial.tasks[0], initial.tasks[0]] }));
+        const refuse = (patch: Record<string, unknown>, code: number) =>
+          assert.throws(() => readLocalTaskRunStatus(root, { ...locator, ...patch }),
+            (error: unknown) => error instanceof LocalRunRequestError && error.status === code);
+        refuse({ path: dir }, 400);
+        refuse({ runKey: '../' }, 400);
+        refuse({ runId: 'another-run' }, 409);
+        refuse({ runKey: 'b'.repeat(64) }, 404);
+        symlinkSync(dir, join(root, 'c'.repeat(64)));
+        refuse({ runKey: 'c'.repeat(64) }, 409);
+        assert.deepEqual(files(), before);
+
+        assert.equal((await host.decide(decision(host, 'base', 'status-approve-base'), trusted())).code, 'RUN_ACCEPTED');
+        const approved = readLocalTaskRunStatus(root, locator);
+        assert.ok(approved.revision > initial.revision);
+        assert.deepEqual(approved.tasks.map(task => [task.phase, task.review]), [['completed', undefined], ['stale', undefined]]);
+        assert.ok(retiresTaskRunReview(approved, candidate, initial.revision));
+        assert.ok(!retiresTaskRunReview(approved, candidate, approved.revision + 1));
+        assert.ok(!retiresTaskRunReview({ ...approved, runId: 'another-run' }, candidate, initial.revision));
+        assert.equal((await host.refresh('status-rebuild-lid', 'lid')).phase, 'completed');
+        const beforeRead = files(), rebuilt = readLocalTaskRunStatus(root, locator);
+        assert.ok(rebuilt.revision > approved.revision);
+        assert.equal(rebuilt.baselineDigest, approved.baselineDigest);
+        assert.notEqual(rebuilt.tasks[1].review?.attemptId, pin.attemptId);
+        assert.notEqual(rebuilt.tasks[1].review?.candidateDigest, pin.candidateDigest);
+        assert.deepEqual(files(), beforeRead);
       } finally { host.close(); }
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
