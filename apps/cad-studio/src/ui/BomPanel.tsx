@@ -4,7 +4,7 @@
 // list as CSV (the bought lines; with made parts on a tick). Its evaluations go through the engine worker. O16: its
 // contents on shadcn's Table, Button and NativeSelect, the columns fixed at the dock's width and no item name wrapped —
 // each cut short with its whole text as the title.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { bomPanelData, purchaseCsv, setBought, type BomPanelData } from '@barocss/cad-model/bom/bom';
@@ -28,35 +28,37 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
   doc: StudioDoc; name: string; evaluate(doc: StudioDoc): Promise<EvalResult | null>;
   onCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void;
 }) {
-  const linked = bomHasLinkedHousing(doc);
   const key = useMemo(() => ({}), [doc, name]);
-  const current = useRef(key); current.current = key;
+  const current = useRef<object | null>(null);
+  useLayoutEffect(() => {
+    current.current = key;
+    return () => { current.current = null; };
+  }, [key]);
   const callbacks = useRef({ evaluate, onError }); callbacks.current = { evaluate, onError };
-  const [result, setResult] = useState<{ key: object; linked: boolean; data: BomPanelData | null; error: string | null } | null>(null);
+  const [result, setResult] = useState<{ key: object; data: BomPanelData | null; error: string | null } | null>(null);
   const [withMade, setWithMade] = useState(false);
-  // Rows, parameters, occurrence poses and deleted targets belong to the current authored root too.
-  // Keep legacy partial data while unrelated documents load, but never export a previous linked result.
-  const blocked = linked || !!result?.linked;
-  const data = result && (result.key === key || !blocked) ? result.data : null;
-  const error = result?.key === key ? result.error : null;
+  // Only show and act on a result produced for the current document and name.
+  const latest = result?.key === key ? result : null;
+  const data = latest?.data ?? null, error = latest?.error ?? null;
   useEffect(() => {
     let live = true;
-    setResult(previous => ({ key, linked, data: linked || previous?.linked ? null : previous?.data ?? null, error: null }));
     const t = setTimeout(() => {
       bomPanelData(doc, callbacks.current.evaluate, name).then(data => {
-        if (live && current.current === key) setResult({ key, linked, data, error: null });
+        if (live && current.current === key) setResult({ key, data, error: null });
       }, error => {
         if (!live || current.current !== key) return;
         const message = error instanceof Error ? error.message : String(error);
-        setResult(previous => ({ key, linked, data: linked || previous?.linked ? null : previous?.data ?? null, error: message }));
+        setResult({ key, data: null, error: message });
         callbacks.current.onError('Could not work out the BOM', message);
       });
     }, 200);
     return () => { live = false; clearTimeout(t); };
-  }, [doc, name, key, linked]);
+  }, [doc, name, key]);
   const why = (parts: readonly string[]) => (data?.view.elements ?? []).filter(e => parts.includes(`${e.part}:${e.item}`)).flatMap(e => e.why).filter((w, i, a) => a.indexOf(w) === i).join('; ');
   const parentName = (path: string) => data?.view.parts.find(p => p.id === path)?.name ?? path;
-  const choose = (parts: readonly string[], c: Choice) => onCommit(setBought(doc, parts, valueOf(c)));
+  const choose = (parts: readonly string[], c: Choice) => {
+    if (data && current.current === key) onCommit(setBought(doc, parts, valueOf(c)));
+  };
   const copies = (n: number) => n > 1 ? ` — applies to all ${n} copies` : '';
   const toggle = (parts: readonly string[], current: Choice, label: string) => (
     <NativeSelect aria-label={`Bought or made: ${label}`} value={current} title={`Bought or made${copies(parts.length)}; Default: by its kind`} onChange={e => choose(parts, e.currentTarget.value as Choice)}>
@@ -64,9 +66,9 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
   const csv = () => { if (data && current.current === key) downloadBytes(new TextEncoder().encode(purchaseCsv(data, withMade)), `${name} purchase list.csv`, 'text/csv'); };
   return <aside className="card props bom-panel" aria-label="BOM panel">
     <div className="card-title">BILL OF MATERIALS <button className="tool tiny" aria-label="Close BOM" onClick={onClose}><Icon name="close" small /></button></div>
-    {!data && !error && <div className="empty" role="status">Working out the BOM…</div>}
-    {error && <div className="empty warn" role="alert">Could not work out the BOM: {error}</div>}
-    {!data && blocked && <div className="row-actions"><Button variant="ghost" aria-label="Export purchase list" disabled>Export purchase list</Button></div>}
+    {!data && error === null && <div className="empty" role="status">Working out the BOM…</div>}
+    {error !== null && <div className="empty warn" role="alert">Could not work out the BOM: {error}</div>}
+    {!data && <div className="row-actions"><Button variant="ghost" aria-label="Export purchase list" disabled>Export purchase list</Button></div>}
     {data && <>
       <Table className="bom-table" aria-label="BOM lines">
         <colgroup><col className="w-6" /><col /><col className="w-10" /><col className="w-[11%]" /><col className="w-[22%]" /><col className="w-[5.25rem]" /></colgroup>

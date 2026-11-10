@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D574 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D575 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D574 rejects late Finish replies from an ordinary reopened sketch after cancel or a new edit. Actual Studio verifies the live retry, first Undo/Redo and local Save/fresh Open. [D574](notes/sketch-finish-ownership-2026-11-10/README.md). [#2364](https://github.com/barocss/barocss/issues/2364) stays open for remaining acceptance.
-- **Next MAIN:** D575 / P0 rows 10 and 16. Check whether a stale BOM row can apply its buy/make override to the current document before a fresh result arrives. [#2356](https://github.com/barocss/barocss/issues/2356).
+- **Current position:** D575 blocks previous BOM rows, CSV and buy/make changes during current recomputation. Actual Studio verifies blocked pending actions, current B CSV and a single current override with first Undo/Redo. [D575](notes/bom-currentness-2026-11-10/README.md). [#2356](https://github.com/barocss/barocss/issues/2356) stays open for remaining acceptance.
+- **Next MAIN:** D576 / P0 rows 11 and 16. Check whether a delayed drawing action reports success after Studio refuses its settings commit. [#2359](https://github.com/barocss/barocss/issues/2359).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

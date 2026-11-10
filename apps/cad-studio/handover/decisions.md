@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D575 — require the current BOM for row actions and CSV](notes/bom-currentness-2026-11-10/README.md).
+
 - [D574 — discard a Finish response from an expired sketch edit](notes/sketch-finish-ownership-2026-11-10/README.md).
 
 - [D573 — keep unsaved Variants inputs with their document](notes/variant-document-draft-2026-11-10/README.md).

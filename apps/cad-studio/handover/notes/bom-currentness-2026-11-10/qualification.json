@@ -1,0 +1,184 @@
+{
+  "workId": "D575",
+  "parent": "2b2a00b26c5f50176e6a5f286f045e567469a7b6",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D575-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d575-2026-11-10",
+    "frozenSourcesPerRun": 297
+  },
+  "fixtureSha256": {
+    "a": "76ad678d7d748ced4e89fa80a185ee24616f590f4739ae73807ca255e9db71fd",
+    "b": "44f046fd3d66fa2773f866d0caa5ae6adbe8a15ffa995a525c2a63fe1bd05f13"
+  },
+  "panelSha256": {
+    "original": "1588162fa1e752aac0e2d311348203d87cc99dc0749e4e7d7faf870134855a0f",
+    "fixed": "91dd2f22a4bb5d3271828cc2906f1ce4d5c57363e664aabf33ab5d34fb76308c"
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D575_SOURCE_FROZEN=1 node test/bom-currentness-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "FAIL",
+      "product": "PARTIAL_REPRODUCTION",
+      "snapshots": 4,
+      "csvChecks": 2,
+      "wallSeconds": 9.98,
+      "nodePID": 76052,
+      "chromePID": 76080,
+      "receiptSha256": "d7bf7b34bde002857f5bac274dba9e84e1711ccc8efe2274cadb0da3f19a7957",
+      "driverSha256": "1b6da9b874e29c5e02a2c6e7cea5373a49edbf5871e71f0fd87c0379d250dde1",
+      "observations": [],
+      "capturedExports": [
+        {
+          "label": "current-A-csv",
+          "sha256": "df10bf6212ef303e6b6c3a8eab3074de080c0d01a9d99cb8147a45c1ef77f2fa",
+          "file": "D575-A purchase list.csv"
+        },
+        {
+          "label": "stale-csv-named-B",
+          "sha256": "df10bf6212ef303e6b6c3a8eab3074de080c0d01a9d99cb8147a45c1ef77f2fa",
+          "file": "D575-B purchase list.csv"
+        }
+      ]
+    },
+    {
+      "output": "repro02",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "snapshots": 3,
+      "csvChecks": 2,
+      "wallSeconds": 10.08,
+      "nodePID": 79662,
+      "chromePID": 79683,
+      "receiptSha256": "58b5a38e2a062454d843e5a4dee8f08d4f41e0cf65d182180cca38551da68801",
+      "driverSha256": "d44bd0910f733646b128d2e8c7d504c2bbbacf56af66cda08fea453939b93f9e",
+      "observations": [
+        {
+          "held": {
+            "id": 7,
+            "revision": 7,
+            "ok": true,
+            "resultRevision": 7
+          },
+          "staleCsv": true,
+          "staleEdit": true
+        }
+      ],
+      "capturedExports": [
+        {
+          "label": "current-A-csv",
+          "sha256": "df10bf6212ef303e6b6c3a8eab3074de080c0d01a9d99cb8147a45c1ef77f2fa",
+          "file": "D575-A purchase list.csv"
+        },
+        {
+          "label": "stale-csv-named-B",
+          "sha256": "df10bf6212ef303e6b6c3a8eab3074de080c0d01a9d99cb8147a45c1ef77f2fa",
+          "file": "D575-B purchase list.csv"
+        }
+      ]
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "snapshots": 4,
+      "csvChecks": 3,
+      "wallSeconds": 10.2,
+      "nodePID": 80437,
+      "chromePID": 80461,
+      "receiptSha256": "3a0e3ba64ecd28c2245d93280e5afce738f8c516575d47b17e95274586b2f65e",
+      "driverSha256": "d44bd0910f733646b128d2e8c7d504c2bbbacf56af66cda08fea453939b93f9e",
+      "observations": [
+        {
+          "held": {
+            "id": 7,
+            "revision": 7,
+            "ok": true,
+            "resultRevision": 7
+          },
+          "staleCsv": false,
+          "staleEdit": false,
+          "currentOverride": true
+        }
+      ],
+      "capturedExports": [
+        {
+          "label": "current-A-csv",
+          "sha256": "df10bf6212ef303e6b6c3a8eab3074de080c0d01a9d99cb8147a45c1ef77f2fa",
+          "file": "D575-A purchase list.csv"
+        },
+        {
+          "label": "current-B-with-made",
+          "sha256": "bf087141292fad44ac7c5798da5e71f0378429431a022dc8f8066c5c30c6ade7",
+          "file": "D575-B purchase list.csv"
+        },
+        {
+          "label": "current-B-bought",
+          "sha256": "8a36c58066c3ea47798b2114e24ede8eb8594f6d284e53fdada46f11c0705e29",
+          "file": "D575-B purchase list.csv"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/bom-currentness-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs bom-linked-ui bom-nested-ui",
+      "logSha256": "1fdc7f068234b643ca053e9be2e0921c78bf176e9d2e88c86558fdcb5e3afd82",
+      "status": "FAIL",
+      "passed": 5,
+      "failed": 5
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "logSha256": "afb211e95406fe3e6a882f2b08a2facf257fcf5d6ed0db027a38a8e4f1e32107",
+      "status": "FAIL",
+      "cause": "TS2488 in test assertion narrowing"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs bom-linked-ui bom-nested-ui",
+      "logSha256": "1f4db69d8155e89d81be821d55854efdf7758d82fffbf2c6db26dbe02d259868",
+      "status": "PASS",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs bom",
+      "logSha256": "88b19d768b8a0e5abc7808cd17c04071f8bc6aeb11c742fd0c5b099ef9791cbb",
+      "status": "PASS",
+      "passed": 31,
+      "failed": 0
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "logSha256": "8c0a2c95677a30807370fa3d07e4d7b99fe2fd090661da3992d711b6d66ee722",
+      "status": "PASS"
+    }
+  ],
+  "reviews": {
+    "behavior": "APPROVE",
+    "security": "APPROVE",
+    "quality": "APPROVE"
+  },
+  "issue2356": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

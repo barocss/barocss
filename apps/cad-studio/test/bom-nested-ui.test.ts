@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 // The recorder's hooks, props and JSX records are untyped by nature.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
-type Hooks = { useRef: Loose; useState: Loose; useMemo: Loose; useEffect: Loose };
+type Hooks = { useRef: Loose; useState: Loose; useMemo: Loose; useEffect: Loose; useLayoutEffect: Loose };
 const shared = globalThis as typeof globalThis & { __bomHooks?: Hooks; __bomCalls?: Loose };
 
 // The test runs bundled from a temporary folder, so esbuild is loaded from the studio's own node_modules (cwd).
@@ -28,7 +28,7 @@ try {
       builder.onLoad({ filter: /.*/, namespace: 'recorder' }, ({ path }) => ({ contents:
         // (O16: shadcn's Button takes Radix's Slot, which calls forwardRef as its module loads — and the rest of React's
         // element API when it renders as a child, which the recorder never does: a component's element is recorded.)
-        path === 'react' ? 'export const useRef=(...a)=>globalThis.__bomHooks.useRef(...a),useState=(...a)=>globalThis.__bomHooks.useState(...a),useMemo=(...a)=>globalThis.__bomHooks.useMemo(...a),useEffect=(...a)=>globalThis.__bomHooks.useEffect(...a);'
+        path === 'react' ? 'export const useRef=(...a)=>globalThis.__bomHooks.useRef(...a),useState=(...a)=>globalThis.__bomHooks.useState(...a),useMemo=(...a)=>globalThis.__bomHooks.useMemo(...a),useEffect=(...a)=>globalThis.__bomHooks.useEffect(...a),useLayoutEffect=(...a)=>globalThis.__bomHooks.useLayoutEffect(...a);'
           + 'export const forwardRef=render=>render,memo=type=>type,useCallback=f=>f,Fragment="fragment",isValidElement=()=>false,cloneElement=element=>element,createElement=(type,props,...children)=>({type,props:{...props,children}}),Children={map:()=>[],toArray:()=>[],count:()=>0,only:child=>child,forEach:()=>{}};'
           : path === 'react/jsx-runtime' ? 'export const jsx=(type,props,key)=>({type,props,key}),jsxs=jsx; export const Fragment="fragment";'
           : path === '@barocss/cad-model/bom/bom' ? 'export const bomPanelData=(...a)=>globalThis.__bomCalls.load(...a),purchaseCsv=(data,made)=>data.marker+":"+made,setBought=(doc)=>doc;'
@@ -50,20 +50,25 @@ const walk = (node: Loose): Loose[] => !node || typeof node !== 'object' ? [] : 
 const text = (tree: Loose): string => typeof tree === 'string' || typeof tree === 'number' ? String(tree) : !tree ? '' : Array.isArray(tree) ? tree.map(text).join('') : text(tree.props?.children);
 
 test('a nested line is indented under its sub-assembly and names the parent; top-level lines are not indented', async () => {
-  const slots: Loose[] = [], effects: (() => void)[] = [], timers: (() => void)[] = [], jobs: Loose[] = [];
+  const slots: Loose[] = [], effects: (() => void)[] = [], layoutEffects: (() => void)[] = [], timers: (() => void)[] = [], jobs: Loose[] = [];
   let cursor = 0;
   const oldSet = globalThis.setTimeout;
+  const schedule = (queue: (() => void)[], make: () => Loose) => {
+    const i = cursor++;
+    if (!slots[i]) { slots[i] = {}; queue.push(() => { slots[i].cleanup = make(); }); }
+  };
   shared.__bomHooks = {
     useRef(v: unknown) { const i = cursor++; return slots[i] ??= { current: v }; },
     useState(v: unknown) { const i = cursor++; if (!(i in slots)) slots[i] = v; return [slots[i], (n: Loose) => { slots[i] = typeof n === 'function' ? n(slots[i]) : n; }]; },
     useMemo(make: () => unknown) { const i = cursor++; return (slots[i] ??= { value: make() }).value; },
-    useEffect(make: () => Loose) { const i = cursor++; if (!slots[i]) { slots[i] = {}; effects.push(() => { slots[i].cleanup = make(); }); } },
+    useEffect(make: () => Loose) { schedule(effects, make); },
+    useLayoutEffect(make: () => Loose) { schedule(layoutEffects, make); },
   };
   globalThis.setTimeout = ((cb: () => void) => { timers.push(cb); return timers.length; }) as Loose;
   shared.__bomCalls = { downloads: [], load: () => new Promise(resolve => jobs.push(resolve)) };
   try {
     const props: Loose = { doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, instances: [] }, name: 'asm', evaluate: async () => null, onCommit() {}, onClose() {}, onError() {} };
-    const render = () => { cursor = 0; return BomPanel(props); };
+    const render = () => { cursor = 0; const tree = BomPanel(props); layoutEffects.splice(0).forEach(e => e()); return tree; };
     render(); effects.splice(0).forEach(e => e()); timers.splice(0).forEach(t => t());
     jobs[0](panel); await Promise.resolve(); await Promise.resolve();
     const tree = render();
