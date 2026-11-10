@@ -12,6 +12,7 @@ import type { Vec3 } from '../engine/mesh';
 import { beadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 import { r3Signed as r3 } from '../util/round';
 import { massGOf } from '../app/mass';
+import { boundsOf } from '../engine/bounds';
 
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 
@@ -34,21 +35,30 @@ function vertexCount(b: BodyResult): number {
   return seen.size;
 }
 
-/** The part's facts: solids, volume, mass (each body's material, aluminium by default), centroid, box, counts. */
-export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
-  let volume = 0, mass = 0, faces = 0, edges = 0, vertices = 0;
-  const c: Vec3 = [0, 0, 0], lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
+/** @internal Physical totals before display rounding. Mass uses each body's material. */
+export function physicalTotalsOf(doc: StudioDoc, bodies: readonly BodyResult[]): { volume: number; mass: number; centroid: Vec3 | null } {
+  let volume = 0, mass = 0;
+  const c: Vec3 = [0, 0, 0];
   for (const b of bodies) {
     const v = b.volume ?? 0;
     volume += v; mass += massGOf(v, materialOf(materialIdOf(doc, b)).density);
     if (b.centroid) for (let k = 0; k < 3; k++) c[k] += b.centroid[k] * v;
-    for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  }
+  return { volume, mass, centroid: volume > 0 ? [c[0] / volume, c[1] / volume, c[2] / volume] : null };
+}
+
+/** The part's facts: solids, volume, mass (each body's material, aluminium by default), centroid, box, counts. */
+export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
+  const { volume, mass, centroid } = physicalTotalsOf(doc, bodies);
+  const { min, max } = boundsOf(bodies);
+  let faces = 0, edges = 0, vertices = 0;
+  for (const b of bodies) {
     faces += b.mesh.faces.length; edges += b.mesh.edges.length; vertices += vertexCount(b);
   }
   const materials = bodies.map(b => ({ body: b.key, ...materialFact(doc, b) }));
   const accounting = beadAccounting(doc, bodies);
-  return { built: true, solids: bodies.length, volume: r3(volume), mass: r3(mass), centroid: volume > 0 ? v3(c.map(x => x / volume)) : null, materials, mass_assumed: materials.some(m => m.assumed),
-    bbox: bodies.length ? { min: v3(lo), max: v3(hi) } : null, faces, edges, vertices, ...(accounting ? { beadAccounting: accounting } : {}) };
+  return { built: true, solids: bodies.length, volume: r3(volume), mass: r3(mass), centroid: centroid ? v3(centroid) : null, materials, mass_assumed: materials.some(m => m.assumed),
+    bbox: bodies.length ? { min: v3(min), max: v3(max) } : null, faces, edges, vertices, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 
 /** How the facts changed (only what did; nothing: `{}`). */

@@ -59,8 +59,18 @@ export function useModelChecks({ model, worker, onNotice: setToast }: ModelCheck
       // (The evaluated model follows model edits only: the requirements are the document's own.)
       void checkSpec({ ...evaluated, requirements: doc.requirements, ...(doc.references ? { references: doc.references } : {}) }, bodies, d => engine.part(d, nextRevision(), 'check')).then(r => {
         if (!live) return;
-        const broke = (doc.requirements ?? []).filter(q => q.hard && specPassed.current.has(q.id) && r.outcomes.get(q.id)?.status === 'fail').map(q => q.id);
-        specPassed.current = new Set([...r.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id));
+        const passed = new Set<string>(), broke: string[] = [];
+        for (const { id, hard, check: { query } } of doc.requirements ?? []) {
+          const status = r.outcomes.get(id)?.status;
+          if (status === 'pass') passed.add(id);
+          else if (specPassed.current.has(id)) {
+            if (status === 'fail' && hard) broke.push(id);
+            // Deferred mass is an interim result. Keep the previous pass until this scope settles.
+            if (status === 'unknown' && (query.fn === 'volume' || query.fn === 'mass')
+              && bodies.some(b => (!query.body || b.key === query.body) && b.volume === null && b.massRef !== undefined)) passed.add(id);
+          }
+        }
+        specPassed.current = passed;
         setSpec({ summary: r.summary, outcomes: Object.fromEntries(r.outcomes), of: evaluated.nodes });
         if (broke.length) setToast({ title: `${broke.join(', ')} now fail${broke.length === 1 ? 's' : ''}`, hint: `A hard requirement that held no longer does: ${broke.map(id => { const o = r.outcomes.get(id); return `${id} measures ${String(o?.measured)}`; }).join('; ')}. Your change is kept; undo it or change the part.`, detail: '' });
       }).finally(() => { if (live) setSpecRunning(false); });

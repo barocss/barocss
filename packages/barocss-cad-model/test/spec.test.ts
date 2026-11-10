@@ -1,10 +1,11 @@
-import { validateSuite } from '../src/chat/spec';
+import { runCheck, validateSuite } from '../src/chat/spec';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
+import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import type { Predicate, Query } from '../src/engine/schema/spec';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 
@@ -21,6 +22,190 @@ const BRIEF = [
   { id: 'R6', source: 'walls at least 2 mm', hard: true, check: { op: '>=', query: { fn: 'min_wall' }, value: 2, unit: 'mm' } },
   { id: 'R7', source: 'one piece', hard: true, check: { op: '==', query: { fn: 'count_solids' }, value: 1 } },
 ];
+
+const SUB_DISPLAY = 1 / 4096;
+const WIDTH = 40 + SUB_DISPLAY;
+const WIDTH_CAP = 40 + SUB_DISPLAY / 2;
+
+test('D578: native bbox verdicts agree at the origin and after translations on all axes', async () => {
+  const dimensions = [WIDTH, 20 + SUB_DISPLAY, 8 + SUB_DISPLAY] as const;
+  const doc = rectanglePart(...dimensions);
+  for (const shift of [0, 2 * SUB_DISPLAY, -2 * SUB_DISPLAY]) {
+    const placed = shift === 0 ? doc : withNode(doc, {
+      kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [shift, shift, shift],
+    });
+    const state = await stateOf(placed);
+    for (const [i, axis] of (['x', 'y', 'z'] as const).entries()) {
+      const length = dimensions[i];
+      const below = length - SUB_DISPLAY / 2;
+      const above = length + SUB_DISPLAY / 2;
+      const query: Query = { fn: 'bbox', axis };
+      const cases: [Predicate, 'pass' | 'fail'][] = [
+        [{ query, op: '<=', value: below }, 'fail'],
+        [{ query, op: '<=', value: below, tol: SUB_DISPLAY }, 'pass'],
+        [{ query, op: '>=', value: above }, 'fail'],
+        [{ query, op: '>=', value: above, tol: SUB_DISPLAY }, 'pass'],
+        [{ query, op: '==', value: length, tol: 1e-6 }, 'pass'],
+        [{ query, op: '==', value: below, tol: 1e-6 }, 'fail'],
+        [{ query, op: 'between', min: below, max: above }, 'pass'],
+        [{ query, op: 'between', min: below - SUB_DISPLAY, max: below }, 'fail'],
+      ];
+      for (const [predicate, status] of cases) {
+        const result = await runCheck(placed, state.bodies, evaluate, predicate);
+        assert.equal(result.status, status, JSON.stringify({ shift, predicate, result }));
+      }
+    }
+    const summary = await runTool(state, 'get_part_summary', { response_format: 'concise' }, evaluate);
+    assert.deepEqual(parse(summary.content).facts.bbox, {
+      min: [0, 0, 0], max: shift > 0 ? [40.001, 20.001, 8.001] : [40, 20, 8],
+    });
+  }
+});
+
+test('D578: injected bounds preserve zero and reject nonfinite measurements', async () => {
+  const { doc, bodies: [body] } = await stateOf(rectanglePart(40, 20, 8));
+  const withBounds = (maxX: number): BodyResult => ({
+    ...body, mesh: { ...body.mesh, bounds: { min: [5, -2, 0], max: [maxX, -2, 8] } },
+  });
+  const width: Predicate = { op: '==', query: { fn: 'bbox', axis: 'x' }, value: SUB_DISPLAY, tol: 1e-6 };
+  const height: Predicate = { op: '==', query: { fn: 'bbox', axis: 'y' }, value: 0 };
+  const thin = withBounds(5 + SUB_DISPLAY);
+  assert.equal((await runCheck(doc, [thin], evaluate, width)).status, 'pass');
+  const zero = await runCheck(doc, [thin], evaluate, height);
+  assert.deepEqual([zero.status, zero.measured], ['pass', 0]);
+
+  for (const bad of [NaN, Infinity, -Infinity]) {
+    const invalid = { ...withBounds(bad), key: 'invalid' };
+    const whole = await runCheck(doc, [thin, invalid], evaluate, width);
+    assert.equal(whole.status, 'unknown', String(bad));
+    assert.ok(whole.why, String(bad));
+    const filtered = await runCheck(doc, [thin, invalid], evaluate, {
+      ...width, query: { fn: 'bbox', axis: 'x', body: thin.key },
+    });
+    assert.equal(filtered.status, 'pass', String(bad));
+  }
+});
+
+test('D578: raw volume and material mass preserve body scope and compact facts', async () => {
+  const plate = rectanglePart(WIDTH, 20, 8);
+  const sketch = withNode(plate, { kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 5] });
+  const twoSolids = withNode(sketch, { kind: 'extrude', sketch: 2, height: 2 });
+  const doc = { ...twoSolids, bodies: { b1: { material: 'steel' }, b3: { material: 'al6061' } } };
+  const state = await stateOf(doc);
+  assert.deepEqual(state.bodies.map(b => b.key).sort(), ['b1', 'b3']);
+
+  // Box volume is width × depth × height. Convert mm³ to cm³ before applying each density.
+  const plateVolume = WIDTH * 20 * 8;
+  const blockVolume = 10 * 5 * 2;
+  const steelMass = plateVolume / 1000 * 7.85;
+  const aluminiumMass = blockVolume / 1000 * 2.7;
+  const cases: [Query, number][] = [
+    [{ fn: 'volume', body: 'b1' }, plateVolume],
+    [{ fn: 'volume' }, plateVolume + blockVolume],
+    [{ fn: 'mass', body: 'b1' }, steelMass],
+    [{ fn: 'mass' }, steelMass + aluminiumMass],
+  ];
+  for (const [query, raw] of cases) {
+    for (const [offset, status] of [[-0.00002, 'fail'], [0.00002, 'pass']] as const) {
+      const result = await runCheck(doc, state.bodies, evaluate, { query, op: '<=', value: raw + offset });
+      assert.equal(result.status, status, JSON.stringify({ query, offset, result }));
+    }
+  }
+
+  const summary = await runTool(state, 'get_part_summary', { response_format: 'concise' }, evaluate);
+  const { facts } = parse(summary.content);
+  assert.deepEqual(Object.keys(facts).sort(), [
+    'bbox', 'built', 'centroid', 'edges', 'faces', 'mass', 'mass_assumed', 'materials', 'solids', 'vertices', 'volume',
+  ]);
+  assert.deepEqual([facts.volume, facts.mass, facts.mass_assumed], [6500.039, 50.51, false]);
+
+  const assumedDoc = { ...doc, bodies: { b1: doc.bodies.b1 } };
+  const mass: Predicate = { query: { fn: 'mass' }, op: '>=', value: 0 };
+  const assumed = await runCheck(assumedDoc, state.bodies, evaluate, mass);
+  assert.equal(assumed.status, 'unknown');
+  assert.match(assumed.why ?? '', /material of b3 is not set/);
+  const filtered = await runCheck(assumedDoc, state.bodies, evaluate, {
+    ...mass, query: { fn: 'mass', body: 'b1' }, value: steelMass - 0.00002,
+  });
+  assert.equal(filtered.status, 'pass');
+
+  for (const volume of [NaN, Infinity, -Infinity, undefined]) {
+    const poisoned = state.bodies.map(b => b.key === 'b3' ? { ...b, volume: volume as number } : b);
+    for (const fn of ['volume', 'mass'] as const) {
+      const unknown = await runCheck(doc, poisoned, evaluate, { op: '>=', query: { fn }, value: 0 });
+      assert.equal(unknown.status, 'unknown', `${fn}: ${volume}`);
+      assert.ok(unknown.why, `${fn}: ${volume}`);
+    }
+  }
+
+  const pending = state.bodies.map(b => b.key === 'b3' ? { ...b, volume: null, mass: null, massRef: 1 } : b);
+  const noVolume = state.bodies.map(b => b.key === 'b3' ? { ...b, volume: null, mass: null } : b);
+  for (const [fn, raw] of [['volume', plateVolume], ['mass', steelMass]] as const) {
+    const exact: Predicate = { op: '==', query: { fn }, value: raw, tol: 1e-6 };
+    const unavailable = await runCheck(doc, pending, evaluate, exact);
+    assert.equal(unavailable.status, 'unknown', fn);
+    assert.ok(unavailable.why, fn);
+    assert.equal((await runCheck(doc, pending, evaluate, { ...exact, query: { fn, body: 'b1' } })).status, 'pass', fn);
+    assert.equal((await runCheck(doc, noVolume, evaluate, { ...exact, query: { fn, body: 'b3' }, value: 0 })).status, 'pass', fn);
+  }
+});
+
+test('D578: the chat hard gate rejects a sub-display resize and honors because', async () => {
+  const state = await stateOf(rectanglePart(40, 20, 8));
+  const requirements = [{
+    id: 'WIDTH', source: 'limit the width', hard: true,
+    check: { op: '<=', query: { fn: 'bbox', axis: 'x' }, value: WIDTH_CAP, unit: 'mm' },
+  }];
+  const setup = await runTool(state, 'set_requirements', { requirements }, evaluate);
+  assert.equal(setup.isError, false, setup.content);
+  const checked = await runTool(setup.state, 'check_spec', {}, evaluate);
+  assert.deepEqual(parse(checked.content).summary, { pass: 1, fail: 0, unknown: 0, hard_failing: 0 });
+  assert.deepEqual(checked.state.policy?.passedHard, ['WIDTH']);
+
+  const scale = { command: 'scale', bodies: ['b1'], values: { factor: WIDTH / 40, px: 0, py: 0, pz: 0 } };
+  const refused = await runTool(checked.state, 'run_command', scale, evaluate);
+  assert.equal(refused.isError, true, refused.content);
+  assert.equal(refused.changed, false);
+  assert.equal(refused.state.doc, checked.state.doc);
+  assert.equal(refused.state.bodies, checked.state.bodies);
+  assert.match(parse(refused.content).error, /breaks hard requirement that passed: WIDTH/);
+
+  const allowed = await runTool(checked.state, 'run_command', { ...scale, because: 'check the next size' }, evaluate);
+  assert.equal(allowed.isError, false, allowed.content);
+  assert.equal(allowed.changed, true);
+  assert.deepEqual(parse(allowed.content).facts.bbox, { min: [0, 0, 0], max: [40, 20, 8] });
+  const rechecked = await runTool(allowed.state, 'check_spec', {}, evaluate);
+  const report = parse(rechecked.content);
+  assert.deepEqual(report.summary, { pass: 0, fail: 1, unknown: 0, hard_failing: 1 });
+  assert.deepEqual(rechecked.state.policy?.passedHard, []);
+  assert.deepEqual(report.failures, [{
+    req_id: 'WIDTH', check: 'bbox', measured: 40.0002, expected: `<= ${WIDTH_CAP} mm`, delta: 0.0001,
+    hint: 'the overall x size; hard: "limit the width"',
+  }]);
+});
+
+test('D578: a refused sub-display mass increase reports its pre-rounding value', async () => {
+  const doc = { ...rectanglePart(40, 1, 1), bodies: { b1: { material: 'al6061' } } };
+  const before = await stateOf(doc);
+  const setup = await runTool(before, 'set_requirements', { requirements: [{
+    id: 'MASS', source: 'cap the mass', hard: true,
+    check: { op: '<=', query: { fn: 'mass' }, value: 0.1080003, unit: 'g' },
+  }] }, evaluate);
+  assert.equal(setup.isError, false, setup.content);
+  const checked = await runTool(setup.state, 'check_spec', {}, evaluate);
+  assert.deepEqual(checked.state.policy?.passedHard, ['MASS']);
+  const scale = { command: 'scale', bodies: ['b1'], values: { factor: WIDTH / 40, px: 0, py: 0, pz: 0 } };
+  const refused = await runTool(checked.state, 'run_command', scale, evaluate);
+  assert.equal(refused.isError, true, refused.content);
+  assert.equal(refused.state.doc, checked.state.doc);
+  assert.match(parse(refused.content).error, /MASS.*measured 0\.108\d+ g before display rounding/);
+  const allowed = await runTool(checked.state, 'run_command', { ...scale, because: 'check the next mass' }, evaluate);
+  assert.equal(allowed.isError, false, allowed.content);
+  const report = parse((await runTool(allowed.state, 'check_spec', {}, evaluate)).content);
+  assert.deepEqual(report.summary, { pass: 0, fail: 1, unknown: 0, hard_failing: 1 });
+  assert.deepEqual([report.failures[0].measured, report.failures[0].delta], [0.108, 0]);
+  assert.match(report.failures[0].hint, /measured 0\.108\d+ g before display rounding/);
+});
 
 test('requirements: kept in the document, run as checks; failures in full, passes as counts, assumed mass unknown', async () => {
   let s = await stateOf(rectanglePart(40, 20, 8));

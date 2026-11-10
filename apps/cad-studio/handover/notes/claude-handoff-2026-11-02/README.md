@@ -1,5 +1,5 @@
 ---
-work_id: D577
+work_id: D578
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -91,7 +91,9 @@ D576 reports Front and Auto-dimension success only after the actual drawing comm
 
 D577 rejects obsolete Texture and Environment imports. Desktop Studio verifies the latest selections, Render exit, current decode error and first Undo/Redo. [#2419](https://github.com/barocss/barocss/issues/2419) remains open for remaining acceptance. [D577](../render-image-ownership-2026-11-10/README.md).
 
-Next MAIN is D578, P0/B09 rows 04 and 16. Verify whether display rounding changes numeric requirement verdicts. [#2411](https://github.com/barocss/barocss/issues/2411).
+D578 evaluates bbox, volume and mass before display rounding. The root desktop flow checks verdicts, warnings, Undo/Redo and native Save/fresh Open. [D578](../requirement-numeric-precision-2026-11-10/README.md).
+
+Next MAIN is D579 / P0, B09, rows 04 and 16. Verify whether recovery ranks a snapshot with failed hard requirements above a valid one with fewer soft passes. [#2414](https://github.com/barocss/barocss/issues/2414).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

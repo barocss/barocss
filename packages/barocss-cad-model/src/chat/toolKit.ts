@@ -100,7 +100,7 @@ export async function accept(state: ChatState, next: StudioDoc, evaluate: Evalua
   if (state.policy?.passedHard.length && !because) for (const id of state.policy.passedHard) {
     const req = next.requirements?.find(q => q.id === id); if (!req) continue;
     const o = await runCheck(next, r.bodies, evaluate, req.check);
-    if (o.status === 'fail') broken.push(`${id} ("${req.source}": measured ${JSON.stringify(o.measured)}, expected ${expectedOf(req.check)})`);
+    if (o.status === 'fail') broken.push(`${id} ("${req.source}": measured ${JSON.stringify(o.measured)}, expected ${expectedOf(req.check)}${o.hint ? '. ' + o.hint : ''})`);
   }
   if (broken.length) return fail(state, `This change breaks hard requirement${broken.length > 1 ? 's' : ''} that passed: ${broken.join('; ')}. Change it otherwise, or make it anyway with "because": why.`, { kept: 'the part is unchanged' });
   // (An accepted edit, its names matched against the document before it: the signatures follow the part.)

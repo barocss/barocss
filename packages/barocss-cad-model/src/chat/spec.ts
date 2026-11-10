@@ -6,11 +6,12 @@
 // material, a missing reference, an analysis that does not apply). Failures in full, passes by count.
 import { emptyDoc, featureLabel, leafBodies, prefixDoc, withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
+import { boundsOf } from '../engine/bounds';
 import { nodeIndexOf } from '../engine/ids';
 import { measureBetween, type MeasurePick } from '../app/measure';
 import { resolveEdge, resolveFace, resolveNames } from './names';
-import { factsOf } from './observe';
-import { draftAnalysis, interference, wallThickness } from '../analysis/analysis';
+import { factsOf, physicalTotalsOf } from './observe';
+import { draftAnalysis, interference, materialFact, wallThickness } from '../analysis/analysis';
 import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } from '@barocss/cad';
 import { libraryById } from '../library/libraries';
 import { holeAlignment } from '../analysis/alignment';
@@ -80,20 +81,32 @@ function printabilityOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate:
 }
 /** A query's measurement, with the faces or bodies it is about; or unknown with why. */
 async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, q: Query): Promise<{ x: number; entities?: string[]; hint?: string; chord?: number } | { unknown: string }> {
-  if ('body' in q && q.body !== undefined && !bodies.some(b => b.key === q.body)) return { unknown: `no body ${q.body} (bodies: ${bodies.map(b => b.key).join(', ') || 'none'})` };
-  const facts = factsOf(doc, bodiesOf(bodies, 'body' in q ? q.body : undefined));
+  const key = 'body' in q ? q.body : undefined;
+  if (key !== undefined && !bodies.some(b => b.key === key)) return { unknown: `no body ${key} (bodies: ${bodies.map(b => b.key).join(', ') || 'none'})` };
   switch (q.fn) {
-    case 'bbox': { const k = 'xyz'.indexOf(q.axis); return facts.bbox ? { x: facts.bbox.max[k] - facts.bbox.min[k], hint: `the overall ${q.axis} size` } : { unknown: 'no body' }; }
-    case 'volume': {
-      const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
-      return incomplete ? { unknown: incomplete } : { x: facts.volume };
+    case 'bbox': {
+      const selected = bodiesOf(bodies, q.body), k = 'xyz'.indexOf(q.axis);
+      if (!selected.length) return { unknown: 'no body' };
+      if (selected.some(b => !Number.isFinite(b.mesh.bounds.min[k]) || !Number.isFinite(b.mesh.bounds.max[k]))) return { unknown: `the ${q.axis} bounds are not finite` };
+      const { min, max } = boundsOf(selected);
+      const x = max[k] - min[k];
+      return Number.isFinite(x) ? { x, hint: `the overall ${q.axis} size` } : { unknown: `the ${q.axis} size is not finite` };
     }
+    case 'volume':
     case 'mass': {
       const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
       if (incomplete) return { unknown: incomplete };
-      return facts.mass_assumed ? { unknown: `the material of ${facts.materials.filter(m => m.assumed).map(m => m.body).join(', ')} is not set: its mass is assumed (aluminium); set the material first` } : { x: facts.mass };
+      const selected = bodiesOf(bodies, q.body);
+      if (q.fn === 'mass') {
+        const assumed = selected.filter(b => materialFact(doc, b).assumed).map(b => b.key);
+        if (assumed.length) return { unknown: `the material of ${assumed.join(', ')} is not set: its mass is assumed (aluminium); set the material first` };
+      }
+      if (selected.some(b => b.volume === null && b.massRef !== undefined)) return { unknown: `the ${q.fn} is still being evaluated` };
+      if (selected.some(b => b.volume === undefined)) return { unknown: `the ${q.fn} measurement is missing` };
+      const x = physicalTotalsOf(doc, selected)[q.fn];
+      return Number.isFinite(x) ? { x } : { unknown: `the ${q.fn} is not finite` };
     }
-    case 'count_solids': return { x: facts.solids };
+    case 'count_solids': return { x: bodiesOf(bodies, key).length };
     case 'count_faces_of_kind': return { x: bodiesOf(bodies, q.body).reduce((n, b) => n + b.mesh.faces.filter(f => f.kind === q.kind).length, 0) };
     case 'distance_between': {
       const a = pickOf(doc, bodies, q.a), b = pickOf(doc, bodies, q.b);
@@ -223,7 +236,12 @@ export async function runCheck(doc: StudioDoc, bodies: readonly BodyResult[], ev
     if (lo !== hi || !Number.isFinite(m.chord)) return { status: 'unknown', why: `undecided: ${r4(m.x)} is within the meshes' chord tolerance (${Number.isFinite(m.chord) ? `${r4(m.chord)} mm` : 'unbounded'}) of the limit${m.hint ? ` — ${m.hint}` : ''}` };
   }
   const r = meets(m.x, p);
-  return { status: r.ok ? 'pass' : 'fail', measured: r4(m.x), delta: r4(r.delta), ...(m.entities ? { entities: m.entities } : {}), ...(m.hint ? { hint: m.hint } : {}) };
+  const measured = r4(m.x);
+  const physical = p.query.fn === 'bbox' || p.query.fn === 'volume' || p.query.fn === 'mass';
+  const hint = !r.ok && physical && meets(measured, p).ok
+    ? [m.hint, `measured ${m.x}${p.unit ? ' ' + p.unit : ''} before display rounding`].filter(Boolean).join('. ')
+    : m.hint;
+  return { status: r.ok ? 'pass' : 'fail', measured, delta: r4(r.delta), ...(m.entities ? { entities: m.entities } : {}), ...(hint ? { hint } : {}) };
 }
 
 /** Every requirement's predicate against the part: failures in full, passes by count, unknowns with why. */

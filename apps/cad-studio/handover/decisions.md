@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D578 — evaluate physical requirements before display rounding](notes/requirement-numeric-precision-2026-11-10/README.md).
 - [D577 — apply only the current Render image import](notes/render-image-ownership-2026-11-10/README.md).
 
 - [D576 — report drawing changes only after commit acceptance](notes/drawing-commit-ownership-2026-11-10/README.md).

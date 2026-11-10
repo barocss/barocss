@@ -1,0 +1,229 @@
+{
+  "workId": "D578",
+  "parent": "bef138c8c2d27b261f0232a9c1229eff58d2ad5c",
+  "tier": "FEATURE",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D578-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d578-2026-11-10"
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D578_SOURCE_FROZEN=1 node test/requirement-numeric-precision-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "frozenSources": 297,
+      "snapshots": 6,
+      "independentOracles": 6,
+      "wallSeconds": 20.44,
+      "receiptSha256": "a895b81d70c78771ab7dad4e66feae562c72a6c22a7c824bd9d7107dea7e4cdb",
+      "driverSha256": "4df8da07ec7a163f5c025c43196ecc0611f7c9b493b93e6ef8e3e8700042e9d9",
+      "nodePID": 80889,
+      "chromePID": 80928,
+      "saveSha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f"
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS for the initial precision flow",
+      "frozenSources": 297,
+      "snapshots": 6,
+      "independentOracles": 6,
+      "wallSeconds": 17.08,
+      "receiptSha256": "fb0e7881ac64b9dc4f70dca0c7535238751d29b6023dee7d87f19b38e8921b0e",
+      "driverSha256": "4df8da07ec7a163f5c025c43196ecc0611f7c9b493b93e6ef8e3e8700042e9d9",
+      "nodePID": 86711,
+      "chromePID": 86716,
+      "saveSha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f"
+    },
+    {
+      "output": "pending-repro01",
+      "mode": "pending-repro",
+      "harness": "PASS",
+      "product": "FAIL for deferred warning",
+      "frozenSources": 298,
+      "snapshots": 8,
+      "independentOracles": 6,
+      "wallSeconds": 31.23,
+      "receiptSha256": "3abf9a41c4e2584a93cb27b71c0b8e0238bc8f929e4f6335832124105835999a",
+      "driverSha256": "03aa7e17ba0ad00af379e8e70f51dc899aefcfdca8761ab385674afd67af2d4a",
+      "nodePID": 94011,
+      "chromePID": 94080,
+      "saveSha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f"
+    },
+    {
+      "output": "fixed02",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 298,
+      "snapshots": 8,
+      "independentOracles": 6,
+      "wallSeconds": 23.64,
+      "receiptSha256": "7d90381cefe33efe0f1e9cac15085edf7a7f6fb15feeced671ad824a514f1a80",
+      "driverSha256": "03aa7e17ba0ad00af379e8e70f51dc899aefcfdca8761ab385674afd67af2d4a",
+      "nodePID": 98380,
+      "chromePID": 98403,
+      "saveSha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f"
+    },
+    {
+      "output": "fixed03",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 298,
+      "snapshots": 8,
+      "independentOracles": 6,
+      "wallSeconds": 21.34,
+      "receiptSha256": "df92898d3c2bb82e608c08241b07cf38ce79dffc70ec3f5b24dc01b89cc9a7b7",
+      "driverSha256": "c952fe23511150403e2275d34750d025011567768cfd996ef0869453d802cce9",
+      "nodePID": 4844,
+      "chromePID": 4869,
+      "saveSha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f"
+    }
+  ],
+  "checks": [
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs spec",
+      "status": "FAIL",
+      "exit": 1,
+      "passed": 6,
+      "failed": 4,
+      "logSha256": "57dbdc53ac93e208b47655c214727ea99adb3841bf0622356ae7dc87b1fb5b5e"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "FAIL",
+      "exit": 2,
+      "firstFailure": "TS2339 for the count_solids body selector",
+      "logSha256": "f4ac5a40d28cce66a6765914db3d5a8d1c0c61fc44170985485e52e19d6dfbe8"
+    },
+    {
+      "command": "pnpm exec eslint AFFECTED_FILES",
+      "status": "FAIL",
+      "exit": 1,
+      "firstFailure": "Browser harness setter returned a value",
+      "logSha256": "cdd0940ab0996f2cf0197acdce150abc3eafc97f72e7748543883ab8d40e4b2d"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs spec observe shared-bead-lifecycle",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "selected": [
+        "spec.test.ts",
+        "observe.test.ts",
+        "shared-bead-lifecycle.test.ts"
+      ],
+      "logSha256": "ca21b962a858db148e2eedc06d27531b4edfd9eb67ccfa79436a1d91b40f2871"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "db87a0c0eb4fde05701870dab2c195cc4083330ddd9d062a719d39890a7c500f"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "98e6553b56d217a5cab5af2c3460f6da866dc77c684392e10a61d8057756075c"
+    },
+    {
+      "command": "pnpm exec eslint AFFECTED_FILES",
+      "status": "PASS",
+      "exit": 0,
+      "warnings": 2,
+      "errors": 0,
+      "logSha256": "17ce2ed91068a808b07e1667cdf3873854b2f5e26995e56a8e685b0d6af0ea88"
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "431176bd71f6f698be3ed78baca04cceac0eb8fd24b090943642b2f48c4b5778"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/requirement-numeric-precision-browser.mjs",
+      "status": "PASS",
+      "exit": 0
+    }
+  ],
+  "finalStudioSourceSha256": {
+    "packages/barocss-cad-model/src/chat/observe.ts": "6eb20d05af45710a88df1edcea052bab5797c09833cc64fe596b37cc3b7c06b6",
+    "packages/barocss-cad-model/src/chat/spec.ts": "1ab2d0001c76e188c04ce1b91dcabbd5f6b42e1914cbcb505ac013d14ebd7d2d",
+    "packages/barocss-cad-model/src/chat/toolKit.ts": "4a504a2c881e4408ff3247a0c6807509677677b0090346d5cdf2fc5600457148",
+    "apps/cad-studio/src/state/useModelChecks.ts": "68b758b7343b51849e9b940b2ca6ae8507bb0d0fdb6964e11d10d196c8b11712",
+    "apps/cad-studio/test/requirement-numeric-precision-browser.mjs": "c952fe23511150403e2275d34750d025011567768cfd996ef0869453d802cce9"
+  },
+  "finalStudioVerdicts": {
+    "01-translated": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "pass"
+    },
+    "02-origin": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "pass"
+    },
+    "03-edited": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "fail"
+    },
+    "04-undo": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "pass"
+    },
+    "05-redo": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "fail"
+    },
+    "06-fresh-open": {
+      "X-CAP": "fail",
+      "X-EQUAL": "pass",
+      "V-CAP": "fail",
+      "M-CAP": "fail",
+      "Z-CAP": "fail"
+    },
+    "07-deferred-unknown": {
+      "V-WARN": "unknown",
+      "M-WARN": "unknown"
+    },
+    "08-deferred-resolved": {
+      "V-WARN": "fail",
+      "M-WARN": "fail"
+    }
+  },
+  "lintFiles": [
+    "packages/barocss-cad-model/src/chat/observe.ts",
+    "packages/barocss-cad-model/src/chat/spec.ts",
+    "packages/barocss-cad-model/src/chat/toolKit.ts",
+    "apps/cad-studio/src/state/useModelChecks.ts",
+    "apps/cad-studio/test/requirement-numeric-precision-browser.mjs",
+    "packages/barocss-cad-model/test/spec.test.ts"
+  ],
+  "reviews": {
+    "numeric": "APPROVE",
+    "security": "APPROVE",
+    "quality": "APPROVE"
+  },
+  "wholeCad": "NOT_MEASURED"
+}
