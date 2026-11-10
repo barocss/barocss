@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D565 — verify Paste after deleting the copied source](notes/body-clipboard-deleted-source-2026-11-10/README.md).
+
 - [D564 — verify clipboard isolation on edit-in-place entry and return](notes/body-clipboard-in-place-2026-11-10/README.md).
 
 - [D563 — verify clipboard isolation on browser-local recovery Restore](notes/body-clipboard-recovery-2026-11-10/README.md).

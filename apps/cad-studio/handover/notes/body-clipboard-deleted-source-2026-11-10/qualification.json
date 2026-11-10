@@ -1,0 +1,71 @@
+{
+  "workId": "D565",
+  "parent": "330a583e37c2af59ef70fe3dd7c7941082b98d84",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d565-2026-11-10"
+  },
+  "driverSha256": "d374dc5db7b060a174b5e6f5787f2366743fc71ac0c5bd4e2f75cba1b9b90a0a",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6",
+    "apps/cad-studio/src/state/useFeatureHistory.ts": "1f9f4d76ee16ee87b1b83a594705fa3c109f7522e8788fcac68cea3da6493612",
+    "apps/cad-studio/src/ui/BodyBrowserRows.tsx": "5888d1845f20e45df55eb344a488f1d659979bf2c520cbc56bc206edb4bf0ac4",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d",
+    "packages/barocss-cad-model/src/engine/ids.ts": "2c6bbf0c7a628392685676c3259ff7b22bfa8a79e1e68b886b9ee1753ebd1e75"
+  },
+  "physicalOracle": {
+    "sourceSize": [
+      12,
+      13,
+      14
+    ],
+    "sourceVolume": 2184,
+    "addedSize": [
+      8,
+      9,
+      11
+    ],
+    "addedVolume": 792,
+    "deletedKey": "b1",
+    "survivingKey": "b4",
+    "addedKey": "b6",
+    "pasteOffsetsX": [
+      22,
+      44
+    ],
+    "absoluteTolerance": 1e-09
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-deleted-source-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-replacement-helper.mjs",
+      "status": "PASS"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D565_SOURCE_FROZEN=1 node test/body-clipboard-deleted-source-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 17.66,
+    "snapshots": 12,
+    "physicalJoins": 4,
+    "frozenPins": 300,
+    "receiptSha256": "61764646b77ee18fc7fbd5f4c7e5192801bac9c721c6b8317a3b54a2f2356ff4",
+    "ownedPID": 61238,
+    "chromePID": 61288
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED",
+  "helperSha256": "cc2733421d2ffc9388a4dddec4bf9a5739928debc22db8625ed20b03670804c6"
+}
