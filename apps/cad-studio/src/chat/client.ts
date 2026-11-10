@@ -6,13 +6,14 @@ import type { VersionLog } from '@barocss/cad-model/versions/log';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
+import type { TaskRunOffer } from './taskRunOffer';
 
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
 export type TurnEvent =
   | { type: 'text'; delta: string }
   /** O17c: the model's thinking, when the CLI streams it. */
   | { type: 'reasoning'; delta: string }
-  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
+  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; ops?: TurnOp[] };
 

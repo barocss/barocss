@@ -1588,7 +1588,7 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const { open, save, saveShared, meshImport, editRepair } = useStudioDocumentFiles({
+  const { open, save, saveShared, exportTaskRun, meshImport, editRepair } = useStudioDocumentFiles({
     document: { doc, docNow, fileName, fileNameNow, recoveryDoc: recovery?.doc ?? null, project },
     ownership: { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked,
       canOpenImport: () => openAccepted(inPlaceNow.current) },
@@ -2415,7 +2415,8 @@ export function App() {
       <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
-        content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
+        taskRun={inPlace ? undefined : { sourceKey: project.taskSourceKey, export: exportTaskRun }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)

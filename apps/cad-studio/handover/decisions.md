@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D618 — export the exact Studio task run handoff](notes/studio-local-task-handoff-2026-11-11/README.md).
 - [D617 — inspect the authored worker plan in Studio chat](notes/studio-agent-worker-plan-2026-11-11/README.md).
 - [D616 — derive a local worker plan from a saved native model](notes/saved-model-worker-plan-2026-11-11/README.md).
 - [D615 — deliver two reviewed worker tasks to an editable Studio model](notes/two-task-editable-delivery-2026-11-11/README.md).

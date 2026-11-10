@@ -1,0 +1,214 @@
+{
+  "decision": "D618",
+  "tier": "FULL interface",
+  "baseCommit": "730f7311723f4a736f177f1cbaf9db8cea40c03b",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d618-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio, local chat, real workers and terminal",
+      "result": "PASS",
+      "command": "D618_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --handoff",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "156ab0dde1e65189855486df3e1c7be7ae923ac8c7d3b3f0a23f49731454ec67",
+      "pinnedSources": 787,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "02-stale-and-blocked",
+        "03-new-ready-plan",
+        "05-terminal-approved"
+      ],
+      "visualReview": "PASS",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "handoffSHA256": "22d2c86316f43f0d7bb2bfad2ccdfee524719bbdcae72a895b67244ebe9df980",
+          "originalBytesPreserved": true,
+          "sameContentReplacementRefused": true,
+          "sameTagByteChangeRefused": true,
+          "blockedOfferHasNoAction": true,
+          "geometryMm3": [
+            1200,
+            384
+          ],
+          "approvals": 1
+        },
+        {
+          "readyRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+          "blockedRevision": "1cd8d717e0b7a461f7f888f1d27007a7cd83fe5fb4fa3913a0ac492be35ff4f3",
+          "resolvedRevision": "430a4d7ce48e3b65bc9e2af177c5b278538d1b91ca610ec237c5f76203106551",
+          "targetHeights": [
+            [
+              6,
+              4
+            ],
+            [
+              6
+            ],
+            [
+              6,
+              5
+            ]
+          ],
+          "cliPlanMatches": true,
+          "staleRefused": true,
+          "authoredID": "check_spec",
+          "savedSourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+          "projectBytesUnchanged": true,
+          "documentWrites": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop.log",
+      "logSHA256": "827b04130ccc4bb9984e81922145feb05371e712f93a9ebca4595c806cb2aed6"
+    },
+    {
+      "label": "Independent authored target and scope oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop/task-plan-agent-oracle.py\" < \"$EVIDENCE/desktop/authored-targets-oracle-input.json\"",
+      "scriptSHA256": "101272178d213640e254e998b0413963aa4ed59f2b7766f35af455ee12917d36",
+      "stdoutSHA256": "0f3cbfaecd36b1604f261fdf15ca4cb39a8a281c1436eb0f66379f5f7b6ecef2",
+      "measurements": {
+        "status": "PASS",
+        "targetHeights": [
+          [
+            6,
+            4
+          ],
+          [
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "productImports": 0
+      }
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 164,
+      "failCount": 0,
+      "log": "studio-suite.log",
+      "logSHA256": "5d8a407cd6231546fee17c13bd7585269fec7a982514e986a228e863d523b058"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan task-execution toolset",
+      "passCount": 23,
+      "failCount": 0,
+      "log": "model-suite.log",
+      "logSHA256": "91397a9a3c2afc7fab142c1e93913107129aed646c174711f95ac368b8c4a9c6"
+    },
+    {
+      "label": "Model types after final test edit",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 2,
+      "log": "eslint.log",
+      "logSHA256": "039bb01d65394f017d16e2cef10e651863e8a15d28a81e69b0e8a36a7f9fa6c7"
+    },
+    {
+      "label": "Isolated regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "fdbc9fd68d005c9b769ee8247f5bda7aebd07987dc589066da072cfbaae882b8",
+      "variants": {
+        "baseline": "PASS",
+        "ignore-source-checksum": "KILLED",
+        "ignore-derived-targets": "KILLED",
+        "ignore-model-revision": "KILLED",
+        "allow-unowned-chat-offer": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "a65b3846ba5b043cd0b63b65bff4e884e2818e6bcb045c4e4ffe1d2c0e272201"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build.log",
+      "logSHA256": "0daac8aab3cbad8c219b5b8ceff608b6d58427edbf52b2b40b454c3f210d0a52"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [],
+  "review": {
+    "code": "APPROVE",
+    "architecture": "CLEAR",
+    "resolved": [
+      "Pin actual Open or Save bytes by SHA-256",
+      "Recheck saved bytes and ownership immediately before export"
+    ]
+  },
+  "artifacts": {
+    "housing.bcad": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+    "housing.bcad-task": "22d2c86316f43f0d7bb2bfad2ccdfee524719bbdcae72a895b67244ebe9df980",
+    "cli-plan.json": "82f6929aba8d23b3d07806d47b734106fc936f174cfbfe0dee375207e9382dc2",
+    "handoff-start.stdout.json": "2f7222c453f88ac2cb44cf50b3dad58a891f2c736439f8df30c222736ccd0f70",
+    "base.bcad-candidate": "c439b0dd86506fe1e91c96b180c6b125fe1d78b77c482263e524455a2fdd9f9d",
+    "approved-handoff.bcad-run": "6e14513a21e020931b0b9487ac9b60a33e4c7acecb59c83274756d939cc2608b",
+    "handoff-approve.stdout.jsonl": "9d44e65d717f820e38acb755939a32a7e904d39677cf727871fc71321c2f059a",
+    "04-export-task-run.png": "d80694c9e585f5fc37cf2ac83caee8d054be0e662920ec77f0a646921a82b619",
+    "05-terminal-approved.png": "049e28a4cebf1c4cba94a06c71a12e89a5db546313f5c070a7d6e3c60288d232"
+  },
+  "notRun": [
+    "Direct Studio launch",
+    "Live model behavior",
+    "Other task families",
+    "Mobile",
+    "Whole suites"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "B09v1AcceptedGroups": "9/9",
+    "initialAcceptedScenarios": "4/10",
+    "wholeCadAndCore": "NOT_MEASURED"
+  }
+}

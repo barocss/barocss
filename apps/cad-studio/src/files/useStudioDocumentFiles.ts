@@ -7,6 +7,7 @@ import { placedDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { digestOf } from '@barocss/cad-model/util/digest';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
 import type { EngineClient } from '../engine/client';
@@ -19,6 +20,8 @@ import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
 import { MAX_TASK_CANDIDATE_BYTES, readCandidateReview, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
+import { downloadBytes } from '../ui/files';
+import type { TaskRunOffer } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -27,7 +30,7 @@ interface StudioDocumentFileOptions {
     fileName: string;
     fileNameNow: RefObject<string>;
     recoveryDoc: StudioDoc | null;
-    project: Pick<ReturnType<typeof useProject>, 'save' | 'view'>;
+    project: Pick<ReturnType<typeof useProject>, 'save' | 'view' | 'readTaskSource'>;
   };
   ownership: {
     saveAcceptanceScope: object;
@@ -92,6 +95,25 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
   const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
+
+  const exportTaskRun = async (offer: TaskRunOffer, sourceKey: string) => {
+    if (sessionBlocked('exporting a task run')) return;
+    const scope = currentOpenScope(), sourceDoc = docNow.current, token = saveDocumentToken.current, name = fileNameNow.current;
+    const current = () => isOpenCurrent(scope) && saveDocumentToken.current === token && docNow.current === sourceDoc && fileNameNow.current === name;
+    try {
+      if (digestOf(sourceDoc) !== offer.revision)
+        throw new Error('The working model differs from the reviewed plan. Save and inspect it again.');
+      const source = await project.readTaskSource(sourceKey);
+      if (!current() || !source.current()) return;
+      const { encodeTaskRunHandoff, TASK_RUN_HANDOFF_EXT } = await import('./taskRunHandoff');
+      const handoff = await encodeTaskRunHandoff(offer, source.bytes);
+      if (!current() || !source.current()) return;
+      await source.verify();
+      if (current() && source.current()) downloadBytes(handoff, name + TASK_RUN_HANDOFF_EXT, 'application/octet-stream');
+    } catch (error) {
+      if (current()) setToast({ title: 'Could not export task run', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  };
 
   const captureImportOwner = () => {
     const scope = currentOpenScope(), dispatch = saveDocumentToken.current, session = workerSessionNow.current;
@@ -215,5 +237,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, meshImport, editRepair };
 }

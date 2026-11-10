@@ -4,6 +4,8 @@
 // written over. Version actions are versions/*.ts's, each written back to the project at once.
 import { useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { sha256Hex } from '@barocss/cad-model/util/digest';
+import { MAX_TASK_RUN_NATIVE_BYTES } from '../chat/taskRunOffer';
 import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, turnLog, withTurnLog, type VersionLog } from '@barocss/cad-model/versions/log';
 import { applyMerge, type MergeResult, type Resolutions } from '@barocss/cad-model/versions/merge';
 import { BarocssError } from '@barocss/cad/api';
@@ -40,14 +42,15 @@ const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offe
 /** A file name as a project path: `<name>.bcad`. */
 export const partPathOf = (name: string) => /\.bcad$/i.test(name) ? name : `${name}.bcad`;
 const now = () => new Date().toISOString();
+const taskSourceSHA = (bytes: Uint8Array) => bytes.length <= MAX_TASK_RUN_NATIVE_BYTES ? sha256Hex(bytes) : null;
 const say = (e: unknown) => e instanceof BarocssError ? e.message : e instanceof Error ? e.message : String(e);
 
 export function useProject(cb: ProjectCallbacks) {
   const [view, setView] = useState<ProjectView>(EMPTY);
   const [recent, setRecent] = useState<DirHandle | null>(null);
   // (The tags read with — not shown, so not state — and the view as the async actions see it.)
-  const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
-  const opening = useRef<object>({}), projectSession = useRef<object>({}), reading = useRef(0);
+  const tags = useRef<{ part: string | null; sourceSHA256: string | null; log: string | null }>({ part: null, sourceSHA256: null, log: null });
+  const opening = useRef({ serial: 0 }), projectSession = useRef<object>({}), reading = useRef(0);
   const saves = useRef({ path: null as string | null, next: 0, success: 0 });
   const autosaves = useRef<{ owner: OpenOwner; next: number; settled: number; warned: boolean } | null>(null);
   const live = useRef(view); live.current = view;
@@ -57,7 +60,7 @@ export function useProject(cb: ProjectCallbacks) {
 
   const actions = useMemo(() => {
     const beginOpen = (): OpenOwner => {
-      const request = {}; opening.current = request;
+      const request = { serial: opening.current.serial + 1 }; opening.current = request;
       return { request, scope: call.current.onOpenIntent?.() };
     };
     const currentOpen = (owner: OpenOwner) => opening.current === owner.request
@@ -83,7 +86,7 @@ export function useProject(cb: ProjectCallbacks) {
       // Picker, store adoption and refresh retain one request; a late picker must not mint new authority.
       owner.session = projectSession.current = {}; owner.store = store;
       invalidateSaves();
-      tags.current = { part: null, log: null };
+      tags.current = { part: null, sourceSHA256: null, log: null };
       set({ ...EMPTY, store });
       await refresh(store, () => currentOpen(owner)).catch(e => { if (currentOpen(owner)) fail('The project could not be read', e); });
     };
@@ -103,6 +106,11 @@ export function useProject(cb: ProjectCallbacks) {
     };
     const versionOwner = (): OpenOwner => ({ request: opening.current, session: projectSession.current,
       store: live.current.store ?? undefined, path: live.current.part, scope: call.current.currentOpenScope?.() });
+    const taskSourceKey = () => {
+      const { store, part } = live.current;
+      const { part: tag, sourceSHA256 } = tags.current;
+      return store && part && tag !== null && sourceSHA256 ? JSON.stringify([opening.current.serial, part, tag, sourceSHA256]) : undefined;
+    };
     // A completed write still owns its log/tag after a document edit, but cannot return a replacement document.
     const currentVersion = (owner: OpenOwner) => currentOpen({ ...owner, scope: undefined });
     /** The log written back; stale receipts and conflict reloads cannot enter another document's project view. */
@@ -136,9 +144,9 @@ export function useProject(cb: ProjectCallbacks) {
         } catch (e) { if (currentOpen(owner)) fail('The folder could not be opened', e); }
       },
       async openInBrowser(name: string) { const owner = beginOpen(); try { await use(await browserProject(name), owner); } catch (e) { if (currentOpen(owner)) fail('The project could not be opened', e); } },
-      close() { beginOpen(); projectSession.current = {}; invalidateSaves(); tags.current = { part: null, log: null }; set(EMPTY); },
+      close() { beginOpen(); projectSession.current = {}; invalidateSaves(); tags.current = { part: null, sourceSHA256: null, log: null }; set(EMPTY); },
       /** The document no longer the open one of the project (a new part, another file): the project stays open, the next save is a new file in it. */
-      detach() { beginOpen(); projectSession.current = {}; invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
+      detach() { beginOpen(); projectSession.current = {}; invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, sourceSHA256: null, log: null }; set({ part: null, log: null, offered: null }); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
         const owner = beginOpen(), store = live.current.store; if (!store) return false;
@@ -151,7 +159,7 @@ export function useProject(cb: ProjectCallbacks) {
           if (!current()) return false;
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
           if (call.current.canOpen && !call.current.canOpen()) return false;
-          tags.current.part = r.tag; tags.current.log = null; set({ part: path, offered: null, log: null }); owner.path = path;
+          tags.current = { part: r.tag, sourceSHA256: taskSourceSHA(r.bytes), log: null }; set({ part: path, offered: null, log: null }); owner.path = path;
           const accepted = call.current.onOpened(r.doc, path, r.notes);
           if (accepted) owner.scope = accepted;
           if (!current()) return false;
@@ -173,6 +181,19 @@ export function useProject(cb: ProjectCallbacks) {
         } catch (e) { if (!current()) return false; return fail(`Could not open ${path}`, e); }
         finally { reading.current--; }
       },
+      taskSourceKey,
+      async readTaskSource(key: string) {
+        const { store, part } = live.current, { part: tag, sourceSHA256 } = tags.current, owner = versionOwner();
+        const moved = () => new Error('The saved source moved. Save and inspect the current model again.');
+        const current = () => currentOpen(owner) && taskSourceKey() === key;
+        if (!store || !part || !current()) throw moved();
+        const read = async () => {
+          const file = await store.read(part);
+          if (!current() || !file || file.tag !== tag || taskSourceSHA(file.bytes) !== sourceSHA256) throw moved();
+          return file.bytes;
+        };
+        return { bytes: await read(), current, verify: async () => { await read(); } };
+      },
       /** Saved into the project: over the file it was read from (its tag expected), or as `name` when new there. */
       async save(doc: StudioDoc, name: string, onCurrent?: () => void) {
         const store = live.current.store; if (!store) return false;
@@ -186,6 +207,7 @@ export function useProject(cb: ProjectCallbacks) {
           if (!current() || !acceptSaveReceipt(owner, order)) return false;
           // A newer document edit must not leave this file's tag behind its own successful write.
           tags.current.part = written.tag;
+          tags.current.sourceSHA256 = taskSourceSHA(written.bytes);
           set({ part: path, offered: null });
           if (!part) {
             const r = await readVersions(store, path);

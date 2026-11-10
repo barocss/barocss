@@ -12,6 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
+import type { TaskRunChatOutput, TaskRunOffer } from '../chat/taskRunOffer';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
@@ -46,6 +47,7 @@ export interface ChatPanelProps {
   /** CG6: the project's version log for a turn (storage/useProject: its index and the documents the turn needs), and the turn's brought back. */
   versions?: import('../storage/useProject').ProjectActions['chat'];
   onOutboxSent?(id: number): void;
+  taskRun?: { sourceKey(): string | undefined; export(offer: TaskRunOffer, sourceKey: string): Promise<void> };
   /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
   scope?: object | null;
   /** Whether a turn is running (the studio does not swap the document under one). */
@@ -148,7 +150,7 @@ export function ChatPanel(props: ChatPanelProps) {
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
               {m.parts.map(p => p.type === 'text' ? p.text : '').join('')}</Message>
-          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} />)}</Fragment>)}
+          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRun={running || props.blocked ? undefined : props.taskRun} />)}</Fragment>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
       {!!rowFiles.length && <div className="chat-thumbs pending" aria-label="Attached row files">{rowFiles.map((file, index) => <span key={index}>{file.name}<button type="button" className="tool tiny" aria-label={`Remove row file ${index + 1}`} onClick={() => setRowFiles(list => list.filter((_, k) => k !== index))}>×</button></span>)}</div>}
@@ -179,10 +181,18 @@ function ChatPart({ part: p, ...props }: { part: StudioMessage['parts'][number] 
   // (O17c: the model's thinking, when the CLI streams it — one collapsed line.)
   if (p.type === 'reasoning') return p.text ? <Reasoning text={p.text} /> : null;
   if (p.type !== 'dynamic-tool') return null;
-  const failed = p.state === 'output-error', summary = failed ? p.errorText ?? '' : p.state === 'output-available' ? (p.output as { summary?: string } | undefined)?.summary ?? '' : '';
+  const output = p.state === 'output-available' ? p.output as TaskRunChatOutput | undefined : undefined;
+  const failed = p.state === 'output-error', summary = failed ? p.errorText ?? '' : output?.summary ?? '';
   const label = toolLabel(p.toolName, p.input), id = label === 'proposals.propose' && !failed ? /\bP\d+\b/.exec(summary)?.[0] : undefined, proposal = id ? props.proposals?.find(q => q.id === id) : undefined;
+  const taskRun = label === 'requirements.plan_tasks' ? output?.taskRun : undefined;
   return <>
-    <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}><code>{brief(p.input)}</code></Tool>
+    <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}>
+      <code>{brief(p.input)}</code>
+      {taskRun && props.taskRun ? <>
+        <ul>{taskRun.offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
+        <button className="ghost" type="button" onClick={() => void props.taskRun?.export(taskRun.offer, taskRun.sourceKey)}>Export task run</button>
+      </> : null}
+    </Tool>
     {proposal && <ProposalLink proposal={proposal} stale={!!props.proposalStale?.(proposal)} busy={!!props.proposalBusy} onAccept={() => props.onAcceptProposal?.(proposal)} onReject={() => props.onRejectProposal?.(proposal)} />}
   </>;
 }

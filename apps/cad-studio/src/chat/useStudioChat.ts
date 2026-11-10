@@ -44,6 +44,7 @@ interface Turn {
   ended: Promise<string[]>; end(stopped: string[]): void;
   /** The document it ran on (ChatPanelProps.scope). */
   scope: object | null;
+  taskSourceKey?: string;
   versions?: ReturnType<NonNullable<ChatPanelProps['versions']>['turn']>;
 }
 
@@ -117,7 +118,7 @@ export function useStudioChat(props: ChatPanelProps) {
   const afterRef = useRef(after); afterRef.current = after;
   // (The server's turns, or — in DEV, when the flow has scripted the conversation — createChat's, with the same end, O17.)
   const transport = useMemo((): ChatTransport<StudioMessage> => {
-    const server = new StudioTransport({ inputs: () => turn.current!.inputs, after: done => afterRef.current(done) }) as unknown as ChatTransport<StudioMessage>;
+    const server = new StudioTransport({ inputs: () => turn.current!.inputs, taskSourceKey: () => turn.current?.taskSourceKey, after: done => afterRef.current(done) }) as unknown as ChatTransport<StudioMessage>;
     return {
       sendMessages: async options => {
         const s = scriptedChat(); if (!s) return server.sendMessages(options);
@@ -177,7 +178,7 @@ export function useStudioChat(props: ChatPanelProps) {
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
-    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, versions,
+    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
       inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');

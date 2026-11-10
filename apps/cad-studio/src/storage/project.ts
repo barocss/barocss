@@ -27,15 +27,17 @@ async function decodePart(f: StoreFile): Promise<ReadPart> {
   return 'error' in r ? r : { doc: r.doc, notes: r.notes, tag: f.tag };
 }
 /** A document of the project, checked as Open checks a file. Refused, STORAGE_MISSING, when there is none. */
-export async function readPart(store: ProjectStore, path: string): Promise<ReadPart> {
+export async function readPart(store: ProjectStore, path: string) {
   const f = await store.read(path);
   if (!f) throw refusal('STORAGE_MISSING', `the project has no ${path}`);
-  return decodePart(f);
+  const part = await decodePart(f);
+  return 'error' in part ? part : { ...part, bytes: f.bytes };
 }
 /** A document written as Save writes it; `expect`: the tag it was read with (null: a new file), else written over. */
-export function writePart(store: ProjectStore, path: string, doc: StudioDoc, o: { expect?: string | null } = {}): Promise<{ tag: string }> {
+export function writePart(store: ProjectStore, path: string, doc: StudioDoc, o: { expect?: string | null } = {}) {
   if (!isPart(path)) throw refusal('STORAGE_PATH', `a document's path ends in .bcad, outside ${META}/ (got ${path})`);
-  return store.write(path, encodeStudioFile(doc), o);
+  const bytes = encodeStudioFile(doc);
+  return store.write(path, bytes, o).then(receipt => ({ ...receipt, bytes }));
 }
 
 /** The log's file: everything but the documents, which are files of their own. */

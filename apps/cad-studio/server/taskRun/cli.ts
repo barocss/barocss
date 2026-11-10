@@ -11,6 +11,7 @@ import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
 import { decodeCandidateReview, encodeCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
   TASK_CANDIDATE_EXT, type CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
+import { MAX_TASK_RUN_HANDOFF_BYTES, readTaskRunHandoff } from '../../src/files/taskRunHandoff';
 import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
 import { deriveLocalRunPlan, localRunPlanInputs } from './localPlan';
@@ -19,7 +20,7 @@ import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
 interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm: Record<string, number> }
-const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB | start dir config.json | start dir --plan plan.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
@@ -87,7 +88,13 @@ async function readStart(args: readonly string[]) {
     if (canonical(plan) !== canonical(value)) throw new Error('The plan differs from the authored source and local run limits. Generate and review it again.');
     return { doc, config: plan, tasks: plan.targets.map(target => ({ id: target.id, height: target.heightMm })) };
   }
-  if (args.length !== 1 || args[0] === '--plan') throw new Error(HELP);
+  if (args.length === 2 && args[0] === '--handoff') {
+    const bytes = readLocalFile(args[1], MAX_TASK_RUN_HANDOFF_BYTES, 'task run handoff');
+    const { doc, offer, sourceSHA256 } = await readTaskRunHandoff(bytes);
+    const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences);
+    return { doc, config, tasks: config.targets.map(target => ({ id: target.id, height: target.heightMm })) };
+  }
+  if (args.length !== 1 || args[0] === '--plan' || args[0] === '--handoff') throw new Error(HELP);
   const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
   const source = await openModel(config.source);
   if ('error' in source) throw new Error(source.error);

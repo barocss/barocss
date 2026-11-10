@@ -8,6 +8,7 @@
 // The chunk types are the AI SDK's own (UIMessageChunk), the kinds used here.
 import type { UIMessage } from 'ai';
 import { runServerTurn, type TurnEvent } from './client';
+import type { TaskRunChatOutput } from './taskRunOffer';
 
 type Done = Extract<TurnEvent, { type: 'done' }>;
 export type TurnDone = Done;
@@ -24,7 +25,7 @@ export type StudioChunk =
   | { type: 'reasoning-delta'; id: string; delta: string }
   | { type: 'reasoning-end'; id: string }
   | { type: 'tool-input-available'; toolCallId: string; toolName: string; input: unknown; dynamic: true }
-  | { type: 'tool-output-available'; toolCallId: string; output: { summary: string }; dynamic: true }
+  | { type: 'tool-output-available'; toolCallId: string; output: TaskRunChatOutput; dynamic: true }
   | { type: 'tool-output-error'; toolCallId: string; errorText: string; dynamic: true }
   | { type: 'data-state'; data: Extract<TurnEvent, { type: 'state' }>; transient: true }
   | { type: 'data-done'; data: Done; transient: true }
@@ -44,6 +45,7 @@ export class TurnChunker {
   private calls = 0;
   private open: string | null = null;
   private thinking: string | null = null;
+  constructor(private readonly taskSourceKey?: string) {}
   /** The chunks of one event (a `done` is `end`'s). */
   chunks(e: Exclude<TurnEvent, Done>): StudioChunk[] {
     if (e.type === 'text') {
@@ -60,7 +62,8 @@ export class TurnChunker {
     }
     if (e.type === 'tool') {
       const id = `call-${++this.calls}`, out: StudioChunk[] = [...this.close(), { type: 'tool-input-available', toolCallId: id, toolName: e.name, input: e.input, dynamic: true }];
-      out.push(e.isError ? { type: 'tool-output-error', toolCallId: id, errorText: e.summary, dynamic: true } : { type: 'tool-output-available', toolCallId: id, output: { summary: e.summary }, dynamic: true });
+      out.push(e.isError ? { type: 'tool-output-error', toolCallId: id, errorText: e.summary, dynamic: true } : { type: 'tool-output-available', toolCallId: id, output: { summary: e.summary,
+        ...(e.taskRunOffer && this.taskSourceKey ? { taskRun: { offer: e.taskRunOffer, sourceKey: this.taskSourceKey } } : {}) }, dynamic: true });
       return out;
     }
     return [{ type: 'data-state', data: e, transient: true }];
@@ -95,11 +98,11 @@ interface SentMessage { role: string; parts: readonly { type: string; text?: str
  * commit), whose notices end the turn's message. `reconnectToStream` has nothing to resume: a turn is one request.
  */
 export class StudioTransport {
-  constructor(private readonly o: { inputs(text: string): TurnInputs; after?(done: Done): Promise<readonly string[]> }) {}
+  constructor(private readonly o: { inputs(text: string): TurnInputs; taskSourceKey?(): string | undefined; after?(done: Done): Promise<readonly string[]> }) {}
   async sendMessages(options: { messages: readonly SentMessage[]; abortSignal?: AbortSignal }): Promise<ReadableStream<StudioChunk>> {
     const last = [...options.messages].reverse().find(m => m.role === 'user');
     const text = (last?.parts ?? []).filter(p => p.type === 'text').map(p => p.text ?? '').join('\n');
-    const { text: sent, ...inputs } = this.o.inputs(text), chunker = new TurnChunker();
+    const { text: sent, ...inputs } = this.o.inputs(text), chunker = new TurnChunker(this.o.taskSourceKey?.());
     return new ReadableStream<StudioChunk>({
       start: async controller => {
         // (Stopped, the reader cancels the stream and reads no further: the turn still ends here, written to nothing.)

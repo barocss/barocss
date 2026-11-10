@@ -7,8 +7,9 @@ import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), handoffMode = mode === '--handoff', repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || handoffMode);
 await mkdir(output);
 const probe = createServer();
 probe.listen(0, '127.0.0.1');
@@ -25,9 +26,12 @@ const pins = [
   ...['team/taskPlan', 'team/localHeightPlan', 'chat/tools', 'chat/part/requirements', 'chat/groups', 'chat/toolDefinitions',
     'chat/contract', 'util/digest'].map(name => `packages/barocss-cad-model/src/${name}.ts`),
   'packages/barocss-cad-model/src/chat/tools-v2.json',
+  'apps/cad-studio/src/files/taskRunHandoff.ts', 'apps/cad-studio/src/chat/taskRunOffer.ts',
+  'apps/cad-studio/test/fixtures/task-run-terminal.py',
+  ...['host', 'store', 'thread', 'workerEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { fixtureDoc } from './test/task-run-fixture';
@@ -55,16 +59,20 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: 'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
+  qualification: handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+    'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP. Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = 'D617 plan query';
+const project = handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
-async function open(name, doc) {
+async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name, mimeType: 'application/octet-stream', buffer: Buffer.from(JSON.stringify(doc)) });
+  await chooser.setFiles({ name, mimeType: 'application/octet-stream', buffer });
+}
+async function open(name, doc) {
+  await openFile(name, Buffer.from(JSON.stringify(doc)));
   await f.same(doc);
 }
 async function savedBytes() {
@@ -166,6 +174,72 @@ process.exitCode = code ?? 1;
     assert.equal(first.events[0].summary, '2 local height targets ready');
     await f.same(source);
     await f.snapshot('01-ready-plan');
+    let handoff;
+    if (handoffMode) {
+      f.phase = 'click export and retain the exact project bytes in the handoff';
+      await f.page.evaluate(() => {
+        const blobs = new Map(), createURL = URL.createObjectURL, click = HTMLAnchorElement.prototype.click;
+        window.__d618Exports = [];
+        URL.createObjectURL = function (blob) {
+          const url = createURL.call(this, blob);
+          if (blob.type === 'application/octet-stream') blobs.set(url, blob);
+          return url;
+        };
+        HTMLAnchorElement.prototype.click = function () {
+          const blob = blobs.get(this.href);
+          if (!blob || !this.download.endsWith('.bcad-task')) return click.call(this);
+          window.__d618Exports.push(blob.arrayBuffer().then(bytes => ({ name: this.download, bytes: [...new Uint8Array(bytes)] })));
+          blobs.delete(this.href);
+        };
+      });
+      assert.deepEqual(first.events[0].taskRunOffer.targets, cliPlan.targets);
+      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 0);
+      const row = f.page.locator('details.chat-tool').filter({ hasText: '2 local height targets ready' });
+      await row.locator('summary').click();
+      await row.getByText('p1 · 5 → 6 mm', { exact: true }).waitFor();
+      await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
+      await f.snapshot('04-export-task-run');
+      await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+      await f.page.waitForFunction(() => window.__d618Exports.length === 1);
+      const exported = await f.page.evaluate(() => window.__d618Exports[0]);
+      assert.equal(exported.name, 'housing.bcad-task');
+      handoff = join(output, exported.name);
+      const bytes = Buffer.from(exported.bytes), headerEnd = 12 + bytes.readUInt32LE(8);
+      assert.equal(bytes.subarray(0, 8).toString(), 'BCADTSK1');
+      assert.deepEqual(bytes.subarray(headerEnd), saved);
+      const { receipt } = JSON.parse(bytes.subarray(12, headerEnd).toString('utf8'));
+      assert.deepEqual(receipt.offer, first.events[0].taskRunOffer);
+      assert.equal(receipt.sourceSHA256, sha256(saved));
+      await writeFile(handoff, bytes);
+
+      f.phase = 'refuse a same-tag byte change during the final project read';
+      await f.page.evaluate(() => {
+        const read = File.prototype.arrayBuffer;
+        let count = 0;
+        File.prototype.arrayBuffer = async function () {
+          const buffer = await read.call(this);
+          if (this.name === 'housing.bcad' && ++count === 2) {
+            File.prototype.arrayBuffer = read;
+            const changed = new Uint8Array(buffer);
+            if (changed[0] !== 123 || changed[1] !== 10) throw new Error('Expected the saved JSON prefix');
+            changed[1] = 32;
+          }
+          return buffer;
+        };
+      });
+      await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+      await f.waitToast(/The saved source moved/);
+      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+      await f.dismissToasts();
+
+      f.phase = 'refuse the old offer after opening a byte-identical model as another file';
+      await openFile('other-housing.bcad', saved);
+      await f.same(source);
+      await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+      await f.waitToast(/The saved source moved/);
+      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+      await f.dismissToasts();
+    }
 
     f.phase = 'open a changed source and report its unresolved target';
     const blocked = structuredClone(source);
@@ -181,6 +255,12 @@ process.exitCode = code ?? 1;
     assert.deepEqual(second.results[1].body.targets, cliPlan.targets.slice(0, 1));
     assert.deepEqual(second.results[1].body.issues.map(({ occurrence, inputs }) => [occurrence, inputs]), [['p2', ['requirement:check_spec:ambiguous']]]);
     await f.page.getByText('Local height plan blocked · 1 issue', { exact: true }).waitFor();
+    if (handoffMode) {
+      assert.equal(second.events[1].taskRunOffer, undefined);
+      const denied = f.page.locator('details.chat-tool').filter({ hasText: 'Local height plan blocked · 1 issue' });
+      await denied.locator('summary').click();
+      assert.equal(await denied.getByRole('button', { name: 'Export task run', exact: true }).count(), 0);
+    }
     await f.same(blocked);
     await f.snapshot('02-stale-and-blocked');
 
@@ -199,6 +279,47 @@ process.exitCode = code ?? 1;
     assert.deepEqual(await savedBytes(), saved);
     assert.deepEqual(f.report.downloads, []);
     await f.snapshot('03-new-ready-plan');
+    if (handoffMode) {
+      f.phase = 'explicit CLI launch makes two candidates and returns one terminal approval to Studio';
+      const run = join(output, 'run'), argv = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
+      const invoke = async (label, ...args) => {
+        const result = spawnSync(argv[0], [...argv.slice(1), ...args], { cwd: f.app, encoding: 'utf8', timeout: 30000 });
+        await writeFile(join(output, label + '.stdout.json'), result.stdout);
+        await writeFile(join(output, label + '.stderr.txt'), result.stderr);
+        assert.equal(result.status, 0, result.error?.message ?? result.stderr);
+        return JSON.parse(result.stdout);
+      };
+      const launched = await invoke('handoff-start', 'start', run, '--handoff', handoff);
+      assert.deepEqual(launched.tasks.map(task => [task.id, task.phase, task.geometry.volumeMm3]),
+        [['p1', 'awaiting-decision', 1200], ['p2', 'awaiting-decision', 384]]);
+      assert.equal(launched.accepted.sha256, sha256(saved));
+      const candidateFile = join(output, 'base.bcad-candidate');
+      const { candidateReview } = await invoke('handoff-review', 'review', run, 'p1', candidateFile);
+      await openFile('original-housing.bcad', saved);
+      await f.same(source);
+      await openFile('base.bcad-candidate', await readFile(candidateFile));
+      await f.page.getByRole('region', { name: 'Worker candidate review', exact: true }).getByText('Height · 5 mm → 6 mm', { exact: true }).waitFor();
+      const terminal = spawnSync('python3', ['-I', join(f.app, 'test/fixtures/task-run-terminal.py'),
+        'approve ' + candidateReview.candidateDigest.slice(0, 12), '{}', ...argv,
+        'decide', run, 'approve-handoff-base', 'p1', 'approve', '--review', candidateFile],
+        { cwd: f.app, encoding: 'utf8', timeout: 90000 });
+      await writeFile(join(output, 'handoff-approve.stdout.jsonl'), terminal.stdout);
+      await writeFile(join(output, 'handoff-approve.stderr.txt'), terminal.stderr);
+      assert.equal(terminal.status, 0, terminal.error?.message ?? terminal.stderr);
+      assert.equal(JSON.parse(terminal.stdout.trim().split('\n').at(-1)).outcome.code, 'RUN_ACCEPTED');
+      const checkpoint = join(output, 'approved-handoff.bcad-run');
+      await invoke('handoff-checkpoint', 'export', run, checkpoint);
+      await openFile('approved-handoff.bcad-run', await readFile(checkpoint));
+      const checks = f.page.getByRole('region', { name: 'Worker checkpoint checks', exact: true });
+      await checks.waitFor();
+      assert.deepEqual(await checks.getByRole('cell').allTextContents(), ['Fail · 5 mm', 'Pass · 6 mm']);
+      assert.deepEqual((await f.doc()).instances.map(part => part.doc.nodes[1].height), [6, 3]);
+      assert.deepEqual(await savedBytes(), saved);
+      assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+      await f.snapshot('05-terminal-approved');
+      f.report.observations.push({ handoffSHA256: sha256(await readFile(handoff)), originalBytesPreserved: true,
+        sameContentReplacementRefused: true, sameTagByteChangeRefused: true, blockedOfferHasNoAction: true, geometryMm3: [1200, 384], approvals: 1 });
+    }
     f.report.observations.push({ readyRevision: first.revision, blockedRevision: second.revision, resolvedRevision: third.revision,
       targetHeights: [[6, 4], [6], [6, 5]], cliPlanMatches: true, staleRefused: true, authoredID: 'check_spec',
       savedSourceSHA256: sha256(saved), projectBytesUnchanged: true, documentWrites: 0 });

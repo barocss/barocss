@@ -23,6 +23,7 @@ import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
+import { readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -70,7 +71,7 @@ export type ChatServerEvent =
   | { type: 'text'; delta: string }
   /** O17c: the model's thinking as the CLI streams it (additive: readers that take events by type ignore it). */
   | { type: 'reasoning'; delta: string }
-  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
+  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; usage?: TurnUsage; ops?: TurnOp[] };
 /** What the CLI reports a turn used (its result message, A5.5): tokens, model turns, cost. */
@@ -134,6 +135,16 @@ export function summarize(name: string, text: string, isError: boolean): string 
     return `${j.did} → ${j.bodies.length} bod${j.bodies.length === 1 ? 'y' : 'ies'}, ${r0(v)} mm³`;
   }
   return text.length > 160 ? text.slice(0, 157) + '…' : text;
+}
+
+function readyTaskRunOffer(text: string, input: unknown) {
+  try {
+    const result = JSON.parse(text), offer = readTaskRunOffer(result);
+    const requested = input && typeof input === 'object' ? (input as { occurrences?: unknown }).occurrences : undefined;
+    return result.status === 'ready' && Array.isArray(result.issues) && result.issues.length === 0
+      && offer && Array.isArray(requested) && requested.length === 2
+      && requested[0] === offer.occurrences[0] && requested[1] === offer.occurrences[1] ? offer : null;
+  } catch { return null; }
 }
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -294,7 +305,10 @@ export function createChatServer(options: ChatServerOptions) {
           if (b.type !== 'tool_result') continue;
           const call = calls.get(b.tool_use_id) ?? { name: 'tool', input: {} };
           const text = typeof b.content === 'string' ? b.content : (b.content ?? []).map((c: { text?: string }) => c.text ?? '').join('');
-          emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(v1NameOf(call.name, call.input), text, !!b.is_error), isError: !!b.is_error || /"ok":false/.test(text) });
+          const handler = v1NameOf(call.name, call.input), isError = !!b.is_error || /"ok":false/.test(text);
+          const offer = !isError && handler === 'inspect_local_task_plan' ? readyTaskRunOffer(text, call.input) : null;
+          emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(handler, text, isError), isError,
+            ...(offer ? { taskRunOffer: offer } : {}) });
           // (Only a part a tool changed since the last state sent: a read-only call re-sent nothing, PERF3 A3.)
           const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc, ...newOps(s) }); }
         }
