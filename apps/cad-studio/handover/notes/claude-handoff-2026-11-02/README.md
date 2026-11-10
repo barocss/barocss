@@ -1,5 +1,5 @@
 ---
-work_id: D571
+work_id: D572
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -79,7 +79,9 @@ D570 verifies a trusted Chromium file-input cancel after Open and preserves clip
 
 D571 clears the Copy notice on five clipboard invalidation paths in actual Studio. Ordinary history keeps the valid Copy notice, and New keeps an unrelated Open error. This verifies the remaining [#2310](https://github.com/barocss/barocss/issues/2310) acceptance. [D571](../body-clipboard-notice-2026-11-10/README.md).
 
-Next MAIN is D572, P0 rows 16 and 28. Reproduce [#2361](https://github.com/barocss/barocss/issues/2361) in Studio and compare the library shown in the panel with the geometry from Insert and Place.
+D572 fixes Studio Insert and Place resolving the embedded library instead of the selected local replacement. Desktop checks verify the 12 mm replacement, an identical-name/version case, first Undo and Redo, and native Save and fresh Open. [#2361](https://github.com/barocss/barocss/issues/2361) remains open for the remaining acceptance cases. [D572](../library-source-selection-2026-11-10/README.md).
+
+Next MAIN is D573, P0 rows 12 and 16. Check whether an unsaved Variants input from document A affects the master after opening document B. [#2362](https://github.com/barocss/barocss/issues/2362).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

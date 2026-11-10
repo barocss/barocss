@@ -1,0 +1,174 @@
+{
+  "workId": "D572",
+  "parent": "20db0554518426e675fd558b0f9d1bca31f9ef51",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D572-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d572-2026-11-10",
+    "frozenSourcesPerCompleteRun": 759
+  },
+  "fixtureSha256": {
+    "documentA": "dd0f0ca7545015ea77b6408e0be2e9989a9577897c88b3d3d458c807aa3e7ec9",
+    "a": "f9c749ad7887484327a714064286f42620369d6eb740a5366de0bbaaf0b361ec",
+    "b": "cf3f4ee6e64ade6c036e8395ea9ad9622873f539e51b6f71d5d6736e4dd95015",
+    "c": "f0dea3ebde4a01ddc4a87291feae72c81e4277092e36a1b9c546e676e091cbad"
+  },
+  "modelLibrarySha256": "f0aac9685dd807c7b263a3eb88e814ce334699d608eac77a7a2a6be10c89dd8f",
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D572_SOURCE_FROZEN=1 node test/library-source-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "FAIL",
+      "product": "PARTIAL_REPRODUCTION",
+      "driverSha256": "d943e17d08d582d5ceb97c73fdd90a8bc057624561a8af6f93add41f52947b59",
+      "panelSha256": "c9fdc6cc621f9ee48104d2ada8d2d99baf1d63192b7e197bdbd679e7389d2f7f",
+      "snapshots": 2,
+      "oracleCalls": 1,
+      "wallSeconds": 10.81,
+      "nodePID": 57873,
+      "chromePID": 57943,
+      "receiptSha256": "974a22e093d26b022c634229fa677ca8758c75415661ec633fb20f6362b8e186"
+    },
+    {
+      "output": "repro02",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "driverSha256": "4a2f80bbba83abff26c714c7a71c1bd345e403dfb0167867e67c5680539eca92",
+      "panelSha256": "c9fdc6cc621f9ee48104d2ada8d2d99baf1d63192b7e197bdbd679e7389d2f7f",
+      "snapshots": 4,
+      "oracleCalls": 2,
+      "wallSeconds": 13.66,
+      "nodePID": 62625,
+      "chromePID": 62652,
+      "receiptSha256": "41f57798ff6a849c7f1985ed1b08fb0331e15f5d96bb17654f1bbc3c7f0816f9"
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "driverSha256": "4a2f80bbba83abff26c714c7a71c1bd345e403dfb0167867e67c5680539eca92",
+      "panelSha256": "3c0779525394dc1790ee665614fc070b85256b9e0a9005755bb76deda83401b5",
+      "snapshots": 7,
+      "oracleCalls": 4,
+      "wallSeconds": 20.29,
+      "nodePID": 67362,
+      "chromePID": 67413,
+      "receiptSha256": "2d63f1ca1bf7fdefc791b9d6bc0bacebe70bdf22a281efee12536a6eb675c77b"
+    }
+  ],
+  "attempts": [
+    {
+      "status": "NOT_RUN",
+      "cause": "First heavy gate timed out after 249 s before launch"
+    },
+    {
+      "output": "repro01",
+      "status": "FAIL",
+      "cause": "Driver expected a bounds key on the Insert oracle input",
+      "gateLoadCapSeconds": 180
+    },
+    {
+      "output": "repro02",
+      "status": "FAIL",
+      "cause": "Both actions selected A while B was shown",
+      "gateLoadCapSeconds": 60
+    },
+    {
+      "output": "fixed01",
+      "status": "PASS",
+      "gateLoadCapSeconds": 60
+    }
+  ],
+  "originalObservations": [
+    {
+      "action": "Insert",
+      "selected": "2.0.0",
+      "selectedHeight": 12,
+      "applied": "1.0.0",
+      "height": 8,
+      "volume": 451.823855439282,
+      "storedVersion": "1.0.0"
+    },
+    {
+      "action": "Place",
+      "selected": "2.0.0",
+      "selectedHeight": 12,
+      "applied": "1.0.0",
+      "height": 8,
+      "volume": 451.823855439282,
+      "storedVersion": "1.0.0"
+    }
+  ],
+  "fixedObservations": [
+    {
+      "action": "Insert",
+      "selected": "2.0.0",
+      "selectedHeight": 12,
+      "applied": "2.0.0",
+      "height": 12,
+      "volume": 677.735783158923,
+      "storedVersion": "2.0.0"
+    },
+    {
+      "action": "Place",
+      "selected": "2.0.0",
+      "selectedHeight": 12,
+      "applied": "2.0.0",
+      "height": 12,
+      "volume": 677.735783158923,
+      "storedVersion": "2.0.0"
+    },
+    {
+      "action": "Insert",
+      "selected": "1.0.0",
+      "selectedHeight": 14,
+      "applied": "1.0.0",
+      "height": 14,
+      "volume": 790.6917470187435,
+      "storedVersion": "1.0.0"
+    }
+  ],
+  "nativeSave": {
+    "label": "placed-spacer-native",
+    "hash": "fd31232adbf3caae2a59ac7257527cd04ba9d04ba714d3534fee369f4f1f16f4",
+    "length": 3526
+  },
+  "absoluteTolerance": 1e-06,
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/library-source-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs library.test api-library-input",
+      "status": "PASS",
+      "pass": 7,
+      "fail": 0,
+      "logSha256": "d28e3611682009ff4bb1a22ff6e00241ce6915d2fb15b60f9ef7342760b1238f"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs library-tools",
+      "status": "PASS",
+      "pass": 2,
+      "fail": 0,
+      "logSha256": "589bc698a3d501f6ed1bcda8ef0cdfd736d04b964da399340f15acfe2ab1ea8c"
+    }
+  ],
+  "issue2361": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

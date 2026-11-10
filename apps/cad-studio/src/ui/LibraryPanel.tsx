@@ -47,10 +47,20 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
     }).catch(() => { /* no chat server: no team libraries */ });
     return () => { live = false; };
   }, []);
-  const insert = (e: LibraryEntry, part: string, asInstance: boolean) => {
-    const v = variant[`${e.library.manifest.id}/${part}`] ?? e.library.parts.get(part)?.part.variants?.[0]?.id;
+  const insert = (entry: LibraryEntry, part: string, selectedVariant: string | undefined, asInstance: boolean) => {
+    const id = entry.library.manifest.id;
+    if (libraryEntry(id) !== entry) {
+      refresh();
+      onError('Could not insert the part', 'This library changed. Select the part again.');
+      return;
+    }
     try {
-      onCommit(asInstance ? libraryInstance(doc, e.library.manifest.id, part, v ? { variant: v } : {}).doc : insertLibraryPart(doc, e.library.manifest.id, part, v ? { variant: v } : {}));
+      // The ID-based helpers register embedded libraries before lookup. Use the panel's current entry
+      // and restore the embedded libraries before committing.
+      const { libraries: embedded, ...target } = doc;
+      const options = selectedVariant ? { variant: selectedVariant } : {};
+      const next = asInstance ? libraryInstance(target, id, part, options).doc : insertLibraryPart(target, id, part, options);
+      onCommit(embedded ? { ...next, libraries: embedded } : next);
     } catch (cause) { onError('Could not insert the part', cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause)); }
   };
   const addFile = async (file: File) => {
@@ -112,13 +122,17 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
             <div className="muted small" aria-label={`Licence of ${m.id}`}>{e.license ?? UNLICENSED} · {e.estimates} estimate{e.estimates === 1 ? '' : 's'}</div>
             {agent && <div className={ROW + ' small'}><span className={e.confirmed ? 'muted' : 'warn'}>{e.confirmed ? 'Written by an agent, confirmed' : 'Written by an agent: not confirmed'}</span>
               {!e.confirmed && <Button variant="ghost" aria-label={`Confirm ${m.id}`} onClick={() => { onCommit(confirmDocLibrary(doc, m.id)); refresh(); }}>Confirm</Button>}</div>}
-            {m.parts.map(p => <div key={p.id} className={ROW} aria-label={`Part ${p.id}`}>
-              <span title={p.description ?? ''}>{p.name}</span>
-              {!!p.variants?.length && <NativeSelect className={CONTROL} aria-label={`Variant of ${p.id}`} value={variant[`${m.id}/${p.id}`] ?? p.variants[0].id} onChange={ev => setVariant(v => ({ ...v, [`${m.id}/${p.id}`]: ev.target.value }))}>
-                {p.variants.map(v => <option key={v.id} value={v.id}>{v.name ?? v.id}</option>)}</NativeSelect>}
-              <Button variant="ghost" aria-label={`Insert ${p.id}`} data-tip="Insert" data-tip-desc="Into this part" onClick={() => insert(e, p.id, false)}>Insert</Button>
-              <Button variant="ghost" aria-label={`Place ${p.id}`} data-tip="Place" data-tip-desc="As a new placed part (snap it by its interfaces)" onClick={() => insert(e, p.id, true)}>Place</Button>
-            </div>)}
+            {m.parts.map(p => {
+              const variantKey = `${m.id}/${p.id}`;
+              const selectedVariant = p.variants?.find(v => v.id === variant[variantKey])?.id ?? p.variants?.[0]?.id;
+              return <div key={p.id} className={ROW} aria-label={`Part ${p.id}`}>
+                <span title={p.description ?? ''}>{p.name}</span>
+                {!!p.variants?.length && <NativeSelect className={CONTROL} aria-label={`Variant of ${p.id}`} value={selectedVariant} onChange={ev => setVariant(v => ({ ...v, [variantKey]: ev.target.value }))}>
+                  {p.variants.map(v => <option key={v.id} value={v.id}>{v.name ?? v.id}</option>)}</NativeSelect>}
+                <Button variant="ghost" aria-label={`Insert ${p.id}`} data-tip="Insert" data-tip-desc="Into this part" onClick={() => insert(e, p.id, selectedVariant, false)}>Insert</Button>
+                <Button variant="ghost" aria-label={`Place ${p.id}`} data-tip="Place" data-tip-desc="As a new placed part (snap it by its interfaces)" onClick={() => insert(e, p.id, selectedVariant, true)}>Place</Button>
+              </div>;
+            })}
             {source === 'user' && <Button variant="ghost" aria-label={`Share ${m.id}`} disabled={busy === m.id} onClick={() => void share(m.id)}>Share with the team</Button>}
           </div>;
         })}
