@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D577 — apply only the current Render image import](notes/render-image-ownership-2026-11-10/README.md).
+
 - [D576 — report drawing changes only after commit acceptance](notes/drawing-commit-ownership-2026-11-10/README.md).
 
 - [D575 — require the current BOM for row actions and CSV](notes/bom-currentness-2026-11-10/README.md).

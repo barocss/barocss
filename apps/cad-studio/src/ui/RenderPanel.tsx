@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
 import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, validateRenderShadowLights, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
@@ -138,6 +138,21 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
   };
   const setLight = (i: number, l: RenderLight, radiusEdit = false) => changeLights(render.lights.map((x, k) => k === i ? l : x), radiusEdit ? i : undefined);
   const env = render.environment, setEnv = (patch: Partial<RenderSettings['environment']>) => onChange({ ...render, environment: { ...env, ...patch } });
+  const textureRequest = useRef<object | null>(null), environmentRequest = useRef<object | null>(null);
+  const textureTarget = JSON.stringify([!!lookDisabled, selectedKeys]);
+  // The original change callback retains the document and work owner. A new owner cancels both inputs.
+  useLayoutEffect(() => () => { textureRequest.current = null; environmentRequest.current = null; }, [onChange]);
+  useLayoutEffect(() => () => { textureRequest.current = null; }, [textureTarget]);
+  const importImage = async (file: File, request: RefObject<object | null>, apply: (image: string) => void, most = 1024) => {
+    const token = {};
+    request.current = token;
+    try {
+      const image = await textureImage(file, most);
+      if (request.current === token) apply(image);
+    } catch {
+      if (request.current === token) onError?.('That file is not an image the browser can read.');
+    }
+  };
   // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
   const post: RenderPost = env.post ?? NO_POST;
   const setPost = (patch: Partial<RenderPost>) => {
@@ -219,10 +234,9 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
           <span className="texture-row">
             {current.texture && <img className="texture-thumb" src={current.texture.image} alt="" />}
             <Button variant="ghost" asChild><label className="file-button">{current.texture ? 'Replace…' : 'Image…'}
-              <input type="file" accept="image/*" aria-label="Texture image" hidden onChange={async e => {
+              <input type="file" accept="image/*" aria-label="Texture image" hidden onChange={e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
-                try { setLook({ texture: { image: await textureImage(file), scale: current.texture?.scale ?? 20 } }); }
-                catch { onError?.('That file is not an image the browser can read.'); }
+                void importImage(file, textureRequest, image => setLook({ texture: { image, scale: current.texture?.scale ?? 20 } }));
               }} /></label></Button>
             {current.texture && <Button variant="ghost" size="xs" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></Button>}
           </span></div>
@@ -321,10 +335,12 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
           <span className="texture-row">
             {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
             <Button variant="ghost" asChild><label className="file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
-              <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
+              <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
-                try { const image = await textureImage(file, 2048), rest = { ...env }; delete rest.studio; onChange({ ...render, environment: { ...rest, map: { image, intensity: env.map?.intensity ?? env.studio?.intensity ?? 1 } } }); }
-                catch { onError?.('That file is not an image the browser can read.'); }
+                void importImage(file, environmentRequest, image => {
+                  const rest = { ...env }; delete rest.studio;
+                  onChange({ ...render, environment: { ...rest, map: { image, intensity: env.map?.intensity ?? env.studio?.intensity ?? 1 } } });
+                }, 2048);
               }} /></label></Button>
             {env.map && <Button variant="ghost" size="xs" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></Button>}
           </span></div>
@@ -431,9 +447,14 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
 }
 
 /** An image file as a data URL for a texture, at most `most` (1024) pixels across (PNG keeps transparency; others JPEG). */
-async function textureImage(file: File, most = 1024): Promise<string> {
-  const bitmap = await createImageBitmap(file), k = Math.min(1, most / Math.max(bitmap.width, bitmap.height));
-  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bitmap.width * k)); c.height = Math.max(1, Math.round(bitmap.height * k));
-  c.getContext('2d')!.drawImage(bitmap, 0, 0, c.width, c.height); bitmap.close();
-  return c.toDataURL(file.type === 'image/png' || file.type === 'image/gif' ? 'image/png' : 'image/jpeg', 0.9);
+async function textureImage(file: File, most: number): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const k = Math.min(1, most / Math.max(bitmap.width, bitmap.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(bitmap.width * k));
+    c.height = Math.max(1, Math.round(bitmap.height * k));
+    c.getContext('2d')!.drawImage(bitmap, 0, 0, c.width, c.height);
+    return c.toDataURL(file.type === 'image/png' || file.type === 'image/gif' ? 'image/png' : 'image/jpeg', 0.9);
+  } finally { bitmap.close(); }
 }

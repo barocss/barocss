@@ -1,5 +1,5 @@
 ---
-work_id: D576
+work_id: D577
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -89,7 +89,9 @@ D575 blocks stale BOM row actions and CSV during recomputation. Actual Studio ve
 
 D576 reports Front and Auto-dimension success only after the actual drawing commit. Desktop Studio verifies stale refusal, a valid current action and first Undo/Redo in both cases. [#2359](https://github.com/barocss/barocss/issues/2359) stays open for remaining acceptance. [D576](../drawing-commit-ownership-2026-11-10/README.md).
 
-Next MAIN is D577, P0 rows 06 and 16. Check whether a late local image decode overwrites a newer render texture or environment or applies after its owner closes. [#2419](https://github.com/barocss/barocss/issues/2419).
+D577 rejects obsolete Texture and Environment imports. Desktop Studio verifies the latest selections, Render exit, current decode error and first Undo/Redo. [#2419](https://github.com/barocss/barocss/issues/2419) remains open for remaining acceptance. [D577](../render-image-ownership-2026-11-10/README.md).
+
+Next MAIN is D578, P0/B09 rows 04 and 16. Verify whether display rounding changes numeric requirement verdicts. [#2411](https://github.com/barocss/barocss/issues/2411).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

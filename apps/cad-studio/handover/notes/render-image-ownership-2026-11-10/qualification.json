@@ -1,0 +1,185 @@
+{
+  "workId": "D577",
+  "parent": "ad90adde2e41508d3a2ab091f06d4d8f5d7852b8",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D577-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d577-2026-11-10",
+    "frozenSourcesPerRun": 297
+  },
+  "fixtureSha256": {
+    "box": "4ebb8ab5b6560b735561675825cf785235685f18022ca04d7746f22a6218c528",
+    "imageA": "aa39e29e8c0630ba08bf731dcccb5321241da045e64ccfd41ecb9c7cdcd62076",
+    "imageB": "096b5607cd88762928829faf762ee92ef345fdaf2279ad26c6ed06c1d70e3427"
+  },
+  "panelSha256": {
+    "original": "758f9b5191cca271e5d879a582d7b9a862ec65ea30c2d6696364bc6232324ab2",
+    "fixed": "4045e670ac2d7e29a0cb61961efe45cc519832638fbc104210268a1f98270adf"
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D577_SOURCE_FROZEN=1 node test/render-image-ownership-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "snapshots": 8,
+      "wallSeconds": 21.24,
+      "nodePID": 28691,
+      "chromePID": 28722,
+      "receiptSha256": "dbf2600754b07b2e8b247dc2109df3d63e2975ca79989a93013a82f319574e6b",
+      "driverSha256": "64e8cad66ddc63a57eb3c135889368e9fc00b6377d17238cadfd78986c04f326",
+      "observations": [
+        {
+          "kind": "texture",
+          "outcome": "two-selections",
+          "accepted": "A",
+          "pixels": {
+            "hash": "e2bdfebc5891f794dcffe7a4bbe9726acce3d1ea6e0c6978ba938436a1931fe4",
+            "width": 64,
+            "height": 64,
+            "transparent": false
+          },
+          "closed": [
+            "D577-A.png",
+            "D577-B.png"
+          ]
+        },
+        {
+          "kind": "environment",
+          "outcome": "two-selections",
+          "accepted": "A",
+          "pixels": {
+            "hash": "e2bdfebc5891f794dcffe7a4bbe9726acce3d1ea6e0c6978ba938436a1931fe4",
+            "width": 64,
+            "height": 64,
+            "transparent": false
+          },
+          "closed": [
+            "D577-A.png",
+            "D577-B.png"
+          ]
+        },
+        {
+          "kind": "texture",
+          "outcome": "closed",
+          "decodeOk": true,
+          "applied": true,
+          "notices": [],
+          "closed": [
+            "D577-close-success.png"
+          ]
+        },
+        {
+          "kind": "environment",
+          "outcome": "closed",
+          "decodeOk": false,
+          "applied": false,
+          "notices": [
+            "Could not use that imageThat file is not an image the browser can read."
+          ],
+          "closed": []
+        }
+      ]
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "snapshots": 12,
+      "wallSeconds": 20.95,
+      "nodePID": 31125,
+      "chromePID": 31147,
+      "receiptSha256": "e41d53f77dec4f59fdec30d961238bc72fa733d0556880011f24a66bd9dc5f8b",
+      "driverSha256": "64e8cad66ddc63a57eb3c135889368e9fc00b6377d17238cadfd78986c04f326",
+      "observations": [
+        {
+          "kind": "texture",
+          "outcome": "two-selections",
+          "accepted": "B",
+          "pixels": {
+            "hash": "bd3aa9a68f93454af7770a756fd7f59b0d3be7147addb0b18f51f7310ff0736f",
+            "width": 64,
+            "height": 64,
+            "transparent": true
+          },
+          "closed": [
+            "D577-A.png",
+            "D577-B.png"
+          ]
+        },
+        {
+          "kind": "environment",
+          "outcome": "two-selections",
+          "accepted": "B",
+          "pixels": {
+            "hash": "bd3aa9a68f93454af7770a756fd7f59b0d3be7147addb0b18f51f7310ff0736f",
+            "width": 64,
+            "height": 64,
+            "transparent": true
+          },
+          "closed": [
+            "D577-A.png",
+            "D577-B.png"
+          ]
+        },
+        {
+          "kind": "texture",
+          "outcome": "closed",
+          "decodeOk": true,
+          "applied": false,
+          "notices": [],
+          "closed": [
+            "D577-close-success.png"
+          ]
+        },
+        {
+          "kind": "environment",
+          "outcome": "closed",
+          "decodeOk": false,
+          "applied": false,
+          "notices": [],
+          "closed": []
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/render-image-ownership-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs render-shadow-consumer render-focus stop-work-ownership project-open-ownership",
+      "logSha256": "8a085302d397e01e6bc8803b442f5c5cc31aab44377e1a5b7176eb6f2e3d5aa2",
+      "status": "PASS",
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "logSha256": "7b8095f7d1f2e33eb0f1a5b0b43276841dabb92114d4af8b4118644904f9591c",
+      "status": "PASS"
+    }
+  ],
+  "issue2419": "OPEN",
+  "wholeCad": "NOT_MEASURED",
+  "reviews": {
+    "behavior": "APPROVE",
+    "security": "APPROVE",
+    "quality": "APPROVE"
+  }
+}
