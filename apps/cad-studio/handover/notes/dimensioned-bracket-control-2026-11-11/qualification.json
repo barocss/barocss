@@ -1,0 +1,41 @@
+{
+  "decision": "D597",
+  "parent": "e6b9bd141d991c15efad225b563919510085e981",
+  "tier": "CONTROLLED",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "7f7bf2d12348e319583090f52ef906d4eb038fba113f7f1b35ef3957c08fa7e7",
+    "pass": ["G01", "G02", "G03", "G04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D597_SOURCE_FROZEN=1 node test/dimensioned-bracket-control-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test cad-external tool-contract-mcp toolset-mcp", "status": "PASS", "pass": 11},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence proposals.test sketch-rectangle-driving-retention", "status": "PASS", "pass": 34},
+    {"command": "pnpm --dir apps/cad-studio exec tsc --noEmit && pnpm --dir packages/barocss-cad-model exec tsc --noEmit", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/dimensioned-bracket-control-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "evidence": {
+    "directory": "d597-2026-11-11/first",
+    "receiptSHA256": "af47dff6a71ddfa5e2bab2db599276b9555f035eca11d32a2956bd16a487b5b4",
+    "drawingSHA256": "697057c4243233f324ef5b7138f7844b2f9a1abe1f0a8c4090355f507499c676",
+    "sourceCapsuleSHA256": "16f79a422b1cabaf96aad705c00db0b90555bf67059c6f8b735b1fc672527182",
+    "savedNativeSHA256": "30d8c8e4b07c98e9f41b4470b4cb559c174b1f0dd0f797601ee5599204294ef9",
+    "nativeSamples": 3,
+    "desktopStates": 5,
+    "unchangedSourcePins": 771,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["05-reopened-height"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "firstFailure": {
+    "status": "FAIL",
+    "intentional": true,
+    "requirement": "BORE",
+    "measuredMm": 8,
+    "requiredMm": 6,
+    "repairCount": 1
+  },
+  "notRun": ["live image interpretation", "provider comparisons", "multi-worker delivery", "whole browser", "whole kernel", "mobile"]
+}

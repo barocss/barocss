@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D597 — qualify the offline dimensioned bracket control](notes/dimensioned-bracket-control-2026-11-11/README.md).
 - [D596 — open a project after an interrupted first autosave](notes/interrupted-project-autosave-2026-11-11/README.md).
 - [D595 — read saved approval evidence after a later edit](notes/historical-approval-evidence-2026-11-11/README.md).
 - [D594 — compare saved failures with approved requirement checks](notes/approved-requirement-version-compare-2026-11-11/README.md).
