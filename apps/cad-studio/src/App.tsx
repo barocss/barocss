@@ -278,6 +278,14 @@ export function App() {
     if (next !== docNow.current) discardRouteRef.current();
     if (routeAcceptedHandoff.current?.doc !== next) routeAcceptedHandoff.current = null;
     if (intent) {
+      const copied = clipboard.current;
+      const current = docNow.current;
+      // Undo may restore the earlier ID counter. A new edit can then reuse the absent producer's ID.
+      if (copied && !Object.hasOwn(current.outputs, copied.key)
+        && !current.nodes.some((_, i) => featureId(current.nodes, i) === copied.featureId)
+        && next.nodes.some((_, i) => featureId(next.nodes, i) === copied.featureId)) {
+        clipboard.current = null;
+      }
       const entry: WorkHistory<StudioDoc> = replacementScope.current === null ? intent.entry : { ...intent.entry, documentBoundary: true };
       setUndo(u => [...u.slice(-49), entry]); setRedo([]);
       workOwnership.current = reserveAcceptedChange(workOwnership.current, entry, next, intent.beforeInput);
@@ -290,7 +298,7 @@ export function App() {
   const [undo, setUndo] = useState<WorkHistory<StudioDoc>[]>([]);
   const [redo, setRedo] = useState<WorkHistory<StudioDoc>[]>([]);
   /** Copied body (⌘C) and how many copies were pasted (⌘V). */
-  const clipboard = useRef<{ key: string; pastes: number } | null>(null);
+  const clipboard = useRef<{ key: string; featureId: string; pastes: number } | null>(null);
   // Roadmap 10 ⑧: a part edited in place inside its assembly. While it is set, the working document is the part's own (the assembly waits in the session,
   // with its undo and redo stacks); nothing of the assembly is saved, recovered or opened over until Finish or Cancel.
   const [inPlace, setInPlace] = useState<InPlaceSession | null>(null), [askDiscard, setAskDiscard] = useState(false), [chatRunning, setChatRunning] = useState(false);
@@ -1687,7 +1695,16 @@ export function App() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && !active && !sketch) { e.preventDefault(); start(commands.find(c => c.id === 'duplicate')!); return; }
       // Copy a body, paste copies of it beside (each paste a little further on).
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && !active && !sketch && !typing) { const one = selectedBodies(selection); if (one.length === 1 && bodies[one[0]]) { clipboard.current = { key: bodies[one[0]].key, pastes: 0 }; setToast({ title: 'Copied', hint: `${bodyName(doc, bodies[one[0]])} — ⌘V pastes a copy beside it.`, detail: '' }); } return; }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && !active && !sketch && !typing) {
+        const one = selectedBodies(selection);
+        const body = one.length === 1 ? bodies[one[0]] : undefined;
+        if (body) {
+          const sourceNodes = bodiesFor?.nodes ?? evaluated.nodes;
+          clipboard.current = { key: body.key, featureId: featureId(sourceNodes, refOf(body).node), pastes: 0 };
+          setToast({ title: 'Copied', hint: `${bodyName(doc, body)} — ⌘V pastes a copy beside it.`, detail: '' });
+        }
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && !active && !sketch && !typing && clipboard.current) {
         const copied = clipboard.current;
         const src = bodies.find(b => b.key === copied.key); if (!src) return;
