@@ -1,5 +1,5 @@
 ---
-work_id: D573
+work_id: D574
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -83,7 +83,9 @@ D572 fixes Studio Insert and Place resolving the embedded library instead of the
 
 D573 clears unsaved Variants inputs at accepted document boundaries. Studio verifies the first B evaluation, malformed and cancelled Open, ordinary Reset, Save and Update, and Undo/Redo across Open. [#2362](https://github.com/barocss/barocss/issues/2362) remains open for remaining acceptance. [D573](../variant-document-draft-2026-11-10/README.md).
 
-Next MAIN is D574, P0 rows 09 and 16. Check whether a delayed Finish response applies after editing or cancelling an ordinary sketch. [#2364](https://github.com/barocss/barocss/issues/2364).
+D574 rejects late Finish responses for an ordinary reopened sketch. Desktop Studio preserves cancel and the newer draft, then verifies the current 60 mm Finish, first Undo/Redo and two local Save/fresh Open cases. [D574](../sketch-finish-ownership-2026-11-10/README.md).
+
+Next MAIN is D575, P0 rows 10 and 16. Check whether a stale BOM row can write a buy/make override before the current BOM result arrives. [#2356](https://github.com/barocss/barocss/issues/2356).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

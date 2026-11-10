@@ -1,0 +1,138 @@
+{
+  "workId": "D574",
+  "parent": "e98a3bf0cc1014d5670125bfcf89e65dc3bed939",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D574-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d574-2026-11-10",
+    "frozenSourcesPerRun": 297
+  },
+  "fixtureSha256": "c981eaa7122d25ac7355457d28724b46d8daea62c62ac14cd4d03e36fd376cce",
+  "driverSha256": "9ed6c4fa9ef33f9901b02661df0a7f872babfcf7e38bc1f12d016284b6d6c72f",
+  "productSha256": {
+    "apps/cad-studio/src/sketch/useSketchActions.ts": {
+      "original": "cb7e74304ed8657cff0180663fc3d02ccb43dc49b658b3b4f02797e9e5202a69",
+      "fixed": "7136b380b7022b677821ee7be0cd39e8b428d74dcfbd3a115e0ddaa8df8ac705"
+    }
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D574_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "snapshots": 4,
+      "physicalChecks": 2,
+      "wallSeconds": 12.83,
+      "nodePID": 63504,
+      "chromePID": 63528,
+      "receiptSha256": "61299da0c76d759282bdbb0ea42098492e15ea5a732391d1c56fd5344cafa644",
+      "observations": [
+        {
+          "action": "cancel",
+          "volume": 10000,
+          "draftOpen": false,
+          "heldWidth": 50,
+          "requestId": 4,
+          "revision": 4
+        },
+        {
+          "action": "edit-again",
+          "volume": 10000,
+          "draftOpen": false,
+          "heldWidth": 50,
+          "requestId": 4,
+          "revision": 4
+        }
+      ]
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "snapshots": 5,
+      "physicalChecks": 7,
+      "wallSeconds": 17.89,
+      "nodePID": 65409,
+      "chromePID": 65412,
+      "receiptSha256": "64bac6477f705a80deea4f92c3904142ee29c5a1ad5f1df670bf6cf22e2d5f2b",
+      "observations": [
+        {
+          "action": "cancel",
+          "volume": 8000.000000000001,
+          "draftOpen": false,
+          "heldWidth": 50,
+          "requestId": 4,
+          "revision": 4
+        },
+        {
+          "action": "edit-again",
+          "volume": 8000.000000000001,
+          "draftOpen": true,
+          "heldWidth": 50,
+          "requestId": 4,
+          "revision": 4
+        }
+      ]
+    }
+  ],
+  "nativeSaves": [
+    {
+      "label": "D574-cancelled-40",
+      "sha256": "f5c1bef5c7517424c1ef40f48c617a2460cf130d3478e68e13395522e1f35bf6",
+      "byteLength": 466
+    },
+    {
+      "label": "D574-finished-60",
+      "sha256": "04a3dd860aeaed3992c510d10ded6e4cd6076e46cc0c4e50df79f341a030dbdb",
+      "byteLength": 1058
+    }
+  ],
+  "absoluteTolerance": 1e-09,
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/sketch-finish-ownership-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs sketch-edit-identity",
+      "logSha256": "f7f97961849f2f28999d9bd8be8ee89645369b38cad73249b601160312d1da5b",
+      "status": "FAIL",
+      "passed": 19,
+      "failed": 4
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs sketch-edit-identity named-sketch-guards",
+      "logSha256": "6ada1fde373a017dde17eda33855ef9634cbcc6f24727a60b90ef8c48a38d26d",
+      "status": "PASS",
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "logSha256": "72eeb7d09f17f5196df80cd9ea683541989c7ca8cacf6e32b4284ce1747ac06b",
+      "status": "PASS"
+    }
+  ],
+  "reviews": {
+    "behavior": "APPROVE",
+    "security": "APPROVE",
+    "quality": "APPROVE"
+  },
+  "issue2364": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

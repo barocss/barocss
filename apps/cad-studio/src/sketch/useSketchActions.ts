@@ -48,7 +48,7 @@ function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
   if (!('on' in placed) && from.on !== undefined) kept.on = from.on;
   return kept as Partial<ModelNode>;
 }
-/** Sketch placement, editing and Finish retain App's dispatch and linked-sketch generation owner. */
+/** Sketch placement, editing and Finish retain App's dispatch and sketch generation owner. */
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
   const { doc, bodies, selection, marker } = model;
   const { sketch, setSketch, sketchGeneration } = editor;
@@ -185,7 +185,14 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), nextRevision()).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { if (!commit(next)) return; setSketch(null); if (rebound.dropped.length) setToast(droppedBindingsToast(rebound.dropped)); } else setToast(r.error); });
+      const candidate = linked ? next : prefixDoc(next, marker ?? next.nodes.length);
+      engine.evaluate(candidate, nextRevision()).then(r => {
+        if (!r || !requestCurrent()) return;
+        if (!r.ok) { setToast(r.error); return; }
+        if (!commit(next)) return;
+        setSketch(null);
+        if (rebound.dropped.length) setToast(droppedBindingsToast(rebound.dropped));
+      });
       return;
     }
     // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready

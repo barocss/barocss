@@ -8,7 +8,7 @@ import { renderToString } from 'react-dom/server.edge';
 import { part } from '@barocss/cad-model/api';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { refOf, type Ctx } from '@barocss/cad-model/app/commands';
 import { extrudeCommand } from '@barocss/cad-model/app/profileCommands';
 import { fillRegionSnapshot } from '@barocss/cad-model/engine/fillFeaturePattern';
@@ -33,23 +33,116 @@ function source() {
 }
 
 /** Invoke the actual React hook. Only Worker transport and App state dispatch are replaced. */
-function actions(doc: StudioDoc) {
-  let sketch: SketchState | null = null, api!: ReturnType<typeof useSketchActions>, revision = 1;
-  const accepted: StudioDoc[] = [], evaluated: StudioDoc[] = [], notices: unknown[] = [], docNow = { current: doc };
-  const setSketch = (value: SetStateAction<SketchState | null>) => { sketch = typeof value === 'function' ? value(sketch) : value; };
-  const transport = { evaluate: async (input: StudioDoc, revision: number) => { evaluated.push(input); return { ok: true as const, revision, bodies: [], wallTime: 0 }; } } satisfies Pick<EngineClient, 'evaluate'>;
+function actions(doc: StudioDoc, evaluate: (revision: number) => Promise<EvalResult> = async revision => ({ ok: true, revision, bodies: [], wallTime: 0 })) {
+  let sketch: SketchState | null = null, api!: ReturnType<typeof useSketchActions>, revision = 1, selectionWrites = 0;
+  const accepted: StudioDoc[] = [], evaluated: StudioDoc[] = [], notices: unknown[] = [], docNow = { current: doc }, sketchGeneration = { current: 0 };
+  const setSketch = (value: SetStateAction<SketchState | null>) => {
+    sketchGeneration.current++;
+    sketch = typeof value === 'function' ? value(sketch) : value;
+  };
+  const transport = { evaluate: (input: StudioDoc, revision: number) => { evaluated.push(input); return evaluate(revision); } } satisfies Pick<EngineClient, 'evaluate'>;
   function Probe() {
     api = useSketchActions({ model: { doc, bodies: [], selection: { faces: [], edges: [], bodies: [] }, marker: null },
-      editor: { sketch, setSketch, sketchGeneration: { current: 0 } }, owner: { docNow, acceptanceScope: {} },
+      editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope: {} },
       worker: { engine: transport as unknown as EngineClient, nextRevision: () => revision++ }, viewport: { current: null },
       changes: { canChangeDocument: () => true, commit: next => { accepted.push(next); docNow.current = next; return true; },
-        commitDirect: () => { throw new Error('Unexpected direct geometry edit'); }, setSelection: () => {}, setEditNode: () => {}, setActive: () => {}, setPreviewBodies: () => {} },
+        commitDirect: () => { throw new Error('Unexpected direct geometry edit'); }, setSelection: () => { selectionWrites++; }, setEditNode: () => {}, setActive: () => {}, setPreviewBodies: () => {} },
       onNotice: notice => notices.push(notice) });
     return null;
   }
   const render = () => renderToString(createElement(Probe)); render();
-  return { accepted, evaluated, notices, render, get api() { return api; }, get sketch() { return sketch; }, setSketch };
+  return { accepted, evaluated, notices, docNow, sketchGeneration, render, get api() { return api; },
+    get sketch() { return sketch; }, get selectionWrites() { return selectionWrites; }, setSketch };
 }
+
+
+const delayedError = { title: 'Cannot evaluate sketch', hint: 'Check the profile.', detail: 'Test Worker refusal' };
+
+function delayedRectangle() {
+  const doc: StudioDoc = {
+    format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+    nodes: [
+      { kind: 'sketch', profile: 'rectangle', id: 'n0', min: [0, 0], max: [40, 20] },
+      { kind: 'extrude', id: 'n1', sketch: 0, height: 10 },
+    ],
+    outputs: { b1: { node: 1, side: 'solid' } },
+  };
+  const pending: Array<(ok: boolean) => void> = [];
+  const f = actions(doc, revision => new Promise(resolve => pending.push(ok => resolve(ok
+    ? { ok, revision, bodies: [], wallTime: 0 }
+    : { ok, revision, error: delayedError, wallTime: 0 }))));
+  f.api.editSketch(0);
+  function resize(width: number) {
+    const editing = f.sketch;
+    assert.ok(editing?.shape?.kind === 'polygon');
+    const shape = editing.shape;
+    f.setSketch({ ...editing, shape: { ...shape, points: shape.points.map(([x, y]) => [x === 0 ? 0 : width, y]) } });
+    f.render();
+  }
+  async function reply(ok: boolean) {
+    const resolve = pending.shift();
+    assert.ok(resolve, 'the actual Finish hook requested evaluation');
+    resolve(ok);
+    await setImmediate();
+  }
+  return { doc, f, resize, reply };
+}
+
+function rectangleWidth(doc: StudioDoc) {
+  const node = doc.nodes[0];
+  assert.ok(node.kind === 'sketch' && node.profile === 'rectangle');
+  return node.max[0];
+}
+
+for (const action of ['cancel', 'resize'] as const) {
+  for (const ok of [true, false]) {
+    test(`D574: ${action} ignores a late ordinary Finish ${ok ? 'success' : 'failure'} in the same document`, async () => {
+      const { doc, f, resize, reply } = delayedRectangle();
+      const original = structuredClone(doc);
+      resize(50);
+      f.api.finishSketch();
+      assert.equal(rectangleWidth(f.evaluated[0]), 50);
+      if (action === 'cancel') f.setSketch(null);
+      else resize(60);
+      const draft = f.sketch, generation = f.sketchGeneration.current, selectionWrites = f.selectionWrites;
+      await reply(ok);
+      assert.equal(f.evaluated.length, 1, 'there was no newer evaluation to drop the late reply');
+      assert.equal(f.docNow.current, doc);
+      assert.deepEqual(doc, original);
+      assert.equal(f.accepted.length, 0);
+      assert.equal(f.sketch, draft);
+      assert.equal(f.sketchGeneration.current, generation);
+      assert.equal(f.selectionWrites, selectionWrites);
+      assert.deepEqual(f.notices, []);
+    });
+  }
+}
+
+test('D574: current Finish failure preserves the draft, and a successful retry commits it once', async () => {
+  const { doc, f, resize, reply } = delayedRectangle();
+  resize(60);
+  const draft = f.sketch, generation = f.sketchGeneration.current, selectionWrites = f.selectionWrites;
+  f.api.finishSketch();
+  await reply(false);
+  assert.equal(f.docNow.current, doc);
+  assert.equal(rectangleWidth(doc), 40);
+  assert.equal(f.accepted.length, 0);
+  assert.equal(f.sketch, draft);
+  assert.equal(f.sketchGeneration.current, generation);
+  assert.equal(f.selectionWrites, selectionWrites);
+  assert.deepEqual(f.notices, [delayedError]);
+
+  f.api.finishSketch();
+  await reply(true);
+  assert.deepEqual(f.evaluated.map(rectangleWidth), [60, 60]);
+  assert.equal(f.accepted.length, 1);
+  assert.equal(f.docNow.current, f.accepted[0]);
+  assert.equal(rectangleWidth(f.accepted[0]), 60);
+  assert.equal(f.sketch, null);
+  assert.equal(f.sketchGeneration.current, generation + 1);
+  assert.equal(f.selectionWrites, selectionWrites);
+  assert.deepEqual(f.notices, [delayedError]);
+});
 
 function d348Fixture(): StudioDoc {
   return JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/d348.bcad'), 'utf8')) as StudioDoc;
