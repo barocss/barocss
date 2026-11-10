@@ -1,8 +1,8 @@
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
-import { compileTaskPlan, taskHeightEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { readTaskSubmission, taskSubmissionValue, verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
+import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
@@ -27,6 +27,7 @@ export interface CandidateReview {
   candidateDigest: string;
   occurrence: string;
   feature: string;
+  field: TaskCandidate['scope']['field'];
   beforeMm: number;
   candidateMm: number;
   checks: TaskCandidate['checks'];
@@ -43,13 +44,15 @@ const refusal = (error: string) => ({ error });
 function isReceipt(value: unknown): value is CandidateReviewReceipt {
   if (!isObj(value) || Object.keys(value).length !== 8 || !isObj(value.plan) || !isObj(value.baseline) ||
       !isObj(value.scope) || !isObj(value.submission)) return false;
-  const { baseline, scope, submission } = value;
+  const { baseline, scope } = value, submission = readTaskSubmission(value.submission);
+  if (!submission || (scope.field !== 'height' && scope.field !== 'width')) return false;
+  const dimension = taskSubmissionValue(submission, scope.field);
   return id(value.runId) && id(value.attemptId) && typeof value.revision === 'number' &&
     Number.isSafeInteger(value.revision) && value.revision > 0 && sha(value.candidateDigest) &&
     Object.keys(baseline).length === 2 && sha(baseline.sha256) && sha(baseline.modelDigest) &&
-    Object.keys(scope).length === 3 && id(scope.occurrence) && id(scope.feature) && scope.field === 'height' &&
+    Object.keys(scope).length === 3 && id(scope.occurrence) && id(scope.feature) &&
     Object.keys(submission).length === 4 && id(submission.taskId) && sha(submission.specRevision) &&
-    sha(submission.inputDigest) && typeof submission.heightMm === 'number' && Number.isFinite(submission.heightMm) && submission.heightMm > 0;
+    sha(submission.inputDigest) && dimension !== undefined && Number.isFinite(dimension) && dimension > 0;
 }
 
 export function encodeCandidateReview(receipt: CandidateReviewReceipt): string {
@@ -91,16 +94,16 @@ export function candidateReviewOnBaseline(receipt: CandidateReviewReceipt, basel
       canonical(task.writes) !== canonical(scope)) return refusal('The worker candidate task or occurrence differs.');
   const target = taskTarget(baseline, task);
   if ('error' in target) return refusal(target.error.message);
-  const feature = target.instance.doc.nodes[target.index];
-  if (feature.kind !== 'extrude' || typeof feature.height !== 'number' || feature.height === submission.heightMm)
-    return refusal('The worker candidate has no matching extrusion height change.');
-  const { doc, local } = taskHeightEdit(baseline, target.instance, target.index, submission.heightMm);
-  if (digestOf(doc) !== receipt.candidateDigest) return refusal('The reconstructed worker candidate digest differs.');
-  return { receipt, task, target, doc, local, beforeMm: feature.height };
+  const value = taskSubmissionValue(submission, task.writes.field);
+  if (value === undefined) return refusal('The worker candidate dimension differs.');
+  const edit = taskDimensionEdit(baseline, task, target, value);
+  if ('error' in edit) return refusal(edit.error.message);
+  if (digestOf(edit.doc) !== receipt.candidateDigest) return refusal('The reconstructed worker candidate digest differs.');
+  return { receipt, task, ...edit, beforeMm: target.value, candidateMm: value };
 }
 
 export async function verifyCandidateReview(candidate: Exclude<ReturnType<typeof readCandidateReview>, { error: string }>, evaluate: Evaluate) {
-  const { local, target, task, receipt } = candidate;
-  const verified = await verifyTaskGeometry(local, target.shape, receipt.submission.heightMm, task, evaluate);
+  const { local, shape, height, task } = candidate;
+  const verified = await verifyTaskGeometry(local, shape, height, task, evaluate);
   return 'error' in verified ? refusal(verified.error.message) : verified;
 }

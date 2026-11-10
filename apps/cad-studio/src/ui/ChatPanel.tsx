@@ -281,7 +281,7 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
     } finally { busy.current = false; setWorking(undefined); }
   }
   return <>
-    <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
+    <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
     <button className="ghost" type="button" disabled={blocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
     {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : 'Start local run'}</button>}
     {error && <div role="status">{error}</div>}

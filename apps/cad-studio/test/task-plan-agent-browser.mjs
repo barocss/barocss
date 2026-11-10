@@ -9,7 +9,7 @@ import { taskRunStatusFlow } from './task-run-status-flow.mjs';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
-const checkpointMode = mode === '--checkpoint', statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
+const widthMode = mode === '--width', checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -38,7 +38,7 @@ const pins = [
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { fixtureDoc } from './test/task-run-fixture';
@@ -46,6 +46,10 @@ if (process.argv[3]) console.log(JSON.stringify(digestOf(JSON.parse(readFileSync
 else {
   const doc = fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
+  if (${widthMode}) {
+    doc.instances[0].doc.requirements[0] = { ...doc.instances[0].doc.requirements[0], id: 'width', source: 'Use the stated width in mm.',
+      check: { ...doc.instances[0].doc.requirements[0].check, query: { fn: 'bbox', axis: 'x' }, value: 24 } };
+  }
   console.log(JSON.stringify(doc));
 }`,
   oracleSource: String.raw`
@@ -66,9 +70,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
-  limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP. Two existing extrusion-height occurrences.'],
+  limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
+    widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -79,7 +84,8 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const project = widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const readySummary = widthMode ? '2 local dimension targets ready' : '2 local height targets ready';
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -195,7 +201,7 @@ process.exitCode = code ?? 1;
     assert.deepEqual(first.results[0].body.targets, cliPlan.targets);
     assert.equal(first.results[0].body.revision, cliPlan.modelDigest);
     assert.equal(first.results[0].body.status, 'ready');
-    assert.equal(first.events[0].summary, '2 local height targets ready');
+    assert.equal(first.events[0].summary, readySummary);
     await f.same(source);
     await f.snapshot('01-ready-plan');
     let handoff, studioRun;
@@ -218,9 +224,9 @@ process.exitCode = code ?? 1;
       });
       assert.deepEqual(first.events[0].taskRunOffer.targets, cliPlan.targets);
       assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 0);
-      const row = f.page.locator('details.chat-tool').filter({ hasText: '2 local height targets ready' });
+      const row = f.page.locator('details.chat-tool').filter({ hasText: readySummary });
       await row.locator('summary').click();
-      await row.getByText('p1 · 5 → 6 mm', { exact: true }).waitFor();
+      await row.getByText(widthMode ? 'p1 · Width 20 → 24 mm' : 'p1 · 5 → 6 mm', { exact: true }).waitFor();
       await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
       await f.snapshot('04-export-task-run');
       await row.getByRole('button', { name: 'Export task run', exact: true }).click();
@@ -314,7 +320,7 @@ process.exitCode = code ?? 1;
         f.report.observations.push({ studioRunStarted: true, explicitPostCount: requests.length,
           durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: 2, acceptedBaselineSHA256: record.accepted.sha256 });
         if (statusMode) {
-          await taskRunStatusFlow({ f, origin, firstRow: row.first(), directCheckpoint: checkpointMode, launch: firstLaunch, source, saved, savedBytes, openFile, startRequests: requests,
+          await taskRunStatusFlow({ f, origin, firstRow: row.first(), directCheckpoint: checkpointMode, widthMode, launch: firstLaunch, source, saved, savedBytes, openFile, startRequests: requests,
             duplicateRow: async () => {
               await turn('ready-duplicate', [call()]);
               const second = row.last();

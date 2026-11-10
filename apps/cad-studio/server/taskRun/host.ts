@@ -7,7 +7,7 @@ import { isUserToken, type UserToken } from '@barocss/cad-model/team/ecr';
 import { bindTaskQuestions, answerTaskQuestions } from '@barocss/cad-model/team/taskQuestions';
 import { interfacesRevision } from '@barocss/cad-model/team/interfaces';
 import {
-  applyTaskDecision, bindTaskDecision, buildTaskCandidate, claimTaskUserToken,
+  applyTaskDecision, bindTaskDecision, buildTaskCandidate, claimTaskUserToken, readTaskSubmission, taskSubmissionValue,
   type TaskContext, type TaskSubmission,
 } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan, type BoundTask, type TaskPlan, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
@@ -193,7 +193,7 @@ export class TaskRunHost {
       return Promise.resolve(this.refusal(op, 'RUN_REFRESH_INPUT_CHANGED'));
     return this.execute('refresh', operationId, taskId, async ticket => ({
       runId: ticket.runId, epoch: ticket.attempt.epoch, attemptId: ticket.attempt.id, operationId, usage: 0,
-      submission: { taskId, heightMm: prior.heightMm, specRevision: ticket.attempt.specRevision, inputDigest: ticket.attempt.inputDigest },
+      submission: { ...prior, taskId, specRevision: ticket.attempt.specRevision, inputDigest: ticket.attempt.inputDigest },
     }));
   }
 
@@ -246,10 +246,12 @@ export class TaskRunHost {
       return this.conclude(ticket, op, { phase: 'failed', reason: 'RUN_BUDGET' }, usage);
     let submission: TaskSubmission;
     try {
-      submission = structuredClone(reply.submission);
-      if (!submission || Object.keys(submission).sort().join(',') !== 'heightMm,inputDigest,specRevision,taskId'
-        || submission.taskId !== taskId || submission.specRevision !== attempt.specRevision || submission.inputDigest !== attempt.inputDigest
-        || !Number.isFinite(submission.heightMm) || submission.heightMm <= 0) throw new Error('Invalid scoped submission.');
+      const submitted = readTaskSubmission(reply.submission);
+      if (!submitted || submitted.taskId !== taskId || submitted.specRevision !== attempt.specRevision || submitted.inputDigest !== attempt.inputDigest)
+        throw new Error('Invalid scoped submission.');
+      const value = taskSubmissionValue(submitted, bound.writes.field);
+      if (value === undefined || !Number.isFinite(value) || value <= 0) throw new Error('Invalid scoped dimension.');
+      submission = submitted;
     } catch {
       return this.conclude(ticket, op, { phase: 'failed', reason: 'TASK_SUBMISSION_MISMATCH' }, usage);
     }

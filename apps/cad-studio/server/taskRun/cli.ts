@@ -16,12 +16,12 @@ import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
 import { deriveLocalRunPlan, localRunPlanInputs } from './localPlan';
 import { candidateReviewFor, TaskRunStore, type RunLimits, type RunRecord } from './store';
-import { localRunStatus, prepareTaskRunHandoff, startLocalTaskRun } from './start';
+import { localRunStatus, localRunTargets, prepareTaskRunHandoff, startLocalTaskRun } from './start';
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
-interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm: Record<string, number> }
-const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number> }
+const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
@@ -87,7 +87,7 @@ async function readStart(args: readonly string[]) {
     const inputs = localRunPlanInputs(value);
     const { doc, plan } = await localPlan(inputs.source, inputs.occurrences, inputs.sourceSHA256);
     if (canonical(plan) !== canonical(value)) throw new Error('The plan differs from the authored source and local run limits. Generate and review it again.');
-    return { doc, config: plan, tasks: plan.targets.map(target => ({ id: target.id, height: target.heightMm })) };
+    return { doc, config: plan, tasks: localRunTargets(plan.targets) };
   }
   if (args.length === 2 && args[0] === '--handoff') {
     const bytes = readLocalFile(args[1], MAX_TASK_RUN_HANDOFF_BYTES, 'task run handoff');
@@ -98,9 +98,10 @@ async function readStart(args: readonly string[]) {
   const source = await openModel(config.source);
   if ('error' in source) throw new Error(source.error);
   const tasks = config.plan.tasks.map(task => {
-    const height = config.heightsMm[task.id];
-    if (!Number.isFinite(height) || height <= 0) throw new Error(`Expected a positive height for ${task.id}.`);
-    return { id: task.id, height };
+    const field = task.capability === 'rectangle-width' ? 'width' as const : 'height' as const;
+    const valueMm = (field === 'width' ? config.widthsMm : config.heightsMm)?.[task.id];
+    if (typeof valueMm !== 'number' || !Number.isFinite(valueMm) || valueMm <= 0) throw new Error(`Expected a positive ${field} for ${task.id}.`);
+    return { id: task.id, field, valueMm };
   });
   return { doc: source.doc, config, tasks };
 }
@@ -191,7 +192,8 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       return 0;
     }
     if (command === 'work' && args.length === 3 && Number.isFinite(Number(value)) && Number(value) > 0) {
-      outcome = await host.dispatch(operation, task, threadWorker(worker, Number(value)), 'height-mm:' + Number(value));
+      const field = record.state.plan.tasks.find(item => item.id === task)?.capability === 'rectangle-width' ? 'width' : 'height';
+      outcome = await host.dispatch(operation, task, threadWorker(worker, Number(value)), field + '-mm:' + Number(value));
     } else if (command === 'refresh' && args.length === 2) {
       outcome = await host.refresh(operation, task);
     } else if (command === 'decide') {

@@ -62,7 +62,7 @@ function personListFile(path: string): { rowFiles: PersonRowFiles; file: string 
 }
 const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
 export const CLI_USAGE = `cad-cli task-run plan source.bcad occurrenceA occurrenceB
-  Prints a local plan bound to the saved native source and two stated height targets.
+  Prints a local plan bound to the saved native source and two stated dimension targets.
 cad-cli task-run start dir --plan plan.json
   Starts the reviewed plan. The existing start dir config.json form also works.
 cad-cli task-run start dir --handoff source.bcad-task

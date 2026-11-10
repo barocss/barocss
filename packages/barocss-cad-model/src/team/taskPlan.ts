@@ -1,6 +1,7 @@
 // D584: bind a bounded part task to the document and its authored design contract.
 import { briefGaps, readBrief } from '../chat/brief';
 import { unitAssumptions, unconfirmed } from '../chat/drafts';
+import { checkNode } from '../chat/features';
 import { checkRequirement, meets } from '../chat/spec';
 import { bodyKey, type BodyRef, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BRIEF_FIELDS, type Brief } from '../engine/schema/brief';
@@ -15,9 +16,9 @@ export interface TaskRequest {
   readonly holder: string;
   readonly occurrence: string;
   readonly feature: string;
-  readonly capability: 'extrusion-height';
+  readonly capability: 'extrusion-height' | 'rectangle-width';
   readonly units: 'mm';
-  readonly frame: 'part-local-z';
+  readonly frame: 'part-local-z' | 'part-local-x';
   readonly dependsOn?: readonly string[];
 }
 export interface TaskPlanRequest {
@@ -32,7 +33,7 @@ export interface BoundTask extends TaskRequest {
   readonly dependsOn: readonly string[];
   readonly inputDigest: string;
   readonly reads: Readonly<{ occurrence: string; requirements: readonly string[]; interfaces: readonly string[] }>;
-  readonly writes: Readonly<{ occurrence: string; feature: string; field: 'height' }>;
+  readonly writes: Readonly<{ occurrence: string; feature: string; field: 'height' | 'width' }>;
   readonly verification: Readonly<{ native: 'requirements'; oracle: 'rectangular-prism'; relativeTolerance: number }>;
   readonly checks: readonly Requirement[];
   readonly blockers: readonly string[];
@@ -81,7 +82,8 @@ function freeze<T>(value: T): T {
   return value;
 }
 
-export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' | 'feature'>): { instance: PartInstance; index: number; shape: TaskShape } | TaskPlanError {
+export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' | 'feature'> & Partial<Pick<TaskRequest, 'capability'>>):
+  { instance: PartInstance; index: number; shape: TaskShape; height: number; value: number } | TaskPlanError {
   const matches = (doc.instances ?? []).filter(i => i.id === task.occurrence);
   if (task.occurrence === 'base' || matches.length !== 1) return error('WRONG_TARGET', `${task.occurrence} must name one placed occurrence.`);
   const instance = matches[0], part = instance.doc;
@@ -95,8 +97,9 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   }
   if (doc.units !== 'mm' || part.units !== 'mm') return error('WRONG_UNIT', 'The assembly and part must use mm.');
   const nodes = part.nodes, [sketch, extrusion, hole] = nodes;
-  if (!featureId(task.feature) || nodes.filter(n => n.id === task.feature).length !== 1 || extrusion?.id !== task.feature) {
-    return error('WRONG_TARGET', `${instance.id}/${task.feature} must name one authored extrusion.`);
+  const widthTask = task.capability === 'rectangle-width', feature = widthTask ? sketch : extrusion;
+  if (!featureId(task.feature) || nodes.filter(n => n.id === task.feature).length !== 1 || feature?.id !== task.feature) {
+    return error('WRONG_TARGET', `${instance.id}/${task.feature} must name the authored ${widthTask ? 'rectangle sketch' : 'extrusion'}.`);
   }
   if ((nodes.length !== 2 && nodes.length !== 3) || nodes.some(n => !featureId(n.id) || n.suppressed || n.held)
     || new Set(nodes.map(n => n.id)).size !== nodes.length
@@ -114,6 +117,7 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   if (!positive(shape.width) || !positive(shape.depth) || !positive(shape.width * shape.depth * extrusion.height)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} has nonfinite volume.`);
   }
+  if (widthTask && hole) return error('UNSUPPORTED_PROFILE', `${instance.id} needs a solid rectangle without holes for a width task.`);
   if (hole && (hole.kind !== 'hole' || hole.parent.node !== 1 || hole.parent.side !== 'solid'
     || !xy(hole.center) || !positive(hole.radius) || (hole.axis !== undefined && hole.axis !== 'z')
     || hole.depth !== undefined || hole.face || hole.pattern || hole.countersink !== undefined || hole.csk !== undefined || hole.thread
@@ -127,7 +131,30 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   if (Object.entries(part.outputs).some(([id, ref]) => id !== key || ref.node !== leaf.node || ref.side !== leaf.side)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} must expose its final solid as the only output.`);
   }
-  return { instance, index: 1, shape };
+  return { instance, index: widthTask ? 0 : 1, shape, height: extrusion.height, value: widthTask ? shape.width : extrusion.height };
+}
+
+/** Reconstruct the one authored change and the existing tool operation that produces it. */
+export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclude<ReturnType<typeof taskTarget>, TaskPlanError>, value: number) {
+  const { instance, index, shape } = target;
+  if (!positive(value) || value === target.value) return error('TASK_VALUE', 'The task must change its admitted dimension to a positive finite value in mm.');
+  if (task.writes.field === 'height') return { ...taskHeightEdit(doc, instance, index, value),
+    args: { index, values: { h: value } }, shape, height: value };
+  const sketch = instance.doc.nodes[index];
+  const maxX = shape.minX + value, width = maxX - shape.minX;
+  if (sketch.kind !== 'sketch' || sketch.profile !== 'rectangle' || !positive(width) || width === shape.width
+    || shape.minX + width !== maxX || !positive(width * shape.depth * target.height)
+    || Math.abs(width - value) > task.verification.relativeTolerance * Math.max(1, value))
+    return error('TASK_VALUE', 'The requested width cannot be represented by this rectangle.');
+  const outsideTolerance = task.checks.find(req => req.hard && req.check.query.fn === 'bbox'
+    && req.check.query.axis === 'x' && !meets(width, req.check).ok);
+  if (outsideTolerance) return error('TASK_REQUIRED_CHECK', `The authored width does not satisfy ${outsideTolerance.id}.`);
+  const feature = { ...sketch, max: [maxX, sketch.max[1]] as typeof sketch.max };
+  const reason = checkNode(feature, [], instance.doc.parameters);
+  if (reason) return error('UNSUPPORTED_PROFILE', reason);
+  const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? feature : node) };
+  return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
+    args: { index, feature }, shape: { ...shape, width }, height: target.height };
 }
 
 const briefFields = (brief: Brief | undefined) => Object.fromEntries(BRIEF_FIELDS
@@ -198,7 +225,8 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
   for (const gap of briefGaps(combined)) if (gap.field === 'purpose' || gap.field === 'process' || gap.field === 'material') {
     blockers.push(`brief:${gap.field}:${gap.why}`);
   }
-  let hardZ = false, low = 0, high = Infinity;
+  const widthTask = request.capability === 'rectangle-width', axis = widthTask ? 'x' : 'z', dimension = widthTask ? 'width' : 'height';
+  let hardAxis = false, low = 0, high = Infinity;
   for (const req of checks) {
     const invalid = checkRequirement(req);
     if (invalid) return error('BAD_REQUIREMENT', invalid);
@@ -211,14 +239,15 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
       return error('BAD_REQUIREMENT', `${req.id} has an invalid tolerance or range.`);
     }
     if (!req.hard) continue;
-    if (p.query.axis === 'z') hardZ = true;
+    if (p.query.axis === axis) hardAxis = true;
     if (req.basis === 'assumed' || req.basis === 'ambiguous') {
       blockers.push(`requirement:${req.id}:${req.basis}`);
       continue;
     }
-    if (p.query.axis !== 'z') {
-      if (!meets(p.query.axis === 'x' ? shape.width : shape.depth, p).ok) {
-        return error('CONFLICTING_REQUIREMENT', `${req.id} cannot be met by a height edit.`);
+    if (p.query.axis !== axis) {
+      const fixed = p.query.axis === 'x' ? shape.width : p.query.axis === 'y' ? shape.depth : target.height;
+      if (!meets(fixed, p).ok) {
+        return error('CONFLICTING_REQUIREMENT', `${req.id} cannot be met by a ${dimension} edit.`);
       }
       continue;
     }
@@ -227,8 +256,8 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
     if (p.op === '==' || p.op === '>=') low = Math.max(low, p.value! - tolerance);
     if (p.op === '==' || p.op === '<=') high = Math.min(high, p.value! + tolerance);
   }
-  if (!hardZ) return error('MISSING_REQUIRED_CHECK', `${instance.id} needs a hard check of local Z height in mm.`);
-  if (low > high || high <= 0) return error('CONFLICTING_REQUIREMENT', `${instance.id} has incompatible height requirements.`);
+  if (!hardAxis) return error('MISSING_REQUIRED_CHECK', `${instance.id} needs a hard check of local ${axis.toUpperCase()} ${dimension} in mm.`);
+  if (low > high || high <= 0) return error('CONFLICTING_REQUIREMENT', `${instance.id} has incompatible ${dimension} requirements.`);
 
   const interfaces = taskInterfaces(doc);
   if ('error' in interfaces) return interfaces;
@@ -250,7 +279,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
   return {
     id: request.id, holder: request.holder, occurrence: request.occurrence, feature: request.feature,
     capability: request.capability, units: request.units, frame: request.frame, dependsOn: request.dependsOn ?? [],
-    reads, writes: { occurrence: instance.id, feature: request.feature, field: 'height' },
+    reads, writes: { occurrence: instance.id, feature: request.feature, field: dimension },
     verification: { native: 'requirements', oracle: 'rectangular-prism', relativeTolerance: 1e-8 },
     checks, blockers, inputs,
   };
@@ -273,17 +302,19 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
   for (const task of request.tasks) {
     if (!isObj(task) || !only(task, ['id', 'holder', 'occurrence', 'feature', 'capability', 'units', 'frame', 'dependsOn'])
       || !name(task.id) || !name(task.holder) || !name(task.occurrence) || !name(task.feature)) return error('BAD_TASK', 'Supply task, holder, occurrence, and feature IDs.');
-    if (task.capability !== 'extrusion-height') return error('UNSUPPORTED_CAPABILITY', `${task.id} must use extrusion-height.`);
+    if (task.capability !== 'extrusion-height' && task.capability !== 'rectangle-width')
+      return error('UNSUPPORTED_CAPABILITY', `${task.id} must use extrusion-height or rectangle-width.`);
     if (task.units !== 'mm') return error('WRONG_UNIT', `${task.id} must use mm.`);
-    if (task.frame !== 'part-local-z') return error('WRONG_FRAME', `${task.id} must use part-local-z.`);
+    const requiredFrame = task.capability === 'rectangle-width' ? 'part-local-x' : 'part-local-z';
+    if (task.frame !== requiredFrame) return error('WRONG_FRAME', `${task.id} must use ${requiredFrame}.`);
     if (tasks.has(task.id)) return error('DUPLICATE_TASK', `Task ID ${task.id} is repeated.`);
     if (owned.has(task.occurrence)) return error('WRITE_CONFLICT', `More than one task writes ${task.occurrence}.`);
     const deps = task.dependsOn;
     if (deps !== undefined && (!Array.isArray(deps) || deps.length > request.maxTasks || !deps.every(name) || new Set(deps).size !== deps.length)) {
       return error('BAD_DEPENDENCY', `${task.id} must list distinct prerequisite task IDs.`);
     }
-    const { id, holder, occurrence, feature, capability, units, frame } = task;
-    tasks.set(id, { id, holder, occurrence, feature, capability, units, frame, dependsOn: deps });
+    const { id, holder, occurrence, feature, capability, units } = task;
+    tasks.set(id, { id, holder, occurrence, feature, capability, units, frame: requiredFrame, dependsOn: deps });
     owned.add(task.occurrence);
   }
   for (const task of tasks.values()) for (const dep of task.dependsOn ?? []) {

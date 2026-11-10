@@ -4,13 +4,8 @@ export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 
 export const isLocalTaskRunHost = (host: string) => host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
 
-export interface TaskRunTarget {
-  id: string;
-  requirementId: string;
-  currentHeightMm: number;
-  heightMm: number;
-  toleranceMm: number;
-}
+export type { LocalTaskTarget as TaskRunTarget } from '@barocss/cad-model/team/localHeightPlan';
+import type { LocalTaskTarget as TaskRunTarget } from '@barocss/cad-model/team/localHeightPlan';
 
 export interface TaskRunOffer {
   revision: string;
@@ -105,10 +100,16 @@ const id = (value: unknown): value is string => typeof value === 'string' && val
 const number = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
   if (!isObj(value) || value.id !== occurrence || typeof value.requirementId !== 'string' || !value.requirementId
-    || !number(value.currentHeightMm) || value.currentHeightMm <= 0 || !number(value.heightMm) || value.heightMm <= 0
     || !number(value.toleranceMm) || value.toleranceMm < 0) return null;
-  const { requirementId, currentHeightMm, heightMm, toleranceMm } = value;
-  return { id: occurrence, requirementId, currentHeightMm, heightMm, toleranceMm };
+  const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, toleranceMm } = value;
+  const shared = { id: occurrence, requirementId, toleranceMm };
+  if (currentWidthMm === undefined && widthMm === undefined
+    && number(currentHeightMm) && currentHeightMm > 0 && number(heightMm) && heightMm > 0)
+    return { id: shared.id, requirementId, currentHeightMm, heightMm, toleranceMm };
+  if (currentHeightMm === undefined && heightMm === undefined
+    && number(currentWidthMm) && currentWidthMm > 0 && number(widthMm) && widthMm > 0)
+    return { ...shared, currentWidthMm, widthMm };
+  return null;
 }
 
 /** Copy only the small typed payload needed for review and export. */

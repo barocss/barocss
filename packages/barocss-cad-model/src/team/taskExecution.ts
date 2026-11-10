@@ -8,7 +8,7 @@ import { isObj } from '../util/guards';
 import { isUserToken, type UserToken } from './ecr';
 import { interfacesRevision } from './interfaces';
 import { integratePart, type Lease, type PartTrace } from './parts';
-import { isTaskPlan, taskHeightEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
+import { isTaskPlan, taskDimensionEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
 
 type Identity = TaskPlanRequest['identity'];
 /** Host-owned inputs at the time a candidate or user decision is processed. */
@@ -21,11 +21,21 @@ export interface TaskContext {
 }
 /** The host's assigned worker identity. It is never taken from a submitted operation. */
 export interface TaskWorkerContext extends TaskContext { worker: string }
-export interface TaskSubmission {
-  taskId: string;
-  specRevision: string;
-  inputDigest: string;
-  heightMm: number;
+type TaskSubmissionPin = { taskId: string; specRevision: string; inputDigest: string };
+export type TaskSubmission = TaskSubmissionPin & ({ heightMm: number; widthMm?: never } | { widthMm: number; heightMm?: never });
+
+export function readTaskSubmission(value: unknown): TaskSubmission | undefined {
+  if (!isObj(value) || Object.keys(value).length !== 4 || Reflect.ownKeys(value).length !== 4
+    || Object.values(Object.getOwnPropertyDescriptors(value)).some(field => !Object.hasOwn(field, 'value'))
+    || !['taskId', 'specRevision', 'inputDigest'].every(key => Object.hasOwn(value, key))
+    || typeof value.taskId !== 'string' || typeof value.specRevision !== 'string' || typeof value.inputDigest !== 'string') return;
+  const { taskId, specRevision, inputDigest } = value;
+  if (Object.hasOwn(value, 'heightMm') && typeof value.heightMm === 'number') return { taskId, specRevision, inputDigest, heightMm: value.heightMm };
+  if (Object.hasOwn(value, 'widthMm') && typeof value.widthMm === 'number') return { taskId, specRevision, inputDigest, widthMm: value.widthMm };
+}
+
+export function taskSubmissionValue(submission: TaskSubmission, field: BoundTask['writes']['field']): number | undefined {
+  return field === 'width' ? submission.widthMm : submission.heightMm;
 }
 export interface TaskCheckReceipt {
   readonly id: string;
@@ -165,17 +175,15 @@ export async function buildTaskCandidate(
 ): Promise<TaskCandidate | TaskPlanError> {
   const baseline = taskBaselineProblem(plan, state.doc, context);
   if (baseline) return baseline;
-  if (!isObj(submission)) return failure('TASK_SUBMISSION_MISMATCH', 'the submitted operation must name an admitted task');
-  const fields = Object.keys(submission).sort().join(',');
-  if (fields !== 'heightMm,inputDigest,specRevision,taskId' || Reflect.ownKeys(submission).length !== 4
-    || Object.values(Object.getOwnPropertyDescriptors(submission)).some(field => !Object.hasOwn(field, 'value')))
-    return failure('TASK_SUBMISSION_MISMATCH', 'the submission must contain only the admitted task fields');
-  const task = plan.tasks.find(t => t.id === submission.taskId);
-  if (!task || submission.specRevision !== plan.specRevision || submission.inputDigest !== task.inputDigest)
+  const submitted = readTaskSubmission(submission);
+  if (!submitted) return failure('TASK_SUBMISSION_MISMATCH', 'the submission must contain only the admitted task fields');
+  const task = plan.tasks.find(t => t.id === submitted.taskId);
+  if (!task || submitted.specRevision !== plan.specRevision || submitted.inputDigest !== task.inputDigest)
     return failure('TASK_SUBMISSION_MISMATCH', 'the submitted operation does not match its admitted task and specification');
   if (context.worker !== task.holder) return failure('TASK_WORKER_SCOPE', `${context.worker} does not own ${task.id}`);
-  const height = submission.heightMm;
-  if (!Number.isFinite(height) || height <= 0) return failure('TASK_VALUE', 'the extrusion height must be a positive finite value in mm');
+  const value = taskSubmissionValue(submitted, task.writes.field);
+  if (value === undefined) return failure('TASK_SUBMISSION_MISMATCH', 'the submitted dimension does not match the task scope');
+  if (!Number.isFinite(value) || value <= 0) return failure('TASK_VALUE', 'the dimension must be a positive finite value in mm');
   if (task.blockers.length) return failure('TASK_REQUIRED_UNKNOWN', task.blockers.join(', '));
   const lease = leaseProblem(state.doc, task, context);
   if (lease) return lease;
@@ -185,16 +193,15 @@ export async function buildTaskCandidate(
   const doc = structuredClone(state.doc), own: ChatState = { doc, bodies: structuredClone(state.bodies) };
   const target = taskTarget(doc, task);
   if ('error' in target) return target;
-  const { instance, index, shape } = target, feature = instance.doc.nodes[index];
-  if (feature.kind !== 'extrude' || height === feature.height) return failure('TASK_VALUE', 'the task must change its admitted extrusion height');
-  const args = { index, values: { h: height } };
+  const edit = taskDimensionEdit(doc, task, target, value);
+  if ('error' in edit) return edit;
+  const { args, doc: expected, local, shape, height } = edit;
   const patch = { id: task.id, by: task.holder, part: task.occurrence, contract: interfacesRevision(doc), ops: [{ tool: 'edit_feature', args }] };
   const staged = await integratePart(own, patch, context.leases, evaluate, context.sequence, { requireCompleteAssembly: true });
   if (staged.trace.decision !== 'applied') return failure('TASK_NATIVE_GATE', staged.trace.gates.flatMap(g => g.findings).find(f => f.code !== 'NOT_REACHED')?.message ?? 'the native candidate did not pass its gates');
   const candidate = staged.state.doc;
-  const { doc: expected, local } = taskHeightEdit(doc, instance, index, height);
   if (digestOf(candidate) !== digestOf(expected))
-    return failure('TASK_SCOPE_CHANGED', 'the candidate changed something outside the owned extrusion height');
+    return failure('TASK_SCOPE_CHANGED', 'the candidate changed something outside the owned dimension');
 
   const verified = await verifyTaskGeometry(local, shape, height, task, evaluate);
   if ('error' in verified) return verified;

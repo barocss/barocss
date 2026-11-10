@@ -6,7 +6,8 @@ import { join } from 'node:path';
 const reviewUrl = '/api/chat/task-runs/review';
 const statusUrl = '/api/chat/task-runs/status';
 
-export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false }) {
+export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false, widthMode = false }) {
+  const baseHeight = widthMode ? 5 : 6;
   const run = launch.directory, locator = { runKey: launch.runKey, runId: launch.runId };
   const args = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
   const callCli = async (label, ...command) => {
@@ -84,6 +85,14 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
     const rows = window.__studioInstanceBounds?.();
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === a && rows.find(row => row.id === 'p2')?.max[2] === b;
   }, [a, b]);
+  const placedSizes = (base, lid) => f.page.waitForFunction(([base, lid]) => {
+    const rows = window.__studioInstanceBounds?.();
+    const match = (id, expected) => {
+      const row = rows?.find(value => value.id === id);
+      return row?.max?.every((value, axis) => value - row.min[axis] === expected[axis]);
+    };
+    return match('p1', base) && match('p2', lid);
+  }, [base, lid]);
   const rowPhases = async (rows, values) => {
     for (const row of rows) {
       for (const [i, phase] of values.entries())
@@ -100,6 +109,15 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   assert.equal(await openApprovedButton.count(), 0);
   const initialPosts = startRequests.length;
   assert.equal(initialPosts, 3);
+  if (widthMode) {
+    f.phase = 'verify the width candidate preserves the depth, height and sibling';
+    await pick(firstRow, 'p1').click();
+    await review.getByText('Width · 20 mm → 24 mm', { exact: true }).waitFor();
+    await review.getByText('Volume change · +200 mm³', { exact: true }).waitFor();
+    await placedSizes([24, 10, 5], [12, 8, 3]);
+    await f.same(source);
+    await f.snapshot('12-rectangle-width-preview');
+  }
   await pick(firstRow, 'p2').click();
   const oldPin = launch.tasks[1].review;
   await review.getByText(oldPin.attemptId, { exact: true }).waitFor();
@@ -187,9 +205,13 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   }
   await openApproved(afterApproval, 'base-approved');
   await checkpoint.waitFor();
-  await bounds(6, 3);
+  await bounds(baseHeight, 3);
+  if (widthMode) {
+    await placedSizes([24, 10, 5], [12, 8, 3]);
+    assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), ['Fail · 20 mm', 'Pass · 24 mm']);
+  }
   const baseline = await f.doc();
-  assert.deepEqual(baseline.instances.map(part => part.doc.nodes[1].height), [6, 3]);
+  assert.deepEqual(baseline.instances.map(part => part.doc.nodes[1].height), [baseHeight, 3]);
   const rebuild = await callCli('rebuilt-lid', 'refresh', run, 'd621-rebuild-lid', 'p2');
   assert.equal(rebuild.outcome.phase, 'completed');
   const rebuilt = await durable();
@@ -215,7 +237,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   await review.getByText(pin.attemptId, { exact: true }).waitFor();
   await review.getByText(pin.candidateDigest.slice(0, 12), { exact: true }).waitFor();
   await review.getByText('Volume change · +96 mm³', { exact: true }).waitFor();
-  await bounds(6, 4);
+  await bounds(baseHeight, 4);
   await f.same(baseline);
   assert.deepEqual(await durable(), rebuilt);
   assert.deepEqual(await savedBytes(), saved);
@@ -225,7 +247,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   if (directCheckpoint) {
     f.phase = 'refuse a selected checkpoint superseded by the second terminal approval';
     await review.getByRole('button', { name: 'Show accepted model', exact: true }).click();
-    await bounds(6, 3);
+    await bounds(baseHeight, 3);
     const checkpointRoute = '**' + checkpointUrl, captured = Promise.withResolvers(), resumed = Promise.withResolvers();
     const delaySelectedCheckpoint = async route => {
       try {
@@ -245,7 +267,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
       resumed.resolve();
       await firstRow.getByText(/The approved checkpoint changed during Open/).waitFor();
       await f.same(baseline);
-      await bounds(6, 3);
+      await bounds(baseHeight, 3);
       assert.deepEqual(await durable(), finished);
     } finally { resumed.resolve(); await f.page.unroute(checkpointRoute, delaySelectedCheckpoint); }
     await readStatus(secondRow);
@@ -258,7 +280,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   } else {
     f.phase = 'retire an in-flight preview with a newer status after the second terminal approval';
     await review.getByRole('button', { name: 'Show accepted model', exact: true }).click();
-    await bounds(6, 3);
+    await bounds(baseHeight, 3);
     const captured = Promise.withResolvers(), resumed = Promise.withResolvers();
     const reviewRoute = '**' + reviewUrl;
     let reads = 0;
@@ -289,7 +311,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
       resumed.resolve();
       await f.waitToast(/The worker candidate changed during review/);
       await review.waitFor({ state: 'hidden' });
-      await bounds(6, 3);
+      await bounds(baseHeight, 3);
     } finally { resumed.resolve(); await f.page.unroute(reviewRoute, delayReviewResponse); }
   }
   assert.deepEqual(await durable(), finished);
@@ -299,14 +321,28 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   assert.deepEqual(latest.tasks.map(task => [task.phase, !!task.review]), [['completed', false], ['completed', false]]);
   await rowPhases([firstRow, secondRow], ['completed', 'completed']);
   await openApproved(latest, 'both-approved');
-  await bounds(6, 4);
+  await bounds(baseHeight, 4);
   assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), ['Fail · 3 mm', 'Pass · 4 mm']);
+  if (widthMode) await placedSizes([24, 10, 5], [12, 8, 4]);
   assert.deepEqual(await savedBytes(), saved);
   assert.equal(startRequests.length, initialPosts);
   assert.deepEqual(await durable(), finished);
   await f.snapshot('11-both-terminal-approved');
+  if (widthMode) {
+    f.phase = 'open the historical height-only checkpoint from D622';
+    assert.ok(process.env.D623_LEGACY_CHECKPOINT);
+    const legacy = await readFile(process.env.D623_LEGACY_CHECKPOINT);
+    await openFile('legacy-height-checkpoint.bcad-run', legacy);
+    await placedSizes([20, 10, 6], [12, 8, 4]);
+    const headerEnd = 16 + legacy.readUInt32LE(8), acceptedStart = headerEnd + legacy.readUInt32LE(12);
+    assert.deepEqual(await f.doc(), JSON.parse(legacy.subarray(acceptedStart).toString('utf8')));
+    assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), ['Fail · 3 mm', 'Pass · 4 mm']);
+    assert.deepEqual(await savedBytes(), saved);
+    await f.snapshot('13-historical-height-checkpoint');
+  }
   f.report.observations.push({ runStatusSnapshots: statuses, staleSiblingPinRefused: true, sharedCards: 2, lateOlderStatusIgnored: true, ...(!directCheckpoint ? { lateHeldReviewRetired: true } : {}),
-    statusAndReviewDidNotWrite: true, modelUploadsAfterLaunch: 0, firstApprovedBoundsMm: [6, 3], finalBoundsMm: [6, 4],
+    statusAndReviewDidNotWrite: true, modelUploadsAfterLaunch: 0, firstApprovedBoundsMm: [baseHeight, 3], finalBoundsMm: [baseHeight, 4],
     originalSavedProjectUnchanged: true, terminalApprovals: 2,
+    ...(widthMode ? { widthMm: [20, 24], fixedDepthMm: 10, fixedHeightMm: 5, historicalHeightCheckpointOpened: true, finalPlacedSizesMm: [[24, 10, 5], [12, 8, 4]] } : {}),
     ...(directCheckpoint ? { directCheckpointOpen: 2, corruptBinaryRefused: true, supersededNativeOpenPreserved: true, supersededApprovalRefused: true, manualCheckpointExports: 0 } : {}) });
 }

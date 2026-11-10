@@ -126,8 +126,10 @@ export function summarize(name: string, text: string, isError: boolean): string 
   let j: Record<string, any>;
   try { j = JSON.parse(text); } catch { return text.slice(0, 160); }
   if (isError || j.ok === false) return String(j.error ?? text);
-  if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues))
-    return j.status === 'ready' ? `${j.targets.length} local height targets ready` : `Local height plan blocked · ${j.issues.length} issue${j.issues.length === 1 ? '' : 's'}`;
+  if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
+    const dimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width') ? 'dimension' : 'height';
+    return j.status === 'ready' ? `${j.targets.length} local ${dimension} targets ready` : `Local ${dimension} plan blocked · ${j.issues.length} issue${j.issues.length === 1 ? '' : 's'}`;
+  }
   if (name === 'get_part_summary') return `${j.feature_count} features, ${j.bodies?.length ?? 0} bodies`;
   // (O79: the manufacturability report as its process and each rule's status — the whole JSON is past 160 characters.)
   if (name === 'check_printability' && Array.isArray(j.rules)) return `${j.process ?? 'no process'}: ${j.rules.map((r: { id: string; status: string }) => `${r.id} ${r.status}`).join(', ')}`;

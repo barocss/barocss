@@ -10,13 +10,19 @@ import { threadWorker } from './thread';
 interface LocalTaskRun {
   doc: StudioDoc;
   config: { name: string; plan: TaskPlanRequest; limits: RunLimits; budget: number };
-  tasks: { id: string; height: number }[];
+  tasks: { id: string; valueMm: number; field: 'height' | 'width' }[];
+}
+
+export function localRunTargets(targets: ReturnType<typeof deriveLocalRunPlan>['targets']): LocalTaskRun['tasks'] {
+  return targets.map(target => target.widthMm !== undefined
+    ? { id: target.id, valueMm: target.widthMm, field: 'width' }
+    : { id: target.id, valueMm: target.heightMm, field: 'height' });
 }
 
 export async function prepareTaskRunHandoff(bytes: Uint8Array) {
   const { doc, offer, sourceSHA256 } = await readTaskRunHandoff(bytes);
   const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences);
-  return { doc, config, tasks: config.targets.map(target => ({ id: target.id, height: target.heightMm })) };
+  return { doc, config, tasks: localRunTargets(config.targets) };
 }
 
 export function localRunStatus(record: RunRecord) {
@@ -35,7 +41,7 @@ export async function startLocalTaskRun(directory: string, { doc, config, tasks 
   const worker = new URL('./taskRunWorker.mjs', import.meta.url);
   const host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate);
   try {
-    const run = ({ id, height }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, height), 'height-mm:' + height);
+    const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), field + '-mm:' + valueMm);
     const outcomes = config.limits.concurrent === 2 ? await Promise.all(tasks.map(run)) : [await run(tasks[0]), await run(tasks[1])];
     return { ...localRunStatus(host.snapshot), outcomes };
   } finally { host.close(); }

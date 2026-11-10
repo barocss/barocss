@@ -9,7 +9,7 @@ import type { TaskWorker, WorkerReply, WorkerTicket } from './host';
 interface ThreadInput {
   kind: 'barocss-task-v1';
   ticket: WorkerTicket;
-  heightMm: number;
+  valueMm: number;
   gate?: SharedArrayBuffer;
   nativeGate?: SharedArrayBuffer;
 }
@@ -31,10 +31,10 @@ export interface ThreadOptions {
 }
 
 /** Use a real Node isolate with its own evaluator and a structured-cloned native input. */
-export function threadWorker(entry: URL, heightMm: number, options: ThreadOptions = {}): TaskWorker {
+export function threadWorker(entry: URL, valueMm: number, options: ThreadOptions = {}): TaskWorker {
   return (ticket, signal) => new Promise((resolve, reject) => {
     if (signal.aborted) { reject(new Error('Worker cancelled before launch.')); return; }
-    const input: ThreadInput = { kind: 'barocss-task-v1', ticket, heightMm, gate: options.gate, nativeGate: options.nativeGate };
+    const input: ThreadInput = { kind: 'barocss-task-v1', ticket, valueMm, gate: options.gate, nativeGate: options.nativeGate };
     const worker = new Worker(entry, { workerData: input, execArgv: [], resourceLimits: { maxOldGenerationSizeMb: 384 } });
     let finished: ThreadFinish | undefined, failure: Error | undefined;
     const cancel = () => {
@@ -66,7 +66,7 @@ export function threadWorker(entry: URL, heightMm: number, options: ThreadOption
 /** Shared bootstrap for bundled local host entries. A worker can return evidence, but it cannot write or approve. */
 export async function serveTaskThread(evaluate: Evaluate): Promise<boolean> {
   if (isMainThread || workerData?.kind !== 'barocss-task-v1' || !parentPort) return false;
-  const port = parentPort, { ticket, heightMm, gate, nativeGate } = workerData as ThreadInput;
+  const port = parentPort, { ticket, valueMm, gate, nativeGate } = workerData as ThreadInput;
   const send = (message: ThreadMessage) => port.postMessage(message);
   send({ type: 'ready', threadId, startedAt: performance.timeOrigin + performance.now(), taskId: ticket.task.id });
   if (gate) Atomics.wait(new Int32Array(gate), 0, 0);
@@ -90,7 +90,8 @@ export async function serveTaskThread(evaluate: Evaluate): Promise<boolean> {
       send({ type: 'failure', code: 'TASK_SUBMISSION_MISMATCH' });
       return true;
     }
-    const submission = { taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest, heightMm };
+    const pin = { taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest };
+    const submission = task.writes.field === 'width' ? { ...pin, widthMm: valueMm } : { ...pin, heightMm: valueMm };
     const candidate = await buildTaskCandidate(plan, { doc, bodies: [] }, submission, {
       activePlan: plan, identity: plan.identity, policyRevision: plan.policyRevision, worker: task.holder,
       sequence: 0, leases: new Map([[task.occurrence, { part: task.occurrence, holder: task.holder, contract: interfacesRevision(doc), until: attempt.leaseUntil }]]),

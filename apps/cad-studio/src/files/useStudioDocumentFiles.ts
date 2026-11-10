@@ -288,11 +288,11 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       return engine.placed(placedDoc(inst, parent), base, placementOf(inst), nextRevision());
     });
     if (!current()) return;
-    const { occurrence, feature } = candidate.receipt.scope;
+    const { occurrence, feature, field } = candidate.receipt.scope;
     if (preview?.kind !== 'ready' || preview.bodies.size !== 1 || !preview.bodies.has(occurrence))
       throw new Error('Could not preview the exact placed occurrence.');
     return { taskId: candidate.task.id, attemptId: candidate.receipt.attemptId, candidateDigest: candidate.receipt.candidateDigest,
-      occurrence, feature, beforeMm: candidate.beforeMm, candidateMm: candidate.receipt.submission.heightMm, checks: verified.checks, preview };
+      occurrence, feature, field, beforeMm: candidate.beforeMm, candidateMm: candidate.candidateMm, checks: verified.checks, preview };
   };
 
   const showCandidateReview = (review: CandidateReview) => {

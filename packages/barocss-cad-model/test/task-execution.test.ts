@@ -11,6 +11,7 @@ import { decideEcr, openEcr, userToken } from '../src/team/ecr';
 import { taskDrawingCandidate, taskDrawingImpact } from '../src/team/taskDrawing';
 import { interfacesRevision, readInterfaces } from '../src/team/interfaces';
 import { applyTaskDecision, bindTaskDecision, buildTaskCandidate, taskCandidateImpact, type TaskWorkerContext } from '../src/team/taskExecution';
+import { inspectLocalHeightPlan } from '../src/team/localHeightPlan';
 import { compileTaskPlan, type TaskPlanRequest, type TaskRequest } from '../src/team/taskPlan';
 import { answerTaskQuestions, bindTaskQuestions } from '../src/team/taskQuestions';
 import { digestOf } from '../src/util/digest';
@@ -59,6 +60,72 @@ function setup(doc = assembly(), input = request()) {
   return { plan, state, context, submission };
 }
 const refuses = (out: unknown, code: string) => assert.equal((out as { error?: { code: string } })?.error?.code, code, JSON.stringify(out));
+
+test('D623 a width task edits only the plain rectangle X extent and refuses unsupported width inputs', async () => {
+  const doc = assembly();
+  delete doc.interfaces;
+  const [base, lid] = doc.instances!;
+  base.doc = { ...rectanglePart(20, 10, 5), requirements: [
+    { ...height('width', 24), check: { ...height('width', 24).check, query: { fn: 'bbox', axis: 'x' } } },
+    height('fixed-height', 5),
+  ] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 4)] };
+  const sketch = base.doc.nodes[0];
+  assert.ok(sketch.kind === 'sketch' && sketch.profile === 'rectangle');
+  sketch.min = [3, 2];
+  sketch.max = [23, 12];
+  const inspection = inspectLocalHeightPlan(doc, ['p1', 'p2'], identity);
+  assert.ok(!('error' in inspection));
+  assert.deepEqual(inspection.issues, []);
+  assert.deepEqual(inspection.plan.tasks.map(task => [task.feature, task.writes.field]), [['n0', 'width'], ['n1', 'height']]);
+  assert.deepEqual(inspection.targets[0], { id: 'p1', requirementId: 'width', currentWidthMm: 20, widthMm: 24, toleranceMm: 0.001 });
+  const request = { ...inspection.request, policyRevision };
+  const { plan, state, context } = setup(doc, request);
+  const width = plan.tasks[0];
+  const pin = { taskId: width.id, specRevision: plan.specRevision, inputDigest: width.inputDigest };
+  const workerContext = { ...context, worker: width.holder };
+  const neverEvaluate = async () => { throw new Error('Invalid width task reached the evaluator'); };
+  refuses(await buildTaskCandidate(plan, state, { ...pin, heightMm: 24 }, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  const hidden = Object.defineProperty({ ...pin }, 'widthMm', { value: 24, enumerable: false }) as typeof pin & { widthMm: number };
+  refuses(await buildTaskCandidate(plan, state, hidden, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  refuses(await buildTaskCandidate(plan, state, { ...pin, widthMm: 20 }, workerContext, neverEvaluate), 'TASK_VALUE');
+  const candidate = await buildTaskCandidate(plan, state, { ...pin, widthMm: 24 }, workerContext, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.deepEqual(candidate.geometry, { sizeMm: [24, 10, 5], volumeMm3: 1200, centroidMm: [15, 7, 2.5] });
+  const decision = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in decision));
+  const accepted = await applyTaskDecision(decision, state, workerContext, evaluate);
+  assert.ok(!('error' in accepted), JSON.stringify(accepted));
+  assert.deepEqual(accepted.doc.instances![0].doc.nodes, [{ ...sketch, max: [27, 12] }, base.doc.nodes[1]]);
+  assert.deepEqual(accepted.doc.instances![1], lid);
+  assert.deepEqual(sketch.max, [23, 12]);
+
+  const shifted = structuredClone(doc), shiftedSketch = shifted.instances![0].doc.nodes[0];
+  assert.ok(shiftedSketch.kind === 'sketch' && shiftedSketch.profile === 'rectangle');
+  shiftedSketch.min = [1e9, 0];
+  shiftedSketch.max = [1e9 + 20, 10];
+  shifted.instances![0].doc.requirements![0].check.value = 1e-10;
+  const unrepresentable = inspectLocalHeightPlan(shifted, ['p1', 'p2'], identity);
+  assert.ok(!('error' in unrepresentable));
+  assert.equal(unrepresentable.issues[0]?.code, 'TASK_VALUE');
+  shiftedSketch.min = [1e8, 0];
+  shiftedSketch.max = [1e8 + 20, 10];
+  shifted.instances![0].doc.requirements![0].check.value = 1.1;
+  shifted.instances![0].doc.requirements![0].check.tol = 0;
+  const outsideTolerance = inspectLocalHeightPlan(shifted, ['p1', 'p2'], identity);
+  assert.ok(!('error' in outsideTolerance));
+  assert.equal(outsideTolerance.issues[0]?.code, 'TASK_REQUIRED_CHECK');
+  const construction = structuredClone(doc), constructionSketch = construction.instances![0].doc.nodes[0];
+  assert.ok(constructionSketch.kind === 'sketch');
+  constructionSketch.construction = [];
+  const unsupported = inspectLocalHeightPlan(construction, ['p1', 'p2'], identity);
+  assert.ok(!('error' in unsupported));
+  assert.equal(unsupported.issues[0]?.code, 'UNSUPPORTED_PROFILE');
+  const withHole = structuredClone(doc);
+  withHole.instances![0].doc = withNode(withHole.instances![0].doc,
+    { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [8, 7], radius: 1 });
+  refuses(inspectLocalHeightPlan(withHole, ['p1', 'p2'], identity), 'UNSUPPORTED_PROFILE');
+});
 
 test('D584 two scoped native candidates, one exact user decision and native readback', async () => {
   const doc = assembly();

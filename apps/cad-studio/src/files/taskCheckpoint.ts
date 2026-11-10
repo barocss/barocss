@@ -3,7 +3,7 @@ import { modelHash } from '@barocss/cad-model/chat/spec';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
-import { compileTaskPlan, taskHeightEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { compileTaskPlan, taskDimensionEdit, type BoundTask, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, requirementEvidenceRevision, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
@@ -19,7 +19,7 @@ export interface TaskCheckpoint {
   specRevision: string;
   candidateDigest: string;
   proposalId: string;
-  scope: { occurrence: string; feature: string; field: 'height' };
+  scope: BoundTask['writes'];
   from: NativeRef;
   accepted: NativeRef;
 }
@@ -46,7 +46,7 @@ function isCheckpoint(value: unknown): value is TaskCheckpoint {
   const { scope } = value;
   return id(value.runId) && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision > 0 &&
     id(value.taskId) && id(value.operationId) && sha(value.specRevision) && sha(value.candidateDigest) && id(value.proposalId) &&
-    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && scope.field === 'height' &&
+    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && (scope.field === 'height' || scope.field === 'width') &&
     nativeRef(value.from) && nativeRef(value.accepted) && value.from.sha256 !== value.accepted.sha256;
 }
 
@@ -106,13 +106,11 @@ export async function readTaskCheckpoint(bytes: Uint8Array, current: () => boole
   if (!comparison || comparison.proposal !== receipt.proposalId || !comparison.scopes.some(scope => scope.id === part))
     return refusal('The saved approval does not match the worker checkpoint.');
   const proposal = accepted.doc.proposals!.find(item => item.id === receipt.proposalId)!;
-  const previous = taskTarget(before.doc, receipt.scope), next = taskTarget(accepted.doc, receipt.scope);
+  const previous = taskTarget(before.doc, task), next = taskTarget(accepted.doc, task);
   if ('error' in previous || 'error' in next) return refusal('The worker checkpoint target is outside the supported task scope.');
-  const oldFeature = previous.instance.doc.nodes[previous.index], feature = next.instance.doc.nodes[next.index];
-  if (oldFeature.kind !== 'extrude' || feature.kind !== 'extrude' || typeof feature.height !== 'number' || oldFeature.height === feature.height)
-    return refusal('The worker checkpoint has no matching extrusion height change.');
-  const expected = taskHeightEdit(before.doc, previous.instance, previous.index, feature.height).doc;
-  const operation = [{ tool: 'edit_feature', args: { part, index: previous.index, values: { h: feature.height } } }];
+  const edit = taskDimensionEdit(before.doc, task, previous, next.value);
+  if ('error' in edit) return refusal(edit.error.message);
+  const expected = edit.doc, operation = [{ tool: 'edit_feature', args: { part, ...edit.args } }];
   if (proposal.title !== 'Task ' + receipt.taskId || proposal.decided?.model_hash !== modelHash(accepted.doc) ||
       canonical(proposal.ops) !== canonical(operation) || digestOf(expected) !== receipt.candidateDigest ||
       requirementEvidenceRevision(expected) !== comparison.revisions.after)

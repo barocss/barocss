@@ -1,0 +1,301 @@
+{
+  "decision": "D623",
+  "tier": "FULL interface",
+  "baseCommit": "49d10861f31c9262e5b02e0ae525d57c400d72ca",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d623-2026-11-11",
+  "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio mixed width and height worker run and historical height checkpoint",
+      "result": "PASS",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified\" --width",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "cf49122f9d46fcc1ad66c5b2f3b248b13962a87c224f3eed86c622656b6ded94",
+      "pinnedSources": 792,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "12-rectangle-width-preview",
+        "09-old-preview-retired",
+        "10-refreshed-sibling",
+        "11-both-terminal-approved",
+        "13-historical-height-checkpoint"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "4f67cbe30268c17b9ebc08983bfcb3a77577e14ff9ec4908a2613edc0945cf6a"
+        },
+        {
+          "runStatusSnapshots": [
+            {
+              "revision": 9,
+              "phases": [
+                "completed",
+                "stale"
+              ],
+              "bytesSent": 140
+            },
+            {
+              "revision": 13,
+              "phases": [
+                "completed",
+                "awaiting-decision"
+              ],
+              "bytesSent": 140
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 140
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 140
+            }
+          ],
+          "staleSiblingPinRefused": true,
+          "sharedCards": 2,
+          "lateOlderStatusIgnored": true,
+          "statusAndReviewDidNotWrite": true,
+          "modelUploadsAfterLaunch": 0,
+          "firstApprovedBoundsMm": [
+            5,
+            3
+          ],
+          "finalBoundsMm": [
+            5,
+            4
+          ],
+          "originalSavedProjectUnchanged": true,
+          "terminalApprovals": 2,
+          "widthMm": [
+            20,
+            24
+          ],
+          "fixedDepthMm": 10,
+          "fixedHeightMm": 5,
+          "historicalHeightCheckpointOpened": true,
+          "finalPlacedSizesMm": [
+            [
+              24,
+              10,
+              5
+            ],
+            [
+              12,
+              8,
+              4
+            ]
+          ],
+          "directCheckpointOpen": 2,
+          "corruptBinaryRefused": true,
+          "supersededNativeOpenPreserved": true,
+          "supersededApprovalRefused": true,
+          "manualCheckpointExports": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "visualReview": "PASS",
+      "log": "desktop-verified.log",
+      "logSHA256": "186f1158a5769a1c27f01ef2656621a1553cbb0efa59a53c890bcd5218555867"
+    },
+    {
+      "label": "Independent native scope, dimensions and legacy checkpoint oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/width-oracle.py\" \"$EVIDENCE/desktop-verified\" \"$LEGACY\"",
+      "scriptSHA256": "29407a0ffabd967c839d54265c97d5e9a7fbe46f65185adad79d89d79020a677",
+      "measurements": {
+        "status": "PASS",
+        "productImports": 0,
+        "sizesMm": [
+          [
+            [
+              20,
+              10,
+              5
+            ],
+            [
+              12,
+              8,
+              3
+            ]
+          ],
+          [
+            [
+              24,
+              10,
+              5
+            ],
+            [
+              12,
+              8,
+              3
+            ]
+          ],
+          [
+            [
+              24,
+              10,
+              5
+            ],
+            [
+              12,
+              8,
+              4
+            ]
+          ]
+        ],
+        "finalVolumesMm3": [
+          1200,
+          384
+        ],
+        "historicalFileSHA256": "07b28ae1d74457808faf557f69650f0cae3275eecb941accc2091575350a5e43"
+      },
+      "log": "oracle.log",
+      "logSHA256": "1740232897a0ef1ec8b8acbbd2b197a7863fc91c624f331e6ef2b2399a3a53be"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract",
+      "passCount": 28,
+      "failCount": 0,
+      "log": "model-suite-final.log",
+      "logSHA256": "5c7cc1f9d13b53cca8b6de6e9e4e93bc13589e93ccbd0b782f0406eb666c5c72"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 172,
+      "failCount": 0,
+      "log": "studio-suite.log",
+      "logSHA256": "24150fc7c8d7fc739eede9dfe8415c61d78a185b2501cd5fa7093fa97636b1e6"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 2,
+      "log": "eslint.log",
+      "logSHA256": "6a2c73677904fc94c13093cd7538114a996ac5cfde5161ebf89c174290ed4fa3"
+    },
+    {
+      "label": "Isolated width admission and geometry overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "3731f93fa50cafcd0ceca7972fbd2ea4569a68f448c9812ff5e5e48ceef4d56c",
+      "variants": {
+        "baseline": "PASS",
+        "accept-hidden-submission-field": "KILLED",
+        "accept-wrong-dimension": "KILLED",
+        "accept-width-with-hole": "KILLED",
+        "ignore-sketch-edit-validation": "KILLED",
+        "skip-width-planning-preflight": "KILLED",
+        "ignore-authored-width-tolerance": "KILLED",
+        "change-rectangle-depth": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "8d0bb5b4e5dc5ca5b8e4b4fa4f186dad38ed940c8045fc5ba301882157fe0226"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "studio-build.log",
+      "logSHA256": "d366e176da9445c03893bda38a4f277b7b3a89d6e62efe89f2a9ce969d9dcafd"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Status flow syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-status-flow.mjs",
+      "log": "status-driver-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "label": "First Studio type check",
+      "result": "FAIL",
+      "cause": "The frame check and task destructuring reused a variable name. The final code uses the admitted frame binding."
+    },
+    {
+      "label": "Second Studio type check",
+      "result": "FAIL",
+      "cause": "The original unknown frame was forwarded after validation. The final plan uses the typed required frame."
+    }
+  ],
+  "reviews": [
+    {
+      "lane": "code",
+      "result": "PASS",
+      "notes": "Final source uses exact scoped proposal replay, preflight through the existing edit validator, and supported width-only submission keys."
+    },
+    {
+      "lane": "architecture",
+      "result": "PASS",
+      "notes": "The final width preflight and oracle use the same authored width and check hard X predicates. Height-only artifacts retain compatibility."
+    }
+  ],
+  "notRun": [
+    "whole suites",
+    "live providers",
+    "mobile",
+    "other width profiles"
+  ]
+}

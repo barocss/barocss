@@ -12,7 +12,7 @@ export function CandidateReviewSection({ review, shown, available, toggle }: {
     <div>Candidate <code>{review.candidateDigest.slice(0, 12)}</code></div>
     <div>Attempt <code>{review.attemptId}</code></div>
     <div>{review.localRun ? 'Awaiting decision when read. Decide in the terminal.' : 'Awaiting decision at export. Decide in the local run.'}</div>
-    <div>Height · {review.beforeMm} mm → {review.candidateMm} mm</div>
+    <div>{review.field === 'width' ? 'Width' : 'Height'} · {review.beforeMm} mm → {review.candidateMm} mm</div>
     {delta !== null && <div>Volume change · {delta > 0 ? '+' : ''}{delta} mm³</div>}
     <ul className="m-0 list-none p-0" aria-label="Candidate checks">
       {review.checks.map(check => <li key={check.id}>
