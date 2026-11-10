@@ -42,15 +42,30 @@ export function modelHash(doc: StudioDoc): string {
 }
 const hashes = new WeakMap<object, { parameters: unknown; bodies: unknown; hash: string }>();
 export const expectedOf = (p: Predicate) => (p.op === '==' ? `${p.value} ± ${p.tol ?? 0}` : p.op === 'between' ? `${p.min} … ${p.max}` : `${p.op} ${p.value}${p.tol ? ` (± ${p.tol})` : ''}`) + (p.unit ? ` ${p.unit}` : '');
+const PREDICATE_EPSILON = 1e-9;
 /** Whether `x` meets the predicate, and by how much it misses (signed: positive over). */
 export function meets(x: number, p: Predicate): { ok: boolean; delta: number } {
-  const t = (p.tol ?? 0) + 1e-9 * Math.max(1, Math.abs(p.value ?? 0));
+  const t = (p.tol ?? 0) + PREDICATE_EPSILON * Math.max(1, Math.abs(p.value ?? 0));
   switch (p.op) {
     case '==': return { ok: Math.abs(x - p.value!) <= t, delta: x - p.value! };
     case '<=': return { ok: x <= p.value! + t, delta: Math.max(0, x - p.value!) };
     case '>=': return { ok: x >= p.value! - t, delta: Math.min(0, x - p.value!) };
-    case 'between': return { ok: x >= p.min! - 1e-9 && x <= p.max! + 1e-9, delta: x < p.min! ? x - p.min! : x > p.max! ? x - p.max! : 0 };
+    case 'between': return { ok: x >= p.min! - PREDICATE_EPSILON && x <= p.max! + PREDICATE_EPSILON, delta: x < p.min! ? x - p.min! : x > p.max! ? x - p.max! : 0 };
   }
+}
+
+/** True if the positive chord bound leaves the predicate undecided. */
+function chordCanChangeVerdict(x: number, chord: number, p: Predicate): boolean {
+  if (!Number.isFinite(chord)) return true;
+  const lo = x - chord, hi = x + chord;
+  const loPass = meets(lo, p).ok, hiPass = meets(hi, p).ok;
+  if (loPass !== hiPass) return true;
+  if (loPass || !Number.isFinite(x)) return false;
+
+  // If both endpoints fail, only a bounded pass band can lie between them.
+  // Use the equality target or the first allowed range value and keep meets' numeric rules.
+  const inside = p.op === '==' ? p.value : p.op === 'between' ? p.min! - PREDICATE_EPSILON : undefined;
+  return inside !== undefined && lo <= inside && inside <= hi && meets(inside, p).ok;
 }
 
 function featureOf(doc: StudioDoc, names: readonly string[]): string | undefined {
@@ -236,9 +251,8 @@ export async function runCheck(doc: StudioDoc, bodies: readonly BodyResult[], ev
   const m = await measure(doc, bodies, evaluate, p.query);
   if ('unknown' in m) return { status: 'unknown', why: m.unknown };
   // (A value good to a chord tolerance, A6.3: decided only when it holds, or fails, anywhere within it; else undecided.)
-  if (m.chord !== undefined && m.chord > 0) {
-    const lo = meets(m.x - m.chord, p).ok, hi = meets(m.x + m.chord, p).ok;
-    if (lo !== hi || !Number.isFinite(m.chord)) return { status: 'unknown', why: `undecided: ${r4(m.x)} is within the meshes' chord tolerance (${Number.isFinite(m.chord) ? `${r4(m.chord)} mm` : 'unbounded'}) of the limit${m.hint ? ` — ${m.hint}` : ''}` };
+  if (m.chord !== undefined && m.chord > 0 && chordCanChangeVerdict(m.x, m.chord, p)) {
+    return { status: 'unknown', why: `undecided: ${r4(m.x)} is within the meshes' chord tolerance (${Number.isFinite(m.chord) ? `${r4(m.chord)} mm` : 'unbounded'}) of the limit${m.hint ? ` — ${m.hint}` : ''}` };
   }
   const r = meets(m.x, p);
   const measured = r4(m.x);

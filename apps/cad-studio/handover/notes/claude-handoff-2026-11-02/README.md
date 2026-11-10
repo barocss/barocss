@@ -1,5 +1,5 @@
 ---
-work_id: D581
+work_id: D582
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -99,7 +99,9 @@ D580 keeps unresolved body material IDs and reports their mass requirements as u
 
 D581 refuses incomplete current BOM evaluations and retains their original reasons. Actual desktop Studio verifies the BOM panel and Drawing export gates, recovery, Save/fresh Open and the separate stale BOM regression. [D581](../bom-evaluation-completeness-2026-11-10/README.md).
 
-Next MAIN is D582 / P0, B09, rows 04 and 16. Reproduce keep-out equality and range verdicts with a chord error interval. [#2422](https://github.com/barocss/barocss/issues/2422).
+D582 classifies the existing keep-out chord interval against the full requirement. Actual desktop Studio and local MCP verify unknown reasons, retained definite verdicts and native readback. [D582](../keepout-chord-interval-2026-11-10/README.md).
+
+Next MAIN is D583 / P0, B09, rows 04 and 16. Reproduce whether overlapping typed tool calls share the requirement override reason or response mode. [#2398](https://github.com/barocss/barocss/issues/2398).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

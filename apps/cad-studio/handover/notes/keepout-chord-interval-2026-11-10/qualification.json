@@ -1,0 +1,318 @@
+{
+  "workId": "D582",
+  "parent": "79a53a943964392c3c8c9517cfae7348a2cd768a",
+  "tier": "FULL",
+  "issue": 2422,
+  "node": "22.19.0",
+  "gate": "gate.sh acquire heavy 240 D582-root-CASE",
+  "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d582-2026-11-10",
+  "studioCommand": "cd apps/cad-studio && D582_SOURCE_FROZEN=1 node test/keepout-chord-interval-browser.mjs EXTERNAL/CASE --expect=repro|fixed",
+  "studio": [
+    {
+      "case": "studio-repro01",
+      "harness": "PASS",
+      "product": "FAIL",
+      "receiptSha256": "24c5a4c8256a0838229467299bc1036755bedd744f0e55237da8f322618e531f",
+      "frozenSha256": "d8effbf8fd9398290f33b1a670c161ddb10c40645b406d680216905f2d4b8b4a",
+      "driverPinned": false,
+      "driverSha256": "3cee68039506455d94b7899cdb407f5b1934121b729f74b78372784211c08051",
+      "frozenThroughCleanup": true,
+      "sourceCount": 301,
+      "snapshots": 2,
+      "oracles": 2,
+      "downloads": 0,
+      "summary": "4 ✓ · 4 ✗ · 1 ?",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 9349,
+      "serverURL": "http://127.0.0.1:49522",
+      "qualification": "Four false certainties. The driver path was not part of the first capsule."
+    },
+    {
+      "case": "studio-fixed01",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "da36d25e50c6ac3bf0730be9dbc5a8e2c7abd80d703621fa11d00d5c4b8d5998",
+      "frozenSha256": "2faa5ea7e4094f6e9eb090db52b64efefa25909e595926c47e781e2e28dc9f2f",
+      "driverPinned": false,
+      "driverSha256": "3cee68039506455d94b7899cdb407f5b1934121b729f74b78372784211c08051",
+      "frozenThroughCleanup": true,
+      "sourceCount": 301,
+      "snapshots": 2,
+      "oracles": 2,
+      "downloads": 0,
+      "summary": "2 ✓ · 2 ✗ · 5 ?",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 11379,
+      "serverURL": "http://127.0.0.1:49667",
+      "qualification": "The initial fixed run does not pin the driver path."
+    },
+    {
+      "case": "studio-fixed02",
+      "harness": "FAIL",
+      "product": "PASS",
+      "receiptSha256": "19e3ce301311c361564a902bddf010390a9d9b73453d0fc00992d0887aad4a19",
+      "frozenSha256": "c64516c35af8d14d4ececbe58c00856893a595141fd5abe4d72a60c1cf6bda57",
+      "driverPinned": true,
+      "driverSha256": "0a1f171cbbd26cb1573f340ef15f8ab184db951a38c63685167a946480c4aff9",
+      "frozenThroughCleanup": true,
+      "sourceCount": 302,
+      "snapshots": 3,
+      "oracles": 2,
+      "downloads": 0,
+      "summary": "2 ✓ · 2 ✗ · 5 ?",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 16516,
+      "serverURL": "http://127.0.0.1:49992",
+      "qualification": "Assertions and the end capsule passed. One watcher change event fails harness qualification."
+    },
+    {
+      "case": "studio-fixed03",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "506041fb297696d79dd7b4d913f3c7e748ed7843fb45a912339d83fb03c2ff89",
+      "frozenSha256": "c64516c35af8d14d4ececbe58c00856893a595141fd5abe4d72a60c1cf6bda57",
+      "driverPinned": true,
+      "driverSha256": "0a1f171cbbd26cb1573f340ef15f8ab184db951a38c63685167a946480c4aff9",
+      "frozenThroughCleanup": true,
+      "sourceCount": 302,
+      "snapshots": 2,
+      "oracles": 2,
+      "downloads": 0,
+      "summary": "2 ✓ · 2 ✗ · 5 ?",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 30109,
+      "serverURL": "http://127.0.0.1:50436"
+    }
+  ],
+  "nativeFiles": [
+    {
+      "file": "D582-source.bcad",
+      "sha256": "429ca5fdc7e9f9c2a06791c674973341cce0a65c28ff4e11227ad1dd5035454f",
+      "destination": "fixture"
+    },
+    {
+      "file": "D582-saved.bcad",
+      "sha256": "46613714b5b1b220bbc26f291a7ebccfd71b12a5e2102f4722edd0003f072c6a",
+      "semanticEquality": true,
+      "destination": "OPFS"
+    }
+  ],
+  "desktopOracle": {
+    "status": "PASS",
+    "analyticClearanceMM": 5,
+    "renderedMeshClearanceMM": "5.00000",
+    "renderedChordMM": "0.0241",
+    "meshRoundingBandMM": [
+      "4.999995",
+      "5.000005"
+    ],
+    "chordRoundingBandMM": [
+      "0.02405",
+      "0.02415"
+    ],
+    "cylinderSagMM": "0.024076366639015355",
+    "expected": {
+      "EQ-CENTER": "unknown",
+      "EQ-OFFSET": "unknown",
+      "RANGE-CENTER": "unknown",
+      "RANGE-OFFSET": "unknown",
+      "RANGE-WIDE": "pass",
+      "RANGE-OUTSIDE": "fail",
+      "MIN-NEAR": "unknown",
+      "MIN-CLEAR": "pass",
+      "MIN-FAIL": "fail"
+    },
+    "legacy": {
+      "EQ-CENTER": "pass",
+      "EQ-OFFSET": "fail",
+      "RANGE-CENTER": "pass",
+      "RANGE-OFFSET": "fail",
+      "RANGE-WIDE": "pass",
+      "RANGE-OUTSIDE": "fail",
+      "MIN-NEAR": "unknown",
+      "MIN-CLEAR": "pass",
+      "MIN-FAIL": "fail"
+    }
+  },
+  "mcpCommand": "python3 -I EXTERNAL/native-mcp.py REPO EXTERNAL repro|fixed; invokes apps/cad-studio/scripts/cad-mcp.mjs --doc FIXTURE",
+  "mcpScriptSha256": "c6a39cb9389276121bbd4b742fa9f27393774a553557e5fa57db12ef05f3063d",
+  "mcp": [
+    {
+      "case": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "summary": {
+        "pass": 2,
+        "fail": 1,
+        "unknown": 0,
+        "hard_failing": 1
+      },
+      "unknownIds": [],
+      "modelHash": "f50f5d58",
+      "fileSha256BeforeAndAfter": "61c132125ad55a039cb59fae1fc5f8d38a8f16cf50ae6c434a2cec94a142cdc7",
+      "readout": {
+        "keepout": "K1",
+        "body": "b1",
+        "verdict": "undecided",
+        "overlap": 0,
+        "clearance": 5,
+        "requiredClearance": 5,
+        "chordTolerance": 0.0240634060843,
+        "why": "5.00000 mm from it, within the meshes' chord tolerance 0.0241 mm of the 5 mm it asks for: not decided by the meshes"
+      },
+      "logSha256": "d3849bcf5c63e95994236ace513f7cc5618c08d52fbae81a8b5fd3d0e1f2811e"
+    },
+    {
+      "case": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "summary": {
+        "pass": 1,
+        "fail": 0,
+        "unknown": 2,
+        "hard_failing": 0
+      },
+      "unknownIds": [
+        "EQUAL",
+        "RANGE"
+      ],
+      "modelHash": "f50f5d58",
+      "fileSha256BeforeAndAfter": "61c132125ad55a039cb59fae1fc5f8d38a8f16cf50ae6c434a2cec94a142cdc7",
+      "readout": {
+        "keepout": "K1",
+        "body": "b1",
+        "verdict": "undecided",
+        "overlap": 0,
+        "clearance": 5,
+        "requiredClearance": 5,
+        "chordTolerance": 0.0240634060843,
+        "why": "5.00000 mm from it, within the meshes' chord tolerance 0.0241 mm of the 5 mm it asks for: not decided by the meshes"
+      },
+      "logSha256": "7b193425fedf7710f9609d0d80005bfb62654aa664a102ee3d6ac20e0890bd5c"
+    }
+  ],
+  "checks": [
+    {
+      "status": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test spec.test reference-bodies.test",
+      "log": "model-repro.log",
+      "logSha256": "320a62554909dc8f9a3bfc331a68965cfc17bcc525a9fecc42723bc833b54860",
+      "tests": 29,
+      "pass": 27,
+      "fail": 2,
+      "firstFailure": "Six interior-band controlled outcomes and the grouped native report differ from expected."
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test spec.test reference-bodies.test team-freshness tool-contract.test toolset.test proposals.test",
+      "log": "model-pinned-final.log",
+      "logSha256": "a184d2178d2e501bb5a903ca4f34749edbc4d2fbbadf6008dac11f52acc9dd54",
+      "tests": 60,
+      "pass": 60,
+      "fail": 0
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test tool-contract-mcp toolset-mcp",
+      "log": "studio-final.log",
+      "logSha256": "d286b1f35012fd71f06b3c0a43e7cc870a4497b4e139de8fc01ef6e058c86b24",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "log": "model-types-pinned-final.log",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "log": "studio-types.log",
+      "logSha256": "d0f32b57ed9e2e2a90166be5b0ebe4f44094222aaa0e3c29e8b905441f019cbe"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec eslint packages/barocss-cad-model/src/chat/spec.ts packages/barocss-cad-model/test/spec.test.ts",
+      "log": "lint-pinned-final.log",
+      "logSha256": "6dd7b29a2cd0e602c74945bab51fe444dc35ba3c8b39b936d4c5f588e63cec53",
+      "inheritedWarnings": 2
+    },
+    {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/keepout-chord-interval-browser.mjs"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build",
+      "log": "build.log",
+      "logSha256": "80111741f53083f0230f96059d91596e316eadd9aa9c8e5b58fd165cdc477d93"
+    }
+  ],
+  "mutations": {
+    "status": "PASS",
+    "command": "node EXTERNAL/mutations.mjs REPO EXTERNAL",
+    "sourceSha256": "6fae45cf936daa5edfd6a9705296ad9a3052c01caa335c34da0d7a521e026789",
+    "resultSha256": "94356307f995d0941bbed18089d100b865d6c42bc082e2c26c4d12bc74e51b68",
+    "cases": [
+      {
+        "name": "rebuild-equality-bounds",
+        "status": "KILLED"
+      },
+      {
+        "name": "endpoints-only",
+        "status": "KILLED"
+      },
+      {
+        "name": "center-sampled",
+        "status": "KILLED"
+      },
+      {
+        "name": "ignore-contained",
+        "status": "KILLED"
+      },
+      {
+        "name": "discard-range-epsilon",
+        "status": "KILLED"
+      }
+    ],
+    "firstRun": {
+      "status": "FAIL",
+      "reason": "The range epsilon mutation survived. The final test uses a singleton band created by the existing epsilon.",
+      "survivorLogSha256": "627ca667229c864c52ee6040c34ed5b4aeff8b934d4168c03ecab3389bcf3384"
+    }
+  },
+  "reviews": {
+    "functionalSolHigh": "APPROVE",
+    "quality": "APPROVE",
+    "security": "APPROVE",
+    "rootVisual": "PASS"
+  },
+  "notRun": [
+    "Whole Model/kernel suites",
+    "Multi-body aggregation and general chord accuracy",
+    "Whole B09 acceptance",
+    "Live agents and mobile"
+  ]
+}

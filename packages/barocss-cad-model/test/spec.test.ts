@@ -1,4 +1,5 @@
 import { runCheck, validateSuite } from '../src/chat/spec';
+import { checkKeepouts } from '../src/chat/references';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -26,6 +27,114 @@ const BRIEF = [
 const SUB_DISPLAY = 1 / 4096;
 const WIDTH = 40 + SUB_DISPLAY;
 const WIDTH_CAP = 40 + SUB_DISPLAY / 2;
+
+const keepoutQuery = { fn: 'keepout', keepout: 'K1' } as const;
+function keepoutPart(curved: boolean): StudioDoc {
+  return {
+    ...rectanglePart(10, 10, 10),
+    references: { version: 1, references: [], datums: [], keepouts: [{
+      id: 'K1', name: 'Post', clearance: 5,
+      frame: { origin: [20, curved ? 5 : 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] },
+      shape: curved ? { kind: 'cylinder', radius: 5, height: 10 } : { kind: 'box', size: [5, 10, 10] },
+    }] },
+  };
+}
+
+test('D582: a controlled keep-out interval classifies containment, separation and interior overlap', async () => {
+  const state = await stateOf(keepoutPart(false)), { doc } = state;
+  const body = state.bodies[0], [face, ...faces] = body.mesh.faces;
+  // Preserve the flat mesh positions and inject an already-measured chord depth on one face.
+  const withChord = (chordDepth: number): BodyResult[] => [{
+    ...body, mesh: { ...body.mesh, faces: [{ ...face, kind: 'curved', freeform: [face.name], chordDepth }, ...faces] },
+  }];
+  const bodies = withChord(1);
+  const [read] = await checkKeepouts(doc, bodies, evaluate);
+  assert.deepEqual([read.clearance, read.chordMM], [10, 1]);
+
+  // The measured interval is [9, 11]. Each expectation is literal interval arithmetic.
+  const cases: [Omit<Predicate, 'query'>, 'pass' | 'fail' | 'unknown'][] = [
+    [{ op: '==', value: 10, tol: 0.25 }, 'unknown'],
+    [{ op: '==', value: 10.5, tol: 0.125 }, 'unknown'],
+    [{ op: '==', value: 9.5, tol: 0 }, 'unknown'],
+    [{ op: '==', value: 10, tol: 1 }, 'pass'],
+    [{ op: '==', value: 12, tol: 1 - 12e-9 }, 'unknown'],
+    // Forming value + tolerance first rounds up to 9, but meets' subtraction rejects 9.
+    [{ op: '==', value: 9 - 9e-9 }, 'fail'],
+    [{ op: '==', value: 10, tol: -1 }, 'fail'],
+    [{ op: '==', value: 12, tol: 0.125 }, 'fail'],
+    [{ op: '==', value: 8, tol: 0.125 }, 'fail'],
+    [{ op: 'between', min: 9.75, max: 10.25 }, 'unknown'],
+    [{ op: 'between', min: 10.375, max: 10.625 }, 'unknown'],
+    [{ op: 'between', min: 9.5, max: 9.5 }, 'unknown'],
+    // The existing epsilon leaves exactly one allowed value in this reversed range.
+    [{ op: 'between', min: 9.5 + 1e-9, max: 9.5 - 1e-9 }, 'unknown'],
+    [{ op: 'between', min: 10.5, max: 9.5 }, 'fail'],
+    [{ op: 'between', min: 8, max: 12 }, 'pass'],
+    [{ op: 'between', min: 8, max: 9 }, 'unknown'],
+    [{ op: 'between', min: 11 + 1e-9, max: 12 }, 'unknown'],
+    [{ op: 'between', min: 8, max: 8.5 }, 'fail'],
+    [{ op: 'between', min: 12, max: 13 }, 'fail'],
+    [{ op: '<=', value: 11 }, 'pass'],
+    [{ op: '<=', value: 10 }, 'unknown'],
+    [{ op: '<=', value: 8 }, 'fail'],
+    [{ op: '>=', value: 9 }, 'pass'],
+    [{ op: '>=', value: 10 }, 'unknown'],
+    [{ op: '>=', value: 12 }, 'fail'],
+  ];
+  const differences = [];
+  for (const [predicate, expected] of cases) {
+    const result = await runCheck(doc, bodies, evaluate, { ...predicate, query: keepoutQuery });
+    if (result.status !== expected) differences.push({ predicate, expected, actual: result.status });
+  }
+  assert.deepEqual(differences, []);
+
+  const exact: Predicate = { op: '==', query: keepoutQuery, value: 10 };
+  const [flat] = await checkKeepouts(doc, state.bodies, evaluate);
+  assert.equal(flat.chordMM, 0);
+  assert.equal((await runCheck(doc, state.bodies, evaluate, exact)).status, 'pass');
+  const unbounded = await runCheck(doc, withChord(Infinity), evaluate, exact);
+  assert.equal(unbounded.status, 'unknown');
+  assert.match(unbounded.why ?? '', /unbounded/);
+  const missing = await runCheck(doc, bodies, evaluate, { ...exact, query: { ...keepoutQuery, keepout: 'K9' } });
+  assert.equal(missing.status, 'unknown');
+  assert.match(missing.why ?? '', /no keep-out K9/);
+
+  const references = doc.references!, [keepout] = references.keepouts;
+  const overlapping: StudioDoc = { ...doc, references: { ...references, keepouts: [{
+    ...keepout, frame: { ...keepout.frame, origin: [5, 5, 5] }, shape: { kind: 'box', size: [10, 10, 10] },
+  }] } };
+  const overlap = await runCheck(overlapping, bodies, evaluate, { ...exact, value: -125 });
+  assert.equal(overlap.status, 'pass');
+  assert.equal(overlap.measured, -125);
+  assert.match(overlap.hint ?? '', /exact/);
+});
+
+test('D582: native cylinder bounds reach the grouped requirement report and policy', async () => {
+  const original = await stateOf(keepoutPart(true));
+  const [read] = await checkKeepouts(original.doc, original.bodies, evaluate);
+  assert.ok(read.clearance !== null && Math.abs(read.clearance - 5) < 1e-10, JSON.stringify(read));
+  assert.ok(Math.abs(read.chordMM - 5 * (1 - Math.cos(Math.PI / 32))) < 1e-4, JSON.stringify(read));
+  const requirements: Requirement[] = [
+    { id: 'EQUAL', source: 'Clearance 5 ± 0.005 mm', hard: true, check: { op: '==', query: keepoutQuery, value: 5, tol: 0.005 } },
+    { id: 'RANGE', source: 'Clearance in the offset band', hard: true, check: { op: 'between', query: keepoutQuery, min: 5.01, max: 5.015 } },
+    { id: 'FLOOR', source: 'Clearance above 4.9 mm', hard: true, check: { op: '>=', query: keepoutQuery, value: 4.9 } },
+  ];
+  const setup = await runTool(original, 'requirements', { action: 'set', requirements }, evaluate);
+  assert.equal(setup.isError, false, setup.content);
+  const before = JSON.stringify(setup.state.doc);
+  const checked = await runTool(setup.state, 'requirements', { action: 'check' }, evaluate);
+  assert.equal(checked.isError, false, checked.content);
+  assert.equal(checked.changed, false);
+  assert.equal(checked.state.doc, setup.state.doc);
+  assert.equal(checked.state.bodies, setup.state.bodies);
+  assert.equal(JSON.stringify(checked.state.doc), before);
+  const report = parse(checked.content);
+  assert.deepEqual(report.summary, { pass: 1, fail: 0, unknown: 2, hard_failing: 0 }, checked.content);
+  assert.deepEqual(report.unknowns.map((row: { req_id: string }) => row.req_id), ['EQUAL', 'RANGE']);
+  for (const row of report.unknowns) assert.match(row.why, /chord tolerance \(0\.0241 mm\)/);
+  assert.deepEqual(checked.state.policy?.passedHard, ['FLOOR']);
+  assert.equal(checked.state.policy?.best?.hardFulfilled, false);
+});
 
 test('D578: native bbox verdicts agree at the origin and after translations on all axes', async () => {
   const dimensions = [WIDTH, 20 + SUB_DISPLAY, 8 + SUB_DISPLAY] as const;
