@@ -1,7 +1,14 @@
 // D353: dragging a spline's tangent handles and fit points in the viewport (pure geometry; the Viewport wires the pointer).
-import { splineAutoHandles, type SplineDef } from '@barocss/cad-model/sketch/spline';
+import { isSettled } from '@barocss/cad-model/sketch/rules';
+import { splineAutoHandles, splineMatches, type SplineDef } from '@barocss/cad-model/sketch/spline';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 
 type P2 = [number, number];
+
+/** The definition of a settled, closed polygon that is a spline still matching it (D353), else null. */
+export function closedSplineOf(s: SketchShape | null): SplineDef | null {
+  return s && s.kind === 'polygon' && s.closed && isSettled(s) && s.spline && s.spline.closed && s.spline.fit.length >= 2 && splineMatches(s) ? s.spline : null;
+}
 /** Screen length of a handle from its fit point to each end, and the pick radius (px). */
 export const HANDLE_LENGTH = 30, HANDLE_PICK = 8;
 /** A pointer-down on a handle only arms a drag; it starts once the pointer is more than this far (px) from the down point. */

@@ -1,5 +1,5 @@
 ---
-work_id: D553
+work_id: D554
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -43,7 +43,9 @@ D552 confirms the original same-tab Copy A, Open B and Paste defect. The fixed S
 
 D553 moves the selection and sketch action policies to viewport modules. SceneViewport accepts two typed groups in place of 13 flat callbacks. Its App call has 68 attributes including ref, down from 79. The first actual desktop body/context and inline sketch groups pass. [D553](../studio-viewport-interactions-2026-11-10/README.md).
 
-Next MAIN is D554, the private active-sketch overlay extraction from the 1,780-line Viewport.tsx. Move the drawing path and its dependencies together. Keep the package API stable during this slice.
+D554 extracts the private active-sketch overlay and its model imports. Viewport.tsx has 1,582 lines, down from 1,780. Both selected actual consumers pass. The first Band run retains its observer selector failure. The package exports stay at their existing module paths. [D554](../viewport-sketch-overlay-2026-11-10/README.md).
+
+Next MAIN is D555, current P0 clipboard history boundary intake. Check Copy in B followed by Undo across the Open and Paste in A, separately from the qualified D552 direction. [#2310](https://github.com/barocss/barocss/issues/2310).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -19,15 +19,12 @@ import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import { regionMesh, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
-import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '@barocss/cad-model/sketch/profile';
+import { bulgeThrough } from '@barocss/cad-model/sketch/profile';
 import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
-import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
-import { shapeOutline } from '@barocss/cad-model/sketch/loops';
-import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { rayOnPlane, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
+import { isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { pickShapeAt, pickSketch } from '@barocss/cad-model/sketch/select';
-import { bandShapes, liveBand } from '@barocss/cad-model/sketch/band';
-import { sampleLoop } from '@barocss/cad-model/app/profiles';
-import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
+import { bandShapes } from '@barocss/cad-model/sketch/band';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, handleLayout, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { HandleValueBox } from './HandleValueBox';
@@ -36,15 +33,16 @@ import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
-import { bezierError, bezierSamples, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
-import { respline, splineEditError, splineMatches, splineOutline } from '@barocss/cad-model/sketch/spline';
-import { ellipseError, ellipseMatches, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
-import { draftEllipse, ellipseAxis, ellipseClick, ellipseSamples, type EllipseDraft } from './ellipseDraft';
-import { draggedSpline, sameSplineDef, splineDragStarted, splineHandleGeometry, splineHandleHit, type SplineHandleHit } from './splineHandles';
+import { bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
+import { respline, splineEditError, splineOutline } from '@barocss/cad-model/sketch/spline';
+import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
+import { ellipseClick, type EllipseDraft } from './ellipseDraft';
+import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
 import { renderFocusDistance } from './renderFocus';
+import { drawSketchOverlay, fmtLen, type CentreArcDraft, type SketchBandCache, type SketchOverlayDraft } from './sketchOverlay';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -457,7 +455,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     r.interacting = true; window.clearTimeout(settle.current);
     settle.current = window.setTimeout(() => { if (renderer.current) { renderer.current.interacting = false; requestRef.current(); } }, 180);
   });
-  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; bandHover?: number | null; snap?: SnapPoint | null; trim?: { kind: 'trim' | 'extend' | 'split'; points: [number, number][] } | null }>({ cursor: null });
+  const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
   /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
   const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
@@ -477,7 +475,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   /** Band tool: a click picks a whole closed shape (no snapping). */
   const banding = (sk: SketchState | null) => sk?.tool === 'band';
   /** The band's derived outline, recomputed only when the band or the shapes change. */
-  const bandCache = useRef<{ done: SketchState['done']; shape: SketchShape | null; band: SketchState['band']; res: ReturnType<typeof liveBand> } | null>(null);
+  const bandCache = useRef<SketchBandCache | null>(null);
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
@@ -1230,7 +1228,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const bezierDraft = useRef<{ poles: [number, number][]; open: boolean }>({ poles: [], open: false });
   /** The Ellipse tool's clicks so far: the centre, then the end of the first axis (the ellipse follows the pointer until the third). */
   const ellipseDraft = useRef<EllipseDraft | null>(null);
-  const carc = useRef<{ c: [number, number]; a?: [number, number]; last?: number; sweep: number; cursor?: [number, number] } | null>(null);
+  const carc = useRef<CentreArcDraft | null>(null);
   const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
     const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
     return [r6(d.c[0] + r * Math.cos(t)), r6(d.c[1] + r * Math.sin(t))];
@@ -1425,183 +1423,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const c = canvas.current; if (!c) return null;
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
-    let editor: React.ReactNode = null;
     const sk = props.sketch;
-    if (sk) {
-      const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
-      // The sketch plane's grid (the ground grid shows XY at Z 0): lines a round step apart around the
-      // view centre, the plane's own axes brighter.
-      if (!isDefaultPlane(sk.plane)) {
-        const centre = toLocal(sk.plane, cam.target), half = cam.distance * Math.tan(cam.fovY / 2) * Math.max(1, cam.aspect) * 1.2;
-        const step = [1, 2, 5, 10, 20, 50, 100, 200].find(k => half * 2 / k <= 40) ?? 500;
-        const u0 = Math.floor((centre[0] - half) / step) * step, u1 = Math.ceil((centre[0] + half) / step) * step;
-        const v0 = Math.floor((centre[1] - half) / step) * step, v1 = Math.ceil((centre[1] + half) / step) * step;
-        const seg = (a: [number, number], b: [number, number], key: string, axis: boolean) => {
-          const p = P(a[0], a[1]), q = P(b[0], b[1]);
-          items.push(<line key={key} x1={p[0]} y1={p[1]} x2={q[0]} y2={q[1]} className={axis ? 'sk-grid axis' : 'sk-grid'} />);
-        };
-        for (let u = u0; u <= u1; u += step) seg([u, v0], [u, v1], 'gu' + u, u === 0);
-        for (let v = v0; v <= v1; v += step) seg([u0, v], [u1, v], 'gv' + v, v === 0);
-      }
-      const label = (x: number, y: number, text: string, key: string) => (
-        <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}
-          onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); props.onDimEdit?.(key); } }}>
-          <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
-      // A closed outline shows its kept H/V edges; while drawing, the edges that are H/V as drawn.
-      const hv = isSettled(sk.shape) ? hvOf(sk.shape) : null, driving = isSettled(sk.shape) ? drivingKeys(sk.shape) : new Set<string>();
-      const glyph = (a: [number, number], b: [number, number], key: string, edge?: number) => {
-        const kind = hv && edge !== undefined ? (hv.h.includes(edge) ? 'H' : hv.v.includes(edge) ? 'V' : null) : a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
-        const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
-        items.push(<g key={'g' + key}><rect x={m[0] - 8} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0]} y={m[1] - 15} textAnchor="middle" className="cons-text">{kind}</text></g>);
-      };
-      // Shapes finished earlier in this sketch (regions and holes of one profile).
-      // (Open pieces — a trimmed shape's rest — as lines with their ends.)
-      (sk.done ?? []).forEach((d, i) => {
-        if (sk.hideConstruction && d.construction) return;
-        const cls = 'sk-shape done' + (d.construction ? ' construction' : '');
-        if (d.kind === 'bezier') { items.push(...bezierMarks('done' + i, d.poles, P, true)); return; }
-        if (d.kind === 'polygon' && !d.closed) {
-          items.push(<polyline key={'done' + i} points={sampleOutline(d.points, d.bulges, false).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls + ' open'} />);
-          for (const [k, q] of [d.points[0], d.points[d.points.length - 1]].entries()) { const p = P(q[0], q[1]); items.push(<circle key={'de' + i + '.' + k} cx={p[0]} cy={p[1]} r={3} className="sk-end" />); }
-        } else items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls} />);
-      });
-      // B1: the band's derived outline (solid, no handles), then the shapes the Band tool has picked and the one under the pointer.
-      if (sk.band) {
-        if (!bandCache.current || bandCache.current.done !== sk.done || bandCache.current.shape !== sk.shape || bandCache.current.band !== sk.band) bandCache.current = { done: sk.done, shape: sk.shape, band: sk.band, res: liveBand(sk) };
-        const lb = bandCache.current.res;
-        if (lb && !('error' in lb)) {
-          const path = (loop: Parameters<typeof sampleLoop>[0]) => 'M' + sampleLoop(loop).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join('L') + 'Z';
-          items.push(<path key="band" d={path(lb.outer) + (lb.hole ? path(lb.hole) : '')} className="sk-band" />);
-        }
-      }
-      if (banding(sk)) {
-        const outline = (d: SketchShape) => d.kind === 'bezier' || (d.kind === 'polygon' && !d.closed) ? '' : shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ');
-        const all = bandShapes(sk), hover = sketchDraft.current.bandHover;
-        all.forEach((d, i) => { const on = !!d.ids?.[0] && !!sk.bandPicks?.includes(d.ids[0]), pts = on || i === hover ? outline(d) : ''; if (pts) items.push(<polygon key={'bp' + i} points={pts} className={on ? 'sk-band-pick' : 'sk-band-hover'} />); });
-      }
-      const s = drag.current.mode === 'spline' ? liveShape.current : sk.shape;
-      if (s?.kind === 'rectangle') {
-        const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];
-        const pts = [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)];
-        items.push(<polygon key="r" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
-        pts.forEach((p, i) => items.push(<circle key={'rp' + i} cx={p[0]} cy={p[1]} r={3} className="sk-point" />));
-        if (x1 > x0 && y1 > y0) { glyph([x0, y0], [x1, y0], 'b'); glyph([x1, y0], [x1, y1], 'r'); }
-        const top = P((x0 + x1) / 2, y0), side = P(x1, (y0 + y1) / 2);
-        items.push(label(top[0], top[1] + 20, String(x1 - x0), 'width'), label(side[0] + 36, side[1], String(y1 - y0), 'height'));
-      } else if (s?.kind === 'circle') {
-        const pts = Array.from({ length: 72 }, (_, i) => P(s.c[0] + s.r * Math.cos(i / 36 * Math.PI), s.c[1] + s.r * Math.sin(i / 36 * Math.PI)));
-        items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
-        const cc = P(s.c[0], s.c[1]); items.push(<circle key="cc" cx={cc[0]} cy={cc[1]} r={3} className="sk-point" />);
-        const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'Ø' + s.r * 2, 'diameter'));
-      } else if (s?.kind === 'slot') {
-        const ring = s.r > 0 ? sampleSlot(s.a, s.b, s.r).map(p => P(p[0], p[1])) : [P(s.a[0], s.a[1]), P(s.b[0], s.b[1])];
-        items.push(s.r > 0 ? <polygon key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
-          : <polyline key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
-        const a = P(s.a[0], s.a[1]), b = P(s.b[0], s.b[1]);
-        items.push(<line key="slc" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="sk-guide" />,
-          <circle key="sa" cx={a[0]} cy={a[1]} r={3} className="sk-point" />, <circle key="sb" cx={b[0]} cy={b[1]} r={3} className="sk-point" />);
-        const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
-        if (l > 0) items.push(label((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18, fmtLen(l), 'slot-length'));
-        if (s.r > 0) { const e = P(s.b[0], s.b[1] + s.r); items.push(label(e[0] + 34, e[1], 'W ' + fmtLen(s.r * 2), 'slot-width')); }
-      } else if (s?.kind === 'bezier') {
-        items.push(...bezierMarks('bz', s.poles, P, false));
-      } else if (s?.kind === 'polygon') {
-        const pts = s.points.map(p => P(p[0], p[1])); const cur = sketchDraft.current.cursor;
-        const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking(sk) ? sketchDraft.current.hover ?? null : null, editDim: sk.editDim,
-          onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit }) : null;
-        const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
-        const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
-        items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
-          : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
-        if (marks) items.push(...marks.under);
-        const ell = isSettled(s) && !!s.ellipse && ellipseMatches(s); // (An ellipse's 96 tiny arcs get no radius labels or centre dots; its centre and axis ends are marked instead.)
-        if (ell) [s.ellipse!.center, ...[0, 1, 2, 3].map(k => s.points[k * s.points.length / 4])].forEach((q, i) => { const p = P(q[0], q[1]); items.push(<circle key={'ep' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />); });
-        else pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
-        const csp = closedSplineOf(s); // (D353: handles only on a closed spline, whose radius chips are hidden so they do not cover them)
-        if (csp) items.push(...splineHandleMarks(csp, P));
-        (s.tangents ?? []).forEach(j => { const p = pts[j]; if (p) items.push(<g key={'tg' + j}><rect x={p[0] + 6} y={p[1] - 22} width={16} height={15} rx={3} className="cons-chip" /><text x={p[0] + 14} y={p[1] - 11} textAnchor="middle" className="cons-text">T</text></g>); });
-        const n = s.points.length;
-        for (let i = 0; i < (s.closed ? n : n - 1); i++) {
-          const a = s.points[i], b = s.points[(i + 1) % n], bulge = s.bulges?.[i] ?? 0;
-          if (bulge) {
-            const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
-            const cc = P(arc.center[0], arc.center[1]); if (!ell) items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
-            if (s.closed && !s.pending && !csp && !ell && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
-            if ((s.equalRadii ?? []).some(p => p.includes(i))) items.push(<g key={'eq' + i}><rect x={m[0] + 30} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0] + 38} y={m[1] - 15} textAnchor="middle" className="cons-text">=</text></g>);
-            if ((s.concentric ?? []).some(p => p.includes(i))) items.push(<circle key={'oc' + i} cx={cc[0]} cy={cc[1]} r={6} className="sk-guide" fill="none" />);
-            continue;
-          }
-          glyph(a, b, 'p' + i, i);
-          if (s.closed && !s.pending && !driving.has('len' + i)) { const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); items.push(label(m[0], m[1] + 20, fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i)); }
-        }
-        if (!s.closed && !s.pending && cur && n) {
-          const last = s.points[n - 1];
-          if (cur[0] === last[0] || cur[1] === last[1]) glyph(last, cur, 'live');
-          const len = Math.hypot(cur[0] - last[0], cur[1] - last[1]); const m = P((cur[0] + last[0]) / 2, (cur[1] + last[1]) / 2);
-          if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
-        }
-        if (marks) { items.push(...marks.svg); editor = marks.html; }
-      }
-      // The Bézier tool's control points so far, and (from the second) the curve they make with the cursor as the next one.
-      if (sk.tool === 'bezier' && bezierDraft.current.poles.length) {
-        const cur = sketchDraft.current.cursor, bp = bezierDraft.current.poles;
-        items.push(...bezierMarks('bzd', cur ? [...bp, cur] : bp, P, false));
-      }
-      // The Ellipse tool's draft: the circle of the first axis while its end is chosen, then the ellipse with the pointer as its other semi-axis.
-      const ed = sk.tool === 'ellipse' ? ellipseDraft.current : null, ec = sketchDraft.current.cursor;
-      if (ed) {
-        const C = P(ed.c[0], ed.c[1]); items.push(<circle key="ed-c" cx={C[0]} cy={C[1]} r={3.5} className="sk-point" />);
-        if (!ed.a && ec) {
-          const ax = ellipseAxis(ed.c, ec);
-          if (ax) {
-            const ring = ellipseSamples({ center: ed.c, rx: ax.rx, ry: ax.rx, angle: 0 }).map(q => P(q[0], q[1])), q = P(ec[0], ec[1]);
-            items.push(<polygon key="ed-r" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-guide" fill="none" />, <line key="ed-l" x1={C[0]} y1={C[1]} x2={q[0]} y2={q[1]} className="sk-guide" />);
-            items.push(label((C[0] + q[0]) / 2, (C[1] + q[1]) / 2 - 16, 'Rx ' + fmtLen(ax.rx) + ' · ' + (Math.round(ax.angle * 10) / 10) + '°', 'live-ellipse-rx'));
-          }
-        } else if (ed.a) {
-          const A = P(ed.a[0], ed.a[1]), def = ec ? draftEllipse(ed, ec) : null;
-          items.push(<line key="ed-a" x1={C[0]} y1={C[1]} x2={A[0]} y2={A[1]} className="sk-guide" />, <circle key="ed-ap" cx={A[0]} cy={A[1]} r={3.5} className="sk-point" />);
-          if (def) {
-            const ring = ellipseSamples(def).map(q => P(q[0], q[1])), why = ellipseError(def);
-            items.push(<polygon key="ed-e" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className={why ? 'sk-guide' : 'sk-shape'} fill="none" />);
-            const m = P(ec![0], ec![1]); items.push(label(m[0] + 30, m[1] - 14, 'Rx ' + fmtLen(def.rx) + ' · Ry ' + fmtLen(def.ry), 'live-ellipse-r'));
-          }
-        }
-      }
-      // The trim tool's target: the piece a click removes.
-      // The centre arc being drawn: its circle while the start is chosen, then the arc so far and its radii.
-      const ca = sk.tool === 'carc' ? carc.current : null;
-      if (ca) {
-        const C = P(ca.c[0], ca.c[1]); items.push(<circle key="ca-c" cx={C[0]} cy={C[1]} r={3} className="sk-point" />);
-        if (!ca.a && ca.cursor) {
-          const r = Math.hypot(ca.cursor[0] - ca.c[0], ca.cursor[1] - ca.c[1]), ring = Array.from({ length: 73 }, (_, k) => P(ca.c[0] + r * Math.cos(k * Math.PI / 36), ca.c[1] + r * Math.sin(k * Math.PI / 36)));
-          const q = P(ca.cursor[0], ca.cursor[1]);
-          items.push(<polyline key="ca-r" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-guide" fill="none" />, <line key="ca-l" x1={C[0]} y1={C[1]} x2={q[0]} y2={q[1]} className="sk-guide" />);
-          if (r > 0) items.push(label((C[0] + q[0]) / 2, (C[1] + q[1]) / 2 - 18, 'R' + fmtLen(r), 'live-carc-r'));
-        } else if (ca.a) {
-          const r = Math.hypot(ca.a[0] - ca.c[0], ca.a[1] - ca.c[1]), t0 = Math.atan2(ca.a[1] - ca.c[1], ca.a[0] - ca.c[0]), n = Math.max(2, Math.ceil(Math.abs(ca.sweep) / (Math.PI / 36)));
-          const arc = Array.from({ length: n + 1 }, (_, k) => P(ca.c[0] + r * Math.cos(t0 + ca.sweep * k / n), ca.c[1] + r * Math.sin(t0 + ca.sweep * k / n)));
-          const A = P(ca.a[0], ca.a[1]), E = arc[arc.length - 1];
-          items.push(<polyline key="ca-arc" points={arc.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />,
-            <line key="ca-a" x1={C[0]} y1={C[1]} x2={A[0]} y2={A[1]} className="sk-guide" />, <line key="ca-e" x1={C[0]} y1={C[1]} x2={E[0]} y2={E[1]} className="sk-guide" />,
-            <circle key="ca-ap" cx={A[0]} cy={A[1]} r={3.5} className="sk-point" />);
-          if (Math.abs(ca.sweep) > 1e-3) items.push(label(E[0] + 30, E[1] - 14, (Math.round(Math.abs(ca.sweep) * 1800 / Math.PI) / 10) + '°', 'live-carc-a'));
-        }
-      }
-      const trim = cutting(sk) && sketchDraft.current.trim?.kind === sk.tool ? sketchDraft.current.trim : null;
-      if (trim?.kind === 'split') { const p = P(trim.points[0][0], trim.points[0][1]); items.push(<circle key="split" cx={p[0]} cy={p[1]} r={5} className="sk-split" />); }
-      else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);
-      const cur = picking(sk) ? null : sketchDraft.current.cursor;
-      if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
-      // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.
-      const sn = picking(sk) ? null : sketchDraft.current.snap;
-      if (cur && sn) {
-        const p = P(cur[0], cur[1]), r = 6, mark = sn.kind === 'end' || sn.kind === 'origin' ? <rect x={p[0] - r} y={p[1] - r} width={2 * r} height={2 * r} />
-          : sn.kind === 'mid' ? <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1] + r} ${p[0] - r - 1},${p[1] + r}`} />
-          : sn.kind === 'centre' ? <circle cx={p[0]} cy={p[1]} r={r} /> : <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1]} ${p[0]},${p[1] + r + 1} ${p[0] - r - 1},${p[1]}`} />;
-        items.push(<g key="osnap" className="sk-osnap">{mark}<text x={p[0] + 11} y={p[1] - 9}>{({ end: 'End', mid: 'Middle', centre: 'Centre', quadrant: 'Quadrant', origin: 'Origin' } as const)[sn.kind]}</text></g>);
-      }
-    }
+    const editor = sk ? drawSketchOverlay({
+      sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h,
+      draft: sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
+      bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
+      dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
+    }) : null;
     const bb = props.boundsBox;
     if (bb && !sk) {
       const c = (i: number): Vec3 => [i & 1 ? bb.max[0] : bb.min[0], i & 2 ? bb.max[1] : bb.min[1], i & 4 ? bb.max[2] : bb.min[2]], q = Array.from({ length: 8 }, (_, i) => cam.project(c(i), w, h));
@@ -1752,29 +1580,3 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
 /** The drag-and-drop type of a command dragged from the rail (its id is the data). */
 export const DRAG_TYPE = 'application/x-cad-command';
-const fmtLen = (v: number) => String(Math.round(v * 10) / 10);
-/** A Bézier curve's marks (D354): the control polygon dashed, the curve solid (display samples), the control points as dots; `light`: a finished one. */
-function bezierMarks(key: string, poles: readonly [number, number][], P: (u: number, v: number) => readonly number[], light: boolean): React.ReactNode[] {
-  // (A malformed stored shape draws nothing.)
-  if (!Array.isArray(poles) || poles.length > 4 || !poles.every(q => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]))) return [];
-  const pts = poles.map(q => P(q[0], q[1])), str = (a: readonly (readonly number[])[]) => a.map(p => p[0] + ',' + p[1]).join(' ');
-  const out: React.ReactNode[] = [];
-  if (pts.length >= 2) out.push(<polyline key={key + 'g'} points={str(pts)} className="sk-guide" fill="none" />);
-  if (poles.length >= 3) out.push(<polyline key={key + 'c'} points={str(bezierSamples(poles).map(q => P(q[0], q[1])))} className={'sk-shape' + (light ? ' done' : '') + ' open'} style={{ fill: 'none' }} />);
-  pts.forEach((p, i) => out.push(<circle key={key + 'p' + i} cx={p[0]} cy={p[1]} r={light ? 3 : 3.5} className={light ? 'sk-end' : 'sk-point'} />));
-  return out;
-}
-/** The definition of a settled, closed polygon that is a spline still matching it (D353), else null. */
-function closedSplineOf(s: SketchShape | null): SplineDef | null {
-  return s && s.kind === 'polygon' && s.closed && isSettled(s) && s.spline && s.spline.closed && s.spline.fit.length >= 2 && splineMatches(s) ? s.spline : null;
-}
-/** A spline's handles (D353): at each fit point a handle line 30 px each way along its tangent (the handle, else the automatic one) with a dot at each end; the fit points are dots. */
-function splineHandleMarks(def: SplineDef, P: (u: number, v: number) => readonly number[]): React.ReactNode[] {
-  const out: React.ReactNode[] = [];
-  splineHandleGeometry(def, P).forEach((g, i) => {
-    out.push(<line key={'sh' + i} x1={g.back[0]} y1={g.back[1]} x2={g.fwd[0]} y2={g.fwd[1]} className="sk-handle" />,
-      <circle key={'sha' + i} cx={g.back[0]} cy={g.back[1]} r={4} className="sk-handle-end" />, <circle key={'shb' + i} cx={g.fwd[0]} cy={g.fwd[1]} r={4} className="sk-handle-end" />,
-      <circle key={'shc' + i} cx={g.c[0]} cy={g.c[1]} r={3.5} className="sk-point" />);
-  });
-  return out;
-}

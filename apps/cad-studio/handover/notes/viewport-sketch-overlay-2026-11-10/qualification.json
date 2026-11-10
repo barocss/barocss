@@ -1,0 +1,127 @@
+{
+  "workId": "D554",
+  "status": "QUALIFIED_SELECTED_DESKTOP_OVERLAYS",
+  "priority": "P4",
+  "rows": [
+    20,
+    21,
+    22
+  ],
+  "tier": "SMALL_INTERNAL_REFACTOR",
+  "node": "22.19.0",
+  "baseHead": "3d12c0c1b8c66339e97212f9a1ca85bdc74c1436",
+  "wholeCad": "NOT_MEASURED",
+  "evidenceRoot": "/Users/user/.cache/barocss-cad-evidence/d554-2026-11-10",
+  "sourceBoundary": {
+    "status": "PASS",
+    "ViewportLines": {
+      "before": 1780,
+      "after": 1582
+    },
+    "modelImportCount": {
+      "before": 21,
+      "after": 19
+    },
+    "movedSubpaths": [
+      "@barocss/cad-model/app/profiles",
+      "@barocss/cad-model/sketch/loops"
+    ],
+    "unchangedImplementations": [
+      "onPointerDown",
+      "onPointerMove",
+      "onPointerLeave",
+      "onPointerUp",
+      "onWheel",
+      "printViewportProps"
+    ],
+    "unchangedFiles": [
+      "apps/cad-studio/src/App.tsx",
+      "apps/cad-studio/src/viewport/SceneViewport.tsx",
+      "packages/barocss-cad-model/package.json",
+      "packages/barocss-cad-model/src/index.ts"
+    ]
+  },
+  "checks": {
+    "syntax": "PASS",
+    "finalModelTypesAfterLastTestEdit": "PASS",
+    "StudioTypes": "PASS"
+  },
+  "actual": {
+    "interaction01": {
+      "status": "PASS",
+      "snapshots": 7,
+      "recordedPins": 295,
+      "ownedPIDsAbsent": [
+        9163,
+        9165
+      ],
+      "wallSeconds": 10.39,
+      "authoredAndMeasuredMM": 60
+    },
+    "band01": {
+      "status": "FAIL_PRIVATE_OBSERVER_SELECTOR",
+      "productFailureReproduced": false,
+      "snapshots": 2,
+      "recordedPins": 296,
+      "ownedPIDsAbsent": [
+        9475,
+        9514
+      ],
+      "wallSeconds": 9.02,
+      "oldDriverSHA256": "bcd7918b3f8904cf155d50b58056715811a3ac22771a1b04077e88df578170aa"
+    },
+    "band02": {
+      "status": "PASS",
+      "snapshots": 6,
+      "recordedPins": 296,
+      "ownedPIDsAbsent": [
+        13510,
+        13952
+      ],
+      "wallSeconds": 15.74,
+      "widthsMM": [
+        3,
+        5,
+        3
+      ],
+      "renderedPathSHA256": [
+        "52a338a9a825910767b7396988521788fc4a3b3ba691d3097e1b93edbb166df1",
+        "212d4c6edf561672b4892711e4a7fc19cacfee28c7262f9f7122acd97b965259",
+        "52a338a9a825910767b7396988521788fc4a3b3ba691d3097e1b93edbb166df1"
+      ],
+      "constructionCount": 2
+    }
+  },
+  "screenshotsViewed": 4,
+  "driverCustody": "DRIVER_SHA_RECORDED_SEPARATELY_FROM_PRODUCER_CAPSULE",
+  "sourceSHA256": {
+    "apps/cad-studio/src/viewport/Viewport.tsx": "378da6cb842c1281e9e393e0d19458e4efec4b1af62238a3a82e06c17d7a9e01",
+    "apps/cad-studio/src/viewport/sketchOverlay.tsx": "d8fca0fc0175a011c4907781dd21785058e7883f7e6ede35f7ef68345c85739d",
+    "apps/cad-studio/src/viewport/splineHandles.ts": "48654578464ef9bb86a1e30785d886b23c092ad56bee721145b383c55756f58e",
+    "apps/cad-studio/test/viewport-interaction-boundary-browser.mjs": "11cc36f17a49e4b7f03ecaea3d9b6ecdde2c5738610d6a2ac85324863b2c9a10",
+    "apps/cad-studio/test/viewport-sketch-overlay-band-browser.mjs": "f97b583a69a927155bd5fce1a0e345b66218b3f4d3164845dcc593bb01ec5268"
+  },
+  "receiptSHA256": {
+    "interaction01/receipt.json": "809593e9c43a3330166754a4b12e196486b93083abc53380d0d94ff6cd1e4b19",
+    "band01/receipt.json": "dc98f05d1934e5dec880dea6dffef25248ee43529cb02c18217d003454b41f91",
+    "band02/receipt.json": "736587ea456be216de024410526d888a37c011d539e27a33c3948ffad23ec8f5",
+    "source-boundary01.json": "c41cbbf421b894519cb018aa3743973c0bcee7e3426d170d03cd9be30dc546ff",
+    "final-model-types02.log": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+    "studio-types01.log": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+  },
+  "commands": {
+    "interaction": "D553_SOURCE_FROZEN=1 node test/viewport-interaction-boundary-browser.mjs <new-output>",
+    "band": "D554_SOURCE_FROZEN=1 node test/viewport-sketch-overlay-band-browser.mjs <new-output>",
+    "ModelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "StudioTypes": "pnpm --filter @barocss/cad-studio-app type-check"
+  },
+  "NOT_RUN": [
+    "other curve gestures",
+    "native roundtrip",
+    "Print and recovery runtime",
+    "full kernel",
+    "mobile",
+    "public package API"
+  ],
+  "next": "D555_P0_CLIPBOARD_HISTORY_BOUNDARY_INTAKE"
+}
