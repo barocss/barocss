@@ -58,6 +58,7 @@ export interface ChatPanelProps {
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
+    openBaseline(status: TaskRunStatus): Promise<void>;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
     workingVersion: object;
     prepareWorkingRepair(review: CheckpointReview, report: RequirementEvidence, version: object, current: () => boolean): Promise<SavedTaskRunPlan | undefined>;
@@ -262,7 +263,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   onPrepared(plan: SavedTaskRunPlan, version: object): void;
 }) {
   const busy = useRef(false);
-  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | { taskId: string }>();
+  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string }>();
   const disabled = blocked || working !== undefined;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const base = launch ?? initialRun;
@@ -295,13 +296,13 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       setError(error instanceof Error ? error.message : 'Could not refresh the local task run.');
     } finally { busy.current = false; setWorking(undefined); }
   }
-  async function openCheckpoint() {
-    if (busy.current || !result?.checkpoint) return;
+  async function openRunFile(kind: 'checkpoint' | 'baseline') {
+    if (busy.current || !result || (kind === 'checkpoint' && !result.checkpoint)) return;
     busy.current = true;
-    setWorking('checkpoint');
+    setWorking(kind);
     setError('');
-    try { await actions.openCheckpoint(result); }
-    catch (error) { setError(error instanceof Error ? error.message : 'Could not open the approved local checkpoint.'); }
+    try { await (kind === 'baseline' ? actions.openBaseline(result) : actions.openCheckpoint(result)); }
+    catch (error) { setError(error instanceof Error ? error.message : `Could not open the local run ${kind}.`); }
     finally { busy.current = false; setWorking(undefined); }
   }
   async function review(task: TaskRunLaunch['tasks'][number]) {
@@ -329,8 +330,12 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       <button className="ghost" type="button" aria-label="Refresh local run status" disabled={disabled} onClick={() => void refresh()}>
         {working === 'status' ? 'Refreshing…' : 'Refresh status'}
       </button>
+      {initialRun && <button className="ghost" type="button" aria-label="Open run baseline"
+        disabled={disabled || actions.modelViewBlocked} onClick={() => void openRunFile('baseline')}>
+        {working === 'baseline' ? 'Verifying baseline…' : 'Open run baseline'}
+      </button>}
       {result.checkpoint && <button className="ghost" type="button" aria-label="Open approved checkpoint"
-        disabled={disabled || actions.modelViewBlocked} onClick={() => void openCheckpoint()}>
+        disabled={disabled || actions.modelViewBlocked} onClick={() => void openRunFile('checkpoint')}>
         {working === 'checkpoint' ? 'Verifying checkpoint…' : 'Open approved checkpoint'}
       </button>}
       <ul>{result.tasks.map(task => <li key={task.id}><span>{task.id + ' · ' + task.phase.replaceAll('-', ' ') + (task.reason ? ' · ' + task.reason : '')}</span>

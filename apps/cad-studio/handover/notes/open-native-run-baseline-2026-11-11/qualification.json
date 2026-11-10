@@ -1,0 +1,137 @@
+{
+  "decision": "D630",
+  "tier": "FULL interface",
+  "baseCommit": "189b4e47eb04ef8a5195c5b6a194afcbde8e4d9d",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d630-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio baseline Open and late-reply refusal",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D630_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --baseline",
+      "receiptSHA256": "e63e9b3305dbeade99e681ea9c344d1a7aa5eec88658088f2c4e74434eeec72e",
+      "pinnedSources": 803,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "originalNativeSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+        "acceptedNativeSHA256": "42b23a344c927305f129f463e517c689a2a961732110c196ec279e23f45c1279",
+        "damagedReplyRefused": true,
+        "newerFileOpenPreserved": true,
+        "obsoleteRunReplyRefused": true,
+        "nativeRunWrites": 0,
+        "startsAfterReopen": 0,
+        "reviewedHeldAttempt": true,
+        "finalHeightsMm": [
+          6,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Desktop Studio reopened pending and approved flow",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D629_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-reopen\" --reopen",
+      "receiptSHA256": "a66d43e7a5bc8e8503fdec883ae77ee58430cf0b262b1c6b5cb8812fb0873d03",
+      "pinnedSources": 803,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop Studio existing two-task and legacy checkpoint",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-two\" --width",
+      "receiptSHA256": "4c8e48bb662bc34e5ade4f8df9903910ae2bd8a74ad4d80e7315376df095b5f8",
+      "pinnedSources": 803,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run"
+    },
+    {
+      "label": "Independent native baseline reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/baseline-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "46301054c6334191b2c0c90d394538a2065d7c1d5bbe2bd6f9178acab36e3028",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "originalSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+        "acceptedSHA256": "42b23a344c927305f129f463e517c689a2a961732110c196ec279e23f45c1279",
+        "originalHeightsMm": [
+          5,
+          3
+        ],
+        "acceptedHeightsMm": [
+          6,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 176,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Baseline transfer between computers"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

@@ -1,6 +1,7 @@
+import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { MAX_TASK_CHECKPOINT_BYTES } from '../files/taskCheckpoint';
-import { isLocalTaskRunHost, type TaskRunCheckpointRequest } from './taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunBaselineRequest, type TaskRunCheckpointRequest } from './taskRunOffer';
 
 async function postLocalTaskRun(action: string, body: Blob | string) {
   if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to use a local task run.');
@@ -25,11 +26,24 @@ export async function localTaskRunJSON(action: 'start' | 'reopen' | 'review' | '
 
 export async function localTaskCheckpointBytes(request: TaskRunCheckpointRequest, current: () => boolean, action: 'checkpoint' | 'history' = 'checkpoint') {
   const res = await postLocalTaskRun(action, JSON.stringify(request));
+  return readLocalTaskBytes(res, current);
+}
+
+export async function localTaskBaselineBytes(request: TaskRunBaselineRequest, current: () => boolean) {
+  const res = await postLocalTaskRun('baseline', JSON.stringify(request));
+  const bytes = await readLocalTaskBytes(res, current);
+  if (!bytes || !current()) return;
+  const sha256 = res.headers.get('x-barocss-native-sha256');
+  if (sha256Hex(bytes) !== sha256) throw new Error('The local baseline response does not match its native checksum.');
+  return bytes;
+}
+
+async function readLocalTaskBytes(res: Response, current: () => boolean) {
   const header = res.headers.get('content-length'), size = Number(header);
   if (res.headers.get('content-type') !== 'application/octet-stream' || !header || !/^\d+$/.test(header)
     || !Number.isSafeInteger(size) || size <= 0 || size > MAX_TASK_CHECKPOINT_BYTES || !res.body) {
     await res.body?.cancel();
-    throw new Error('The local checkpoint response has an invalid size or type.');
+    throw new Error('The local task file response has an invalid size or type.');
   }
   const reader = res.body.getReader(), bytes = new Uint8Array(size);
   let offset = 0, complete = false;
@@ -38,11 +52,11 @@ export async function localTaskCheckpointBytes(request: TaskRunCheckpointRequest
       const chunk = await reader.read();
       if (!current()) return;
       if (chunk.done) {
-        if (offset !== size) throw new Error('The local checkpoint response is incomplete.');
+        if (offset !== size) throw new Error('The local task file response is incomplete.');
         complete = true;
         return bytes;
       }
-      if (offset + chunk.value.length > size) throw new Error('The local checkpoint response exceeds its stated size.');
+      if (offset + chunk.value.length > size) throw new Error('The local task file response exceeds its stated size.');
       bytes.set(chunk.value, offset);
       offset += chunk.value.length;
     }

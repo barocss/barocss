@@ -23,9 +23,12 @@ export interface TaskRunLocator {
   runId: string;
 }
 
-export interface TaskRunReviewRequest extends TaskRunLocator, TaskRunCandidatePin {
-  taskId: string;
+export interface TaskRunBaselineRequest extends TaskRunLocator {
   baselineDigest: string;
+}
+
+export interface TaskRunReviewRequest extends TaskRunBaselineRequest, TaskRunCandidatePin {
+  taskId: string;
 }
 
 const TASK_PHASES = ['ready', 'running', 'validating', 'awaiting-decision', 'committing', 'completed', 'failed', 'cancelled', 'stale'] as const;
@@ -59,6 +62,10 @@ const label = (value: unknown): value is string => typeof value === 'string' && 
 
 export function isTaskRunLocator(value: unknown): value is TaskRunLocator {
   return isObj(value) && hash(value.runKey) && label(value.runId);
+}
+
+export function isTaskRunBaselineRequest(value: unknown): value is TaskRunBaselineRequest {
+  return isObj(value) && Object.keys(value).length === 3 && isTaskRunLocator(value) && hash(value.baselineDigest);
 }
 
 export function isTaskRunCheckpointPin(value: unknown): value is TaskRunCheckpointPin {

@@ -4,8 +4,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
-import { encodeTaskCheckpoint, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
+import { isTaskRunBaselineRequest, isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
 import { candidateReviewFor, taskApprovalFor, taskApprovals, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
@@ -210,6 +210,26 @@ export function readLocalTaskRunStatus(root: string, request: unknown): TaskRunS
   const record = readOwnedTaskRun(root, request);
   try { return taskRunStatus(request.runKey, record); }
   catch { throw new LocalRunRequestError(409, 'Could not read the local task run status.'); }
+}
+
+export function readLocalTaskBaseline(root: string, request: unknown) {
+  if (!isTaskRunBaselineRequest(request))
+    throw new LocalRunRequestError(400, 'Expected the local run and baseline digest.');
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), request.runKey));
+    const { record, bytes } = TaskRunStore.readAcceptedBaseline(directory, current => {
+      if (current.runId !== request.runId || current.accepted.modelDigest !== request.baselineDigest)
+        throw new LocalRunRequestError(409, 'The run baseline changed. Refresh the local run status.');
+    });
+    if (!bytes.length || bytes.length > MAX_TASK_CHECKPOINT_BYTES)
+      throw new LocalRunRequestError(413, 'The run baseline exceeds the supported size.');
+    return { bytes, sha256: record.accepted.sha256 };
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) throw error;
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+      throw new LocalRunRequestError(404, 'The local task run could not be found.');
+    throw new LocalRunRequestError(409, 'Could not read the local run baseline.');
+  }
 }
 
 /** The service owns the root. A browser supplies only the identifiers from its launched run and current document. */

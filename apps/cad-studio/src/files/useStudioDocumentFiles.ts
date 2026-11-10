@@ -3,11 +3,12 @@ import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
+import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import { placedDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
-import { digestOf } from '@barocss/cad-model/util/digest';
+import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
 import type { EngineClient } from '../engine/client';
@@ -24,9 +25,9 @@ import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import { planWorkingApprovalRepair, readWorkingApprovalChecks } from './workingApprovalChecks';
-import { localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
+import { localTaskBaselineBytes, localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
 import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
-  type TaskRunCheckpointRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -83,7 +84,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
   const handoffIntent = useRef<object | null>(null);
   const candidateIntent = useRef<{ local?: { request: TaskRunReviewRequest; status?: TaskRunStatus } }>(null);
-  const checkpointIntent = useRef<{ request: TaskRunCheckpointRequest; status?: TaskRunStatus }>(null);
+  const runOpenIntent = useRef<{ request: TaskRunLocator; status?: TaskRunStatus }>(null);
   const cancelLocalCandidateReview = () => {
     if (candidateIntent.current?.local) candidateIntent.current = null;
   };
@@ -164,9 +165,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     const local = candidateIntent.current?.local;
     if (local && local.request.runKey === runKey && local.request.runId === runId && (!local.status || local.status.revision <= revision))
       local.status = status;
-    const checkpoint = checkpointIntent.current;
-    if (checkpoint && checkpoint.request.runKey === runKey && checkpoint.request.runId === runId
-      && (!checkpoint.status || checkpoint.status.revision <= revision)) checkpoint.status = status;
+    const opening = runOpenIntent.current;
+    if (opening && opening.request.runKey === runKey && opening.request.runId === runId
+      && (!opening.status || opening.status.revision <= revision)) opening.status = status;
     changes.onTaskRunStatus(status);
   };
 
@@ -221,16 +222,20 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     return verified;
   };
 
-  const adoptCheckpoint = (verified: NonNullable<Awaited<ReturnType<typeof verifyCheckpoint>>>, name: string) => {
-    if (sessionBlocked('opening a worker checkpoint')) return;
-    // Keep the verified document exact. The standard native Open may repair references after adoption.
-    replaceDoc(verified.doc);
-    if (docNow.current !== verified.doc) return;
-    changes.onCheckpointOpened(verified.review);
+  const adoptExactWorkerDocument = (next: StudioDoc, name: string) => {
+    // The standard native Open may repair references after adoption. The run needs the exact model.
+    replaceDoc(next);
+    if (docNow.current !== next) return false;
     setRefProblems([]);
     setFileName(name);
     setDirty(false);
     fitImportedLater();
+    return true;
+  };
+
+  const adoptCheckpoint = (verified: NonNullable<Awaited<ReturnType<typeof verifyCheckpoint>>>, name: string) => {
+    if (sessionBlocked('opening a worker checkpoint') || !adoptExactWorkerDocument(verified.doc, name)) return;
+    changes.onCheckpointOpened(verified.review);
     const { receipt } = verified;
     setToast({ title: 'Worker checkpoint opened',
       hint: `Task ${receipt.taskId} · Revision ${receipt.revision} · ${verified.checks} required checks passed`,
@@ -276,22 +281,26 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       () => selected() && owner.isCurrent() ? { offer, sourceKey } : undefined);
   };
 
-  const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
-    if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
+  const withRunDocumentOpen = async (request: TaskRunLocator, kind: 'baseline' | 'checkpoint',
+    read: (current: () => boolean, observed: () => TaskRunStatus | undefined, requireView: () => void) => Promise<void>) => {
     const requireView = () => {
-      if (!ownership.canReviewLocalCandidate()) throw new Error('Return to the current model view to open the checkpoint.');
+      if (!ownership.canReviewLocalCandidate()) throw new Error(`Return to the current model view to open the ${kind}.`);
     };
-    if (sessionBlocked('opening a worker checkpoint')) return;
+    if (sessionBlocked('opening a worker ' + kind)) return;
     requireView();
     beginOpenIntent();
-    const owner = captureImportOwner(), request: TaskRunCheckpointRequest = {
-      runKey: run.runKey, runId: run.runId, taskId: run.checkpoint.taskId,
-      operationId: run.checkpoint.operationId, acceptedSHA256: run.checkpoint.acceptedSHA256,
-    };
-    const intent = { request, status: undefined as TaskRunStatus | undefined };
-    checkpointIntent.current = intent;
-    const current = () => owner.isCurrent() && checkpointIntent.current === intent;
-    try {
+    const owner = captureImportOwner(), intent = { request, status: undefined as TaskRunStatus | undefined };
+    runOpenIntent.current = intent;
+    const current = () => owner.isCurrent() && runOpenIntent.current === intent;
+    try { await read(current, () => intent.status, requireView); }
+    catch (error) { if (current()) throw error; }
+    finally { if (runOpenIntent.current === intent) runOpenIntent.current = null; }
+  };
+
+  const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
+    if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
+    const request: TaskRunCheckpointRequest = { runKey: run.runKey, runId: run.runId, ...run.checkpoint };
+    return withRunDocumentOpen(request, 'checkpoint', async (current, observed, requireView) => {
       const bytes = await localTaskCheckpointBytes(request, current);
       if (!bytes || !current()) return;
       const verified = await verifyCheckpoint(bytes, current, request);
@@ -299,17 +308,36 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       const { receipt } = verified;
       const latest = await refreshTaskRun(run);
       if (!current()) return;
+      const seen = observed();
       if (latest.revision < receipt.revision || !sameTaskRunCheckpoint(request, latest.checkpoint)
         || latest.baselineDigest !== receipt.accepted.modelDigest
-        || (intent.status && intent.status.revision >= receipt.revision && !sameTaskRunCheckpoint(request, intent.status.checkpoint)))
+        || (seen && seen.revision >= receipt.revision && !sameTaskRunCheckpoint(request, seen.checkpoint)))
         throw new Error('The approved checkpoint changed during Open. Refresh the local run status.');
       requireView();
       adoptCheckpoint({ ...verified, review: { ...verified.review, localRun: request } }, 'worker-' + request.taskId);
-    } catch (error) {
-      if (current()) throw error;
-    } finally {
-      if (checkpointIntent.current === intent) checkpointIntent.current = null;
-    }
+    });
+  };
+
+  const openTaskRunBaseline = async (run: TaskRunStatus) => {
+    const { runKey, runId, baselineDigest } = run;
+    const request: TaskRunBaselineRequest = { runKey, runId, baselineDigest };
+    return withRunDocumentOpen(request, 'baseline', async (current, observed, requireView) => {
+      const bytes = await localTaskBaselineBytes(request, current);
+      if (!bytes || !current()) return;
+      const decoded = await readStudioWorkingCopy(bytes);
+      if (!current()) return;
+      if ('error' in decoded || digestOf(decoded.doc) !== baselineDigest ||
+          sha256Hex(encodeStudioFile(decoded.doc)) !== sha256Hex(bytes))
+        throw new Error('The native model does not match the selected run baseline.');
+      const latest = await refreshTaskRun(run);
+      if (!current()) return;
+      const seen = observed();
+      if (latest.baselineDigest !== baselineDigest || (seen && seen.revision >= latest.revision && seen.baselineDigest !== baselineDigest))
+        throw new Error('The run baseline changed during Open. Refresh the local run status.');
+      requireView();
+      if (adoptExactWorkerDocument(decoded.doc, 'worker-baseline'))
+        setToast({ title: 'Worker baseline opened', hint: 'The exact local run model is ready for candidate review.', detail: '' });
+    });
   };
 
   const prepareCandidate = async (receipt: CandidateReviewReceipt, baseline: StudioDoc, current: () => boolean): Promise<CandidateReview | undefined> => {
@@ -449,5 +477,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

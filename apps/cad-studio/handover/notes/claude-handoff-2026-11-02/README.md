@@ -1,5 +1,5 @@
 ---
-work_id: D629
+work_id: D630
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -195,7 +195,9 @@ D628 prepares a repair from the working failure in the Studio approval card. Des
 
 D629 reopens the existing run from its exact task handoff. Two fresh Studio sessions verify pending review and approved checkpoint Open without starting new workers. [D629](../../notes/reopen-local-task-run-2026-11-11/README.md).
 
-Next MAIN is D630 / P0 automation, B09 follow-up, rows 04, 12 and 16. Open the exact native run baseline explicitly from a reopened run card. Bind the read to the owned run and current baseline digest, refuse an obsolete or damaged reply, and leave the working model unchanged until Open succeeds. Verify that a held candidate can be reviewed when the original standalone model file is unavailable. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D630 opens the exact native model from the reopened run card. Desktop verifies the held candidate with the original standalone file unavailable, and refuses a damaged reply and two late replies. [D630](../../notes/open-native-run-baseline-2026-11-11/README.md).
+
+Next MAIN is D631 / P0 automation, B09 follow-up, rows 04, 12 and 16. Rebuild a stale independent candidate from the Studio run card when its stored submission still matches the task inputs. Require an explicit action, bind it to the current run status, and retain the single writer and terminal approval. Verify that Studio retires the old review and can inspect the rebuilt attempt. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

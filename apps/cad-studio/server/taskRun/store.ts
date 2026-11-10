@@ -280,9 +280,13 @@ export class TaskRunStore {
 
   /** Read the durable checkpoint while a writer is active, without acquiring or advancing its epoch. */
   static inspect(directory: string): RunRecord {
+    return TaskRunStore.readAcceptedBaseline(directory).record;
+  }
+
+  static readAcceptedBaseline(directory: string, guard?: (record: RunRecord) => void) {
     const path = realpathSync(directory), record = recordAt(path);
-    readObject(path, record.accepted);
-    return record;
+    guard?.(record);
+    return { record, bytes: readObject(path, record.accepted) };
   }
 
   /** Export one committed task from a single read of the durable pointer. The native files are immutable. */

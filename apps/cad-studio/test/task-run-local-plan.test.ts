@@ -10,7 +10,7 @@ import { encodeStudioFile, isContainer } from '@barocss/cad-model/engine/contain
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { cliMain } from '../server/cadCli';
 import { encodeTaskRunHandoff } from '../src/files/taskRunHandoff';
-import { runLocalTaskHandoff } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskBaseline, runLocalTaskHandoff } from '../server/taskRun/localService';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
 import { fixtureDoc, singleRepairDoc, threeOccurrenceDoc } from './task-run-fixture';
 
@@ -68,6 +68,20 @@ test('D629 reopens an exact started handoff without creating or advancing a writ
     const file = join(directory, 'run.json');
     const saved = readFileSync(file), files = readdirSync(directory).sort();
     assert.deepEqual(await runLocalTaskHandoff(root, handoff, 'reopen'), { result: { ...started.result, reused: true } });
+    assert.deepEqual(readFileSync(file), saved);
+    assert.deepEqual(readdirSync(directory).sort(), files);
+
+    const { runKey, runId, baselineDigest } = started.result;
+    const baselineRequest = { runKey, runId, baselineDigest };
+    const baseline = readLocalTaskBaseline(root, baselineRequest);
+    assert.deepEqual(Buffer.from(baseline.bytes), Buffer.from(encodeStudioFile(doc)));
+    assert.equal(baseline.sha256, sha256Hex(baseline.bytes));
+    for (const patch of [{ runId: 'other-run' }, { baselineDigest: 'e'.repeat(64) }]) {
+      assert.throws(() => readLocalTaskBaseline(root, { ...baselineRequest, ...patch }),
+        error => error instanceof LocalRunRequestError && error.status === 409);
+    }
+    assert.throws(() => readLocalTaskBaseline(root, { ...baselineRequest, path: directory }),
+      error => error instanceof LocalRunRequestError && error.status === 400);
     assert.deepEqual(readFileSync(file), saved);
     assert.deepEqual(readdirSync(directory).sort(), files);
 
