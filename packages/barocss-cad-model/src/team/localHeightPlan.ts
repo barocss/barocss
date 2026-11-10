@@ -20,12 +20,12 @@ type LocalHeightInspection = { error: LocalHeightIssue }
 const isExtent = (check: Predicate, axis: 'x' | 'z') => check?.query?.fn === 'bbox' && check.query.axis === axis
   && check.query.body === undefined && check.unit === 'mm';
 
-export const isLocalTaskCount = (count: number) => count === 2 || count === 3;
+export const isLocalTaskCount = (count: number) => count === 1 || count === 2 || count === 3;
 
 /** Inspect the bounded local profile without evaluating, dispatching, or changing the model. */
 export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly string[], identity: TaskPlanRequest['identity']): LocalHeightInspection {
   if (!isLocalTaskCount(occurrences.length) || new Set(occurrences).size !== occurrences.length)
-    return { error: { code: 'BAD_PLAN', message: 'Select two or three distinct occurrence IDs.' } };
+    return { error: { code: 'BAD_PLAN', message: 'Select one to three distinct occurrence IDs.' } };
   const draft: TaskPlanRequest = {
     identity, policyRevision: 'local-height-v1', maxTasks: occurrences.length, throughSequence: 30,
     tasks: occurrences.map((occurrence, index) => {
@@ -45,7 +45,13 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
         capability: useWidth ? 'rectangle-width' : 'extrusion-height', units: 'mm', frame: useWidth ? 'part-local-x' : 'part-local-z' };
     }),
   };
-  const request = draft.tasks.some(task => task.capability === 'rectangle-width') ? { ...draft, policyRevision: 'local-dimension-v1' } : draft;
+  const protectedOccurrences = occurrences.length === 1 ? (doc.instances ?? [])
+    .filter(instance => instance.id !== occurrences[0] && instance.doc.requirements?.some(req => req.hard))
+    .map(instance => instance.id) : [];
+  const request: TaskPlanRequest = { ...draft,
+    ...(draft.tasks.some(task => task.capability === 'rectangle-width') && { policyRevision: 'local-dimension-v1' }),
+    ...(protectedOccurrences.length && { protectedOccurrences }),
+  };
   const plan = compileTaskPlan(doc, request);
   if ('error' in plan) return { error: { ...plan.error, message: `${plan.error.code}: ${plan.error.message}` } };
   const issues: LocalHeightIssue[] = [];

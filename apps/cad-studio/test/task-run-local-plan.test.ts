@@ -10,7 +10,7 @@ import { encodeStudioFile, isContainer } from '@barocss/cad-model/engine/contain
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { cliMain } from '../server/cadCli';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
-import { fixtureDoc, threeOccurrenceDoc } from './task-run-fixture';
+import { fixtureDoc, singleRepairDoc, threeOccurrenceDoc } from './task-run-fixture';
 
 const selected = ['p1', 'p2'];
 const derive = (doc = fixtureDoc(), occurrences = selected) =>
@@ -34,12 +34,25 @@ test('D624 accepts three distinct ordered selections and retains the two-worker 
   assert.equal(plan.plan.maxTasks, 3);
   assert.equal(plan.limits.concurrent, 2);
   assert.equal(plan.budget, 12);
-  for (const ids of [['p1'], ['p1', 'p2', 'p1'], ['p1', 'p2', 'p3', 'p4']])
-    assert.throws(() => derive(source, ids), /two or three distinct occurrence IDs/);
+  for (const ids of [[], ['p1', 'p2', 'p1'], ['p1', 'p2', 'p3', 'p4']])
+    assert.throws(() => derive(source, ids), /one to three distinct occurrence IDs/);
+});
+
+test('D627 derives one repair without including already satisfied occurrences', () => {
+  const source = singleRepairDoc();
+  const plan = derive(source, ['p3']);
+  assert.deepEqual(plan.targets.map(target => [target.id, target.currentHeightMm, target.heightMm]), [['p3', 7, 5]]);
+  assert.equal(plan.plan.maxTasks, 1);
+  assert.equal(plan.limits.concurrent, 1);
+  assert.equal(plan.budget, 4);
+  assert.deepEqual(plan.plan.protectedOccurrences, ['p1', 'p2']);
+  assert.throws(() => derive(source, ['p1']), /UNCOVERED_REQUIREMENT.*p3/);
+  source.instances![2].doc.requirements![0].check.value = 7;
+  assert.throws(() => derive(source, ['p1']), /already at its stated height/);
 });
 
 test('D616 refuses unconfirmed, ambiguous, incompatible, no-op and out-of-scope targets', () => {
-  assert.throws(() => derive(fixtureDoc(), ['p1', 'p1']), /two or three distinct occurrence IDs/);
+  assert.throws(() => derive(fixtureDoc(), ['p1', 'p1']), /one to three distinct occurrence IDs/);
   assert.throws(() => derive(fixtureDoc(), ['p1', 'missing']), /Supply task, holder, occurrence, and feature IDs/);
   const missing = fixtureDoc();
   delete missing.instances![0].doc.requirements;

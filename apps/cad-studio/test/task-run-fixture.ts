@@ -19,6 +19,13 @@ export function threeOccurrenceDoc(): StudioDoc {
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });
   return doc;
 }
+export function singleRepairDoc(): StudioDoc {
+  const doc = fixtureDoc();
+  doc.instances![0].doc = plate(20, 10, 6, 6);
+  doc.instances![1].doc = plate(12, 8, 4, 4);
+  doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 7, 5) });
+  return doc;
+}
 export const fixturePlan: TaskPlanRequest = {
   identity: { projectId: 'worker-fixture', documentId: 'housing' }, policyRevision: 'user-v1', maxTasks: 2, throughSequence: 30,
   tasks: [

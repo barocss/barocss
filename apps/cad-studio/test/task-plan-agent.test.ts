@@ -70,7 +70,7 @@ test('D617 refuses stale or malformed revision pins and invalid scope arguments'
   for (const input of [
     { ...call, expectedRevision: 'wrong' },
     { ...call, occurrences: ['p1', 'p1'] },
-    { ...call, occurrences: ['p1'] },
+    { ...call, occurrences: [] },
     { ...call, occurrences: ['p1', 2] },
     { ...call, dispatch: true },
     { ...call, part: 'p1' },

@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { taskRunSingleRepairFlow } from './task-run-single-repair-flow.mjs';
 import { instrumentWorkingChecks, taskRunWorkingFlow } from './task-run-working-flow.mjs';
 import { taskRunHistoryFlow } from './task-run-history-flow.mjs';
 import { taskRunThreeFlow } from './task-run-three-flow.mjs';
@@ -12,11 +13,12 @@ import { taskRunStatusFlow } from './task-run-status-flow.mjs';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
+const repairMode = mode === '--repair';
 const workingMode = mode === '--working';
 const historyMode = mode === '--history' || workingMode;
 const threeMode = mode === '--three' || historyMode;
-const occurrences = threeMode ? ['p1', 'p2', 'p3'] : ['p1', 'p2'];
-const widthMode = mode === '--width' || threeMode, checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
+const occurrences = repairMode ? ['p3'] : threeMode ? ['p1', 'p2', 'p3'] : ['p1', 'p2'];
+const widthMode = mode === '--width' || threeMode, checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = repairMode || mode === '--start' || reviewMode || statusMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -29,11 +31,11 @@ await new Promise((done, reject) => probe.close(error => error ? reject(error) :
 
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 const pins = [
-  'apps/cad-studio/test/task-plan-agent-browser.mjs', 'apps/cad-studio/test/task-run-status-flow.mjs', 'apps/cad-studio/test/task-run-three-flow.mjs', 'apps/cad-studio/test/task-run-history-flow.mjs', 'apps/cad-studio/test/task-run-working-flow.mjs', scripted, 'apps/cad-studio/test/task-run-fixture.ts',
+  'apps/cad-studio/test/task-plan-agent-browser.mjs', 'apps/cad-studio/test/task-run-status-flow.mjs', 'apps/cad-studio/test/task-run-three-flow.mjs', 'apps/cad-studio/test/task-run-history-flow.mjs', 'apps/cad-studio/test/task-run-working-flow.mjs', 'apps/cad-studio/test/task-run-single-repair-flow.mjs', scripted, 'apps/cad-studio/test/task-run-fixture.ts',
   'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/scripts/cad-cli.mjs', 'apps/cad-studio/server/cadCli.ts',
   'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
   'apps/cad-studio/server/taskRun/cli.ts', 'apps/cad-studio/server/taskRun/localPlan.ts',
-  ...['team/taskPlan', 'team/localHeightPlan', 'chat/tools', 'chat/part/requirements', 'chat/groups', 'chat/toolDefinitions',
+  ...['team/taskPlan', 'team/taskExecution', 'team/localHeightPlan', 'chat/tools', 'chat/part/requirements', 'chat/groups', 'chat/toolDefinitions',
     'chat/contract', 'util/digest'].map(name => `packages/barocss-cad-model/src/${name}.ts`),
   'packages/barocss-cad-model/src/chat/tools-v2.json',
   'apps/cad-studio/src/files/taskRunHandoff.ts', 'apps/cad-studio/src/chat/taskRunOffer.ts',
@@ -45,13 +47,13 @@ const pins = [
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: repairMode ? 'D627_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
-import { fixtureDoc, threeOccurrenceDoc } from './test/task-run-fixture';
+import { fixtureDoc, singleRepairDoc, threeOccurrenceDoc } from './test/task-run-fixture';
 if (process.argv[3]) console.log(JSON.stringify(digestOf(JSON.parse(readFileSync(process.argv[2], 'utf8')))));
 else {
-  const doc = ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
+  const doc = ${repairMode} ? singleRepairDoc() : ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
   if (${widthMode}) {
     doc.instances[0].doc.requirements[0] = { ...doc.instances[0].doc.requirements[0], id: 'width', source: 'Use the stated width in mm.',
@@ -77,10 +79,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: repairMode ? 'Repair one failed occurrence on the saved working model' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -91,8 +93,8 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
-const readySummary = `${occurrences.length} local ${widthMode ? 'dimension' : 'height'} targets ready`;
+const project = repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const readySummary = `${occurrences.length} local ${widthMode ? 'dimension' : 'height'} target${repairMode ? '' : 's'} ready`;
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences, ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -210,6 +212,16 @@ process.exitCode = code ?? 1;
     assert.equal(first.results[0].body.revision, cliPlan.modelDigest);
     assert.equal(first.results[0].body.status, 'ready');
     assert.equal(first.events[0].summary, readySummary);
+    if (repairMode) {
+      assert.deepEqual(cliPlan.targets.map(t => [t.id, t.currentHeightMm, t.heightMm]), [['p3', 7, 5]]);
+      assert.equal(cliPlan.limits.concurrent, 1);
+      assert.equal(cliPlan.budget, 4);
+      assert.deepEqual(cliPlan.plan.protectedOccurrences, ['p1', 'p2']);
+      const satisfied = await turn('already-satisfied', [call({ occurrences: ['p1'] })]);
+      assert.equal(satisfied.results[0].body.status, 'blocked');
+      assert.deepEqual(satisfied.results[0].body.issues.map(issue => issue.code), ['UNCOVERED_REQUIREMENT']);
+      assert.equal(satisfied.events[0].taskRunOffer, undefined);
+    }
     await f.same(source);
     await f.snapshot('01-ready-plan');
     let handoff, studioRun;
@@ -234,9 +246,12 @@ process.exitCode = code ?? 1;
       assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 0);
       const row = f.page.locator('details.chat-tool').filter({ hasText: readySummary });
       await row.locator('summary').click();
-      await row.getByText(widthMode ? 'p1 · Width 20 → 24 mm' : 'p1 · 5 → 6 mm', { exact: true }).waitFor();
-      await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
-      if (threeMode) await row.getByText('p3 · 3 → 5 mm', { exact: true }).waitFor();
+      if (repairMode) await row.getByText('p3 · 7 → 5 mm', { exact: true }).waitFor();
+      else {
+        await row.getByText(widthMode ? 'p1 · Width 20 → 24 mm' : 'p1 · 5 → 6 mm', { exact: true }).waitFor();
+        await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
+        if (threeMode) await row.getByText('p3 · 3 → 5 mm', { exact: true }).waitFor();
+      }
       await f.snapshot('04-export-task-run');
       await row.getByRole('button', { name: 'Export task run', exact: true }).click();
       await f.page.waitForFunction(() => window.__d618Exports.length === 1);
@@ -254,6 +269,13 @@ process.exitCode = code ?? 1;
       const start = row.getByRole('button', { name: 'Start local run', exact: true });
       if (startMode) {
         f.phase = 'start held local candidates and reuse the existing run';
+        if (repairMode) {
+          await f.addParameter('afterPlan', 7, '05-edit-after-repair-plan');
+          await start.click();
+          await row.getByText('The working model differs from the reviewed plan. Save and inspect it again.', { exact: true }).waitFor();
+          await button('Undo').click();
+          await f.same(source);
+        }
         assert.equal(requests.length, 0);
         await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
         const endpoint = origin + '/api/chat/task-runs/start';
@@ -303,13 +325,18 @@ process.exitCode = code ?? 1;
         assert.equal(record.pending, undefined);
         assert.equal(record.epoch, 2);
         assert.equal(record.accepted.sha256, sha256(saved));
-        assert.deepEqual(record.state.tasks.map(task => task.candidate.geometry.volumeMm3), threeMode ? [1200, 384, 480] : [1200, 384]);
+        assert.deepEqual(record.state.tasks.map(task => task.candidate.geometry.volumeMm3), repairMode ? [480] : threeMode ? [1200, 384, 480] : [1200, 384]);
         await f.same(source);
         await f.snapshot('06-local-run-started');
         assert.deepEqual(await launch(), { ...firstLaunch, reused: true });
         await row.getByText('Existing local run · active', { exact: true }).waitFor();
         assert.deepEqual(await readFile(runJson), initial);
         assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
+        if (repairMode) {
+          await taskRunSingleRepairFlow({ f, row, launch: firstLaunch, source, saved, savedBytes });
+          assert.deepEqual(f.report.downloads, []);
+          return;
+        }
         const reversed = {
           offer: { ...receipt.offer, occurrences: [...receipt.offer.occurrences].reverse(), targets: [...receipt.offer.targets].reverse() },
           sourceSHA256: receipt.sourceSHA256,

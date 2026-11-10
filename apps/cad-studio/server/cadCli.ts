@@ -61,14 +61,14 @@ function personListFile(path: string): { rowFiles: PersonRowFiles; file: string 
   } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
 }
 const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
-export const CLI_USAGE = `cad-cli task-run plan source.bcad occurrenceA occurrenceB [occurrenceC]
+export const CLI_USAGE = `cad-cli task-run plan source.bcad occurrenceA [occurrenceB] [occurrenceC]
   Prints a local plan bound to the saved native source and the stated dimension targets.
 cad-cli task-run start dir --plan plan.json
   Starts the reviewed plan. The existing start dir config.json form also works.
 cad-cli task-run start dir --handoff source.bcad-task
   Starts the task plan and native snapshot exported from Studio.
 cad-cli task-run <status|work|refresh|review|decide|pause|resume|stop|policy|answer|export> ...
-  Runs two or three independent local tasks. Decisions require a terminal operator.
+  Runs one to three independent local tasks. Decisions require a terminal operator.
 cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
   --stl writes one file per body when there are several (part-b1.stl, part-b3.stl, …).

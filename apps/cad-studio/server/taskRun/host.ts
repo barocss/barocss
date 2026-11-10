@@ -86,7 +86,7 @@ function admitted(doc: StudioDoc, request: TaskPlanRequest): TaskPlan {
   const result = compileTaskPlan(doc, request);
   if ('error' in result) throw new Error(`${result.error.code}: ${result.error.message}`);
   if (!isLocalTaskCount(result.tasks.length) || result.tasks.some(task => task.dependsOn.length)) {
-    throw new Error('This run profile requires two or three independent tasks.');
+    throw new Error('This run profile requires one to three independent tasks.');
   }
   return result;
 }

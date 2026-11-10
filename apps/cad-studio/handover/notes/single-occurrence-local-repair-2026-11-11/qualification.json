@@ -1,0 +1,217 @@
+{
+  "decision": "D627",
+  "tier": "FULL interface",
+  "baseCommit": "7d54fe4997759ea49cbc1669ee2dbc496f43966d",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d627-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio single repair",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D627_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified\" --repair",
+      "receiptSHA256": "9ba9bf6d4d402f3a4a306dc874c7422d180e75864be1cdbeeb5f55e32e497076",
+      "pinnedSources": 800,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "selectedTasks": [
+          "p3"
+        ],
+        "workingHeightsMm": [
+          6,
+          4,
+          5
+        ],
+        "originalHeightsMm": [
+          6,
+          4,
+          7
+        ],
+        "untouchedOccurrences": [
+          "p1",
+          "p2"
+        ],
+        "staleWorkingPlanRefused": true,
+        "satisfiedPlanRefused": true,
+        "terminalApprovals": 1,
+        "workingRecheckMm": 5,
+        "budget": {
+          "limit": 4,
+          "used": 1,
+          "unknown": 0
+        }
+      }
+    },
+    {
+      "label": "Desktop Studio three-task and working check regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D626_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-three-verified\" --working",
+      "receiptSHA256": "312ab9211cae48a7364a270fe98e55c9eb352eb87ea73ae324182d266dc3f1c1",
+      "pinnedSources": 800,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop Studio two-task and historical checkpoint regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-two-verified\" --width",
+      "receiptSHA256": "0525019638c7d6bcd2be6ae06f711553391f5188ae0cb290ec914a4930dbf7cb",
+      "pinnedSources": 800,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run"
+    },
+    {
+      "label": "Independent native scope reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/repair-oracle.py\" \"$EVIDENCE/desktop-verified\"",
+      "scriptSHA256": "1ed27b743ccf9b88efe897680845d04599afc9c05753b560c74e83ec21cf1eaa",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "exactScopedEdit": "p3/n1.height",
+        "protectedOccurrences": [
+          "p1",
+          "p2"
+        ],
+        "inputDimensionsMm": [
+          [
+            20,
+            10,
+            6
+          ],
+          [
+            12,
+            8,
+            4
+          ],
+          [
+            12,
+            8,
+            7
+          ]
+        ],
+        "acceptedDimensionsMm": [
+          [
+            20,
+            10,
+            6
+          ],
+          [
+            12,
+            8,
+            4
+          ],
+          [
+            12,
+            8,
+            5
+          ]
+        ],
+        "finalVolumesMm3": [
+          1200,
+          384,
+          480
+        ],
+        "checkpointSHA256": "af1f9d8d87bec35653716c0002643beac3ffc615102dfba48be06a3d8c9c680b"
+      }
+    },
+    {
+      "label": "CLI start from saved plan",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "node scripts/cad-cli.mjs task-run start \"$EVIDENCE/cli-plan-verified-run\" --plan \"$EVIDENCE/desktop-verified/cli-plan.json\"",
+      "candidates": [
+        "p3"
+      ],
+      "budget": {
+        "limit": 4,
+        "used": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "label": "CLI start from Studio handoff",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "node scripts/cad-cli.mjs task-run start \"$EVIDENCE/cli-handoff-verified-run\" --handoff \"$EVIDENCE/desktop-verified/housing.bcad-task\"",
+      "candidates": [
+        "p3"
+      ],
+      "budget": {
+        "limit": 4,
+        "used": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 175,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-verified\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First CLI plan inside Studio run and focused Studio suite",
+      "reason": "The planner required an edit task for each sibling with hard checks, and one earlier test still classified a single selection as malformed. The corrected plan binds the protected siblings and checks them natively."
+    }
+  ],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Assembly-wide or nested protected checks"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

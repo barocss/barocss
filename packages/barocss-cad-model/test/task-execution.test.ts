@@ -61,6 +61,36 @@ function setup(doc = assembly(), input = request()) {
 }
 const refuses = (out: unknown, code: string) => assert.equal((out as { error?: { code: string } })?.error?.code, code, JSON.stringify(out));
 
+test('D627 a protected sibling must pass the native check both before review and at approval', async () => {
+  const doc = assembly(), [base, lid] = doc.instances!;
+  delete doc.interfaces;
+  base.doc = { ...rectanglePart(20, 10, 5), requirements: [height('base-height', 6)] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+  const input: TaskPlanRequest = { ...request(), maxTasks: 1, tasks: [task('base', 'p1')], protectedOccurrences: ['p2'] };
+  const { plan, state, context, submission } = setup(doc, input);
+  refuses(compileTaskPlan(doc, { ...input, protectedOccurrences: ['p1'] }), 'BAD_PLAN');
+  refuses(compileTaskPlan(doc, { ...input, protectedOccurrences: ['p2', 'p2'] }), 'BAD_PLAN');
+  refuses(compileTaskPlan(doc, { ...input, protectedOccurrences: undefined }), 'UNCOVERED_REQUIREMENT');
+
+  const wrongNativeHeight = async (model: StudioDoc) => {
+    const result = await evaluate(model);
+    if (!result.ok || !model.requirements?.some(req => req.id === 'lid-height')) return result;
+    const bodies = result.bodies.map(body => {
+      const { min, max } = body.mesh.bounds;
+      return { ...body, mesh: { ...body.mesh, bounds: { min, max: [max[0], max[1], max[2] + 1] as typeof max } } };
+    });
+    return { ...result, bodies };
+  };
+  const submit = submission('base', 6);
+  refuses(await buildTaskCandidate(plan, state, submit, context, wrongNativeHeight), 'TASK_PROTECTED_CHECK');
+  const candidate = await buildTaskCandidate(plan, state, submit, context, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  const decision = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in decision));
+  refuses(await applyTaskDecision(decision, state, context, wrongNativeHeight), 'TASK_PROTECTED_CHECK');
+  assert.equal(digestOf(state.doc), plan.baselineDigest);
+});
+
 test('D623 a width task edits only the plain rectangle X extent and refuses unsupported width inputs', async () => {
   const doc = assembly();
   delete doc.interfaces;

@@ -4,6 +4,7 @@ import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-mod
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
+import { verifyProtectedTaskChecks } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan, taskDimensionEdit, type BoundTask, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, requirementEvidenceRevision, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
@@ -137,6 +138,12 @@ export async function verifyTaskCheckpoint(checkpoint: NonNullable<Awaited<Retur
   const approved = result.after, rows = approved?.evidence.filter(row => row.requirement?.hard) ?? [];
   if (!approved || !rows.length || rows.some(row => !isCurrentRequirement(row, part, comparison.revisions.after) || row.result.verdict !== 'pass'))
     return refusal('The accepted task requirements did not pass the current native checks.');
+  if (receipt.plan.protectedOccurrences) {
+    const protection = await verifyProtectedTaskChecks(checkpoint.doc, receipt.plan.protectedOccurrences,
+      doc => current() ? evaluate(doc) : Promise.resolve(null));
+    if (!current()) return null;
+    if (protection) return refusal(protection.error.message);
+  }
   const { taskId, revision, proposalId, scope } = receipt;
   const instance = checkpoint.doc.instances?.find(instance => instance.id === part);
   const approvalAt = checkpoint.doc.proposals?.find(proposal => proposal.id === proposalId)?.decided?.at;

@@ -1,7 +1,7 @@
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { readTaskSubmission, taskSubmissionValue, verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
+import { readTaskSubmission, taskSubmissionValue, verifyProtectedTaskChecks, verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
@@ -105,5 +105,11 @@ export function candidateReviewOnBaseline(receipt: CandidateReviewReceipt, basel
 export async function verifyCandidateReview(candidate: Exclude<ReturnType<typeof readCandidateReview>, { error: string }>, evaluate: Evaluate) {
   const { local, shape, height, task } = candidate;
   const verified = await verifyTaskGeometry(local, shape, height, task, evaluate);
-  return 'error' in verified ? refusal(verified.error.message) : verified;
+  if ('error' in verified) return refusal(verified.error.message);
+  const protectedOccurrences = candidate.receipt.plan.protectedOccurrences;
+  if (protectedOccurrences) {
+    const protection = await verifyProtectedTaskChecks(candidate.doc, protectedOccurrences, evaluate);
+    if (protection) return refusal(protection.error.message);
+  }
+  return verified;
 }

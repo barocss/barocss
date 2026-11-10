@@ -1,5 +1,5 @@
 ---
-work_id: D626
+work_id: D627
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -189,7 +189,9 @@ D625 adds the Studio run card approval history. Desktop verifies the three immut
 
 D626 adds the working-occurrence check to approval history. Desktop verifies a current failure, a changed criterion and two late Worker replies while the approval results stay fixed. [D626](../../notes/working-worker-approval-checks-2026-11-11/README.md).
 
-Next MAIN is D627 / P0 automation, B09 follow-up, rows 04, 12 and 16. Run one scoped repair task when only one placed occurrence has an unmet stated dimension. Use the saved working revision and the existing local planner, native verification and terminal approval. Verify Studio can publish and recheck the repaired part while the other occurrences retain their prior values. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D627 repairs one selected occurrence and checks both protected siblings. Desktop verifies the terminal-approved checkpoint and a fresh working pass on the repaired dimension. [D627](../../notes/single-occurrence-local-repair-2026-11-11/README.md).
+
+Next MAIN is D628 / P0 automation, B09 follow-up, rows 04, 12 and 16. Prepare a repair directly from a failed working check in the approval history card. Bind the existing one-task planner to the selected occurrence, verified unchanged criterion and exact saved working revision. Require an explicit start and refuse stale, unsaved or changed criteria. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

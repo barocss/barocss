@@ -1,4 +1,5 @@
 // D584: a verified task is a candidate on a frozen input. The host owns decisions and the accepted document.
+import { isCurrentRequirement, requirementEvidenceOf } from '../chat/requirementEvidence';
 import { expectedOf, checkSpec } from '../chat/spec';
 import { acceptProposal, runTool, type ChatState, type Evaluate } from '../chat/tools';
 import type { StudioDoc } from '../engine/doc';
@@ -168,6 +169,18 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: Exclude<Return
   return { checks: Object.freeze(checks), geometry: Object.freeze({ sizeMm: Object.freeze(size), volumeMm3: volume, centroidMm: Object.freeze(centroid) }) };
 }
 
+/** Read protected siblings through the native requirement checker on the candidate document. */
+export async function verifyProtectedTaskChecks(doc: StudioDoc, protectedOccurrences: readonly string[] | undefined,
+  evaluate: Evaluate): Promise<TaskPlanError | undefined> {
+  for (const part of protectedOccurrences ?? []) {
+    const report = await requirementEvidenceOf(doc, part, evaluate);
+    if ('error' in report) return failure('TASK_PROTECTED_CHECK', report.error);
+    const hard = report.evidence.filter(row => row.requirement?.hard);
+    if (!hard.length || hard.some(row => !isCurrentRequirement(row, part, report.revision) || row.result.verdict !== 'pass'))
+      return failure('TASK_PROTECTED_CHECK', `The protected requirements of ${part} did not pass native verification.`);
+  }
+}
+
 /** Evaluate one admitted dimensional edit on a private copy, then prepare its existing grouped proposal. */
 export async function buildTaskCandidate(
   plan: TaskPlan, state: ChatState, submission: TaskSubmission, context: TaskWorkerContext, evaluate: Evaluate,
@@ -205,6 +218,10 @@ export async function buildTaskCandidate(
 
   const verified = await verifyTaskGeometry(local, shape, height, task, evaluate);
   if ('error' in verified) return verified;
+  if (plan.protectedOccurrences) {
+    const protection = await verifyProtectedTaskChecks(candidate, plan.protectedOccurrences, evaluate);
+    if (protection) return protection;
+  }
 
   const proposal = await runTool(own, 'proposals', {
     action: 'propose', title: `Task ${task.id}`,
@@ -279,9 +296,13 @@ export async function applyTaskDecision(
   if (prerequisite) return prerequisite;
   const accepted = await acceptProposal({ doc: structuredClone(record.proposalDoc), bodies: structuredClone(state.bodies) }, record.proposal, evaluate, { by: { agent: 'user' } });
   if ('error' in accepted) return failure('TASK_PROPOSAL_REFUSED', accepted.error);
-  const changed = current() ?? dependencyProblem(task, record.prerequisites);
-  if (changed) return changed;
   if (candidateModelDigest(accepted.state.doc) !== record.modelDigest)
     return failure('TASK_CANDIDATE_MOVED', 'the proposal replay differs from the verified candidate');
+  if (plan.protectedOccurrences) {
+    const protection = await verifyProtectedTaskChecks(accepted.state.doc, plan.protectedOccurrences, evaluate);
+    if (protection) return protection;
+  }
+  const changed = current() ?? dependencyProblem(task, record.prerequisites);
+  if (changed) return changed;
   return { doc: accepted.state.doc, decision };
 }

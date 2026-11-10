@@ -27,6 +27,7 @@ export interface TaskPlanRequest {
   readonly maxTasks: number;
   readonly throughSequence: number;
   readonly tasks: readonly TaskRequest[];
+  readonly protectedOccurrences?: readonly string[];
 }
 export interface TaskPlanError { error: { code: string; message: string } }
 export interface BoundTask extends TaskRequest {
@@ -48,6 +49,7 @@ export interface TaskPlan {
   readonly providerCostUsd: 0;
   readonly specification: Readonly<{ brief: StudioDoc['brief']; requirements: readonly Requirement[]; interfaces: Interfaces }>;
   readonly tasks: readonly BoundTask[];
+  readonly protectedOccurrences?: readonly string[];
 }
 
 /** The only authored change allowed by the local extrusion-height task. */
@@ -164,12 +166,41 @@ const pendingDrafts = (doc: StudioDoc, scope: string) => [
   ...unitAssumptions(doc).map(d => `${scope}:draft-units:${d}`),
 ];
 const hardChecks = (doc: StudioDoc) => (doc.requirements ?? []).filter(r => r.hard);
-function checkCoverage(doc: StudioDoc, tasks: readonly TaskRequest[]): TaskPlanError | undefined {
+function protectedChecksPass(doc: StudioDoc, id: string): boolean {
+  const part = doc.instances?.find(instance => instance.id === id)?.doc;
+  if (!part || pendingDrafts(part, id).length) return false;
+  const target = taskTarget(doc, { occurrence: id, feature: part.nodes[1]?.id ?? '' });
+  if ('error' in target) return false;
+  const checks = hardChecks(part);
+  if (!checks.length || new Set(checks.map(req => req.id)).size !== checks.length) return false;
+  const bounds = { x: target.shape.width, y: target.shape.depth, z: target.height };
+  return checks.every(req => {
+    const check = req.check;
+    return !checkRequirement(req) && req.basis === 'stated' && !!req.source.trim()
+      && check.query.fn === 'bbox' && check.query.body === undefined && check.unit === 'mm'
+      && (check.tol ?? 0) >= 0 && (check.op !== 'between' || ((check.tol ?? 0) === 0 && check.min! <= check.max!))
+      && meets(bounds[check.query.axis], check).ok;
+  });
+}
+
+function checkCoverage(doc: StudioDoc, tasks: readonly TaskRequest[], protectedOccurrences?: readonly string[]): TaskPlanError | undefined {
   if (hardChecks(doc).length) return error('UNCOVERED_REQUIREMENT', 'Assembly hard requirements are outside this profile.');
   const owned = new Set(tasks.map(t => t.occurrence));
+  const protectedIds = new Set<string>();
+  if (protectedOccurrences !== undefined) {
+    if (tasks.length !== 1 || !Array.isArray(protectedOccurrences) || !protectedOccurrences.length || protectedOccurrences.length > MAX_TASKS)
+      return error('BAD_PLAN', 'Protected occurrences require one repair task and a bounded list of sibling IDs.');
+    for (const id of protectedOccurrences) {
+      if (!name(id) || owned.has(id) || protectedIds.has(id))
+        return error('BAD_PLAN', 'Protected occurrences must be distinct and outside the repair task.');
+      if (!protectedChecksPass(doc, id))
+        return error('UNCOVERED_REQUIREMENT', `${id} needs passing, stated local dimension requirements to stay protected.`);
+      protectedIds.add(id);
+    }
+  }
   const walk = (parent: StudioDoc, top = true): string | undefined => {
     for (const i of parent.instances ?? []) {
-      if ((!top || !owned.has(i.id)) && hardChecks(i.doc).length) return i.id;
+      if ((!top || (!owned.has(i.id) && !protectedIds.has(i.id))) && hardChecks(i.doc).length) return i.id;
       const nested = walk(i.doc, false);
       if (nested) return nested;
     }
@@ -290,7 +321,7 @@ function validateIdentity(value: unknown): value is TaskIdentity {
 }
 
 export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskPlan | TaskPlanError {
-  if (!isObj(request) || !only(request, ['identity', 'policyRevision', 'maxTasks', 'throughSequence', 'tasks'])
+  if (!isObj(request) || !only(request, ['identity', 'policyRevision', 'maxTasks', 'throughSequence', 'tasks', 'protectedOccurrences'])
     || !validateIdentity(request.identity) || !name(request.policyRevision)) return error('BAD_PLAN', 'Supply a document identity and policy revision.');
   if (!Number.isSafeInteger(request.maxTasks) || request.maxTasks < 1 || request.maxTasks > MAX_TASKS
     || !Array.isArray(request.tasks) || !request.tasks.length || request.tasks.length > request.maxTasks) {
@@ -331,7 +362,7 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
     return true;
   }
   for (const id of tasks.keys()) if (!visit(id)) return error('DEPENDENCY_CYCLE', `The tasks contain a dependency cycle at ${id}.`);
-  const coverage = checkCoverage(doc, [...tasks.values()]);
+  const coverage = checkCoverage(doc, [...tasks.values()], request.protectedOccurrences);
   if (coverage) return coverage;
 
   const bound: BoundTask[] = [];
@@ -343,7 +374,8 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
   }
   const baselineDigest = digestOf(doc), { identity, policyRevision, maxTasks, throughSequence } = request;
   const specification = { brief: doc.brief, requirements: doc.requirements ?? [], interfaces: readInterfaces(doc.interfaces) };
-  const contract = { identity, policyRevision, maxTasks, throughSequence, providerCostUsd: 0 as const, baselineDigest, specification, tasks: bound };
+  const contract = { identity, policyRevision, maxTasks, throughSequence, providerCostUsd: 0 as const, baselineDigest, specification, tasks: bound,
+    ...(request.protectedOccurrences && { protectedOccurrences: request.protectedOccurrences }) };
   const specRevision = digestOf(contract);
   const plan = freeze(structuredClone({ specRevision, ...contract }));
   admitted.add(plan);
@@ -357,7 +389,7 @@ export function taskPlanImpact(plan: TaskPlan, doc: StudioDoc, identity: TaskIde
     return Array.isArray(tasks) ? tasks.filter(t => isObj(t) && name(t.id)).map(t => ({ id: t.id, state: 'blocked', reason: 'Task plan was not admitted.' })) : [];
   }
   const foreign = !validateIdentity(identity) || plan.identity.projectId !== identity.projectId || plan.identity.documentId !== identity.documentId;
-  const coverage = checkCoverage(doc, plan.tasks);
+  const coverage = checkCoverage(doc, plan.tasks, plan.protectedOccurrences);
   const impacts = new Map<string, TaskImpact>();
   for (const task of plan.tasks) {
     const blocked = (reason: string): TaskImpact => ({ id: task.id, state: 'blocked', reason });
@@ -385,7 +417,8 @@ export function taskPlanImpact(plan: TaskPlan, doc: StudioDoc, identity: TaskIde
 export function taskScopeMatches(plan: TaskPlan, taskId: string, activePlan: TaskPlan): boolean {
   if (plan === activePlan) return true;
   if (plan.identity.projectId !== activePlan.identity.projectId || plan.identity.documentId !== activePlan.identity.documentId
-    || plan.policyRevision !== activePlan.policyRevision) return false;
+    || plan.policyRevision !== activePlan.policyRevision
+    || digestOf(plan.protectedOccurrences ?? []) !== digestOf(activePlan.protectedOccurrences ?? [])) return false;
   const active = new Map(activePlan.tasks.map(task => [task.id, task]));
   const same = new Map<string, boolean>();
   for (const task of plan.tasks) {

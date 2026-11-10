@@ -22,7 +22,7 @@ import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
 interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number> }
-const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB [occurrenceC] | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+const HELP = 'cad-cli task-run <plan source.bcad occurrenceA [occurrenceB] [occurrenceC] | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
