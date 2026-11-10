@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D570 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D571 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D570 verifies a trusted Chromium file-input cancel after the public Open action. The current document, clipboard and both history stacks stay exact, and the next body Paste is at X +44 mm. [D570](notes/body-clipboard-cancel-open-2026-11-10/README.md). [D569 text focus](notes/body-clipboard-text-focus-2026-11-10/README.md) and [D568 native Save and fresh Open](notes/body-clipboard-save-reopen-2026-11-10/README.md) retain their recorded scope.
-- **Next MAIN:** D571 / P0 rows 12 and 16. Check the user-visible Copy notice when a document boundary invalidates the clipboard for [#2310](https://github.com/barocss/barocss/issues/2310). The D560 and D566 captures show the previous Paste instruction after invalidation.
+- **Current position:** D571 clears the Copy notice when the body clipboard is invalidated. Actual Studio passes five invalidation paths and retains the valid same-branch notice and an unrelated Open refusal. The selected [#2310](https://github.com/barocss/barocss/issues/2310) acceptance is verified. [D571](notes/body-clipboard-notice-2026-11-10/README.md).
+- **Next MAIN:** D572 / P0 rows 16 and 28. Reproduce [#2361](https://github.com/barocss/barocss/issues/2361) with two local libraries that share IDs but have different geometry. Check whether Insert and Place use the source shown in Studio.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

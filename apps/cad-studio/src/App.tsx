@@ -284,7 +284,7 @@ export function App() {
       if (copied && !Object.hasOwn(current.outputs, copied.key)
         && !current.nodes.some((_, i) => featureId(current.nodes, i) === copied.featureId)
         && next.nodes.some((_, i) => featureId(next.nodes, i) === copied.featureId)) {
-        clipboard.current = null;
+        clearBodyClipboard();
       }
       const entry: WorkHistory<StudioDoc> = replacementScope.current === null ? intent.entry : { ...intent.entry, documentBoundary: true };
       setUndo(u => [...u.slice(-49), entry]); setRedo([]);
@@ -430,7 +430,11 @@ export function App() {
   const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
   // (`action`: one button on the toast, e.g. Undo after the agent applied a change directly, D41.)
   const [workerFailure, setWorkerFailure] = useState<FriendlyError | null>(null);
-  const [notice, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void } }) | null>(null);
+  const [notice, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void }; bodyCopy?: true }) | null>(null);
+  const clearBodyClipboard = useCallback(() => {
+    clipboard.current = null;
+    setToast(current => current?.bodyCopy ? null : current);
+  }, []);
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
@@ -1407,9 +1411,9 @@ export function App() {
   const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : notice;
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
-    clipboard.current = null;
+    clearBodyClipboard();
     return { doc, marker, documentBoundary: true };
-  }, []);
+  }, [clearBodyClipboard]);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1500,7 +1504,7 @@ export function App() {
     cancelStepExportRef.current(); invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
     try {
       if (!commit(next, false, true)) return;
-      clipboard.current = null;
+      clearBodyClipboard();
       if (!fromProject) { project.detach(); setCompareBase(null); }
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }
@@ -1701,7 +1705,7 @@ export function App() {
         if (body) {
           const sourceNodes = bodiesFor?.nodes ?? evaluated.nodes;
           clipboard.current = { key: body.key, featureId: featureId(sourceNodes, refOf(body).node), pastes: 0 };
-          setToast({ title: 'Copied', hint: `${bodyName(doc, body)} — ⌘V pastes a copy beside it.`, detail: '' });
+          setToast({ bodyCopy: true, title: 'Copied', hint: `${bodyName(doc, body)} — ⌘V pastes a copy beside it.`, detail: '' });
         }
         return;
       }

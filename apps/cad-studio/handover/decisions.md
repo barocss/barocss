@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D571 — clear the copy notice with its body clipboard](notes/body-clipboard-notice-2026-11-10/README.md).
+
 - [D570 — verify clipboard and history when Open is cancelled](notes/body-clipboard-cancel-open-2026-11-10/README.md).
 
 - [D569 — verify body clipboard isolation while a text input has focus](notes/body-clipboard-text-focus-2026-11-10/README.md).
