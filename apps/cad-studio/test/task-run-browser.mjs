@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'), 'Use an artifact directory outside the worktree');
+assert.ok(mode === undefined || mode === '--evidence');
+const evidenceMode = mode === '--evidence';
 const pins = [
   'apps/cad-studio/test/task-run-browser.mjs',
   'apps/cad-studio/test/task-run-fixture.ts',
@@ -19,10 +22,18 @@ const pins = [
   'apps/cad-studio/src/ui/NodeEditor.tsx',
   'packages/barocss-cad-model/src/engine/container.ts',
   'packages/barocss-cad-model/src/team/taskExecution.ts',
+  'apps/cad-studio/src/storage/VersionsPanel.tsx',
+  'apps/cad-studio/src/storage/approvedRequirementCompare.ts',
+  'apps/cad-studio/scripts/cad-mcp.mjs',
+  'apps/cad-studio/server/cadMcp.ts',
+  'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
+  'packages/barocss-cad-model/src/chat/outputs.ts',
 ];
 const inspectorSource = String.raw`
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
@@ -30,13 +41,15 @@ import { outputOf } from '@barocss/cad-model/api/outputs';
 import type { Bom } from '@barocss/cad-model/bom/core';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { TaskRunHost } from './server/taskRun/host';
+import { TaskRunStore } from './server/taskRun/store';
+import { digestOf } from '@barocss/cad-model/util/digest';
 import { serveTaskThread, threadWorker, type ThreadStart, type ThreadFinish } from './server/taskRun/thread';
 import { fixtureDoc, fixturePlan, fixtureLimits } from './test/task-run-fixture';
 
 let revision = 0;
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, ++revision);
 if (!(await serveTaskThread(evaluate))) {
-  const { directory, file, bomFile } = JSON.parse(process.argv[3]);
+  const { directory, file, bomFile, beforeLid } = JSON.parse(process.argv[3]);
   const host = await TaskRunHost.create(directory, 'studio-housing', fixtureDoc(), fixturePlan, fixtureLimits, 8, evaluate);
   const initial = host.snapshot.accepted;
   const gate = new SharedArrayBuffer(4), value = new Int32Array(gate);
@@ -85,18 +98,79 @@ if (!(await serveTaskThread(evaluate))) {
     assert.equal(artifact.path, 'bom.json');
     assert.equal(typeof artifact.text, 'string');
     writeFileSync(bomFile, artifact.text);
-    console.log(JSON.stringify({ initial, starts, finishes, recovered: restored.snapshot, bom }));
+    const snapshot = restored.snapshot;
+    if (beforeLid) {
+      const checkpoint = readFileSync(join(directory, 'run.json'));
+      assert.deepEqual(TaskRunStore.inspect(directory), JSON.parse(JSON.stringify(snapshot)));
+      assert.deepEqual(readFileSync(join(directory, 'run.json')), checkpoint);
+      assert.equal(digestOf(recovered.doc), snapshot.accepted.modelDigest);
+      const ref = snapshot.commits.at(-1)!.from;
+      const bytes = readFileSync(join(directory, 'native', ref.sha256 + '.bcad'));
+      const before = await readStudioFile(bytes);
+      assert.ok(!('error' in before));
+      assert.equal(digestOf(before.doc), ref.modelDigest);
+      writeFileSync(beforeLid, bytes);
+    }
+    console.log(JSON.stringify({ initial, starts, finishes, recovered: snapshot, bom }));
   } finally { restored.close(); }
 }
 `;
 const f = await createFlow({
-  name: 'task-run', envFrozen: 'D586_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, inspectorSource,
-  qualification: 'D586 two local native worker threads and desktop Studio consumption of the recovered accepted document',
+  name: 'task-run', envFrozen: evidenceMode ? 'D600_SOURCE_FROZEN' : 'D586_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, inspectorSource,
+  qualification: evidenceMode ? 'D600 checkpoint-bound requirement evidence and actual Studio saved version review'
+    : 'D586 two local native worker threads and desktop Studio consumption of the recovered accepted document',
   limits: ['Approvals occur in the local test host.', 'Studio exercises its existing native file, part editor and browser project controls.'],
 });
-const fileName = 'D586-two-worker-housing.bcad', projectName = 'D586 local run';
+const fileName = evidenceMode ? 'D600-two-worker-housing.bcad' : 'D586-two-worker-housing.bcad';
+const projectName = evidenceMode ? 'D600 worker evidence' : 'D586 local run';
+const beforeVersion = 'Before lid approval', acceptedVersion = 'Lid approved', laterVersion = 'Later lid edit';
 const button = name => f.page.getByRole('button', { name, exact: true });
 const instance = name => f.page.locator('.ol.instance:not(.nested)').filter({ hasText: name });
+const versionsPanel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+const proof = historical => versionsPanel().getByRole('region', {
+  name: historical ? 'Saved approval checks' : 'Approved requirement checks', exact: true,
+});
+async function showVersions() {
+  if (!(await versionsPanel().isVisible())) await button('Project and versions').click();
+}
+async function openProject() {
+  await showVersions();
+  const panel = versionsPanel();
+  await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(projectName);
+  await panel.getByRole('button', { name: 'Project in this browser', exact: true }).click();
+  await panel.getByLabel('Project', { exact: true }).waitFor();
+}
+async function projectBytes(replacement) {
+  return Buffer.from(await f.page.evaluate(async ({ projectName, fileName, replacement }) => {
+    const root = await navigator.storage.getDirectory();
+    const projects = await root.getDirectoryHandle('projects');
+    const project = await projects.getDirectoryHandle(projectName);
+    const handle = await project.getFileHandle(fileName);
+    if (replacement) {
+      const writer = await handle.createWritable();
+      await writer.write(Uint8Array.from(replacement));
+      await writer.close();
+    }
+    return [...new Uint8Array(await (await handle.getFile()).arrayBuffer())];
+  }, { projectName, fileName, replacement: replacement ? [...replacement] : null }));
+}
+async function makeVersion(name) {
+  await showVersions();
+  const panel = versionsPanel();
+  await panel.getByRole('textbox', { name: 'Version name', exact: true }).fill(name);
+  await panel.getByRole('button', { name: 'Make version', exact: true }).click();
+  await panel.getByRole('listitem', { name: 'Version ' + name, exact: true }).waitFor();
+}
+async function compare(name) {
+  const panel = versionsPanel();
+  await panel.getByRole('button', { name: 'Compare ' + name, exact: true }).click();
+  await panel.getByRole('status', { name: 'Compared changes', exact: true }).waitFor();
+}
+async function checkRecovery(historical) {
+  await proof(historical).getByLabel('Requirement occurrence', { exact: true }).selectOption('p2');
+  await proof(historical).getByText('3 mm → 4 mm', { exact: true }).waitFor();
+  assert.match(await proof(historical).textContent(), /P2.*height.*Fail → Pass/s);
+}
 async function open(bytes) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: fileName, mimeType: 'application/json', buffer: bytes });
@@ -117,6 +191,48 @@ async function checkAssembly(label, doc, lidHeight) {
   ]);
 }
 
+const evidenceCall = (part, expectedRevision) => ({ action: 'evidence', part, ...(expectedRevision ? { expectedRevision } : {}) });
+async function mcpEvidence(file, label, calls) {
+  const requests = [
+    { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18' } },
+    ...calls.map((args, index) => ({ jsonrpc: '2.0', id: index + 2, method: 'tools/call', params: { name: 'requirements', arguments: args } })),
+  ];
+  const before = await readFile(file);
+  const run = spawnSync(process.execPath, [join(f.app, 'scripts/cad-mcp.mjs'), '--doc', file], {
+    input: requests.map(message => JSON.stringify(message) + '\n').join(''), encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024,
+  });
+  await writeFile(join(output, label + '-mcp.jsonl'), run.stdout ?? '');
+  await writeFile(join(output, label + '-mcp.stderr.txt'), run.stderr ?? '');
+  assert.equal(run.status, 0, run.error?.message ?? run.stderr);
+  const replies = run.stdout.trim().split('\n').map(line => JSON.parse(line));
+  assert.deepEqual(replies.map(reply => reply.id), requests.map(request => request.id));
+  assert.equal(replies[0].result.serverInfo.version, 'barocss-cad-tools-v2');
+  assert.deepEqual(await readFile(file), before);
+  return replies.slice(1).map(({ result }) => {
+    const reply = JSON.parse(result.content[0].text);
+    if (result.isError) {
+      assert.equal(reply.files, undefined);
+      return reply;
+    }
+    assert.deepEqual(result.structuredContent, reply);
+    const [artifact] = reply.files;
+    assert.equal(artifact.path, 'requirement-evidence.json');
+    assert.equal(artifact.sha256, sha256(artifact.text));
+    assert.equal(artifact.bytes, Buffer.byteLength(artifact.text));
+    const report = JSON.parse(artifact.text);
+    assert.equal(report.revision, reply.revision);
+    return report;
+  });
+}
+
+function checkEvidence(report, part, measurement, target, verdict) {
+  assert.deepEqual([report.format, report.version, report.part], ['barocss-requirement-evidence', 1, part]);
+  const row = report.evidence.find(row => row.requirement?.id === 'height');
+  assert.deepEqual([row.result.part, row.result.run, row.result.status, row.result.number, row.result.verdict, row.freshness.state],
+    [part, report.revision, 'ok', measurement, verdict, 'current']);
+  assert.deepEqual([row.requirement.check.value, row.requirement.check.unit, row.requirement.check.tol], [target, 'mm', 0.001]);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   f.report.runtimeOwnership = { nodePID: process.pid, nodePPID: process.ppid, serverURL: origin };
@@ -133,7 +249,8 @@ await f.run(async () => {
   const file = join(f.output, fileName);
   f.phase = 'local run with two native threads';
   const bomFile = join(f.output, 'bom.json');
-  const host = await f.inspect('native-task-run', {}, { file, bomFile, directory: join(f.output, 'run') });
+  const runDirectory = join(f.output, 'run'), beforeLid = evidenceMode ? join(f.output, 'before-lid.bcad') : undefined;
+  const host = await f.inspect('native-task-run', {}, { file, bomFile, beforeLid, directory: runDirectory });
   const bytes = await readFile(file), approved = JSON.parse(bytes);
   assert.equal(sha256(bytes), host.recovered.accepted.sha256);
   assert.deepEqual(host.recovered.commits.map(commit => commit.taskId), ['base', 'lid']);
@@ -147,10 +264,60 @@ await f.run(async () => {
   f.report.files.push({ file: bomFile, hash: sha256(bomBytes), source: 'Existing BOM output' });
   f.report.observations.push({ label: 'native worker traces and receipts', ...host });
 
-  f.phase = 'Open the recovered native document';
+  const checkpoint = evidenceMode ? await readFile(join(runDirectory, 'run.json')) : null;
+  const old = evidenceMode ? await readFile(beforeLid) : null;
+  let acceptedLid, acceptedBase, beforeReport;
   await f.newPage();
-  await open(bytes);
+  if (evidenceMode) {
+    f.phase = 'bind the durable before and after checkpoints to real MCP reports';
+    const [baseCommit, lidCommit] = host.recovered.commits;
+    assert.deepEqual(lidCommit.from, baseCommit.to);
+    assert.deepEqual(lidCommit.to, host.recovered.accepted);
+    assert.equal(sha256(old), lidCommit.from.sha256);
+    const lidTask = host.recovered.state.tasks.find(task => task.id === 'lid');
+    assert.deepEqual(lidTask.candidate.scope, { occurrence: 'p2', feature: 'n1', field: 'height' });
+    assert.equal(lidCommit.candidateDigest, lidTask.candidate.candidateDigest);
+    assert.deepEqual([lidTask.candidate.checks[0].id, lidTask.candidate.checks[0].status, lidTask.candidate.checks[0].measured], ['height', 'pass', 4]);
+    [beforeReport] = await mcpEvidence(beforeLid, 'before-lid', [evidenceCall('p2')]);
+    [acceptedBase, acceptedLid] = await mcpEvidence(file, 'accepted', [evidenceCall('p1'), evidenceCall('p2')]);
+    checkEvidence(beforeReport, 'p2', 3, 4, 'fail');
+    checkEvidence(acceptedBase, 'p1', 6, 6, 'pass');
+    checkEvidence(acceptedLid, 'p2', 4, 4, 'pass');
+    assert.equal(acceptedBase.revision, acceptedLid.revision);
+    assert.notEqual(beforeReport.revision, acceptedLid.revision);
+    const decision = approved.history.find(entry => entry.kind === 'accept' && entry.proposal === lidTask.candidate.proposalId);
+    assert.deepEqual(decision.evidence_revisions, { before: beforeReport.revision, after: acceptedLid.revision });
+
+    f.phase = 'save the real pre-approval native checkpoint as a Studio version';
+    await open(old);
+    await checkAssembly('00-before-lid-approval', JSON.parse(old), 3);
+    await openProject();
+    await makeVersion(beforeVersion);
+    assert.deepEqual(await projectBytes(), old);
+
+    f.phase = 'deliver the accepted native file to the closed project';
+    await versionsPanel().getByRole('button', { name: 'Close project', exact: true }).click();
+    await versionsPanel().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
+    // A separate process would copy the accepted output to a local project folder.
+    // The browser-project fixture uses OPFS for the same file handoff.
+    assert.deepEqual(await projectBytes(bytes), bytes);
+    await openProject();
+  }
+
+  f.phase = 'Open the recovered native document';
+  if (evidenceMode) await versionsPanel().getByRole('button', { name: 'Open ' + fileName, exact: true }).click();
+  else await open(bytes);
   await checkAssembly('01-two-accepted-parts', approved, 4);
+  if (evidenceMode) {
+    f.phase = 'review the worker approval in the existing Versions panel';
+    await makeVersion(acceptedVersion);
+    assert.deepEqual(await projectBytes(), bytes);
+    await compare(beforeVersion);
+    await checkRecovery(false);
+    await f.same(approved);
+    await f.snapshot('01-worker-approval');
+    await button('Project and versions').click();
+  }
 
   f.phase = 'Edit the lid in Studio';
   await instance('Lid').click();
@@ -168,6 +335,7 @@ await f.run(async () => {
   const lid = await f.snapshot('02-edited-lid');
   assert.equal(lid.bodies.bodies.length, 1);
   assert.ok(Math.abs(lid.bodies.bodies[0].volume - 480) < 1e-8);
+  if (evidenceMode) await f.page.locator('.req.fail[aria-label="Requirement height"]').waitFor();
   await editing.getByRole('button', { name: 'Finish', exact: true }).click();
   await editing.waitFor({ state: 'hidden' });
   const edited = structuredClone(approved);
@@ -175,23 +343,50 @@ await f.run(async () => {
   await checkAssembly('03-edited-assembly', edited, 5);
 
   f.phase = 'Save the edited assembly in the browser project';
-  await button('Project and versions').click();
-  const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-  await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(projectName);
-  await versions.getByRole('button', { name: 'Project in this browser', exact: true }).click();
-  await versions.getByLabel('Project', { exact: true }).waitFor();
-  await button('Save').click();
+  if (evidenceMode) await makeVersion(laterVersion);
+  else { await openProject(); await button('Save').click(); }
+  const versions = versionsPanel();
   await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(fileName, { exact: true }).waitFor();
-  const saved = Buffer.from(await f.page.evaluate(async ({ projectName, fileName }) => {
-    const root = await navigator.storage.getDirectory();
-    const projects = await root.getDirectoryHandle('projects');
-    const project = await projects.getDirectoryHandle(projectName);
-    return [...new Uint8Array(await (await (await project.getFileHandle(fileName)).getFile()).arrayBuffer())];
-  }, { projectName, fileName }));
+  const saved = await projectBytes();
   assert.deepEqual(JSON.parse(saved), edited);
   const savedFile = join(f.output, 'project-edited.bcad');
   await writeFile(savedFile, saved);
   f.report.files.push({ file: savedFile, hash: sha256(saved), source: 'OPFS', semanticEquality: true });
+
+  if (evidenceMode) {
+    f.phase = 'reopen the edited project and reject misattribution of the earlier approval';
+    const [stale, currentLid, currentBase] = await mcpEvidence(savedFile, 'edited', [
+      evidenceCall('p2', acceptedLid.revision), evidenceCall('p2'), evidenceCall('p1'),
+    ]);
+    assert.match(stale.error, /OUTPUT_STALE/);
+    checkEvidence(currentLid, 'p2', 5, 4, 'fail');
+    checkEvidence(currentBase, 'p1', 6, 6, 'pass');
+    assert.notEqual(currentLid.revision, acceptedLid.revision);
+    assert.equal(currentBase.definitionRevision, acceptedBase.definitionRevision);
+    assert.notEqual(currentLid.definitionRevision, acceptedLid.definitionRevision);
+    f.report.evidenceRevisions = { before: beforeReport.revision, accepted: acceptedLid.revision, edited: currentLid.revision };
+    f.report.checkpointSHA256 = sha256(checkpoint);
+
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await versionsPanel().getByRole('button', { name: 'Open ' + fileName, exact: true }).click();
+    await checkAssembly('04-reopened-working', edited, 5);
+    await compare(beforeVersion);
+    assert.equal(await proof(false).count(), 0);
+    const target = versionsPanel().getByLabel('Compare to', { exact: true });
+    await target.selectOption({ label: acceptedVersion });
+    await checkRecovery(true);
+    await f.same(edited);
+    await f.snapshot('05-saved-approval-with-later-edit');
+    await target.selectOption({ label: laterVersion });
+    await versionsPanel().getByText(beforeVersion + ' → ' + laterVersion + ' · saved versions', { exact: true }).waitFor();
+    assert.equal(await proof(true).count(), 0);
+    assert.equal(await proof(false).count(), 0);
+    assert.deepEqual(await readFile(join(runDirectory, 'run.json')), checkpoint);
+    assert.deepEqual(await readFile(file), bytes);
+    assert.deepEqual(await readFile(beforeLid), old);
+  }
 
   f.phase = 'Open the saved project bytes in a fresh session';
   await f.newPage();

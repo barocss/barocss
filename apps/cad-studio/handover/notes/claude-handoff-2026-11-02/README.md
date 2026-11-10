@@ -1,5 +1,5 @@
 ---
-work_id: D599
+work_id: D600
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -135,7 +135,9 @@ D598 verifies exact PNG delivery and ordered traces for same-name drawing revisi
 
 D599 reproduces the seventeenth image disabling later text turns. Actual Studio now refuses before dispatch, preserves the draft and reuses the original sixteen image indexes. [D599](../../notes/chat-image-capacity-2026-11-11/README.md).
 
-Next MAIN is D600 / P0 automation, B09 follow-up, rows 04, 12 and 16. Join the D586 local two-worker checkpoint and its accepted native file to a read-only requirement evidence report. Verify the accepted revision in actual Studio, then edit a driving dimension and check that the earlier run evidence cannot be attributed to the changed revision. Use the existing Versions and evidence paths first.
+D600 connects two local worker commits and the final accepted file to read-only MCP evidence and Studio Versions. A later working edit fails its check and keeps the historical approval available. [D600](../../notes/worker-checkpoint-evidence-2026-11-11/README.md).
+
+Next MAIN is D601 / P0 automation, B09 follow-up, rows 04, 12 and 16. Qualify how a saved failure is tracked when a later revision changes or withdraws the requirement. Use the existing requirement reports and Versions path. Keep an authored requirement change distinct from a verified geometry repair and preserve the original failure through fresh Open. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -1,0 +1,47 @@
+{
+  "decision": "D600",
+  "parent": "8f755f633686cf2ee33d86b1a9d49220d0623c1f",
+  "tier": "CONTROLLED",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "31ccec2bbe9f24f6ea24400a77d7972bacf1fa414c8f42435a4b8cffafb04f75",
+    "pass": ["V01", "V02", "V03", "V04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D600_SOURCE_FROZEN=1 node test/task-run-browser.mjs <output> --evidence", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D586_SOURCE_FROZEN=1 node test/task-run-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test task-run- approved-requirement-compare project-version-ownership", "status": "PASS", "pass": 62},
+    {"command": "pnpm --dir packages/barocss-cad-model test task-execution.test requirement-evidence", "status": "PASS", "pass": 13},
+    {"command": "pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/task-run-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "first/receipt.json", "sha256": "e4dd22c8a8e882871ea5137a78d3c4e38a1dd695b6bbb5c8ab91858001e96713", "observation": "The driver compared an omitted persisted pending field against an in-memory undefined property."},
+    {"status": "FAIL", "receipt": "second/receipt.json", "sha256": "0131d65e33e864fd323c1557d52d641ddcc32a2449d6785ab53ec2eff88a7b2a", "observation": "Studio refused the duplicate save after standalone Open detached the existing project file."}
+  ],
+  "evidence": {
+    "directory": "d600-2026-11-11",
+    "receiptSHA256": "0289c8be5f2617f9bd735396063d116a67d747a943fac57f6665eb27279f4a13",
+    "d586RegressionSHA256": "ba564f756a3473bca65462a0329bc6a9e1cb8b8b4838b63ffc0b5e8c31bc5b01",
+    "sourceCapsuleSHA256": "ce3181b4c5372b61b9a947e2161255049eadae912a36962b9f6323f2eef66893",
+    "checkpointSHA256": "9b21bc586e8b74761b8dafd99d157d5c232b0d8ab804d2a55f27586f62f8d57f",
+    "beforeNativeSHA256": "81f69b5da0a66eef7e949c6ddfcb3bfd058e36e489bdfa19e6bf0afccf6460dd",
+    "acceptedNativeSHA256": "fef4639a762e459da86e31c88830fa238f8d8e4749f0042028bd538518855551",
+    "editedNativeSHA256": "5036a957ee3161f5a82bd5d172b7b130b9e9fe36ac4ad2eaaf082dce866fa0b8",
+    "evidenceRevisions": {
+      "before": "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3",
+      "accepted": "2012fe3845c2114d0df15eb44bd952e3141e8527acf958a749e6b040dca95a1f",
+      "edited": "38d96570173951b30cfb9123a5064f844abd77daa6c939a833d365e7cd4300f0"
+    },
+    "nativeOverlapMs": 47.13134765625,
+    "unchangedSourcePinsPerRun": 960,
+    "desktopStates": 8,
+    "readOnlyMcpCalls": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["05-saved-approval-with-later-edit"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["automatic host-to-browser delivery", "in-Studio worker approval", "durable defect ledger", "live providers", "whole browser", "whole kernel", "mobile"]
+}
