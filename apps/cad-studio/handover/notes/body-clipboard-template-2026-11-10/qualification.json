@@ -1,0 +1,60 @@
+{
+  "workId": "D561",
+  "parent": "260627161e603b1ba21149163dc496c2f4e92630",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d561-2026-11-10"
+  },
+  "driverSha256": "81b1ddd85b8afd43f8007882322046a335cc94700cb3168e8ddc2943777b724b",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6",
+    "apps/cad-studio/src/ui/TemplatePicker.tsx": "cddbcb732efe69045484e53ded2b619232e75913dbabe4aaf4cb67018dd0edc2",
+    "apps/cad-studio/src/app/templates.ts": "911b8b22dabc16916cdca2d0f7d3c63679423b84a06366e2a0d6c86af7546c29",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d"
+  },
+  "physicalOracle": {
+    "sourceSize": [
+      12,
+      13,
+      14
+    ],
+    "sourceVolume": 2184,
+    "templateSize": [
+      10,
+      10,
+      10
+    ],
+    "templateVolume": 1000,
+    "sharedKey": "b1",
+    "freshPasteOffsetX": 20,
+    "absoluteTolerance": 1e-09
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-template-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D561_SOURCE_FROZEN=1 node test/body-clipboard-template-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 11.48,
+    "snapshots": 8,
+    "physicalJoins": 3,
+    "frozenPins": 298,
+    "receiptSha256": "241a96cb2e8c39b13acfb4779775b0b48ece81eb1b489ebca3628aa4a07d9da5",
+    "ownedPID": 26909,
+    "chromePID": 26942
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}
