@@ -52,7 +52,20 @@ test('approval that relaxes a requirement is a criterion change, even if the new
   const { accepted } = await approve(plate, [{ tool: 'set_requirements', args: { requirements: [changed] } }]);
   const pair = approvedRequirementComparison(plate, accepted);
   assert.ok(pair);
-  assert.deepEqual(await compareApprovedRequirements(pair, 'base', evaluate), { recoveries: [], changed: ['H-CAP'] });
+  assert.deepEqual(await compareApprovedRequirements(pair, 'base', evaluate), { recoveries: [], changed: [{
+    id: 'H-CAP', kind: 'changed', priorFailure: { measured: 11, unit: 'mm', expected: '<= 10 mm' }, criterion: '<= 11 mm',
+  }] });
+});
+
+test('withdrawing the final criterion preserves its failure and pins the empty revision', async () => {
+  const { accepted } = await approve(plate, [{ tool: 'set_requirements', args: { requirements: [], replace: true } }]);
+  const pair = approvedRequirementComparison(plate, accepted);
+  assert.ok(pair);
+  assert.deepEqual(await compareApprovedRequirements(pair, 'base', evaluate), { recoveries: [], changed: [{
+    id: 'H-CAP', kind: 'withdrawn', priorFailure: { measured: 11, unit: 'mm', expected: '<= 10 mm' },
+  }] });
+  const moved = { ...pair, after: { ...pair.after, parameters: { H: 12 } } };
+  assert.ok('error' in await compareApprovedRequirements(moved, 'base', evaluate));
 });
 
 test('agent acceptance does not supply a user decision', async () => {

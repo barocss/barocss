@@ -27,7 +27,13 @@ function Checks({ comparison, part, evaluate }: { comparison: Comparison; part: 
         {row.from !== null && row.to !== null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{row.from}{suffix} → {row.to}{suffix}</span>}
       </div>;
     })}
-    {result.changed.map(id => <div key={id}><strong>{id}</strong> · Requirement changed</div>)}
+    {result.changed.map(({ id, kind, priorFailure, criterion }) => <div key={id}>
+      <strong>{id}</strong> · {kind === 'withdrawn' ? 'Requirement withdrawn' : 'Requirement changed'}
+      {priorFailure && <div>Saved failure · {priorFailure.measured === null
+        ? `want ${priorFailure.expected}`
+        : `${priorFailure.measured}${priorFailure.unit ? ' ' + unitText(priorFailure.unit) : ''} (want ${priorFailure.expected})`}</div>}
+      {criterion && <div>New criterion · {criterion}</div>}
+    </div>)}
   </>;
 }
 

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D601 — keep saved failures when an approved requirement changes](notes/saved-requirement-change-2026-11-11/README.md).
 - [D600 — verify worker checkpoint evidence in Studio Versions](notes/worker-checkpoint-evidence-2026-11-11/README.md).
 - [D599 — preserve Chat after the image trace limit](notes/chat-image-capacity-2026-11-11/README.md).
 - [D598 — keep drawing attachments in the correct chat conversation](notes/drawing-image-intake-2026-11-11/README.md).

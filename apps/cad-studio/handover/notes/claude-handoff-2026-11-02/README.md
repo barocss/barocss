@@ -1,5 +1,5 @@
 ---
-work_id: D600
+work_id: D601
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -137,7 +137,9 @@ D599 reproduces the seventeenth image disabling later text turns. Actual Studio 
 
 D600 connects two local worker commits and the final accepted file to read-only MCP evidence and Studio Versions. A later working edit fails its check and keeps the historical approval available. [D600](../../notes/worker-checkpoint-evidence-2026-11-11/README.md).
 
-Next MAIN is D601 / P0 automation, B09 follow-up, rows 04, 12 and 16. Qualify how a saved failure is tracked when a later revision changes or withdraws the requirement. Use the existing requirement reports and Versions path. Keep an authored requirement change distinct from a verified geometry repair and preserve the original failure through fresh Open. [#2279](https://github.com/barocss/barocss/issues/2279).
+D601 keeps the original saved failure visible after Studio approval widens a tolerance or withdraws the only criterion for an occurrence. [D601](../../notes/saved-requirement-change-2026-11-11/README.md).
+
+Next MAIN is D602 / P0 automation, B09 follow-up, rows 04, 09, 12 and 16. Freeze two nested occurrences that share a child ID but have different local check inputs. Verify the existing occurrence-path rules and the current requirement evidence boundary. Qualify exact read-only attribution, stale or ambiguous refusal, and Studio Save/Open before any scope expansion. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

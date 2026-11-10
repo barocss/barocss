@@ -1,0 +1,41 @@
+{
+  "decision": "D601",
+  "parent": "0325ad576049e7faf86d13088c49240411fc781b",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "1e3948be79fca1fe00554d798e1f44dc8350b4c70cf732b090639dfb974f9be3",
+    "pass": ["R01", "R02", "R03", "R04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D601_SOURCE_FROZEN=1 node test/approved-requirement-compare-browser.mjs <output> --criteria", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D595_SOURCE_FROZEN=1 node test/approved-requirement-compare-browser.mjs <output> <D592-final-desktop> historical", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare project-version-ownership storage-version-snapshot", "status": "PASS", "pass": 39},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence proposals.test", "status": "PASS", "pass": 19},
+    {"command": "pnpm --dir apps/cad-studio exec tsc --noEmit && pnpm --dir packages/barocss-cad-model exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint apps/cad-studio/src/storage/{ApprovedRequirementChecks.tsx,approvedRequirementCompare.ts} apps/cad-studio/test/approved-requirement-compare.test.ts", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/approved-requirement-compare-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "baseline/receipt.json",
+    "sha256": "e4039ce3a7d11016c93840a96725b9a4b575527dc382abf80d01d8c2e6a28d80",
+    "observation": "The widened tolerance hid the saved measurement. After the sole p1 criterion was withdrawn, only p2 remained selectable."
+  },
+  "evidence": {
+    "directory": "d601-2026-11-11",
+    "receiptSHA256": "77cf9100032fc041a4ecb211388a5a218b7e67aae1ccd34587a81a55a1d4f5e7",
+    "d595RegressionSHA256": "816033995291586189f3ff4689b3c0901ec0c2de72ab3fcfc0b6d980b6d9419e",
+    "sourceCapsuleSHA256": "c698c1698833b0cee7ec52c98d50a164b094affea9218ca64e78ac72a971a76a",
+    "widenedNativeSHA256": "7941b665c68f0f59d4dc2212d7f488479568c6a442ef3a6cd6a063cac50e8dcc",
+    "withdrawnNativeSHA256": "28489cb918c83de95aa2eda1169d477dedf52ad5cc745be0eb3e1fefce93c0c3",
+    "unchangedSourcePinsPerRun": 303,
+    "desktopStates": {"criteria": 2, "d595Regression": 10},
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["final/withdraw-saved-decision"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["independent defect ledger", "nested occurrence matching", "live providers", "whole browser", "whole kernel", "mobile"]
+}
