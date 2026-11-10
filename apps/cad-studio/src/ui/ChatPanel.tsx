@@ -12,7 +12,9 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
+import type { CheckpointReview } from '../files/taskCheckpoint';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
@@ -54,6 +56,7 @@ export interface ChatPanelProps {
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
+    readApproval(request: TaskRunCheckpointRequest, current: () => boolean): Promise<CheckpointReview | undefined>;
     review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
     modelViewBlocked: boolean;
   };
@@ -88,8 +91,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const rememberRunStatus = (snapshot: TaskRunStatus) => {
     const prior = runStatusesNow.current.get(snapshot.runId);
     if (prior && (prior.runKey !== snapshot.runKey || prior.revision >= snapshot.revision)) return;
-    const { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks } = snapshot;
-    const status = { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = snapshot;
+    const status = { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
     const next = new Map(runStatusesNow.current).set(runId, status);
     runStatusesNow.current = next;
     setRunStatuses(next);
@@ -300,6 +303,7 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
           title={actions.modelViewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
           onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
       </li>)}</ul>
+      {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval} />}
       <code title={result.directory}>{result.directory}</code>
     </div>}
   </>;

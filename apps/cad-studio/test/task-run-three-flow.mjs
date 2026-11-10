@@ -127,4 +127,5 @@ export async function taskRunThreeFlow({ f, origin, row, launch, source, saved, 
   await f.snapshot('13-three-task-approved-checkpoint');
   f.report.observations.push({ statuses, stalePinsRefused: 3, approvalChain: record.commits.map(commit => commit.taskId),
     finalPlacedSizesMm: sizes(24, 4, 5), budget: record.state.budget, checkpointSHA256: record.accepted.sha256 });
+  return { final, accepted };
 }

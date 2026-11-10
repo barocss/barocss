@@ -45,6 +45,7 @@ export interface TaskRunStatus extends TaskRunLocator {
   revision: number;
   baselineDigest: string;
   checkpoint?: TaskRunCheckpointPin;
+  approvals?: TaskRunCheckpointPin[];
   tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin }[];
 }
 
@@ -73,14 +74,20 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
     || (value.phase !== 'active' && value.phase !== 'paused' && value.phase !== 'stopped')
     || !Array.isArray(value.tasks) || !isLocalTaskCount(value.tasks.length)) return false;
-  const checkpoint = value.checkpoint;
-  return Array.from(value.tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
+  const { checkpoint, approvals, tasks } = value;
+  return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
-    && new Set(value.tasks.map(task => task.id)).size === value.tasks.length
+    && new Set(tasks.map(task => task.id)).size === tasks.length
     && (checkpoint === undefined || (isTaskRunCheckpointPin(checkpoint)
-      && value.tasks.some(task => task.id === checkpoint.taskId && task.phase === 'completed')));
+      && tasks.some(task => task.id === checkpoint.taskId && task.phase === 'completed')))
+    && (approvals === undefined || (Array.isArray(approvals) && approvals.length > 0 && approvals.length <= tasks.length
+      && Array.from(approvals).every(pin => isTaskRunCheckpointPin(pin)
+        && tasks.some(task => task.id === pin.taskId && task.phase === 'completed'))
+      && new Set(approvals.map(pin => pin.operationId)).size === approvals.length
+      && new Set(approvals.map(pin => pin.taskId)).size === approvals.length
+      && (checkpoint === undefined || sameTaskRunCheckpoint(checkpoint, approvals.at(-1)))));
 
 }
 

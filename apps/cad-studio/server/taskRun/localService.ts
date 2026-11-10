@@ -4,11 +4,11 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
-import { encodeTaskCheckpoint } from '../../src/files/taskCheckpoint';
+import { isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { encodeTaskCheckpoint, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
-import { candidateReviewFor, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
+import { candidateReviewFor, taskApprovalFor, taskApprovals, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
 
 export class LocalRunRequestError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
@@ -123,15 +123,20 @@ export async function runLocalTaskHandoff(root: string, bytes: Uint8Array): Prom
 }
 
 function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
+  const approvals = taskApprovals(record).map(toCheckpointPin);
   return { runKey, runId: record.runId, phase: record.state.phase, revision: record.revision,
     baselineDigest: record.accepted.modelDigest, checkpoint: checkpointPin(record),
+    ...(approvals.length ? { approvals } : {}),
     tasks: record.state.tasks.map(({ id, phase, reason }) => ({ id, phase, reason, review: reviewPin(record, id) })) };
+}
+
+function toCheckpointPin({ taskId, operationId, accepted }: TaskCheckpoint): TaskRunCheckpointPin {
+  return { taskId, operationId, acceptedSHA256: accepted.sha256 };
 }
 
 function checkpointPin(record: RunRecord) {
   try {
-    const { taskId, operationId, accepted } = taskCheckpointFor(record);
-    return { taskId, operationId, acceptedSHA256: accepted.sha256 };
+    return toCheckpointPin(taskCheckpointFor(record));
   } catch (error) {
     if (!(error instanceof RunStoreError) || error.code !== 'RUN_STALE') throw error;
   }
@@ -198,7 +203,15 @@ export function readLocalTaskCandidate(root: string, request: unknown): string {
   }
 }
 
+export function readLocalTaskApproval(root: string, request: unknown): Uint8Array {
+  return readLocalCheckpoint(root, request, taskApprovalFor);
+}
+
 export function readLocalTaskCheckpoint(root: string, request: unknown): Uint8Array {
+  return readLocalCheckpoint(root, request, taskCheckpointFor);
+}
+
+function readLocalCheckpoint(root: string, request: unknown, select: (record: RunRecord, operationId: string) => TaskCheckpoint): Uint8Array {
   if (!isObj(request) || Object.keys(request).length !== 5 || !isTaskRunLocator(request)
     || !id(request.taskId) || !id(request.operationId) || !sha(request.acceptedSHA256))
     throw new LocalRunRequestError(400, 'Expected the local run and approved checkpoint IDs.');
@@ -208,8 +221,10 @@ export function readLocalTaskCheckpoint(root: string, request: unknown): Uint8Ar
     const directory = privateDirectory(join(privateDirectory(resolve(root)), runKey));
     const { receipt, before, accepted } = TaskRunStore.readTaskCheckpoint(directory, record => {
       if (record.runId !== runId) throw new LocalRunRequestError(409, 'The local run changed.');
-      if (!sameTaskRunCheckpoint(selected, checkpointPin(record)))
+      const checkpoint = select(record, operationId);
+      if (!sameTaskRunCheckpoint(selected, toCheckpointPin(checkpoint)))
         throw new LocalRunRequestError(409, 'The approved checkpoint changed. Refresh the local run status.');
+      return checkpoint;
     });
     return encodeTaskCheckpoint(receipt, before, accepted);
   } catch (error) {

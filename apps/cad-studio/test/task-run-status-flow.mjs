@@ -80,7 +80,7 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
     assert.equal(response.headers()['cache-control'], 'no-store');
     assert.equal(response.status(), 200, await response.text());
     const data = await response.json();
-    assert.deepEqual(Object.keys(data).sort(), ['baselineDigest', 'checkpoint', 'phase', 'revision', 'runId', 'runKey', 'tasks']);
+    assert.deepEqual(Object.keys(data).sort(), ['approvals', 'baselineDigest', 'checkpoint', 'phase', 'revision', 'runId', 'runKey', 'tasks']);
     assert.deepEqual({ runKey: data.runKey, runId: data.runId }, locator);
     await refresh(row).filter({ hasText: /^Refresh status$/ }).waitFor();
     statuses.push({ revision: data.revision, phases: data.tasks.map(task => task.phase), bytesSent: Buffer.byteLength(request.postData()) });

@@ -1,0 +1,194 @@
+{
+  "decision": "D625",
+  "tier": "FULL interface",
+  "baseCommit": "49b3389ad3e60071ef7b8a3d0551209f351680fb",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d625-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio approval history",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D625_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified-2\" --history",
+      "receiptSHA256": "949433b40cfe59c75dd3efb16425f3deb6fd0e8dc5ebec25459cd6fa013b4ad4",
+      "pinnedSources": 796,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "approvalHistory": [
+          {
+            "taskId": "p1",
+            "valuesMm": [
+              20,
+              24
+            ],
+            "revisions": [
+              "eafa0c813ab9b605e9f2dc82546edc9047e52ce5561cd3a3ad024cb60dd46716",
+              "04005e0b36a5d568a21ff146ebce672dfbef5c9768481379a041b6d8b5b2ba50"
+            ]
+          },
+          {
+            "taskId": "p2",
+            "valuesMm": [
+              3,
+              4
+            ],
+            "revisions": [
+              "04005e0b36a5d568a21ff146ebce672dfbef5c9768481379a041b6d8b5b2ba50",
+              "e0358cfe34a0df47c2cfeca58bc3e6799026771ebc9721aea1c6f82b09ea19e2"
+            ]
+          },
+          {
+            "taskId": "p3",
+            "valuesMm": [
+              3,
+              5
+            ],
+            "revisions": [
+              "e0358cfe34a0df47c2cfeca58bc3e6799026771ebc9721aea1c6f82b09ea19e2",
+              "22b1d7589ee65717bc70d0dc9d6540763f4c881b525d0cae3d09cdc0eb5554aa"
+            ]
+          }
+        ],
+        "delayedSelectionIgnored": true,
+        "mismatchesRefused": 6,
+        "originalProjectUnchanged": true,
+        "runUnchanged": true,
+        "workingUndoRedoPreserved": true
+      }
+    },
+    {
+      "label": "Desktop Studio two-task and historical checkpoint regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-two-verified\" --width",
+      "receiptSHA256": "bcb95be076cb473d145bf77e42a8c32276d99e4c71cf5bb44994b5933038119b",
+      "pinnedSources": 796,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run"
+    },
+    {
+      "label": "Independent native-pair and historical measurements reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/history-oracle.py\" \"$EVIDENCE/desktop-verified-2\"",
+      "scriptSHA256": "e8915d9aaf9a13fa3b1f3a475a4dc555287c0f8257452ce575b60514fa6fc9c0",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "historicalBundles": 3,
+        "exactPublishedNativePairs": 3,
+        "rows": [
+          {
+            "taskId": "p1",
+            "valuesMm": [
+              20,
+              24
+            ],
+            "revisions": [
+              "eafa0c813ab9b605e9f2dc82546edc9047e52ce5561cd3a3ad024cb60dd46716",
+              "04005e0b36a5d568a21ff146ebce672dfbef5c9768481379a041b6d8b5b2ba50"
+            ]
+          },
+          {
+            "taskId": "p2",
+            "valuesMm": [
+              3,
+              4
+            ],
+            "revisions": [
+              "04005e0b36a5d568a21ff146ebce672dfbef5c9768481379a041b6d8b5b2ba50",
+              "e0358cfe34a0df47c2cfeca58bc3e6799026771ebc9721aea1c6f82b09ea19e2"
+            ]
+          },
+          {
+            "taskId": "p3",
+            "valuesMm": [
+              3,
+              5
+            ],
+            "revisions": [
+              "e0358cfe34a0df47c2cfeca58bc3e6799026771ebc9721aea1c6f82b09ea19e2",
+              "22b1d7589ee65717bc70d0dc9d6540763f4c881b525d0cae3d09cdc0eb5554aa"
+            ]
+          }
+        ],
+        "workingEditPreserved": true
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract",
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 174,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-verified\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <each changed browser module> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio type check",
+      "reason": "The task list narrowing was lost in the approval predicate. The narrowed list is now captured before that predicate."
+    },
+    {
+      "result": "FAIL",
+      "check": "First desktop history run",
+      "reason": "The browser received approval pins but Refresh dropped them before the card could render the list."
+    },
+    {
+      "result": "FAIL",
+      "check": "Second desktop history run",
+      "reason": "The delayed-response driver waited for stream completion after cancellation. The owned browser was stopped. The final driver observes cancellation directly."
+    }
+  ],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Working-model freshness comparison"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

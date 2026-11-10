@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
 import { isLocalTaskRunHost, readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
-import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
+import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -215,7 +215,7 @@ export function createChatServer(options: ChatServerOptions) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint')) {
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/history')) {
       const action = path.slice('/task-runs/'.length), start = action === 'start';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
@@ -226,13 +226,13 @@ export function createChatServer(options: ChatServerOptions) {
         return sendJson(res, 415, { error: start ? 'Expected a binary task run handoff.' : 'Expected a JSON task run request.' });
       res.setHeader('cache-control', 'no-store');
       try {
-        const bytes = await readTaskRunBody(req, start ? MAX_TASK_RUN_HANDOFF_BYTES : (action === 'status' || action === 'checkpoint') ? 1024 : 4096);
+        const bytes = await readTaskRunBody(req, start ? MAX_TASK_RUN_HANDOFF_BYTES : action === 'review' ? 4096 : 1024);
         if (start) return sendJson(res, 200, await startTaskRun(bytes));
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }
-        if (action === 'checkpoint') {
-          const checkpoint = readLocalTaskCheckpoint(taskRunDir, request);
+        if (action === 'checkpoint' || action === 'history') {
+          const checkpoint = (action === 'history' ? readLocalTaskApproval : readLocalTaskCheckpoint)(taskRunDir, request);
           res.statusCode = 200;
           res.setHeader('content-type', 'application/octet-stream');
           res.setHeader('content-length', checkpoint.byteLength);

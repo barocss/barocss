@@ -11,7 +11,7 @@ import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits, threeOccurrenceDoc } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
-import { LocalRunRequestError, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
 import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
@@ -194,7 +194,9 @@ if (!(await serveTaskThread(evaluate))) {
         await host.dispatch('checkpoint-base', 'base', async ticket => reply(ticket, 6));
         await host.dispatch('checkpoint-lid', 'lid', async ticket => reply(ticket, 4));
         const locator = { runKey: key, runId: host.snapshot.runId };
-        assert.equal(readLocalTaskRunStatus(root, locator).checkpoint, undefined);
+        const initial = readLocalTaskRunStatus(root, locator);
+        assert.equal(initial.checkpoint, undefined);
+        assert.equal(initial.approvals, undefined);
         assert.equal((await host.decide(decision(host, 'base', 'checkpoint-approve-base'), trusted())).code, 'RUN_ACCEPTED');
         const status = readLocalTaskRunStatus(root, locator);
         assert.ok(status.checkpoint);
@@ -229,6 +231,25 @@ if (!(await serveTaskThread(evaluate))) {
         const finalBefore = files(), finalBundle = await readTaskCheckpoint(readLocalTaskCheckpoint(root, { ...locator, ...final.checkpoint }));
         assert.ok(finalBundle && !('error' in finalBundle));
         assert.deepEqual(finalBundle.doc.instances?.map(part => part.doc.nodes[1].kind === 'extrude' ? part.doc.nodes[1].height : null), [6, 4]);
+        assert.deepEqual(files(), finalBefore);
+        // D625 reads the first immutable publication after the second one becomes current.
+        assert.deepEqual(final.approvals, [status.checkpoint, final.checkpoint]);
+        assert.ok(isTaskRunStatus(final));
+        assert.ok(!isTaskRunStatus({ ...final, approvals: [final.checkpoint, status.checkpoint] }));
+        assert.ok(!isTaskRunStatus({ ...final, approvals: [final.checkpoint, final.checkpoint] }));
+        const past = await readTaskCheckpoint(readLocalTaskApproval(root, request));
+        assert.ok(past && !('error' in past));
+        assert.deepEqual(past.doc, bundle.doc);
+        assert.deepEqual(past.receipt.accepted, bundle.receipt.accepted);
+        const refuseHistory = (patch: Record<string, unknown>, code: number) =>
+          assert.throws(() => readLocalTaskApproval(root, { ...request, ...patch }),
+            (error: unknown) => error instanceof LocalRunRequestError && error.status === code);
+        refuseHistory({ taskId: 'lid' }, 409);
+        refuseHistory({ operationId: 'missing' }, 409);
+        refuseHistory({ acceptedSHA256: final.checkpoint.acceptedSHA256 }, 409);
+        refuseHistory({ runId: 'other' }, 409);
+        refuseHistory({ runKey: 'c'.repeat(64) }, 409);
+        refuseHistory({ path: dir }, 400);
         assert.deepEqual(files(), finalBefore);
       } finally { host.close(); }
     } finally { rmSync(root, { recursive: true, force: true }); }

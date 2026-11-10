@@ -221,6 +221,20 @@ export function taskCheckpointFor(record: RunRecord): TaskCheckpoint {
   const commit = record.commits.at(-1);
   if (!commit || commit.kind === 'spec' || record.pending)
     return issue('RUN_STALE', 'Export requires a committed task and no pending publication.');
+  return checkpointFromCommit(record, commit);
+}
+
+export function taskApprovalFor(record: RunRecord, operationId: string): TaskCheckpoint {
+  const commit = record.commits.find(commit => commit.operationId === operationId);
+  if (!commit || commit.kind === 'spec') return issue('RUN_STALE', 'The approval is not in this local run.');
+  return checkpointFromCommit(record, commit);
+}
+
+export function taskApprovals(record: RunRecord): TaskCheckpoint[] {
+  return record.commits.flatMap(commit => commit.kind === 'spec' ? [] : [checkpointFromCommit(record, commit)]);
+}
+
+function checkpointFromCommit(record: RunRecord, commit: Exclude<CommitReceipt, { kind: 'spec' }>): TaskCheckpoint {
   const task = record.state.tasks.find(task => task?.id === commit.taskId), candidate = task?.candidate;
   const operation = record.state.operations.find(op => op?.id === commit.operationId);
   if (task?.phase !== 'completed' || !candidate || candidate.taskId !== commit.taskId || candidate.specRevision !== commit.specRevision ||
@@ -230,7 +244,7 @@ export function taskCheckpointFor(record: RunRecord): TaskCheckpoint {
   const receipt: TaskCheckpoint = { runId: record.runId, revision: record.revision, taskId: commit.taskId,
     operationId: commit.operationId, plan: commit.plan ?? record.state.plan,
     specRevision: commit.specRevision, candidateDigest: commit.candidateDigest,
-    proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: record.accepted };
+    proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: commit.to };
   return receipt;
 }
 
@@ -272,10 +286,9 @@ export class TaskRunStore {
   }
 
   /** Export one committed task from a single read of the durable pointer. The native files are immutable. */
-  static readTaskCheckpoint(directory: string, guard?: (record: RunRecord) => void) {
+  static readTaskCheckpoint(directory: string, select = taskCheckpointFor) {
     const path = realpathSync(directory), record = recordAt(path);
-    guard?.(record);
-    const receipt = taskCheckpointFor(record);
+    const receipt = select(record);
     return { receipt, before: readObject(path, receipt.from), accepted: readObject(path, receipt.accepted) };
   }
 

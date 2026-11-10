@@ -64,12 +64,13 @@ function checkpointVerdict(report: RequirementEvidence, row?: EvidenceRow) {
 }
 
 /** The evidence evaluated on admission. Working edits never feed this table. */
-export function CheckpointApprovalChecks({ review }: { review: CheckpointReview }) {
+export function CheckpointApprovalChecks({ review, historical = false }: { review: CheckpointReview; historical?: boolean }) {
   const { before, approved, taskId, revision, proposalId } = review;
   const previous = new Map(before.evidence.map(row => [row.requirement?.id, row]));
-  return <section className="my-2" aria-label="Worker checkpoint checks">
-    <strong>Worker checkpoint checks</strong>
-    <div>Task {taskId} · {approved.part} · {proposalId} · Revision {revision}</div>
+  const title = historical ? 'Worker approval checks' : 'Worker checkpoint checks';
+  return <section className="my-2" aria-label={title}>
+    <strong>{title}</strong>
+    <div>Task {taskId} · {approved.part} · {proposalId}{historical ? '' : ' · Revision ' + revision}</div>
     <table className="mt-1 w-full text-left text-[11px]">
       <thead><tr><th scope="col">Requirement</th><th scope="col">Before approval</th><th scope="col">Approved</th></tr></thead>
       <tbody>{approved.evidence.map(row => {

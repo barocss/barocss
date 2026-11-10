@@ -23,8 +23,8 @@ export async function localTaskRunJSON(action: 'start' | 'review' | 'status', bo
   return value;
 }
 
-export async function localTaskCheckpointBytes(request: TaskRunCheckpointRequest, current: () => boolean) {
-  const res = await postLocalTaskRun('checkpoint', JSON.stringify(request));
+export async function localTaskCheckpointBytes(request: TaskRunCheckpointRequest, current: () => boolean, action: 'checkpoint' | 'history' = 'checkpoint') {
+  const res = await postLocalTaskRun(action, JSON.stringify(request));
   const header = res.headers.get('content-length'), size = Number(header);
   if (res.headers.get('content-type') !== 'application/octet-stream' || !header || !/^\d+$/.test(header)
     || !Number.isSafeInteger(size) || size <= 0 || size > MAX_TASK_CHECKPOINT_BYTES || !res.body) {

@@ -150,8 +150,8 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     const value = await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId }));
     if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
       throw new Error('The local task run service returned a different or older run status.');
-    const { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks } = value;
-    return { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = value;
+    return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
   };
 
   const observeTaskRunStatus = (status: TaskRunStatus) => {
@@ -201,9 +201,15 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     setDocState(next); setDirty(true);
   };
 
-  const verifyCheckpoint = async (bytes: Uint8Array, current: () => boolean) => {
+  const verifyCheckpoint = async (bytes: Uint8Array, current: () => boolean, request?: TaskRunCheckpointRequest) => {
     const checkpoint = await readTaskCheckpoint(bytes, current);
     if (!checkpoint || !current()) return;
+    if (request && !('error' in checkpoint)) {
+      const { receipt } = checkpoint;
+      if (receipt.runId !== request.runId || !sameTaskRunCheckpoint(request, {
+        taskId: receipt.taskId, operationId: receipt.operationId, acceptedSHA256: receipt.accepted.sha256,
+      })) throw new Error('The local run returned a different approved checkpoint.');
+    }
     const verified = await verifyTaskCheckpoint(checkpoint, d => engine.part(d, nextRevision(), 'read'), current);
     if (!verified || !current()) return;
     if ('error' in verified) throw new Error(verified.error);
@@ -238,6 +244,12 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
+  const readTaskRunApproval = async (request: TaskRunCheckpointRequest, current: () => boolean) => {
+    const bytes = await localTaskCheckpointBytes(request, current, 'history');
+    if (!bytes || !current()) return;
+    return (await verifyCheckpoint(bytes, current, request))?.review;
+  };
+
   const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
     if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
     const requireView = () => {
@@ -256,12 +268,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     try {
       const bytes = await localTaskCheckpointBytes(request, current);
       if (!bytes || !current()) return;
-      const verified = await verifyCheckpoint(bytes, current);
+      const verified = await verifyCheckpoint(bytes, current, request);
       if (!verified || !current()) return;
       const { receipt } = verified;
-      if (receipt.runId !== request.runId || receipt.taskId !== request.taskId || receipt.operationId !== request.operationId
-        || receipt.accepted.sha256 !== request.acceptedSHA256)
-        throw new Error('The local run returned a different approved checkpoint.');
       const latest = await refreshTaskRun(run);
       if (!current()) return;
       if (latest.revision < receipt.revision || !sameTaskRunCheckpoint(request, latest.checkpoint)
@@ -395,5 +404,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }
