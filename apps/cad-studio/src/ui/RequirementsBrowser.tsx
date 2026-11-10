@@ -20,11 +20,13 @@ interface RequirementsBrowserProps {
   setRequirement(id: string, value: number): void;
 }
 export function RequirementsBrowser({ doc, bodies, spec, specRunning, specStale, failingOnly, setFailingOnly, setSelection, setRequirement }: RequirementsBrowserProps) {
+  const current = specStale ? null : spec;
+  const status = specRunning ? 'checking…' : specStale ? 'stale' : '';
   return <>
-        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : specStale ? ' · stale' : ''}</span>
+        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{current ? `${current.summary.pass} ✓ · ${current.summary.fail} ✗ · ${current.summary.unknown} ?` : ''}{current && status && ' · '}{status}</span>
           <ToolIconButton size="tiny" state={failingOnly ? 'on' : 'idle'} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></ToolIconButton></div>
         {doc.requirements.map(q => {
-          const o = spec?.outcomes[q.id], st = o?.status ?? 'unknown';
+          const o = current?.outcomes[q.id], st = o?.status ?? 'unknown';
           if (failingOnly && st === 'pass') return null;
           const editable = q.basis === 'assumed' || q.basis === 'ambiguous';
           return <div key={q.id} className={'req ' + st} role="listitem" aria-label={`Requirement ${q.id}`}>

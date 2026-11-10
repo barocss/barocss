@@ -1,0 +1,34 @@
+{
+  "decision": "D589",
+  "parent": "0861f558f8a3217b85a770f73636e02caa995154",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrixSHA256": "f57f88a05d951a97906b9c20a1ddcf7377ef1d0ba14bbeb8b0814e068e35bebf",
+  "matrix": {"pass": ["R01", "R02", "R03"], "fail": []},
+  "commands": [
+    {"command": "cd apps/cad-studio && D589_SOURCE_FROZEN=1 node test/requirement-report-freshness-browser.mjs <external-output-directory> --expect=repro", "status": "PASS", "productFinding": "FAIL"},
+    {"command": "cd apps/cad-studio && D589_SOURCE_FROZEN=1 node test/requirement-report-freshness-browser.mjs <external-output-directory> --expect=fixed", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D578_SOURCE_FROZEN=1 node test/requirement-numeric-precision-browser.mjs <external-output-directory> --expect=fixed", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test spec.test team-freshness tool-contract api-parameters", "status": "PASS", "pass": 39, "fail": 0},
+    {"command": "pnpm --dir apps/cad-studio test tool-contract-mcp toolset-mcp batch-changes-mcp cad-external", "status": "PASS", "pass": 13, "fail": 0},
+    {"command": "pnpm --dir packages/barocss-cad-model type-check && pnpm --dir apps/cad-studio type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint apps/cad-studio/src/ui/RequirementsBrowser.tsx && node --check apps/cad-studio/test/requirement-report-freshness-browser.mjs", "status": "PASS"}
+  ],
+  "evidence": {
+    "directory": "d589-2026-11-11",
+    "baselineReceiptSHA256": "d04150591e088edcd23d26b3cfee38eac5c43179c7c0692307ae0315ff10fec4",
+    "finalReceiptSHA256": "4d3ac445202368d0dcd850f3370f464ebb787522e45ae0716a7cbe166324997c",
+    "d578RegressionReceiptSHA256": "ce8f5592befea9ee28b120439d07eeef9af60077d19edd1fd79b0362f2df08ce",
+    "unchangedSourcePins": 297,
+    "sourceCapsuleSHA256": "063e55ff5d90f9d93be142eb4bb3deff42922dafd848a9aa93fc0b4e516ae729",
+    "desktopStates": 7,
+    "independentNativeStates": 5,
+    "heldRealWorkerReplies": 1,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"],
+    "visualReview": ["02-pending-revision", "03-current-height-failure"]
+  },
+  "notRun": ["durable diagnostic resolution history", "occurrence and face reference scope", "full kernel", "broad browser suite", "mobile", "external providers"]
+}
