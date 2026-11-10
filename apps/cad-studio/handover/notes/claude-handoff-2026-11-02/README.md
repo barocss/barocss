@@ -1,5 +1,5 @@
 ---
-work_id: D584
+work_id: D585
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -105,7 +105,9 @@ D583 binds override reasons and response mode to each typed tool invocation. The
 
 D584 binds two independent Model tasks to a frozen spec and verifies scoped candidates with an independent geometry oracle. Actual desktop Studio opens the host-approved native document, saves it in the browser project, opens it fresh and edits the lid. The task and drawing receipts remain on the host. [D584](../spec-task-contract-2026-11-11/README.md).
 
-Next MAIN is D585 / P0, B09, rows 04 and 16. Reproduce and repair stale candidate commits, late cancellation and duplicate in-flight operations. [#2400](https://github.com/barocss/barocss/issues/2400).
+D585 qualifies one-process CandidateBoard publication, including both commit orders, late cancellation, authority revocation, duplicate operation IDs and native replay. Actual desktop Studio opens the single winning file, saves it, opens it fresh, edits the extrusion and checks first Undo and Redo. [D585](../candidate-atomicity-2026-11-11/README.md).
+
+Next MAIN is D586 / P0, B09, rows 04 and 16. Build the first two-worker execution and restart profile with one accepted-state writer. [#2401](https://github.com/barocss/barocss/issues/2401).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

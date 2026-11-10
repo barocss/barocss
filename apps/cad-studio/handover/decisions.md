@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D585 — commit one verified candidate per accepted revision](notes/candidate-atomicity-2026-11-11/README.md).
 - [D584 — bind native tasks to a design specification](notes/spec-task-contract-2026-11-11/README.md).
 - [D583 — keep tool options with their invocation](notes/tool-call-context-2026-11-10/README.md).
 - [D582 — preserve uncertainty across keep-out requirement intervals](notes/keepout-chord-interval-2026-11-10/README.md).

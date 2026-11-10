@@ -1,0 +1,189 @@
+{
+  "workId": "D585",
+  "parent": "eb1e83ff1cd3d7f28815fd7520411125adf97754",
+  "issue": 2400,
+  "tier": "FULL",
+  "node": "22.19.0",
+  "gate": "gate.sh acquire heavy 300 D585-FULL-delivery",
+  "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d585-2026-11-11",
+  "studioCommand": "cd apps/cad-studio && D585_SOURCE_FROZEN=1 node test/candidate-atomicity-browser.mjs EXTERNAL/CASE",
+  "studio": [
+    {
+      "case": "studio-first",
+      "status": "FAIL",
+      "receiptSha256": "fe48316d19cf0ff6e2eabe8307b830a08492762224c0de009df001e800741d93",
+      "frozenSha256": "a18debc37229e0be776ca139a022bd5a258a15473566d3dc19f2179f94a97ca8",
+      "sourceCount": 942,
+      "frozenThroughCleanup": true,
+      "snapshots": 2,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 18755,
+        "nodePPID": 18599,
+        "serverURL": "http://127.0.0.1:59916"
+      },
+      "firstFailure": "The browser harness used exact equality for the native floating-point centroid at the accepted Open."
+    },
+    {
+      "case": "studio-final",
+      "status": "PASS",
+      "receiptSha256": "6539ecd01f8c6fd94d6caaea0747a6b9a6218d908ef4529e37c1d58ea789e6fe",
+      "frozenSha256": "58fc3fe11dff89fd1bffa8c186e0b557d81159e7156ef852613de7cef942c43d",
+      "sourceCount": 942,
+      "frozenThroughCleanup": true,
+      "snapshots": 5,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 35397,
+        "nodePPID": 35396,
+        "serverURL": "http://127.0.0.1:61089"
+      },
+      "acceptedNativeSha256": "f6455ab163fb92a595ba7eac5d8013252391feaa7de192103115ca93c42e7902",
+      "opfsNativeSha256": "f6455ab163fb92a595ba7eac5d8013252391feaa7de192103115ca93c42e7902",
+      "opfsByteEquality": true
+    }
+  ],
+  "visualReview": [
+    "02-fresh-open.png",
+    "05-first-redo.png"
+  ],
+  "nativeHost": {
+    "acceptedCandidate": "A",
+    "acceptedToken": 1,
+    "competingOutcome": "STALE_BASE",
+    "tokenAfterUndoRedo": 3,
+    "hostReceiptSha256": "471f98c70042f8991667a392ad9e36af8238f0ecaa017fb7b1535add2582b3b0"
+  },
+  "pass": {
+    "model": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test person-rows proposals team-input-authority team-freshness task-execution task-plan",
+      "receiptSha256": "a2e4d461bf3f2f440d3844715f49e5779a40b18ae76e8ce95a3621147799191e",
+      "pass": 48,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "person-rows.test.ts",
+        "proposals.test.ts",
+        "task-execution.test.ts",
+        "task-plan.test.ts",
+        "team-freshness.test.ts",
+        "team-input-authority.test.ts"
+      ]
+    },
+    "studioTests": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test candidate-atomicity.test candidates.test team tool-contract-mcp toolset-mcp",
+      "receiptSha256": "b42a1590ea99e94ca96ec6d6d7e75c515333b2fe37191c1f46cd633bcade020c",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "candidate-atomicity.test.ts",
+        "candidates.test.ts",
+        "team-bundle.test.ts",
+        "team-metrics.test.ts",
+        "team.test.ts",
+        "tool-contract-mcp.test.ts",
+        "toolset-mcp.test.ts"
+      ]
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model type-check",
+      "receiptSha256": "da5f3d5ab25ca1c5b9a33a1298dc3060ddf56fb23e96f9f545dfe863f2cc18ee"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio type-check",
+      "receiptSha256": "d7af72092eea0dd78355f16a64744f4af4c3d638ff32728cd78c9226c73f75f7"
+    },
+    "lint": {
+      "status": "PASS",
+      "command": "pnpm exec eslint packages/barocss-cad-model/src/team/candidates.ts apps/cad-studio/test/candidate-atomicity.test.ts",
+      "receiptSha256": "fdea05cbf63236291f5fe09ba079dda0ae6d9152ef985371c789f3920e1bdb08"
+    },
+    "driverSyntax": {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/candidate-atomicity-browser.mjs",
+      "receiptSha256": "92195a4ddea007a216d576c58d058f5827e52662c18a315365ce52d6e6548373"
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build",
+      "receiptSha256": "abee0dcf8843e8aba120198742d0eec153eee1a8b5618287c4fe09ab11c4732a"
+    },
+    "mutations": {
+      "results": [
+        {
+          "name": "commit-without-final-guard",
+          "status": "KILLED"
+        },
+        {
+          "name": "publish-late-build",
+          "status": "KILLED"
+        },
+        {
+          "name": "omit-inflight-reservation",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-request-payload",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-prerequisite-lineage",
+          "status": "KILLED"
+        },
+        {
+          "name": "omit-final-row-authority",
+          "status": "KILLED"
+        },
+        {
+          "name": "retain-evaluator-alias",
+          "status": "KILLED"
+        }
+      ],
+      "status": "PASS",
+      "command": "node EXTERNAL/mutations.mjs WORKTREE EXTERNAL",
+      "receiptSha256": "eb7dee96749ea4ee870ea07908adc209450efad4bd4d2593de4d45219c240aba"
+    }
+  },
+  "firstFailures": [
+    {
+      "case": "initial deterministic native reproduction",
+      "tests": 3,
+      "pass": 0,
+      "fail": 3,
+      "receiptSha256": "9b3300edff7593cb0c0ed23327a159aaa15625e362fc1123afb40b17053df0e7"
+    },
+    {
+      "case": "evaluator alias test matched an exact floating-point volume instead of authored height",
+      "receiptSha256": "f16b7b18b5325f82d18e057fc05c351077f09e9a3b01732928aa0ed7464e5d82"
+    },
+    {
+      "case": "Studio test assertion overload required a definite message string",
+      "receiptSha256": "6741ad333e5a693735dac44428cc552dcb9920429994aa40b69d6701254e0269"
+    }
+  ],
+  "notRun": [
+    "live providers",
+    "Studio UI task approval",
+    "durable worker or reservation restart",
+    "cross-process atomic publication",
+    "whole Model or kernel suites",
+    "distribution or release qualification",
+    "whole B09 acceptance"
+  ]
+}
