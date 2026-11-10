@@ -27,7 +27,7 @@ import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvi
 import { planWorkingApprovalRepair, readWorkingApprovalChecks } from './workingApprovalChecks';
 import { localTaskBaselineBytes, localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
 import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
-  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -152,12 +152,24 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     });
   };
 
-  const refreshTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> => {
-    const value = await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId }));
+  const checkedRunStatus = (run: TaskRunStatus, value: unknown): TaskRunStatus => {
     if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
       throw new Error('The local task run service returned a different or older run status.');
     const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = value;
     return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
+  };
+
+  const refreshTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> =>
+    checkedRunStatus(run, await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
+
+  const rebuildTaskRun = async (run: TaskRunStatus, taskId: string, attemptId: string) => {
+    const { runKey, runId, revision, baselineDigest } = run;
+    const request: TaskRunRebuildRequest = { runKey, runId, revision, baselineDigest, taskId, attemptId };
+    const status = checkedRunStatus(run, await localTaskRunJSON('rebuild', JSON.stringify(request)));
+    const pin = status.tasks.find(task => task.id === taskId)?.review;
+    if (status.revision <= revision || status.baselineDigest !== baselineDigest || !pin || pin.attemptId === attemptId)
+      throw new Error('The local task run did not return a new candidate on this baseline.');
+    return status;
   };
 
   const observeTaskRunStatus = (status: TaskRunStatus) => {
@@ -477,5 +489,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

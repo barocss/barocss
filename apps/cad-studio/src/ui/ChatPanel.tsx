@@ -57,6 +57,7 @@ export interface ChatPanelProps {
     export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
+    rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
     openBaseline(status: TaskRunStatus): Promise<void>;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
@@ -263,7 +264,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   onPrepared(plan: SavedTaskRunPlan, version: object): void;
 }) {
   const busy = useRef(false);
-  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string }>();
+  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string; action: 'review' | 'rebuild' }>();
   const disabled = blocked || working !== undefined;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const base = launch ?? initialRun;
@@ -308,7 +309,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   async function review(task: TaskRunLaunch['tasks'][number]) {
     if (busy.current || !result || !task.review) return;
     busy.current = true;
-    setWorking({ taskId: task.id });
+    setWorking({ taskId: task.id, action: 'review' });
     setError('');
     try {
       const { attemptId, candidateDigest } = task.review;
@@ -316,6 +317,15 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not review the local worker candidate.');
     } finally { busy.current = false; setWorking(undefined); }
+  }
+  async function rebuild(task: TaskRunLaunch['tasks'][number]) {
+    if (busy.current || !result || !task.rebuild) return;
+    busy.current = true;
+    setWorking({ taskId: task.id, action: 'rebuild' });
+    setError('');
+    try { statuses.remember(await actions.rebuild(result, task.id, task.rebuild)); }
+    catch (error) { setError(error instanceof Error ? error.message : 'Could not rebuild the local candidate.'); }
+    finally { busy.current = false; setWorking(undefined); }
   }
   return <>
     {plan && <>
@@ -342,7 +352,11 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
         {task.review && <button className="ghost" type="button" aria-label={`Review candidate ${task.id}`}
           disabled={disabled || actions.modelViewBlocked}
           title={actions.modelViewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
-          onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
+          onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id && working.action === 'review' ? 'Checking…' : 'Review'}</button>}
+        {task.rebuild && <button className="ghost" type="button" aria-label={`Rebuild candidate ${task.id}`}
+          disabled={disabled} onClick={() => void rebuild(task)}>
+          {typeof working === 'object' && working.taskId === task.id && working.action === 'rebuild' ? 'Rebuilding…' : 'Rebuild'}
+        </button>}
       </li>)}</ul>
       {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval}
         workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval}

@@ -1,8 +1,13 @@
-import { runLocalTaskHandoff } from './localService';
+import { runLocalTaskHandoff, runLocalTaskRebuild } from './localService';
 
 const action = process.argv[3];
-if (action !== 'start' && action !== 'reopen') throw new Error('Expected a local task handoff action.');
+if (action !== 'start' && action !== 'reopen' && action !== 'rebuild') throw new Error('Expected a local task handoff action.');
 const chunks: Buffer[] = [];
 for await (const chunk of process.stdin) chunks.push(chunk);
-const reply = await runLocalTaskHandoff(process.argv[2], Buffer.concat(chunks), action);
+const body = Buffer.concat(chunks);
+function parseJSON(bytes: Buffer): unknown {
+  try { return JSON.parse(bytes.toString('utf8')); } catch { return null; }
+}
+const reply = action === 'rebuild' ? await runLocalTaskRebuild(process.argv[2], parseJSON(body))
+  : await runLocalTaskHandoff(process.argv[2], body, action);
 process.stdout.write(JSON.stringify(reply));

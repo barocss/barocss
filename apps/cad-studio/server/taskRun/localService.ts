@@ -2,13 +2,19 @@ import { spawn } from 'node:child_process';
 import { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readStudioFile } from '@barocss/cad-model/engine/container';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
+import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunBaselineRequest, isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
+import { TaskRunHost } from './host';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
-import { candidateReviewFor, taskApprovalFor, taskApprovals, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
+import { candidateReviewFor, taskApprovalFor, taskApprovals, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord, type RunTask } from './store';
 
 export class LocalRunRequestError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
@@ -17,8 +23,9 @@ export class LocalRunRequestError extends Error {
 type LocalRunReply = { result: TaskRunLaunch } | { status: number; error: string };
 
 type HandoffAction = 'start' | 'reopen';
+type LocalRunAction = HandoffAction | 'rebuild';
 
-function handoffInProcess(root: string, bytes: Uint8Array, action: HandoffAction): Promise<TaskRunLaunch> {
+function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction): Promise<TaskRunLaunch> {
   return new Promise((resolve, reject) => {
     // The local runner has a separate PID and a fresh native blob store for each admission.
     const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root, action], {
@@ -45,14 +52,14 @@ function handoffInProcess(root: string, bytes: Uint8Array, action: HandoffAction
 }
 
 export function createLocalTaskRuns(root: string) {
-  let active: { action: HandoffAction; bytesHash: string; result: Promise<TaskRunLaunch> } | undefined;
-  return async (bytes: Uint8Array, action: HandoffAction): Promise<TaskRunLaunch> => {
+  let active: { action: LocalRunAction; bytesHash: string; result: Promise<TaskRunLaunch> } | undefined;
+  return async (bytes: Uint8Array, action: LocalRunAction): Promise<TaskRunLaunch> => {
     const bytesHash = sha256Hex(bytes);
     if (active) {
       if (active.action === action && active.bytesHash === bytesHash) return { ...await active.result, reused: true };
-      throw new LocalRunRequestError(409, 'Another local task handoff is in progress. Try again when it finishes.');
+      throw new LocalRunRequestError(409, 'Another local task action is in progress. Try again when it finishes.');
     }
-    const result = handoffInProcess(root, bytes, action);
+    const result = runInProcess(root, bytes, action);
     active = { action, bytesHash, result };
     try { return await result; }
     finally { active = undefined; }
@@ -156,7 +163,56 @@ function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
   return { runKey, runId: record.runId, phase: record.state.phase, revision: record.revision,
     baselineDigest: record.accepted.modelDigest, checkpoint: checkpointPin(record),
     ...(approvals.length ? { approvals } : {}),
-    tasks: record.state.tasks.map(({ id, phase, reason }) => ({ id, phase, reason, review: reviewPin(record, id) })) };
+    tasks: record.state.tasks.map(task => ({
+      id: task.id, phase: task.phase, reason: task.reason, review: reviewPin(record, task.id), rebuild: rebuildPin(record, task),
+    })) };
+}
+
+function rebuildPin(record: RunRecord, task: RunTask): string | undefined {
+  const { state } = record;
+  if (state.phase !== 'active' || record.pending || task.phase !== 'stale' || !task.attempt || !task.submission
+    || task.attempts >= state.limits.attemptsPerTask || state.sequence >= state.plan.throughSequence) return;
+  return task.attempt.id;
+}
+
+function verifyRebuildSelection(record: RunRecord, request: TaskRunRebuildRequest) {
+  const task = record.state.tasks.find(task => task.id === request.taskId);
+  if (record.runId !== request.runId || record.revision !== request.revision || record.accepted.modelDigest !== request.baselineDigest
+    || !task || rebuildPin(record, task) !== request.attemptId)
+    throw new LocalRunRequestError(409, 'The candidate changed. Refresh the local run status before rebuilding.');
+  return task;
+}
+
+/** Replay the stored scoped submission on the current native baseline under the one-writer guard. */
+export async function runLocalTaskRebuild(root: string, request: unknown): Promise<LocalRunReply> {
+  if (!isTaskRunRebuildRequest(request)) return { status: 400, error: 'Expected the local run, revision and stale attempt IDs.' };
+  let host: TaskRunHost | undefined;
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), request.runKey));
+    const guard = (record: RunRecord) => verifyRebuildSelection(record, request);
+    const { bytes, record } = TaskRunStore.readAcceptedBaseline(directory, guard);
+    const native = await readStudioFile(bytes);
+    if ('error' in native || digestOf(native.doc) !== record.accepted.modelDigest)
+      throw new LocalRunRequestError(409, 'The local run baseline could not be verified.');
+    const plan = compileTaskPlan(native.doc, record.state.plan);
+    if ('error' in plan || plan.specRevision !== record.state.specRevision)
+      throw new LocalRunRequestError(409, 'The local run specification could not be verified.');
+    const task = guard(record), prior = readTaskSubmission(task.submission), bound = plan.tasks.find(item => item.id === task.id);
+    if (!prior || prior.taskId !== task.id || !bound || bound.blockers.length || prior.inputDigest !== bound.inputDigest)
+      throw new LocalRunRequestError(409, 'The task inputs changed. Prepare a new plan.');
+    let revision = 0;
+    host = await TaskRunHost.open(directory, async (doc: StudioDoc) => evaluatePart(doc, ++revision), undefined, guard);
+    const operation = 'studio-rebuild:' + digestOf(request);
+    const outcome = await host.refresh(operation, task.id);
+    if (outcome.phase !== 'completed')
+      throw new LocalRunRequestError(409, `The candidate could not be rebuilt (${outcome.code ?? outcome.phase}). Refresh the local run status.`);
+    return { result: { ...taskRunStatus(request.runKey, host.snapshot), directory, reused: true } };
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) return { status: error.status, error: error.message };
+    if (error instanceof RunStoreError && error.code === 'RUN_BUSY') return { status: 409, error: 'Another process owns this local task run.' };
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 404, error: 'The local task run could not be found.' };
+    return { status: 409, error: 'Could not rebuild the local task candidate.' };
+  } finally { host?.close(); }
 }
 
 function toCheckpointPin({ taskId, operationId, accepted }: TaskCheckpoint): TaskRunCheckpointPin {

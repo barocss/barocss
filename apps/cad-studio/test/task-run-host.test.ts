@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { askBatch } from '@barocss/cad-model/chat/questions';
+import { digestOf } from '@barocss/cad-model/util/digest';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
 import { withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
@@ -11,7 +12,7 @@ import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits, threeOccurrenceDoc } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
-import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus, runLocalTaskRebuild } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
 import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
@@ -97,6 +98,40 @@ if (!(await serveTaskThread(evaluate))) {
         for (const worker of workers) worker.release();
         try { await run; } finally { host.close(); }
       }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  test('D631 rebuild refuses a live writer, stale selection and changed inputs without writing', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-rebuild-')), runKey = 'a'.repeat(64), dir = join(root, runKey);
+    const file = join(dir, 'run.json');
+    const snapshot = () => ({ bytes: readFileSync(file), entries: readdirSync(dir).sort() });
+    try {
+      const host = await TaskRunHost.create(dir, 'housing', fixtureDoc(), fixturePlan, fixtureLimits, 8, evaluate);
+      let request;
+      try {
+        await host.dispatch('rebuild-base', 'base', async ticket => reply(ticket, 6));
+        await host.dispatch('rebuild-lid', 'lid', async ticket => reply(ticket, 4));
+        assert.equal((await host.decide(decision(host, 'base', 'approve-base'), trusted())).code, 'RUN_ACCEPTED');
+        const status = readLocalTaskRunStatus(root, { runKey, runId: host.snapshot.runId });
+        const attemptId = status.tasks[1].rebuild;
+        assert.ok(attemptId);
+        request = { runKey, runId: status.runId, revision: status.revision, baselineDigest: status.baselineDigest, taskId: 'lid', attemptId };
+        const before = snapshot();
+        assert.deepEqual(await runLocalTaskRebuild(root, request), { status: 409, error: 'Another process owns this local task run.' });
+        assert.deepEqual(snapshot(), before);
+      } finally { host.close(); }
+      assert.ok(request);
+      const before = snapshot();
+      const stale = await runLocalTaskRebuild(root, { ...request, revision: request.revision - 1 });
+      assert.ok('status' in stale && stale.status === 409 && /candidate changed/i.test(stale.error));
+      assert.deepEqual(snapshot(), before);
+      const envelope = JSON.parse(before.bytes.toString());
+      envelope.record.state.tasks[1].submission.inputDigest = 'e'.repeat(64);
+      envelope.digest = digestOf(envelope.record);
+      writeFileSync(file, JSON.stringify(envelope));
+      const mismatched = snapshot();
+      assert.deepEqual(await runLocalTaskRebuild(root, request), { status: 409, error: 'The task inputs changed. Prepare a new plan.' });
+      assert.deepEqual(snapshot(), mismatched);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 

@@ -17,7 +17,7 @@ async function postLocalTaskRun(action: string, body: Blob | string) {
   return res;
 }
 
-export async function localTaskRunJSON(action: 'start' | 'reopen' | 'review' | 'status', body: Blob | string) {
+export async function localTaskRunJSON(action: 'start' | 'reopen' | 'rebuild' | 'review' | 'status', body: Blob | string) {
   const res = await postLocalTaskRun(action, body);
   const value: unknown = await res.json().catch(() => null);
   if (!isObj(value)) throw new Error('The local task run service returned an invalid result.');

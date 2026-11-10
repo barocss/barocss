@@ -27,6 +27,12 @@ export interface TaskRunBaselineRequest extends TaskRunLocator {
   baselineDigest: string;
 }
 
+export interface TaskRunRebuildRequest extends TaskRunBaselineRequest {
+  revision: number;
+  taskId: string;
+  attemptId: string;
+}
+
 export interface TaskRunReviewRequest extends TaskRunBaselineRequest, TaskRunCandidatePin {
   taskId: string;
 }
@@ -49,7 +55,7 @@ export interface TaskRunStatus extends TaskRunLocator {
   baselineDigest: string;
   checkpoint?: TaskRunCheckpointPin;
   approvals?: TaskRunCheckpointPin[];
-  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin }[];
+  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin; rebuild?: string }[];
 }
 
 export interface TaskRunLaunch extends TaskRunStatus {
@@ -68,6 +74,12 @@ export function isTaskRunBaselineRequest(value: unknown): value is TaskRunBaseli
   return isObj(value) && Object.keys(value).length === 3 && isTaskRunLocator(value) && hash(value.baselineDigest);
 }
 
+export function isTaskRunRebuildRequest(value: unknown): value is TaskRunRebuildRequest {
+  return isObj(value) && Object.keys(value).length === 6 && isTaskRunLocator(value)
+    && hash(value.baselineDigest) && label(value.taskId) && label(value.attemptId)
+    && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0;
+}
+
 export function isTaskRunCheckpointPin(value: unknown): value is TaskRunCheckpointPin {
   return isObj(value) && Object.keys(value).length === 3 && label(value.taskId) && label(value.operationId) && hash(value.acceptedSHA256);
 }
@@ -84,6 +96,7 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   const { checkpoint, approvals, tasks } = value;
   return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
+    && (task.rebuild === undefined || (value.phase === 'active' && task.phase === 'stale' && label(task.rebuild)))
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
     && new Set(tasks.map(task => task.id)).size === tasks.length

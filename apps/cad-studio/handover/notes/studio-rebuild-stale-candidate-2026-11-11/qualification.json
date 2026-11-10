@@ -1,0 +1,139 @@
+{
+  "decision": "D631",
+  "tier": "FULL interface",
+  "baseCommit": "dba954ab861879a0c752e76a8f9c0b50f4c793ce",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d631-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio explicit stale-candidate rebuild",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D631_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --rebuild",
+      "receiptSHA256": "2d517b9fe0b0ee48046a45c96f09bca5db5b86bc95544af400714c3cee1d4c8b",
+      "pinnedSources": 804,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "selectedTask": "p2",
+        "rebuildPosts": 1,
+        "oldAttemptRefused": true,
+        "staleAndDuplicateRequestsRefused": 3,
+        "beforeAttempt": "2:2:p2",
+        "afterAttempt": "4:3:p2",
+        "candidatePublicationDuringRebuild": 0,
+        "runUsageAfterRebuild": 2,
+        "finalHeightsMm": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "label": "Desktop Studio reopened baseline regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D630_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-baseline\" --baseline",
+      "receiptSHA256": "f30309fb92230e8b5bcc14726857ba20d06df86710be906cc36ff72633f26581",
+      "pinnedSources": 804,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop Studio three-task and working-check regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D626_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-three\" --working",
+      "receiptSHA256": "7eab91ed02e5c8c3e0cbb95b2011077fa57c7b89c77b1c08385d8683aa77e96b",
+      "pinnedSources": 804,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent native checkpoint and operation reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/rebuild-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "800e18b830711164cd7a8a3ee71829422f92b7838e4225f057d86736022b1cd1",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "rebuildUsage": 0,
+        "terminalPublications": 2,
+        "finalHeightsMm": [
+          6,
+          4
+        ],
+        "finalSHA256": "8b752cf694c6ab72a921d6cbc0523253b60c48df87b6408002de9d5841e31cce"
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 177,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio focused suite and type check",
+      "reason": "The new refusal fixture lacked the digest helper import. The corrected fixture passes the focused suite, type check and lint."
+    }
+  ],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Dependent candidate rebuilds"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}
