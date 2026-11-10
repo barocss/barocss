@@ -1,13 +1,11 @@
-import { pickVertex } from './vertexPick';
 import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
 import { countRender } from '../devRenders';
-import type { PrintDisplay } from './printDisplay';
 import type { CamDisplay } from './camDisplay';
 import { camStockBounds } from './camOverlayGeometry';
 import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
-import { pmiDrawings, pmiFacingKey, pmiLabels, pmiPick } from './pmiGeometry';
+import { pmiDrawings, pmiFacingKey, pmiLabels } from './pmiGeometry';
 import { printPointToModel, printSceneBounds, projectPrintBodies } from './printProjection';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -16,37 +14,25 @@ import type { FrameCost } from './frameCost';
 import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
-import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
+import type { RenderCamera } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import { regionMesh, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
-import { bulgeThrough } from '@barocss/cad-model/sketch/profile';
-import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
-import { rayOnPlane, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
-import { isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
-import { pickShapeAt, pickSketch } from '@barocss/cad-model/sketch/select';
-import { bandShapes } from '@barocss/cad-model/sketch/band';
-import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, handleLayout, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
+import { handleLayout, type FeatureHandle } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { HandleValueBox } from './HandleValueBox';
 import { ViewCube } from './ViewCube';
 import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
-import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
+import type { CageMode, CageSelection, StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
-import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
-import { bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
-import { respline, splineEditError, splineOutline } from '@barocss/cad-model/sketch/spline';
-import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
-import { ellipseClick, type EllipseDraft } from './ellipseDraft';
-import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
-import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
-import { renderFocusDistance } from './renderFocus';
-import { drawSketchOverlay, fmtLen, type CentreArcDraft, type SketchBandCache, type SketchOverlayDraft } from './sketchOverlay';
+import { drawSketchOverlay, fmtLen, type SketchBandCache } from './sketchOverlay';
+import { banding, cutting, picking, useViewportPointerInput, type ViewportHover, type ViewportPointerProps } from './viewportPointerInput';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
-import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
+export { DRAG_TYPE, instancePickFields } from './viewportPointerInput';
 
 export interface ViewportHandle {
   /** Frames everything, or the box given (the picked bodies). */
@@ -90,17 +76,11 @@ export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: nu
  */
 export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
-interface Props {
-  /** Bed-frame print display, separate from the authored/native document. */
-  printDisplay?: PrintDisplay | null;
-  printActive?: boolean;
+interface Props extends ViewportPointerProps {
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
   camActive?: boolean;
-  /** G24: the drawing's annotations on the model (model-annotations-v1 items), the one picked, and a pick's callback. */
-  annotations?: readonly ModelAnnotation[] | null;
   annotationSelected?: string | null;
-  onPickAnnotation?(id: string): void;
   /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
   displayMode?: DisplayMode;
   /** The application's session request, before an unsupported scope falls back to the default. */
@@ -114,44 +94,13 @@ interface Props {
   onRecoveryNotice?(notice: ViewportRecoveryNotice): void;
   /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
   onBackend?(backend: 'webgpu' | 'webgl2'): void;
-  bodies: BodyResult[];
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
   ghost: Set<number>;
   /** Bodies' own colours by index (StudioDoc.bodies). */
   bodyColors?: Map<number, [number, number, number]>;
   faceColors?: Map<number, Map<number, [number, number, number]>>;
-  hiddenBodies?: Set<number>;
   hoverBody?: number | null;
-  /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
-  snapStep?: number;
-  sketch: SketchState | null;
-  /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
-  gizmo: TransformGizmo | null;
-  handles?: FeatureHandle[];
-  /**
-   * Placing a new shape: where it would stand under the pointer (an upward flat face, else the ground)
-   * goes to `onSpot` as it moves, and `done` on a click or a drop (a command dragged from the rail).
-   * `placeSkip`: keys of the bodies being placed (the preview), looked through.
-   */
-  placing?: boolean;
-  placeSkip?: ReadonlySet<string>;
-  onSpot?(spot: Spot | null, done: boolean): void;
-  /** A double-click on a body's face: pick the whole body; on an edge: its chain (`onPickChain`). */
-  onPickBody?(body: number): void;
-  onPickChain?(body: number, edge: number): void;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
-  /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
-  onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
-  onCursor(p: Vec3 | null): void;
-  onBoxSelect(bodies: number[], additive: boolean): void;
-  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
   onDimClick?(key: string): void;
-  /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
-  onSketchPick?(hit: SketchPick | null, additive: boolean): void;
-  /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
-  /** Band tool clicks: the index (in done, then the current shape) of the closed shape under the pointer, or null. */
-  onSketchBandPick?(index: number | null): void;
-  onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
@@ -162,12 +111,8 @@ interface Props {
   frameSize?: number;
   /** Corners picked (shown as rings). */
   pickedVertices?: { body: number; at: Vec3 }[];
-  /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
-  pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** A box drawn dashed round what is picked (or the part), with its size. */
   boundsBox?: { min: Vec3; max: Vec3; label: string } | null;
-  /** Render settings (the Render workspace), or null for the modelling look. */
-  render?: RenderSettings | null;
   /** Bodies moved by an offset (the Render workspace's animation), by body index. */
   offsets?: Map<number, Vec3>;
   /** Bodies shown moved while a gizmo drags them (by body index; see ViewState.transforms). */
@@ -181,14 +126,11 @@ interface Props {
   analysis?: Analysis | null;
   /** See-through regions of the tool being placed or edited (a hole's whole cylinder). */
   regions?: ToolRegion[];
-  /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
-  poles?: { key: string; at: Vec3 }[];
   /** A workspace map's voxel centres (RM9b), each with its manipulability as a share of the best, 0…1: dots coloured by it. */
   cloud?: { at: Vec3; t: number }[] | null;
   /** Drawings' reference underlays (O68), in the world: polylines and texts (each with its baseline and up directions), drawn thin and grey, not picked. */
   underlays?: { id: string; lines: Vec3[][]; texts: { at: Vec3; dir: Vec3; up: Vec3; text: string; height: number }[] }[];
   pickedPole?: string | null;
-  onPickPole?(key: string): void;
   /** Placed instances of other parts, and the selected ones. */
   instances?: InstanceItem[];
   /** Instances shown moved (posed by the joints, exploded) by a matrix each (column-major 4 × 4), the rest as placed (G1). */
@@ -199,7 +141,6 @@ interface Props {
   sectionHatch?: SectionHatch | null;
   /** Analysis maps on the bodies (G6), and the value under the pointer as it moves over them (null off them). */
   scalarMaps?: readonly ScalarMap[] | null;
-  onHoverScalar?(value: number | null): void;
   /** The mould's parting loops and halves (G6), or none. */
   mould?: MouldShown | null;
   /** Isoclines drawn with the draft map (G6), or none. */
@@ -211,19 +152,8 @@ interface Props {
   contactLinks?: readonly string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
-  /** Finished sketches no feature uses yet (world outlines), picked ones highlighted; a click picks one (Shift: adds). */
-  profiles?: { id: number; rings: Vec3[][]; picked: boolean }[];
-  onPickProfile?(id: number | null, additive: boolean): void;
   /** An instance shown moved while the gizmo drags it (see assembly/drag.ts previewMatrix). */
   instancePreview?: { id: string; matrix: Float64Array } | null;
-  /**
-   * A SubD cage being edited (R8.2, D81): drawn over the body (edges, vertices, the selection, what its validation
-   * flags), clicks pick in its mode (Shift adds), a double-click on an edge its loop (Alt: its ring).
-   */
-  cage?: CageOverlay | null;
-  /** A tool on the pointer and the overlay (G17: the 3D skeleton sketch), or none. */
-  tool?: ViewportTool | null;
-  onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
 }
 export function displayModeScope(props: Props): string | undefined {
   if (props.render) return 'CAD display modes are available in Model view.';
@@ -246,11 +176,6 @@ export function instanceDisplayStatus(status: DisplayModeStatus | null, renderer
   if (typeof renderer?.setInstances !== 'function' || typeof renderer?.pickInstanceFace !== 'function')
     return { ...status, supported: false, reason: 'Instance rendering requires the renderer instance bridge.' };
   return status;
-}
-/** A cap is an instance/body hit, with no native face operation authority. Unknown faces are not caps. */
-export function instancePickFields(hit: { id: string; body: number; face: number; cap?: true }): { instance: string; instanceFace?: FaceRef; instanceCap?: { body: number } } {
-  if (hit.cap === true) return { instance: hit.id, instanceCap: { body: hit.body } };
-  return hit.face >= 0 ? { instance: hit.id, instanceFace: { body: hit.body, face: hit.face } } : { instance: hit.id };
 }
 /**
  * The overlay lines' looks (G7), as styles.css drew them in SVG; depth-tested now, their hidden parts faint (SVG drew them
@@ -354,23 +279,6 @@ export interface CageOverlay {
 
 
 type InstanceFace = { id: string; body: number; face: number };
-type Hover = { face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: readonly number[] } | null };
-const sameRef = (a: { body: number; face?: number; edge?: number } | null | undefined, b: { body: number; face?: number; edge?: number } | null | undefined) =>
-  a === b || (!!a && !!b && a.body === b.body && a.face === b.face && a.edge === b.edge);
-/** Whether two hover states pick the same face, edge and vertex (they are compared on every pointer move). */
-function sameHover(a: Hover, b: Hover): boolean {
-  if (!sameRef(a.face, b.face) || !sameRef(a.edge, b.edge)) return false;
-  const p = a.vertex ?? null, q = b.vertex ?? null;
-  return p === q || (!!p && !!q && p.body === q.body && p.at[0] === q.at[0] && p.at[1] === q.at[1] && p.at[2] === q.at[2]);
-}
-/** Whether two gizmo hits are the same part of the gizmo. */
-function sameGizmoHit(a: GizmoHit | null, b: GizmoHit | null): boolean {
-  if (a === b) return true;
-  if (!a || !b || a.kind !== b.kind) return false;
-  if (a.kind === 'handle') return a.index === (b as typeof a).index;
-  if (a.kind === 'plane') return a.axes[0] === (b as typeof a).axes[0] && a.axes[1] === (b as typeof a).axes[1];
-  return a.axis === (b as typeof a).axis;
-}
 function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[]): boolean {
   if (a === b) return true;
   if (a.length !== b.length) return false;
@@ -429,24 +337,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const camera = useRef(new OrbitCamera());
   const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
-  const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: Vec3 } | null }>({ face: null, edge: null });
-  /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
-  const vertexAt = (x: number, y: number, w: number, h: number, hit: { face: FaceRef | null; edge: EdgeRef | null }): { body: number; at: Vec3 } | null => {
-    const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
-    if (bi === undefined) return null;
-    const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
-    const print = propsRef.current.printDisplay;
-    if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
-    return pickVertex(f, bi, mesh.edges, x, y, p => camera.current.project(p as Vec3, w, h), print?.printed ? print.top : undefined);
-  };
-  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | 'spline' | null; splineArm?: { hit: SplineHandleHit; pointerId: number }; splineHit?: SplineHandleHit; splineStart?: SketchShape; splineLast?: SketchShape; splineLastDef?: SplineDef; pointerId?: number; x: number; y: number; moved: boolean; x0?: number; y0?: number;
-    /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number;
-    gizmo?: TransformGizmo; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
-  /** The gizmo handle under the pointer, drawn brighter. */
-  const gizmoHot = useRef<GizmoHit | null>(null);
-  /** The feature handle last let go and its command: its value box shows while that command runs (roadmap 20 ⑥). */
-  const valueBox = useRef<{ id: string; owner: unknown } | null>(null);
+  const hover = useRef<ViewportHover>({ face: null, edge: null });
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
   // move a full frame is drawn with it, the same as before. (One function, kept for the component's life.)
   const settle = useRef(0), requestRef = useRef<() => void>(() => undefined);
@@ -455,49 +346,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     r.interacting = true; window.clearTimeout(settle.current);
     settle.current = window.setTimeout(() => { if (renderer.current) { renderer.current.interacting = false; requestRef.current(); } }, 180);
   });
-  const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
-  /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
-  const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
-  /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
-  const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null } => {
-    const key = JSON.stringify(sk.plane), bodies = propsRef.current.bodies;
-    if (!modelSnapCache.current || modelSnapCache.current.bodies !== bodies || modelSnapCache.current.plane !== key) modelSnapCache.current = { bodies, plane: key, points: modelSnaps(bodies.map(b => b.mesh), sk.plane) };
-    const live = liveShape.current as SnapShape | null;
-    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...modelSnapCache.current.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
-    const hit = nearestSnap(points, q => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; }, [x, y]);
-    return hit ? { at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4], snap: hit } : { at: [snap(p[0]), snap(p[1])], snap: null };
-  };
-  /** Plane coordinates of the sketch → canvas pixels. */
-  const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
-  const picking = (sk: SketchState | null) => sk?.tool === 'select' || sk?.tool === 'dimension';
-  /** Trim, Extend and Split: a click edits the piece under it (no snapping). */
-  const cutting = (sk: SketchState | null) => sk?.tool === 'trim' || sk?.tool === 'extend' || sk?.tool === 'split';
-  /** Band tool: a click picks a whole closed shape (no snapping). */
-  const banding = (sk: SketchState | null) => sk?.tool === 'band';
   /** The band's derived outline, recomputed only when the band or the shapes change. */
   const bandCache = useRef<SketchBandCache | null>(null);
-  /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
-  const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
-  const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
   const ticker = useMemo(frameTicker, []);
   const [error, setError] = useState<string | null>(null);
   const [printError, setPrintError] = useState<string | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
-  const cancelGizmo = (reason: GizmoCancelReason, pointerId?: number) => {
-    const d = drag.current;
-    if (d.mode !== 'gizmo' || (pointerId !== undefined && d.pointerId !== pointerId)) return;
-    drag.current = { mode: null, x: 0, y: 0, moved: true };
-    if (d.pointerId !== undefined && canvas.current?.hasPointerCapture(d.pointerId)) canvas.current.releasePointerCapture(d.pointerId);
-    requestRef.current();
-    if (d.pointerId !== undefined) d.gizmo?.onCancel?.(d.pointerId, reason);
-  };
-  const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
-  useEffect(() => {
-    const d = drag.current;
-    if (d.mode === 'gizmo' && d.gizmo && (!gizmoPresent || !Object.is(gizmoSessionKey, d.sessionKey))) cancelGizmo('session-change');
-  }, [gizmoPresent, gizmoSessionKey]);
-  useEffect(() => () => cancelGizmo('unmount'), []);
   const focusPick = useRef<((focus: number | null) => void) | null>(null);
   const [pickingFocus, setPickingFocus] = useState(false);
   const finishFocusPick = (focus: number | null) => {
@@ -505,26 +360,6 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     if (canvas.current) canvas.current.style.cursor = '';
     done?.(focus);
   };
-  const renderActive = !!props.render && !props.sketch;
-  useEffect(() => { if (!renderActive) { const done = focusPick.current; focusPick.current = null; setPickingFocus(false); if (canvas.current) canvas.current.style.cursor = ''; done?.(null); } }, [renderActive]);
-  useEffect(() => () => { const done = focusPick.current; focusPick.current = null; done?.(null); }, []);
-  /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
-  const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
-  // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
-  // the latest emitted shape; a new shape from the app (panel edit, solver settle) replaces it.
-  const splineCancelRef = useRef<() => void>(() => undefined);
-  useEffect(() => {
-    // (Capture phase: the drag's Escape is not also the app's.)
-    // While a spline drag is active every key is swallowed (Escape cancels it), so no app shortcut acts mid-drag.
-    const key = (e: KeyboardEvent) => { if (drag.current.mode !== 'spline') return; e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') splineCancelRef.current(); };
-    // An Ellipse draft's Escape drops the draft only (not the whole sketch, which is the app's Escape).
-    const esc = (e: KeyboardEvent) => { if (e.key !== 'Escape' || !ellipseDraft.current) return; e.stopImmediatePropagation(); e.preventDefault(); ellipseDraft.current = null; requestRef.current(); };
-    window.addEventListener('keydown', key, true); window.addEventListener('keydown', esc, true);
-    return () => { window.removeEventListener('keydown', key, true); window.removeEventListener('keydown', esc, true); };
-  }, []);
-  const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
-  if (props.sketch?.shape !== seenShape.current) { seenShape.current = props.sketch?.shape; liveShape.current = props.sketch?.shape ?? null; }
-  const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
   const fitted = useRef(false);
 
   // (R1b: the bodies' offsets made once for the transforms or offsets they come from — viewState runs in each frame and hover.)
@@ -575,6 +410,24 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     });
   };
   requestRef.current = request;
+
+  const input = useViewportPointerInput({
+    canvas, camera, propsRef,
+    rendering: { renderer, request, requestRef, moving, viewState, hover },
+    focus: { focusPick, finishFocusPick },
+  });
+  const { cancelGizmo } = input;
+  const { drag, gizmoHot, valueBox, sketchDraft, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector } = input.overlay;
+  const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
+  useEffect(() => {
+    const d = drag.current;
+    if (d.mode === 'gizmo' && d.gizmo && (!gizmoPresent || !Object.is(gizmoSessionKey, d.sessionKey))) cancelGizmo('session-change');
+  }, [gizmoPresent, gizmoSessionKey]);
+  useEffect(() => () => cancelGizmo('unmount'), []);
+  const renderActive = !!props.render && !props.sketch;
+  useEffect(() => { if (!renderActive) { const done = focusPick.current; focusPick.current = null; setPickingFocus(false); if (canvas.current) canvas.current.style.cursor = ''; done?.(null); } }, [renderActive]);
+  useEffect(() => () => { const done = focusPick.current; focusPick.current = null; done?.(null); }, []);
+  useEffect(input.listenForSketchKeys, []);
 
   // WebGPU (the @barocss/gpu viewer) when the browser has it, else WebGL2; ?renderer=webgl2 forces the latter.
   useEffect(() => {
@@ -877,533 +730,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     frameCosts() { return renderer.current?.frameCosts() ?? {}; },
   }));
 
-  const local = (e: { clientX: number; clientY: number }) => {
-    const rect = canvas.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width, h: rect.height };
-  };
-  const planePoint = (x: number, y: number, w: number, h: number, z: number): Vec3 | null => {
-    const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
-    if (Math.abs(dir[2]) < 1e-6) return null;
-    const t = (z - origin[2]) / dir[2]; if (t < 0) return null;
-    return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, z];
-  };
-  /**
-   * The edge or else the face under a pixel. Over a face an edge must be within 4 px (a thin face such as
-   * a plate's side stays pickable); elsewhere within 6 px.
-   */
-  const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null } => {
-    const under = r.pickFace(x, y, camera.current, viewState()), filter = propsRef.current.pickFilter ?? 'all';
-    // The selection filter: faces (or bodies) only, edges only, or whichever is under the pointer.
-    if (filter === 'face' || filter === 'body') return { face: under, edge: null };
-    const edge = r.pickEdge(x, y, camera.current, viewState(), under ? 4 : 6);
-    return filter === 'edge' ? { face: null, edge } : { face: edge ? null : under, edge };
-  };
-  /** The sketch plane's coordinates under a pixel. */
-  const sketchPoint = (x: number, y: number, w: number, h: number, plane: SketchPlane): [number, number] | null => {
-    const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
-    return rayOnPlane(plane, origin, dir);
-  };
-  const surfacePoint = (x: number, y: number, w: number, h: number, face: FaceRef | null): Vec3 | null => {
-    if (!face) return null;
-    const f = propsRef.current.bodies[face.body]?.mesh.faces[face.face]; if (!f || f.kind !== 'plane') return null;
-    const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
-    const denom = f.normal[0] * dir[0] + f.normal[1] * dir[1] + f.normal[2] * dir[2]; if (Math.abs(denom) < 1e-9) return null;
-    const t = ((f.centroid[0] - origin[0]) * f.normal[0] + (f.centroid[1] - origin[1]) * f.normal[1] + (f.centroid[2] - origin[2]) * f.normal[2]) / denom;
-    return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, origin[2] + dir[2] * t];
-  };
-
-  /** The view as a tool sees it (G17). */
-  const toolView = (): ToolView => {
-    const c = canvas.current!, w = Math.max(1, c.clientWidth), h = Math.max(1, c.clientHeight), cam = camera.current;
-    cam.aspect = w / h;
-    return {
-      w, h, camera: cam, project: p => cam.project(p, w, h), ray: (x, y) => cam.ray((x / w) * 2 - 1, 1 - (y / h) * 2), request,
-      vertices: () => { const out: Vec3[] = []; propsRef.current.bodies.forEach((b, i) => { if (propsRef.current.hiddenBodies?.has(i)) return; for (const e of b.mesh.edges) out.push(e.a as Vec3, e.b as Vec3); }); return out; },
-    };
-  };
-  /** Canvas pixels of world points, for the gizmo and handles: they keep one size on screen (GIZMO_PX at their origin). */
-  const projector = (): Projector => {
-    const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight, cam = camera.current, { right, forward } = cam.basis();
-    const project = (p: Vec3): [number, number] => { const q = cam.project(p, w, h); return [q[0], q[1]]; };
-    const o = propsRef.current.gizmo?.origin ?? propsRef.current.handles?.[0]?.at ?? cam.target, a = project(o), b = project([o[0] + right[0], o[1] + right[1], o[2] + right[2]]);
-    const perMm = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-    return { project, forward, size: GIZMO_PX / perMm };
-  };
-  const sk0 = () => propsRef.current.sketch;
-  /** The nearest face under a pixel among the bodies not in `skip` (a ray through their triangles). */
-  const pickThrough = (x: number, y: number, w: number, h: number, skip: ReadonlySet<string>): FaceRef | null => {
-    const { origin: o, dir: d } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
-    let best: FaceRef | null = null, tBest = Infinity;
-    propsRef.current.bodies.forEach((b, bi) => {
-      if (skip.has(b.key) || propsRef.current.hiddenBodies?.has(bi)) return;
-      const { min, max } = b.mesh.bounds; let t0 = 0, t1 = tBest;
-      for (let k = 0; k < 3; k++) { if (Math.abs(d[k]) < 1e-12) { if (o[k] < min[k] || o[k] > max[k]) return; continue; } let a = (min[k] - o[k]) / d[k], c = (max[k] - o[k]) / d[k]; if (a > c) [a, c] = [c, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, c); if (t0 > t1) return; }
-      const P = b.mesh.positions, I = b.mesh.indices;
-      for (let t = 0; t < I.length; t += 3) {
-        const i0 = I[t] * 3, i1 = I[t + 1] * 3, i2 = I[t + 2] * 3;
-        const e1 = [P[i1] - P[i0], P[i1 + 1] - P[i0 + 1], P[i1 + 2] - P[i0 + 2]], e2 = [P[i2] - P[i0], P[i2 + 1] - P[i0 + 1], P[i2 + 2] - P[i0 + 2]];
-        const q = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * q[0] + e1[1] * q[1] + e1[2] * q[2];
-        if (Math.abs(det) < 1e-12) continue;
-        const sv = [o[0] - P[i0], o[1] - P[i0 + 1], o[2] - P[i0 + 2]], u = (sv[0] * q[0] + sv[1] * q[1] + sv[2] * q[2]) / det; if (u < 0 || u > 1) continue;
-        const r2 = [sv[1] * e1[2] - sv[2] * e1[1], sv[2] * e1[0] - sv[0] * e1[2], sv[0] * e1[1] - sv[1] * e1[0]], v = (d[0] * r2[0] + d[1] * r2[1] + d[2] * r2[2]) / det; if (v < 0 || u + v > 1) continue;
-        const tt = (e2[0] * r2[0] + e2[1] * r2[1] + e2[2] * r2[2]) / det;
-        if (tt > 1e-6 && tt < tBest) { tBest = tt; best = { body: bi, face: b.mesh.faceOfVertex[I[t]] }; }
-      }
-    });
-    return best;
-  };
-  /** Where a shape being placed stands under a pixel (to 1 mm): an upward face, else the plane last stood on, else the ground. */
-  const lastSpot = useRef<Spot | null>(null);
-  const spotAt = (x: number, y: number, w: number, h: number): Spot | null => {
-    const r = renderer.current; if (!r) return null;
-    const p = propsRef.current;
-    let face = r.pickFace(x, y, camera.current, viewState());
-    // The shape being placed is looked through (to the hole or face behind it), unless it is fitted to a hole.
-    if (face && p.placeSkip?.has(p.bodies[face.body]?.key) && !lastSpot.current?.hole) face = pickThrough(x, y, w, h, p.placeSkip) ?? face;
-    const body = face ? p.bodies[face.body] : undefined, f = body?.mesh.faces[face!.face];
-    const mm = snap;
-    let spot: Spot | null = null;
-    if (f && body && !p.placeSkip?.has(body.key)) {
-      // A flat face facing along X, Y or Z: the point on it (to 1 mm across it), and its normal.
-      const k = f.kind === 'plane' ? [0, 1, 2].find(i => Math.abs(Math.abs(f.normal[i]) - 1) < 1e-6) : undefined;
-      if (k !== undefined) { const q = surfacePoint(x, y, w, h, face); if (q) { const n: Vec3 = [0, 0, 0]; n[k] = Math.sign(f.normal[k]); spot = { point: q.map((v, i) => i === k ? Math.round(v * 1000) / 1000 : mm(v)) as Vec3, normal: n }; } }
-      // Over an upright round hole (or boss): its axis, at its upper rim — a bolt goes straight in.
-      // Over a round hole (or boss) along X, Y or Z: its axis, at the rim nearer the eye, facing out — a bolt goes straight in.
-      else if (f.kind === 'curved' && f.radius !== undefined) {
-        const c = roundAxis(body.mesh, face!.face, f.radius);
-        if (c) {
-          const eye = camera.current.eye(), mid = [0, 1, 2].map(i => (c.lo[i] + c.hi[i]) / 2) as Vec3, up = eye[c.k] >= mid[c.k] ? 1 : -1;
-          const point = [...mid] as Vec3; point[c.k] = up > 0 ? c.hi[c.k] : c.lo[c.k];
-          const n: Vec3 = [0, 0, 0]; n[c.k] = up; spot = { point, normal: n, ...(c.hole ? { hole: { d: Math.round(f.radius * 2000) / 1000, depth: Math.round((c.hi[c.k] - c.lo[c.k]) * 1000) / 1000, through: up > 0 ? c.through.lo : c.through.hi } } : {}) };
-        }
-      }
-    } else if (f && lastSpot.current?.hole) {
-      // Over the shape fitted to a hole: it stays in that hole (moving off the shape lets it go).
-      spot = lastSpot.current;
-    } else if (f && lastSpot.current) {
-      // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
-      const ls = lastSpot.current, k = ls.normal.findIndex(v => v !== 0), { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
-      if (Math.abs(dir[k]) > 1e-6) { const t = (ls.point[k] - origin[k]) / dir[k]; if (t > 0) spot = { point: [0, 1, 2].map(i => i === k ? ls.point[k] : mm(origin[i] + dir[i] * t)) as Vec3, normal: ls.normal }; }
-    }
-    if (!spot) { const q = planePoint(x, y, w, h, 0); if (q) spot = { point: [mm(q[0]), mm(q[1]), 0], normal: [0, 0, 1] }; }
-    lastSpot.current = spot;
-    return spot;
-  };
-  /**
-   * A round hole's (or boss's) axis along X, Y or Z, when its vertices span a full circle of `r` across it:
-   * its middle, both ends along the axis, and which axis.
-   */
-  type RoundAxis = { lo: Vec3; hi: Vec3; k: number; hole: boolean; through: { lo: boolean; hi: boolean } };
-  const roundAxes = useRef(new WeakMap<object, Map<number, RoundAxis | null>>());
-  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): RoundAxis | null => {
-    let byFace = roundAxes.current.get(mesh); if (!byFace) roundAxes.current.set(mesh, byFace = new Map());
-    if (byFace.has(face)) return byFace.get(face)!;
-    const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
-    for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === face) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], mesh.positions[v * 3 + k]); hi[k] = Math.max(hi[k], mesh.positions[v * 3 + k]); }
-    const across = (k: number) => Math.abs(hi[k] - lo[k] - 2 * r) < 0.02 * r + 1e-3;
-    const k = [2, 0, 1].find(a => [0, 1, 2].filter(i => i !== a).every(across)), round = (v: number) => Math.round(v * 1000) / 1000;
-    if (k === undefined) { byFace.set(face, null); return null; }
-    const P = mesh.positions, mid = [0, 1, 2].map(i => (lo[i] + hi[i]) / 2);
-    // A hole, not a boss: its wall's normals point in to the axis.
-    let v0 = 0; while (v0 < mesh.faceOfVertex.length && mesh.faceOfVertex[v0] !== face) v0++;
-    const hole = [0, 1, 2].reduce((t, i) => i === k ? t : t + mesh.normals[v0 * 3 + i] * (P[v0 * 3 + i] - mid[i]), 0) < 0;
-    // Through at an end when no face of the body closes it there: no triangle across the axis at that end.
-    const closed = (at: number) => {
-      const [a, b] = [0, 1, 2].filter(i => i !== k), I = mesh.indices, q = [mid[a], mid[b]];
-      for (let t = 0; t < I.length; t += 3) {
-        const tri = [I[t], I[t + 1], I[t + 2]];
-        if (!tri.every(v => Math.abs(P[v * 3 + k] - at) < 1e-4)) continue;
-        const [p0, p1, p2] = tri.map(v => [P[v * 3 + a], P[v * 3 + b]]), side = (u: number[], w: number[]) => (w[0] - u[0]) * (q[1] - u[1]) - (w[1] - u[1]) * (q[0] - u[0]);
-        const s0 = side(p0, p1), s1 = side(p1, p2), s2 = side(p2, p0);
-        if ((s0 >= 0 && s1 >= 0 && s2 >= 0) || (s0 <= 0 && s1 <= 0 && s2 <= 0)) return true;
-      }
-      return false;
-    };
-    const out = { lo: lo.map(round) as Vec3, hi: hi.map(round) as Vec3, k, hole, through: { lo: hole && !closed(lo[k]), hi: hole && !closed(hi[k]) } };
-    byFace.set(face, out); return out;
-  };
-  /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
-  const profileAt = (x: number, y: number, w: number, h: number): number | null => {
-    const list = propsRef.current.profiles; if (!list?.length) return null;
-    let best: number | null = null, bestD = 6;
-    for (const p of list) for (const [k, ring] of p.rings.entries()) {
-      const q = ring.map(v => camera.current.project(v, w, h));
-      let inside = false;
-      for (let i = 0, j = q.length - 1; i < q.length; j = i++) {
-        const a = q[i], b = q[j], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy, t = l2 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)) : 0;
-        const d = Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy); if (d < bestD) { bestD = d; best = p.id; }
-        if ((a[1] > y) !== (b[1] > y) && x < a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])) inside = !inside;
-      }
-      if (k === 0 && inside && best === null) best = p.id;
-    }
-    return best;
-  };
-  const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
-  /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
-  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean, d = drag.current) => {
-    const p = propsRef.current, g = d.gizmo ?? p.gizmo, P = projector(), hit = d.hit!;
-    d.x = x; d.y = y;
-    if (hit.kind === 'handle') {
-      const hd = p.handles?.[hit.index]; if (!hd) return;
-      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it — from the handle where
-      // the drag began (G14: a handle drawn where its value now is, as SceneViewport's section handles are in each frame,
-      // would measure each step from a moved point, and the release from another: its value one snap off the last shown).
-      const at0 = d.handleAt ?? hd.at;
-      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], at0, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
-      if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
-      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
-      hd.onDrag(d.value, done);
-      // (Roadmap 20 ⑥: the handle let go offers its value in a box beside it while the command runs.)
-      if (done) valueBox.current = { id: hd.id, owner: hd.owner };
-      return;
-    }
-    if (!g) return;
-    if (hit.kind === 'move' || hit.kind === 'plane') {
-      const grid = propsRef.current.snapStep ?? 1, delta: Vec3 = [0, 0, 0], step = shift ? Math.max(0.001, (grid || 1) / 10) : grid || 0.001;
-      // (Measured from the gizmo where the drag began: it moves with the selection meanwhile.)
-      const o = d.origin ?? g.origin;
-      if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
-      else { const dir: Vec3 = [0, 0, 0]; dir[hit.axis] = 1; delta[hit.axis] = snapTo(dragAlong(d.from!, [x, y], o, dir, P), step); }
-      d.delta = delta; g.onMove?.(delta, done, d.pointerId); return;
-    }
-    if (hit.kind === 'scale') {
-      const k = dragScale(d.from!, [x, y], d.origin ?? g.origin, hit.axis, P), step = shift ? 0.01 : 0.05;
-      d.factor = Math.max(step, Math.round(k / step) * step); g.onScale?.(d.factor, done); return;
-    }
-    // A turn adds up the sweep step by step, so it can go past half a turn.
-    d.turned = (d.turned ?? 0) + dragTurn(d.last!, [x, y], g.origin, hit.axis, P); d.last = [x, y];
-    const step = shift ? 1 : g.turnSnap?.(hit.axis) ?? 15;
-    d.degrees = snapTo(d.turned, step); g.onTurn?.(hit.axis, d.degrees, done);
-  };
-
-  /** A spline drag at the pointer: the valid definition previews live (no history step); an unbuildable one keeps the last valid preview. */
-  const splineDragTo = (d: typeof drag.current, x: number, y: number, w: number, h: number, fine: boolean) => {
-    const sk = propsRef.current.sketch, start = d.splineStart; if (!sk || !start || start.kind !== 'polygon' || !d.splineHit) return;
-    const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
-    const def = draggedSpline(start.spline!, d.splineHit, p, { fine, step: propsRef.current.snapStep });
-    if (splineEditError(def)) return;
-    d.splineLast = respline(start, def); d.splineLastDef = def; liveShape.current = d.splineLast; request();
-  };
-  /** Ends an armed or active spline drag without emitting: an active one restores the start shape. `moved` keeps the pick click away. */
-  const splineDragCancel = () => {
-    const d = drag.current; if (d.mode !== 'spline' && !d.splineArm) return;
-    if (d.mode === 'spline') liveShape.current = d.splineStart ?? null;
-    drag.current = { mode: null, x: 0, y: 0, moved: true };
-    if (canvas.current) canvas.current.style.cursor = '';
-    request();
-  };
-  splineCancelRef.current = splineDragCancel;
-  /** A cancelled or lost pointer ends its own armed or active spline drag only. */
-  const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
-  // A tool change or the end of the sketch cancels a pending spline drag and drops the grab cursor.
   const sketchTool = props.sketch?.tool;
-  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; }, [sketchTool, !!props.sketch]);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (drag.current.mode === 'gizmo') return;
-    if (drag.current.splineArm || drag.current.mode === 'spline') return; // (another pointer while a spline drag is armed or active)
-    canvas.current!.setPointerCapture(e.pointerId);
-    const { x, y } = local(e);
-    if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
-    const tool = propsRef.current.tool;
-    if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
-    // (D353: a down on a closed spline's handle end or fit point arms a drag; a release before it starts is the ordinary click.)
-    const sk1 = propsRef.current.sketch, sd = e.button === 0 && !e.altKey && sk1?.tool === 'select' ? closedSplineOf(liveShape.current) : null;
-    const sh = sd ? splineHandleHit(sd, sketchProject(sk1!.plane), x, y) : null;
-    if (sh) { drag.current = { mode: null, x, y, moved: false, x0: x, y0: y, splineArm: { hit: sh, pointerId: e.pointerId } }; return; }
-    const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
-    if (hit) {
-      const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
-      const g = hit.kind === 'handle' ? undefined : propsRef.current.gizmo ?? undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
-      g?.onStart?.(e.pointerId);
-      return;
-    }
-    if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
-    else if (e.button === 1 || (e.button === 2 && e.shiftKey)) drag.current = { mode: 'pan', x, y, moved: false };
-    else if (e.button === 0 && e.altKey) drag.current = { mode: 'orbit', x, y, moved: false };
-    else drag.current = { mode: null, x, y, moved: false, x0: x, y0: y };
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
-    const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
-    if (d.splineArm || d.mode === 'spline') {
-      if ((d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
-      if (!(e.buttons & 1)) { splineDragCancel(); return; } // (released outside: hover never moves a drag)
-      if (d.splineArm) {
-        if (!splineDragStarted(x - d.x, y - d.y)) return;
-        // Activate: the start is the current shape (after any blur-commit re-render), and must still hold the armed handle.
-        const start = liveShape.current, def = closedSplineOf(start), hit = d.splineArm.hit;
-        if (!start || !def || hit.i >= def.fit.length) { splineDragCancel(); return; }
-        drag.current = { mode: 'spline', x: d.x, y: d.y, moved: true, splineHit: hit, splineStart: start, pointerId: e.pointerId };
-        canvas.current!.style.cursor = 'grabbing';
-      }
-      splineDragTo(drag.current, x, y, w, h, e.shiftKey); return;
-    }
-    if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
-    if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
-    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
-    if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
-    if (focusPick.current && !d.mode) { if (e.buttons === 1 && Math.hypot(x - d.x, y - d.y) > 5) d.moved = true; canvas.current!.style.cursor = 'crosshair'; return; }
-    if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
-    if (!d.mode && !sk0()) {
-      const hot = gizmoHit(x, y);
-      if (!sameGizmoHit(hot, gizmoHot.current)) { gizmoHot.current = hot; request(); }
-      if (hot) { canvas.current!.style.cursor = 'grab'; return; }
-      canvas.current!.style.cursor = '';
-    }
-    const sk = propsRef.current.sketch;
-    if (!d.mode && sk?.tool === 'select' && e.buttons === 0) {
-      // (D353: a closed spline's handle end or fit point under the pointer.)
-      const sp = closedSplineOf(liveShape.current), over = sp ? splineHandleHit(sp, sketchProject(sk.plane), x, y) : null;
-      canvas.current!.style.cursor = over ? 'grab' : '';
-    }
-    if (!sk && e.buttons === 1 && d.x0 !== undefined && (d.mode === 'box' || Math.hypot(x - d.x0, y - d.y0!) > 5)) {
-      d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
-    }
-    if (sk) {
-      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) && !banding(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
-      sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
-      propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
-      const s = liveShape.current; const c = sketchDraft.current.cursor;
-      if (sk.tool !== 'carc') carc.current = null;
-      if (sk.tool !== 'spline') splineFit.current = null;
-      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current, c], closed: false } }); }
-      if (banding(sk)) sketchDraft.current.bandHover = pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y);
-      if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
-      else if (sk.tool === 'carc') {
-        const d = carc.current;
-        if (d && c) {
-          d.cursor = c;
-          if (d.a) {
-            // How far it has turned: the pointer's angle about the centre, followed step by step (either way round).
-            const t = Math.atan2(c[1] - d.c[1], c[0] - d.c[0]); let dt = t - (d.last ?? t);
-            if (dt > Math.PI) dt -= 2 * Math.PI; if (dt < -Math.PI) dt += 2 * Math.PI;
-            d.sweep = Math.max(-2 * Math.PI + 1e-3, Math.min(2 * Math.PI - 1e-3, d.sweep + dt)); d.last = t;
-          }
-        }
-      }
-      else if (cutting(sk)) {
-        const all = sketchShapesOf(sk), q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
-        const points = !q ? null : kind === 'trim' ? trimPreview(all, q, tol) : kind === 'extend' ? extendPreview(all, q, tol) : (pt => pt ? [pt] : null)(splitPreview(all, q, tol));
-        sketchDraft.current.trim = points ? { kind, points } : null;
-      }
-      else if (s && c) {
-        if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
-        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
-        if (s.kind === 'slot' && drafting.current) {
-          if (slotStage.current === 1) emit({ ...s, b: c });
-          else {
-            const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1;
-            const off = Math.abs((c[0] - s.a[0]) * (s.b[1] - s.a[1]) - (c[1] - s.a[1]) * (s.b[0] - s.a[0])) / l;
-            emit({ ...s, r: Math.max(0.5, Math.round(off * 2) / 2) });
-          }
-        }
-        if (s.kind === 'polygon' && s.pending && p) {
-          const n = s.points.length, i = s.closed ? n - 1 : n - 2;
-          if (i >= 0) { const bulges = [...(s.bulges ?? s.points.map(() => 0))]; bulges[i] = bulgeThrough(s.points[i], s.points[(i + 1) % n], [p[0], p[1]]); emit({ ...s, bulges }); }
-        }
-      }
-      request(); return;
-    }
-    if (propsRef.current.placing && !d.mode) { propsRef.current.onSpot?.(spotAt(x, y, w, h), false); return; }
-    const { face, edge } = pickAt(r, x, y);
-    const prev = hover.current;
-    const vertex = vertexAt(x, y, w, h, { face, edge });
-    const next = { face: edge || vertex ? null : face, edge: vertex ? null : edge, vertex };
-    if (!sameHover(prev, next)) { hover.current = next; r.setState(viewState()); request(); }
-    const point = surfacePoint(x, y, w, h, face) ?? planePoint(x, y, w, h, 0);
-    propsRef.current.onCursor(point);
-    // (G6: the map's value under the pointer, for its legend.)
-    if (propsRef.current.onHoverScalar) propsRef.current.onHoverScalar(r.scalarAt?.(x, y, camera.current) ?? null);
-  };
-
-  const drafting = useRef(false);
-  const slotStage = useRef(0);
-  /** The centre arc being drawn: its centre, then its start and how far it has turned (signed, radians). */
-  /** The Spline tool's points so far (the curve through them is drawn as tangent arcs). */
-  const splineFit = useRef<[number, number][] | null>(null);
-  /** The Bézier tool's control points before they make a shape (fewer than three); `open`: the current shape is a quadratic a fourth click makes cubic (D354). */
-  const bezierDraft = useRef<{ poles: [number, number][]; open: boolean }>({ poles: [], open: false });
-  /** The Ellipse tool's clicks so far: the centre, then the end of the first axis (the ellipse follows the pointer until the third). */
-  const ellipseDraft = useRef<EllipseDraft | null>(null);
-  const carc = useRef<CentreArcDraft | null>(null);
-  const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
-    const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
-    return [r6(d.c[0] + r * Math.cos(t)), r6(d.c[1] + r * Math.sin(t))];
-  };
-  /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
-  const onPointerLeave = () => {
-    const r = renderer.current, prev = hover.current;
-    if (!r || drag.current.mode || (!prev.face && !prev.edge && !prev.vertex)) return;
-    hover.current = { face: null, edge: null, vertex: null }; r.setState(viewState()); request();
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
-    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
-    if ((d.splineArm || d.mode === 'spline') && (d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
-    drag.current = { mode: null, x: 0, y: 0, moved: false };
-    const { x, y, w, h } = local(e);
-    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
-    if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
-    if (d.mode === 'spline') {
-      // One history step for the whole drag (only when the definition changed, and the sketch is still the one dragged), never also a pick click.
-      canvas.current!.style.cursor = '';
-      const now = propsRef.current.sketch, cur = now?.tool === 'select' ? now.shape : null, st = d.splineStart;
-      const same = !!cur && !!st && (cur === st || JSON.stringify(cur) === JSON.stringify(st));
-      const changed = d.splineLastDef && st?.kind === 'polygon' && !sameSplineDef(st.spline!, d.splineLastDef);
-      if (same && changed && d.splineLast) emit(d.splineLast); else liveShape.current = cur ?? null;
-      request(); return;
-    }
-    if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
-    if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
-      const { face, edge } = pickAt(renderer.current!, x, y);
-      propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
-    }
-    if (d.mode || d.moved || e.button !== 0) return;
-    if (focusPick.current) {
-      const point = propsRef.current.render && !propsRef.current.sketch ? renderer.current?.pickSurfacePoint?.(x, y, camera.current) ?? null : null;
-      finishFocusPick(point ? renderFocusDistance(camera.current, point) : null);
-      if (canvas.current) canvas.current.style.cursor = '';
-      request(); return;
-    }
-    if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
-    // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
-    const cg = propsRef.current.cage;
-    if (cg) { propsRef.current.onPickCage?.(pickCage(cg.cage, p => camera.current.project(p as Vec3, w, h), x, y, cg.mode), e.shiftKey); request(); return; }
-    // (G24: a click on an annotation's text or lines picks it, before the model under it.)
-    const pm = propsRef.current.annotations;
-    if (pm?.length && propsRef.current.onPickAnnotation) {
-      const id = pmiPick(pm, p => { const q = camera.current.project(p, w, h); return Number.isFinite(q[0]) && Number.isFinite(q[1]) ? [q[0], q[1]] : null; }, x, y);
-      if (id) { propsRef.current.onPickAnnotation(id); request(); return; }
-    }
-    const sk = propsRef.current.sketch;
-    if (sk) {
-      const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
-      const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
-      const s = liveShape.current;
-      if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
-      if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }
-      if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
-      if (sk.tool === 'spline') {
-        // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
-        const fit = splineFit.current ?? [], fresh = !fit.length;
-        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true, fromSpline: true, spline: { fit: [...fit], closed: true } }); splineFit.current = null; request(); return; }
-        if (fit.length && c[0] === fit[fit.length - 1][0] && c[1] === fit[fit.length - 1][1]) return;
-        splineFit.current = [...fit, c];
-        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current], closed: false } }, fresh); request(); return;
-      }
-      if (sk.tool === 'bezier') {
-        // Control points: the third makes a quadratic (a shape), a fourth a cubic and ends it (the next click starts another curve).
-        // (A click on the previous point is ignored; poles that make no curve are refused with the reason, and the draft stays.)
-        const bd = bezierDraft.current, same = (q: [number, number] | undefined) => !!q && q[0] === c[0] && q[1] === c[1];
-        if (bd.open && wellFormedBezier(s) && s.poles.length === 3) {
-          if (same(s.poles[2])) return;
-          const next: SketchShape = { ...s, poles: [...s.poles, c] };
-          if (bezierError(next.poles)) { propsRef.current.onSketchShape(next); return; }
-          bezierDraft.current = { poles: [], open: false }; emit(next); request(); return;
-        }
-        if (same(bd.poles[bd.poles.length - 1])) return;
-        const poles = [...bd.poles, c];
-        if (poles.length < 3) { bezierDraft.current = { poles, open: false }; request(); return; }
-        const made: SketchShape = { kind: 'bezier', poles };
-        if (bezierError(poles)) { propsRef.current.onSketchShape(made, true); return; }
-        bezierDraft.current = { poles: [], open: true }; emit(made, true); request(); return;
-      }
-      if (sk.tool === 'ellipse') {
-        // Centre, end of the first axis, then a point whose distance from that axis is the other semi-axis (the draft is cleared when the ellipse is made; a refusal is then shown in the panel and the sketch keeps its shape).
-        const r = ellipseClick(ellipseDraft.current, c); ellipseDraft.current = r.draft;
-        if (r.def) { ellipseDraft.current = null; propsRef.current.onSketchShape(ellipseShape(r.def), true); }
-        request(); return;
-      }
-      if (sk.tool === 'carc') {
-        const d = carc.current;
-        if (!d) carc.current = { c, sweep: 0, cursor: c };
-        else if (!d.a) { if (c[0] !== d.c[0] || c[1] !== d.c[1]) carc.current = { ...d, a: c, last: Math.atan2(c[1] - d.c[1], c[0] - d.c[0]), sweep: 0 }; }
-        else if (Math.abs(d.sweep) > 1e-3) {
-          // The end where clicked (on the circle at its angle), turned the way the pointer went round.
-          const a0 = Math.atan2(d.a[1] - d.c[1], d.a[0] - d.c[0]), t = Math.atan2(c[1] - d.c[1], c[0] - d.c[0]), sg = Math.sign(d.sweep);
-          let sw = ((sg * (t - a0)) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-          while (sw + 2 * Math.PI < Math.abs(d.sweep) + Math.PI) sw += 2 * Math.PI;
-          if (sw < 1e-3 || sw > 2 * Math.PI - 1e-3) { request(); return; }
-          d.sweep = sg * sw;
-          const e = carcEnd(d); carc.current = null;
-          emit({ kind: 'polygon', points: [d.a, e], bulges: [Math.round(Math.tan(d.sweep / 4) * 1e9) / 1e9, 0], closed: false }, true);
-        }
-        request(); return;
-      }
-      if (sk.tool === 'rectangle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
-        else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
-      } else if (sk.tool === 'circle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }, true); }
-        else drafting.current = false;
-      } else if (sk.tool === 'slot') {
-        if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }, true); }
-        else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); } }
-        else { drafting.current = false; slotStage.current = 0; }
-      } else {
-        // Line (polygon) and arc tools share one open chain; an arc's bulge follows the cursor until the next click.
-        const open = s && s.kind === 'polygon' && !s.closed ? s : null;
-        if (s?.kind === 'polygon' && s.pending) { emit({ ...s, pending: false }); return; }
-        const pts = open ? open.points : [], bulges = open?.bulges ?? pts.map(() => 0);
-        const arc = sk.tool === 'arc' && pts.length > 0;
-        const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
-        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
-        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc }, !open);
-      }
-      return;
-    }
-    const r = renderer.current!;
-    // A finished sketch's outline (or inside its main loop) comes before the bodies behind it.
-    const prof = profileAt(x, y, w, h);
-    if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
-    const poles = propsRef.current.poles;
-    if (poles?.length) {
-      let best: string | null = null, d0 = 8;
-      for (const p of poles) { const q = camera.current.project(p.at, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = p.key; } }
-      if (best !== null) { propsRef.current.onPickPole?.(best); return; }
-    }
-    const direct = r.pickDirect?.(x, y, camera.current) ?? null;
-    if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
-    const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
-    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
-    const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
-    if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
-    propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
-  };
-
-  /** Window selection left→right (fully inside), crossing right→left (touching). */
-  const boxSelect = (x0: number, y0: number, x1: number, y1: number, additive: boolean) => {
-    const c = canvas.current!; const w = c.clientWidth, h = c.clientHeight;
-    const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
-    const crossing = x1 < x0; const picked: number[] = [];
-    propsRef.current.bodies.forEach((b, i) => {
-      if (propsRef.current.printActive && propsRef.current.hiddenBodies?.has(i)) return;
-      const P = b.mesh.positions; let inside = 0, total = 0;
-      if (propsRef.current.printActive) {
-        // G19 can retain unused original vertices; only the displayed triangles can enter this box.
-        for (const index of new Set(b.mesh.indices)) {
-          const k = index * 3, q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
-          if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
-        }
-        if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
-        return;
-      }
-      const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
-      for (let k = 0; k < P.length; k += step) {
-        const q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
-        if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
-      }
-      if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
-    });
-    propsRef.current.onBoxSelect(picked, additive);
-  };
-
-  const onWheel = (e: React.WheelEvent) => {
-    const { x, y, w, h } = local(e);
-    camera.current.zoom(Math.exp(e.deltaY * 0.0015), (x / w) * 2 - 1, 1 - (y / h) * 2); moving.current(); request();
-  };
+  useEffect(input.resetSketchTool, [sketchTool, !!props.sketch]);
 
   // Overlay: sketch preview, dimension labels and the move gizmo, projected each frame.
   /** G24 on WebGL2 (no engine labels): each annotation text at its point, facing the eye, in the SVG overlay. */
@@ -1563,13 +891,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       data-display-mode-effective={displayStatus?.effective ?? props.displayMode ?? 'shaded-with-edges'}
       data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}
       data-display-mode-reason={props.displayModeReason ?? displayStatus?.reason}
-      onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
-      onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
-      <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
-        onPointerCancel={e => { splineCancelOf(e.pointerId); cancelGizmo('pointercancel', e.pointerId); }} onLostPointerCapture={e => { splineCancelOf(e.pointerId); cancelGizmo('lostpointercapture', e.pointerId); }}
-        onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
-          if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
-        onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
+      {...input.placementHandlers}>
+      <canvas ref={canvas} className="vp-canvas" {...input.canvasHandlers} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       <FrameOverlay ticker={ticker} draw={drawOverlay} />
       {error && <div className="vp-error" role="alert">{error}</div>}
       {printError && <div className="vp-error" role="alert">{printError}</div>}
@@ -1577,6 +900,3 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     </div>
   );
 });
-
-/** The drag-and-drop type of a command dragged from the rail (its id is the data). */
-export const DRAG_TYPE = 'application/x-cad-command';

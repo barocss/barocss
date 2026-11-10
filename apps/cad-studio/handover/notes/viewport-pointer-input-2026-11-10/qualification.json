@@ -1,0 +1,107 @@
+{
+  "workId": "D555",
+  "parent": "26789a0b23ca55013c03a70cda9d04098b685aa1",
+  "tier": "SMALL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d555-2026-11-10"
+  },
+  "sourceBoundarySha256": "b3a04c3fcb29f8b6858a9e4b31bdd28efba162000d0489819154eccab64725d0",
+  "productSha256": {
+    "apps/cad-studio/src/viewport/Viewport.tsx": "34c6add113ad909aace346e1d1a339a7e3b84b996deae5b22cad336b06f943b2",
+    "apps/cad-studio/src/viewport/viewportPointerInput.ts": "7d085f33985747b7b3a92866d25aeea904f80c9912d6b938bb31931fd55731bb"
+  },
+  "widthX": {
+    "initial": 10,
+    "applied": 11,
+    "volume": 1100.0000000000002,
+    "expectedVolume": 1100,
+    "absoluteTolerance": 1e-06
+  },
+  "checks": [
+    {
+      "command": "node --check test/<each scenario driver>",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    }
+  ],
+  "studio": [
+    {
+      "id": "interaction01",
+      "status": "PASS",
+      "qualifiedBoundary": "selection, context menu, polygon and 60 mm dimension",
+      "command": "DEBUG=pw:browser,pw:api D553_SOURCE_FROZEN=1 node test/viewport-interaction-boundary-browser.mjs EXTERNAL/interaction01",
+      "wallSeconds": 12.15,
+      "snapshots": 7,
+      "frozenPins": 296,
+      "driverSha256": "11cc36f17a49e4b7f03ecaea3d9b6ecdde2c5738610d6a2ac85324863b2c9a10",
+      "receiptSha256": "995e6250a0cc4793c42ced4dfde971e74da3155d80b36af0685606384ee0a9c1",
+      "ownedPID": 77654,
+      "chromePID": 77676
+    },
+    {
+      "id": "band01",
+      "status": "PASS",
+      "qualifiedBoundary": "construction circles and Band 3 \u2192 5 \u2192 3",
+      "command": "DEBUG=pw:browser,pw:api D554_SOURCE_FROZEN=1 node test/viewport-sketch-overlay-band-browser.mjs EXTERNAL/band01",
+      "wallSeconds": 15.0,
+      "snapshots": 6,
+      "frozenPins": 297,
+      "driverSha256": "f97b583a69a927155bd5fce1a0e345b66218b3f4d3164845dcc593bb01ec5268",
+      "receiptSha256": "2292f92eaed2b5d2b0b8287f26b0a69ea2d71d282d3a461fa123828fe5636f8c",
+      "ownedPID": 78297,
+      "chromePID": 78333
+    },
+    {
+      "id": "pointer01",
+      "status": "FAIL",
+      "qualifiedBoundary": "wheel and captured pan pass; blocked endpoint stops before marquee",
+      "command": "DEBUG=pw:browser,pw:api D555_SOURCE_FROZEN=1 node test/viewport-pointer-boundary-browser.mjs EXTERNAL/pointer01",
+      "wallSeconds": 11.35,
+      "snapshots": 4,
+      "frozenPins": 295,
+      "driverSha256": "801b9d38728505b38b7931d282771a3e507829e02f8569e88fa04d1f718b160f",
+      "receiptSha256": "94839daf7142573be52bc2b7a6c7d6523d6c4e2f398c7ed54fe022866dd2507b",
+      "ownedPID": 79102,
+      "chromePID": 79136
+    },
+    {
+      "id": "pointer02",
+      "status": "FAIL",
+      "qualifiedBoundary": "marquee passes; HUD observer runs before drag",
+      "command": "DEBUG=pw:browser,pw:api D555_SOURCE_FROZEN=1 D555_POINTER_TAIL=1 node test/viewport-pointer-boundary-browser.mjs EXTERNAL/pointer02",
+      "wallSeconds": 39.4,
+      "snapshots": 4,
+      "frozenPins": 295,
+      "driverSha256": "ad26508971c1c9103fd75906191d9529150e03ab2dfe940fb4289269e7a01c45",
+      "receiptSha256": "7149f55d883d67ada61bfed2eb471004e0d68cce6e594d3c89140559b36c1c8d",
+      "ownedPID": 89723,
+      "chromePID": 89745
+    },
+    {
+      "id": "pointer03",
+      "status": "PASS",
+      "qualifiedBoundary": "Width X 10 \u2192 11 mm, Apply produces 1100 mm\u00b3, Undo restores exact original",
+      "command": "DEBUG=pw:browser,pw:api D555_SOURCE_FROZEN=1 D555_POINTER_TAIL=handle node test/viewport-pointer-boundary-browser.mjs EXTERNAL/pointer03",
+      "wallSeconds": 11.57,
+      "snapshots": 4,
+      "frozenPins": 295,
+      "driverSha256": "119651339382f87e6a1e4e1e0bd928c23ea773fd5084f2fe1dfad9284bf2cdd8",
+      "receiptSha256": "c2be9a8408e579680752968acfb6bd5485189d8f324181f2633137cc4b6800ae",
+      "ownedPID": 94001,
+      "chromePID": 94039
+    }
+  ],
+  "wholeCad": "NOT_MEASURED"
+}

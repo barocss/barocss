@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D555 — extract viewport pointer input and qualify selected desktop gestures](notes/viewport-pointer-input-2026-11-10/README.md).
+
 - [D554: extract the Viewport active-sketch overlay and verify actual dimensions and Band redraw](notes/viewport-sketch-overlay-2026-11-10/README.md).
 
 - [D553: move viewport input policies out of App and qualify typed picking and sketch actions](notes/studio-viewport-interactions-2026-11-10/README.md).
