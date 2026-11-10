@@ -1,5 +1,5 @@
 ---
-work_id: D562
+work_id: D563
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -61,7 +61,9 @@ D561 verifies that starting from a saved local template clears the prior body cl
 
 D562 verifies same-key clipboard isolation across browser project file Open and named version Restore. Desktop Studio preserves history on both routes and a fresh Copy allows Paste at X +20 mm. [D562](../body-clipboard-project-2026-11-10/README.md).
 
-Next MAIN is D563, P0 rows 12 and 16. Check stale Paste when restoring a browser-local recovery document with the same body key. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
+D563 verifies same-key clipboard isolation when restoring a real browser-local recovery document. Actual Studio retains exact history and a fresh Copy allows Paste at X +20 mm. [D563](../body-clipboard-recovery-2026-11-10/README.md).
+
+Next MAIN is D564, P0 rows 12 and 16. Check same-key clipboard isolation on edit-in-place entry and return to the assembly. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
