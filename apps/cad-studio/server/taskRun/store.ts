@@ -216,6 +216,24 @@ export function candidateReviewFor(record: RunRecord, taskId: string): Candidate
     plan: state.plan, baseline: record.accepted, submission, scope: candidate.scope, candidateDigest: candidate.candidateDigest };
 }
 
+/** Project the latest publishable task checkpoint from one checked durable record. */
+export function taskCheckpointFor(record: RunRecord): TaskCheckpoint {
+  const commit = record.commits.at(-1);
+  if (!commit || commit.kind === 'spec' || record.pending)
+    return issue('RUN_STALE', 'Export requires a committed task and no pending publication.');
+  const task = record.state.tasks.find(task => task?.id === commit.taskId), candidate = task?.candidate;
+  const operation = record.state.operations.find(op => op?.id === commit.operationId);
+  if (task?.phase !== 'completed' || !candidate || candidate.taskId !== commit.taskId || candidate.specRevision !== commit.specRevision ||
+      candidate.candidateDigest !== commit.candidateDigest || operation?.phase !== 'completed' ||
+      operation.code !== 'RUN_ACCEPTED' || operation.epoch !== commit.epoch)
+    return issue('RUN_CORRUPT', 'The committed task and its durable receipt disagree.');
+  const receipt: TaskCheckpoint = { runId: record.runId, revision: record.revision, taskId: commit.taskId,
+    operationId: commit.operationId, plan: commit.plan ?? record.state.plan,
+    specRevision: commit.specRevision, candidateDigest: commit.candidateDigest,
+    proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: record.accepted };
+  return receipt;
+}
+
 /** The run record is authoritative. Native objects are immutable and durable before a record can refer to them. */
 export class TaskRunStore {
   private record?: RunRecord;
@@ -254,21 +272,11 @@ export class TaskRunStore {
   }
 
   /** Export one committed task from a single read of the durable pointer. The native files are immutable. */
-  static readTaskCheckpoint(directory: string) {
-    const path = realpathSync(directory), record = recordAt(path), commit = record.commits.at(-1);
-    if (!commit || commit.kind === 'spec' || record.pending)
-      return issue('RUN_STALE', 'Export requires a committed task and no pending publication.');
-    const task = record.state.tasks.find(task => task?.id === commit.taskId), candidate = task?.candidate;
-    const operation = record.state.operations.find(op => op?.id === commit.operationId);
-    if (task?.phase !== 'completed' || !candidate || candidate.taskId !== commit.taskId || candidate.specRevision !== commit.specRevision ||
-        candidate.candidateDigest !== commit.candidateDigest || operation?.phase !== 'completed' ||
-        operation.code !== 'RUN_ACCEPTED' || operation.epoch !== commit.epoch)
-      return issue('RUN_CORRUPT', 'The committed task and its durable receipt disagree.');
-    const receipt: TaskCheckpoint = { runId: record.runId, revision: record.revision, taskId: commit.taskId,
-      operationId: commit.operationId, plan: commit.plan ?? record.state.plan,
-      specRevision: commit.specRevision, candidateDigest: commit.candidateDigest,
-      proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: record.accepted };
-    return { receipt, before: readObject(path, commit.from), accepted: readObject(path, record.accepted) };
+  static readTaskCheckpoint(directory: string, guard?: (record: RunRecord) => void) {
+    const path = realpathSync(directory), record = recordAt(path);
+    guard?.(record);
+    const receipt = taskCheckpointFor(record);
+    return { receipt, before: readObject(path, receipt.from), accepted: readObject(path, receipt.accepted) };
   }
 
   /** Read an exportable pending candidate from one durable record without taking its writer lease. */

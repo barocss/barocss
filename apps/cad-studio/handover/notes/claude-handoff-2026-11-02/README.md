@@ -1,5 +1,5 @@
 ---
-work_id: D621
+work_id: D622
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -179,7 +179,9 @@ D620 opens both held candidates from the local run row in Studio. Desktop verifi
 
 D621 adds explicit run status refresh, shared revisions across cards, stale preview retirement and a rebuilt sibling review. Desktop verifies both terminal approvals and the final checkpoint. [D621](../../notes/studio-local-run-status-2026-11-11/README.md).
 
-Next MAIN is D622 / P0 automation, B09 follow-up, rows 04, 12 and 16. Open the latest terminal-approved checkpoint directly from the existing owned run row. Reuse the verified native checkpoint intake and document ownership guards. Require an explicit Studio action, refuse a retired selection, and verify both approved checkpoints in desktop Studio without a manual file export. [#2402](https://github.com/barocss/barocss/issues/2402).
+D622 opens both terminal-approved checkpoints from the same owned Studio run card. Desktop refuses corrupt and retired responses, preserves the newer working Open, and verifies the original saved source and durable run files. [D622](../../notes/studio-open-local-checkpoint-2026-11-11/README.md).
+
+Next MAIN is D623 / P0 automation, B09 follow-up, rows 04 and 16. Expand the local worker beyond extrusion height with one independent rectangular profile width driven by an authored X extent. Reuse the existing sketch, evaluator and approval boundary. Prove that a width edit preserves depth, height and the sibling occurrence, and that existing height-task checkpoints remain readable. Keep complex profiles outside this first width case. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -11,8 +11,9 @@ import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
-import { LocalRunRequestError, readLocalTaskCandidate, readLocalTaskRunStatus } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
+import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
@@ -145,6 +146,54 @@ if (!(await serveTaskThread(evaluate))) {
         assert.notEqual(rebuilt.tasks[1].review?.attemptId, pin.attemptId);
         assert.notEqual(rebuilt.tasks[1].review?.candidateDigest, pin.candidateDigest);
         assert.deepEqual(files(), beforeRead);
+      } finally { host.close(); }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  test('D622 local checkpoint bytes bind the latest terminal approval without changing the owned run', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-checkpoint-read-')), key = 'a'.repeat(64), dir = join(root, key);
+    try {
+      const host = await TaskRunHost.create(dir, 'housing', fixtureDoc(), fixturePlan, fixtureLimits, 8, evaluate);
+      try {
+        await host.dispatch('checkpoint-base', 'base', async ticket => reply(ticket, 6));
+        await host.dispatch('checkpoint-lid', 'lid', async ticket => reply(ticket, 4));
+        const locator = { runKey: key, runId: host.snapshot.runId };
+        assert.equal(readLocalTaskRunStatus(root, locator).checkpoint, undefined);
+        assert.equal((await host.decide(decision(host, 'base', 'checkpoint-approve-base'), trusted())).code, 'RUN_ACCEPTED');
+        const status = readLocalTaskRunStatus(root, locator);
+        assert.ok(status.checkpoint);
+        assert.ok(isTaskRunStatus(status));
+        const request = { ...locator, ...status.checkpoint };
+        const files = () => [readFileSync(join(dir, 'run.json')), readdirSync(dir).sort()];
+        const before = files();
+        const bundle = await readTaskCheckpoint(readLocalTaskCheckpoint(root, request));
+        assert.ok(bundle && !('error' in bundle));
+        assert.equal(bundle.receipt.runId, locator.runId);
+        assert.equal(bundle.receipt.operationId, status.checkpoint.operationId);
+        assert.equal(bundle.receipt.accepted.sha256, status.checkpoint.acceptedSHA256);
+        assert.deepEqual(bundle.doc.instances?.map(part => part.doc.nodes[1].kind === 'extrude' ? part.doc.nodes[1].height : null), [6, 3]);
+        const fail = (patch: Record<string, unknown>, code: number) =>
+          assert.throws(() => readLocalTaskCheckpoint(root, { ...request, ...patch }),
+            (error: unknown) => error instanceof LocalRunRequestError && error.status === code);
+        fail({ runId: 'another-run' }, 409);
+        fail({ taskId: 'lid' }, 409);
+        fail({ operationId: 'another-operation' }, 409);
+        fail({ acceptedSHA256: 'b'.repeat(64) }, 409);
+        fail({ path: dir }, 400);
+        fail({ runKey: '../' }, 400);
+        fail({ runKey: 'b'.repeat(64) }, 404);
+        symlinkSync(dir, join(root, 'c'.repeat(64)));
+        fail({ runKey: 'c'.repeat(64) }, 409);
+        assert.deepEqual(files(), before);
+        assert.equal((await host.refresh('checkpoint-rebuild-lid', 'lid')).phase, 'completed');
+        assert.equal((await host.decide(decision(host, 'lid', 'checkpoint-approve-lid'), trusted())).code, 'RUN_ACCEPTED');
+        fail({}, 409);
+        const final = readLocalTaskRunStatus(root, locator);
+        assert.ok(final.checkpoint);
+        const finalBefore = files(), finalBundle = await readTaskCheckpoint(readLocalTaskCheckpoint(root, { ...locator, ...final.checkpoint }));
+        assert.ok(finalBundle && !('error' in finalBundle));
+        assert.deepEqual(finalBundle.doc.instances?.map(part => part.doc.nodes[1].kind === 'extrude' ? part.doc.nodes[1].height : null), [6, 4]);
+        assert.deepEqual(files(), finalBefore);
       } finally { host.close(); }
     } finally { rmSync(root, { recursive: true, force: true }); }
   });

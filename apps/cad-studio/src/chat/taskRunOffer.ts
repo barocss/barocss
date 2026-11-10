@@ -37,10 +37,19 @@ const TASK_PHASES = ['ready', 'running', 'validating', 'awaiting-decision', 'com
 export type TaskRunTaskPhase = typeof TASK_PHASES[number];
 const taskPhases = new Set<unknown>(TASK_PHASES);
 
+export interface TaskRunCheckpointPin {
+  taskId: string;
+  operationId: string;
+  acceptedSHA256: string;
+}
+
+export type TaskRunCheckpointRequest = TaskRunLocator & TaskRunCheckpointPin;
+
 export interface TaskRunStatus extends TaskRunLocator {
   phase: 'active' | 'paused' | 'stopped';
   revision: number;
   baselineDigest: string;
+  checkpoint?: TaskRunCheckpointPin;
   tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin }[];
 }
 
@@ -56,16 +65,28 @@ export function isTaskRunLocator(value: unknown): value is TaskRunLocator {
   return isObj(value) && hash(value.runKey) && label(value.runId);
 }
 
+export function isTaskRunCheckpointPin(value: unknown): value is TaskRunCheckpointPin {
+  return isObj(value) && Object.keys(value).length === 3 && label(value.taskId) && label(value.operationId) && hash(value.acceptedSHA256);
+}
+
+export function sameTaskRunCheckpoint(a: TaskRunCheckpointPin, b: TaskRunCheckpointPin | undefined): boolean {
+  return a.taskId === b?.taskId && a.operationId === b.operationId && a.acceptedSHA256 === b.acceptedSHA256;
+}
+
 export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   if (!isObj(value) || !isTaskRunLocator(value) || !hash(value.baselineDigest)
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
     || (value.phase !== 'active' && value.phase !== 'paused' && value.phase !== 'stopped')
     || !Array.isArray(value.tasks) || value.tasks.length !== 2) return false;
+  const checkpoint = value.checkpoint;
   return value.tasks.every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
-    && value.tasks[0].id !== value.tasks[1].id;
+    && value.tasks[0].id !== value.tasks[1].id
+    && (checkpoint === undefined || (isTaskRunCheckpointPin(checkpoint)
+      && value.tasks.some(task => task.id === checkpoint.taskId && task.phase === 'completed')));
+
 }
 
 export function retiresTaskRunReview(status: TaskRunStatus, request: TaskRunReviewRequest, reviewedRevision: number): boolean {

@@ -1,3 +1,4 @@
+import type { TaskRunCheckpointRequest } from '../chat/taskRunOffer';
 import { modelHash } from '@barocss/cad-model/chat/spec';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
@@ -23,6 +24,7 @@ export interface TaskCheckpoint {
   accepted: NativeRef;
 }
 export interface CheckpointReview {
+  localRun?: TaskRunCheckpointRequest;
   taskId: string;
   revision: number;
   proposalId: string;

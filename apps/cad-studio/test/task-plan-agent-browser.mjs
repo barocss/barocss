@@ -9,7 +9,7 @@ import { taskRunStatusFlow } from './task-run-status-flow.mjs';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
-const statusMode = mode === '--status', startMode = mode === '--start' || reviewMode || statusMode;
+const checkpointMode = mode === '--checkpoint', statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -32,13 +32,13 @@ const pins = [
   'apps/cad-studio/src/files/taskRunHandoff.ts', 'apps/cad-studio/src/chat/taskRunOffer.ts',
   'apps/cad-studio/test/fixtures/task-run-terminal.py',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ChatPanel.tsx',
-  'apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/files/taskCandidateReview.ts',
+  'apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/chat/localTaskRun.ts', 'apps/cad-studio/src/files/taskCheckpoint.ts', 'apps/cad-studio/src/files/taskCandidateReview.ts',
   'apps/cad-studio/src/storage/CandidateReviewSection.tsx', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
   'apps/cad-studio/src/layout/DockSection.tsx',
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { fixtureDoc } from './test/task-run-fixture';
@@ -66,7 +66,7 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP. Two existing extrusion-height occurrences.'],
 });
@@ -79,7 +79,7 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const project = checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -314,7 +314,7 @@ process.exitCode = code ?? 1;
         f.report.observations.push({ studioRunStarted: true, explicitPostCount: requests.length,
           durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: 2, acceptedBaselineSHA256: record.accepted.sha256 });
         if (statusMode) {
-          await taskRunStatusFlow({ f, origin, firstRow: row.first(), launch: firstLaunch, source, saved, savedBytes, openFile, startRequests: requests,
+          await taskRunStatusFlow({ f, origin, firstRow: row.first(), directCheckpoint: checkpointMode, launch: firstLaunch, source, saved, savedBytes, openFile, startRequests: requests,
             duplicateRow: async () => {
               await turn('ready-duplicate', [call()]);
               const second = row.last();

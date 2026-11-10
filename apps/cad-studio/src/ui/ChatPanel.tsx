@@ -53,8 +53,9 @@ export interface ChatPanelProps {
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
+    openCheckpoint(status: TaskRunStatus): Promise<void>;
     review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
-    reviewBlocked: boolean;
+    modelViewBlocked: boolean;
   };
   /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
   scope?: object | null;
@@ -87,8 +88,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const rememberRunStatus = (snapshot: TaskRunStatus) => {
     const prior = runStatusesNow.current.get(snapshot.runId);
     if (prior && (prior.runKey !== snapshot.runKey || prior.revision >= snapshot.revision)) return;
-    const { runKey, runId, phase, revision, baselineDigest, tasks } = snapshot;
-    const status = { runKey, runId, phase, revision, baselineDigest, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks } = snapshot;
+    const status = { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks };
     const next = new Map(runStatusesNow.current).set(runId, status);
     runStatusesNow.current = next;
     setRunStatuses(next);
@@ -226,7 +227,7 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
   statuses: RunStatuses;
 }) {
   const busy = useRef(false);
-  const [working, setWorking] = useState<'start' | 'status' | { taskId: string }>();
+  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | { taskId: string }>();
   const disabled = blocked || working !== undefined;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const latest = launch && statuses.current.get(launch.runId);
@@ -258,6 +259,15 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
       setError(error instanceof Error ? error.message : 'Could not refresh the local task run.');
     } finally { busy.current = false; setWorking(undefined); }
   }
+  async function openCheckpoint() {
+    if (busy.current || !result?.checkpoint) return;
+    busy.current = true;
+    setWorking('checkpoint');
+    setError('');
+    try { await actions.openCheckpoint(result); }
+    catch (error) { setError(error instanceof Error ? error.message : 'Could not open the approved local checkpoint.'); }
+    finally { busy.current = false; setWorking(undefined); }
+  }
   async function review(task: TaskRunLaunch['tasks'][number]) {
     if (busy.current || !result || !task.review) return;
     busy.current = true;
@@ -280,10 +290,14 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
       <button className="ghost" type="button" aria-label="Refresh local run status" disabled={disabled} onClick={() => void refresh()}>
         {working === 'status' ? 'Refreshing…' : 'Refresh status'}
       </button>
+      {result.checkpoint && <button className="ghost" type="button" aria-label="Open approved checkpoint"
+        disabled={disabled || actions.modelViewBlocked} onClick={() => void openCheckpoint()}>
+        {working === 'checkpoint' ? 'Verifying checkpoint…' : 'Open approved checkpoint'}
+      </button>}
       <ul>{result.tasks.map(task => <li key={task.id}><span>{task.id + ' · ' + task.phase.replaceAll('-', ' ') + (task.reason ? ' · ' + task.reason : '')}</span>
         {task.review && <button className="ghost" type="button" aria-label={`Review candidate ${task.id}`}
-          disabled={disabled || actions.reviewBlocked}
-          title={actions.reviewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
+          disabled={disabled || actions.modelViewBlocked}
+          title={actions.modelViewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
           onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
       </li>)}</ul>
       <code title={result.directory}>{result.directory}</code>

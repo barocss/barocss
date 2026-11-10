@@ -1,0 +1,341 @@
+{
+  "decision": "D622",
+  "tier": "FULL interface",
+  "baseCommit": "bb7bdf35e892ee24aa40f66535209c0d0d4679ad",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio direct checkpoint Open and obsolete-response refusal",
+      "result": "PASS",
+      "command": "D622_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --checkpoint",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "058e76fe6c2a6043beffb9c391dd332533ef80f95ce622ab2af908e8f310726c",
+      "pinnedSources": 792,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "09-old-preview-retired",
+        "10-refreshed-sibling",
+        "11-both-terminal-approved"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "runStatusSnapshots": [
+            {
+              "revision": 9,
+              "phases": [
+                "completed",
+                "stale"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 13,
+              "phases": [
+                "completed",
+                "awaiting-decision"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 137
+            }
+          ],
+          "staleSiblingPinRefused": true,
+          "sharedCards": 2,
+          "lateOlderStatusIgnored": true,
+          "statusAndReviewDidNotWrite": true,
+          "modelUploadsAfterLaunch": 0,
+          "firstApprovedBoundsMm": [
+            6,
+            3
+          ],
+          "finalBoundsMm": [
+            6,
+            4
+          ],
+          "originalSavedProjectUnchanged": true,
+          "terminalApprovals": 2,
+          "directCheckpointOpen": 2,
+          "corruptBinaryRefused": true,
+          "supersededNativeOpenPreserved": true,
+          "supersededApprovalRefused": true,
+          "manualCheckpointExports": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "visualReview": "PASS",
+      "log": "desktop.log",
+      "logSHA256": "3b64557a1f5111ca4afc58f29fcf2ff8ff6496f4712b23e5c531c8265605d764"
+    },
+    {
+      "label": "Desktop Studio D621 portable checkpoint regression",
+      "result": "PASS",
+      "command": "D621_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/status-regression\" --status",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "88fc17a66e85c01067b187004209848608d7ba08666e7d421cd10bc9be7351f5",
+      "pinnedSources": 792,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "09-old-preview-retired",
+        "10-refreshed-sibling",
+        "11-both-terminal-approved"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "runStatusSnapshots": [
+            {
+              "revision": 9,
+              "phases": [
+                "completed",
+                "stale"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 13,
+              "phases": [
+                "completed",
+                "awaiting-decision"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 137
+            },
+            {
+              "revision": 16,
+              "phases": [
+                "completed",
+                "completed"
+              ],
+              "bytesSent": 137
+            }
+          ],
+          "staleSiblingPinRefused": true,
+          "sharedCards": 2,
+          "lateOlderStatusIgnored": true,
+          "lateHeldReviewRetired": true,
+          "statusAndReviewDidNotWrite": true,
+          "modelUploadsAfterLaunch": 0,
+          "firstApprovedBoundsMm": [
+            6,
+            3
+          ],
+          "finalBoundsMm": [
+            6,
+            4
+          ],
+          "originalSavedProjectUnchanged": true,
+          "terminalApprovals": 2
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "status-regression.log",
+      "logSHA256": "6e61556b894c47f769ce74c35478add9cbb64dc82345a4b3c61cdaad88761cda"
+    },
+    {
+      "label": "Independent binary and native-object oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/checkpoint-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "49f2dd87ddb125bb891d6561be5088c803ad66113b43e115cf1954ec6e5ebed1",
+      "measurements": {
+        "status": "PASS",
+        "productImports": 0,
+        "checkpoints": [
+          {
+            "task": "p1",
+            "heightsMm": [
+              6,
+              3
+            ],
+            "checkpointBytes": 10767,
+            "acceptedSHA256": "3350c04d2480dcbb3b4961580200aeba08cf14f7a870a151f2bf1c5dd471dfdd"
+          },
+          {
+            "task": "p2",
+            "heightsMm": [
+              6,
+              4
+            ],
+            "checkpointBytes": 15323,
+            "acceptedSHA256": "8f447995899cbb793cf8f0647ce90dedcd049d1f234d995f80eb0e7c7ab31278"
+          }
+        ]
+      },
+      "log": "oracle.log",
+      "logSHA256": "e5170d5264873cd2039a015c16c60800159c592606604ac9f38d8f18eda064fb"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 172,
+      "failCount": 0,
+      "log": "studio-suite.log",
+      "logSHA256": "259170f8249175e9b70c26a580cbe3fd0d4a424d0e4199cdc57c2edb580336d9"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 34,
+      "log": "eslint.log",
+      "logSHA256": "1389225e62363cf6076f961539ae7f56165ccffa1bceeb3818f46bd7adc68904"
+    },
+    {
+      "label": "Isolated checkpoint admission and transport overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "a15fc4cff92b50b31090fd6bb7a639b2ed708efc3defbda5bac226155d2e4c27",
+      "variants": {
+        "host-baseline": "PASS",
+        "http-baseline": "PASS",
+        "transport-baseline": "PASS",
+        "ignore-operation-id": "KILLED",
+        "ignore-native-sha": "KILLED",
+        "ignore-checkpoint-run-id": "KILLED",
+        "permit-extra-fields": "KILLED",
+        "ignore-origin-host-mismatch": "KILLED",
+        "ignore-short-binary-body": "KILLED",
+        "ignore-maximum-binary-size": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "f4e3054eb58939490949fb09a14b759a5608c7007dbee11cab7ede8da1554fd7"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "studio-build.log",
+      "logSHA256": "0857a9ecb33fef73537014aeb84d4e377e288d687911b35ad521319e79d5d111"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Status flow syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-status-flow.mjs",
+      "log": "status-driver-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "label": "First Studio type check",
+      "result": "FAIL",
+      "cause": "A narrowed checkpoint pin was not captured for the task lookup. The final parser uses a local binding."
+    },
+    {
+      "label": "Checkpoint transport test type check",
+      "result": "FAIL",
+      "cause": "Inferred optional headers included undefined. The test cases now explicitly use HeadersInit."
+    }
+  ],
+  "reviews": [
+    {
+      "lane": "code",
+      "result": "PASS",
+      "notes": "Final review confirmed retained checkpoint status, bounded binary transport and preservation of the existing file intake."
+    },
+    {
+      "lane": "architecture",
+      "result": "PASS",
+      "notes": "Final review confirmed read-only owned-run projection, terminal authority, selection recheck and document/worker ownership."
+    }
+  ],
+  "notRun": [
+    "whole suites",
+    "live providers",
+    "mobile",
+    "other task profiles",
+    "restoration across chat sessions"
+  ]
+}

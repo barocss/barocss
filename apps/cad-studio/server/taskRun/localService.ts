@@ -4,10 +4,11 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunLocator, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunLocator, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunLocator, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { encodeTaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { prepareTaskRunHandoff, startLocalTaskRun } from './start';
-import { candidateReviewFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
+import { candidateReviewFor, taskCheckpointFor, RunStoreError, TaskRunStore, type RunRecord } from './store';
 
 export class LocalRunRequestError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
@@ -123,8 +124,17 @@ export async function runLocalTaskHandoff(root: string, bytes: Uint8Array): Prom
 
 function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
   return { runKey, runId: record.runId, phase: record.state.phase, revision: record.revision,
-    baselineDigest: record.accepted.modelDigest,
+    baselineDigest: record.accepted.modelDigest, checkpoint: checkpointPin(record),
     tasks: record.state.tasks.map(({ id, phase, reason }) => ({ id, phase, reason, review: reviewPin(record, id) })) };
+}
+
+function checkpointPin(record: RunRecord) {
+  try {
+    const { taskId, operationId, accepted } = taskCheckpointFor(record);
+    return { taskId, operationId, acceptedSHA256: accepted.sha256 };
+  } catch (error) {
+    if (!(error instanceof RunStoreError) || error.code !== 'RUN_STALE') throw error;
+  }
 }
 
 function reviewPin(record: RunRecord, taskId: string) {
@@ -185,5 +195,26 @@ export function readLocalTaskCandidate(root: string, request: unknown): string {
     if (error instanceof RunStoreError && error.code === 'RUN_STALE')
       throw new LocalRunRequestError(409, 'This candidate is no longer awaiting review. Refresh the local run.');
     throw new LocalRunRequestError(409, 'Could not read the current worker candidate.');
+  }
+}
+
+export function readLocalTaskCheckpoint(root: string, request: unknown): Uint8Array {
+  if (!isObj(request) || Object.keys(request).length !== 5 || !isTaskRunLocator(request)
+    || !id(request.taskId) || !id(request.operationId) || !sha(request.acceptedSHA256))
+    throw new LocalRunRequestError(400, 'Expected the local run and approved checkpoint IDs.');
+  const { runKey, runId, taskId, operationId, acceptedSHA256 } = request;
+  const selected: TaskRunCheckpointRequest = { runKey, runId, taskId, operationId, acceptedSHA256 };
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), runKey));
+    const { receipt, before, accepted } = TaskRunStore.readTaskCheckpoint(directory, record => {
+      if (record.runId !== runId) throw new LocalRunRequestError(409, 'The local run changed.');
+      if (!sameTaskRunCheckpoint(selected, checkpointPin(record)))
+        throw new LocalRunRequestError(409, 'The approved checkpoint changed. Refresh the local run status.');
+    });
+    return encodeTaskCheckpoint(receipt, before, accepted);
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) throw error;
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new LocalRunRequestError(404, 'The local task run could not be found.');
+    throw new LocalRunRequestError(409, 'Could not read the approved local checkpoint.');
   }
 }

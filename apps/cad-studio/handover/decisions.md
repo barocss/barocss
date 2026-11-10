@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D622 — open a terminal-approved checkpoint from the Studio run card](notes/studio-open-local-checkpoint-2026-11-11/README.md).
 - [D621 — refresh the same local worker run in Studio](notes/studio-local-run-status-2026-11-11/README.md).
 - [D620 — review a held local candidate directly in Studio](notes/studio-local-candidate-review-2026-11-11/README.md).
 - [D619 — start a verified local worker run in Studio](notes/studio-start-local-run-2026-11-11/README.md).

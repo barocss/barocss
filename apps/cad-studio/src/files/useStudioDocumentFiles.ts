@@ -8,7 +8,6 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { digestOf } from '@barocss/cad-model/util/digest';
-import { isObj } from '@barocss/cad-model/util/guards';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
 import type { EngineClient } from '../engine/client';
@@ -22,8 +21,9 @@ import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, ver
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
-import { isLocalTaskRunHost, isTaskRunStatus, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
-  type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
+import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
+  type TaskRunCheckpointRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -78,6 +78,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
   const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
   const candidateIntent = useRef<{ local?: { request: TaskRunReviewRequest; status?: TaskRunStatus } }>(null);
+  const checkpointIntent = useRef<{ request: TaskRunCheckpointRequest; status?: TaskRunStatus }>(null);
   const cancelLocalCandidateReview = () => {
     if (candidateIntent.current?.local) candidateIntent.current = null;
   };
@@ -134,23 +135,10 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
-  const readLocalTaskRun = async (action: 'start' | 'review' | 'status', body: Blob | string) => {
-    if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to use a local task run.');
-    const res = await fetch('/api/chat/task-runs/' + action, {
-      method: 'POST', redirect: 'error',
-      headers: { 'content-type': typeof body === 'string' ? 'application/json' : 'application/octet-stream', 'x-barocss-task-run': action },
-      body,
-    });
-    const value: unknown = await res.json().catch(() => null);
-    if (!res.ok || !isObj(value))
-      throw new Error(isObj(value) && typeof value.error === 'string' ? value.error : 'The local task run service did not respond.');
-    return value;
-  };
-
   const startTaskRun = async (offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined> => {
     if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
     return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
-      const value = await readLocalTaskRun('start', new Blob([handoff as BlobPart]));
+      const value = await localTaskRunJSON('start', new Blob([handoff as BlobPart]));
       const { directory, reused } = value;
       if (typeof directory !== 'string' || typeof reused !== 'boolean' || !isTaskRunStatus(value))
         throw new Error('The local task run service returned an invalid result.');
@@ -159,11 +147,11 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   };
 
   const refreshTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> => {
-    const value = await readLocalTaskRun('status', JSON.stringify({ runKey: run.runKey, runId: run.runId }));
+    const value = await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId }));
     if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
       throw new Error('The local task run service returned a different or older run status.');
-    const { runKey, runId, phase, revision, baselineDigest, tasks } = value;
-    return { runKey, runId, phase, revision, baselineDigest, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks } = value;
+    return { runKey, runId, phase, revision, baselineDigest, checkpoint, tasks };
   };
 
   const observeTaskRunStatus = (status: TaskRunStatus) => {
@@ -171,6 +159,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     const local = candidateIntent.current?.local;
     if (local && local.request.runKey === runKey && local.request.runId === runId && (!local.status || local.status.revision <= revision))
       local.status = status;
+    const checkpoint = checkpointIntent.current;
+    if (checkpoint && checkpoint.request.runKey === runKey && checkpoint.request.runId === runId
+      && (!checkpoint.status || checkpoint.status.revision <= revision)) checkpoint.status = status;
     changes.onTaskRunStatus(status);
   };
 
@@ -210,29 +201,80 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     setDocState(next); setDirty(true);
   };
 
-  const openCheckpoint = async (file: File, current: () => boolean) => {
-    const refused = (hint: string) => setToast({ title: 'Could not open the worker checkpoint', hint, detail: '' });
-    if (file.size > MAX_TASK_CHECKPOINT_BYTES) { refused('The worker checkpoint exceeds the supported file size.'); return; }
-    const bytes = await file.arrayBuffer();
-    if (!current()) return;
-    const checkpoint = await readTaskCheckpoint(new Uint8Array(bytes), current);
+  const verifyCheckpoint = async (bytes: Uint8Array, current: () => boolean) => {
+    const checkpoint = await readTaskCheckpoint(bytes, current);
     if (!checkpoint || !current()) return;
     const verified = await verifyTaskCheckpoint(checkpoint, d => engine.part(d, nextRevision(), 'read'), current);
     if (!verified || !current()) return;
-    if ('error' in verified) { refused(verified.error); return; }
+    if ('error' in verified) throw new Error(verified.error);
+    return verified;
+  };
+
+  const adoptCheckpoint = (verified: NonNullable<Awaited<ReturnType<typeof verifyCheckpoint>>>, name: string) => {
     if (sessionBlocked('opening a worker checkpoint')) return;
     // Keep the verified document exact. The standard native Open may repair references after adoption.
     replaceDoc(verified.doc);
     if (docNow.current !== verified.doc) return;
     changes.onCheckpointOpened(verified.review);
     setRefProblems([]);
-    setFileName(file.name.slice(0, -TASK_CHECKPOINT_EXT.length));
+    setFileName(name);
     setDirty(false);
     fitImportedLater();
     const { receipt } = verified;
     setToast({ title: 'Worker checkpoint opened',
       hint: `Task ${receipt.taskId} · Revision ${receipt.revision} · ${verified.checks} required checks passed`,
       detail: `Accepted model SHA-256 ${receipt.accepted.sha256}` });
+  };
+
+  const openCheckpoint = async (file: File, current: () => boolean) => {
+    try {
+      if (file.size > MAX_TASK_CHECKPOINT_BYTES) throw new Error('The worker checkpoint exceeds the supported file size.');
+      const bytes = await file.arrayBuffer();
+      if (!current()) return;
+      const verified = await verifyCheckpoint(new Uint8Array(bytes), current);
+      if (verified && current()) adoptCheckpoint(verified, file.name.slice(0, -TASK_CHECKPOINT_EXT.length));
+    } catch (error) {
+      if (current()) setToast({ title: 'Could not open the worker checkpoint', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  };
+
+  const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
+    if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
+    const requireView = () => {
+      if (!ownership.canReviewLocalCandidate()) throw new Error('Return to the current model view to open the checkpoint.');
+    };
+    if (sessionBlocked('opening a worker checkpoint')) return;
+    requireView();
+    beginOpenIntent();
+    const owner = captureImportOwner(), request: TaskRunCheckpointRequest = {
+      runKey: run.runKey, runId: run.runId, taskId: run.checkpoint.taskId,
+      operationId: run.checkpoint.operationId, acceptedSHA256: run.checkpoint.acceptedSHA256,
+    };
+    const intent = { request, status: undefined as TaskRunStatus | undefined };
+    checkpointIntent.current = intent;
+    const current = () => owner.isCurrent() && checkpointIntent.current === intent;
+    try {
+      const bytes = await localTaskCheckpointBytes(request, current);
+      if (!bytes || !current()) return;
+      const verified = await verifyCheckpoint(bytes, current);
+      if (!verified || !current()) return;
+      const { receipt } = verified;
+      if (receipt.runId !== request.runId || receipt.taskId !== request.taskId || receipt.operationId !== request.operationId
+        || receipt.accepted.sha256 !== request.acceptedSHA256)
+        throw new Error('The local run returned a different approved checkpoint.');
+      const latest = await refreshTaskRun(run);
+      if (!current()) return;
+      if (latest.revision < receipt.revision || !sameTaskRunCheckpoint(request, latest.checkpoint)
+        || latest.baselineDigest !== receipt.accepted.modelDigest
+        || (intent.status && intent.status.revision >= receipt.revision && !sameTaskRunCheckpoint(request, intent.status.checkpoint)))
+        throw new Error('The approved checkpoint changed during Open. Refresh the local run status.');
+      requireView();
+      adoptCheckpoint({ ...verified, review: { ...verified.review, localRun: request } }, 'worker-' + request.taskId);
+    } catch (error) {
+      if (current()) throw error;
+    } finally {
+      if (checkpointIntent.current === intent) checkpointIntent.current = null;
+    }
   };
 
   const prepareCandidate = async (receipt: CandidateReviewReceipt, baseline: StudioDoc, current: () => boolean): Promise<CandidateReview | undefined> => {
@@ -290,7 +332,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     const current = () => owner.isCurrent() && candidateIntent.current === intent && docNow.current === baseline;
     changes.onLocalCandidateReviewIntent();
     const read = async () => {
-      const value = await readLocalTaskRun('review', JSON.stringify(request));
+      const value = await localTaskRunJSON('review', JSON.stringify(request));
       if (typeof value?.review !== 'string') throw new Error('The local candidate service returned an invalid result.');
       const receipt = decodeCandidateReview(value.review);
       if ('error' in receipt || receipt.runId !== request.runId || receipt.submission.taskId !== request.taskId
@@ -353,5 +395,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

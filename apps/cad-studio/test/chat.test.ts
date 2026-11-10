@@ -782,6 +782,32 @@ test('D621 local status accepts only a bounded identifier pair from loopback Stu
   } finally { await srv.close(); }
 });
 
+test('D622 local checkpoint requires bounded explicit loopback identifiers', async () => {
+  const work = scratch(), taskRunDir = join(work, 'runs'), fake = fakeClaude(() => []);
+  const srv = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: work, taskRunDir,
+    origins: [...DEFAULT_ORIGINS, 'https://studio.example'] }));
+  const path = `${srv.url}/task-runs/checkpoint`;
+  const valid = JSON.stringify({ runKey: 'a'.repeat(64), runId: 'run', taskId: 'base', operationId: 'approve-base', acceptedSHA256: 'b'.repeat(64) });
+  const headers = { ...STUDIO, host: '127.0.0.1:52020', 'x-barocss-task-run': 'checkpoint', 'content-type': 'application/json' };
+  const post = (overrides: Record<string, string>, body = valid) => new Promise<number>((resolve, reject) => {
+    const req = httpRequest(path, { method: 'POST', headers: { ...headers, ...overrides } }, res => { res.resume(); resolve(res.statusCode ?? 0); });
+    req.on('error', reject);
+    req.end(body);
+  });
+  try {
+    assert.equal(await post({ origin: 'https://studio.example', host: 'studio.example' }), 403);
+    assert.equal(await post({ host: 'localhost:52020' }), 403);
+    assert.equal(await post({ 'x-barocss-task-run': 'status' }), 403);
+    assert.equal(await post({ 'content-type': 'text/plain' }), 415);
+    assert.equal(await post({}, valid + ' '.repeat(1024)), 413);
+    assert.equal(await post({}, '{'), 400);
+    assert.equal(await post({}, JSON.stringify({ ...JSON.parse(valid), path: '/tmp' })), 400);
+    assert.equal(await post({}), 404);
+    assert.equal(existsSync(taskRunDir), false);
+    assert.equal(fake.spawned.length, 0);
+  } finally { await srv.close(); }
+});
+
 test('assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply', async () => {
   const s0 = await stateOf(rectanglePart(64, 32, 8));
   for (const level of ['2', '4']) {
