@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
+import { isLocalTaskCount } from '@barocss/cad-model/team/localHeightPlan';
 import { isUserToken, type UserToken } from '@barocss/cad-model/team/ecr';
 import { bindTaskQuestions, answerTaskQuestions } from '@barocss/cad-model/team/taskQuestions';
 import { interfacesRevision } from '@barocss/cad-model/team/interfaces';
@@ -84,8 +85,8 @@ async function until<T>(deadline: number, operation: () => Promise<T>, onTimeout
 function admitted(doc: StudioDoc, request: TaskPlanRequest): TaskPlan {
   const result = compileTaskPlan(doc, request);
   if ('error' in result) throw new Error(`${result.error.code}: ${result.error.message}`);
-  if (result.tasks.length !== 2 || result.tasks.some(task => task.dependsOn.length)) {
-    throw new Error('This run profile requires two independent tasks.');
+  if (!isLocalTaskCount(result.tasks.length) || result.tasks.some(task => task.dependsOn.length)) {
+    throw new Error('This run profile requires two or three independent tasks.');
   }
   return result;
 }

@@ -35,6 +35,30 @@ export function localRunStatus(record: RunRecord) {
   };
 }
 
+export async function dispatchInitialTasks<Task, Outcome>(
+  tasks: readonly Task[], concurrent: RunLimits['concurrent'], dispatch: (task: Task) => Promise<Outcome>,
+): Promise<Outcome[]> {
+  const outcomes: Outcome[] = [];
+  let next = 0, stopped = false;
+  const lane = async () => {
+    while (!stopped && next < tasks.length) {
+      const index = next++;
+      try {
+        outcomes[index] = await dispatch(tasks[index]);
+      } catch (error) {
+        stopped = true;
+        throw error;
+      }
+    }
+  };
+  // Drain in-flight dispatches before the caller closes the shared host.
+  const lanes = await Promise.allSettled(Array.from({ length: concurrent }, lane));
+  for (const result of lanes) {
+    if (result.status === 'rejected') throw result.reason;
+  }
+  return outcomes;
+}
+
 export async function startLocalTaskRun(directory: string, { doc, config, tasks }: LocalTaskRun) {
   let revision = 0;
   const evaluate = async (model: StudioDoc) => evaluatePart(model, ++revision);
@@ -42,7 +66,7 @@ export async function startLocalTaskRun(directory: string, { doc, config, tasks 
   const host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate);
   try {
     const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), field + '-mm:' + valueMm);
-    const outcomes = config.limits.concurrent === 2 ? await Promise.all(tasks.map(run)) : [await run(tasks[0]), await run(tasks[1])];
+    const outcomes = await dispatchInitialTasks(tasks, config.limits.concurrent, run);
     return { ...localRunStatus(host.snapshot), outcomes };
   } finally { host.close(); }
 }

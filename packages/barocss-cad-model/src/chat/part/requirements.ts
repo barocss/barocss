@@ -3,7 +3,7 @@
 import { saidIn } from '../brief';
 import { checkRequirement, checkSpec, expectedOf, newPolicy, updatePolicy, validateSuite } from '../spec';
 import type { Requirement } from '../../engine/schema/spec';
-import { inspectLocalHeightPlan } from '../../team/localHeightPlan';
+import { inspectLocalHeightPlan, isLocalTaskCount } from '../../team/localHeightPlan';
 import { digestOf } from '../../util/digest';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, fail } from '../toolKit';
 
@@ -41,9 +41,9 @@ async function checkSpecTool(state: ChatState, args: Record<string, unknown>, ev
 
 async function inspectLocalTaskPlanTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   const { occurrences, expectedRevision } = args;
-  if (!Array.isArray(occurrences) || occurrences.length !== 2 || new Set(occurrences).size !== 2
-    || !occurrences.every(id => typeof id === 'string' && !!id && id === id.trim() && id.length <= 128))
-    return fail(state, 'Select two distinct occurrence IDs.');
+  if (!Array.isArray(occurrences) || !isLocalTaskCount(occurrences.length) || new Set(occurrences).size !== occurrences.length
+    || !Array.from(occurrences).every(id => typeof id === 'string' && !!id && id === id.trim() && id.length <= 128))
+    return fail(state, 'Select two or three distinct occurrence IDs.');
   if (expectedRevision !== undefined && (typeof expectedRevision !== 'string' || !/^[a-f0-9]{64}$/.test(expectedRevision)))
     return fail(state, 'expectedRevision must be a SHA-256 model revision.');
   const revision = digestOf(state.doc);
@@ -56,7 +56,7 @@ async function inspectLocalTaskPlanTool(state: ChatState, args: Record<string, u
   const status = issues.length ? 'blocked' : 'ready';
   const dimension = tasks.some(task => task.field === 'width') ? 'dimension' : 'height';
   return { state, content: json({ revision, status, occurrences, tasks, targets, issues }), isError: false, changed: false,
-    summary: status === 'ready' ? `2 local ${dimension} targets ready` : `${issues.length} local planning issue${issues.length === 1 ? '' : 's'}` };
+    summary: status === 'ready' ? `${targets.length} local ${dimension} targets ready` : `${issues.length} local planning issue${issues.length === 1 ? '' : 's'}` };
 }
 
 /** The requirement group's handlers, by v1 tool name (R3). */

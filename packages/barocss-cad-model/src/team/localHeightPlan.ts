@@ -20,12 +20,14 @@ type LocalHeightInspection = { error: LocalHeightIssue }
 const isExtent = (check: Predicate, axis: 'x' | 'z') => check?.query?.fn === 'bbox' && check.query.axis === axis
   && check.query.body === undefined && check.unit === 'mm';
 
-/** Inspect the two-task local profile without evaluating, dispatching, or changing the model. */
+export const isLocalTaskCount = (count: number) => count === 2 || count === 3;
+
+/** Inspect the bounded local profile without evaluating, dispatching, or changing the model. */
 export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly string[], identity: TaskPlanRequest['identity']): LocalHeightInspection {
-  if (occurrences.length !== 2 || new Set(occurrences).size !== 2)
-    return { error: { code: 'BAD_PLAN', message: 'Select two distinct occurrence IDs.' } };
+  if (!isLocalTaskCount(occurrences.length) || new Set(occurrences).size !== occurrences.length)
+    return { error: { code: 'BAD_PLAN', message: 'Select two or three distinct occurrence IDs.' } };
   const draft: TaskPlanRequest = {
-    identity, policyRevision: 'local-height-v1', maxTasks: 2, throughSequence: 30,
+    identity, policyRevision: 'local-height-v1', maxTasks: occurrences.length, throughSequence: 30,
     tasks: occurrences.map((occurrence, index) => {
       const part = doc.instances?.find(part => part.id === occurrence)?.doc;
       const [sketch, extrusion] = part?.nodes ?? [];

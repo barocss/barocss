@@ -9,12 +9,14 @@ import { withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
-import { fixtureDoc, fixturePlan, fixtureLimits } from './task-run-fixture';
+import { fixtureDoc, fixturePlan, fixtureLimits, threeOccurrenceDoc } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
 import { LocalRunRequestError, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
 import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
+import { dispatchInitialTasks } from '../server/taskRun/start';
+import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -64,6 +66,40 @@ async function withRun(fn: (host: TaskRunHost, dir: string) => Promise<void>, bu
 }
 
 if (!(await serveTaskThread(evaluate))) {
+  test('D624 fills the first free host slot and reports outcomes in selection order', { timeout: 15000 }, async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-three-workers-'));
+    const source = threeOccurrenceDoc(), ids = ['p1', 'p2', 'p3'];
+    const { plan, limits, budget } = deriveLocalRunPlan(source, 'housing.bcad', '0'.repeat(64), ids);
+    const workers = [barrier(6), barrier(4), barrier(5)];
+    try {
+      const host = await TaskRunHost.create(root, 'housing', source, plan, limits, budget, evaluate);
+      const phases = () => host.snapshot.state.tasks.map(task => task.phase);
+      const started: string[] = [];
+      const run = dispatchInitialTasks(ids, limits.concurrent, id => {
+        started.push(id);
+        return host.dispatch('initial:' + id, id, workers[ids.indexOf(id)].worker);
+      });
+      try {
+        await Promise.all(workers.slice(0, 2).map(worker => worker.started));
+        assert.deepEqual(started, ['p1', 'p2']);
+        assert.deepEqual(phases(), ['running', 'running', 'ready']);
+        workers[1].release();
+        const next = await Promise.race([workers[2].started.then(() => 'started'), run.then(() => 'finished')]);
+        assert.equal(next, 'started');
+        assert.deepEqual(phases(), ['running', 'awaiting-decision', 'running']);
+        workers[2].release();
+        workers[0].release();
+        assert.deepEqual((await run).map(outcome => outcome.id), ids.map(id => 'initial:' + id));
+        assert.deepEqual(phases(), Array(3).fill('awaiting-decision'));
+        assert.equal(host.snapshot.state.budget.used, 3);
+        assert.deepEqual(host.snapshot.commits, []);
+      } finally {
+        for (const worker of workers) worker.release();
+        try { await run; } finally { host.close(); }
+      }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
   test('D620 local candidate reads require an owned run, an exact baseline and the current attempt', async () => {
     const root = mkdtempSync(join(tmpdir(), 'barocss-run-review-')), key = 'a'.repeat(64), dir = join(root, key);
     try {

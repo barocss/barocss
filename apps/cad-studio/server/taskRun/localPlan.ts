@@ -15,7 +15,7 @@ export function deriveLocalRunPlan(doc: StudioDoc, source: string, sourceSHA256:
   const limits: RunLimits = { concurrent: 2, attemptsPerTask: 3, reservation: 2, leaseTicks: 5, timeoutMs: 10000 };
   const hasWidth = targets.some(target => target.widthMm !== undefined);
   return { format: hasWidth ? DIMENSION_FORMAT : FORMAT, version: 1, name: hasWidth ? 'local-dimension' : 'local-height', source, sourceSHA256, modelDigest: plan.baselineDigest,
-    specRevision: plan.specRevision, plan: request, targets, limits, budget: 8 };
+    specRevision: plan.specRevision, plan: request, targets, limits, budget: targets.length * 4 };
 }
 
 /** Read just the selectors needed to rederive and check the whole plan. */

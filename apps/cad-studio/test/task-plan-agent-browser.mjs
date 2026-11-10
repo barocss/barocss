@@ -5,11 +5,14 @@ import { once } from 'node:events';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { taskRunThreeFlow } from './task-run-three-flow.mjs';
 import { taskRunStatusFlow } from './task-run-status-flow.mjs';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
-const widthMode = mode === '--width', checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
+const threeMode = mode === '--three';
+const occurrences = threeMode ? ['p1', 'p2', 'p3'] : ['p1', 'p2'];
+const widthMode = mode === '--width' || threeMode, checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = mode === '--start' || reviewMode || statusMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -22,8 +25,8 @@ await new Promise((done, reject) => probe.close(error => error ? reject(error) :
 
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 const pins = [
-  'apps/cad-studio/test/task-plan-agent-browser.mjs', 'apps/cad-studio/test/task-run-status-flow.mjs', scripted, 'apps/cad-studio/test/task-run-fixture.ts',
-  'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/scripts/cad-cli.mjs',
+  'apps/cad-studio/test/task-plan-agent-browser.mjs', 'apps/cad-studio/test/task-run-status-flow.mjs', 'apps/cad-studio/test/task-run-three-flow.mjs', scripted, 'apps/cad-studio/test/task-run-fixture.ts',
+  'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/scripts/cad-cli.mjs', 'apps/cad-studio/server/cadCli.ts',
   'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
   'apps/cad-studio/server/taskRun/cli.ts', 'apps/cad-studio/server/taskRun/localPlan.ts',
   ...['team/taskPlan', 'team/localHeightPlan', 'chat/tools', 'chat/part/requirements', 'chat/groups', 'chat/toolDefinitions',
@@ -38,13 +41,13 @@ const pins = [
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
-import { fixtureDoc } from './test/task-run-fixture';
+import { fixtureDoc, threeOccurrenceDoc } from './test/task-run-fixture';
 if (process.argv[3]) console.log(JSON.stringify(digestOf(JSON.parse(readFileSync(process.argv[2], 'utf8')))));
 else {
-  const doc = fixtureDoc();
+  const doc = ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
   if (${widthMode}) {
     doc.instances[0].doc.requirements[0] = { ...doc.instances[0].doc.requirements[0], id: 'width', source: 'Use the stated width in mm.',
@@ -70,10 +73,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -84,9 +87,9 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
-const readySummary = widthMode ? '2 local dimension targets ready' : '2 local height targets ready';
-const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
+const project = threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const readySummary = `${occurrences.length} local ${widthMode ? 'dimension' : 'height'} targets ready`;
+const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences, ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name, mimeType: 'application/octet-stream', buffer });
@@ -192,7 +195,7 @@ process.exitCode = code ?? 1;
     await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText('housing.bcad', { exact: true }).waitFor();
     const saved = await savedBytes(), path = join(output, 'housing.bcad');
     await writeFile(path, saved);
-    const cli = spawnSync(process.execPath, [join(f.app, 'scripts/cad-cli.mjs'), 'task-run', 'plan', path, 'p1', 'p2'],
+    const cli = spawnSync(process.execPath, [join(f.app, 'scripts/cad-cli.mjs'), 'task-run', 'plan', path, ...occurrences],
       { cwd: f.app, encoding: 'utf8', timeout: 30000 });
     assert.equal(cli.status, 0, cli.stderr);
     await writeFile(join(output, 'cli-plan.json'), cli.stdout);
@@ -228,6 +231,7 @@ process.exitCode = code ?? 1;
       await row.locator('summary').click();
       await row.getByText(widthMode ? 'p1 · Width 20 → 24 mm' : 'p1 · 5 → 6 mm', { exact: true }).waitFor();
       await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
+      if (threeMode) await row.getByText('p3 · 3 → 5 mm', { exact: true }).waitFor();
       await f.snapshot('04-export-task-run');
       await row.getByRole('button', { name: 'Export task run', exact: true }).click();
       await f.page.waitForFunction(() => window.__d618Exports.length === 1);
@@ -244,7 +248,7 @@ process.exitCode = code ?? 1;
 
       const start = row.getByRole('button', { name: 'Start local run', exact: true });
       if (startMode) {
-        f.phase = 'explicitly start two held local candidates and reuse the existing run';
+        f.phase = 'start held local candidates and reuse the existing run';
         assert.equal(requests.length, 0);
         await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
         const endpoint = origin + '/api/chat/task-runs/start';
@@ -253,7 +257,7 @@ process.exitCode = code ?? 1;
         assert.equal(invalid.status(), 400);
         assert.match((await invalid.json()).error, /saved source does not match/);
         await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
-        const key = sha256(JSON.stringify({ occurrences: ['p1', 'p2'], source: sha256(saved) }));
+        const key = sha256(JSON.stringify({ occurrences, source: sha256(saved) }));
         await mkdir(join(runRoot, key), { recursive: true, mode: 0o700 });
         await writeFile(join(runRoot, key, 'writer-1.json'), JSON.stringify({ epoch: 1, pid: process.pid, id: 'interrupted-writer' }), { mode: 0o600 });
         await writeFile(join(runRoot, key, 'released-1.json'), JSON.stringify('interrupted-writer'), { mode: 0o600 });
@@ -285,17 +289,16 @@ process.exitCode = code ?? 1;
         assert.equal(relative(runRoot, studioRun).length, 64);
         assert.match(relative(runRoot, studioRun), /^[a-f0-9]{64}$/);
         assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
-        assert.deepEqual(firstLaunch.tasks.map(task => [task.id, task.phase]), [['p1', 'awaiting-decision'], ['p2', 'awaiting-decision']]);
+        assert.deepEqual(firstLaunch.tasks.map(task => [task.id, task.phase]), occurrences.map(id => [id, 'awaiting-decision']));
         await row.getByText('Local run started · active', { exact: true }).waitFor();
-        await row.getByText('p1 · awaiting decision', { exact: true }).waitFor();
-        await row.getByText('p2 · awaiting decision', { exact: true }).waitFor();
+        for (const id of occurrences) await row.getByText(id + ' · awaiting decision', { exact: true }).waitFor();
         const runJson = join(studioRun, 'run.json'), initial = await readFile(runJson);
         const { record } = JSON.parse(initial);
         assert.deepEqual(record.commits, []);
         assert.equal(record.pending, undefined);
         assert.equal(record.epoch, 2);
         assert.equal(record.accepted.sha256, sha256(saved));
-        assert.deepEqual(record.state.tasks.map(task => task.candidate.geometry.volumeMm3), [1200, 384]);
+        assert.deepEqual(record.state.tasks.map(task => task.candidate.geometry.volumeMm3), threeMode ? [1200, 384, 480] : [1200, 384]);
         await f.same(source);
         await f.snapshot('06-local-run-started');
         assert.deepEqual(await launch(), { ...firstLaunch, reused: true });
@@ -318,7 +321,12 @@ process.exitCode = code ?? 1;
         assert.deepEqual(await reused.json(), { ...firstLaunch, reused: true });
         assert.deepEqual(await readFile(runJson), initial);
         f.report.observations.push({ studioRunStarted: true, explicitPostCount: requests.length,
-          durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: 2, acceptedBaselineSHA256: record.accepted.sha256 });
+          durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: occurrences.length, acceptedBaselineSHA256: record.accepted.sha256 });
+        if (threeMode) {
+          await taskRunThreeFlow({ f, origin, row, launch: firstLaunch, source, saved, savedBytes });
+          assert.deepEqual(f.report.downloads, []);
+          return;
+        }
         if (statusMode) {
           await taskRunStatusFlow({ f, origin, firstRow: row.first(), directCheckpoint: checkpointMode, widthMode, launch: firstLaunch, source, saved, savedBytes, openFile, startRequests: requests,
             duplicateRow: async () => {

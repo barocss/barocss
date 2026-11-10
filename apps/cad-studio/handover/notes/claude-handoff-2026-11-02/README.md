@@ -1,5 +1,5 @@
 ---
-work_id: D623
+work_id: D624
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -183,7 +183,9 @@ D622 opens both terminal-approved checkpoints from the same owned Studio run car
 
 D623 adds a plain rectangular sketch width task beside the existing height task. Actual Studio verifies the two approved scopes and opens the earlier height-only artifact. [D623](../../notes/local-rectangle-width-task-2026-11-11/README.md).
 
-Next MAIN is D624 / P0 automation, B09 follow-up, rows 04, 12 and 16. Plan and run three independent selected occurrences through the existing local worker path. Keep the two-worker concurrency limit and one writer. Verify that the third task starts after a slot becomes available, that approval invalidates older sibling pins, and that Studio can open the final three-task checkpoint. [#2402](https://github.com/barocss/barocss/issues/2402).
+D624 schedules three independent dimension tasks with two worker slots and one writer. Studio opens three approved checkpoints and refuses retired sibling pins. [D624](../../notes/three-occurrence-local-run-2026-11-11/README.md).
+
+Next MAIN is D625 / P0 automation, B09 follow-up, rows 04, 12 and 16. Add a read-only approval history to the Studio run card. Show each published task and its revision-bound before and after checks while preserving the current working document. Keep the latest-checkpoint Open action and reject an unowned or mismatched history request. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

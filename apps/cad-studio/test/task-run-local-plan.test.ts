@@ -10,7 +10,7 @@ import { encodeStudioFile, isContainer } from '@barocss/cad-model/engine/contain
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { cliMain } from '../server/cadCli';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
-import { fixtureDoc } from './task-run-fixture';
+import { fixtureDoc, threeOccurrenceDoc } from './task-run-fixture';
 
 const selected = ['p1', 'p2'];
 const derive = (doc = fixtureDoc(), occurrences = selected) =>
@@ -27,8 +27,19 @@ test('D616 derives selected work from the saved hard checks and exact source', (
   assert.deepEqual(derive(doc, ['p2', 'p1']).targets.map(target => target.id), ['p2', 'p1']);
 });
 
+test('D624 accepts three distinct ordered selections and retains the two-worker limit', () => {
+  const source = threeOccurrenceDoc();
+  const plan = derive(source, ['p3', 'p1', 'p2']);
+  assert.deepEqual(plan.targets.map(target => [target.id, target.heightMm]), [['p3', 5], ['p1', 6], ['p2', 4]]);
+  assert.equal(plan.plan.maxTasks, 3);
+  assert.equal(plan.limits.concurrent, 2);
+  assert.equal(plan.budget, 12);
+  for (const ids of [['p1'], ['p1', 'p2', 'p1'], ['p1', 'p2', 'p3', 'p4']])
+    assert.throws(() => derive(source, ids), /two or three distinct occurrence IDs/);
+});
+
 test('D616 refuses unconfirmed, ambiguous, incompatible, no-op and out-of-scope targets', () => {
-  assert.throws(() => derive(fixtureDoc(), ['p1', 'p1']), /two distinct occurrence IDs/);
+  assert.throws(() => derive(fixtureDoc(), ['p1', 'p1']), /two or three distinct occurrence IDs/);
   assert.throws(() => derive(fixtureDoc(), ['p1', 'missing']), /Supply task, holder, occurrence, and feature IDs/);
   const missing = fixtureDoc();
   delete missing.instances![0].doc.requirements;

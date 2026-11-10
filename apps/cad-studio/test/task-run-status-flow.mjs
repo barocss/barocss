@@ -6,9 +6,7 @@ import { join } from 'node:path';
 const reviewUrl = '/api/chat/task-runs/review';
 const statusUrl = '/api/chat/task-runs/status';
 
-export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false, widthMode = false }) {
-  const baseHeight = widthMode ? 5 : 6;
-  const run = launch.directory, locator = { runKey: launch.runKey, runId: launch.runId };
+export function taskRunTerminal(f, run) {
   const args = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
   const callCli = async (label, ...command) => {
     const result = spawnSync(args[0], [...args.slice(1), ...command], { cwd: f.app, encoding: 'utf8', timeout: 30000 });
@@ -28,6 +26,13 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
     assert.equal(JSON.parse(result.stdout.trim().split('\n').at(-1)).outcome.code, 'RUN_ACCEPTED');
     return candidateReview;
   };
+  return { callCli, approve };
+}
+
+export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false, widthMode = false }) {
+  const baseHeight = widthMode ? 5 : 6;
+  const run = launch.directory, locator = { runKey: launch.runKey, runId: launch.runId };
+  const { callCli, approve } = taskRunTerminal(f, run);
   const durable = async () => {
     const bytes = await readFile(join(run, 'run.json')), { record } = JSON.parse(bytes);
     return {

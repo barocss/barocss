@@ -148,8 +148,8 @@ function readyTaskRunOffer(text: string, input: unknown) {
     const result = JSON.parse(text), offer = readTaskRunOffer(result);
     const requested = input && typeof input === 'object' ? (input as { occurrences?: unknown }).occurrences : undefined;
     return result.status === 'ready' && Array.isArray(result.issues) && result.issues.length === 0
-      && offer && Array.isArray(requested) && requested.length === 2
-      && requested[0] === offer.occurrences[0] && requested[1] === offer.occurrences[1] ? offer : null;
+      && offer && Array.isArray(requested) && requested.length === offer.occurrences.length
+      && offer.occurrences.every((occurrence, index) => requested[index] === occurrence) ? offer : null;
   } catch { return null; }
 }
 

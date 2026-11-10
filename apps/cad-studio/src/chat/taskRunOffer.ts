@@ -5,12 +5,12 @@ export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 export const isLocalTaskRunHost = (host: string) => host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
 
 export type { LocalTaskTarget as TaskRunTarget } from '@barocss/cad-model/team/localHeightPlan';
-import type { LocalTaskTarget as TaskRunTarget } from '@barocss/cad-model/team/localHeightPlan';
+import { isLocalTaskCount, type LocalTaskTarget as TaskRunTarget } from '@barocss/cad-model/team/localHeightPlan';
 
 export interface TaskRunOffer {
   revision: string;
-  occurrences: [string, string];
-  targets: [TaskRunTarget, TaskRunTarget];
+  occurrences: string[];
+  targets: TaskRunTarget[];
 }
 
 export interface TaskRunCandidatePin {
@@ -72,13 +72,13 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   if (!isObj(value) || !isTaskRunLocator(value) || !hash(value.baselineDigest)
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
     || (value.phase !== 'active' && value.phase !== 'paused' && value.phase !== 'stopped')
-    || !Array.isArray(value.tasks) || value.tasks.length !== 2) return false;
+    || !Array.isArray(value.tasks) || !isLocalTaskCount(value.tasks.length)) return false;
   const checkpoint = value.checkpoint;
-  return value.tasks.every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
+  return Array.from(value.tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
-    && value.tasks[0].id !== value.tasks[1].id
+    && new Set(value.tasks.map(task => task.id)).size === value.tasks.length
     && (checkpoint === undefined || (isTaskRunCheckpointPin(checkpoint)
       && value.tasks.some(task => task.id === checkpoint.taskId && task.phase === 'completed')));
 
@@ -115,10 +115,11 @@ function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
 /** Copy only the small typed payload needed for review and export. */
 export function readTaskRunOffer(value: unknown): TaskRunOffer | null {
   if (!isObj(value) || typeof value.revision !== 'string' || !/^[a-f0-9]{64}$/.test(value.revision)
-    || !Array.isArray(value.occurrences) || value.occurrences.length !== 2
-    || !Array.isArray(value.targets) || value.targets.length !== 2) return null;
-  const [a, b] = value.occurrences;
-  if (!id(a) || !id(b) || a === b) return null;
-  const first = readTarget(value.targets[0], a), second = readTarget(value.targets[1], b);
-  return first && second ? { revision: value.revision, occurrences: [a, b], targets: [first, second] } : null;
+    || !Array.isArray(value.occurrences) || !isLocalTaskCount(value.occurrences.length)
+    || !Array.isArray(value.targets) || value.targets.length !== value.occurrences.length) return null;
+  const occurrences = Array.from(value.occurrences);
+  if (!occurrences.every(id) || new Set(occurrences).size !== occurrences.length) return null;
+  const rawTargets = value.targets;
+  const targets = occurrences.map((occurrence, index) => readTarget(rawTargets[index], occurrence));
+  return targets.every(target => target !== null) ? { revision: value.revision, occurrences, targets } : null;
 }

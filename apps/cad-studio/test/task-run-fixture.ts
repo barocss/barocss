@@ -14,6 +14,11 @@ export const fixtureDoc = (): StudioDoc => ({
     { id: 'p2', name: 'Lid', position: [45, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 4) },
   ],
 });
+export function threeOccurrenceDoc(): StudioDoc {
+  const doc = fixtureDoc();
+  doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });
+  return doc;
+}
 export const fixturePlan: TaskPlanRequest = {
   identity: { projectId: 'worker-fixture', documentId: 'housing' }, policyRevision: 'user-v1', maxTasks: 2, throughSequence: 30,
   tasks: [
