@@ -1,5 +1,5 @@
 ---
-work_id: D569
+work_id: D570
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -75,7 +75,9 @@ D568 verifies that two admitted copies survive native browser-project Save and a
 
 D569 verifies four trusted text-input shortcuts, exact CAD state and both history stacks, and the next body Paste at X +44 mm. [D569](../body-clipboard-text-focus-2026-11-10/README.md).
 
-Next MAIN is D570, P0 rows 12 and 16. Check clipboard and history preservation when Open is cancelled without a file. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
+D570 verifies a trusted Chromium file-input cancel after Open and preserves clipboard, document, selection and exact history. [D570](../body-clipboard-cancel-open-2026-11-10/README.md).
+
+Next MAIN is D571, P0 rows 12 and 16. Check the Copy notice after its clipboard is invalidated. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

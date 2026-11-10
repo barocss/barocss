@@ -1,0 +1,68 @@
+{
+  "workId": "D570",
+  "parent": "a753fa149db7ef08875f859cae0addb08c3986bd",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d570-2026-11-10"
+  },
+  "driverSha256": "efb95772b8f47f8fb1c3b30dd294831532d869f50fdd3d9a8a5096e556f74b6e",
+  "helperSha256": "cc2733421d2ffc9388a4dddec4bf9a5739928debc22db8625ed20b03670804c6",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "139ea8147f6a1e4a2a98ed10615f1a41c0c7bd754d7c4a29033fd7931327bf2f",
+    "apps/cad-studio/src/files/useStudioDocumentFiles.ts": "45df5d8c11d8f7418b7e3fe17008d5c6cf8f996dedd462fb9d06c1cb20a9cb3a",
+    "apps/cad-studio/src/files/documentFile.ts": "08d77cecaef81bbf214726ddf066642c9fa66936076f7bf38fb57b7c2f9ee454",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d"
+  },
+  "fileInputEvents": [
+    {
+      "type": "cancel",
+      "trusted": true,
+      "files": 0
+    }
+  ],
+  "physicalOracle": {
+    "boxSize": [
+      12,
+      13,
+      14
+    ],
+    "volume": 2184,
+    "absoluteTolerance": 1e-09,
+    "pasteOffsetsX": [
+      22,
+      44
+    ]
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-cancel-open-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-replacement-helper.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D570_SOURCE_FROZEN=1 node test/body-clipboard-cancel-open-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 12.14,
+    "snapshots": 9,
+    "physicalJoins": 2,
+    "frozenPins": 299,
+    "receiptSha256": "9ab7fa9446fa6f879540da124a54b7804c03dd5b58421d38b0d20f47c4402bf4",
+    "ownedPID": 9673,
+    "chromePID": 9697
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}
