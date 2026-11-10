@@ -2,20 +2,23 @@
 // Sol High owns this private numerical module. Root owns all execution and freeze.
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {oracleSource as graphMath} from './bracket-baseline-oracles.mjs';
 const sha=x=>createHash('sha256').update(x).digest('hex');
-export const seedPath='/tmp/barocss-d455-workflow-run02/section-detail-05-opfs-saved.bcad';
+const originalPath=(directory,name)=>join(process.env.BAROCSS_D455_CAPSULE??directory,name);
+export const seedPath=originalPath('/tmp/barocss-d455-workflow-run02','section-detail-05-opfs-saved.bcad');
 export const seedBytes=1767,seedSHA256='ddd7b9b7a5303f5ac9f092ae557e88a1a7cff2cd7280b31fc16bfeb0e77d8fb1';
 export const seedText=readFileSync(seedPath,'utf8');
 if(Buffer.byteLength(seedText)!==seedBytes||sha(seedText)!==seedSHA256)throw Error('Exact retained D455 saved H12 input changed');
 export const seedDoc=JSON.parse(seedText),seedJSON=JSON.stringify(seedDoc);
 export const states={H12:{doc:seedDoc,documentJSON:seedJSON,documentSHA256:sha(seedJSON),parameters:{height:12}}};
 export const oracleStatus='PASS_ONE_DECLARED_D549_SECTION_DETAIL_SVG_STATE';
-export const legacyOraclePath='/tmp/barocss-d455-geometry/section-oracle-v2.py';
+export const legacyOraclePath=originalPath('/tmp/barocss-d455-geometry','section-oracle-v2.py');
 export const legacyOracleSHA256='fb4d65e5fc44d51b16daf90d08ea923ada9846eb23e9491a19e6f105efb22d05';
 const legacyText=readFileSync(legacyOraclePath,'utf8');
 if(sha(legacyText)!==legacyOracleSHA256)throw Error('Retained D455 pure section/detail oracle changed');
-const observerPath='/tmp/barocss-d455-driver04/worker-observer.mjs',observerText=readFileSync(observerPath,'utf8');
+export const observerPath=originalPath('/tmp/barocss-d455-driver04','worker-observer.mjs');
+const observerText=readFileSync(observerPath,'utf8');
 if(sha(observerText)!=='c81d8a43177de2b4679f27496cd31409deb383814e10db740a5038e9f03ede08')throw Error('Retained passive Worker observer changed');
 const initStart=observerText.indexOf('await context.addInitScript('),initEnd=observerText.lastIndexOf(');');
 if(initStart<0||initEnd<initStart)throw Error('Retained observer injection boundary changed');
@@ -42,7 +45,7 @@ export function drawingPageRead(){
  const observer=window.__d455DrawingObserver();
  return {doc:JSON.parse(JSON.stringify(window.__studioDoc)),documentJSON:JSON.stringify(window.__studioDoc),rootFresh:window.__studioFresh,worker:window.__studioBodies(),historyRows:[...document.querySelectorAll('.history .hs')].map(row=>({index:row.getAttribute('data-node-index'),label:row.getAttribute('aria-label'),suppressed:row.classList.contains('suppressed')})),dirty:!!document.querySelector('[aria-label="Unsaved changes"]'),fileName:document.querySelector('.doc-tab input')?.value??null,summary,svg:svg.outerHTML,busy:!!document.querySelector('.dw-busy'),sectionPlacement:placement('section:A',section.box),detailPlacement:placement('detail:B',detail.box),date:titles[dateAt+1],currentSRC:source[0],titleObservation:titles[titles.indexOf('TITLE')+1],observerErrors:observer.errors,nativeWorkerConstructorPreserved:observer.nativeWorkerConstructorPreserved,nativeWorkerPrototypePreserved:observer.nativeWorkerPrototypePreserved};
 }
-export const signedZeroComparisonPath='/tmp/barocss-d455-driver04/signed-zero.mjs';
+export const signedZeroComparisonPath=originalPath('/tmp/barocss-d455-driver04','signed-zero.mjs');
 export const signedZeroComparisonSource=readFileSync(signedZeroComparisonPath,'utf8');
 if(sha(signedZeroComparisonSource)!=='d92542bc93fc18220b4bb8541d420a403ac711eb6f95c902ec089a128a15fafc')throw Error('Retained zero-only structured comparison changed');
 export const config={workId:'D549',sourceOrigin:'EXACT_RETAINED_D455_ACTUAL_SAVED_H12_SECTION_A_DETAIL_B',seedPath,seedBytes,seedSHA256,states,
@@ -63,7 +66,7 @@ export const retainedFiles=[seedPath,legacyOraclePath,observerPath,'/tmp/barocss
 export const inputFiles=[...retainedFiles,'apps/cad-studio/handover/notes/section-detail-workflow-2026-11-03/README.md','apps/cad-studio/handover/notes/section-detail-workflow-2026-11-03/qualification.json'];
 
 // TS stdin resolveDir apps/cad-studio, target node22. No evaluator runs on import.
-const inspectorCore=String.raw`
+export const inspectorCore=String.raw`
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {readStudioDoc} from '../../packages/barocss-cad-model/src/engine/migrate.ts';
@@ -119,6 +122,7 @@ export function inspect(doc:any,request:any={}){
   for(const f of b.faces){const g=faceGeometry(f);if(g.kind!=='plane'||Math.abs(g.o[1]-23)>1e-9||Math.abs(Math.abs(g.n[1])-1)>1e-9)continue;const ids=new Set<string>(),members:any[]=[];for(const lid of f.loops)for(const cid of loops.get(lid)!.coedges){const e=edges.get(co.get(cid)!.edge)!;ids.add(e.vertices[0]);ids.add(e.vertices[1]);members.push(e);}capFaces.push({id:f.id,name:f.name,geometry:g,vertices:[...ids].map(id=>vertices.get(id)),edges:members});}
   r.native={originalOutputId:r.outputId,originalBodyKey:r.bodyKey,originalSurfaces:r.target.surfaces.map((s:any)=>({id:s.id,name:s.name,geometry:s.geometry})),cutOutputId,splitFeature:split,strict:r.cut.productChecks.strict,capFaces,brep:r.cut.brep};
   r.provider={section:sectionResult,topProjection:top,detailProjection};
+  if(request.captureAllViews)r.projections=projected.views;
   const transportSource={format:doc.format,schema:doc.schema,units:doc.units,parameters:doc.parameters,nodes:doc.nodes,outputs:doc.outputs};
   r.bridge={transportSource,transportSourceSHA256:sha(JSON.stringify(transportSource)),sectionResult,topProjection:top,authority:'VIEW_OF_SAME_CAPTURED_ORIGINAL_FULL_SOURCE_AND_NATIVE_CUT_NO_CONTROLLED_PROVIDER_REEVALUATION',documentSHA256,nativeBRepSHA256:r.target.nativeBRepSHA256,cutBRepSHA256:r.cut.nativeBRepSHA256};
   r.sheet={settings,meta,layout,sectionPlacement:placedA?.placement??null,detailPlacement:placedB?.placement??null,detailCenterModelView:center,detailCircleSheet:placedB?toSheet(placedB.placement,center):null,topCircleSheet:toSheet(layout.views.top,center),sectionModelPointsToSheet:placedA?[[11,0],[19,0],[11,12],[19,12]].map(p=>toSheet(placedA.placement,p as [number,number])):null,groups:sheet.groups,size:sheet.size};

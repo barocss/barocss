@@ -1,0 +1,235 @@
+{
+  "workId": "D550",
+  "status": "QUALIFIED_6_OF_6",
+  "date": "2026-11-10",
+  "tier": "SMALL_PRIVATE_PROOF",
+  "baseHead": "8f75fbc1638604183afd5f97adcb6472a6091dfe",
+  "productChange": false,
+  "priority": "P2",
+  "rows": [
+    11,
+    12,
+    13,
+    16
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "wholeB06": "NOT_ADJUDICATED",
+  "evidenceRoot": "/Users/user/.cache/barocss-cad-evidence/d550-2026-11-10",
+  "input": {
+    "originalPath": "/tmp/barocss-d455-workflow-run02/section-detail-05-opfs-saved.bcad",
+    "recoveredPath": "/Users/user/.cache/barocss-cad-evidence/d550-2026-11-10/original-D455-recovered/section-detail-05-opfs-saved.bcad",
+    "bytes": 1767,
+    "sha256": "ddd7b9b7a5303f5ac9f092ae557e88a1a7cff2cd7280b31fc16bfeb0e77d8fb1",
+    "recoveryManifestSHA256": "ac563e44f7e381c82fa9e0655f22ab00e55a31f072a5334720a9b5fae6742086"
+  },
+  "historicalPreparation": {
+    "originalD549Status": "RETAINED_HISTORICAL_PASS",
+    "originalD549PacketAndPins": "UNAVAILABLE_FOR_CURRENT_REUSE",
+    "November5D550": "NO_COMPLETE_ELIGIBLE_RECEIPT"
+  },
+  "producer": {
+    "pins": 495,
+    "historicalNativeReuse": 0,
+    "physicalClasses": 1,
+    "calls": {
+      "sourceEvaluate": 1,
+      "explicitSplitEvaluate": 1,
+      "controlledSectionProvider": 0,
+      "projectViews": 1,
+      "nativeCutProjection": 1,
+      "cutRings": 1,
+      "pureAutoLayoutInvocations": 1,
+      "pureDrawingObservations": 2
+    },
+    "packetSHA256": "2d3a58b2042d4f7e6b938fa8bc314bb5b4f2989f1b555bd0f6498c5d720961f8",
+    "nativeBRepSHA256": "859ced0c726deb63d1f5b7669a517801e6f32d2778403cdb5e3b89f6f3fb075e",
+    "modelRevision": "bafe7e865f28d750",
+    "maxUVLiftGapMM": 1.0048591735576161e-14,
+    "nativeBudget": 1e-09
+  },
+  "acceptedDocs": {
+    "A": "026cec39e73c3d46ba399e86ec23fc72124cc1dcf1f4c77f26c49232405297a8",
+    "B": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8"
+  },
+  "annotation": {
+    "values": [
+      {
+        "id": "d1",
+        "view": "top",
+        "valueMM": 15,
+        "text": "15"
+      },
+      {
+        "id": "d2",
+        "view": "top",
+        "valueMM": 20,
+        "text": "20"
+      },
+      {
+        "id": "d3",
+        "view": "top",
+        "valueMM": 40,
+        "text": "40"
+      },
+      {
+        "id": "d4",
+        "view": "top",
+        "valueMM": 10.000000000000002,
+        "text": "Ø10"
+      },
+      {
+        "id": "d5",
+        "view": "front",
+        "valueMM": 60,
+        "text": "60"
+      },
+      {
+        "id": "d6",
+        "view": "front",
+        "valueMM": 12,
+        "text": "12"
+      }
+    ],
+    "changedDrawingFields": [
+      "dimensions",
+      "views"
+    ],
+    "issuesBefore": 3,
+    "issuesAfterAuto": 0,
+    "issuesAfterFirstUndo": 3,
+    "issuesAfterRedoSaveOpenAndExport": 0
+  },
+  "actual": {
+    "firstAttempt": "PASS",
+    "groups": [
+      {
+        "label": "01-public-Auto",
+        "state": "B",
+        "documentSHA256": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8",
+        "status": "PASS"
+      },
+      {
+        "label": "02-FIRST-Undo",
+        "state": "A",
+        "documentSHA256": "026cec39e73c3d46ba399e86ec23fc72124cc1dcf1f4c77f26c49232405297a8",
+        "status": "PASS"
+      },
+      {
+        "label": "03-FIRST-Redo",
+        "state": "B",
+        "documentSHA256": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8",
+        "status": "PASS"
+      },
+      {
+        "label": "04-owned-native-Save",
+        "state": "B",
+        "documentSHA256": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8",
+        "status": "PASS"
+      },
+      {
+        "label": "05-public-saved-Open",
+        "state": "B",
+        "documentSHA256": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8",
+        "status": "PASS"
+      },
+      {
+        "label": "06-annotated-SVG",
+        "state": "B",
+        "documentSHA256": "82d8330b802a7c3a6f0c2699513eec5fed759029589e37278c100b06a5d5ccd8",
+        "status": "PASS"
+      }
+    ],
+    "setupObservations": 1,
+    "screenshotsViewed": 7,
+    "independentJoins": 6,
+    "studioPins": 797,
+    "freshWorkerPairs": 2,
+    "exactPairReuses": 5,
+    "newStandaloneControlledEvaluations": 0,
+    "workerInternalNativeComputations": "NOT_MEASURED",
+    "workerPairSHA256": [
+      "6727bdbff14c24658dc9581dc3adc02054d2b433041a9c271f962ecc7374edcf",
+      "a26d2b43c69bec795b72b01ffa28e6bcd261edd146711f9c316989be4743a33b"
+    ],
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "fontCSSFulfilledEmpty": 2,
+    "stderrCVDisplayLink": 16,
+    "stderrAllocator": 1,
+    "ownedNodePID": 99202,
+    "ownedChromePID": 99226,
+    "ownedPIDsPresentAfterCleanup": false,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "nativeFile": {
+    "bytes": 4783,
+    "sha256": "f68c4c9748390f461962068c719a879d26d9b334e0a82a4d68221d8a5b431349",
+    "acceptedState": "B",
+    "freshOpen": "PASS"
+  },
+  "svgFile": {
+    "bytes": 15133,
+    "sha256": "2badc02ec01e159a0ffc64c78434d7949894bbd094d2a1412aadadd861a9926a",
+    "filename": "04-owned-native-Save-original.svg",
+    "sizeMM": [
+      420,
+      297
+    ],
+    "scale": 2,
+    "dimensionCount": 6,
+    "maximumCoordinateErrorSheetMM": 3.743153550317402e-05,
+    "budgetSheetMM": 5.0001e-05,
+    "exportRetention": "PASS_EXACT_OBSERVED_BASELINE"
+  },
+  "receipts": {
+    "prepare01/wrapper-receipt.json": "dcafcec1cbccfd1bc8a9b3e997078b596d53269b6e4ddee10a6c7bdd6c76beb3",
+    "control01/receipt.json": "8eb3d9a346e622ebf5e3231c0e14c648afabf18413cc7c56067906163208d43f",
+    "prepare01/independent.stdout": "c7e2901fa16f2a6e82039be5bba8963dd95122729743c275ac1d251c953d203c",
+    "freeze01/runtime-config.json": "16195cb04248924b01cccf566edf0fba5277ecd8329c5193eb4a99adb9ccdc72",
+    "studio01/receipt.json": "1ce9f94c82a8a78dbf2fa553e31fe9a20ddffde9bd0cca5cabcbad3d0e85839d",
+    "final-model-types01.log": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+  },
+  "helpers": {
+    "section-detail-svg-oracles.mjs": "4bc352d244f38c1e1f59a90146327def61bd3417a3837b330c0d6a3e10b4dd98",
+    "section-detail-auto-dimensions-oracles.mjs": "8e4f2b76427e9cfa74f5403c0b4aab22cdbefa4f81561ddf46fedfa697513cd1",
+    "section-detail-auto-dimensions-browser.mjs": "dee032630a60230676d572dfcb1ebcd11f2212cfbe58a2ac0f188d9dddedfc9c"
+  },
+  "commands": {
+    "control": "BAROCSS_D455_CAPSULE=<evidenceRoot>/original-D455-recovered node <evidenceRoot>/run-controlled.mjs 01",
+    "types": "pnpm --filter @barocss/cad-model type-check",
+    "actual": "D550_SOURCE_FROZEN=1 node test/section-detail-auto-dimensions-browser.mjs <evidenceRoot>/studio01 <evidenceRoot>/freeze01/runtime-config.json"
+  },
+  "timingBaseline": {
+    "controlWrapperMs": 841.073583,
+    "actualWallSeconds": 22.77,
+    "activeAuthoringAndReviewTime": "NOT_MEASURED"
+  },
+  "PASS": [
+    "exact recovered input",
+    "current H12 native control and independent candidate",
+    "three syntax checks and final Model types",
+    "six selected actual Studio groups",
+    "original native Save and fresh Open",
+    "independent annotated SVG",
+    "source custody and owned cleanup"
+  ],
+  "FAIL": [],
+  "NOT_RUN": [
+    "all other issue profiles including #2359, #2365, #2406, #2408, #2418 and #2421",
+    "PDF/DXF",
+    "general visibility and hatch/raster/standards",
+    "full kernel",
+    "mobile",
+    "live AI"
+  ],
+  "issues": {
+    "540": "OPEN_BROADER_ACCEPTANCE_UNMET",
+    "2396": "NEXT_BOUNDED_PILOT"
+  }
+}

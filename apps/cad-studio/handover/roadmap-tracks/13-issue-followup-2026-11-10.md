@@ -8,7 +8,7 @@ The live repository read on 2026-11-10 at 06:53 UTC found 135 issues from #2288 
 
 Source baseline is `local/cad-dev` at `84c891963c3c2f2388973d2ef0a082e6abc9d0b5`. **Existing** means available code or a specifically named retained proof. **Source gap** means the stated path or missing guard is visible in the pinned source. **Candidate** means a possible bounded follow-up under D520. **HOLD** requires the existing owner or rights gate. GitHub open state is distinct from implementation readiness. Product builds, desktop flows, native oracles, Save/Open, external product evaluation and live AI were **NOT_RUN** in this intake. Whole CAD remains **NOT_MEASURED**. B03 and B05–B10 remain **NOT_ADJUDICATED**.
 
-**D550 remains next MAIN.** It owns the retained Section A / Detail B Auto-dimension completeness intake. Use the existing command and the three recorded missing-dimension warnings. Consider a candidate earlier only if current evidence identifies a concrete safety blocker and records the reason under D520. The issue links give input to that decision. They do not change the adopted registry, owner, implementation status, or execution authority.
+**D550 was next MAIN at intake.** It covers the retained Section A / Detail B Auto-dimension completeness intake. Use the existing command and the three recorded missing-dimension warnings. Consider a candidate earlier only if current evidence identifies a concrete safety blocker and records the reason under D520. The issue links give input to that decision. They do not change the adopted registry, owner, implementation status, or execution authority.
 
 ## Current-source safety candidates
 

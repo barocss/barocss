@@ -1,5 +1,5 @@
 ---
-work_id: D549
+work_id: D550
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -33,13 +33,11 @@ Node must be22.19.0; before each commit verify easylogic <cyberuls@gmail.com>. U
 
 ## Next item
 
-Latest delivery [D549](../section-detail-svg-output-2026-11-05/README.md), P2 rows11/12/13/16, qualifies existing D455 exact H12 Section A/Detail B Open/current actual SVG/post-export retention3/3 on root's first actual run. No creation/edit/refusal/Undo/project loop is replayed. One new current Drawing pair is raw-V8 sealed and reused exactly twice across3current Doc/UI/Python observations. New controlled inspector calls during Studio0 does not mean zero actual Worker/native computation; internal Worker/kernel call counts are NOT_MEASURED. Source-body control and explicit split are2separate evaluations of one H12physical class, with controlled section provider0.
+D550 qualifies the recovered original H12 Section A and Detail B through Auto-dimension, first Undo and Redo, native Save and fresh Open, and one independently read annotated SVG. Root's first actual Studio run passed 6/6. Auto adds six source-linked dimensions and clears three warnings on this sheet. The first Undo restores exact A and the warnings. Redo and the file consumers retain exact B. [D550](../section-detail-auto-dimensions-2026-11-05/README.md).
 
-New independent whole-body V27834.34520557/C[30.4834813927,19.9839044544,6], full graph/genus1/42presentUV and current native first moments pass1e-9; same original section cut genus0 hasY23/chord8/cap624. Detail paperboreR10 and clipR12 remain distinct. Actual SVG12927B/b9f4964b… independently readsA3mm/currenttitle/date/SRC/geometry within existing5.0001e-5 SVG coordinate envelope; selected cap max3.74315355e-5. File association is exact source/current Worker/controlled-native class, not embedded BRep or API byte parity. Post-export Doc/body/history/dirty and original H10signature cache remain exact.
+The original 1,767-byte input and the D455 helpers match their historical hashes after recovery. The original D549 native artifacts were unavailable. D550 captures one new current physical class with source and split evaluations, independent native proof, and 495 control pins. Two fresh Worker pairs and five exact pair reuses cover seven observations. The final 797 Studio pins and all owned cleanup checks pass. Actual Worker internal computation is NOT_MEASURED. D549 remains separately accepted at its historical 3/3 scope. [D549](../section-detail-svg-output-2026-11-05/README.md).
 
-Root finalsyntax2/Modeltypes02 follow final helper edits; five source-only browser blockers were repaired before any scenario. Current native/independent controls firstPASS, actual firstPASS with3snapshots/791unchanged pins, offline font handling, allowned close callbacks and Node28892/Chrome28910 absent. Root views3originalPNGs; High numerical author independently reviews Medium browser and saved evidence, no scenario replay. An unsupported optional V8 reserialize byte-canonicality assumption was rejected as audit-only, not runtime/raw failure. DEBUGstderr12CVDisplayLink+1allocator differs from page/console errors0. D548 original failures and04unknown/orderly-cleanup gap remain immutable; its broad zero-evaluation label receives only an additive inspector-scope clarification.
-
-Next MAIN **D550 / P2** is supported Auto-dimension completeness intake for this exact Section/Detail profile's retained HOLE_SIZE_MISSING/HOLE_NOT_LOCATED/OVERALL_MISSING warnings. Inspect current action/native reference/value/placement policy first, freeze actual annotation/history/output/persistence scope and geometry/source reuse eligibility before executing. Do not declare an implemented command missing, recreate geometry or auto-adopt tolerance data. Existing native/SVG/hatch approximations and owner PDF HOLD remain.
+Next MAIN is D551, the bounded #2396 shared validation pilot. Measure one selected improvement on two affected desktop consumers. Record comparable timings and unavailable fields. Decide adopt, revise or stop, then return to the next uncovered D520 workflow. [Pilot](../../roadmap-tracks/13-issue-followup-2026-11-10.md#one-studio-validation-pilot-after-d550).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
