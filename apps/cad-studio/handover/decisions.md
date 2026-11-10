@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D562 — verify clipboard isolation across project Open and saved version Restore](notes/body-clipboard-project-2026-11-10/README.md).
+
 - [D561 — verify stale Paste after saved template replacement](notes/body-clipboard-template-2026-11-10/README.md).
 
 - [D560 — verify stale Paste after New part recreates a local body key](notes/body-clipboard-new-part-2026-11-10/README.md).
