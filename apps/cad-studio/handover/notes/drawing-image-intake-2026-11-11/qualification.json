@@ -1,0 +1,37 @@
+{
+  "decision": "D598",
+  "parent": "0a43640ae1b337616fa5663348e7b5902a33cdba",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "5bb5f6e9271bae07661b060b3fef292b0ef89cd3eeaa963a80a50b11d31870f6",
+    "pass": ["I01", "I02", "I03"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D598_SOURCE_FROZEN=1 node test/drawing-image-intake-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test chat o17-scripted o17-transport toolset-mcp", "status": "PASS", "pass": 32},
+    {"command": "pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/drawing-image-intake-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "baseline/receipt.json",
+    "sha256": "79188fe4a328d296e67863922603e6f8a184e3826e46c569d5de195fee885a73",
+    "observation": "One old draft remained immediately after reset. The prior delayed decode and the current attachment then raised the pending count to three."
+  },
+  "evidence": {
+    "directory": "d598-2026-11-11/fixed",
+    "receiptSHA256": "0d7a515a0770cd8d82fddcdbc4bcd4c3c34b53edae85f96086d64d95ee819d0a",
+    "sourceCapsuleSHA256": "0178790bf9b10bea01df5196f12b9ac10055e7c47c3db41d16184cd0f0944290",
+    "revisionPNG": ["4c551a9ab63fbb28b395cb696479b089568ceae31763a501740fac4afb13199f", "3b77cd596ce128765a0ef2b68d3059190f0e51ff2e482a1fab4a34be513e2b7e"],
+    "desktopStates": 5,
+    "mcpCalls": 5,
+    "unchangedSourcePins": 951,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["baseline/04-after-reset", "fixed/04-after-reset"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["live image interpretation", "provider comparisons", "whole browser", "whole kernel", "mobile"]
+}

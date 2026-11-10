@@ -69,6 +69,7 @@ export function ChatPanel(props: ChatPanelProps) {
   const [text, setText] = useState('');
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);
+  const imageDraftGeneration = useRef(0);
   const [rowFiles, setRowFiles] = useState<{ name: string; text: string }[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const log = useRef<HTMLDivElement>(null);
@@ -86,6 +87,7 @@ export function ChatPanel(props: ChatPanelProps) {
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [messages]);
 
   const attach = async (files: Iterable<File>) => {
+    const draft = imageDraftGeneration.current;
     for (const file of files) {
       if (/\.json$/i.test(file.name)) {
         try {
@@ -96,8 +98,14 @@ export function ChatPanel(props: ChatPanelProps) {
         continue;
       }
       if (!file.type.startsWith('image/')) continue;
-      try { const img = await prepareImage(file); setImages(list => list.length >= 4 ? list : [...list, img]); }
-      catch (e) { chat.notice(e instanceof Error ? e.message : String(e)); }
+      try {
+        const img = await prepareImage(file);
+        if (draft !== imageDraftGeneration.current) return;
+        setImages(list => list.length >= 4 ? list : [...list, img]);
+      } catch (e) {
+        if (draft !== imageDraftGeneration.current) return;
+        chat.notice(e instanceof Error ? e.message : String(e));
+      }
     }
   };
   const send = () => {
@@ -105,6 +113,13 @@ export function ChatPanel(props: ChatPanelProps) {
     const typed = text, attached = images, rows = rowFiles;
     setText(''); setImages([]); setRowFiles([]);
     void chat.send(typed, attached, rows, chips);
+  };
+
+  const newConversation = () => {
+    imageDraftGeneration.current++;
+    setImages([]);
+    setRowFiles([]);
+    chat.reset();
   };
 
   const enabled = !!status?.enabled;
@@ -117,7 +132,7 @@ export function ChatPanel(props: ChatPanelProps) {
         <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
           onChange={e => chat.setAutonomy(Number(e.currentTarget.value))}>
           {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !messages.length} onClick={() => { setRowFiles([]); chat.reset(); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !messages.length} onClick={newConversation}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">

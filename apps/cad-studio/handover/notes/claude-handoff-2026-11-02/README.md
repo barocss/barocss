@@ -1,5 +1,5 @@
 ---
-work_id: D597
+work_id: D598
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -131,7 +131,9 @@ D596 reproduces the unreadable-copy warning with a first native autosave interru
 
 D597 qualifies the human-transcribed bracket through an atomic refusal, a single bore correction, independent native geometry and desktop Studio edit and Save/Open. [D597](../../notes/dimensioned-bracket-control-2026-11-11/README.md).
 
-Next MAIN is D598 / P0 automation, B09 follow-up, rows 04 and 16. Send the same drawing through the desktop Chat image attachment path to an offline capture of the local provider boundary. Check the image bytes, turn and trace when a second revision uses the same filename. Establish what the local input path preserves before live interpretation.
+D598 verifies exact PNG delivery and ordered traces for same-name drawing revisions. It fixes pending images crossing New conversation. [D598](../../notes/drawing-image-intake-2026-11-11/README.md).
+
+Next MAIN is D599 / P0 automation, B09 follow-up, rows 04 and 16. Verify that the 16-trace conversation limit can refuse a new image without blocking later text turns or changing the accepted image indexes. Reproduce in desktop Studio through the local Chat server before changing code.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
