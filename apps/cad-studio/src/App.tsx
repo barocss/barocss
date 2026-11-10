@@ -1689,10 +1689,16 @@ export function App() {
       // Copy a body, paste copies of it beside (each paste a little further on).
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && !active && !sketch && !typing) { const one = selectedBodies(selection); if (one.length === 1 && bodies[one[0]]) { clipboard.current = { key: bodies[one[0]].key, pastes: 0 }; setToast({ title: 'Copied', hint: `${bodyName(doc, bodies[one[0]])} — ⌘V pastes a copy beside it.`, detail: '' }); } return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && !active && !sketch && !typing && clipboard.current) {
-        const src = bodies.find(b => b.key === clipboard.current!.key); if (!src) return;
-        e.preventDefault(); const k = ++clipboard.current.pastes, w = src.mesh.bounds.max[0] - src.mesh.bounds.min[0] + 10;
+        const copied = clipboard.current;
+        const src = bodies.find(b => b.key === copied.key); if (!src) return;
+        e.preventDefault();
+        if (!canChangeDocument()) return;
+        const k = copied.pastes + 1, w = src.mesh.bounds.max[0] - src.mesh.bounds.min[0] + 10;
         const r = duplicateBody(evaluated, refOf(src), [Math.round(w * k), 0, 0]);
-        chatSelection.current = { faces: [], edges: [], bodies: [bodyKeyFor(r.doc.nodes, r.top)] }; commit(r.doc); return;
+        if (!commit(r.doc)) return;
+        copied.pastes = k;
+        chatSelection.current = { faces: [], edges: [], bodies: [bodyKeyFor(r.doc.nodes, r.top)] };
+        return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }

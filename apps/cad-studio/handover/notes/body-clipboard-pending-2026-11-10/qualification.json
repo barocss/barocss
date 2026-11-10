@@ -1,0 +1,98 @@
+{
+  "workId": "D558",
+  "parent": "bd0572433479afe6a2fa9deb5e11f90b97d4651f",
+  "tier": "SMALL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d558-2026-11-10"
+  },
+  "appSha256": {
+    "repro01": "288c71dcd9fcec55d50832b26e8a7c607bdded9c016afbc809a3e79ab21e25aa",
+    "repro02": "288c71dcd9fcec55d50832b26e8a7c607bdded9c016afbc809a3e79ab21e25aa",
+    "fixed01": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6"
+  },
+  "physicalOracle": {
+    "size": [
+      12,
+      13,
+      14
+    ],
+    "volume": 2184,
+    "absoluteTolerance": 1e-09,
+    "firstPasteOffsetX": 22,
+    "nudgeOffsetX": 23,
+    "reproNextOffsetX": 66,
+    "fixedNextOffsetX": 44
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-pending-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "node scripts/test.mjs stop-work-ownership",
+      "status": "PASS",
+      "passCount": 13,
+      "failCount": 0,
+      "sha256": "db225ee0d77f870ccf489ce39da692d1aa912b5cedb694292be463bb9bef759a"
+    }
+  ],
+  "studio": [
+    {
+      "id": "repro01",
+      "command": "DEBUG=pw:browser,pw:api D558_SOURCE_FROZEN=1 node test/body-clipboard-pending-browser.mjs EXTERNAL/repro01 --expect=repro",
+      "harness": "FAIL",
+      "product": "NOT_ADJUDICATED",
+      "wallSeconds": 70.96,
+      "snapshots": 5,
+      "physicalJoins": 1,
+      "frozenPins": 297,
+      "receiptSha256": "51889ff9ed614c0a898d3349aa745d19cc37e874b4eeb20e268cbc4b7852459b",
+      "driverSha256": "fbb343e309cc82b9e3e92b99ed88566d99c65bca9655a8b44c68c43a193aaf29",
+      "ownedPID": 64307,
+      "chromePID": 64309
+    },
+    {
+      "id": "repro02",
+      "command": "DEBUG=pw:browser,pw:api D558_SOURCE_FROZEN=1 node test/body-clipboard-pending-browser.mjs EXTERNAL/repro02 --expect=repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "wallSeconds": 13.91,
+      "snapshots": 10,
+      "physicalJoins": 3,
+      "frozenPins": 297,
+      "receiptSha256": "165aa2534297c304595254f36055bb5c99369e3c2ec1f0d4c729caf38e4cff84",
+      "driverSha256": "a74b9a5fad343ab93b2f35304a048a68e9ec283cf27315dd42eab628fb5be5bc",
+      "ownedPID": 68862,
+      "chromePID": 68938
+    },
+    {
+      "id": "fixed01",
+      "command": "DEBUG=pw:browser,pw:api D558_SOURCE_FROZEN=1 node test/body-clipboard-pending-browser.mjs EXTERNAL/fixed01 --expect=fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "wallSeconds": 10.94,
+      "snapshots": 10,
+      "physicalJoins": 3,
+      "frozenPins": 297,
+      "receiptSha256": "89bdc377cf71e0e290cb19fd4377752b92ac7c17e777413fab4225c1be351775",
+      "driverSha256": "a74b9a5fad343ab93b2f35304a048a68e9ec283cf27315dd42eab628fb5be5bc",
+      "ownedPID": 72722,
+      "chromePID": 72726
+    }
+  ],
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}
