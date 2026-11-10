@@ -1,5 +1,5 @@
 ---
-work_id: D585
+work_id: D586
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -107,7 +107,9 @@ D584 binds two independent Model tasks to a frozen spec and verifies scoped cand
 
 D585 qualifies one-process CandidateBoard publication, including both commit orders, late cancellation, authority revocation, duplicate operation IDs and native replay. Actual desktop Studio opens the single winning file, saves it, opens it fresh, edits the extrusion and checks first Undo and Redo. [D585](../candidate-atomicity-2026-11-11/README.md).
 
-Next MAIN is D586 / P0, B09, rows 04 and 16. Build the first two-worker execution and restart profile with one accepted-state writer. [#2401](https://github.com/barocss/barocss/issues/2401).
+D586 qualifies the local two-worker CAD CLI and six process crash boundaries with one durable writer. Actual Studio edits the accepted assembly and reopens its saved project bytes. Local BOM and independent measurements agree. [D586](../local-task-run-2026-11-11/README.md).
+
+Next MAIN is D587 / P0, B09, rows 04, 12 and 16. Freeze the editable CLI/MCP/Studio consumer matrix, join retained evidence and verify the first uncovered path. [B09 scope](../../roadmap-tracks/04-product-baseline.md).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

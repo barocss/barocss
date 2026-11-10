@@ -1,0 +1,507 @@
+{
+  "workId": "D586",
+  "parent": "e5329535ae6d6412b7a43321dd43fc8f457cf45c",
+  "issue": 2401,
+  "tier": "FULL",
+  "node": "22.19.0",
+  "gate": "gate.sh acquire heavy 300 D586-FULL-delivery",
+  "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d586-2026-11-11",
+  "studioCommand": "cd apps/cad-studio && D586_SOURCE_FROZEN=1 node test/task-run-browser.mjs EXTERNAL/CASE",
+  "studio": [
+    {
+      "case": "studio-first",
+      "status": "PASS",
+      "receiptSha256": "ffaaea6ffe9764d0e510c3fa4e101a789e46fef5650c13af1135676516831eb6",
+      "frozenSha256": "67a260b6b228cffef5b81eecf8012db5dfd69f95d8da72711ff38b41e6242cc6",
+      "sourceCount": 947,
+      "frozenThroughCleanup": true,
+      "snapshots": 4,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 7113,
+        "nodePPID": 6933,
+        "serverURL": "http://127.0.0.1:64730"
+      },
+      "files": [
+        {
+          "source": "Recovered TaskRunHost",
+          "sha256": "d336394ab22a22539f3ddb486231861695fe622837b4633cc9e742f9810128f4"
+        },
+        {
+          "source": "OPFS",
+          "sha256": "d666438f21d134d1c045ece5ae15726f9c1175696a659091ad03e67802778d04"
+        }
+      ]
+    },
+    {
+      "case": "studio-bom",
+      "status": "FAIL",
+      "receiptSha256": "080320322c0a342be8d2be7d60a90c4eb18e9d91490a08237f8f1ac0382847aa",
+      "frozenSha256": "7705c74a5d608b4361de8c41664c86d4e75920f4b47a48885703fa6566ec17d8",
+      "sourceCount": 954,
+      "frozenThroughCleanup": true,
+      "snapshots": 0,
+      "downloads": 0,
+      "cleanup": [
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 37190,
+        "nodePPID": 36723,
+        "serverURL": "http://127.0.0.1:49874"
+      },
+      "firstFailure": "The added BOM oracle compared unrounded physical mass against the existing rounded BOM values."
+    },
+    {
+      "case": "studio-final",
+      "status": "PASS",
+      "receiptSha256": "3645ec937f89bd4a8014f121a4792aa576b5d916b6ddc71a2892ea4ef5eaca98",
+      "frozenSha256": "c1a57f9e43d3e35bdda32ddc4274413dec045c2fc798e4e8b5285f264febc719",
+      "sourceCount": 954,
+      "frozenThroughCleanup": true,
+      "snapshots": 4,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 45402,
+        "nodePPID": 45401,
+        "serverURL": "http://127.0.0.1:50278"
+      },
+      "files": [
+        {
+          "source": "Recovered TaskRunHost",
+          "sha256": "55232d856244276cdefdbbeef68cf08aa361dfaf83fe81f13f79cea01a861c8f"
+        },
+        {
+          "source": "Existing BOM output",
+          "sha256": "0a25c1c229037bfc8c133c44ac9160d286cf8c6207f710475f807c3734c1a1ec"
+        },
+        {
+          "source": "OPFS",
+          "sha256": "54931f595e17317943b28190c29899f41d49791e3814aafcd19d42d7effab8f3"
+        }
+      ]
+    }
+  ],
+  "visualReview": [
+    "01-two-accepted-parts.png",
+    "04-fresh-edited-open.png"
+  ],
+  "nativeHost": {
+    "nativeOverlapMs": 44.12353515625,
+    "workerIds": [
+      2,
+      1
+    ],
+    "bomTotalG": 4.277,
+    "hostReceiptSha256": "351ac471462f70e5724c3706257fa2cdac1a883bd691916009e935626b35e979",
+    "acceptedTaskIds": [
+      "base",
+      "lid"
+    ],
+    "acceptedOccurrences": [
+      "p1",
+      "p2"
+    ]
+  },
+  "benchmark": {
+    "command": "node EXTERNAL/benchmark.mjs WORKTREE/apps/cad-studio EXTERNAL benchmark-delivery",
+    "receiptSha256": "34050b61b18d9f03033f489e195430e46c1901ff16a3e036acc21e4e3c9ebdb8",
+    "data": {
+      "raw": [
+        {
+          "concurrent": 1,
+          "setupMs": 80.414306640625,
+          "dispatchMs": 504.110595703125,
+          "baseCommitMs": 48.927490234375,
+          "refreshMs": 41.981689453125,
+          "lidCommitMs": 44.9736328125,
+          "recoveryMs": 43.000244140625,
+          "wallMs": 763.407958984375,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 120.52490234375,
+              "nativeMs": 44.91945799999996,
+              "hostVerifyAndExitMs": 82.44482421875
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 147.096923828125,
+              "nativeMs": 44.155874999999924,
+              "hostVerifyAndExitMs": 51.028076171875
+            }
+          ],
+          "overlapMs": 0,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "783e7cbe8783dee4aa429a482e038f5d02f47c2f0415d990b5d82b4448da4916",
+          "maxRssKiB": 162448,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        },
+        {
+          "concurrent": 2,
+          "setupMs": 64.68701171875,
+          "dispatchMs": 303.071044921875,
+          "baseCommitMs": 53.84521484375,
+          "refreshMs": 46.9677734375,
+          "lidCommitMs": 47.962158203125,
+          "recoveryMs": 44.05322265625,
+          "wallMs": 560.58642578125,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 125.13818359375,
+              "nativeMs": 43.51708299999996,
+              "hostVerifyAndExitMs": 84.30419921875
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 124.4013671875,
+              "nativeMs": 43.728166999999985,
+              "hostVerifyAndExitMs": 114.7001953125
+            }
+          ],
+          "overlapMs": 30.992431640625,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "4633120f68896b2466fa50c900c805decf3c210aab1b2752216ba3d8cb7e0318",
+          "maxRssKiB": 201184,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        },
+        {
+          "concurrent": 2,
+          "setupMs": 53.28564453125,
+          "dispatchMs": 273.216796875,
+          "baseCommitMs": 38.87451171875,
+          "refreshMs": 38.0126953125,
+          "lidCommitMs": 37.97509765625,
+          "recoveryMs": 33.1474609375,
+          "wallMs": 474.51220703125,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 124.979736328125,
+              "nativeMs": 45.37320900000003,
+              "hostVerifyAndExitMs": 63.756591796875
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 117.400634765625,
+              "nativeMs": 43.195542000000046,
+              "hostVerifyAndExitMs": 93.185546875
+            }
+          ],
+          "overlapMs": 40.525146484375,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "006595cdfa1fe59c53d65b00920ac87060e2cfd973065c55dbae36aeed053b47",
+          "maxRssKiB": 202176,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        },
+        {
+          "concurrent": 1,
+          "setupMs": 37.8310546875,
+          "dispatchMs": 447.13525390625,
+          "baseCommitMs": 48.9111328125,
+          "refreshMs": 44.006103515625,
+          "lidCommitMs": 46.9169921875,
+          "recoveryMs": 44.103271484375,
+          "wallMs": 668.90380859375,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 121.228515625,
+              "nativeMs": 44.77712500000001,
+              "hostVerifyAndExitMs": 63.3427734375
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 118.1708984375,
+              "nativeMs": 41.76150000000001,
+              "hostVerifyAndExitMs": 44.139892578125
+            }
+          ],
+          "overlapMs": 0,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "61810e56d8a56e80937f6615436b95bbce3741c16fc50ceb2feca02bd604ab67",
+          "maxRssKiB": 161824,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        },
+        {
+          "concurrent": 1,
+          "setupMs": 61.7919921875,
+          "dispatchMs": 498.154052734375,
+          "baseCommitMs": 49.708251953125,
+          "refreshMs": 44.088134765625,
+          "lidCommitMs": 44.95361328125,
+          "recoveryMs": 39.012451171875,
+          "wallMs": 737.70849609375,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 124.65185546875,
+              "nativeMs": 44.51370800000001,
+              "hostVerifyAndExitMs": 93.5869140625
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 121.807861328125,
+              "nativeMs": 41.37412500000005,
+              "hostVerifyAndExitMs": 59.384765625
+            }
+          ],
+          "overlapMs": 0,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "4ebbef6b2f773f2f39052a8992107045851e553c4a6788cfe529ab227a173fe7",
+          "maxRssKiB": 167136,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        },
+        {
+          "concurrent": 2,
+          "setupMs": 55.921142578125,
+          "dispatchMs": 276.236328125,
+          "baseCommitMs": 41.964111328125,
+          "refreshMs": 41.044677734375,
+          "lidCommitMs": 44.933837890625,
+          "recoveryMs": 41.034912109375,
+          "wallMs": 501.135009765625,
+          "worker": [
+            {
+              "task": "base",
+              "threadId": 1,
+              "launchMs": 119.864990234375,
+              "nativeMs": 41.79133300000001,
+              "hostVerifyAndExitMs": 76.865234375
+            },
+            {
+              "task": "lid",
+              "threadId": 2,
+              "launchMs": 120.1318359375,
+              "nativeMs": 42.38691700000004,
+              "hostVerifyAndExitMs": 95.663818359375
+            }
+          ],
+          "overlapMs": 29.108642578125,
+          "budget": {
+            "limit": 8,
+            "used": 2,
+            "unknown": 0
+          },
+          "providerTokens": 0,
+          "providerCostUsd": 0,
+          "acceptedParts": 2,
+          "revalidations": 1,
+          "nativeSha256": "2579a27d26988d5c998cef293dfcbcefba2d91f798fa7990401127345334caec",
+          "maxRssKiB": 200512,
+          "normalizedSha256": "02369534af6c3f1d354e3265f34bc7a7058dff575c4f222ec2c98d67f7f14a9b"
+        }
+      ],
+      "summary": [
+        {
+          "mode": 1,
+          "medianWallMs": 737.70849609375,
+          "wallRangeMs": [
+            668.90380859375,
+            763.407958984375
+          ],
+          "peakRssKiB": 167136
+        },
+        {
+          "mode": 2,
+          "medianWallMs": 501.135009765625,
+          "wallRangeMs": [
+            474.51220703125,
+            560.58642578125
+          ],
+          "peakRssKiB": 202176
+        }
+      ]
+    }
+  },
+  "pass": {
+    "model": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan.test task-execution.test team-ecr team-freshness team-input-authority team-v3 team-assembly person-rows",
+      "receiptSha256": "11825222dba2db813844e1b99c857a62cb62b6292920a699201a811eb2d2898a",
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "person-rows.test.ts",
+        "task-execution.test.ts",
+        "task-plan.test.ts",
+        "team-assembly.test.ts",
+        "team-ecr.test.ts",
+        "team-freshness.test.ts",
+        "team-input-authority.test.ts",
+        "team-v3.test.ts"
+      ]
+    },
+    "studioTests": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run- candidates.test candidate-atomicity.test team tool-contract-mcp toolset-mcp",
+      "receiptSha256": "ade9ab8be92439b717e815559b857fcae94e53c68d3302aebcba05e18ea2b4c3",
+      "pass": 68,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "candidate-atomicity.test.ts",
+        "candidates.test.ts",
+        "task-run-cli.test.ts",
+        "task-run-crash.test.ts",
+        "task-run-host.test.ts",
+        "task-run-store.test.ts",
+        "team-bundle.test.ts",
+        "team-metrics.test.ts",
+        "team.test.ts",
+        "tool-contract-mcp.test.ts",
+        "toolset-mcp.test.ts"
+      ]
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model type-check",
+      "receiptSha256": "9ab86433a63f1e7845d125805fc743b0580b74f027eae96cada835479b8446f6"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio type-check",
+      "receiptSha256": "415ba26ba08bbaed40fce03aaf30d3c4c67c938ff2672dc7ca0d561ed5f80148"
+    },
+    "lint": {
+      "status": "PASS",
+      "command": "pnpm exec eslint apps/cad-studio/server/taskRun/{store,host,thread,cli,workerEntry}.ts apps/cad-studio/server/cadCli.ts apps/cad-studio/test/task-run-*.ts",
+      "receiptSha256": "7e46653441e9ccea12f3ee55b516acb23e71487a72b21480fcbc4a7190377fff"
+    },
+    "driverSyntax": {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-browser.mjs",
+      "receiptSha256": "84baff029aa4d53f6c94702a509739044fe5df645fcbf03ad101b810dadf79c2"
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build",
+      "receiptSha256": "195dbc1dcc2e2a964bd554120aa62b53eba89f90d87f0182a62347840e7af4e8"
+    },
+    "mutations": {
+      "results": [
+        {
+          "name": "transfer-approval-between-runs",
+          "status": "KILLED"
+        },
+        {
+          "name": "mutate-reserved-decision",
+          "status": "KILLED"
+        },
+        {
+          "name": "discard-known-usage",
+          "status": "KILLED"
+        },
+        {
+          "name": "bypass-callback-mutation-guard",
+          "status": "KILLED"
+        },
+        {
+          "name": "accept-corrupt-native-object",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-native-worker-receipt",
+          "status": "KILLED"
+        }
+      ],
+      "status": "PASS",
+      "command": "node EXTERNAL/mutations.mjs WORKTREE EXTERNAL",
+      "receiptSha256": "1ba463ee03ee6255dacef4c611beaa54f98f1d516653f4f52cf0daeef504501a"
+    }
+  },
+  "firstFailures": [
+    {
+      "case": "fixture used reserved occurrence base",
+      "receiptSha256": "2ca994fcec27befb0436e9f7864abd78dd8ff3581b05bff23c6fb23ea463fcd5"
+    },
+    {
+      "case": "initial static checks",
+      "receiptSha256": "b0e6c9999b098c42ae6533571f2ab6ec3e453dfee1b30ec4658846be5ebf5df8",
+      "typeCheckSha256": "9fe573ffab056f58d74b3c86581bfbf27b99ba3d447dd23732e623d01fd48408"
+    },
+    {
+      "case": "initial terminal confirmation timed out in raw input mode",
+      "receiptSha256": "9d47f255aead475e30150ce45aacfac5cde8c92556f8d0ad8133be9f5c4cb6bc"
+    },
+    {
+      "case": "final-tier lint preferred const for delayed callback fixtures",
+      "receiptSha256": "d30fa15ac9c70c8c477d76989d4a8cafa87b4a6ddc73502717c772796bc1aaab"
+    }
+  ],
+  "notRun": [
+    "live providers",
+    "networked workers",
+    "remote storage",
+    "power-loss durability",
+    "Studio UI approval",
+    "whole Model and kernel suites",
+    "distribution or release qualification",
+    "whole B09 acceptance"
+  ]
+}

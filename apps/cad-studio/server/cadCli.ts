@@ -16,6 +16,7 @@ import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { lumpStls, meshToStl } from '@barocss/cad-model/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
+import { taskRunMain } from './taskRun/cli';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '@barocss/cad-model/team/scripted';
 import { metricsOf, type Labelled } from '@barocss/cad-model/team/metrics';
 import { verifyBundle, writeBundle } from '@barocss/cad-model/team/bundle';
@@ -60,7 +61,9 @@ function personListFile(path: string): { rowFiles: PersonRowFiles; file: string 
   } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
 }
 const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
-export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
+export const CLI_USAGE = `cad-cli task-run <start|status|work|refresh|decide|pause|resume|stop|policy|answer|export> ...
+  Runs the local two-task profile. Decisions require a terminal operator.
+cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
   --stl writes one file per body when there are several (part-b1.stl, part-b3.stl, …).
   --check runs the part's requirements; a failing hard one exits 3.
@@ -162,6 +165,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   const usage = (why: string) => { io.stderr.write(`cad-cli: ${why}\n${CLI_USAGE}\n`); return 2; };
   const failed = (why: string, code = 1) => { io.stderr.write(`cad-cli: ${why}\n`); return code; };
   if (cmd === undefined || cmd === 'help' || cmd === '--help' || cmd === '-h') { io.stdout.write(`${CLI_USAGE}\n`); return cmd === undefined ? 2 : 0; }
+  if (cmd === 'task-run') return taskRunMain(rest, io);
   if (cmd === 'team') {
     // (A7, O31: a scripted team through the Integrator; the traces printed.)
     if (rest[0] === '--metrics') {

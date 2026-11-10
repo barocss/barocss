@@ -10,7 +10,9 @@ import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..');
 const out = mkdtempSync(join(tmpdir(), 'cad-cli-'));
-await build({ entryPoints: { cadCli: join(root, 'server/cadCli.ts') }, outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22', outExtension: { '.js': '.mjs' }, logLevel: 'warning' });
+const entryPoints = { cadCli: join(root, 'server/cadCli.ts') };
+if (process.argv[2] === 'task-run') entryPoints.taskRunWorker = join(root, 'server/taskRun/workerEntry.ts');
+await build({ entryPoints, outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22', outExtension: { '.js': '.mjs' }, logLevel: 'warning' });
 const { cliMain } = await import(pathToFileURL(join(out, 'cadCli.mjs')).href);
 const code = await cliMain(process.argv.slice(2));
 rmSync(out, { recursive: true, force: true });
