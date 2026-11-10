@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D553: move viewport input policies out of App and qualify typed picking and sketch actions](notes/studio-viewport-interactions-2026-11-10/README.md).
+
 - [D552: prevent same-tab Open from rebinding a stale body clipboard key](notes/body-clipboard-owner-2026-11-10/README.md).
 
 - [D551: adopt one shared Python invocation contract after two actual Studio consumer comparisons](notes/studio-oracle-pilot-2026-11-10/README.md).

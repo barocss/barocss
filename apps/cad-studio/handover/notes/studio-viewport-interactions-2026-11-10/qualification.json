@@ -1,0 +1,104 @@
+{
+  "workId": "D553",
+  "status": "QUALIFIED_SELECTED_INTERACTIONS",
+  "priority": "P4",
+  "rows": [
+    20,
+    21,
+    22
+  ],
+  "tier": "SMALL_INTERNAL_REFACTOR",
+  "node": "22.19.0",
+  "baseHead": "821238cdb1af25ca2e9844d62115ba2ba5f695c3",
+  "wholeCad": "NOT_MEASURED",
+  "evidenceRoot": "/Users/user/.cache/barocss-cad-evidence/d553-2026-11-10",
+  "sourceBoundary": {
+    "status": "PASS",
+    "before": {
+      "attrs": 79,
+      "application": 78,
+      "appLines": 2446
+    },
+    "after": {
+      "attrs": 68,
+      "application": 67,
+      "appLines": 2436
+    },
+    "removed": [
+      "onBoxSelect",
+      "onContextMenu",
+      "onDimClick",
+      "onDimCommit",
+      "onDimEdit",
+      "onPick",
+      "onPickBody",
+      "onPickChain",
+      "onPickProfile",
+      "onSketchBandPick",
+      "onSketchPick",
+      "onSketchShape",
+      "onSketchTrim"
+    ],
+    "added": [
+      "picking",
+      "sketchActions"
+    ],
+    "retained": 66,
+    "retainedByteEqual": 65,
+    "whitespaceOnly": [
+      "boundsBox"
+    ],
+    "lowLevelViewportByteEqual": true
+  },
+  "firstSourceComparison": "FAIL_RAW_BOUNDSBOX_WHITESPACE_ONLY",
+  "checks": {
+    "syntax": "PASS",
+    "ModelTypes": "PASS",
+    "StudioTypes": "PASS"
+  },
+  "actual": {
+    "status": "PASS",
+    "firstAttempt": true,
+    "groups": [
+      "body double-click and FACE context selection",
+      "real sketch inline 60 mm and Finish"
+    ],
+    "snapshots": 7,
+    "selectedScreenshotsViewed": 3,
+    "pins": 294,
+    "ownedPIDsAbsent": [
+      87643,
+      87738
+    ],
+    "authoredMM": 60,
+    "measuredMM": 60,
+    "comparisonMM": 1e-06,
+    "wallSeconds": 10.12
+  },
+  "sourceSHA256": {
+    "apps/cad-studio/src/App.tsx": "75be192169fbe97cdf0e51f47f581b5980fc7d80557f3c404e18767a632a1d33",
+    "apps/cad-studio/src/viewport/SceneViewport.tsx": "423c5ac7a2512d15abb1cf8b5bc4f9acb2537e30ac0c8b7cc01ee6362bbeb345",
+    "apps/cad-studio/src/viewport/useViewportPicking.ts": "7677d10333f9730be624060d00b9f397ce648314dd8cf951aa64776335170e11",
+    "apps/cad-studio/src/viewport/studioSketchViewportActions.ts": "ced6e0d39ba0468e58aea528e0e98cd77fe313c49300f3d68cd8bd7a3dfad2ae",
+    "apps/cad-studio/test/viewport-interaction-boundary-browser.mjs": "11cc36f17a49e4b7f03ecaea3d9b6ecdde2c5738610d6a2ac85324863b2c9a10"
+  },
+  "receiptSHA256": {
+    "studio01/receipt.json": "cd9e4bd45978594286acdcf2f414451e3a00677bc4ce79030abb32f566d998d1",
+    "source-boundary02.json": "ad2c2b2fee7773248c82ad3ab4fff2c842432ff5c307c6bf0fd538d61c6cfb2e",
+    "final-model-types01.log": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+    "studio-types01.log": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+  },
+  "commands": {
+    "actual": "D553_SOURCE_FROZEN=1 node test/viewport-interaction-boundary-browser.mjs <new-output>",
+    "ModelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "StudioTypes": "pnpm --filter @barocss/cad-studio-app type-check"
+  },
+  "NOT_RUN": [
+    "remaining viewport gestures",
+    "Print and recovery",
+    "full kernel",
+    "mobile",
+    "public package API"
+  ],
+  "next": "D554_EXTRACT_VIEWPORT_SKETCH_OVERLAY"
+}

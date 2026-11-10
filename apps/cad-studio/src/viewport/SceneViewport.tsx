@@ -10,6 +10,20 @@ import { createValueStore, useStoreValue, type ValueStore } from '../state/value
 import type { Section } from './sectionView';
 import { countRender } from '../devRenders';
 
+type ViewportProps = ComponentPropsWithoutRef<typeof Viewport>;
+
+export type ScenePickingActions = Pick<ViewportProps,
+  'onPick' | 'onPickBody' | 'onPickChain' | 'onBoxSelect' | 'onContextMenu' | 'onPickProfile'>;
+export type SceneSketchActions = Pick<ViewportProps,
+  'onSketchShape' | 'onSketchPick' | 'onSketchBandPick' | 'onSketchTrim' | 'onDimClick' | 'onDimEdit' | 'onDimCommit'>;
+
+export interface SceneViewportProps extends Omit<ViewportProps, 'instanceTransforms' | keyof ScenePickingActions | keyof SceneSketchActions> {
+  poses: ScenePoseInputs;
+  liveSection: LiveSection | null;
+  picking: ScenePickingActions;
+  sketchActions: SceneSketchActions;
+}
+
 /** What the placed parts' matrices are made from, beside the pose and the explode factor (useScenePoses' inputs). */
 export interface ScenePoseInputs {
   poseStore: ValueStore<Record<string, number>>;
@@ -24,8 +38,8 @@ export interface ScenePoseInputs {
 /** A section plane being dragged (R1c (3c)): its store, and its clip and handles as the App makes them. */
 export interface LiveSection {
   store: ValueStore<Section | null>;
-  clip(s: Section): NonNullable<ComponentPropsWithoutRef<typeof Viewport>['clip']>;
-  handles(s: Section): NonNullable<ComponentPropsWithoutRef<typeof Viewport>['handles']>;
+  clip(s: Section): NonNullable<ViewportProps['clip']>;
+  handles(s: Section): NonNullable<ViewportProps['handles']>;
 }
 const NO_SECTION = createValueStore<Section | null>(null);
 
@@ -34,7 +48,7 @@ const NO_SECTION = createValueStore<Section | null>(null);
  * joint played or an explode dragged renders this, not the App. The matrices as useScenePoses makes them. A section plane
  * dragged on WebGPU likewise: its clip and handles from the plane as it is dragged.
  */
-export const SceneViewport = forwardRef<ViewportHandle, Omit<ComponentPropsWithoutRef<typeof Viewport>, 'instanceTransforms'> & { poses: ScenePoseInputs; liveSection: LiveSection | null }>(function SceneViewport({ poses, liveSection, ...props }, ref) {
+export const SceneViewport = forwardRef<ViewportHandle, SceneViewportProps>(function SceneViewport({ poses, liveSection, picking, sketchActions, ...props }, ref) {
   countRender('SceneViewport');
   const values = useStoreValue(poses.poseStore), explode = useStoreValue(poses.explodeStore);
   const fk = useMemo(() => poseKinematics(poses.jointTree, values), [poses.jointTree, values]);
@@ -59,5 +73,5 @@ export const SceneViewport = forwardRef<ViewportHandle, Omit<ComponentPropsWitho
   const dragged = useStoreValue(liveSection?.store ?? NO_SECTION);
   const handles = dragged && liveSection ? liveSection.handles(dragged) : null;
   const live = dragged && liveSection ? { clip: liveSection.clip(dragged), ...(handles?.length ? { handles } : {}) } : null;
-  return <Viewport ref={ref} {...props} {...live} frames={frames} frameSize={frameSize} instanceTransforms={poses.cpuInstanceSection ? undefined : poseMap} />;
+  return <Viewport ref={ref} {...props} {...picking} {...sketchActions} {...live} frames={frames} frameSize={frameSize} instanceTransforms={poses.cpuInstanceSection ? undefined : poseMap} />;
 });

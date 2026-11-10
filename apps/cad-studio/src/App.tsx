@@ -1,6 +1,7 @@
 import { viewportRecoveryToast } from './viewport/viewportRecovery';
 import { useSpecificationActions } from './state/useSpecificationActions';
-import { useViewportPicking } from './viewport/useViewportPicking';
+import { useViewportPicking, type ViewportMenu } from './viewport/useViewportPicking';
+import { studioSketchViewportActions } from './viewport/studioSketchViewportActions';
 import { sewPreviewDirect } from './viewport/sewPreviewDirect';
 import { useSectionState } from './viewport/useSectionState';
 import { useSectionEvaluation } from './viewport/useSectionEvaluation';
@@ -44,7 +45,6 @@ import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './files
 import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
 import { bandEdit, bandRemove } from './app/bandControls';
-import { toggleBandPick } from '@barocss/cad-model/sketch/band';
 import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
@@ -212,8 +212,7 @@ import { sketchDxf } from '@barocss/cad-model/sketch/dxf';
 import { settleShape } from '@barocss/cad-model/sketch/settle';
 import { planeLabel, planeOfFace, xyPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeNode } from '@barocss/cad-model/sketch/loops';
-import { commitDimension, isSettled } from '@barocss/cad-model/sketch/rules';
-import { sketchClick } from '@barocss/cad-model/sketch/select';
+import { isSettled } from '@barocss/cad-model/sketch/rules';
 import { SketchHistory } from '@barocss/cad-model/sketch/history';
 
 // A free sketch's outlines at the document's parameter values; none when a parameter it uses is missing.
@@ -620,7 +619,7 @@ export function App() {
   const rail = useToolColumns();
   // (The same time for the drag preview's whole-part cost, read while dragging: roadmap 20 ①.)
   const lastEvalMs = useRef(0);
-  const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
+  const [menu, setMenu] = useState<ViewportMenu | null>(null);
   const revision = useRef(1);
   const fileInput = useRef<HTMLInputElement>(null);
   const pickRef = useRef<(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => void>(() => {});
@@ -1344,6 +1343,7 @@ export function App() {
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch } = sketchActions;
+  const sketchViewportActions = studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch });
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
@@ -1358,23 +1358,16 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
-  const { onPick } = useViewportPicking({ doc, activeStore, setActive, onFilletPick: pickFillet, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
-    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef });
+  const { onPick, picking } = useViewportPicking({ doc, activeStore, setActive, onFilletPick: pickFillet, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef,
+    scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
+  const pickProfile = picking.onPickProfile;
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
   // The steps inside a part made in several (a bolt's head, shank and their union): one history entry, the last.
   const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => 'made' in n && n.made?.nodes ? Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k) : [])), [doc.nodes]);
   const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: ringsOf(evaluated.nodes[i] as SketchNode, shownDoc.parameters), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, sketch]);
-  const pickProfile = useCallback((id: number | null, additive: boolean) => {
-    if (id === null) return;
-    setDirectSel([]); setInstanceSel([]);
-    setSelection(prev => {
-      const list = prev.sketches ?? [];
-      return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
-    });
-  }, []);
-
   // A computation running past a second can be stopped (D42: a committed Boolean on a mesh of up to 20000
   // triangles takes a few seconds): the worker restarts and the change that started it is taken back.
   const [slow, setSlow] = useState(false);
@@ -2280,36 +2273,33 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))} ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesStepped} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : stepsDisp?.opaque ?? isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+      <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
+        poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView}
+        displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
+        onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
+        bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection}
+        ghost={sketchGhost} sketch={sketch} regions={regions} threads={threads} profiles={active ? [] : profiles}
+        gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool}
+        handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} contactLinks={contactShown && motionContact ? motionContact.links : undefined}
+        render={rendering ? render : null} analysis={rendering ? null : viewAnalysis}
+        printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason}
+        annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays}
+        pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })}
+        offsets={animatedOffsets} transforms={dragTransforms} instances={instancesStepped} clearance={clearanceDisplay}
+        isolatedInstances={displayScopeReason ? undefined : stepsDisp?.opaque ?? isolatedInstances}
+        clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined}
+        mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay}
+        instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
-        onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
-        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        onPick={onPick} onCursor={onCursor} onSketchShape={updateShape}
-        onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
-          const base = additive ? selectedBodies(prev) : [];
-          return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
-        }); }}
-        boundsBox={showBox ? (() => { const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null; return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
-        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
-        onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
-        onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
-        onSketchBandPick={index => setSketch(s => s && index !== null ? toggleBandPick(s, index) : s)}
-        onSketchTrim={trimSketch}
-        onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
-        onDimCommit={(key, value) => {
-          const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
-          if (!isSettled(shape)) return;
-          const r = commitDimension(shape, key, value);
-          if (r.ok) updateShape(r.shape); else setSketchError(r.reason);
-        }}
-        onContextMenu={(at, hit) => {
-          if (active || sketch) return;
-          const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
-          if (hit.edge || hit.face) setSelection(next);
-          const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : selectedBodies(next).length ? `${selectedBodies(next).length} BOD${selectedBodies(next).length > 1 ? 'IES' : 'Y'}` : 'VIEW';
-          setMenu({ at, selection: next, title });
-        }} />
+        bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
+        snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        picking={picking} sketchActions={sketchViewportActions} onCursor={onCursor}
+        boundsBox={showBox ? (() => {
+          const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
+          return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
+        })() : null}
+        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null} />
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>

@@ -4,15 +4,24 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { selectedBodies, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import type { MeasurePick } from '@barocss/cad-model/app/measure';
 import type { useAssembly } from '../assembly/useAssembly';
 import type { Active } from '../app/commandState';
 import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
+import type { ScenePickingActions } from './SceneViewport';
+
+export interface ViewportMenu {
+  at: { x: number; y: number };
+  selection: Selection;
+  title: string;
+}
+
 export function useViewportPicking({ doc, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, pickFilterRef, onFilletPick }: {
+  setDirectSel, setMeasure, pickFilterRef, onFilletPick, scene }: {
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   doc: StudioDoc; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
@@ -23,6 +32,14 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
   setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>;
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
+  scene: {
+    active: Active | null;
+    section: Section | null;
+    sketch: boolean;
+    bodies: BodyResult[];
+    selection: Selection;
+    setMenu(menu: ViewportMenu): void;
+  };
 }) {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // Family attempts retire queued Apply even when an instance was removed or hidden.
@@ -90,5 +107,52 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
     });
   }, [activeStore, measure, assembly, doc.instances, onFilletPick]);
 
-  return { onPick };
+  // The viewport, Browser and History use the same action for a finished sketch.
+  const onPickProfile = useCallback((id: number | null, additive: boolean) => {
+    if (id === null) return;
+    setDirectSel([]);
+    setInstanceSel([]);
+    setSelection(prev => {
+      const list = prev.sketches ?? [];
+      return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
+    });
+  }, []);
+
+  const picking = {
+    onPick,
+    onPickProfile,
+    onPickBody(body) {
+      if (scene.active || scene.section) return;
+      setDirectSel([]);
+      setInstanceSel([]);
+      setSelection({ faces: [], edges: [], bodies: [body] });
+    },
+    onPickChain(body, edge) {
+      if (scene.active || scene.section || !scene.bodies[body]) return;
+      setDirectSel([]);
+      setInstanceSel([]);
+      setSelection({
+        faces: [], edges: edgeChain(scene.bodies[body].mesh, edge).map(edge => ({ body, edge })), bodies: [],
+      });
+    },
+    onBoxSelect(picked, additive) {
+      if (scene.active) return;
+      setSelection(prev => {
+        const base = additive ? selectedBodies(prev) : [];
+        return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
+      });
+    },
+    onContextMenu(at, hit) {
+      if (scene.active || scene.sketch) return;
+      const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }
+        : hit.face ? { faces: [hit.face], edges: [], bodies: [] }
+        : scene.selection;
+      if (hit.edge || hit.face) setSelection(next);
+      const count = hit.edge || hit.face ? 0 : selectedBodies(next).length;
+      const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : count ? `${count} BOD${count > 1 ? 'IES' : 'Y'}` : 'VIEW';
+      scene.setMenu({ at, selection: next, title });
+    },
+  } satisfies ScenePickingActions;
+
+  return { onPick, picking };
 }
