@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D608 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D609 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D608 shows the exact saved nested repair in Versions and retains the current working failure separately. Replay confirms the saved approved revision, and target switches retire late results. [D608](notes/saved-nested-approval-comparison-2026-11-11/README.md).
-- **Next MAIN:** D609 / P0 automation, B09 follow-up, rows 04, 12 and 16. Give the Studio agent a read-only structured report for the exact saved nested approval using the existing version-log context. Reuse the D608 match and replay checks, preserve both version pins and the original failed measurement, and exercise the real local tool path with a later failing working revision. [#2279](https://github.com/barocss/barocss/issues/2279).
+- **Current position:** D609 gives Studio chat a read-only report for the exact saved nested approval. It retains both version pins and the original failed measurement, separately from the current working result. [D609](notes/agent-saved-approval-evidence-2026-11-11/README.md).
+- **Next MAIN:** D610 / P0 automation, B09 follow-up, rows 04, 12 and 16. Check the version-linked defect lifecycle on the same nested leaf. Use the saved failure, the verified approval and a later regression as separate inputs. Preserve the original failure and identify the exact revision and occurrence for each state. Inspect existing report contracts first. [#2279](https://github.com/barocss/barocss/issues/2279).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B09 v1 **9/9 accepted groups**; B03, B05–B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

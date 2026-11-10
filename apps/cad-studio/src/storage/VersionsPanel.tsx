@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input as TextInput } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { ApprovedRequirementChecks } from './ApprovedRequirementChecks';
-import { approvedRequirementComparison } from './approvedRequirementCompare';
+import { approvedRequirementComparison } from '@barocss/cad-model/versions/approvedRequirements';
 
 type ComparedVersion = { id: string; doc: StudioDoc; snapshot: string };
 export type VersionComparison = ComparedVersion & {

@@ -87,17 +87,18 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         // name tools as before; saved proposals replay.)
         if (robotL3() && msg.params?.name === ROBOT_CHECK) { const r = await robotCheckCall(state.doc, state.bodies, evaluate, msg.params?.arguments ?? {}); return reply(msg.id, { content: [{ type: 'text', text: r.text }], ...(r.isError ? { isError: true } : {}) }); }
         if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
-        const before = state.doc, out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
+        const before = state.doc, name = String(msg.params?.name), args = msg.params?.arguments;
+        const handler = v1Name(name, args), out = await runTool(state, name, args ?? {}, evaluate);
         if (out.changed) { const v1 = v1Call(String(msg.params?.name), msg.params?.arguments ?? {}); ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : String(msg.params?.name), v1 && !('error' in v1) ? v1.args : {})); }
         // (CG6: a call that moved the version log — a version, a branch, a document asked for — is kept even when the part is not.)
         const asked = out.isError ? wantedOf(out.content) : [], next = asked.length ? { ...out.state, versionsWanted: [...new Set([...(out.state.versionsWanted ?? []), ...asked])] } : out.state;
-        const logMoved = next.versions !== state.versions || next.versionsWanted !== state.versionsWanted;
+        const logMoved = next.versions !== state.versions, wantedMoved = next.versionsWanted !== state.versionsWanted;
         state = next; changed ||= out.changed; if (out.changed) version++; versionsChanged ||= logMoved;
-        const unsaved = out.changed ? save('change') : logMoved ? save('versions') : v1Name(String(msg.params?.name), msg.params?.arguments) === 'select' ? save('select') : null;
+        const unsaved = out.changed ? save('change') : logMoved || wantedMoved ? save('versions') : handler === 'select' ? save('select') : null;
         // (A read tool's result also as structured content, its output schema's shape; the text keeps the same JSON.)
         // (What the caller reads names v2 tools only, O105b: a handler's hint or refusal as its tool.action, a stored op as its v2 call.)
-        const text = v2Result(out.content);
-        const structured = !out.isError && !unsaved && outputSchemaOf(v1Name(String(msg.params?.name), msg.params?.arguments)) ? structuredOf(text) : undefined;
+        const text = handler === 'approved_requirement_evidence' && !out.isError ? out.content : v2Result(out.content);
+        const structured = !out.isError && !unsaved && outputSchemaOf(handler) ? structuredOf(text) : undefined;
         // (A change the store could not keep is said so, as an error: the part changed here but not on disk.)
         return reply(msg.id, { content: [{ type: 'text', text }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
       }

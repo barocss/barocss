@@ -11,6 +11,7 @@ import { boxCage } from '../src/app/primitives';
 import { dispatchTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
 import { withSampleRows } from './person-file';
+import { savedApprovalFixture } from './helpers/saved-approval';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -96,6 +97,14 @@ test('every read tool’s result matches its output schema and changes nothing',
     assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.equal(out.state.doc, d, `${name}: the document as it was`);
     assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
   }
+  const savedApproval = await savedApprovalFixture();
+  const approvalName = 'approved_requirement_evidence';
+  const saved = await dispatchTool(savedApproval.state, 'history', savedApproval.args, evalDoc);
+  assert.ok(!saved.isError && !saved.changed, saved.content);
+  assert.equal(saved.state.doc, savedApproval.state.doc);
+  assert.equal(saved.state.versions, savedApproval.state.versions);
+  assert.deepEqual(validate(outputSchemaOf(approvalName)!, JSON.parse(saved.content)), []);
+  seen.add(approvalName);
   // (The robot's movement, RS3 b: the sample 2R arm and its stored motion.)
   const arm = readStudioDoc(readFileSync(resolve(import.meta.dirname, '..', 'samples/robots/arm-2r.bcad'), 'utf8')); assert.ok('doc' in arm);
   const ae = await evaluate(arm.doc); assert.ok(ae.ok);

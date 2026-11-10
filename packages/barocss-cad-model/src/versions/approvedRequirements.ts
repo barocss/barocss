@@ -1,17 +1,18 @@
-import { nestedParameterOps } from '@barocss/cad-model/chat/nestedParameterProposal';
-import { requirementEvidenceOf } from '@barocss/cad-model/chat/requirementEvidence';
-import { expectedOf, modelHash } from '@barocss/cad-model/chat/spec';
-import type { Evaluate } from '@barocss/cad-model/chat/tools';
-import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
-import type { AcceptanceEvidence, Proposal } from '@barocss/cad-model/engine/schema/proposals';
-import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
-import { nestedRequirementScope } from '@barocss/cad-model/team/requirementScope';
-import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
-import { canonical } from '@barocss/cad-model/util/revision';
+import { nestedParameterOps } from '../chat/nestedParameterProposal';
+import { requirementEvidenceOf } from '../chat/requirementEvidence';
+import { expectedOf, modelHash } from '../chat/spec';
+import type { Evaluate } from '../chat/tools';
+import type { PartInstance, StudioDoc } from '../engine/doc';
+import type { AcceptanceEvidence, Proposal } from '../engine/schema/proposals';
+import type { Requirement } from '../engine/schema/spec';
+import { nestedRequirementScope } from '../team/requirementScope';
+import { requirementEvidenceRevision } from '../util/digest';
+import { canonical } from '../util/revision';
 
 type Scope = { id: string; label: string };
 type Comparison = { before: StudioDoc; after: StudioDoc; revisions: AcceptanceEvidence; proposal: string; scopes: Scope[]; nested?: Proposal };
 type Recovery = { id: string; from: number | null; to: number | null; unit?: string };
+type Evidence = Exclude<Awaited<ReturnType<typeof requirementEvidenceOf>>, { error: string }>;
 type RequirementChange = {
   id: string;
   kind: 'changed' | 'withdrawn';
@@ -76,7 +77,7 @@ export function approvedRequirementComparison(before: StudioDoc, after: StudioDo
 }
 
 /** Re-run the same report producer for one scope. Only unchanged, current checks can prove recovery. */
-export async function compareApprovedRequirements(comparison: Comparison, part: string, evaluate: Evaluate): Promise<{ recoveries: Recovery[]; changed: RequirementChange[] } | { error: string }> {
+export async function compareApprovedRequirements(comparison: Comparison, part: string, evaluate: Evaluate): Promise<{ recoveries: Recovery[]; changed: RequirementChange[]; before: Evidence; after: Evidence | null } | { error: string }> {
   if (!comparison.scopes.some(scope => scope.id === part)) return { error: 'The occurrence cannot be matched across versions.' };
   let afterDoc: StudioDoc | undefined;
   if (comparison.nested) {
@@ -86,7 +87,7 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
     if (requirementEvidenceRevision(before) !== revisions.before || requirementEvidenceRevision(after) !== revisions.after)
       return { error: 'The approval revision changed.' };
     // The saved failure may predate the proposal. Replay the recorded operation on a private copy.
-    const { previewProposal } = await import('@barocss/cad-model/chat/tools');
+    const { previewProposal } = await import('../chat/tools');
     const replay = await previewProposal({ doc: { ...before, proposals: [pendingProposal(nested)] }, bodies: [] }, nested.id, evaluate);
     if ('error' in replay || requirementEvidenceRevision(replay.doc) !== revisions.after)
       return { error: 'The approved nested operation does not reproduce the saved revision.' };
@@ -130,5 +131,5 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
     }
   }
   for (const old of oldRows.values()) noteChange(old);
-  return { recoveries, changed };
+  return { recoveries, changed, before, after };
 }

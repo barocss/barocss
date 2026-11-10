@@ -44,6 +44,7 @@ interface Turn {
   ended: Promise<string[]>; end(stopped: string[]): void;
   /** The document it ran on (ChatPanelProps.scope). */
   scope: object | null;
+  versions?: ReturnType<NonNullable<ChatPanelProps['versions']>['turn']>;
 }
 
 export function useStudioChat(props: ChatPanelProps) {
@@ -77,7 +78,8 @@ export function useStudioChat(props: ChatPanelProps) {
     // (A part edited in place started or ended meanwhile: the turn's document is not the one open now, so none of it is applied.)
     const moved = turnMoved(t.scope, latest.current.scope);
     const versions = versionsToMerge(moved, done.versions);
-    if (versions) latest.current.versions?.back(versions, done.versionsWanted ?? []);
+    const wanted = versionsToMerge(moved, done.versionsWanted);
+    if (versions || wanted?.length) t.versions?.back(versions, wanted ?? []);
     if (moved) { if (doc) notices.push('The part being edited changed while the turn ran, so its changes were not applied.'); doc = null; ops.length = 0; }
     // (Edited during the turn: its calls merged onto the part as it is now, the conflicting ones a proposal, O133. Edited
     // again while merging: merged again, twice at most; then every call waits.)
@@ -171,11 +173,11 @@ export function useStudioChat(props: ChatPanelProps) {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
     said.current = [...said.current, recorded || (incoming.length ? 'Use the attached row files.' : 'Model what the image shows.')];
     // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
-    const release = holdSweeps(), base = latest.current.base(), versionLog = latest.current.versions?.turn() ?? null;
+    const release = holdSweeps(), base = latest.current.base(), versions = latest.current.versions?.turn(), versionLog = versions?.log;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
-    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null,
+    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, versions,
       inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');

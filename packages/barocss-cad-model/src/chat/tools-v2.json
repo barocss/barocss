@@ -170,6 +170,7 @@
        "versions",
        "restore_version",
        "compare",
+       "approval_evidence",
        "branch",
        "switch",
        "merge"

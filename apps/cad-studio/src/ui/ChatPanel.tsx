@@ -44,7 +44,7 @@ export interface ChatPanelProps {
   /** A message the studio sends as the user's (the Specify panel's answers, A6.2): sent once, when the chat is free. */
   outbox?: { id: number; text: string } | null;
   /** CG6: the project's version log for a turn (storage/useProject: its index and the documents the turn needs), and the turn's brought back. */
-  versions?: { turn(): import('@barocss/cad-model/versions/log').VersionLog | null; back(log: import('@barocss/cad-model/versions/log').VersionLog, wanted: readonly string[]): void };
+  versions?: import('../storage/useProject').ProjectActions['chat'];
   onOutboxSent?(id: number): void;
   /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
   scope?: object | null;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { NativeSelect } from '@/components/ui/native-select';
-import { approvedRequirementComparison, compareApprovedRequirements } from './approvedRequirementCompare';
+import { approvedRequirementComparison, compareApprovedRequirements } from '@barocss/cad-model/versions/approvedRequirements';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;

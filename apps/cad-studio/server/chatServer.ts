@@ -305,7 +305,7 @@ export function createChatServer(options: ChatServerOptions) {
     const s = read();
     if (!aborted && code !== 0 && !failure) failure = stderr.trim().split('\n').slice(-3).join(' ') || `claude exited with ${code}`;
     // (CG6: the turn's version log back when a call moved it — the studio folds it into the project's, versions/log.ts withTurnLog.)
-    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.versionsChanged && s.versions ? { versions: s.versions, ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
+    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.versionsChanged && s.versions ? { versions: s.versions } : {}), ...(s?.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
     res.end();
     rmSync(dir, { recursive: true, force: true });
   };

@@ -137,7 +137,7 @@ test('project Open unchanged control publishes the requested document, log and a
     await writeAutosave(dir.store, 'a.bcad', c);
     assert.equal(await api.openPart('a.bcad'), true);
     same(seen.current, a); assert.deepEqual(seen.opened, ['a.bcad']);
-    assert.equal(api.chat.turn()!.versions[0].id, logA.versions[0].id);
+    assert.equal(api.chat.turn().log!.versions[0].id, logA.versions[0].id);
     same((await api.settleOffered(true))!, c); assert.deepEqual(seen.errors, []);
   });
 });
@@ -158,7 +158,7 @@ for (const action of ['close', 'New', 'Open B'] as const) {
       assert.equal(accepted, false, 'a superseded Open must not report current acceptance');
       same(seen.current, action === 'Open B' ? b : c);
       assert.deepEqual(seen.opened, action === 'Open B' ? ['b.bcad'] : []);
-      if (action !== 'Open B') assert.equal(api.chat.turn(), null);
+      if (action !== 'Open B') assert.equal(api.chat.turn().log, null);
       assert.equal(await api.settleOffered(true), null);
       assert.deepEqual(seen.errors, []);
       // New uses App's existing detach path. This callback fixture does not claim App Undo/dirty/recovery proof.
@@ -185,7 +185,7 @@ for (const stage of ['versions', 'autosave', 'linked'] as const) {
       let currentCallbacks: string[] = [];
       try { await reached(pause.entered, pending); assert.equal(await api.openPart('b.bcad'), true); currentCallbacks = [...seen.opened]; }
       finally { pause.release(); }
-      const accepted = await pending, log = api.chat.turn(), offered = await api.settleOffered(true);
+      const accepted = await pending, log = api.chat.turn().log, offered = await api.settleOffered(true);
       t.diagnostic(JSON.stringify({ stage, oldOpenAccepted: accepted, callbacks: seen.opened, head: log?.versions[0].name, offered: offered?.parameters, linked: seen.linked.map(item => item.offered), errors: seen.errors }));
       assert.equal(accepted, false);
       same(seen.current, b);
@@ -295,7 +295,7 @@ test('App bridge hands a successful onOpened dispatch scope to the rest of the a
     controls.bridge({ ...bridge, accepted: bridge.dispatch });
     select(dir); await api.openFolder();
     assert.equal(await api.openPart('a.bcad'), true, 'own callback dispatch must not self-invalidate later log/autosave work');
-    same(seen.current, a); assert.equal(api.chat.turn()!.versions[0].id, logA.versions[0].id);
+    same(seen.current, a); assert.equal(api.chat.turn().log!.versions[0].id, logA.versions[0].id);
     same((await api.settleOffered(true))!, c); assert.deepEqual(seen.errors, []);
   });
 });

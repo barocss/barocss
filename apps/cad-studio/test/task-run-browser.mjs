@@ -23,7 +23,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/container.ts',
   'packages/barocss-cad-model/src/team/taskExecution.ts',
   'apps/cad-studio/src/storage/VersionsPanel.tsx',
-  'apps/cad-studio/src/storage/approvedRequirementCompare.ts',
+  'packages/barocss-cad-model/src/versions/approvedRequirements.ts',
   'apps/cad-studio/scripts/cad-mcp.mjs',
   'apps/cad-studio/server/cadMcp.ts',
   'packages/barocss-cad-model/src/chat/requirementEvidence.ts',

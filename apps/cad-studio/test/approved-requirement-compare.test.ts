@@ -6,7 +6,7 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { Op } from '@barocss/cad-model/engine/schema/proposals';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
-import { approvedRequirementComparison, compareApprovedRequirements } from '../src/storage/approvedRequirementCompare';
+import { approvedRequirementComparison, compareApprovedRequirements as evidenceOf } from '@barocss/cad-model/versions/approvedRequirements';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
   check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 10, unit: 'mm' } };
@@ -16,6 +16,10 @@ const twins: StudioDoc = { ...emptyDoc(), instances: [
   { id: 'p2', name: 'Control', doc: plate, position: [40, 0, 0], rotation: [0, 0, 0] },
 ] };
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
+async function compareApprovedRequirements(...args: Parameters<typeof evidenceOf>) {
+  const result = await evidenceOf(...args);
+  return 'error' in result ? result : { recoveries: result.recoveries, changed: result.changed };
+}
 
 async function approve(doc: StudioDoc, ops: Op[], agent = 'user') {
   const start = await evaluate(doc);

@@ -4,9 +4,11 @@
 // (versions/*.ts); a document it gives is taken as any change is (accept: evaluated, hard requirements kept). A merge's
 // conflicts come back as data, for the agent to merge again with an answer for each.
 import type { StudioDoc } from '../engine/doc';
+import { splitPart } from '../engine/occurrences';
 import { accept, fail, json, type ChatState, type PartHandler, type CallOptions, type ToolOutcome } from '../chat/toolKit';
 import { BarocssError } from '@barocss/cad/api';
 import { changesOf } from './compare';
+import { outputFile } from '../chat/outputFile';
 import { applyBranch, headOf, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
 import { applyMerge, type Conflict, type Side } from './merge';
 
@@ -60,6 +62,44 @@ async function compareTool(state: ChatState, args: Record<string, unknown>): Pro
     return { state, content: json({ from, to, ...c }), isError: false, changed: false, summary: `compare ${String(from)} → ${String(to)}` };
   } catch (e) { return refused(state, e); }
 }
+/** Exact saved IDs avoid working-document aliases and version-name collisions. */
+function exactVersion(log: VersionLog, id: string): Version | undefined {
+  const matches = log.versions.filter(version => version?.id === id || version?.name === id);
+  return matches.length === 1 && matches[0].id === id ? matches[0] : undefined;
+}
+const savedId = (value: unknown): value is string => typeof value === 'string' && /^v[0-9a-f]{16}$/.test(value);
+
+async function approvalEvidenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
+  const { from, to, part } = args, log = state.versions;
+  if (!savedId(from) || !savedId(to) || from === to || typeof part !== 'string')
+    return fail(state, 'Supply two distinct saved version IDs and an exact nested leaf path.');
+  const { host, path } = splitPart(part);
+  if (!host || host === 'base' || !path.length || path.some(id => !id))
+    return fail(state, 'Supply an exact nested leaf path.');
+  if (!log) return fail(state, NO_LOG);
+  if (!Array.isArray(log.versions) || !log.snapshots || typeof log.snapshots !== 'object' || Array.isArray(log.snapshots))
+    return fail(state, 'The saved version log is invalid.', { code: 'VERSION_LOG' });
+  const a = exactVersion(log, from), b = exactVersion(log, to);
+  if (!a || !b) return fail(state, 'Both saved version IDs must identify unique versions in this log.', { code: 'VERSION_UNKNOWN' });
+  const missing = [a, b].filter(version => !Object.hasOwn(log.snapshots, version.snapshot)).map(version => version.id);
+  if (missing.length) return fail(state, 'A saved document is not with this turn. Request the same pair on the next turn if it fits the version snapshot budget.', {
+    code: 'VERSION_NOT_LOADED', wanted: [a.id, b.id], missing,
+  });
+  try {
+    const before = readVersion(log, a.id), after = readVersion(log, b.id);
+    const { approvedRequirementComparison, compareApprovedRequirements } = await import('./approvedRequirements');
+    const comparison = approvedRequirementComparison(before, after);
+    if (!comparison?.nested) return fail(state, 'These saved versions do not have a matching nested approval.');
+    const evidence = await compareApprovedRequirements(comparison, part, evaluate);
+    if ('error' in evidence) return fail(state, evidence.error);
+    const pin = (version: Version, evidenceRevision: string) => ({ id: version.id, snapshot: version.snapshot, revision: version.revision, evidenceRevision });
+    const context = { from: pin(a, comparison.revisions.before), to: pin(b, comparison.revisions.after), part, proposal: comparison.proposal };
+    const report = { format: 'barocss-approved-requirement-evidence', version: 1, ...context, ...evidence };
+    const file = outputFile('approved-requirement-evidence.json', 'application/json', JSON.stringify(report, null, 1) + '\n');
+    return { state, content: json({ ...context, files: [file] }), isError: false, changed: false, summary: 'Read saved approval evidence' };
+  } catch (error) { return refused(state, error); }
+}
+
 async function restoreVersionTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2], options: CallOptions): Promise<ToolOutcome> {
   if (!state.versions) return fail(state, NO_LOG);
   try {
@@ -95,6 +135,6 @@ async function mergeTool(state: ChatState, args: Record<string, unknown>, evalua
 
 /** The version actions' handlers, by handler name. */
 export const VERSION_HANDLERS: Readonly<Record<string, PartHandler>> = {
-  make_version: versionTool, list_versions: versionsTool, restore_version: restoreVersionTool, compare_versions: compareTool,
+  make_version: versionTool, list_versions: versionsTool, restore_version: restoreVersionTool, compare_versions: compareTool, approved_requirement_evidence: approvalEvidenceTool,
   make_branch: branchTool, switch_branch: switchTool, merge_branch: mergeTool,
 };

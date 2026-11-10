@@ -22,6 +22,7 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
  * selection: neither changes the document.)
  */
 const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
+const versionPin = o({ id: str, snapshot: str, revision: str, evidenceRevision: str }, ['id', 'snapshot', 'revision', 'evidenceRevision']);
 const READ: Record<string, JsonSchema | null> = {
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
   output_requirement_evidence: o({ revision: str, files: arr }, ['revision', 'files']),
@@ -57,6 +58,7 @@ const READ: Record<string, JsonSchema | null> = {
   make_branch: o({ ok: bool, branch: str, from: str, current: str }, ['ok', 'branch', 'from', 'current']),
   list_versions: o({ current: { type: ['string', 'null'] }, branches: arr, versions: arr, note: str }, ['current', 'branches', 'versions']),
   compare_versions: o({ from: str, to: str, same: bool, features: arr, parameters: arr, configurations: arr, mates: arr, instances: arr, fields: arr }, ['from', 'to', 'same', 'features', 'parameters', 'configurations', 'mates', 'instances', 'fields']),
+  approved_requirement_evidence: o({ from: versionPin, to: versionPin, part: str, proposal: str, files: arr }, ['from', 'to', 'part', 'proposal', 'files']),
   subd_cage: o({ ok: bool, index: num, vertices: num, faces: num, creases: num, bounds: obj, validation: obj }, ['ok', 'index']),
   subd_select: o({ ok: bool, faces: arr, vertices: arr, edges: arr, count: num }, ['ok']),
   drawing_issues: o({ sheet: obj, issues: arr }, ['sheet', 'issues']),

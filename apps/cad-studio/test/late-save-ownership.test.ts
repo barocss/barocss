@@ -185,7 +185,7 @@ test('actual hook: session change during versions read suppresses stale log erro
     const pending = api.save(a, 'part', () => { completed++; });
     try { await pause.entered; api.close(); } finally { pause.release(); }
     assert.equal(await pending, false); assert.equal(completed, 0);
-    assert.equal(api.chat.turn(), null); assert.deepEqual(errors, []);
+    assert.equal(api.chat.turn().log, null); assert.deepEqual(errors, []);
   });
 });
 

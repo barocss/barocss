@@ -1,0 +1,213 @@
+{
+  "decision": "D609",
+  "tier": "FEATURE",
+  "baseCommit": "d445f9ec04507414a1cd550f9102a3e1de46b224",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d609-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "inputs": {
+    "D607_EVIDENCE": "/Users/user/.cache/barocss-cad-evidence/d607-2026-11-11",
+    "pendingRootSHA256": "4a171b922166b99ca5cf9488ffe94b2b8717809c616fd6ddabde1def9c6a727c",
+    "approvedRootSHA256": "60005695aaf7a59dd6599f1f17058cb24a3f355ea9acd997992595188f0bab6c",
+    "workingRootSHA256": "5f5d7a43187139c526141346ced82b5b2ed5472aba34659506432fb38fba54e9"
+  },
+  "checks": [
+    {
+      "name": "Desktop Studio and local chat/MCP",
+      "result": "PASS",
+      "command": "D609_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/desktop-retry\" \"$D607_EVIDENCE/desktop\" --agent",
+      "cwd": "apps/cad-studio",
+      "pages": 5,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "downloads": 0,
+      "frozenSourceFiles": 309,
+      "independentOracleChecks": 6,
+      "savedProjectBytesUnchanged": true,
+      "delayedReceiptDiscarded": true,
+      "log": "desktop-retry.log",
+      "logSHA256": "fe3c19f0a2a5bf8984dfeb688f0e5c74ba020c4fe5f55b341a83e43038a610e0"
+    },
+    {
+      "name": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "passCount": 69,
+      "failCount": 0,
+      "skipped": 0,
+      "turnCharacters": 24933,
+      "cap": 25000,
+      "log": "model-test-confirm.log",
+      "logSHA256": "03320652dde58a5d99f2a2b2d6e513380045753f3cf4248e84c3d56e45a79552"
+    },
+    {
+      "name": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test approved-requirement-compare version-tools-mcp project-open-ownership project-version-ownership late-save-ownership storage-version-snapshot edit-in-place chat toolset-mcp tool-contract-mcp",
+      "passCount": 126,
+      "failCount": 0,
+      "skipped": 0,
+      "log": "studio-test.log",
+      "logSHA256": "5fdf4daacb6199cf8cfbe516f621b37d4edf572d2d31e52cbb317ce901f60a56"
+    },
+    {
+      "name": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-types-retry.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-types.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "warnings": 35,
+      "log": "lint-retry.log",
+      "logSHA256": "a2380aa974a52de1374e2936d39431b3eff09250494386b4c37ec0207cc16515"
+    },
+    {
+      "name": "Isolated regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "baselines": 2,
+      "detectedMutants": 7,
+      "scriptSHA256": "1ca670c0a24cbec85bb4800de8e8dd22e4798d8646bd251e5be2b1f47ecbb469",
+      "log": "mutations-retry.log",
+      "logSHA256": "f785064e74d3b845486268bbbd68ca28a2bae8d5872f583abab54c1c64ca6485"
+    },
+    {
+      "name": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "build.log",
+      "logSHA256": "3a1ac74a8f70922b135dab3f7660be32d99ea058b4cb5b9b3dddea4ccb83677b"
+    },
+    {
+      "name": "Desktop driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/nested-approved-comparison-browser.mjs",
+      "log": "harness-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check-retry.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "name": "Initial discovery budget",
+      "result": "FAIL",
+      "command": "UPDATE_TOOL_CONTRACT=1 pnpm --dir packages/barocss-cad-model test toolset",
+      "actualCharacters": 25083,
+      "log": "update-contract.log",
+      "logSHA256": "937d5561c03a5924707b1a96589cc8cd6d27a24d81bcf808527b41bba4ec2ccb"
+    },
+    {
+      "name": "Initial tool routing",
+      "result": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence toolset",
+      "firstFailure": "Generic part routing treated the nested occurrence path as a working-document part.",
+      "log": "first-model.log",
+      "logSHA256": "ac84f3c7d8d03d3378afe5447f004f0052a0874aceb3e08b209d5e1759cea7c6"
+    },
+    {
+      "name": "First desktop driver",
+      "result": "FAIL",
+      "command": "D609_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/desktop\" \"$D607_EVIDENCE/desktop\" --agent",
+      "firstFailure": "After reopen the driver sent before the version list was ready.",
+      "receiptSHA256": "5b40573a2d65f9f46daf215f9593706dbdbf84d911dc1d92a4b36e75e6ee8b9d",
+      "log": "desktop.log",
+      "logSHA256": "80223dd8561cb865d21fd52dc775c0e88a38426ea529a8bc3a4548972aa7e6cd"
+    },
+    {
+      "name": "Read-tool audit before extending the test",
+      "result": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "firstFailure": "The read-tool audit did not yet invoke the added handler.",
+      "log": "model-test.log",
+      "logSHA256": "c4dcdc9370820242abc27b6d651f070edb4ef69719e894ba7d45cde71a5133b0"
+    },
+    {
+      "name": "First read-tool audit retry",
+      "result": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "firstFailure": "The fixture used grouped arguments with the internal handler name.",
+      "log": "model-test-retry.log",
+      "logSHA256": "05bcf1866132133a23392b285ac2db93621d6815d6f1bf455d6d8219f80e1c88"
+    }
+  ],
+  "desktopArtifacts": {
+    "receipt.json": "847c35a30fe30a67e3781a861eea05de86d6fe0d1c1b9f7a65446af92cf0a11f",
+    "source-frozen.json": "00efdde8e2e97d9579159089eab5989866b7b6ebfac8ccf14fb3e0d09c94b5ef",
+    "source-after-cleanup.json": "00efdde8e2e97d9579159089eab5989866b7b6ebfac8ccf14fb3e0d09c94b5ef",
+    "approved-requirement-evidence.json": "28eccc005ee58d3d2685fc5302e84a00513f4d7cb2a7a707f003dd5670402d1c",
+    "scripted-tool-results.jsonl": "f170ffe1ac17cb95a3228e29a3adaaaaaf5e46dc0b9a00ef644603de4a5c874b",
+    "saved-versus-working-heights-oracle.json": "2833044d28658a014e850509b26f21751b73a82326ca1820c890cb2a1d0b621e"
+  },
+  "report": {
+    "bytes": 7872,
+    "part": "p1/p1",
+    "proposal": "P1",
+    "from": {
+      "id": "v6c452dfa9536b478",
+      "snapshot": "35336cb9c7a6e532",
+      "revision": "6868500b8c0fb6f6",
+      "evidenceRevision": "b11f5ecae09046643e13cc6e6cff844a473ed6c87b040d4986515601590e7b04"
+    },
+    "to": {
+      "id": "v97fce71a5bbda21f",
+      "snapshot": "2a58dc068d9faf56",
+      "revision": "0f0148aa4c4e690c",
+      "evidenceRevision": "155d2fbcddb44df39c157f6258d3cb6bb735480240698a6e407571840fef464f"
+    },
+    "requirement": "HEIGHT",
+    "limitMm": 5,
+    "measurements": {
+      "savedFailure": [
+        6,
+        "fail"
+      ],
+      "savedApproval": [
+        4,
+        "pass"
+      ],
+      "working": [
+        8,
+        "fail"
+      ]
+    }
+  },
+  "notRun": [
+    "independent durable defect ledger",
+    "external signer authentication",
+    "standalone CLI project history",
+    "whole browser and kernel suites",
+    "mobile",
+    "live providers",
+    "release"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "initialScenariosAccepted": 4,
+    "initialScenariosTotal": 10,
+    "B09v1AcceptedGroups": 9,
+    "B09v1TotalGroups": 9,
+    "wholeCAD": "NOT_MEASURED"
+  }
+}

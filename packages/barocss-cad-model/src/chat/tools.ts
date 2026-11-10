@@ -208,6 +208,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     const e = out.changed && !out.isError ? await evaluate(out.doc) : null;
     return { state: { ...state, doc: out.doc, ...(e?.ok ? { bodies: e.bodies } : {}) }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
   }
+  if (name === 'approved_requirement_evidence') return runPartTool(state, name, args, evaluate, options);
   const { part, ...rest } = args;
   const nested = nestedParameterPart(name, args);
   if (nested !== undefined) return proposal && !state.partOf

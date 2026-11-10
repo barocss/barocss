@@ -9,18 +9,12 @@ import { resolveShopRows, resolveShopTree, provenanceOfTree } from '../engine/sh
 import { bomPanelData, purchaseCsv } from '../bom/bom';
 import { assemblyPlacedBodies, clearanceMap } from '../team/clearanceMap';
 import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
-import { sha256Hex } from '../util/digest';
+import { outputFile as file } from './outputFile';
 import { camPackage } from '../machining/camPackage';
 import { printLayers } from '../print/layers';
 import { madeBodies } from '../engine/elements';
 
-const encoder = new TextEncoder();
 const json = (value: unknown): string => JSON.stringify(value, (_key, v: unknown) => ArrayBuffer.isView(v) && !(v instanceof DataView) ? Array.from(v as unknown as ArrayLike<number>) : v, 1) + '\n';
-const file = (path: string, mime: string, data: string | Uint8Array) => {
-  const bytes = typeof data === 'string' ? encoder.encode(data) : data;
-  // bytes are explicit for binary files, as robot exporters' files carry bytes; no host path is accepted.
-  return { path, mime, bytes: bytes.length, sha256: sha256Hex(bytes), ...(typeof data === 'string' ? { encoding: 'utf-8', text: data } : { encoding: 'bytes', data: Array.from(bytes) }) };
-};
 type Output = { content: Record<string, unknown>; summary: string } | { error: string };
 const bad = (message: string): Output => ({ error: `[OUTPUT_INPUT] ${message}` });
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);

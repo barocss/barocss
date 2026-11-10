@@ -11,7 +11,7 @@ const filename = criteria ? 'D601-evidence.bcad' : historical ? 'D595-evidence.b
 const project = criteria ? 'D601 requirement changes' : historical ? 'D595 version evidence' : 'D594 version evidence';
 const pins = ['apps/cad-studio/test/approved-requirement-compare-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/storage/VersionsPanel.tsx', 'apps/cad-studio/src/storage/useProject.ts',
-  'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'apps/cad-studio/src/storage/approvedRequirementCompare.ts',
+  'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts',
   'apps/cad-studio/scripts/cad-mcp.mjs', 'apps/cad-studio/server/cadMcp.ts',
   'packages/barocss-cad-model/src/chat/outputs.ts', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts', 'packages/barocss-cad-model/src/versions/log.ts'];
 const f = await createFlow({

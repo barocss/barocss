@@ -1,15 +1,28 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
+const agent = mode === '--agent';
+const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
+if (agent) {
+  const reserved = createServer().listen(0, '127.0.0.1');
+  await once(reserved, 'listening');
+  process.env.CAD_STUDIO_CHAT_PORT = String(reserved.address().port);
+  await new Promise((resolve, reject) => reserved.close(error => error ? reject(error) : resolve()));
+}
 const pins = [
   'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
-  'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'apps/cad-studio/src/storage/approvedRequirementCompare.ts',
+  'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts',
   'packages/barocss-cad-model/src/chat/nestedParameterProposal.ts', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
   'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/versions/log.ts',
+  ...(agent ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
+    'packages/barocss-cad-model/src/versions/tools.ts', 'packages/barocss-cad-model/src/chat/tools.ts', 'packages/barocss-cad-model/src/chat/tools-v2.json'] : []),
 ];
 const oracleSource = String.raw`
 import json, sys
@@ -27,8 +40,8 @@ assert d['current'] == '8 mm (want <= 5 mm)'
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: 'D608_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: 'Historical comparison of an exact saved nested approval with a different working verdict',
+  name: 'nested-approved-comparison', envFrozen: agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, oracleSource,
+  qualification: agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
     comparison: document.querySelector('[aria-label="Saved approval checks"], [aria-label="Approved requirement checks"]')?.textContent ?? null,
@@ -125,6 +138,134 @@ async function installHold() {
   });
 }
 
+async function agentEvidence(origin, saved, working, pair) {
+  const rawPath = join(output, 'scripted-tool-results.jsonl'), wrapper = join(output, 'record-scripted-claude.mjs');
+  const wrapperSource = `#!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { appendFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+const cli = spawn(process.execPath, [${JSON.stringify(resolve(repo, scripted))}, ...args], { stdio: ['pipe', 'pipe', 'inherit'] });
+const closed = once(cli, 'close');
+process.on('SIGTERM', () => cli.kill('SIGTERM'));
+if (args[0] !== '--version') process.stdin.pipe(cli.stdin);
+for await (const chunk of cli.stdout) {
+  if (args[0] !== '--version') appendFileSync(${JSON.stringify(rawPath)}, chunk);
+  process.stdout.write(chunk);
+}
+const [code] = await closed;
+process.exitCode = code ?? 1;
+`;
+  await writeFile(wrapper, wrapperSource, { mode: 0o700, flag: 'wx' });
+  const env = { ...process.env, CAD_STUDIO_CLAUDE: wrapper, CAD_STUDIO_CHAT_ORIGINS: origin };
+  for (const key of ['CAD_SCRIPTED_COST_USD', 'CAD_SCRIPTED_SLEEP_MS', 'CAD_SCRIPTED_MARK', 'CAD_AB_LOG']) delete env[key];
+  const chat = spawn(process.execPath, [join(f.app, 'scripts/chat-server.mjs')], { cwd: f.app, env, stdio: ['ignore', 'pipe', 'pipe'] });
+  const closed = once(chat, 'close');
+  let stdout = '', stderr = '', cursor = 0;
+  chat.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-4000); });
+  const ready = new Promise(resolve => chat.stdout.on('data', chunk => { stdout += chunk; if (stdout.includes('chat server on')) resolve(true); }));
+  const [initial, approved, later] = JSON.parse(saved.log).versions;
+  const args = { action: 'approval_evidence', from: initial.id, to: approved.id, part: 'p1/p1' };
+  const call = (extra = {}) => ({ tool: 'history', args: { ...args, ...extra } });
+  const current = { tool: 'requirements', args: { action: 'evidence', part: 'p1/p1' } };
+  const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
+
+  async function turn(calls, afterSend) {
+    const input = f.page.getByRole('textbox', { name: 'Chat message', exact: true });
+    if (!(await input.isVisible())) await button('Chat').first().click();
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
+    const response = f.page.waitForResponse(r => isTurn(r.request()));
+    const request = f.page.waitForRequest(isTurn);
+    await input.fill('script ' + JSON.stringify({ calls }));
+    await input.press('Enter');
+    const wire = (await request).postDataJSON();
+    if (afterSend) await afterSend();
+    const reply = await response;
+    assert.ok(reply.ok());
+    const events = (await reply.text()).split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
+    const done = events.at(-1);
+    assert.equal(done.end, 'done', JSON.stringify(done));
+    assert.equal(done.doc, undefined);
+    assert.equal(done.versions, undefined);
+    assert.equal(done.ops, undefined);
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
+    const all = (await readFile(rawPath, 'utf8')).trim().split('\n').map(line => JSON.parse(line))
+      .filter(line => line.type === 'user').flatMap(line => line.message.content);
+    const results = all.slice(cursor).map(result => ({ error: result.is_error, body: JSON.parse(result.content[0].text) }));
+    cursor = all.length;
+    return { done, wire, results };
+  }
+
+  try {
+    const startup = await Promise.race([ready, closed.then(() => false), new Promise(resolve => setTimeout(() => resolve(false), 15000).unref())]);
+    assert.ok(startup, stderr || 'Chat server did not start');
+    f.phase = 'first real chat turn asks for both older snapshots without a project write';
+    const first = await turn([call()]);
+    assert.deepEqual(Object.keys(first.wire.versions.snapshots), [later.snapshot]);
+    assert.deepEqual(first.done.versionsWanted, [initial.id, approved.id]);
+    assert.equal(first.results[0].error, true);
+    assert.equal(first.results[0].body.code, 'VERSION_NOT_LOADED');
+    assert.equal(first.results[0].body.files, undefined);
+    assert.deepEqual(await projectBytes(), saved);
+
+    f.phase = 'next real chat turn reads exact approval evidence and the separate working failure';
+    const second = await turn([call(), current, call({ part: 'p2/p1' }), call({ to: later.id })]);
+    assert.deepEqual(Object.keys(second.wire.versions.snapshots).sort(), [initial.snapshot, approved.snapshot, later.snapshot].sort());
+    assert.deepEqual(second.results.map(result => result.error), [false, false, true, true]);
+    const [approvedReply, workingReply, sibling, wrong] = second.results.map(result => result.body);
+    assert.match(sibling.error, /cannot be matched/);
+    assert.match(wrong.error, /matching nested approval/);
+    assert.equal(sibling.files, undefined);
+    assert.equal(wrong.files, undefined);
+    const [file] = approvedReply.files;
+    assert.deepEqual([file.path, file.bytes, file.sha256], ['approved-requirement-evidence.json', Buffer.byteLength(file.text), sha256(file.text)]);
+    const report = JSON.parse(file.text), live = JSON.parse(workingReply.files[0].text);
+    for (const [key, record, evidenceRevision] of [['from', initial, pair.before], ['to', approved, pair.after]]) {
+      const pin = { id: record.id, snapshot: record.snapshot, revision: record.revision, evidenceRevision };
+      assert.deepEqual(report[key], pin);
+      assert.deepEqual(approvedReply[key], pin);
+    }
+    assert.deepEqual(report.recoveries, [{ id: 'HEIGHT', from: 6, to: 4, unit: 'mm' }]);
+    assert.deepEqual(report.changed, []);
+    const measured = [report.before, report.after, live].map(item => {
+      const row = item.evidence.find(entry => entry.requirement?.id === 'HEIGHT');
+      assert.deepEqual([row.requirement.check.value, row.freshness.state], [5, 'current']);
+      return [row.result.number, row.result.verdict];
+    });
+    assert.deepEqual(measured, [[6, 'fail'], [4, 'pass'], [8, 'fail']]);
+    assert.deepEqual(await projectBytes(), saved);
+    await f.same(working);
+    await f.snapshot('04-agent-saved-approval');
+    await writeFile(join(output, file.path), file.text);
+
+    f.phase = 'a late wanted-only result cannot hydrate a reopened project owner';
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(working);
+    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).waitFor();
+    const retired = await turn([{ pause: 800 }, call()], () => versions().getByRole('button', { name: 'Close project', exact: true }).click());
+    assert.deepEqual(retired.done.versionsWanted, [initial.id, approved.id]);
+    await openProject();
+    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(working);
+    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).waitFor();
+    const next = await turn([call()]);
+    assert.deepEqual(Object.keys(next.wire.versions.snapshots), [later.snapshot]);
+    assert.equal(next.results[0].body.code, 'VERSION_NOT_LOADED');
+    assert.deepEqual(await projectBytes(), saved);
+    await f.snapshot('05-reopened-owner-refuses-old-receipt');
+    f.report.observations.push({ agentReportSHA256: file.sha256, measured, requested: first.done.versionsWanted,
+      hydrated: Object.keys(second.wire.versions.snapshots), lateReceiptDiscarded: true, versionsUnchanged: true });
+  } finally {
+    chat.kill('SIGTERM');
+    await closed;
+    await writeFile(join(output, 'chat-stderr.txt'), stderr);
+    f.report.cleanup.push('CHAT_CLOSED');
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -217,5 +358,6 @@ await f.run(async () => {
   await f.runOracle({ first, approved, working, historical, current }, 'saved-versus-working-heights');
   f.report.observations.push({ pair, choices, historical, current, source: sha256(firstBytes), approved: sha256(approvedBytes),
     saved: saved.snapshots.map(sha256), heldReads: 1 });
+  if (agent) await agentEvidence(origin, saved, working, pair);
   assert.deepEqual(f.report.downloads, []);
 });

@@ -53,7 +53,7 @@ export function useProject(cb: ProjectCallbacks) {
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
   // (The versions a turn's call asked for and did not have: sent with the next turn, DA-9.)
-  const wanted = useRef<string[]>([]);
+  const wanted = useRef<{ owner: OpenOwner; ids: readonly string[] } | null>(null);
 
   const actions = useMemo(() => {
     const beginOpen = (): OpenOwner => {
@@ -273,14 +273,22 @@ export function useProject(cb: ProjectCallbacks) {
       },
       /** The agent's side (DA-9): the log a turn carries, and the log a turn brings back. */
       chat: {
-        turn(): VersionLog | null { const log = live.current.log; return log ? turnLog(log, { wanted: wanted.current }).log : null; },
-        back(log: VersionLog, asked: readonly string[]) {
-          wanted.current = [...asked];
-          const full = live.current.log, r = full ? withTurnLog(full, log) : { log, kept: [] as string[] };
-          if (r.kept.length) call.current.onError('Branches moved twice', `The agent moved ${r.kept.join(', ')} while you did: yours stays the branch's latest; the agent's versions are kept in the list.`);
-          const { store, part } = live.current;
-          // (No project open, or this document not in it yet: the agent's versions kept for this session.)
-          if (store && part) void keepLog(store, part, r.log); else set({ log: r.log });
+        turn() {
+          const owner = versionOwner(), log = live.current.log;
+          const requested = wanted.current && currentVersion(wanted.current.owner) ? wanted.current.ids : undefined;
+          return {
+            log: log ? turnLog(log, { wanted: requested }).log : null,
+            back(log: VersionLog | undefined, asked: readonly string[]) {
+              if (!currentVersion(owner)) return;
+              wanted.current = { owner, ids: [...asked] };
+              if (!log) return;
+              const full = live.current.log, r = full ? withTurnLog(full, log) : { log, kept: [] as string[] };
+              if (r.kept.length) call.current.onError('Branches moved twice', `The agent moved ${r.kept.join(', ')} while you did: yours stays the branch's latest; the agent's versions are kept in the list.`);
+              const { store, part } = live.current;
+              // (No project open, or this document not in it yet: the agent's versions kept for this session.)
+              if (store && part) void keepLog(store, part, r.log, owner); else set({ log: r.log });
+            },
+          };
         },
       },
       /** A branch merged into the current one; the conflicts returned for the person to answer. */
