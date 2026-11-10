@@ -1,5 +1,5 @@
 import { modelHash } from '@barocss/cad-model/chat/spec';
-import { isCurrentRequirement } from '@barocss/cad-model/chat/requirementEvidence';
+import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import { compileTaskPlan, taskHeightEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
@@ -21,6 +21,13 @@ export interface TaskCheckpoint {
   scope: { occurrence: string; feature: string; field: 'height' };
   from: NativeRef;
   accepted: NativeRef;
+}
+export interface CheckpointReview {
+  taskId: string;
+  revision: number;
+  proposalId: string;
+  before: RequirementEvidence;
+  approved: RequirementEvidence;
 }
 
 export const TASK_CHECKPOINT_EXT = '.bcad-run';
@@ -119,8 +126,10 @@ export async function verifyTaskCheckpoint(checkpoint: NonNullable<Awaited<Retur
   const result = await compareApprovedRequirements(comparison, part, async doc => current() ? evaluate(doc) : null);
   if (!current()) return null;
   if ('error' in result) return result;
-  const rows = result.after?.evidence.filter(row => row.requirement?.hard) ?? [];
-  if (!rows.length || rows.some(row => !isCurrentRequirement(row, part, comparison.revisions.after) || row.result.verdict !== 'pass'))
+  const approved = result.after, rows = approved?.evidence.filter(row => row.requirement?.hard) ?? [];
+  if (!approved || !rows.length || rows.some(row => !isCurrentRequirement(row, part, comparison.revisions.after) || row.result.verdict !== 'pass'))
     return refusal('The accepted task requirements did not pass the current native checks.');
-  return { ...checkpoint, checks: rows.length };
+  const { taskId, revision, proposalId } = receipt;
+  const review: CheckpointReview = { taskId, revision, proposalId, before: result.before, approved };
+  return { ...checkpoint, checks: rows.length, review };
 }

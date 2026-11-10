@@ -16,7 +16,8 @@ import { ROW } from '../ui/panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input as TextInput } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { ApprovedRequirementChecks } from './ApprovedRequirementChecks';
+import { ApprovedRequirementChecks, CheckpointApprovalChecks } from './ApprovedRequirementChecks';
+import type { CheckpointReview } from '../files/taskCheckpoint';
 import { approvedRequirementComparison } from '@barocss/cad-model/versions/approvedRequirements';
 
 type ComparedVersion = { id: string; doc: StudioDoc; snapshot: string };
@@ -48,7 +49,7 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate }: {
+export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview }: {
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
@@ -58,6 +59,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   /** A document of the project placed in this one, linked by its path. */
   onInsert(path: string): void;
   evaluate: Evaluate;
+  checkpointReview?: CheckpointReview | null;
 }) {
   const { view } = project, log = view.log;
   const [browserName, setBrowserName] = useState('My project');
@@ -86,7 +88,9 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     setConflicts(null); setAnswers({}); onOpen(r.doc);
   };
 
+  const checkpoint = checkpointReview ? <CheckpointApprovalChecks review={checkpointReview} /> : null;
   if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project">
+    {checkpoint}
     <div className="empty" role="status">Open a project to save into it and keep versions. A project is a folder of .bcad files; its versions are kept beside them in .barocss.</div>
     <div className="flex flex-wrap gap-1 py-1">
       {canPickFolder() && <Button variant="default" aria-label="Open folder" onClick={() => void project.openFolder()}>Open folder…</Button>}
@@ -99,6 +103,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   </DockSection></aside>;
 
   return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary={log ? log.current : view.store.name}>
+    {checkpoint}
     <div className={ROW} aria-label="Project">
       <span title={view.store.name}><b>{view.store.name}</b> <span className="text-muted-foreground">· {KIND[view.store.kind]}</span></span>
       <Button variant="ghost" size="xs" aria-label="Close project" onClick={() => { onCompare(null); project.close(); }}>Close</Button>

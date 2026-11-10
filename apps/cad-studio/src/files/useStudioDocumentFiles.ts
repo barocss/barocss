@@ -14,7 +14,7 @@ import { currentDocumentSave } from '../state/saveOwnership';
 import type { useProject } from '../storage/useProject';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
-import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint } from './taskCheckpoint';
+import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
 import { useMeshImport } from './useMeshImport';
 
 interface StudioDocumentFileOptions {
@@ -47,6 +47,7 @@ interface StudioDocumentFileOptions {
     setFileName(name: string): void;
     setDirty(dirty: boolean): void;
     setRefProblems(problems: RefProblem[]): void;
+    onCheckpointOpened(review: CheckpointReview): void;
     commit(doc: StudioDoc): boolean;
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
@@ -137,6 +138,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     // Keep the verified document exact. The standard native Open may repair references after adoption.
     replaceDoc(verified.doc);
     if (docNow.current !== verified.doc) return;
+    changes.onCheckpointOpened(verified.review);
     setRefProblems([]);
     setFileName(file.name.slice(0, -TASK_CHECKPOINT_EXT.length));
     setDirty(false);

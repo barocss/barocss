@@ -118,6 +118,7 @@ import { VariantsPanel } from './ui/VariantsPanel';
 // (CG6: a project — a folder or one kept in this browser — its documents' versions and branches: src/storage/.)
 import { useProject } from './storage/useProject';
 import { VersionsPanel, currentComparisonVersion, type VersionComparison } from './storage/VersionsPanel';
+import type { CheckpointReview } from './files/taskCheckpoint';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
@@ -462,7 +463,7 @@ export function App() {
     onOpened: (d, path, notes) => {
       if (!openAccepted(inPlaceNow.current)) return openIntent.current;
       setCompareBase(null);
-      replaceDoc(d, true);
+      replaceDoc(d, 'project');
       const accepted = openIntent.current;
       setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
       return accepted;
@@ -479,6 +480,7 @@ export function App() {
     },
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [checkpointReview, setCheckpointReview] = useState<CheckpointReview | null>(null);
   const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
   const [versionDiff, setVersionDiff] = useState<{ source: VersionComparison; doc: StudioDoc; overlay: ProposalOverlay } | null>(null);
   const workingComparison = useMemo(() => compareBase && !compareBase.target && currentComparisonVersion(project.view, compareBase) ? compareBase : null,
@@ -1420,6 +1422,7 @@ export function App() {
   const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : notice;
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
+    setCheckpointReview(null);
     clearBodyClipboard();
     resetDocumentDraft();
     return { doc, marker, documentBoundary: true };
@@ -1509,14 +1512,15 @@ export function App() {
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
-  // (CG6: from anywhere but the project, the document is no longer its open one — `fromProject` keeps it so.)
-  const replaceDoc = (next: StudioDoc, fromProject = false) => {
+  // A detached replacement clears the project document. Editing a part in place retains the root's checkpoint review.
+  const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project' | 'in-place' = 'detached') => {
     cancelStepExportRef.current(); invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
     try {
       if (!commit(next, false, true)) return;
       clearBodyClipboard();
       resetDocumentDraft();
-      if (!fromProject) { project.detach(); setCompareBase(null); }
+      if (mode !== 'in-place') setCheckpointReview(null);
+      if (mode === 'detached') { project.detach(); setCompareBase(null); }
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }
   };
@@ -1536,13 +1540,13 @@ export function App() {
     const session = beginInPlace(doc, owner, bodies, instanceBodies, { undo, redo, marker, dirty });
     if (!session) return;
     beginOpenIntent();
-    replaceDoc(session.base, true); if (docNow.current !== session.base) return;
+    replaceDoc(session.base, 'in-place'); if (docNow.current !== session.base) return;
     setUndo([]); setRedo([]); setInPlace(session); setAskDiscard(false); setCompareBase(null); setVersionsOpen(false);
     setTimeout(() => viewport.current?.fit(), 300);
   };
   const leaveInPlace = (s: InPlaceSession, next: StudioDoc, changed: boolean) => {
     beginOpenIntent();
-    replaceDoc(next, true); if (docNow.current !== next) return false;
+    replaceDoc(next, 'in-place'); if (docNow.current !== next) return false;
     const stacks = stacksAfter(s, changed);
     setUndo(stacks.undo); setRedo(stacks.redo); setMarker(changed ? null : s.saved.marker); setDirty(changed || s.saved.dirty);
     setInPlace(null); setAskDiscard(false); setInstanceSel([s.owner]);
@@ -1587,6 +1591,7 @@ export function App() {
     worker: { engine, workerSessionNow, nextRevision: () => revision.current++,
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
     changes: { replaceDoc, setDocState, setFileName, setDirty,
+      onCheckpointOpened: review => { setCheckpointReview(review); setVersionsOpen(true); },
       setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
     fit: () => viewport.current?.fit(),
     onNotice: setToast,
@@ -2071,9 +2076,9 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
-      {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion}
+      {versionsOpen && !inPlace && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
-        onOpen={d => { setCompareBase(null); replaceDoc(d, true); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
+        onOpen={d => { setCompareBase(null); replaceDoc(d, 'project'); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
         onGo={k => setStepIndex(stepAfter(k, 0, stepCount))} onFaded={setStepsFaded} onNew={newStep}
         onRename={(id, name) => stepChange({ id, name })} onNote={(id, note) => stepChange({ id, note: note.trim() ? note : null })} onExplode={(id, explode) => stepChange({ id, explode: explode || null })}
@@ -2356,7 +2361,7 @@ export function App() {
               if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
               // (A whole document replaced, as New and Open do: a running command, its preview and the picks of the
               // document shown before do not carry into the restored one. The project link is kept, as before.)
-              replaceDoc(recovery.doc, true); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
+              replaceDoc(recovery.doc, 'project'); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
             }}>Restore</button>
             <button className="ghost" onClick={() => { settleRecovery(); setRecovery(null); void collectRecoveryBlobs(dirty ? doc : null); }}>Discard</button>
           </div></div>

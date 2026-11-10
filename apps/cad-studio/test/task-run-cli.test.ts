@@ -93,6 +93,14 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     assert.deepEqual(decoded.doc, doc.doc);
     const native = await verifyTaskCheckpoint(decoded, async input => evaluatePart(input, 1), () => true);
     assert.ok(native && !('error' in native) && native.checks === 1, JSON.stringify(native));
+    const { review } = native;
+    const revisions = native.comparison.revisions;
+    assert.deepEqual([review.taskId, review.proposalId, review.before.part, review.approved.part], ['base', receipt.proposalId, 'p1', 'p1']);
+    assert.deepEqual([review.before.revision, review.approved.revision], [revisions.before, revisions.after]);
+    assert.deepEqual([review.before, review.approved].map(report => {
+      const row = report.evidence.find(item => item.requirement?.id === 'height')!;
+      return [row.result.number, row.result.verdict, row.freshness.state];
+    }), [[5, 'fail', 'current'], [6, 'pass', 'current']]);
     const failed = await verifyTaskCheckpoint(decoded, async () => null, () => true);
     assert.match(failed && 'error' in failed ? failed.error : '', /did not pass/);
     assert.equal(await readTaskCheckpoint(readFileSync(checkpoint), () => false), null);

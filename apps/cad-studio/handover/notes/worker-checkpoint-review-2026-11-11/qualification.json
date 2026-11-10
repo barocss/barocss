@@ -1,0 +1,160 @@
+{
+  "decision": "D612",
+  "tier": "FEATURE",
+  "baseCommit": "b59ea72b1c1567007de751173d909b46832686fa",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d612-2026-11-11",
+  "priorEvidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d600-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio and real checkpoint CLI",
+      "result": "PASS",
+      "command": "D612_SOURCE_FROZEN=1 node test/task-checkpoint-browser.mjs \"$EVIDENCE/desktop-final\" \"$D600_EVIDENCE/final/run\" --review",
+      "log": "desktop-final.log",
+      "logSHA256": "57e1ae1c571271d4ee73b0e8322642f6b7a983081707fd9e96b949c3683d451a",
+      "cwd": "apps/cad-studio",
+      "states": 9,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "frozenFiles": 772,
+      "reviewRetiredOnReplacement": true,
+      "noProjectReview": true,
+      "noVersionWrites": true,
+      "workerStoreAndBothNativeFilesUnchanged": true
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan approved-version-evidence requirement-evidence team-freshness",
+      "log": "model-test.log",
+      "logSHA256": "e5bcf501c7da4666d42254803ba2b7a5c73db0322e7266eda31f31a1e714cd39",
+      "passCount": 38,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run-cli approved-requirement-compare document-file project-open-ownership project-version-ownership late-save-ownership edit-in-place",
+      "log": "studio-test.log",
+      "logSHA256": "ebdd06cdca541cc4608fbd3c02d8b7491aab5a412b6720262dbf86e14ace2d98",
+      "passCount": 101,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-types-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-types.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "log": "lint.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "build.log",
+      "logSHA256": "6cd03ea8cc16a874befcc5984822854fe4bf22d8cda5fad077f7f49ddcb8a2f8"
+    },
+    {
+      "label": "Desktop driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-checkpoint-browser.mjs",
+      "log": "harness-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "firstDesktop": {
+    "result": "PASS",
+    "receiptSHA256": "829c17f463d165d1bfe2c4d6ae1d1e3746a6e9f1cb561096417c894b2cae9a02",
+    "supersededBy": "desktop-final",
+    "reason": "Added final absence check for the checkpoint version log and byte checks for both worker files."
+  },
+  "failures": [],
+  "review": {
+    "code": "APPROVE",
+    "architecture": "CLEAR"
+  },
+  "desktopArtifactSHA256": {
+    "receipt.json": "f4699924dac377b64cbc42f508e86cb3e8e3d56365390478b8254ca00ba8e9e9",
+    "source-frozen.json": "a4b243ae66ff610a4d38c3a6a63cad577e08f73f3bad3e7e1adc2edac18a9f9e",
+    "source-after-cleanup.json": "a4b243ae66ff610a4d38c3a6a63cad577e08f73f3bad3e7e1adc2edac18a9f9e",
+    "checkpoint-oracle-oracle.json": "e71c8f0a8d96fd373d9849d9dd3f8c414db583ae4ca47fb87cd2773ab9e0f35f",
+    "housing.bcad-run": "f27de40973258463225bc87a9e3e1ffc0a8de1e0e531b4e209133eaa09fd3da0",
+    "04-checkpoint-review.json": "a66b21dcd9716dac5a86988cb9a0fe45eeb4461c17fe33f37a16ce2e42931552",
+    "05-working-requirement-fails.json": "6289ecc17fcc88b5b82f2b1c0e8cd6f5e1a444d38dfdd8647acfa77ace2cbf41",
+    "06-review-unchanged-after-edit.json": "77ea20b7444a08cabf2d4941e8d6babcc3722e1278a8d275caa28bfd891beb15",
+    "07-checkpoint-review-retired.json": "5e3a6d14a2472f048ae6225a98d073a3b0fabc87f16a5fb78eebeccd79c858ee",
+    "08-review-without-a-project.json": "885067ce9c508b5e7c9d771dab68f00e2e4984bb3e898169e7f8329884f7a924"
+  },
+  "recordSHA256": "9b21bc586e8b74761b8dafd99d157d5c232b0d8ab804d2a55f27586f62f8d57f",
+  "reviewedTask": {
+    "taskId": "lid",
+    "proposalId": "P2",
+    "part": "p2",
+    "requiredHeightMm": 4,
+    "toleranceMm": 0.001,
+    "evidenceRevisions": {
+      "before": "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3",
+      "after": "2012fe3845c2114d0df15eb44bd952e3141e8527acf958a749e6b040dca95a1f"
+    },
+    "before": [
+      3,
+      "fail"
+    ],
+    "approved": [
+      4,
+      "pass"
+    ],
+    "workingAfterEdit": [
+      5,
+      "fail"
+    ]
+  },
+  "notRun": [
+    "desktop coverage of every replacement path",
+    "durable review in a plain native file",
+    "in-Studio worker approval",
+    "whole browser and kernel suites",
+    "mobile",
+    "live providers",
+    "release"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "initialScenariosAccepted": 4,
+    "initialScenariosTotal": 10,
+    "B09v1AcceptedGroups": 9,
+    "B09v1TotalGroups": 9,
+    "wholeCAD": "NOT_MEASURED"
+  }
+}

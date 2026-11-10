@@ -1,5 +1,5 @@
 ---
-work_id: D611
+work_id: D612
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -159,7 +159,9 @@ D610 reports a saved regression after a verified nested approval, even when the 
 
 D611 admits a local worker checkpoint through the existing Studio Open control. It checks the embedded task plan, exact native files and current hard requirements before adoption. Save and fresh project Open preserve the accepted bytes in the tested profile. [D611](../../notes/worker-checkpoint-intake-2026-11-11/README.md).
 
-Next MAIN is D612 / P0 automation, B09 follow-up, rows 04, 12 and 16. Let a designer review the admitted checkpoint’s original and approved checks in the existing Studio comparison surface. Use the two verified snapshots and exact task occurrence. Keep this historical comparison separate from working edits and retire it on document replacement. [#2402](https://github.com/barocss/barocss/issues/2402).
+D612 presents the original and approved requirement results from a verified worker checkpoint in the existing Versions panel. The working result can change independently. A native Save leaves the full review in the portable checkpoint file. [D612](../../notes/worker-checkpoint-review-2026-11-11/README.md).
+
+Next MAIN is D613 / P0 automation, B09 follow-up, rows 04, 12 and 16. Connect one pending local worker candidate to Studio for human review. Start with the existing task receipt and proposal preview, keep the working model unchanged on Open, and refuse a candidate if its baseline, task or occurrence differs. Verify the single approval authority before wiring a decision. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

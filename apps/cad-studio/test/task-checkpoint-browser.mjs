@@ -4,8 +4,10 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, runDirectory] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, runDirectory, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok([output, runDirectory].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
+assert.ok(mode === undefined || mode === '--review');
+const reviewMode = mode === '--review';
 const pins = [
   'apps/cad-studio/test/flow-helper.mjs',
   'apps/cad-studio/test/reference-open-fixture.ts',
@@ -16,6 +18,9 @@ const pins = [
   'apps/cad-studio/server/taskRun/store.ts',
   'apps/cad-studio/src/files/taskCheckpoint.ts',
   'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
+  'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx',
+  'apps/cad-studio/src/storage/VersionsPanel.tsx',
+  'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
   'packages/barocss-cad-model/src/engine/container.ts',
   'packages/barocss-cad-model/src/team/taskPlan.ts',
   'packages/barocss-cad-model/src/team/taskExecution.ts',
@@ -34,14 +39,16 @@ for stage, heights in [('before', [6, 3]), ('accepted', [6, 4])]:
         assert w*z*h == (1200 if i == 0 else (288 if stage == 'before' else 384))
 print(json.dumps({'status':'PASS', 'independentVolumeChecks':4}))
 `;
-const f = await createFlow({ name: 'task-checkpoint', envFrozen: 'D611_SOURCE_FROZEN', output,
+const f = await createFlow({ name: 'task-checkpoint', envFrozen: reviewMode ? 'D612_SOURCE_FROZEN' : 'D611_SOURCE_FROZEN', output,
   initialFiles: pins, requiredFrozen: pins, oracleSource,
   inspectorSource: `import { referenceOpenFixtures } from './test/reference-open-fixture';
 console.log(JSON.stringify(referenceOpenFixtures().lost));`,
-  qualification: 'Real task-run checkpoint export, verified Studio Open and native project Save/reopen',
+  qualification: reviewMode ? 'Worker checkpoint review stays bound to the admitted revisions across working edits' :
+    'Real task-run checkpoint export, verified Studio Open and native project Save/reopen',
   limits: ['D600 local worker store, ordinary rectangular prisms, no external model or provider.'] });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+const review = () => panel().getByRole('region', { name: 'Worker checkpoint checks', exact: true });
 const project = 'D611 worker intake', name = 'housing';
 
 async function open(file, buffer) {
@@ -65,6 +72,17 @@ const notice = title => f.page.getByRole('alert').filter({ hasText: title });
 async function dismiss(title) {
   await notice(title).getByRole('button', { name: 'Dismiss', exact: true }).click();
   await notice(title).waitFor({ state: 'hidden' });
+}
+async function checkReview(checkpoint, pins) {
+  const region = review();
+  await region.getByText(`Task lid · p2 · ${checkpoint.proposalId} · Revision ${checkpoint.revision}`, { exact: true }).waitFor();
+  const rows = region.locator('tbody tr');
+  assert.equal(await rows.count(), 1, 'exclude the base even though its requirement has the same ID');
+  assert.match(await rows.getByRole('rowheader').innerText(), /4 ± 0\.001 mm/);
+  assert.deepEqual(await rows.getByRole('cell').allTextContents(), ['Fail · 3 mm', 'Pass · 4 mm']);
+  const evidence = region.locator('details');
+  if (await evidence.getAttribute('open') === null) await evidence.getByText('Evidence revisions', { exact: true }).click();
+  assert.deepEqual(await evidence.locator('dd').allTextContents(), [pins.before, pins.after]);
 }
 
 await f.run(async () => {
@@ -173,17 +191,87 @@ await f.run(async () => {
   await button('Save').click();
   await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText('housing.bcad', { exact: true }).waitFor();
   assert.deepEqual(await projectFile('housing.bcad'), acceptedBytes);
+  if (reviewMode) {
+    const pins = accepted.history.find(entry => entry.kind === 'accept' && entry.proposal === checkpoint.proposalId).evidence_revisions;
+    f.phase = 'read admitted approval without moving the working document or saved project';
+    await checkReview(checkpoint, pins);
+    await f.snapshot('04-checkpoint-review');
+    await button('Project and versions').click();
+    await panel().waitFor({ state: 'hidden' });
+    await button('Project and versions').click();
+    await checkReview(checkpoint, pins);
+    await f.same(accepted);
+    await assert.rejects(projectFile('housing.bcad.json', true), /NotFoundError/);
+
+    f.phase = 'edit the live lid in place while its historical approval stays fixed';
+    await button('Project and versions').click();
+    await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Lid' }).click();
+    await f.page.getByRole('complementary', { name: 'Instance', exact: true }).getByRole('button', { name: 'Edit part', exact: true }).click();
+    const editing = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+    await editing.waitFor();
+    assert.equal(await review().count(), 0);
+    await f.openFeatureEditor(1, 'lid extrusion');
+    const distance = f.editor().getByRole('spinbutton', { name: 'Distance', exact: true });
+    assert.equal(await distance.inputValue(), '4');
+    await distance.fill('5');
+    const oldLid = await f.doc();
+    await f.editor().getByRole('button', { name: 'Apply', exact: true }).click();
+    await f.changed(oldLid);
+    await f.closeEditor();
+    const failing = f.page.locator('.req.fail[aria-label="Requirement height"]');
+    await failing.waitFor();
+    assert.match(await failing.innerText(), /5 \(want 4 ± 0\.001 mm\)/);
+    const edited = structuredClone(accepted);
+    edited.instances[1].doc.nodes[1].height = 5;
+    await f.snapshot('05-working-requirement-fails');
+    await editing.getByRole('button', { name: 'Finish', exact: true }).click();
+    await editing.waitFor({ state: 'hidden' });
+    await f.same(edited);
+    await button('Project and versions').click();
+    await checkReview(checkpoint, pins);
+    await f.undo(); await f.same(accepted); await checkReview(checkpoint, pins);
+    await f.redo(); await f.same(edited); await checkReview(checkpoint, pins);
+    assert.deepEqual(await projectFile('housing.bcad'), acceptedBytes);
+    await f.snapshot('06-review-unchanged-after-edit');
+
+    f.phase = 'refused Open keeps the review and accepted Open retires it';
+    await open('refused-again.bcad-run', corrupt);
+    await notice('The native files do not match the worker checkpoint.').waitFor();
+    await f.same(edited);
+    await checkReview(checkpoint, pins);
+    await dismiss('Could not open the worker checkpoint');
+    await open('same-model.bcad', acceptedBytes);
+    await f.same(accepted);
+    await review().waitFor({ state: 'hidden' });
+    await f.undo(); await f.same(edited); assert.equal(await review().count(), 0);
+    await f.redo(); await f.same(accepted); assert.equal(await review().count(), 0);
+    await f.snapshot('07-checkpoint-review-retired');
+    await panel().getByRole('button', { name: 'Close project', exact: true }).click();
+    await panel().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
+    await open(name + '.bcad-run', bytes);
+    await notice('Worker checkpoint opened').waitFor();
+    await checkReview(checkpoint, pins);
+    await f.same(accepted);
+    await dismiss('Worker checkpoint opened');
+    await f.snapshot('08-review-without-a-project');
+    f.report.observations.push({ reviewPins: pins, reviewed: [3, 4], edited: 5,
+      scope: checkpoint.scope.occurrence, noVersionWrites: true, reviewRetiredOnReplacement: true, noProjectReview: true });
+  }
   await f.page.reload();
   await f.ready();
   await openProject();
   await panel().getByRole('button', { name: 'Open housing.bcad', exact: true }).click();
   await f.same(accepted);
+  if (reviewMode) await review().waitFor({ state: 'hidden' });
   assert.deepEqual(await projectFile('original.bcad'), savedBefore);
   assert.deepEqual(await projectFile('original.bcad.json', true), logBefore);
+  if (reviewMode) await assert.rejects(projectFile('housing.bcad.json', true), /NotFoundError/);
   assert.deepEqual(await readFile(recordPath), recordBytes);
   assert.deepEqual((await readdir(runDirectory)).sort(), oldEntries);
+  assert.deepEqual(await readFile(join(runDirectory, 'native', checkpoint.from.sha256 + '.bcad')), beforeBytes);
+  assert.deepEqual(await readFile(join(runDirectory, 'native', checkpoint.accepted.sha256 + '.bcad')), acceptedBytes);
   assert.deepEqual(f.report.downloads, []);
-  await f.snapshot('04-reopened-native');
+  await f.snapshot(reviewMode ? '09-reopened-native' : '04-reopened-native');
   f.report.observations.push({ checkpointSHA256: sha256(bytes), recordSHA256: sha256(recordBytes), checkpoint,
     payloadBytes: [beforeBytes.length, acceptedBytes.length], originalProjectUnchanged: true, lateReadDiscarded: true,
     nativeReopenEqual: true, previousReferenceRowsCleared: true, workerStoreUnchanged: true });

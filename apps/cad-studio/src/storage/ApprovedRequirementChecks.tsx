@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
+import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
+import { expectedOf } from '@barocss/cad-model/chat/spec';
 import { NativeSelect } from '@/components/ui/native-select';
 import { approvedRequirementComparison, compareApprovedRequirements } from '@barocss/cad-model/versions/approvedRequirements';
+import type { CheckpointReview } from '../files/taskCheckpoint';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
@@ -48,5 +51,41 @@ export function ApprovedRequirementChecks({ comparison, evaluate, historical }: 
       {comparison.scopes.map(scope => <option key={scope.id} value={scope.id}>{scope.label}{scope.id !== 'base' ? ` (${scope.id})` : ''}</option>)}
     </NativeSelect>
     <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} />
+  </section>;
+}
+
+type EvidenceRow = RequirementEvidence['evidence'][number];
+function checkpointVerdict(report: RequirementEvidence, row?: EvidenceRow) {
+  if (!row || !isCurrentRequirement(row, report.part, report.revision)) return 'Unavailable';
+  if (row.result.verdict !== 'pass' && row.result.verdict !== 'fail') return 'Unknown';
+  const verdict = row.result.verdict === 'pass' ? 'Pass' : 'Fail', measured = row.result.number;
+  const unit = unitText(row.requirement?.check.unit);
+  return measured === null ? verdict : `${verdict} · ${measured}${unit ? ' ' + unit : ''}`;
+}
+
+/** The evidence evaluated on admission. Working edits never feed this table. */
+export function CheckpointApprovalChecks({ review }: { review: CheckpointReview }) {
+  const { before, approved, taskId, revision, proposalId } = review;
+  const previous = new Map(before.evidence.map(row => [row.requirement?.id, row]));
+  return <section className="my-2" aria-label="Worker checkpoint checks">
+    <strong>Worker checkpoint checks</strong>
+    <div>Task {taskId} · {approved.part} · {proposalId} · Revision {revision}</div>
+    <table className="mt-1 w-full text-left text-[11px]">
+      <thead><tr><th scope="col">Requirement</th><th scope="col">Before approval</th><th scope="col">Approved</th></tr></thead>
+      <tbody>{approved.evidence.map(row => {
+        const req = row.requirement;
+        if (!req) return null;
+        return <tr key={req.id}>
+          <th scope="row">{req.id}<span className="block font-normal text-muted-foreground">{expectedOf(req.check)}</span></th>
+          <td className="tabular-nums">{checkpointVerdict(before, previous.get(req.id))}</td>
+          <td className="tabular-nums">{checkpointVerdict(approved, row)}</td>
+        </tr>;
+      })}</tbody>
+    </table>
+    <details className="mt-1 text-[11px]">
+      <summary>Evidence revisions</summary>
+      <dl className="m-0"><dt>Before approval</dt><dd className="m-0 break-all font-mono">{before.revision}</dd>
+        <dt>Approved</dt><dd className="m-0 break-all font-mono">{approved.revision}</dd></dl>
+    </details>
   </section>;
 }
