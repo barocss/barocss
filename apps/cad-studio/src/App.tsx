@@ -119,7 +119,7 @@ import { VariantsPanel } from './ui/VariantsPanel';
 import { useProject } from './storage/useProject';
 import { VersionsPanel, currentComparisonVersion, type VersionComparison } from './storage/VersionsPanel';
 import type { CheckpointReview } from './files/taskCheckpoint';
-import { retiresTaskRunReview } from './chat/taskRunOffer';
+import { retiresTaskRunReview, type TaskRunLaunch } from './chat/taskRunOffer';
 import type { CandidateReview } from './files/taskCandidateReview';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
@@ -485,6 +485,7 @@ export function App() {
     },
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [reopenedTaskRun, setReopenedTaskRun] = useState<TaskRunLaunch>();
   const [checkpointReview, setCheckpointReview] = useState<CheckpointReview | null>(null);
   const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
   const [versionDiff, setVersionDiff] = useState<{ source: VersionComparison; doc: StudioDoc; overlay: ProposalOverlay } | null>(null);
@@ -1597,6 +1598,7 @@ export function App() {
     worker: { engine, workerSessionNow, nextRevision: () => revision.current++,
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
     changes: { replaceDoc, setDocState, setFileName, setDirty,
+      onTaskRunReopened: run => { setReopenedTaskRun(run); setChat(true); },
       onCheckpointOpened: review => { setCheckpointReview(review); setVersionsOpen(true); if (review.localRun) layout.setDockSheet(true); },
       onCandidateOpened: review => {
         setCandidateReview({ review, shown: !!review.localRun });
@@ -2285,7 +2287,7 @@ export function App() {
             onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
-          <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A model, worker checkpoint or supported exchange file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
+          <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A model, worker file or supported exchange file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
           <ToolIconButton key="tool8" aria-label="Save" data-tip="Save" data-tip-key="⌘S" data-tip-desc={project.view.store ? `Into ${project.view.store.name}` : undefined} onClick={save}><Icon name="save" /></ToolIconButton>,
           <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => {
             if (sessionBlocked('opening the project')) return;
@@ -2303,7 +2305,7 @@ export function App() {
           <ToolIconButton key="tool13" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></ToolIconButton>,
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-run,.bcad-candidate,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-task,.bcad-run,.bcad-candidate,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
@@ -2446,7 +2448,7 @@ export function App() {
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
-        taskRun={inPlace ? undefined : { sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, refresh: refreshTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        taskRun={inPlace ? undefined : { reopened: reopenedTaskRun, sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, refresh: refreshTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)

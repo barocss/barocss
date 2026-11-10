@@ -19,6 +19,7 @@ import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './docum
 import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
+import { MAX_TASK_RUN_HANDOFF_BYTES, TASK_RUN_HANDOFF_EXT } from './taskRunHandoff';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
@@ -58,6 +59,7 @@ interface StudioDocumentFileOptions {
     setFileName(name: string): void;
     setDirty(dirty: boolean): void;
     setRefProblems(problems: RefProblem[]): void;
+    onTaskRunReopened(run: TaskRunLaunch): void;
     onCheckpointOpened(review: CheckpointReview): void;
     onCandidateOpened(review: CandidateReview): void;
     onLocalCandidateReviewIntent(): void;
@@ -70,7 +72,7 @@ interface StudioDocumentFileOptions {
 }
 
 /** What Open reads, said when it is given another kind of file. */
-const OPEN_READS = 'Open reads models (.bcad, .json), worker files (.bcad-run, .bcad-candidate), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
+const OPEN_READS = 'Open reads models (.bcad, .json), worker files (.bcad-task, .bcad-run, .bcad-candidate), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 const CANDIDATE_REVIEW_REFUSED = 'Could not review the worker candidate';
 
 /** File actions use the App's current document, dispatch and Worker ownership. */
@@ -79,6 +81,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
   const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
+  const handoffIntent = useRef<object | null>(null);
   const candidateIntent = useRef<{ local?: { request: TaskRunReviewRequest; status?: TaskRunStatus } }>(null);
   const checkpointIntent = useRef<{ request: TaskRunCheckpointRequest; status?: TaskRunStatus }>(null);
   const cancelLocalCandidateReview = () => {
@@ -118,7 +121,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
         throw new Error('The working model differs from the reviewed plan. Save and inspect it again.');
       const source = await project.readTaskSource(sourceKey);
       if (!current() || !source.current()) return;
-      const { encodeTaskRunHandoff, TASK_RUN_HANDOFF_EXT } = await import('./taskRunHandoff');
+      const { encodeTaskRunHandoff } = await import('./taskRunHandoff');
       const handoff = await encodeTaskRunHandoff(offer, source.bytes);
       if (!current() || !source.current()) return;
       await source.verify();
@@ -392,8 +395,27 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
+  const reopenTaskRun = async (file: File) => {
+    const owner = captureImportOwner(), intent = {};
+    handoffIntent.current = intent;
+    const current = () => handoffIntent.current === intent && owner.isCurrent();
+    try {
+      if (!file.size || file.size > MAX_TASK_RUN_HANDOFF_BYTES) throw new Error('The task run handoff has an invalid size.');
+      const value = await localTaskRunJSON('reopen', file);
+      if (!current()) return;
+      const { directory, reused } = value;
+      if (!isTaskRunStatus(value) || typeof directory !== 'string' || reused !== true)
+        throw new Error('The local task run service returned an invalid result.');
+      changes.onTaskRunReopened({ ...value, directory, reused });
+    } catch (error) {
+      if (current()) setToast({ title: 'Could not reopen the local task run',
+        hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  };
+
   const open = async (file: File) => {
     if (sessionBlocked('opening a file')) return;
+    if (file.name.toLowerCase().endsWith(TASK_RUN_HANDOFF_EXT)) return reopenTaskRun(file);
     const scope = beginOpenIntent(), owner = captureImportOwner();
     setMeshAsk(null); setRepairAsk(null);
     try {

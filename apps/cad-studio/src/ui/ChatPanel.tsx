@@ -52,6 +52,7 @@ export interface ChatPanelProps {
   versions?: import('../storage/useProject').ProjectActions['chat'];
   onOutboxSent?(id: number): void;
   taskRun?: {
+    reopened?: TaskRunLaunch;
     sourceKey(): string | undefined;
     export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
@@ -179,7 +180,11 @@ export function ChatPanel(props: ChatPanelProps) {
           <code>pnpm --filter @barocss/cad-studio-app chat</code>
           It runs the claude CLI with its own sign-in; the browser only talks to the local server.
         </div>}
-        {enabled && !messages.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
+        {enabled && !messages.length && !props.taskRun?.reopened && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
+        {props.taskRun?.reopened && <section className="chat-tool" aria-label="Reopened task run">
+          <TaskRunCards key={props.taskRun.reopened.runId} initialRun={props.taskRun.reopened} actions={props.taskRun}
+            blocked={running || !!props.blocked} statuses={{ current: runStatuses, remember: rememberRunStatus }} />
+        </section>}
         {messages.map(m => m.role === 'user'
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
@@ -229,20 +234,21 @@ function ChatPart({ part: p, taskRunBlocked, runStatuses, ...props }: { part: St
 }
 
 interface TaskRunCardProps {
-  plan: SavedTaskRunPlan;
+  plan?: SavedTaskRunPlan;
+  initialRun?: TaskRunLaunch;
   actions: NonNullable<ChatPanelProps['taskRun']>;
   blocked: boolean;
   statuses: RunStatuses;
 }
 
-function TaskRunCards(props: TaskRunCardProps) {
+function TaskRunCards({ initialRun, ...props }: TaskRunCardProps) {
   const [repairs, setRepairs] = useState<ReadonlyMap<string, { plan: SavedTaskRunPlan; version: object }>>(() => new Map());
   const prepared = (plan: SavedTaskRunPlan, version: object) => {
     const key = JSON.stringify([plan.sourceKey, plan.offer.revision, plan.offer.occurrences]);
     setRepairs(prior => new Map(prior).set(key, { plan, version }));
   };
   return <>
-    <TaskRunActions {...props} onPrepared={prepared} />
+    <TaskRunActions {...props} initialRun={initialRun} onPrepared={prepared} />
     {[...repairs].map(([key, { plan, version }]) => <section key={key} aria-label="Prepared repair">
       <strong>Prepared repair</strong>
       <TaskRunActions {...props} plan={plan} repair startBlocked={version !== props.actions.workingVersion} onPrepared={prepared} />
@@ -250,7 +256,7 @@ function TaskRunCards(props: TaskRunCardProps) {
   </>;
 }
 
-function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses, repair = false, startBlocked = false, onPrepared }: TaskRunCardProps & {
+function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair = false, startBlocked = false, onPrepared }: TaskRunCardProps & {
   repair?: boolean;
   startBlocked?: boolean;
   onPrepared(plan: SavedTaskRunPlan, version: object): void;
@@ -259,16 +265,17 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
   const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | { taskId: string }>();
   const disabled = blocked || working !== undefined;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
-  const latest = launch && statuses.current.get(launch.runId);
-  const result = launch && latest?.runKey === launch.runKey ? { ...launch, ...latest } : launch;
+  const base = launch ?? initialRun;
+  const latest = base && statuses.current.get(base.runId);
+  const result = base && latest?.runKey === base.runKey && latest.revision >= base.revision ? { ...base, ...latest } : base;
   const [error, setError] = useState('');
   async function start() {
-    if (busy.current || blocked || startBlocked) return;
+    if (busy.current || blocked || startBlocked || !plan) return;
     busy.current = true;
     setWorking('start');
     setError('');
     try {
-      const launched = await actions.start(offer, sourceKey);
+      const launched = await actions.start(plan.offer, plan.sourceKey);
       if (launched) {
         statuses.remember(launched);
         setLaunch(launched);
@@ -310,13 +317,15 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
     } finally { busy.current = false; setWorking(undefined); }
   }
   return <>
-    <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
-    <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
-    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : repair ? 'Start repair' : 'Start local run'}</button>}
+    {plan && <>
+      <ul>{plan.offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
+      <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan.offer, plan.sourceKey)}>Export task run</button>
+      {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : repair ? 'Start repair' : 'Start local run'}</button>}
+    </>}
     {startBlocked && !result && <div role="status">Check the saved working model and prepare the repair again.</div>}
     {error && <div role="status">{error}</div>}
     {result && <div role="status">
-      <span>{(result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
+      <span>{(initialRun ? 'Reopened local run' : result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
       <button className="ghost" type="button" aria-label="Refresh local run status" disabled={disabled} onClick={() => void refresh()}>
         {working === 'status' ? 'Refreshing…' : 'Refresh status'}
       </button>

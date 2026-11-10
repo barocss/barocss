@@ -210,24 +210,24 @@ export function createChatServer(options: ChatServerOptions) {
   };
   const teamDir = options.teamLibraries ?? process.env.CAD_STUDIO_TEAM_LIBRARIES ?? null;
   const taskRunDir = options.taskRunDir ?? process.env.CAD_STUDIO_TASK_RUN_DIR ?? join(homedir(), '.barocss', 'cad-task-runs');
-  const startTaskRun = createLocalTaskRuns(taskRunDir);
+  const handleTaskRunHandoff = createLocalTaskRuns(taskRunDir);
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/history')) {
-      const action = path.slice('/task-runs/'.length), start = action === 'start';
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/reopen' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/history')) {
+      const action = path.slice('/task-runs/'.length), handoff = action === 'start' || action === 'reopen';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
         || req.headers['x-barocss-task-run'] !== action)
         return sendJson(res, 403, { error: 'Use the local task run from Studio.' });
-      const contentType = start ? 'application/octet-stream' : 'application/json';
+      const contentType = handoff ? 'application/octet-stream' : 'application/json';
       if (req.headers['content-type'] !== contentType)
-        return sendJson(res, 415, { error: start ? 'Expected a binary task run handoff.' : 'Expected a JSON task run request.' });
+        return sendJson(res, 415, { error: handoff ? 'Expected a binary task run handoff.' : 'Expected a JSON task run request.' });
       res.setHeader('cache-control', 'no-store');
       try {
-        const bytes = await readTaskRunBody(req, start ? MAX_TASK_RUN_HANDOFF_BYTES : action === 'review' ? 4096 : 1024);
-        if (start) return sendJson(res, 200, await startTaskRun(bytes));
+        const bytes = await readTaskRunBody(req, handoff ? MAX_TASK_RUN_HANDOFF_BYTES : action === 'review' ? 4096 : 1024);
+        if (handoff) return sendJson(res, 200, await handleTaskRunHandoff(bytes, action));
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }

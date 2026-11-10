@@ -9,6 +9,8 @@ import { putBlob } from '@barocss/cad-model/engine/blobs';
 import { encodeStudioFile, isContainer } from '@barocss/cad-model/engine/container';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { cliMain } from '../server/cadCli';
+import { encodeTaskRunHandoff } from '../src/files/taskRunHandoff';
+import { runLocalTaskHandoff } from '../server/taskRun/localService';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
 import { fixtureDoc, singleRepairDoc, threeOccurrenceDoc } from './task-run-fixture';
 
@@ -49,6 +51,36 @@ test('D627 derives one repair without including already satisfied occurrences', 
   assert.throws(() => derive(source, ['p1']), /UNCOVERED_REQUIREMENT.*p3/);
   source.instances![2].doc.requirements![0].check.value = 7;
   assert.throws(() => derive(source, ['p1']), /already at its stated height/);
+});
+
+test('D629 reopens an exact started handoff without creating or advancing a writer', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'barocss-reopen-handoff-'));
+  try {
+    const doc = fixtureDoc(), { targets, modelDigest: revision } = derive(doc);
+    const handoff = await encodeTaskRunHandoff({ targets, revision, occurrences: selected }, encodeStudioFile(doc));
+    const missing = join(root, 'missing');
+    assert.deepEqual(await runLocalTaskHandoff(missing, handoff, 'reopen'),
+      { status: 404, error: 'No local task run has been started for this handoff.' });
+    assert.equal(existsSync(missing), false);
+    const started = await runLocalTaskHandoff(root, handoff);
+    assert.ok('result' in started, JSON.stringify(started));
+    const { directory } = started.result;
+    const file = join(directory, 'run.json');
+    const saved = readFileSync(file), files = readdirSync(directory).sort();
+    assert.deepEqual(await runLocalTaskHandoff(root, handoff, 'reopen'), { result: { ...started.result, reused: true } });
+    assert.deepEqual(readFileSync(file), saved);
+    assert.deepEqual(readdirSync(directory).sort(), files);
+
+    const envelope = JSON.parse(saved.toString());
+    envelope.record.state.plan.tasks[0].feature = 'n8';
+    envelope.digest = digestOf(envelope.record);
+    writeFileSync(file, JSON.stringify(envelope));
+    const mismatched = readFileSync(file);
+    const refused = await runLocalTaskHandoff(root, handoff, 'reopen');
+    assert.equal('status' in refused && refused.status, 409);
+    assert.deepEqual(readFileSync(file), mismatched);
+    assert.deepEqual(readdirSync(directory).sort(), files);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('D616 refuses unconfirmed, ambiguous, incompatible, no-op and out-of-scope targets', () => {

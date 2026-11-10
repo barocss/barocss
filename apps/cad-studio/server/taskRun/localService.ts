@@ -16,10 +16,12 @@ export class LocalRunRequestError extends Error {
 
 type LocalRunReply = { result: TaskRunLaunch } | { status: number; error: string };
 
-function startInProcess(root: string, bytes: Uint8Array): Promise<TaskRunLaunch> {
+type HandoffAction = 'start' | 'reopen';
+
+function handoffInProcess(root: string, bytes: Uint8Array, action: HandoffAction): Promise<TaskRunLaunch> {
   return new Promise((resolve, reject) => {
     // The local runner has a separate PID and a fresh native blob store for each admission.
-    const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root], {
+    const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root, action], {
       stdio: ['pipe', 'pipe', 'inherit'],
     });
     const failed = () => reject(new LocalRunRequestError(500, 'The local task run process did not return a result.'));
@@ -43,15 +45,15 @@ function startInProcess(root: string, bytes: Uint8Array): Promise<TaskRunLaunch>
 }
 
 export function createLocalTaskRuns(root: string) {
-  let active: { bytesHash: string; result: Promise<TaskRunLaunch> } | undefined;
-  return async (bytes: Uint8Array): Promise<TaskRunLaunch> => {
+  let active: { action: HandoffAction; bytesHash: string; result: Promise<TaskRunLaunch> } | undefined;
+  return async (bytes: Uint8Array, action: HandoffAction): Promise<TaskRunLaunch> => {
     const bytesHash = sha256Hex(bytes);
     if (active) {
-      if (active.bytesHash === bytesHash) return { ...await active.result, reused: true };
-      throw new LocalRunRequestError(409, 'Another local task run is starting. Try again when it finishes.');
+      if (active.action === action && active.bytesHash === bytesHash) return { ...await active.result, reused: true };
+      throw new LocalRunRequestError(409, 'Another local task handoff is in progress. Try again when it finishes.');
     }
-    const result = startInProcess(root, bytes);
-    active = { bytesHash, result };
+    const result = handoffInProcess(root, bytes, action);
+    active = { action, bytesHash, result };
     try { return await result; }
     finally { active = undefined; }
   };
@@ -69,12 +71,40 @@ function syncDirectory(path: string) {
   try { fsyncSync(fd); } finally { closeSync(fd); }
 }
 
-async function launchLocalTaskRun(root: string, bytes: Uint8Array): Promise<TaskRunLaunch> {
-  const prepared = await prepareTaskRunHandoff(bytes).catch((error: unknown) => {
-    throw new LocalRunRequestError(400, error instanceof Error ? error.message : 'Invalid task run handoff.');
-  });
-  const { config, tasks } = prepared, ids = tasks.map(task => task.id).sort();
-  const key = digestOf({ source: config.sourceSHA256, occurrences: ids });
+type PreparedHandoff = Awaited<ReturnType<typeof prepareTaskRunHandoff>>;
+
+function handoffRunKey({ config, tasks }: PreparedHandoff) {
+  return digestOf({ source: config.sourceSHA256, occurrences: tasks.map(task => task.id).sort() });
+}
+
+function inspectHandoffRun(directory: string, runKey: string, { config, tasks }: PreparedHandoff, reused: boolean): TaskRunLaunch {
+  const record = TaskRunStore.inspect(directory);
+  const source = record.commits[0]?.from ?? record.accepted;
+  const scopes = (plan: typeof config.plan) => plan.tasks.map(({ id, occurrence, feature, capability, units, frame }) =>
+    ({ id, occurrence, feature, capability, units, frame })).sort((a, b) => a.id.localeCompare(b.id));
+  if (source.modelDigest !== config.modelDigest
+    || digestOf(record.state.plan.identity) !== digestOf(config.plan.identity)
+    || digestOf(scopes(record.state.plan)) !== digestOf(scopes(config.plan))
+    || digestOf(record.state.tasks.map(task => task.id).sort()) !== digestOf(tasks.map(task => task.id).sort()))
+    throw new LocalRunRequestError(409, 'The existing local task run has a different source or selection.');
+  return { ...taskRunStatus(runKey, record), directory, reused };
+}
+
+function reopenLocalTaskRun(root: string, prepared: PreparedHandoff): TaskRunLaunch {
+  const key = handoffRunKey(prepared);
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), key));
+    return inspectHandoffRun(directory, key, prepared, true);
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) throw error;
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+      throw new LocalRunRequestError(404, 'No local task run has been started for this handoff.');
+    throw new LocalRunRequestError(409, 'Could not read the existing local task run.');
+  }
+}
+
+async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Promise<TaskRunLaunch> {
+  const key = handoffRunKey(prepared);
   root = resolve(root);
   const created = mkdirSync(root, { recursive: true, mode: 0o700 });
   const privateRoot = privateDirectory(root);
@@ -89,13 +119,7 @@ async function launchLocalTaskRun(root: string, bytes: Uint8Array): Promise<Task
   privateDirectory(directory);
   syncDirectory(privateRoot);
 
-  const inspect = (reused = true): TaskRunLaunch => {
-    const record = TaskRunStore.inspect(directory);
-    if (digestOf(record.state.plan.identity) !== digestOf(config.plan.identity)
-      || digestOf(record.state.tasks.map(task => task.id).sort()) !== digestOf(ids))
-      throw new LocalRunRequestError(409, 'The existing local task run has a different source or selection.');
-    return { ...taskRunStatus(key, record), directory, reused };
-  };
+  const inspect = (reused = true) => inspectHandoffRun(directory, key, prepared, reused);
   try { return inspect(); }
   catch (error) {
     if (error instanceof LocalRunRequestError) throw error;
@@ -114,8 +138,13 @@ async function launchLocalTaskRun(root: string, bytes: Uint8Array): Promise<Task
   }
 }
 
-export async function runLocalTaskHandoff(root: string, bytes: Uint8Array): Promise<LocalRunReply> {
-  try { return { result: await launchLocalTaskRun(root, bytes) }; }
+export async function runLocalTaskHandoff(root: string, bytes: Uint8Array, action: HandoffAction = 'start'): Promise<LocalRunReply> {
+  try {
+    const prepared = await prepareTaskRunHandoff(bytes).catch((error: unknown) => {
+      throw new LocalRunRequestError(400, error instanceof Error ? error.message : 'Invalid task run handoff.');
+    });
+    return { result: action === 'reopen' ? reopenLocalTaskRun(root, prepared) : await launchLocalTaskRun(root, prepared) };
+  }
   catch (error) {
     return error instanceof LocalRunRequestError ? { status: error.status, error: error.message }
       : { status: 500, error: 'Could not access the local task run directory.' };

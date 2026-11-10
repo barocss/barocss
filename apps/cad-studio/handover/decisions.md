@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D629 — reopen a local run from its task handoff](notes/reopen-local-task-run-2026-11-11/README.md).
 - [D628 — prepare a repair from a failed working check](notes/prepare-repair-from-working-check-2026-11-11/README.md).
 - [D627 — repair one occurrence and protect its siblings](notes/single-occurrence-local-repair-2026-11-11/README.md).
 - [D626 — compare an approved task with the working occurrence](notes/working-worker-approval-checks-2026-11-11/README.md).
