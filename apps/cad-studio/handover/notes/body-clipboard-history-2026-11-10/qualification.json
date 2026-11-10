@@ -1,0 +1,100 @@
+{
+  "workId": "D556",
+  "parent": "1027d07557e6778a2629afd14af0cf48669f5847",
+  "tier": "SMALL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d556-2026-11-10"
+  },
+  "driverSha256": "5ac38266d3cdb34dd9a8689133061aca6d38811c34823605231152a06cd7af61",
+  "sourceChanged": {
+    "apps/cad-studio/src/App.tsx": {
+      "repro01": "75be192169fbe97cdf0e51f47f581b5980fc7d80557f3c404e18767a632a1d33",
+      "fixed01": "17c4e7cf46b37f3d016e9b9338e7fbbda69f18739365c293684cbf1138c95669"
+    },
+    "apps/cad-studio/src/state/workOwnership.ts": {
+      "repro01": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+      "fixed01": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e"
+    }
+  },
+  "physicalOracle": {
+    "absoluteTolerance": 1e-09,
+    "boxA": {
+      "size": [
+        10,
+        10,
+        10
+      ],
+      "volume": 1000,
+      "reproOffsetX": 20
+    },
+    "boxB": {
+      "size": [
+        12,
+        13,
+        14
+      ],
+      "volume": 2184,
+      "fixedOffsetsX": [
+        0,
+        22,
+        44
+      ]
+    }
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-history-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "command": "node scripts/test.mjs stop-work-ownership project-open-ownership edit-in-place",
+      "status": "PASS",
+      "passCount": 59,
+      "failCount": 0,
+      "sha256": "3a85c5f917fd58fda95323b6356ba103eedd94378251baf8b1660aa6afa0a68a"
+    }
+  ],
+  "studio": [
+    {
+      "id": "repro01",
+      "command": "DEBUG=pw:browser,pw:api D556_SOURCE_FROZEN=1 node test/body-clipboard-history-browser.mjs EXTERNAL/repro01 --expect=repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "wallSeconds": 10.77,
+      "snapshots": 7,
+      "physicalJoins": 5,
+      "frozenPins": 300,
+      "receiptSha256": "65d2e1080b464efa17fead844a9be6468d39ed3f87d1294753a0bb6b2f727565",
+      "ownedPID": 99229,
+      "chromePID": 99249
+    },
+    {
+      "id": "fixed01",
+      "command": "DEBUG=pw:browser,pw:api D556_SOURCE_FROZEN=1 node test/body-clipboard-history-browser.mjs EXTERNAL/fixed01 --expect=fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "wallSeconds": 13.31,
+      "snapshots": 16,
+      "physicalJoins": 11,
+      "frozenPins": 300,
+      "receiptSha256": "d5142bbcc8924c950eb1c99b8e1d0673d2da5f8f96f49b0636004687b3a79740",
+      "ownedPID": 4807,
+      "chromePID": 4828
+    }
+  ],
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}

@@ -284,16 +284,19 @@ export function App() {
     if (next !== docNow.current) discardRouteRef.current();
     if (routeAcceptedHandoff.current?.doc !== next) routeAcceptedHandoff.current = null;
     if (intent) {
-      setUndo(u => [...u.slice(-49), intent.entry]); setRedo([]);
-      workOwnership.current = reserveAcceptedChange(workOwnership.current, intent.entry, next, intent.beforeInput);
+      const entry: WorkHistory<StudioDoc> = replacementScope.current === null ? intent.entry : { ...intent.entry, documentBoundary: true };
+      setUndo(u => [...u.slice(-49), entry]); setRedo([]);
+      workOwnership.current = reserveAcceptedChange(workOwnership.current, entry, next, intent.beforeInput);
     }
     docNow.current = next; setDocState(next);
     return true;
   };
   const [marker, setMarker] = useState<number | null>(null);
   const markerNow = useRef(marker); markerNow.current = marker;
-  const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
-  const [redo, setRedo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
+  const [undo, setUndo] = useState<WorkHistory<StudioDoc>[]>([]);
+  const [redo, setRedo] = useState<WorkHistory<StudioDoc>[]>([]);
+  /** Copied body (⌘C) and how many copies were pasted (⌘V). */
+  const clipboard = useRef<{ key: string; pastes: number } | null>(null);
   // Roadmap 10 ⑧: a part edited in place inside its assembly. While it is set, the working document is the part's own (the assembly waits in the session,
   // with its undo and redo stacks); nothing of the assembly is saved, recovered or opened over until Finish or Cancel.
   const [inPlace, setInPlace] = useState<InPlaceSession | null>(null), [askDiscard, setAskDiscard] = useState(false), [chatRunning, setChatRunning] = useState(false);
@@ -1400,6 +1403,11 @@ export function App() {
     if (restartDocumentWorker()) { setToast(null); setImportWorkerRecovery(value => value + 1); }
   };
   const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : notice;
+  const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
+    if (!target.documentBoundary) return { doc, marker };
+    clipboard.current = null;
+    return { doc, marker, documentBoundary: true };
+  }, []);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1410,7 +1418,7 @@ export function App() {
     restartDocumentWorker();
     const target = stopped.target;
     if (target) {
-      const redoEntry = { doc: docNow.current, marker: markerNow.current };
+      const redoEntry = reverseHistoryEntry(target, docNow.current, markerNow.current);
       setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1));
       docNow.current = target.doc; setDocState(target.doc); setMarker(target.marker); setDirty(true); cancel();
       setToast({ title: 'Stopped', hint: 'The computation was stopped and its change taken back.', detail: '' });
@@ -1419,15 +1427,17 @@ export function App() {
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
     invalidateDocumentWork(); docNow.current = last.doc;
-    setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
-  }, [undo, doc, marker, cancel]);
+    const redoEntry = reverseHistoryEntry(last, doc, marker);
+    setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
+  }, [undo, doc, marker, cancel, reverseHistoryEntry]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
     invalidateDocumentWork(); docNow.current = last.doc;
-    setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
-  }, [redo, doc, marker, cancel]);
+    const undoEntry = reverseHistoryEntry(last, doc, marker);
+    setUndo(u => [...u, undoEntry]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
+  }, [redo, doc, marker, cancel, reverseHistoryEntry]);
 
   const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
     changes: { canChangeDocument, commit, setSelection }, onNotice: setToast });
@@ -1447,8 +1457,6 @@ export function App() {
     setSketch({ plane, anchor: { kind: 'face', offset: 0, face: { plane, base: null } }, tool: 'rectangle', shape: null, done: shapes, base: null });
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   };
-  /** Copied body (⌘C) and how many copies were pasted (⌘V). */
-  const clipboard = useRef<{ key: string; pastes: number } | null>(null);
   /**
    * Arrow keys move the picked body: a move of its own, added once and then grown while the body's newest
    * feature is that move (one history step for a run of nudges).
