@@ -1,0 +1,222 @@
+{
+  "decision": "D613",
+  "tier": "FULL interface",
+  "baseCommit": "8e98f48760c88a436efe2229a30ba4a2e4810927",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d613-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio and real local task CLI",
+      "result": "PASS",
+      "command": "D613_SOURCE_FROZEN=1 node test/task-candidate-review-browser.mjs \"$EVIDENCE/desktop-current\"",
+      "cwd": "apps/cad-studio",
+      "states": 3,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "frozenFiles": 774,
+      "approvals": 0,
+      "isolationStopsPreview": true,
+      "lateReadDiscarded": true,
+      "candidatePlacedCallsAfterRetirement": 0,
+      "projectFileAndVersionLogUnchanged": true,
+      "workerRecordAndAcceptedNativeUnchanged": true,
+      "log": "desktop-current.log",
+      "logSHA256": "2a5f0d246705037d38a95c95daa3c4c7f61a1ff1cd2d4a25fc3b1317485d7886"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan approved-version-evidence requirement-evidence team-freshness",
+      "passCount": 38,
+      "failCount": 0,
+      "skipped": 0,
+      "log": "model-test.log",
+      "logSHA256": "56b97f3ce54a4483fe49e597a4101567e336d10e7e737311eeb7d43dea18b670"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run document-file project-open-ownership project-version-ownership late-save-ownership edit-in-place cad-cli version-tools-mcp",
+      "passCount": 124,
+      "failCount": 0,
+      "skipped": 0,
+      "log": "studio-test-final.log",
+      "logSHA256": "580b580a18783bc14e3570100b162e5a580219e1923721bbe3120bd4614c861e"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-types-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-types-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "warnings": 0,
+      "log": "lint.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Isolated regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "1b999224dedeb9af3bc348acbe0aa948b6f2d22dd3e028e0a5e08c8b34048ca5",
+      "variants": [
+        {
+          "name": "baseline",
+          "status": "PASS"
+        },
+        {
+          "name": "ignore-envelope-checksum",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-accepted-baseline",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-specification",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-scope",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-candidate-digest",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-native-volume",
+          "status": "KILLED"
+        }
+      ],
+      "log": "mutations.log",
+      "logSHA256": "fee38d03922306faa8c0e11005eae0e372e122fd146311108b5a46f940a6585e"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "log": "build.log",
+      "logSHA256": "a6f4371fe20ebc0db74d0e392dac61cac9ab1ab33a11232205f8d53b2d55b42c"
+    },
+    {
+      "label": "Desktop driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-candidate-review-browser.mjs"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio focused run",
+      "command": "pnpm --dir apps/cad-studio test task-run document-file project-open-ownership project-version-ownership late-save-ownership edit-in-place cad-cli version-tools-mcp",
+      "cause": "The candidate test used the same local name as the checkpoint review.",
+      "logSHA256": "40caeb5337b498fdeacf83e921bbe9b91efac72724c6781743d47baea8931cdd"
+    }
+  ],
+  "intermediateDesktopPasses": {
+    "desktop": "208bfc1cfff324eff9b7e7db7214cf3986aa31a156c91f9928fe47f03605e7a2",
+    "desktop-final": "2232b55eee431d2e66e0c98c93365b5c36408894a95fbb4168c0ad344cc616f0",
+    "desktop-confirm": "5eb38678ad671c399c1ce83c6525be12831076269ff8f6c3f8c3e5dd5e1d6e07"
+  },
+  "review": {
+    "initial": [
+      "Resolve export path and store identity consistently.",
+      "Preserve file permissions and long destination names.",
+      "Clear preview after Worker restart and suppress hidden occurrence previews.",
+      "Show terminal-matching candidate digest and pin the desktop driver and worker entry."
+    ],
+    "finalCode": "APPROVE",
+    "finalArchitecture": "CLEAR"
+  },
+  "desktopArtifactSHA256": {
+    "receipt.json": "47e883fd059198a6e2be320f4cbd999cef3cbea544477c15f3e428c2dcdb90d7",
+    "source-frozen.json": "9036b6fd037c4d85f3abad90987c1863657d308f3c71eacdad767ad605dc709a",
+    "source-after-cleanup.json": "9036b6fd037c4d85f3abad90987c1863657d308f3c71eacdad767ad605dc709a",
+    "task-start.stdout.json": "d62f3b7dd1a8ce2b97f39d22073be12c2c13fec7919769958b242bc3d637a5d5",
+    "task-review.stdout.json": "474dd55723d5ceb44b2a0c80d3e89d56855b80b1a24663e07e498cd3f42838ca",
+    "base.bcad-candidate": "fced1fa2ccbc86f9448ef41702e394c7a65cb9cd50c120a060ed0cfa35092244",
+    "candidate-geometry-oracle.json": "d551349859922bc70b8c0b9a460119e647d11b67c3e7ba1ae477ba721a44faec",
+    "01-placed-candidate.json": "33e052521da0b7c863f15ccfee39796a703effc4270913d215ba38022bfc0364",
+    "02-accepted-model.json": "4c616b968ce36102bcce61347c5a8673e24d2808e4e7688ec26fc7651d3677d6",
+    "03-moved-baseline-refused.json": "9b9263f71a5f8a83f9fb36a19f73d6b86528469645753ac9bd173c49ebc8ef31"
+  },
+  "workerRecordSHA256": "acea98bf512e59c8e51ffcfce94e8bbb37ea715c9c4ee1792973374a911b8107",
+  "candidate": {
+    "runId": "studio-candidate:310442f9-86c4-444c-9958-1605b97d229d",
+    "revision": 6,
+    "attemptId": "1:1:base",
+    "baseline": {
+      "sha256": "75ebf243a529b9fd1755dcd31b76a57f1a495d5d1d072015b0a82202543ca8cd",
+      "modelDigest": "8dc9314097a678ef59f9be87bd273242b846ec5140b0241b64e53521c948661b"
+    },
+    "submission": {
+      "taskId": "base",
+      "specRevision": "b5c6bdafdca5314c99cd5d29d41e95fb0d664baedc4d3afd965f8aa309031c6b",
+      "inputDigest": "4975f09bebd3c0e8d73f1095bc5c63d30822e60a2e6033daeef901dcad56d049",
+      "heightMm": 6
+    },
+    "scope": {
+      "occurrence": "p1",
+      "feature": "n1",
+      "field": "height"
+    },
+    "candidateDigest": "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3"
+  },
+  "heightsMm": {
+    "accepted": 5,
+    "candidate": 6,
+    "sibling": 3
+  },
+  "volumesMm3": {
+    "original": 1000,
+    "candidate": 1200,
+    "difference": 200
+  },
+  "requiredHeight": {
+    "valueMm": 6,
+    "toleranceMm": 0.001
+  },
+  "notRun": [
+    "review-bound terminal decision",
+    "in-Studio approval",
+    "other worker profiles",
+    "whole browser and kernel suites",
+    "mobile",
+    "live providers",
+    "release"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "initialScenariosAccepted": 4,
+    "initialScenariosTotal": 10,
+    "B09v1AcceptedGroups": 9,
+    "B09v1TotalGroups": 9,
+    "wholeCAD": "NOT_MEASURED"
+  }
+}

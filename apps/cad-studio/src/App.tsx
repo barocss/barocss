@@ -62,7 +62,7 @@ import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
-import { instanceEvaluationSources, withPlacedProposalBodies } from './viewport/instanceEvaluation';
+import { instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
@@ -119,6 +119,7 @@ import { VariantsPanel } from './ui/VariantsPanel';
 import { useProject } from './storage/useProject';
 import { VersionsPanel, currentComparisonVersion, type VersionComparison } from './storage/VersionsPanel';
 import type { CheckpointReview } from './files/taskCheckpoint';
+import type { CandidateReview } from './files/taskCandidateReview';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
@@ -237,6 +238,7 @@ export function App() {
   // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
   // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
   const docNow = useRef(doc); docNow.current = doc;
+  const [candidateReview, setCandidateReview] = useState<{ review: CandidateReview; shown: boolean } | null>(null);
   // Save completion belongs to a document dispatch, independently of evaluation/Stop ownership.
   // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
   const saveDocumentToken = useRef<object>({});
@@ -252,6 +254,7 @@ export function App() {
     saveDocumentToken.current = {};
     openIntent.current = {};
     cancelStepExportRef.current();
+    setCandidateReview(null);
     if (typeof update === 'function') setDocStateRaw(update);
     else { docNow.current = update; setDocStateRaw(update); }
   }, []);
@@ -1401,6 +1404,7 @@ export function App() {
   // A failed or restarted worker cannot supply current caches or finish an older import.
   const invalidateWorkerResults = () => {
     // A content match cannot carry worker provenance across restart. Keep old pixels stale until recomputed.
+    setCandidateReview(null);
     acceptedEvaluation.current = null; parameterHandoff.current = null; routeAcceptedHandoff.current = null; parameterMass.current = null;
     claimBodies.current = false; setBodiesFor(null); discardRouteRef.current();
     setInstanceBodies(new Map()); workerSessionNow.current++; setWorkerSession(workerSessionNow.current);
@@ -1592,6 +1596,7 @@ export function App() {
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
     changes: { replaceDoc, setDocState, setFileName, setDirty,
       onCheckpointOpened: review => { setCheckpointReview(review); setVersionsOpen(true); },
+      onCandidateOpened: review => { setCandidateReview({ review, shown: false }); setVersionsOpen(true); },
       setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
     fit: () => viewport.current?.fit(),
     onNotice: setToast,
@@ -1923,9 +1928,18 @@ export function App() {
   // (Roadmap 10 ⑥: the parts the shown step has not introduced yet are left out of the view — display only, the document is untouched.)
   const instancesStepped = useMemo(() => stepsDisp?.hidden.size ? instancesLooked.filter(it => !stepsDisp.hidden.has(it.id)) : instancesLooked, [instancesLooked, stepsDisp]);
   const placedPreviewEnabled = !section && !rendering && !drawing && !cutDraft && !instDrag && !assembly.draft && !stepsDisp && !cageEd.session && !sketch && !active;
-  const placedProposal = placedPreviewEnabled && ghost?.after && ghost.placed?.kind === 'ready' ? ghost.placed.bodies : undefined;
-  const viewportInstances = useMemo(() => withPlacedProposalBodies(instancesStepped, placedProposal), [instancesStepped, placedProposal]);
-  const viewportPlacements = useMemo(() => withPlacedProposalBodies(instancesPlaced, placedProposal), [instancesPlaced, placedProposal]);
+  const versionsVisible = versionsOpen && !inPlace && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active;
+  const candidatePart = candidateReview?.review.occurrence;
+  const candidateAvailable = versionsVisible && placedPreviewEnabled && fresh && marker === null && !ghost && !workingComparison &&
+    candidatePart !== undefined && (!isolatedInstances || isolatedInstances.includes(candidatePart)) &&
+    instancesStepped.some(instance => instance.id === candidatePart && instance.bodies.length > 0);
+  const hideCandidatePreview = useCallback(() => setCandidateReview(value => value?.shown ? { ...value, shown: false } : value), []);
+  useEffect(() => { if (!candidateAvailable) hideCandidatePreview(); }, [candidateAvailable, hideCandidatePreview]);
+  const placedCandidate = candidateAvailable && candidateReview?.shown ? candidateReview.review.preview.bodies : undefined;
+  const placedProposal = placedPreviewEnabled && ghost?.after && ghost.placed?.kind === 'ready' ? ghost.placed.bodies : placedCandidate;
+  const previewTint = placedCandidate ? WORKER_CANDIDATE_TINT : undefined;
+  const viewportInstances = useMemo(() => withPlacedProposalBodies(instancesStepped, placedProposal, previewTint), [instancesStepped, placedProposal, previewTint]);
+  const viewportPlacements = useMemo(() => withPlacedProposalBodies(instancesPlaced, placedProposal, previewTint), [instancesPlaced, placedProposal, previewTint]);
   const viewportPicking = placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
     const id = args[0].instance;
     if (id && placedProposal.has(id)) return;
@@ -2076,7 +2090,9 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
-      {versionsOpen && !inPlace && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+      {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+        candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, hide: hideCandidatePreview,
+          toggle: () => setCandidateReview(value => value && { ...value, shown: !value.shown }) } : undefined}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
         onOpen={d => { setCompareBase(null); replaceDoc(d, 'project'); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
@@ -2257,7 +2273,7 @@ export function App() {
           <ToolIconButton key="tool13" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></ToolIconButton>,
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-run,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-run,.bcad-candidate,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}

@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D612 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D613 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D612 shows the original and approved checks for an admitted worker checkpoint in Studio. The saved pair stays fixed across working edits and retires when the document is replaced. [D612](notes/worker-checkpoint-review-2026-11-11/README.md).
-- **Next MAIN:** D613 / P0 automation, B09 follow-up, rows 04, 12 and 16. Connect one pending local worker candidate to Studio for human review. Start with the existing task receipt and proposal preview, keep the working model unchanged on Open, and refuse a candidate if its baseline, task or occurrence differs. Verify the single approval authority before wiring a decision. [#2402](https://github.com/barocss/barocss/issues/2402).
+- **Current position:** D613 opens a pending local worker candidate for read-only review. Studio checks the exact accepted baseline and previews only the bound occurrence. The terminal run still owns the decision. [D613](notes/pending-worker-candidate-review-2026-11-11/README.md).
+- **Next MAIN:** D614 / P0 automation, B09 follow-up, rows 04, 12 and 16. Bind the local terminal decision to the exact candidate reviewed in Studio. Use the exported receipt to verify the run, attempt, specification, baseline and candidate before confirming. Reuse the host’s existing decision and single-writer publication path, and verify that a refreshed or mismatched receipt cannot publish. [#2402](https://github.com/barocss/barocss/issues/2402).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B09 v1 **9/9 accepted groups**; B03, B05–B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

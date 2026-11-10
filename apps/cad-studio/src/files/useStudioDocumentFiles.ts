@@ -3,8 +3,9 @@ import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { placedDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
@@ -12,9 +13,11 @@ import type { EngineClient } from '../engine/client';
 import type { OpenScope } from '../state/openOwnership';
 import { currentDocumentSave } from '../state/saveOwnership';
 import type { useProject } from '../storage/useProject';
+import { placedProposalPreview } from '../viewport/instanceEvaluation';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
+import { MAX_TASK_CANDIDATE_BYTES, readCandidateReview, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 
 interface StudioDocumentFileOptions {
@@ -48,6 +51,7 @@ interface StudioDocumentFileOptions {
     setDirty(dirty: boolean): void;
     setRefProblems(problems: RefProblem[]): void;
     onCheckpointOpened(review: CheckpointReview): void;
+    onCandidateOpened(review: CandidateReview): void;
     commit(doc: StudioDoc): boolean;
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
@@ -56,7 +60,7 @@ interface StudioDocumentFileOptions {
 }
 
 /** What Open reads, said when it is given another kind of file. */
-const OPEN_READS = 'Open reads models (.bcad, .json), worker checkpoints (.bcad-run), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
+const OPEN_READS = 'Open reads models (.bcad, .json), worker files (.bcad-run, .bcad-candidate), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 
 /** File actions use the App's current document, dispatch and Worker ownership. */
 export function useStudioDocumentFiles({ document, ownership, worker, changes, fit, onNotice: setToast }: StudioDocumentFileOptions) {
@@ -149,11 +153,40 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       detail: `Accepted model SHA-256 ${receipt.accepted.sha256}` });
   };
 
+  const openCandidate = async (file: File, current: () => boolean) => {
+    const refused = (hint: string) => setToast({ title: 'Could not review the worker candidate', hint, detail: '' });
+    const baseline = docNow.current;
+    if (file.size > MAX_TASK_CANDIDATE_BYTES) { refused('The worker candidate exceeds the supported file size.'); return; }
+    const text = await file.text();
+    if (!current()) return;
+    const candidate = readCandidateReview(text, baseline);
+    if ('error' in candidate) { refused(candidate.error); return; }
+    const verified = await verifyCandidateReview(candidate, d => current() ? engine.part(d, nextRevision(), 'read') : Promise.resolve(null));
+    if (!current()) return;
+    if ('error' in verified) { refused(verified.error); return; }
+    const preview = await placedProposalPreview(baseline, candidate.doc, new Map(), (inst, base, parent) => {
+      if (!current()) throw new Error('The worker candidate review moved.');
+      return engine.placed(placedDoc(inst, parent), base, placementOf(inst), nextRevision());
+    });
+    if (!current()) return;
+    const { occurrence, feature } = candidate.receipt.scope;
+    if (preview?.kind !== 'ready' || preview.bodies.size !== 1 || !preview.bodies.has(occurrence)) {
+      refused('Could not preview the exact placed occurrence.'); return;
+    }
+    if (sessionBlocked('reviewing a worker candidate')) return;
+    changes.onCandidateOpened({ taskId: candidate.task.id, candidateDigest: candidate.receipt.candidateDigest, occurrence, feature,
+      beforeMm: candidate.beforeMm, candidateMm: candidate.receipt.submission.heightMm, checks: verified.checks, preview });
+  };
+
   const open = async (file: File) => {
     if (sessionBlocked('opening a file')) return;
     const scope = beginOpenIntent(), owner = captureImportOwner();
     setMeshAsk(null); setRepairAsk(null);
     try {
+      if (file.name.toLowerCase().endsWith(TASK_CANDIDATE_EXT)) {
+        await openCandidate(file, owner.isCurrent);
+        return;
+      }
       if (file.name.toLowerCase().endsWith(TASK_CHECKPOINT_EXT)) {
         await openCheckpoint(file, owner.isCurrent);
         return;

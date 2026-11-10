@@ -10,6 +10,7 @@ import type { TaskCandidate, TaskSubmission } from '@barocss/cad-model/team/task
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import type { NativeRef, TaskCheckpoint } from '../../src/files/taskCheckpoint';
+import type { CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 
 export type { NativeRef } from '../../src/files/taskCheckpoint';
 export type TaskPhase = 'ready' | 'running' | 'validating' | 'awaiting-decision' | 'committing' | 'completed' | 'failed' | 'cancelled' | 'stale';
@@ -244,6 +245,27 @@ export class TaskRunStore {
       specRevision: commit.specRevision, candidateDigest: commit.candidateDigest,
       proposalId: candidate.proposalId, scope: candidate.scope, from: commit.from, accepted: record.accepted };
     return { receipt, before: readObject(path, commit.from), accepted: readObject(path, record.accepted) };
+  }
+
+  /** Read an exportable pending candidate from one durable record without taking its writer lease. */
+  static readCandidateReview(directory: string, taskId: string) {
+    const path = realpathSync(directory), record = recordAt(path), { state } = record;
+    const tasks = state.tasks.filter(task => task?.id === taskId), task = tasks.length === 1 ? tasks[0] : undefined;
+    const attempt = task?.attempt, candidate = task?.candidate, submission = task?.submission;
+    if (state.phase !== 'active' || record.pending || task?.phase !== 'awaiting-decision' || !attempt || !candidate || !submission)
+      return issue('RUN_STALE', 'No current candidate is awaiting review.');
+    if (!id(attempt.id) || !count(attempt.leaseUntil) || state.sequence > attempt.leaseUntil || !nativeRef(attempt.base) ||
+        !sameNative(attempt.base, record.accepted) || candidate.baselineDigest !== record.accepted.modelDigest ||
+        attempt.specRevision !== state.specRevision || candidate.specRevision !== state.specRevision ||
+        submission.specRevision !== state.specRevision || candidate.taskId !== taskId || submission.taskId !== taskId ||
+        attempt.inputDigest !== candidate.inputDigest || submission.inputDigest !== candidate.inputDigest)
+      return issue('RUN_STALE', 'The candidate no longer matches its accepted baseline or task.');
+    const operations = state.operations.filter(operation => operation?.id === attempt.operationId);
+    if (operations.length !== 1 || operations[0].phase !== 'completed' || operations[0].epoch !== attempt.epoch)
+      return issue('RUN_CORRUPT', 'The candidate attempt and operation disagree.');
+    const receipt: CandidateReviewReceipt = { runId: record.runId, revision: record.revision, attemptId: attempt.id,
+      plan: state.plan, baseline: record.accepted, submission, scope: candidate.scope, candidateDigest: candidate.candidateDigest };
+    return { receipt, bytes: readObject(path, record.accepted) };
   }
 
   static open(directory: string, afterWrite?: (point: WritePoint) => void): TaskRunStore {

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
+import { encodeCandidateReview, readCandidateReview, verifyCandidateReview, type CandidateReviewReceipt } from '../src/files/taskCandidateReview';
 import { encodeTaskCheckpoint, readTaskCheckpoint, verifyTaskCheckpoint, type TaskCheckpoint } from '../src/files/taskCheckpoint';
 import { fixtureDoc, fixtureLimits, fixturePlan } from './task-run-fixture';
 
@@ -51,6 +52,55 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     assert.deepEqual(status.tasks.map((task: { phase: string }) => task.phase), ['awaiting-decision', 'awaiting-decision']);
     assert.deepEqual(status.tasks.map((task: { geometry: { volumeMm3: number } }) => task.geometry.volumeMm3), [1200, 384]);
     assert.deepEqual(status.budget, { limit: 8, used: 2, unknown: 0 });
+    const candidateFile = join(dir, 'base.bcad-candidate');
+    const pendingRecord = readFileSync(join(run, 'run.json')), pendingEntries = readdirSync(run).sort();
+    const reviewed = launch('review', run, 'base', candidateFile);
+    assert.equal(reviewed.status, 0, reviewed.stderr);
+    const candidateReceipt = JSON.parse(reviewed.stdout).candidateReview as CandidateReviewReceipt;
+    const candidateText = readFileSync(candidateFile, 'utf8');
+    assert.deepEqual(readFileSync(join(run, 'run.json')), pendingRecord);
+    assert.deepEqual(readdirSync(run).sort(), pendingEntries);
+    assert.equal(candidateReceipt.candidateDigest, status.tasks[0].candidateDigest);
+    symlinkSync(join(run, 'native'), join(dir, 'run-native-link'));
+    const alias = launch('review', run, 'base', dir + '/run-native-link/../escaped.bcad-candidate');
+    assert.equal(alias.status, 1, alias.stderr);
+    assert.match(alias.stderr, /outside the run store/);
+    assert.equal(existsSync(join(run, 'escaped.bcad-candidate')), false);
+    mkdirSync(join(dir, 'other', 'inner'), { recursive: true });
+    mkdirSync(join(dir, 'other', 'run'));
+    symlinkSync(join(dir, 'other', 'inner'), join(dir, 'run-directory-link'));
+    const wrongGuard = launch('review', dir + '/run-directory-link/../run', 'base', join(run, 'alias.bcad-candidate'));
+    assert.equal(wrongGuard.status, 1, wrongGuard.stderr);
+    assert.match(wrongGuard.stderr, /outside the run store/);
+    assert.equal(existsSync(join(run, 'alias.bcad-candidate')), false);
+    const mixedCase = join(dir, 'RUN');
+    if (existsSync(mixedCase)) {
+      const wrongCase = launch('review', mixedCase, 'base', join(run, 'case.bcad-candidate'));
+      assert.equal(wrongCase.status, 1, wrongCase.stderr);
+      assert.match(wrongCase.stderr, /outside the run store/);
+      assert.equal(existsSync(join(run, 'case.bcad-candidate')), false);
+    }
+    const longFile = join(dir, 'r'.repeat(225) + '.bcad-candidate');
+    const longExport = launch('review', run, 'base', longFile);
+    assert.equal(longExport.status, 0, longExport.stderr);
+    assert.equal(readFileSync(longFile, 'utf8'), candidateText);
+    const admitted = readCandidateReview(candidateText, fixtureDoc());
+    assert.ok(!('error' in admitted), JSON.stringify(admitted));
+    const verifiedCandidate = await verifyCandidateReview(admitted, async doc => evaluatePart(doc, 1));
+    assert.ok(!('error' in verifiedCandidate), JSON.stringify(verifiedCandidate));
+    assert.deepEqual([admitted.beforeMm, verifiedCandidate.geometry.sizeMm[2], verifiedCandidate.geometry.volumeMm3], [5, 6, 1200]);
+    assert.ok('error' in await verifyCandidateReview(admitted, async () => null));
+    assert.match((readCandidateReview(candidateText, admitted.doc) as { error: string }).error, /exact native baseline/);
+    for (const [forged, reason] of [
+      [{ ...candidateReceipt, scope: { ...candidateReceipt.scope, occurrence: 'p2' } }, /task or occurrence/],
+      [{ ...candidateReceipt, submission: { ...candidateReceipt.submission, taskId: 'lid' } }, /task or occurrence/],
+      [{ ...candidateReceipt, submission: { ...candidateReceipt.submission, specRevision: '0'.repeat(64) } }, /specification/],
+      [{ ...candidateReceipt, candidateDigest: '0'.repeat(64) }, /candidate digest/],
+    ] as const) {
+      const result = readCandidateReview(encodeCandidateReview(forged), fixtureDoc());
+      assert.ok('error' in result, JSON.stringify(result));
+      assert.match(result.error, reason);
+    }
     const repeated = launch('work', run, 'initial:base', 'base', '6');
     assert.equal(repeated.status, 0, repeated.stderr);
     assert.equal(JSON.parse(repeated.stdout).outcome.duplicate, true);
@@ -74,6 +124,11 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     { cwd: process.cwd(), encoding: 'utf8', timeout: 45000 });
     assert.equal(approved.status, 0, approved.stderr);
     assert.equal(JSON.parse(approved.stdout.trim().split('\n').at(-1)!).outcome.code, 'RUN_ACCEPTED');
+    for (const task of ['base', 'lid']) {
+      const retired = launch('review', run, task, join(dir, task + '-retired.bcad-candidate'));
+      assert.equal(retired.status, 1, retired.stderr);
+      assert.match(retired.stderr, /No current candidate/);
+    }
     const accepted = launch('export', run, saved);
     assert.equal(accepted.status, 0, accepted.stderr);
     const doc = await readStudioFile(readFileSync(saved));

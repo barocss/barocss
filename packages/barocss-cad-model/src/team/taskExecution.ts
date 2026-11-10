@@ -120,6 +120,44 @@ function dependencyProofs(plan: TaskPlan, task: BoundTask, prerequisites: readon
   return { proofs: Object.freeze(proofs), records: [...records] };
 }
 
+/** Recheck a local task's native geometry and requirements without granting a lease or decision. */
+export async function verifyTaskGeometry(local: StudioDoc, shape: Exclude<ReturnType<typeof taskTarget>, TaskPlanError>['shape'],
+  height: number, task: BoundTask, evaluate: Evaluate): Promise<Pick<TaskCandidate, 'geometry' | 'checks'> | TaskPlanError> {
+  const result = await evaluate(local);
+  if (!result?.ok || result.bodies.length !== 1) return failure('TASK_NATIVE_GATE', 'the owned occurrence did not evaluate to one body');
+  const [body] = result.bodies;
+  const { min, max } = body.mesh.bounds;
+  const size = [shape.width, shape.depth, height] as const;
+  const grossArea = shape.width * shape.depth;
+  const holeArea = shape.hole ? Math.PI * shape.hole.radius ** 2 : 0;
+  const area = grossArea - holeArea, volume = area * height;
+  const centroid = [
+    ((shape.minX + shape.width / 2) * grossArea - (shape.hole?.x ?? 0) * holeArea) / area,
+    ((shape.minY + shape.depth / 2) * grossArea - (shape.hole?.y ?? 0) * holeArea) / area,
+    height / 2,
+  ] as const;
+  const close = (actual: number, want: number) => Number.isFinite(actual)
+    && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, Math.abs(want));
+  if (body.volume === null || !close(body.volume, volume) || !body.centroid
+      || ![shape.minX, shape.minY, 0].every((v, i) => close(min[i], v))
+      || !size.every((v, i) => close(max[i] - min[i], v))
+      || !centroid.every((v, i) => close(body.centroid![i], v)))
+    return failure('TASK_ORACLE_MISMATCH', 'native volume, bounds or centroid differs from the independent prism calculation');
+
+  const { outcomes } = await checkSpec(local, result.bodies, evaluate);
+  const checks = task.checks.map(req => {
+    const value = outcomes.get(req.id);
+    return Object.freeze({
+      id: req.id, status: value?.status ?? 'unknown', hard: req.hard, basis: req.basis, sourceStatus: req.said, expected: expectedOf(req.check),
+      ...(typeof value?.measured === 'number' ? { measured: value.measured } : {}),
+      ...(value?.why ? { why: value.why } : {}),
+    });
+  });
+  if (checks.some(c => c.hard && c.status !== 'pass'))
+    return failure('TASK_REQUIRED_CHECK', checks.filter(c => c.hard && c.status !== 'pass').map(c => `${c.id}: ${c.status}`).join(', '));
+  return { checks: Object.freeze(checks), geometry: Object.freeze({ sizeMm: Object.freeze(size), volumeMm3: volume, centroidMm: Object.freeze(centroid) }) };
+}
+
 /** Evaluate one admitted dimensional edit on a private copy, then prepare its existing grouped proposal. */
 export async function buildTaskCandidate(
   plan: TaskPlan, state: ChatState, submission: TaskSubmission, context: TaskWorkerContext, evaluate: Evaluate,
@@ -158,38 +196,8 @@ export async function buildTaskCandidate(
   if (digestOf(candidate) !== digestOf(expected))
     return failure('TASK_SCOPE_CHANGED', 'the candidate changed something outside the owned extrusion height');
 
-  const result = await evaluate(local);
-  if (!result?.ok || result.bodies.length !== 1) return failure('TASK_NATIVE_GATE', 'the owned occurrence did not evaluate to one body');
-  const [body] = result.bodies;
-  const { min, max } = body.mesh.bounds;
-  const size = [shape.width, shape.depth, height] as const;
-  const grossArea = shape.width * shape.depth;
-  const holeArea = shape.hole ? Math.PI * shape.hole.radius ** 2 : 0;
-  const area = grossArea - holeArea, volume = area * height;
-  const centroid = [
-    ((shape.minX + shape.width / 2) * grossArea - (shape.hole?.x ?? 0) * holeArea) / area,
-    ((shape.minY + shape.depth / 2) * grossArea - (shape.hole?.y ?? 0) * holeArea) / area,
-    height / 2,
-  ] as const;
-  const close = (actual: number, want: number) => Number.isFinite(actual)
-    && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, Math.abs(want));
-  if (body.volume === null || !close(body.volume, volume) || !body.centroid
-      || ![shape.minX, shape.minY, 0].every((v, i) => close(min[i], v))
-      || !size.every((v, i) => close(max[i] - min[i], v))
-      || !centroid.every((v, i) => close(body.centroid![i], v)))
-    return failure('TASK_ORACLE_MISMATCH', 'native volume, bounds or centroid differs from the independent prism calculation');
-
-  const { outcomes } = await checkSpec(local, result.bodies, evaluate);
-  const checks = task.checks.map(req => {
-    const value = outcomes.get(req.id);
-    return Object.freeze({
-      id: req.id, status: value?.status ?? 'unknown', hard: req.hard, basis: req.basis, sourceStatus: req.said, expected: expectedOf(req.check),
-      ...(typeof value?.measured === 'number' ? { measured: value.measured } : {}),
-      ...(value?.why ? { why: value.why } : {}),
-    });
-  });
-  if (checks.some(c => c.hard && c.status !== 'pass'))
-    return failure('TASK_REQUIRED_CHECK', checks.filter(c => c.hard && c.status !== 'pass').map(c => `${c.id}: ${c.status}`).join(', '));
+  const verified = await verifyTaskGeometry(local, shape, height, task, evaluate);
+  if ('error' in verified) return verified;
 
   const proposal = await runTool(own, 'proposals', {
     action: 'propose', title: `Task ${task.id}`,
@@ -203,8 +211,7 @@ export async function buildTaskCandidate(
   const receipt: TaskCandidate = Object.freeze({
     taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest,
     candidateDigest: digestOf(candidate), proposalId: id, baselineDigest: plan.baselineDigest, scope: task.writes,
-    dependencies: dependencies.proofs, checks: Object.freeze(checks),
-    geometry: Object.freeze({ sizeMm: Object.freeze(size), volumeMm3: volume, centroidMm: Object.freeze(centroid) }),
+    dependencies: dependencies.proofs, ...verified,
     gates: Object.freeze(staged.trace.gates.map(g => g.gate)),
   });
   candidates.set(receipt, { plan, task, proposal: id, proposalDoc: proposal.state.doc, modelDigest: candidateModelDigest(candidate), prerequisites: dependencies.records });

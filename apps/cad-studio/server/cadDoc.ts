@@ -3,8 +3,9 @@
 // saved at once, atomically (a temporary file renamed over it), mesh blobs and all (engine/container.ts); a file that
 // does not exist yet is a new, empty part, written on the first change. Local files only. The same tool layer as the
 // studio's chat: its gates, its proposals (kept in the file for the user to accept in the studio).
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { closeSync, existsSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { registerTeamLibraries, serveMcp, type McpStore } from './cadMcp';
@@ -18,9 +19,15 @@ export function notLocalModel(path: string): string | null {
 
 /** Bytes written so that a reader sees the old file or the new one, never part of one: a temporary file renamed over it. */
 export function writeAtomic(path: string, bytes: Uint8Array | string): void {
-  const tmp = join(dirname(path), `.${basename(path)}.${process.pid}.tmp`);
-  writeFileSync(tmp, bytes);
-  renameSync(tmp, path);
+  const tmp = join(dirname(path), `.write-${randomUUID()}.tmp`);
+  const fd = openSync(tmp, 'wx');
+  try {
+    try { writeFileSync(fd, bytes); } finally { closeSync(fd); }
+    renameSync(tmp, path);
+  } catch (error) {
+    try { unlinkSync(tmp); } catch { /* The original write error takes precedence. */ }
+    throw error;
+  }
 }
 
 /** A .bcad file read: its document (its blobs into the store), a missing file as a new part, or the reason it cannot be read. */

@@ -18,6 +18,8 @@ import { Input as TextInput } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { ApprovedRequirementChecks, CheckpointApprovalChecks } from './ApprovedRequirementChecks';
 import type { CheckpointReview } from '../files/taskCheckpoint';
+import type { CandidateReview } from '../files/taskCandidateReview';
+import { CandidateReviewSection } from './CandidateReviewSection';
 import { approvedRequirementComparison } from '@barocss/cad-model/versions/approvedRequirements';
 
 type ComparedVersion = { id: string; doc: StudioDoc; snapshot: string };
@@ -49,7 +51,7 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview }: {
+export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate }: {
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
@@ -60,6 +62,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   onInsert(path: string): void;
   evaluate: Evaluate;
   checkpointReview?: CheckpointReview | null;
+  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; hide(): void };
 }) {
   const { view } = project, log = view.log;
   const [browserName, setBrowserName] = useState('My project');
@@ -89,7 +92,9 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   };
 
   const checkpoint = checkpointReview ? <CheckpointApprovalChecks review={checkpointReview} /> : null;
-  if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project">
+  const candidateSection = candidate ? <CandidateReviewSection {...candidate} /> : null;
+  if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project" onCollapse={candidate?.hide}>
+    {candidateSection}
     {checkpoint}
     <div className="empty" role="status">Open a project to save into it and keep versions. A project is a folder of .bcad files; its versions are kept beside them in .barocss.</div>
     <div className="flex flex-wrap gap-1 py-1">
@@ -102,7 +107,8 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     </form>}
   </DockSection></aside>;
 
-  return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary={log ? log.current : view.store.name}>
+  return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary={log ? log.current : view.store.name} onCollapse={candidate?.hide}>
+    {candidateSection}
     {checkpoint}
     <div className={ROW} aria-label="Project">
       <span title={view.store.name}><b>{view.store.name}</b> <span className="text-muted-foreground">· {KIND[view.store.kind]}</span></span>

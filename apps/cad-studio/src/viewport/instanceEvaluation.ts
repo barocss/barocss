@@ -1,6 +1,10 @@
 import { placedBase, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import type { BodyResult, EvalResult } from '@barocss/cad-model/engine/evaluate';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
+import type { InstanceRenderLooks } from './instanceLook';
+
+export const WORKER_CANDIDATE_TINT: Vec3 = [0.42, 0.58, 0.85];
 
 export type InstanceEvaluationSource = { ok: true; key: string; base: StudioDoc } | { ok: false; error: string };
 /** Use the Model's parent-row view and evaluation key; keep authored instance identity separate. */
@@ -64,10 +68,12 @@ export async function placedProposalPreview(before: StudioDoc, after: StudioDoc,
   return replacements.size ? { kind: 'ready', bodies: replacements, volumeChange } : null;
 }
 
-export function withPlacedProposalBodies<T extends { id: string; bodies: BodyResult[] }>(instances: T[], preview: ReadonlyMap<string, BodyResult[]> | undefined): T[] {
+export function withPlacedProposalBodies<T extends { id: string; bodies: BodyResult[]; looks?: InstanceRenderLooks }>(
+  instances: T[], preview: ReadonlyMap<string, BodyResult[]> | undefined, tint?: Vec3): T[] {
   if (!preview) return instances;
   return instances.map(inst => {
     const bodies = preview.get(inst.id);
-    return bodies ? { ...inst, bodies } : inst;
+    if (!bodies) return inst;
+    return tint ? { ...inst, bodies, looks: new Map(bodies.map(body => [body.key, { color: tint }])) } : { ...inst, bodies };
   });
 }
