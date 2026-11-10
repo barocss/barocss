@@ -4,7 +4,7 @@ import { featureLabel, withNode, type ModelNode } from '../../engine/doc';
 import { withImageDraft } from '../drafts';
 import type { ImageTrace, Pt } from '../trace';
 import { insideRing as inside } from '../../engine/geom2';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, type CallOptions, json, accept, fail } from '../toolKit';
 import { r3Signed as r3 } from '../../util/round';
 
 function traceOf(state: ChatState, image: unknown): ImageTrace | string {
@@ -104,7 +104,7 @@ async function getImageLayersTool(state: ChatState, args: Record<string, unknown
   const out = imageLayers(t);
   return { state, content: json(out), isError: false, changed: false, summary: `${out.layers.length} layers: ${out.layers.map(l => `${l.id} ${l.color}`).join(', ')}` };
 }
-async function extrudeImageLayerTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function extrudeImageLayerTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const t = traceOf(state, args.image);
   if (typeof t === 'string') return fail(state, t);
   const width = Number(args.width), height = Number(args.height), base = Number(args.base ?? 0);
@@ -122,10 +122,10 @@ async function extrudeImageLayerTool(state: ChatState, args: Record<string, unkn
   }
   // (A draft, A6.4: its width and thickness the user's to confirm.)
   doc = withImageDraft(doc, state.doc.nodes.length, `image ${String(args.image ?? (state.images?.length ?? 1))} ${String(args.layer ?? 'silhouette')}`, { width, thickness: height, at });
-  return accept(state, doc, evaluate, `image ${String(args.image ?? (state.images?.length ?? 1))} ${String(args.layer ?? 'silhouette')} ${width} mm wide, ${height} thick${base ? ` from ${base}` : ''}${standing ? ', standing' : ''}`,
+  return accept(state, doc, evaluate, options, `image ${String(args.image ?? (state.images?.length ?? 1))} ${String(args.layer ?? 'silhouette')} ${width} mm wide, ${height} thick${base ? ` from ${base}` : ''}${standing ? ', standing' : ''}`,
     { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`) });
 }
-async function inflateImageLayerTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function inflateImageLayerTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   // A rounded, puffed-up solid of a traced layer (a plush or figure look) instead of a flat slab.
   const t = traceOf(state, args.image);
   if (typeof t === 'string') return fail(state, t);
@@ -169,7 +169,7 @@ async function inflateImageLayerTool(state: ChatState, args: Record<string, unkn
   if (doc === state.doc) return fail(state, `Nothing to inflate: ${skipped.join('; ') || 'the layer has no outline'}.`);
   // (A draft, A6.4: its width and depth the user's to confirm.)
   doc = withImageDraft(doc, state.doc.nodes.length, `image ${String(args.image ?? (state.images?.length ?? 1))} ${layerId}`, { width, depth, at });
-  return accept(state, doc, evaluate, `image ${String(args.image ?? (state.images?.length ?? 1))} ${layerId} inflated (${mode}) ${width} mm wide, ${depth} deep${standing ? ', standing' : ''}`,
+  return accept(state, doc, evaluate, options, `image ${String(args.image ?? (state.images?.length ?? 1))} ${layerId} inflated (${mode}) ${width} mm wide, ${depth} deep${standing ? ', standing' : ''}`,
     { ...(skipped.length ? { skipped } : {}), note: mode === 'body' ? `the body spans ${-depth / 2}…${depth / 2} about its mid plane` : 'bumps are separate bodies sunk into the surface; union them only if one solid is needed (each union is slow)' });
 }
 

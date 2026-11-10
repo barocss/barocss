@@ -25,7 +25,7 @@ import { approvalOf } from './proposals';
 import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
 import { checkPartEdit, refreshFollowed } from '../frames/skeleton';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, subToolResult } from './toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, type CallOptions, json, accept, fail, subToolResult } from './toolKit';
 import { QUERY_HANDLERS } from './part/query';
 import { IMAGE_HANDLERS } from './part/image';
 import { FEATURE_HANDLERS } from './part/features';
@@ -136,6 +136,12 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   }
   const unknown = unknownArguments(name, args);
   if (unknown) return fail(state, unknown);
+  const format = Object.prototype.propertyIsEnumerable.call(args, 'response_format') ? args.response_format : undefined;
+  const reason = Object.prototype.propertyIsEnumerable.call(args, 'because') ? args.because : undefined;
+  const options: CallOptions = {
+    responseFormat: format === 'concise' || format === 'detailed' ? format : 'auto',
+    because: typeof reason === 'string' ? reason : '',
+  };
   if (OUTPUT_TOOL_NAMES.has(name)) {
     const { runOutputTool } = await (outputsModule ??= import('./outputs'));
     const output = await runOutputTool(state.doc, state.bodies, name, args, evaluate);
@@ -175,7 +181,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     const out = runDraftTool(state.doc, name, args, plane);
     if ('error' in out) return fail(state, out.error);
     if (!out.changed) return { state, content: json(out.content), isError: false, changed: false, summary: out.summary };
-    return accept(state, out.doc, evaluate, out.summary, out.content as Record<string, unknown>);
+    return accept(state, out.doc, evaluate, options, out.summary, out.content as Record<string, unknown>);
   }
   if (REFERENCE_TOOL_NAMES.has(name)) {
     const out = await runReferenceTool(state.doc, state.bodies, name, args, evaluate);
@@ -202,7 +208,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   }
   const { part, ...rest } = args;
   if (part === undefined || part === 'base') {
-    const out = await runPartTool(state, name, rest, evaluate);
+    const out = await runPartTool(state, name, rest, evaluate, options);
     if (!out.changed || !state.doc.mates?.length) return out;
     // Parts mated to the base part follow its edit.
     const solved = solveDoc(out.state.doc, state.doc.instances);
@@ -213,7 +219,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   if (name === 'select') return fail(state, 'The viewport selection shows the base part\'s faces only; select without "part".');
   const { shop, partEvaluate, bodies } = await placedPart(state, inst, evaluate);
   const sub: ChatState = { doc: shop.doc, bodies, partOf: inst.id, rowFiles: state.rowFiles, ...(state.images ? { images: state.images } : {}) };
-  const out = await runPartTool(sub, name, rest, partEvaluate);
+  const out = await runPartTool(sub, name, rest, partEvaluate, options);
   const content = partReply(out.content, inst, shop);
   if (out.isError || !out.changed) return { ...out, state, content };
   const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
@@ -226,9 +232,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
 
-async function runPartTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
-  const args = isObj(input) ? input : {};
-  setCall(args);
+async function runPartTool(state: ChatState, name: string, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   if ('__invalid_json' in args) return fail(state, 'The tool input was not valid JSON; send it again.');
   if (DRAWING_TOOL_NAMES.has(name)) {
     // The drawing (R14.5): reading tools, and changes that only a proposal makes (the approval gate, D41).
@@ -237,13 +241,13 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     return subToolResult(state, out);
   }
   // (R3: every part tool's handler, in a module per v2 action group, by name.)
-  if (Object.hasOwn(PART_HANDLERS, name)) return PART_HANDLERS[name](state, args, evaluate, runToolCounted);
+  if (Object.hasOwn(PART_HANDLERS, name)) return PART_HANDLERS[name](state, args, evaluate, options, runToolCounted);
   // (R8.2: the SubD cage tools, D83.)
   if (CAGE_TOOL_NAMES.has(name)) {
     const r = runCageTool(state.doc, name, args);
     if ('error' in r) return fail(state, r.error, { kept: 'the part is unchanged' });
     if ('read' in r) return { state, content: json({ ok: true, ...r.read }), isError: false, changed: false, summary: `${name}: read` };
-    return accept(state, r.doc, evaluate, r.did, r.extra);
+    return accept(state, r.doc, evaluate, options, r.did, r.extra);
   }
   return fail(state, `Unknown tool "${name}".`);
 }

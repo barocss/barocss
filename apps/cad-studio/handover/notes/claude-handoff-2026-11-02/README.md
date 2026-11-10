@@ -1,5 +1,5 @@
 ---
-work_id: D582
+work_id: D583
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -101,7 +101,9 @@ D581 refuses incomplete current BOM evaluations and retains their original reaso
 
 D582 classifies the existing keep-out chord interval against the full requirement. Actual desktop Studio and local MCP verify unknown reasons, retained definite verdicts and native readback. [D582](../keepout-chord-interval-2026-11-10/README.md).
 
-Next MAIN is D583 / P0, B09, rows 04 and 16. Reproduce whether overlapping typed tool calls share the requirement override reason or response mode. [#2398](https://github.com/barocss/barocss/issues/2398).
+D583 binds override reasons and response mode to each typed tool invocation. The same-module native overlap tests, actual Studio through controlled chat, and serial local MCP verify separate surfaces. [D583](../tool-call-context-2026-11-10/README.md).
+
+Next MAIN is D584 / P0, B09, rows 04 and 16. Bind AI task inputs, owned scope and verification duties to a spec revision. [#2399](https://github.com/barocss/barocss/issues/2399).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

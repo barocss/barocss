@@ -15,7 +15,7 @@ import { verifyReferences } from '../../engine/references';
 import { rememberedEvaluate } from '../../engine/evalMemo';
 import { BATCHABLE, takesArgument } from '../toolDefinitions';
 import { CHAT_COMMANDS } from './features';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, because, json, CHECKPOINTS, accept, fail } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, type CallOptions, json, CHECKPOINTS, accept, fail } from '../toolKit';
 import { isObj } from '../../util/guards';
 import { isRefusal } from '../../engine/refusal';
 
@@ -77,7 +77,7 @@ class ScriptOn implements ScriptHost {
   }
 }
 /** A script run on a copy (A5.2): the part it leaves, its calls by line, the names it set; or the first problem, typed with its line (nothing applied). */
-async function runScriptOn(dispatch: PartRun, state: ChatState, source: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | { cur: ChatState; calls: ScriptRun['calls']; names: Record<string, string>; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }> {
+async function runScriptOn(dispatch: PartRun, state: ChatState, source: unknown, evaluate: Evaluate, because: string): Promise<{ fail: ToolOutcome } | { cur: ChatState; calls: ScriptRun['calls']; names: Record<string, string>; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }> {
   if (typeof source !== 'string' || !source.trim()) return { fail: fail(state, 'Pass "source": the script (its language is in the tool description).') };
   const host = new ScriptOn(dispatch, state, rememberedEvaluate(evaluate), because);
   let run: ScriptRun;
@@ -116,7 +116,7 @@ export async function moveOpsWith(dispatch: PartRun, state: ChatState, ops: read
 
 export const errorOf = (o: ToolOutcome) => { try { return String(JSON.parse(o.content).error); } catch { return o.content; } };
 
-async function applyOpsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, dispatch: PartRun): Promise<ToolOutcome> {
+async function applyOpsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, _options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
   // All or nothing: each op runs on what the one before left; one refusal and nothing is applied.
   const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, run = await runOps(dispatch, state, args.ops, evaluate);
   if ('fail' in run) return run.fail;
@@ -127,9 +127,9 @@ async function applyOpsTool(state: ChatState, args: Record<string, unknown>, eva
   // The feature diff is for display; approval and saving must cover the whole document.
   return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: canonical(state.doc) !== canonical(cur.doc), summary: `${results.length} ops applied` };
 }
-async function runScriptTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, dispatch: PartRun): Promise<ToolOutcome> {
+async function runScriptTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
   // (A5.2, O10: a script's commands and features as one change, all or nothing, as apply_ops.)
-  const dry = args.dryRun === true, run = await runScriptOn(dispatch, state, args.source, evaluate);
+  const dry = args.dryRun === true, run = await runScriptOn(dispatch, state, args.source, evaluate, options.because);
   if ('fail' in run) return run.fail;
   const { cur, calls, names, diff, change, broken } = run;
   const body = { ...(dry ? { dryRun: true } : { ok: true }), script: SCRIPT_VERSION, calls, names, diff, change, ...(broken.length ? { broken_references: broken } : {}) };
@@ -142,10 +142,10 @@ async function checkpointTool(state: ChatState, args: Record<string, unknown>): 
   const checkpoints = Object.fromEntries([...names.slice(-(CHECKPOINTS - 1)).map(n => [n, tx.checkpoints[n]] as const), [label, state.doc] as const]);
   return { state: { ...state, tx: { ...tx, checkpoints } }, content: json({ ok: true, checkpoint: label, model_hash: modelHash(state.doc), checkpoints: Object.keys(checkpoints) }), isError: false, changed: false, summary: `checkpoint ${label}` };
 }
-async function restoreTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function restoreTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const doc = state.tx?.checkpoints[String(args.name ?? '')];
   if (!doc) return fail(state, `No checkpoint "${String(args.name)}"; checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}.`);
-  return accept(state, doc, evaluate, `restored checkpoint ${String(args.name)}`, { diff: treeDiff(state.doc, doc) });
+  return accept(state, doc, evaluate, options, `restored checkpoint ${String(args.name)}`, { diff: treeDiff(state.doc, doc) });
 }
 async function diffTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   const pick = (n: unknown) => n === undefined || n === 'current' ? state.doc : n === 'best' ? state.policy?.best?.doc : state.tx?.checkpoints[String(n)];
@@ -153,14 +153,14 @@ async function diffTool(state: ChatState, args: Record<string, unknown>): Promis
   if (!a || !b) return fail(state, `from and to are checkpoint names, "best" or "current" (checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}).`);
   return { state, content: json({ from: args.from ?? 'current', to: args.to ?? 'current', diff: treeDiff(a, b) }), isError: false, changed: false, summary: 'diff' };
 }
-async function restoreBestTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function restoreBestTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const best = state.policy?.best;
   if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
   if (!sameRequirementSuite(best.doc, state.doc)) return fail(state, 'The requirements have changed: run check_spec before restoring the best snapshot.');
   if (sameRecoveryInputs(best.doc, state.doc)) return fail(state, 'The part is the best snapshot already.');
   const hardStatus = best.hardFulfilled === true ? 'hard requirements fulfilled' : 'hard requirements unmet or unknown';
   const next = best.doc.requirements === state.doc.requirements ? best.doc : { ...best.doc, requirements: state.doc.requirements };
-  return accept(state, next, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing, ${hardStatus})`);
+  return accept(state, next, evaluate, options, `restored the best snapshot ${best.hash} (${best.pass} passing, ${hardStatus})`);
 }
 
 /** The history group's handlers, by v1 tool name (R3). */

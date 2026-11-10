@@ -17,7 +17,7 @@ import { checkSkeletonEdit, SKELETON_CODES, solvedSkeleton, withFollowed } from 
 import { weldList, type WeldRecord } from '../../frames/welds';
 import { beadOwnershipError, type BeadOwnership } from '../../frames/beadOwnership';
 import { bearingContextOf } from '../../engine/bearingContext';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail, checkValues, strings, list, inRange } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, type CallOptions, json, accept, fail, checkValues, strings, list, inRange } from '../toolKit';
 import { isObj, isVec3 } from '../../util/guards';
 import { mountRowsOf } from '../../engine/mountRows';
 import { mountAxis } from '../../app/mounts';
@@ -141,7 +141,7 @@ function removeRows<T extends { id: string }>(rows: readonly T[] | undefined, re
   return { rows: was.filter(r => !remove.includes(r.id)) };
 }
 
-async function runCommandTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function runCommandTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const cmd = commandById(String(args.command));
   if (!cmd?.build) return fail(state, `Unknown command "${String(args.command)}". Commands: ${CHAT_COMMANDS.join(', ')}.`);
   // (Faces and edges by name or by selector, A1.2: each selector resolves to its name, reported back.)
@@ -170,11 +170,11 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
     const row = mountRowsOf(state.doc).get(String(values.row))!, f = selection.faces[0], face = state.bodies[f.body].mesh.faces[f.face], k = [0, 1, 2].find(i => Math.abs(Math.abs(face.normal[i]) - 1) < 1e-6)!;
     const mount = { row: row.id, ...(row.designation ? { designation: row.designation } : {}), type: row.type, ...(row.source ? { source: row.source } : { estimate: true }), ...(row.unchecked?.length ? { unchecked: row.unchecked } : {}),
       axis: mountAxis(row, face, face.centroid[k], Number(values.x), Number(values.y), Number(values.turn ?? 0)), shaft: row.shaft };
-    return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), mount, added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
+    return accept(state, next, evaluate, options, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), mount, added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
   }
-  return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
+  return accept(state, next, evaluate, options, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
 }
-async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const list = Array.isArray(args.features) ? args.features : null;
   if (!list?.length) return fail(state, '"features" is a non-empty list of feature nodes.');
   let doc = state.doc;
@@ -194,9 +194,9 @@ async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, 
     if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
     doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
   }
-  return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`), ...(solves.length ? { skeletons: solves } : {}) });
+  return accept(state, doc, evaluate, options, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`), ...(solves.length ? { skeletons: solves } : {}) });
 }
-async function editFeatureTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function editFeatureTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const index = Number(args.index), nodes = state.doc.nodes;
   if (!Number.isInteger(index) || !nodes[index]) return fail(state, `There is no feature ${String(args.index)} (features 0–${nodes.length - 1}).`);
   let next: ModelNode[];
@@ -229,13 +229,13 @@ async function editFeatureTool(state: ChatState, args: Record<string, unknown>, 
   // (Names later features store, renumbered by this edit, matched again by their geometry: engine/rematch.ts.)
   const rm = await rematchNames(state.doc, prefixDoc({ ...state.doc, nodes: next }, next.length), evaluate);
   if ('error' in rm) return fail(state, rm.error, { kept: 'the part is unchanged' });
-  return accept(state, rm.doc, evaluate, `edited ${index}: ${featureLabel(rm.doc.nodes[index], index, rm.doc.nodes)}`,
+  return accept(state, rm.doc, evaluate, options, `edited ${index}: ${featureLabel(rm.doc.nodes[index], index, rm.doc.nodes)}`,
     rm.changes.length ? { rematched: rm.changes.map(c => ({ feature: c.node, was: c.from, now: c.to })), note_rematched: 'these stored names were renumbered by the edit and matched again by their geometry; check them' } : {}, true);
 }
-async function deleteFeatureTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function deleteFeatureTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const r = deleteFeature(state.doc, Number(args.index));
   if ('error' in r) return fail(state, r.error);
-  return accept(state, r.doc, evaluate, `deleted feature${r.removed.length > 1 ? 's' : ''} ${r.removed.join(', ')}`, { note_indices: 'later features moved down; face and edge names (by feature id) stayed as they were' });
+  return accept(state, r.doc, evaluate, options, `deleted feature${r.removed.length > 1 ? 's' : ''} ${r.removed.join(', ')}`, { note_indices: 'later features moved down; face and edge names (by feature id) stayed as they were' });
 }
 async function setMaterialTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // (O73: the body's material, on its look — what its mass, the BOM and a library part's checks read before the brief's.
@@ -247,11 +247,11 @@ async function setMaterialTool(state: ChatState, args: Record<string, unknown>):
   for (const b of picked) doc = withLook(doc, b, { material: id });
   return { state: { ...state, doc }, content: json({ ok: true, bodies: picked.map(b => b.key), material: id }), isError: false, changed: true, summary: `${picked.map(b => b.key).join(', ')}: ${id}` };
 }
-async function loadRowsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function loadRowsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const loaded = loadPersonRows(state.doc, args.kind, args.file, args.feature, state.rowFiles);
-  return 'error' in loaded ? fail(state, loaded.error) : accept(state, loaded.doc, evaluate, `Loaded ${loaded.rows} ${String(args.kind)} rows`, { source: loaded.source });
+  return 'error' in loaded ? fail(state, loaded.error) : accept(state, loaded.doc, evaluate, options, `Loaded ${loaded.rows} ${String(args.kind)} rows`, { source: loaded.source });
 }
-async function setStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function setStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const asked = rowsAsked(args, 'allowance');
   if ('error' in asked) return fail(state, asked.error);
   const { remove } = asked;
@@ -263,7 +263,7 @@ async function setStockTool(state: ChatState, args: Record<string, unknown>, eva
   if ('error' in kept) return fail(state, kept.error);
   const machining = { ...loaded.doc.machining, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.allowance !== undefined ? { allowance: args.allowance as number } : {}) };
   const doc = args.allowance === undefined && !remove.length ? loaded.doc : { ...loaded.doc, machining };
-  return accept(state, doc, evaluate, 'Stock and machining allowance');
+  return accept(state, doc, evaluate, options, 'Stock and machining allowance');
 }
 async function setCastingTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // (IM8b, O108: the casting pattern's — the faces machined after casting, by name, and the user's own allowance and shrinkage.)
@@ -283,7 +283,7 @@ async function setCastingTool(state: ChatState, args: Record<string, unknown>): 
  * O21: the part's named parameters, all or nothing — added, given values, renamed, bound to a feature's value, removed
  * (engine/parameters.ts, in that order) — then evaluated: a value that does not build is refused, the part unchanged.
  */
-async function setParametersTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function setParametersTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const { add, set, rename, bind, remove } = args;
   if (add === undefined && set === undefined && rename === undefined && bind === undefined && remove === undefined) return fail(state, 'Give add, set, rename, bind, remove or any of them.');
   const numbers = (v: unknown): v is Record<string, number> => isObj(v) && Object.values(v).every(x => typeof x === 'number');
@@ -300,9 +300,9 @@ async function setParametersTool(state: ChatState, args: Record<string, unknown>
     for (const name of (remove ?? []) as string[]) doc = removeParameter(doc, name);
   } catch (e) { if (isRefusal(e, ...PARAMETER_CODES)) return fail(state, e.message, { kept: 'the part is unchanged' }); throw e; }
   const parameters = Object.entries(doc.parameters).map(([name, value]) => ({ name, value, uses: parameterUses(doc.nodes, name) }));
-  return accept(state, doc, evaluate, `parameters: ${[add && `${Object.keys(add).length} added`, set && `${Object.keys(set).length} set`, rename && `${Object.keys(rename).length} renamed`, bind && `${(bind as unknown[]).length} bound`, remove && `${(remove as unknown[]).length} removed`].filter(Boolean).join(', ')}`, { parameters });
+  return accept(state, doc, evaluate, options, `parameters: ${[add && `${Object.keys(add).length} added`, set && `${Object.keys(set).length} set`, rename && `${Object.keys(rename).length} renamed`, bind && `${(bind as unknown[]).length} bound`, remove && `${(remove as unknown[]).length} removed`].filter(Boolean).join(', ')}`, { parameters });
 }
-async function setFrameStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function setFrameStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const asked = rowsAsked(args, 'kerf');
   if ('error' in asked) return fail(state, asked.error);
   const { remove } = asked;
@@ -313,9 +313,9 @@ async function setFrameStockTool(state: ChatState, args: Record<string, unknown>
   if ('error' in kept) return fail(state, kept.error);
   const frames = { ...loaded.doc.frames, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.kerf !== undefined ? { kerf: args.kerf as number } : {}) };
   const doc = args.kerf === undefined && !remove.length ? loaded.doc : { ...loaded.doc, frames };
-  return accept(state, doc, evaluate, 'Frame stock and saw kerf');
+  return accept(state, doc, evaluate, options, 'Frame stock and saw kerf');
 }
-async function setFrameSectionsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function setFrameSectionsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const asked = rowsAsked(args, null);
   if ('error' in asked) return fail(state, asked.error);
   const { remove } = asked;
@@ -326,10 +326,10 @@ async function setFrameSectionsTool(state: ChatState, args: Record<string, unkno
   // (FRc, O117: the report names the rows the file added or replaced, and the ids removed.)
   const was = new Map((state.doc.frames?.sections ?? []).map(r => [r.id, r])), now = result.doc.frames?.sections ?? [];
   const added = now.filter(r => !was.has(r.id)).map(r => r.id), replaced = now.filter(r => was.has(r.id) && was.get(r.id) !== r).map(r => r.id);
-  return accept(state, result.doc, evaluate, `section library: ${[added.length ? `added ${added.join(', ')}` : '', replaced.length ? `changed ${replaced.join(', ')}` : '', result.removed.length ? `removed ${result.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
+  return accept(state, result.doc, evaluate, options, `section library: ${[added.length ? `added ${added.join(', ')}` : '', replaced.length ? `changed ${replaced.join(', ')}` : '', result.removed.length ? `removed ${result.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
     { added, replaced, removed: result.removed, rows: now.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) });
 }
-async function setWeldsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+async function setWeldsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   // (FRd1, O118: the person's welds by joint — kind, size, all round, notes — over the rule's; a joint the part does not have refused, listing them.)
   const given = Array.isArray(args.welds) ? args.welds : [], remove = strings(args.remove);
   const policyEdit = Object.hasOwn(args, 'beadOwnership');
@@ -361,7 +361,7 @@ async function setWeldsTool(state: ChatState, args: Record<string, unknown>, eva
   }
   const doc = { ...state.doc, frames };
   // (FRk2: a record is a bead — the part built again, so the bodies and the weld list show the beads, or why not.)
-  return accept(state, doc, evaluate, `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}${policyEdit ? ', ownership policy edited' : ''}`, { set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length, beadOwnership: frames.beadOwnership ?? null });
+  return accept(state, doc, evaluate, options, `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}${policyEdit ? ', ownership policy edited' : ''}`, { set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length, beadOwnership: frames.beadOwnership ?? null });
 }
 
 /** The feature group's handlers, by v1 tool name (R3). */

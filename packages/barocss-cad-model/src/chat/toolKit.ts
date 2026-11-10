@@ -15,22 +15,15 @@ import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { r3Signed as r3 } from '../util/round';
 import { isObj } from '../util/guards';
 
-/**
- * How much a result lists (A2.4): 'concise' facts and what changed without the bodies' faces and edges,
- * 'detailed' them all (paged), else ('auto') them when the part is small. Set per call from `response_format`.
- */
-export let responseFormat: 'auto' | 'concise' | 'detailed' = 'auto';
-/** The reason a change may break a passing hard requirement (`because`), per call. */
-export let because = '';
-/** A part tool call's flags, set as it starts (R3: they lived beside runPartTool, read by every handler). */
-export function setCall(args: Record<string, unknown>): void {
-  responseFormat = args.response_format === 'concise' || args.response_format === 'detailed' ? args.response_format : 'auto';
-  because = typeof args.because === 'string' ? args.because : '';
+/** @internal The response mode and hard-requirement reason for one invocation. */
+export interface CallOptions {
+  readonly responseFormat: 'auto' | 'concise' | 'detailed';
+  readonly because: string;
 }
 /** The tools' own runner, passed to a handler that calls tools again (a batch, a script, a proposal) — no module imports tools.ts. */
 export type PartRun = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => Promise<ToolOutcome>;
 /** A part tool's handler (R3: one per v1 tool, in a module per v2 action group). */
-export type PartHandler = (state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, run: PartRun) => Promise<ToolOutcome>;
+export type PartHandler = (state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions, run: PartRun) => Promise<ToolOutcome>;
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
 /** The part as the chat turn has built it so far. */
@@ -76,7 +69,7 @@ export const CHECKPOINTS = 20;
 export const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
-export async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, what: string, extra: Record<string, unknown> = {}, refresh = false): Promise<ToolOutcome> {
+export async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, { because, responseFormat }: CallOptions, what: string, extra: Record<string, unknown> = {}, refresh = false): Promise<ToolOutcome> {
   const ownershipError = documentBeadOwnershipError(next);
   if (ownershipError) return fail(state, ownershipError);
   // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)

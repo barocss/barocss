@@ -1,0 +1,297 @@
+{
+  "workId": "D583",
+  "parent": "5e22b48b81b01988db5421cf4562a0c5d389aadb",
+  "tier": "FULL",
+  "issue": 2398,
+  "node": "22.19.0",
+  "gate": "gate.sh acquire heavy 240 D583-root-CASE",
+  "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d583-2026-11-10",
+  "studioCommand": "cd apps/cad-studio && D583_SOURCE_FROZEN=1 node test/tool-call-context-browser.mjs EXTERNAL/CASE",
+  "studio": [
+    {
+      "case": "studio-repro01",
+      "harness": "FAIL",
+      "product": "FAIL",
+      "receiptSha256": "8ecacedb942471c12b3cede2370f913398f9f30aa4a13100205660be0e0dcc13",
+      "frozenSha256": "5678f3799b4f3d8f39ba0030c8a4112172e6134922e2dda4edb8aaafaea04c91",
+      "sourceCount": 947,
+      "driverSha256": "64334c261d2ef73a0628e38679da3c5a614e91de9f1be6dde8a160c8faad6a0c",
+      "frozenThroughCleanup": true,
+      "snapshots": 2,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 66827,
+      "nodePPID": 66784,
+      "serverURL": "http://127.0.0.1:52800",
+      "firstFailure": "The grouped native Model accepted the reasonless scale while the companion used a reason. Harness stopped before emitting an invalid commit."
+    },
+    {
+      "case": "studio-fixed01",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "ddc669378f01908288cfd2153cbc5e88cc7c724ab18f726b1b8d975b810e6a23",
+      "frozenSha256": "c7b49ec1f5b8a1edb29fabb492aaf41e348e05fb73b17a25bf66f2cd228e8bb6",
+      "sourceCount": 947,
+      "driverSha256": "64334c261d2ef73a0628e38679da3c5a614e91de9f1be6dde8a160c8faad6a0c",
+      "frozenThroughCleanup": true,
+      "snapshots": 7,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 73623,
+      "nodePPID": 73622,
+      "serverURL": "http://127.0.0.1:53479"
+    },
+    {
+      "case": "studio-fixed02",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "f1d3c6871159112d3d1b8e93f0699e549166672c091efad0decb6fb1b86fc1f6",
+      "frozenSha256": "fe10e365c810cb82c31371fbf155ff58cc525710b3ad7081c01a46095a732a14",
+      "sourceCount": 947,
+      "driverSha256": "64334c261d2ef73a0628e38679da3c5a614e91de9f1be6dde8a160c8faad6a0c",
+      "frozenThroughCleanup": true,
+      "snapshots": 7,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "nodePID": 81466,
+      "nodePPID": 81449,
+      "serverURL": "http://127.0.0.1:54118"
+    }
+  ],
+  "desktopGeometry": {
+    "originalMM": [
+      40,
+      20,
+      8
+    ],
+    "acceptedMM": [
+      60,
+      30,
+      12
+    ],
+    "volumesMM3": [
+      6400,
+      21600
+    ],
+    "centroidsMM": [
+      [
+        20,
+        10,
+        4
+      ],
+      [
+        30,
+        15,
+        6
+      ]
+    ],
+    "absoluteTolerance": 1e-08
+  },
+  "desktopSavedFile": {
+    "file": "/Users/user/.cache/barocss-cad-evidence/d583-2026-11-10/studio-fixed02/saved-project-document.bcad",
+    "hash": "764193cc800cfccfcfbc463459464cbeed6252e907e14b16c637b8f81c2740cd",
+    "semanticEquality": true,
+    "source": "OPFS"
+  },
+  "mcpCommand": "python3 -I EXTERNAL/native-mcp.py REPO EXTERNAL baseline|release",
+  "mcpScriptSha256": "0977ff9d90f6f331ceaa5d17dea6489d63a74b9c45974b0e3dcb557ca9f3bcb3",
+  "serialMcp": {
+    "baseline": {
+      "status": "PASS",
+      "mode": "baseline",
+      "sourceFileSha256": "e2056bd229c4e70c2d1602952fb744e285dbbed34e9fce98768863535d943a14",
+      "savedFileSha256": "051a039ff08abe1a795aab0f944d197ab3ac93ad983ce8ec56ad864a8ab95e2f",
+      "originalBoundsMM": [
+        40,
+        20,
+        8
+      ],
+      "acceptedBoundsMM": [
+        60,
+        30,
+        12
+      ],
+      "refusedError": "This change breaks hard requirement that passed: L (\"40 mm long\": measured 60, expected 40 ± 0.1. the overall x size). Change it otherwise, or make it anyway with \"because\": why.",
+      "conciseHasBodies": false,
+      "detailedFaces": 6,
+      "detailedEdges": 12,
+      "originalBytesPreservedByRefusal": true,
+      "freshRead": true
+    },
+    "release": {
+      "status": "PASS",
+      "mode": "release",
+      "sourceFileSha256": "e2056bd229c4e70c2d1602952fb744e285dbbed34e9fce98768863535d943a14",
+      "savedFileSha256": "051a039ff08abe1a795aab0f944d197ab3ac93ad983ce8ec56ad864a8ab95e2f",
+      "originalBoundsMM": [
+        40,
+        20,
+        8
+      ],
+      "acceptedBoundsMM": [
+        60,
+        30,
+        12
+      ],
+      "refusedError": "This change breaks hard requirement that passed: L (\"40 mm long\": measured 60, expected 40 ± 0.1. the overall x size). Change it otherwise, or make it anyway with \"because\": why.",
+      "conciseHasBodies": false,
+      "detailedFaces": 6,
+      "detailedEdges": 12,
+      "originalBytesPreservedByRefusal": true,
+      "freshRead": true
+    }
+  },
+  "checks": [
+    {
+      "status": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test tool-call-context",
+      "log": "model-repro03.log",
+      "logSha256": "6d4e2116b7d80e3637c7c73c1d8e5b20b53b7abb1f661a1746228ccb52c184ad",
+      "tests": 9,
+      "pass": 0,
+      "fail": 9,
+      "firstFailure": "Reasonless native scale was accepted and response detail came from the companion call."
+    },
+    {
+      "status": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test tool-call-context",
+      "log": "model-admission-repro.log",
+      "logSha256": "6c089bb1e1bdd6ef15f4e2254d7fdb708704af1b51e1c6ccc060c703ed86f972",
+      "tests": 10,
+      "pass": 9,
+      "fail": 1,
+      "firstFailure": "Intermediate own-property capture accepted a non-enumerable legacy reason."
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test tool-call-context spec.test transactions script.test proposals.test drafts.test versions.test toolset.test tool-contract.test evalCount.test",
+      "log": "model-release.log",
+      "logSha256": "e2e5392c85b0d62efb7343f05e5cd8bf568bf6d640908eeb4bfce48f211bcc9d",
+      "tests": 91,
+      "pass": 91,
+      "fail": 0
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test tool-contract-mcp toolset-mcp chat-transport chat-session",
+      "log": "studio-release.log",
+      "logSha256": "ecbfeb7ccb1a74faca742518246ce7a45e271f39de36e7bd079dc8418c8dd00f",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "log": "model-types-release.log",
+      "logSha256": "3c7e693405b36ef125edb5a7e7560d5b028630108d19d118a40f213c93662c2f"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "log": "studio-types-release.log",
+      "logSha256": "b1101c9678d7cc6cbcd7f4cfd185f3571ae4b53bd3bfa779474629bd2a2ce18b"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec eslint packages/barocss-cad-model/src/{chat/toolKit.ts,chat/tools.ts,chat/part/features.ts,chat/part/image.ts,chat/part/history.ts,chat/part/query.ts,chat/part/proposals.ts,versions/tools.ts} packages/barocss-cad-model/test/tool-call-context.test.ts",
+      "log": "lint-release.log",
+      "logSha256": "13d45baf875fa687b47d73da9de3aa01e9c0fc3e435cbc8dc4d1d219661d68ac"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/tool-call-context-browser.mjs",
+      "log": "driver-syntax-release.log",
+      "logSha256": "277cd953e26eafa013746d69c70f31747b7899cc5aac10e4e17ca2ac64447f24"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build-release",
+      "log": "build-release.log",
+      "logSha256": "e19da52a494f6847a76997713adda2249e881e2bdbe8d62f4f53dd1064f6de55"
+    }
+  ],
+  "mutations": {
+    "status": "PASS",
+    "command": "node EXTERNAL/mutations.mjs REPO EXTERNAL",
+    "cases": [
+      {
+        "name": "read-hidden-reason",
+        "status": "KILLED"
+      },
+      {
+        "name": "ambient-reason",
+        "status": "KILLED"
+      },
+      {
+        "name": "ambient-format",
+        "status": "KILLED"
+      },
+      {
+        "name": "drop-script-reason",
+        "status": "KILLED"
+      },
+      {
+        "name": "reuse-concise-default-on-draft",
+        "status": "KILLED"
+      }
+    ],
+    "scriptSha256": "6968063ada8ad644eb6b6f880e808bfaf995663c64650ff7ea3476bbabd04338",
+    "logSha256": "1656027287ec46119e2d7d35e47df19708fe0d4d678512a39b608cb589c61ad3"
+  },
+  "apiInventory": {
+    "baselineCheck": "FAIL",
+    "baselineReason": {
+      "rule": "IV001",
+      "message": "Canonical public inventory differs",
+      "path": "$.exposures.length",
+      "expected": 6472,
+      "actual": 6492
+    },
+    "baselineCheckCommand": "node apps/library-docs/scripts/api-inventory.mjs --check",
+    "comparisonCommand": "node apps/library-docs/scripts/api-inventory.mjs --write-expected EXTERNAL/NEW_FILE",
+    "beforeSha256": "25702d7268d058074768d5413bb6fe73fcbd96efc5b28dd5aef6897b6f230b22",
+    "afterSha256": "1ae33ef9233dd63c0ad649524496a16225319a03aa3d28b46ce99f5a1b4d8efd",
+    "beforeExposures": 6492,
+    "afterExposures": 6490,
+    "scope": "@barocss/cad-model ./chat/toolKit",
+    "removed": [
+      "because",
+      "responseFormat",
+      "setCall"
+    ],
+    "added": [
+      "CallOptions"
+    ],
+    "changed": [
+      "PartHandler",
+      "accept"
+    ]
+  },
+  "reviews": {
+    "functional": "APPROVE",
+    "quality": "APPROVE",
+    "security": "APPROVE",
+    "rootVisual": "PASS, refused chat, permitted chat, and fresh Open"
+  },
+  "notRun": [
+    "Live providers and simultaneous public Studio chat turns",
+    "Concurrent writes to the same document",
+    "Mobile",
+    "Whole Model/kernel suites and whole B09 acceptance"
+  ]
+}

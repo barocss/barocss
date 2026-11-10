@@ -13,7 +13,7 @@ import { nestCutList } from '../../frames/nesting';
 import { followedStale, staleText } from '../../frames/skeleton';
 import { weldList } from '../../frames/welds';
 import { beadAccounting } from '../../frames/beadAccounting';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, responseFormat, v3, json, describeBodies, features, fail, strings } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, type CallOptions, v3, json, describeBodies, features, fail, strings } from '../toolKit';
 import { r3Signed as r3 } from '../../util/round';
 import { isObj } from '../../util/guards';
 import { variabilityView } from '../variability';
@@ -23,7 +23,7 @@ export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMin: l.cleara
   hole: { class: l.hole.class, nominal: l.hole.nominal, upper: l.hole.upper, lower: l.hole.lower, min: l.hole.min, max: l.hole.max, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
   shaft: { class: l.shaft.class, nominal: l.shaft.nominal, upper: l.shaft.upper, lower: l.shaft.lower, min: l.shaft.min, max: l.shaft.max, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 
-async function getPartSummaryTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
+async function getPartSummaryTool(state: ChatState, args: Record<string, unknown>, _evaluate: Evaluate, { responseFormat }: CallOptions): Promise<ToolOutcome> {
   // Big parts (lofted figures) have hundreds of faces: list them for one body at a time, the rest by count.
   const only = typeof args.body === 'string' ? args.body : null;
   if (only && !state.bodies.some(b => b.key === only)) return fail(state, `No body "${only}"; bodies: ${state.bodies.map(b => b.key).join(', ') || 'none'}.`);

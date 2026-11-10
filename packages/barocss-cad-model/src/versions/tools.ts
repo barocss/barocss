@@ -4,7 +4,7 @@
 // (versions/*.ts); a document it gives is taken as any change is (accept: evaluated, hard requirements kept). A merge's
 // conflicts come back as data, for the agent to merge again with an answer for each.
 import type { StudioDoc } from '../engine/doc';
-import { accept, fail, json, type ChatState, type PartHandler, type ToolOutcome } from '../chat/toolKit';
+import { accept, fail, json, type ChatState, type PartHandler, type CallOptions, type ToolOutcome } from '../chat/toolKit';
 import { BarocssError } from '@barocss/cad/api';
 import { changesOf } from './compare';
 import { applyBranch, headOf, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
@@ -60,11 +60,11 @@ async function compareTool(state: ChatState, args: Record<string, unknown>): Pro
     return { state, content: json({ from, to, ...c }), isError: false, changed: false, summary: `compare ${String(from)} → ${String(to)}` };
   } catch (e) { return refused(state, e); }
 }
-async function restoreVersionTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
+async function restoreVersionTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2], options: CallOptions): Promise<ToolOutcome> {
   if (!state.versions) return fail(state, NO_LOG);
   try {
     const v = versionNamed(state.versions, String(args.id ?? '')), doc = readVersion(state.versions, v.id);
-    return accept(state, doc, evaluate, `restored version ${v.name ?? v.id}`, { version: brief(v), changes: changesOf(state.doc, doc).features.length });
+    return accept(state, doc, evaluate, options, `restored version ${v.name ?? v.id}`, { version: brief(v), changes: changesOf(state.doc, doc).features.length });
   } catch (e) { return refused(state, e); }
 }
 async function branchTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
@@ -75,21 +75,21 @@ async function branchTool(state: ChatState, args: Record<string, unknown>): Prom
     return { state: { ...state, versions: log }, content: json({ ok: true, branch: b.name, from: b.from, current: log.current }), isError: false, changed: false, summary: `branch ${b.name}` };
   } catch (e) { return refused(state, e); }
 }
-async function switchTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
+async function switchTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2], options: CallOptions): Promise<ToolOutcome> {
   if (!state.versions) return fail(state, NO_LOG);
   try {
     const r = applyBranch(state.versions, String(args.branch ?? ''), state.doc, { discard: args.discard === true });
-    return accept({ ...state, versions: r.log }, r.doc, evaluate, `switched to ${r.log.current}`, { branch: r.log.current, version: brief(headOf(r.log)) });
+    return accept({ ...state, versions: r.log }, r.doc, evaluate, options, `switched to ${r.log.current}`, { branch: r.log.current, version: brief(headOf(r.log)) });
   } catch (e) { return refused(state, e); }
 }
-async function mergeTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
+async function mergeTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2], options: CallOptions): Promise<ToolOutcome> {
   if (!state.versions) return fail(state, NO_LOG);
   const resolve = args.resolve;
   if (resolve !== undefined && (!resolve || typeof resolve !== 'object' || Array.isArray(resolve) || Object.values(resolve).some(v => v !== 'ours' && v !== 'theirs'))) return fail(state, 'resolve: {where: "ours" | "theirs"} for each conflict.');
   try {
     const from = String(args.from ?? ''), r = applyMerge(state.versions, { from, working: state.doc, at: now(), by: 'agent', note: `merged from ${from}`, ...(resolve ? { resolve: resolve as Record<string, Side> } : {}) });
     if ('conflicts' in r) return { state, content: json({ ok: false, conflicts: r.conflicts.map(conflictOf), note: 'Nothing merged. Merge again with resolve: {where: "ours" | "theirs"} for each conflict ("ours": the current branch).' }), isError: false, changed: false, summary: `${r.conflicts.length} conflicts` };
-    return accept({ ...state, versions: r.log }, r.doc, evaluate, `merged ${from} into ${r.log.current}`, { fast_forward: r.fastForward, ...(r.version ? { version: brief(r.version) } : {}), ...(r.dropped.length ? { dropped: r.dropped } : {}) });
+    return accept({ ...state, versions: r.log }, r.doc, evaluate, options, `merged ${from} into ${r.log.current}`, { fast_forward: r.fastForward, ...(r.version ? { version: brief(r.version) } : {}), ...(r.dropped.length ? { dropped: r.dropped } : {}) });
   } catch (e) { return refused(state, e); }
 }
 
