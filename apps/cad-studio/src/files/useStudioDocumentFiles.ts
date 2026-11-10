@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
@@ -56,11 +56,12 @@ interface StudioDocumentFileOptions {
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
   fit(): void;
-  onNotice(notice: FriendlyError): void;
+  onNotice: Dispatch<SetStateAction<FriendlyError | null>>;
 }
 
 /** What Open reads, said when it is given another kind of file. */
 const OPEN_READS = 'Open reads models (.bcad, .json), worker files (.bcad-run, .bcad-candidate), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
+const CANDIDATE_REVIEW_REFUSED = 'Could not review the worker candidate';
 
 /** File actions use the App's current document, dispatch and Worker ownership. */
 export function useStudioDocumentFiles({ document, ownership, worker, changes, fit, onNotice: setToast }: StudioDocumentFileOptions) {
@@ -154,7 +155,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   };
 
   const openCandidate = async (file: File, current: () => boolean) => {
-    const refused = (hint: string) => setToast({ title: 'Could not review the worker candidate', hint, detail: '' });
+    const refused = (hint: string) => setToast({ title: CANDIDATE_REVIEW_REFUSED, hint, detail: '' });
     const baseline = docNow.current;
     if (file.size > MAX_TASK_CANDIDATE_BYTES) { refused('The worker candidate exceeds the supported file size.'); return; }
     const text = await file.text();
@@ -174,8 +175,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       refused('Could not preview the exact placed occurrence.'); return;
     }
     if (sessionBlocked('reviewing a worker candidate')) return;
-    changes.onCandidateOpened({ taskId: candidate.task.id, candidateDigest: candidate.receipt.candidateDigest, occurrence, feature,
+    changes.onCandidateOpened({ taskId: candidate.task.id, attemptId: candidate.receipt.attemptId, candidateDigest: candidate.receipt.candidateDigest, occurrence, feature,
       beforeMm: candidate.beforeMm, candidateMm: candidate.receipt.submission.heightMm, checks: verified.checks, preview });
+    setToast(current => current?.title === CANDIDATE_REVIEW_REFUSED ? null : current);
   };
 
   const open = async (file: File) => {

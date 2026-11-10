@@ -1,5 +1,5 @@
 ---
-work_id: D613
+work_id: D614
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -163,7 +163,9 @@ D612 presents the original and approved requirement results from a verified work
 
 D613 exports a pending task receipt and presents its read-only preview in Studio. The accepted model and local run remain unchanged by review. [D613](../../notes/pending-worker-candidate-review-2026-11-11/README.md).
 
-Next MAIN is D614 / P0 automation, B09 follow-up, rows 04, 12 and 16. Bind the local terminal decision to the exact candidate reviewed in Studio. Use the exported receipt to verify the run, attempt, specification, baseline and candidate before confirming. Reuse the host’s existing decision and single-writer publication path, and verify that a refreshed or mismatched receipt cannot publish. [#2402](https://github.com/barocss/barocss/issues/2402).
+D614 accepts or rejects the exact candidate named by a Studio review receipt. The desktop fixture refuses the superseded attempt, approves the new one and saves the reopened checkpoint. [D614](../../notes/review-bound-worker-decision-2026-11-11/README.md).
+
+Next MAIN is D615 / P0 automation, B09 follow-up, rows 04, 12 and 16. Finish one editable two-part run through two Studio reviews and two exact terminal approvals. Rebuild the second candidate against the first accepted native file. Open the final checkpoint in Studio, make one driving edit and verify one supported output from the saved working model. Keep the historical approval checks tied to their original revisions. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

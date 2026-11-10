@@ -1,4 +1,4 @@
-import { readFileSync, realpathSync, statSync } from 'node:fs';
+import { closeSync, constants, fstatSync, openSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
@@ -6,16 +6,18 @@ import { readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
-import { encodeCandidateReview, readCandidateReview, TASK_CANDIDATE_EXT } from '../../src/files/taskCandidateReview';
+import { decodeCandidateReview, encodeCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
+  TASK_CANDIDATE_EXT, type CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 import { openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
-import { TaskRunStore, type RunLimits, type RunRecord } from './store';
+import { candidateReviewFor, TaskRunStore, type RunLimits, type RunRecord } from './store';
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
 interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm: Record<string, number> }
-const HELP = 'cad-cli task-run <start dir config.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+const HELP = 'cad-cli task-run <start dir config.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
@@ -35,6 +37,45 @@ async function operator(challenge: string) {
     if (answer.trim() !== challenge) throw new Error('The terminal action was not confirmed.');
     return userToken(new Date().toISOString());
   } finally { terminal.close(); }
+}
+
+function readDecisionReview(file: string): CandidateReviewReceipt {
+  const fd = openSync(file, constants.O_RDONLY | constants.O_NONBLOCK);
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.size > MAX_TASK_CANDIDATE_BYTES) throw new Error('Expected a local candidate review file within the supported size.');
+    const bytes = Buffer.alloc(stat.size + 1);
+    let size = 0;
+    while (size < bytes.length) {
+      const count = readSync(fd, bytes, size, bytes.length - size, null);
+      if (!count) break;
+      size += count;
+    }
+    if (size !== stat.size) throw new Error('The worker candidate review changed while reading.');
+    const review = decodeCandidateReview(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, size)));
+    if ('error' in review) throw new Error(review.error);
+    return review;
+  } finally { closeSync(fd); }
+}
+
+function requireMatchingReview(review: CandidateReviewReceipt, current: CandidateReviewReceipt) {
+  // Unrelated work and writer recovery can advance the run revision without changing the candidate.
+  if (review.revision > current.revision || canonical({ ...review, revision: current.revision }) !== canonical(current))
+    throw new Error('The reviewed candidate differs from the current attempt. Export and review it again.');
+}
+
+async function confirmReviewedDecision(run: string, operation: string, task: string, decision: 'approve' | 'reject', file: string, print: (value: unknown) => void) {
+  const review = readDecisionReview(file);
+  const initial = TaskRunStore.readCandidateReview(run, task);
+  requireMatchingReview(review, initial.receipt);
+  print({ reviewedCandidate: review, decision });
+  const token = await operator(`${decision} ${review.candidateDigest.slice(0, 12)}`);
+  const guard = (record: RunRecord) => {
+    requireMatchingReview(review, candidateReviewFor(record, task));
+    if (record.state.controlRevision !== initial.controlRevision) throw new Error('The run controls changed during confirmation. Review the candidate again.');
+    if (record.state.operations.some(prior => prior.id === operation)) throw new Error('The operation ID is already in use.');
+  };
+  return { token, guard };
 }
 function status(record: RunRecord) {
   const { state } = record;
@@ -101,8 +142,17 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       print({ checkpoint: receipt });
       return 0;
     }
-    host = await TaskRunHost.open(run, evaluate);
     const [operation, task, value, file] = args;
+    let confirmed: Awaited<ReturnType<typeof confirmReviewedDecision>> | undefined;
+    if (command === 'decide') {
+      if ((value !== 'approve' && value !== 'reject') || (args.length !== 3 && (args.length !== 5 || file !== '--review')))
+        throw new Error(HELP);
+      if (args.length === 5) {
+        if (!operation || operation.length > 160) throw new Error('Invalid operation ID.');
+        confirmed = await confirmReviewedDecision(run, operation, task, value, args[4], print);
+      }
+    }
+    host = await TaskRunHost.open(run, evaluate, undefined, confirmed?.guard);
     const record = host.snapshot, short = record.state.specRevision.slice(0, 12);
     let outcome: HostOutcome;
     if (command === 'export' && args.length === 1 && /\.bcad$/i.test(operation)) {
@@ -114,11 +164,11 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       outcome = await host.dispatch(operation, task, threadWorker(worker, Number(value)), 'height-mm:' + Number(value));
     } else if (command === 'refresh' && args.length === 2) {
       outcome = await host.refresh(operation, task);
-    } else if (command === 'decide' && args.length === 3 && (value === 'approve' || value === 'reject')) {
+    } else if (command === 'decide') {
       const held = record.state.tasks.find(item => item.id === task);
       if (!held?.candidate || !held.attempt || held.phase !== 'awaiting-decision') throw new Error('No current candidate is awaiting this decision.');
-      print({ ...status(host.snapshot), task, decision: value });
-      const token = await operator(`${value} ${task} ${held.candidate.candidateDigest.slice(0, 12)}`);
+      if (!confirmed) print({ ...status(host.snapshot), task, decision: value });
+      const token = confirmed?.token ?? await operator(`${value} ${task} ${held.candidate.candidateDigest.slice(0, 12)}`);
       outcome = await host.decide({ operationId: operation, runId: record.runId, epoch: record.epoch, taskId: task,
         attemptId: held.attempt.id, specRevision: held.candidate.specRevision, candidateDigest: held.candidate.candidateDigest, approved: value === 'approve' }, token);
     } else if ((command === 'pause' || command === 'resume' || command === 'stop') && args.length === 1) {

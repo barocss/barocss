@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D614 — bind terminal decisions to the exact Studio candidate](notes/review-bound-worker-decision-2026-11-11/README.md).
 - [D613 — review a pending local worker candidate in Studio](notes/pending-worker-candidate-review-2026-11-11/README.md).
 - [D612 — review a worker checkpoint in Studio](notes/worker-checkpoint-review-2026-11-11/README.md).
 - [D611 — open a verified local worker checkpoint in Studio](notes/worker-checkpoint-intake-2026-11-11/README.md).

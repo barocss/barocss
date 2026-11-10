@@ -1,0 +1,187 @@
+{
+  "decision": "D614",
+  "tier": "FULL interface",
+  "baseCommit": "504d542707bcb089db8c0cbacc779a9c10ee4244",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d614-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio and real local task CLI",
+      "result": "PASS",
+      "command": "D614_SOURCE_FROZEN=1 node test/task-candidate-review-browser.mjs \"$EVIDENCE/desktop-final\" --decision",
+      "cwd": "apps/cad-studio",
+      "states": 5,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "frozenFiles": 965,
+      "receiptSHA256": "5a4093412893c820e34f515c581c25af1f31b084739c09d96cea4804d9c7e709",
+      "baselineRefusalClearedOnSuccess": true,
+      "staleRefusalLeftRecordAndWriterEntriesUnchanged": true,
+      "originalVersionLogUnchanged": true,
+      "visualReview": "PASS",
+      "previousAttempt": "1:1:base",
+      "refreshedAttempt": "3:8:base",
+      "candidateDigest": "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3",
+      "sameGeometryAndSpec": true,
+      "oldReceiptDeclined": true,
+      "approvals": 1,
+      "approvedSHA256": "d662e856c5d51a4a9069c8c8a5e5385c114a0943c1a934b4fdc2f6da71b82bd2",
+      "originalBaselineUnchanged": true,
+      "savedNativeMatches": true,
+      "placedHeights": [
+        6,
+        3
+      ],
+      "independentGeometry": {
+        "status": "PASS",
+        "baselineVolumeMm3": 1000,
+        "candidateVolumeMm3": 1200,
+        "changeMm3": 200
+      },
+      "log": "desktop-final.log",
+      "logSHA256": "f529ffb682411005e969d81c4882d27f945680360908098988bed97028a9d66d"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run document-file project-open-ownership project-version-ownership late-save-ownership edit-in-place cad-cli version-tools-mcp",
+      "passCount": 125,
+      "failCount": 0,
+      "skipped": 0,
+      "log": "studio-suite-final.log",
+      "logSHA256": "a7620d4629d80a4a3beb9864c5a6999e7d113c79edda68c6aeb5a80dbea6ccdc"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan approved-version-evidence requirement-evidence team-freshness",
+      "passCount": 38,
+      "failCount": 0,
+      "skipped": 0,
+      "log": "model-suite.log",
+      "logSHA256": "e885cf49e3eef0178841fbf7a82ebd01cb2e0f93a52d6191d5ec978a52c8beff"
+    },
+    {
+      "label": "Model types after final test edit",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "warnings": 0,
+      "log": "eslint-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Isolated CLI and writer regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations-verified.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "d311e5d6bb8de1e58a4838488920c25dc2f676d353647d46e7db101c98665733",
+      "variants": {
+        "baseline": "PASS",
+        "ignore-attempt": "KILLED",
+        "ignore-control-revision": "KILLED",
+        "guard-after-writer-claim": "KILLED"
+      },
+      "log": "mutations-verified.log",
+      "logSHA256": "22e736331c261b1834217846763d6a22fbd31766ad762aff367dd480c9a5de1c"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-final\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build-final.log",
+      "logSHA256": "2036bbb37eea2105f305c2a8b703450027038641f93c15087e31486177e1305d"
+    },
+    {
+      "label": "Browser syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-candidate-review-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "PTY fixture syntax",
+      "result": "PASS",
+      "command": "python3 -I -c <parse task-run-terminal.py with ast>",
+      "log": "pty-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check-final.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio focused run",
+      "command": "pnpm --dir apps/cad-studio test task-run document-file project-open-ownership project-version-ownership late-save-ownership edit-in-place cad-cli version-tools-mcp",
+      "cause": "The new race test compared an in-memory field set to undefined with its omitted JSON form.",
+      "logSHA256": "cd8dc7834a11ad440a7779237e703283475c7a50376b758bad77e24e06faab38"
+    },
+    {
+      "result": "FAIL",
+      "check": "Initial desktop visual review",
+      "cause": "A stale candidate-specific refusal was still visible on the successfully refreshed review.",
+      "receiptSHA256": "33485ea57726336cda2023ee4f6377c7f987aa3f018b30425d0e15db077f9407",
+      "imageSHA256": "e0e8a2f3fb955e0bc8cee9f3c073485d296ef86f29aefdf693bdfa9274d10740"
+    },
+    {
+      "result": "FAIL",
+      "check": "Initial isolated overlays",
+      "cause": "The nested PTY transcript omitted the outer CLI error. The final wrapper captures the CLI error stream separately.",
+      "logSHA256": "6b350f23cbcd07e21e2a3bb0eb1dd97f76a9c5da22f4eda242be5f214e9e2939",
+      "retryLogSHA256": "74696e83adefa01956a2975b1c83d1b7816c01bab927c5b50a40bad39ad7e4d6"
+    }
+  ],
+  "review": {
+    "firstFinding": "The writer could claim and recover a run that changed after confirmation.",
+    "finalCode": "APPROVE",
+    "finalArchitecture": "CLEAR",
+    "scope": "Guard before claim, exclusive epoch race, stale notice, compatibility and first-failure evidence."
+  },
+  "artifacts": {
+    "desktop-final/04-refreshed-studio-review.png": "3fbec69d81225ae95055e08fdfdea1371d4686ab9b2f64af17afe508991ac4ba",
+    "desktop-final/05-published-reviewed-checkpoint.png": "a9757e44c78651df74b7760f65f1c911ae07f48481f046955dfb735656e0c28b",
+    "desktop-final/retired-terminal-review.stderr.txt": "c13800e6a1d099cfda8c2b2708c6f41bab5d7a4aa6cb4cd83e979f3536abe383",
+    "desktop-final/accepted-terminal-review.stdout.jsonl": "a78b4d4ff4300df43bd2f145ef6847e20a4f05c1c4a98312656ca69747511b2d",
+    "desktop-final/refreshed.bcad-candidate": "57187b9774b1e6d6b2bd4dbde150f491bd4413d1eeedd5a5a689f34a92f0d82d",
+    "desktop-final/reviewed-result.bcad-run": "56666d0bbda9e16277790e26a873088ce36519f301253a54317ccbca198b75ee"
+  },
+  "notRun": [
+    "In-Studio approval",
+    "Live providers",
+    "Other worker task types",
+    "Mobile",
+    "Whole suites"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "B09v1AcceptedGroups": "9/9",
+    "initialAcceptedScenarios": "4/10",
+    "wholeCadAndCore": "NOT_MEASURED"
+  }
+}

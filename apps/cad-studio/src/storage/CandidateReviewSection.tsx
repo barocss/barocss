@@ -10,6 +10,7 @@ export function CandidateReviewSection({ review, shown, available, toggle }: {
     <strong>{shown ? 'Candidate preview' : 'Worker candidate review'}</strong>
     <div>Task {review.taskId} · {review.occurrence}/{review.feature}</div>
     <div>Candidate <code>{review.candidateDigest.slice(0, 12)}</code></div>
+    <div>Attempt <code>{review.attemptId}</code></div>
     <div>Awaiting decision at export. Decide in the local run.</div>
     <div>Height · {review.beforeMm} mm → {review.candidateMm} mm</div>
     {delta !== null && <div>Volume change · {delta > 0 ? '+' : ''}{delta} mm³</div>}

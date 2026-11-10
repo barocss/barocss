@@ -128,7 +128,7 @@ function running(pid: number): boolean {
     throw error;
   }
 }
-function takeOwner(directory: string): Owner {
+function takeOwner(directory: string, beforeClaim?: () => void): Owner {
   const epochs = readdirSync(directory).flatMap(name => {
     const m = /^writer-([1-9]\d*)\.json$/.exec(name);
     return m ? [Number(m[1])] : [];
@@ -145,6 +145,7 @@ function takeOwner(directory: string): Owner {
     if (released !== undefined && released !== old.id) issue('RUN_CORRUPT', 'Invalid writer release.');
     if (released === undefined && running(old.pid)) issue('RUN_BUSY', 'Another host owns this run.');
   }
+  beforeClaim?.();
   const next = { epoch: latest + 1, pid: process.pid, id: randomUUID() };
   // A dead owner record is kept. Concurrent recovery attempts compete for the same next name.
   if (!writeAtomic(directory, `writer-${next.epoch}.json`, JSON.stringify(next), false)) issue('RUN_BUSY', 'Another host acquired this run.');
@@ -192,6 +193,26 @@ function readObject(directory: string, ref: NativeRef): Uint8Array {
     if (error instanceof RunStoreError) throw error;
     return issue('RUN_CORRUPT', messageOf(error));
   }
+}
+
+/** Project the current task review from one authoritative run snapshot. */
+export function candidateReviewFor(record: RunRecord, taskId: string): CandidateReviewReceipt {
+  const { state } = record;
+  const tasks = state.tasks.filter(task => task?.id === taskId), task = tasks.length === 1 ? tasks[0] : undefined;
+  const attempt = task?.attempt, candidate = task?.candidate, submission = task?.submission;
+  if (state.phase !== 'active' || record.pending || task?.phase !== 'awaiting-decision' || !attempt || !candidate || !submission)
+    return issue('RUN_STALE', 'No current candidate is awaiting review.');
+  if (!id(attempt.id) || !count(attempt.leaseUntil) || state.sequence > attempt.leaseUntil || !nativeRef(attempt.base) ||
+      !sameNative(attempt.base, record.accepted) || candidate.baselineDigest !== record.accepted.modelDigest ||
+      attempt.specRevision !== state.specRevision || candidate.specRevision !== state.specRevision ||
+      submission.specRevision !== state.specRevision || candidate.taskId !== taskId || submission.taskId !== taskId ||
+      attempt.inputDigest !== candidate.inputDigest || submission.inputDigest !== candidate.inputDigest)
+    return issue('RUN_STALE', 'The candidate no longer matches its accepted baseline or task.');
+  const operations = state.operations.filter(operation => operation?.id === attempt.operationId);
+  if (operations.length !== 1 || operations[0].phase !== 'completed' || operations[0].epoch !== attempt.epoch)
+    return issue('RUN_CORRUPT', 'The candidate attempt and operation disagree.');
+  return { runId: record.runId, revision: record.revision, attemptId: attempt.id,
+    plan: state.plan, baseline: record.accepted, submission, scope: candidate.scope, candidateDigest: candidate.candidateDigest };
 }
 
 /** The run record is authoritative. Native objects are immutable and durable before a record can refer to them. */
@@ -250,27 +271,13 @@ export class TaskRunStore {
   /** Read an exportable pending candidate from one durable record without taking its writer lease. */
   static readCandidateReview(directory: string, taskId: string) {
     const path = realpathSync(directory), record = recordAt(path), { state } = record;
-    const tasks = state.tasks.filter(task => task?.id === taskId), task = tasks.length === 1 ? tasks[0] : undefined;
-    const attempt = task?.attempt, candidate = task?.candidate, submission = task?.submission;
-    if (state.phase !== 'active' || record.pending || task?.phase !== 'awaiting-decision' || !attempt || !candidate || !submission)
-      return issue('RUN_STALE', 'No current candidate is awaiting review.');
-    if (!id(attempt.id) || !count(attempt.leaseUntil) || state.sequence > attempt.leaseUntil || !nativeRef(attempt.base) ||
-        !sameNative(attempt.base, record.accepted) || candidate.baselineDigest !== record.accepted.modelDigest ||
-        attempt.specRevision !== state.specRevision || candidate.specRevision !== state.specRevision ||
-        submission.specRevision !== state.specRevision || candidate.taskId !== taskId || submission.taskId !== taskId ||
-        attempt.inputDigest !== candidate.inputDigest || submission.inputDigest !== candidate.inputDigest)
-      return issue('RUN_STALE', 'The candidate no longer matches its accepted baseline or task.');
-    const operations = state.operations.filter(operation => operation?.id === attempt.operationId);
-    if (operations.length !== 1 || operations[0].phase !== 'completed' || operations[0].epoch !== attempt.epoch)
-      return issue('RUN_CORRUPT', 'The candidate attempt and operation disagree.');
-    const receipt: CandidateReviewReceipt = { runId: record.runId, revision: record.revision, attemptId: attempt.id,
-      plan: state.plan, baseline: record.accepted, submission, scope: candidate.scope, candidateDigest: candidate.candidateDigest };
-    return { receipt, bytes: readObject(path, record.accepted) };
+    const receipt = candidateReviewFor(record, taskId);
+    return { receipt, bytes: readObject(path, record.accepted), controlRevision: state.controlRevision };
   }
 
-  static open(directory: string, afterWrite?: (point: WritePoint) => void): TaskRunStore {
+  static open(directory: string, afterWrite?: (point: WritePoint) => void, guard?: (record: RunRecord) => void): TaskRunStore {
     directory = realpathSync(directory);
-    const store = new TaskRunStore(directory, takeOwner(directory), afterWrite);
+    const store = new TaskRunStore(directory, takeOwner(directory, guard && (() => guard(recordAt(directory)))), afterWrite);
     try {
       const prior = recordAt(directory);
       store.readNative(prior.accepted);

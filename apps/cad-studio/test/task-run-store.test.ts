@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -163,6 +163,28 @@ if (childMode) {
       } finally { recovered.close(); }
     }));
   }
+
+  test('D614 a writer that wins after the guard prevents the checked caller from writing', async () => usingFolder(async dir => {
+    const doc = fixture(), prepared = await prepare(doc);
+    const initial = TaskRunStore.create(dir, 'housing-run', doc, prepared.state);
+    initial.close();
+    const baseline = TaskRunStore.inspect(dir);
+    const record = join(dir, 'run.json');
+    let winner: { bytes: Buffer; entries: string[] } | undefined;
+    assert.throws(() => TaskRunStore.open(dir, undefined, checked => {
+      assert.deepEqual(checked, baseline);
+      const other = TaskRunStore.open(dir);
+      try {
+        other.recover(checked.revision, recovery(checked));
+        other.checkpoint(other.snapshot.revision, { ...other.snapshot.state, phase: 'paused', controlRevision: 1 });
+      } finally { other.close(); }
+      winner = { bytes: readFileSync(record), entries: readdirSync(dir).sort() };
+    }), { code: 'RUN_BUSY' });
+    assert.ok(winner);
+    assert.deepEqual(readFileSync(record), winner.bytes);
+    assert.deepEqual(readdirSync(dir).sort(), winner.entries);
+    assert.equal(TaskRunStore.inspect(dir).state.phase, 'paused');
+  }));
 
   test('D586 a second process cannot claim a live writer epoch', async () => usingFolder(async dir => {
     const doc = fixture(), prepared = await prepare(doc);

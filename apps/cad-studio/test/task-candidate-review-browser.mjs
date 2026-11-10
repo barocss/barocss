@@ -4,12 +4,15 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || mode === '--decision');
+const decisionMode = mode === '--decision';
 const pins = [
   'apps/cad-studio/test/task-candidate-review-browser.mjs',
   'apps/cad-studio/test/flow-helper.mjs',
   'apps/cad-studio/test/task-run-fixture.ts',
+  'apps/cad-studio/test/fixtures/task-run-terminal.py',
   'apps/cad-studio/scripts/cad-cli.mjs',
   'apps/cad-studio/server/taskRun/cli.ts',
   'apps/cad-studio/server/taskRun/store.ts',
@@ -22,9 +25,28 @@ const pins = [
   'packages/barocss-cad-model/src/team/taskPlan.ts',
   'packages/barocss-cad-model/src/team/taskExecution.ts',
 ];
-const f = await createFlow({ name: 'task-candidate-review', envFrozen: 'D613_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
-  inspectorSource: `import { fixtureDoc, fixturePlan, fixtureLimits } from './test/task-run-fixture';
-console.log(JSON.stringify({ doc: fixtureDoc(), plan: fixturePlan, limits: fixtureLimits }));`,
+const f = await createFlow({ name: 'task-candidate-review', envFrozen: decisionMode ? 'D614_SOURCE_FROZEN' : 'D613_SOURCE_FROZEN',
+  output, initialFiles: pins, requiredFrozen: pins,
+  inspectorSource: `import assert from 'node:assert/strict';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { userToken } from '@barocss/cad-model/team/ecr';
+import { TaskRunHost } from './server/taskRun/host';
+import { fixtureDoc, fixturePlan, fixtureLimits } from './test/task-run-fixture';
+if (!process.argv[3]) console.log(JSON.stringify({ doc: fixtureDoc(), plan: fixturePlan, limits: fixtureLimits }));
+else {
+  const { run, task } = JSON.parse(process.argv[3]);
+  const host = await TaskRunHost.open(run, async doc => evaluatePart(doc, 1));
+  try {
+    const until = host.snapshot.state.tasks.find(item => item.id === task)?.attempt?.leaseUntil;
+    assert.equal(typeof until, 'number');
+    const start = host.snapshot.state.sequence;
+    assert.ok(until >= start && until - start < 30);
+    for (let step = start; step <= until; step++) {
+      assert.equal(host.control('advance-for-review-' + step, 'tick', userToken(new Date().toISOString())).phase, 'completed');
+    }
+    console.log(JSON.stringify({ start, until, sequence: host.snapshot.state.sequence }));
+  } finally { host.close(); }
+}`,
   oracleSource: String.raw`
 import json, sys
 d = json.load(sys.stdin)
@@ -36,7 +58,8 @@ assert lid['doc']['nodes'][1]['height'] == 3
 assert 20*10*(d['candidateHeight']-5) == 200
 print(json.dumps({'status':'PASS','baselineVolumeMm3':1000,'candidateVolumeMm3':1200,'changeMm3':200}))
 `,
-  qualification: 'Review a pending local worker candidate in Studio without publishing it',
+  qualification: decisionMode ? 'Bind terminal approval to the exact reviewed Studio candidate' :
+    'Review a pending local worker candidate in Studio without publishing it',
   limits: ['Two local worker fixture tasks, one independent extrusion-height candidate. The terminal remains the decision authority.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
@@ -116,6 +139,7 @@ await f.run(async () => {
   await open('base.bcad-candidate', receipt);
   await review().getByText('Task base · p1/n1', { exact: true }).waitFor();
   await review().getByText(candidateReview.candidateDigest.slice(0, 12), { exact: true }).waitFor();
+  await review().getByText(candidateReview.attemptId, { exact: true }).waitFor();
   await review().getByText('Height · 5 mm → 6 mm', { exact: true }).waitFor();
   await review().getByText('Volume change · +200 mm³', { exact: true }).waitFor();
   assert.match(await review().getByRole('list', { name: 'Candidate checks', exact: true }).innerText(), /height · Pass · 6 ± 0\.001 mm/);
@@ -196,4 +220,69 @@ await f.run(async () => {
   f.report.observations.push({ receiptSHA256: sha256(receipt), recordSHA256: sha256(recordBytes), candidateReview,
     heights: { accepted: 5, candidate: 6, sibling: 3 }, lateReadDiscarded: true, staleBaselineRefused: true,
     projectBytesUnchanged: true, workerStoreUnchanged: true, noApprovalControls: true, isolationStopsPreview: true });
+
+  if (decisionMode) {
+    const argv = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
+    const challenge = 'approve ' + candidateReview.candidateDigest.slice(0, 12);
+    const terminal = async (label, options, ...args) => {
+      const result = spawnSync('python3', ['-I', join(f.app, 'test/fixtures/task-run-terminal.py'), challenge,
+        JSON.stringify(options), ...argv, ...args], { cwd: f.app, encoding: 'utf8', timeout: 90000 });
+      await writeFile(join(output, label + '.stdout.jsonl'), result.stdout ?? '');
+      await writeFile(join(output, label + '.stderr.txt'), result.stderr ?? '');
+      return result;
+    };
+    f.phase = 'refresh the reviewed task while a terminal confirmation is pending';
+    const stale = await terminal('retired-terminal-review', { unchangedRecord: recordFile, beforeAnswer: [
+      [process.execPath, f.inspector, source, JSON.stringify({ run, task: 'base' })],
+      [...argv, 'refresh', run, 'refresh-reviewed-base', 'base'],
+    ] }, 'decide', run, 'declined-review', 'base', 'approve', '--review', manifest);
+    assert.equal(stale.status, 1, stale.error?.message ?? stale.stderr);
+    assert.match(stale.stderr, /reviewed candidate differs from the current attempt/);
+    const pending = JSON.parse(await readFile(recordFile, 'utf8')).record;
+    assert.deepEqual(pending.accepted, record.accepted);
+    assert.deepEqual(pending.commits, []);
+    const refreshedFile = join(output, 'refreshed.bcad-candidate');
+    const { candidateReview: freshReview } = await cli('refreshed-review', 'review', run, 'base', refreshedFile);
+    assert.notEqual(freshReview.attemptId, candidateReview.attemptId);
+    assert.equal(freshReview.candidateDigest, candidateReview.candidateDigest);
+    assert.deepEqual(freshReview.submission, candidateReview.submission);
+    const freshBytes = await readFile(refreshedFile);
+    await open('refreshed.bcad-candidate', freshBytes);
+    await review().getByText(freshReview.attemptId, { exact: true }).waitFor();
+    await f.page.getByText('Could not review the worker candidate', { exact: true }).waitFor({ state: 'hidden' });
+    await f.same(baseline);
+    await f.snapshot('04-refreshed-studio-review');
+
+    f.phase = 'approve exactly the refreshed review and reopen the published checkpoint in Studio';
+    const approval = await terminal('accepted-terminal-review', {}, 'decide', run, 'accept-reviewed-base', 'base', 'approve', '--review', refreshedFile);
+    assert.equal(approval.status, 0, approval.error?.message ?? approval.stderr);
+    const [confirmed, result] = approval.stdout.trim().split('\n').map(line => JSON.parse(line));
+    assert.deepEqual(confirmed.reviewedCandidate, freshReview);
+    assert.equal(result.outcome.code, 'RUN_ACCEPTED');
+    const published = JSON.parse(await readFile(recordFile, 'utf8')).record;
+    assert.equal(published.commits.length, 1);
+    assert.deepEqual([published.commits[0].operationId, published.commits[0].candidateDigest], ['accept-reviewed-base', freshReview.candidateDigest]);
+    assert.deepEqual(published.commits[0].from, record.accepted);
+    const path = join(output, 'reviewed-result.bcad-run');
+    await cli('approved-checkpoint', 'export', run, path);
+    const acceptedBytes = await readFile(join(run, 'native', published.accepted.sha256 + '.bcad'));
+    const approved = JSON.parse(acceptedBytes);
+    assert.deepEqual(approved.instances.map(instance => instance.doc.nodes[1].height), [6, 3]);
+    await open('reviewed-result.bcad-run', await readFile(path));
+    await f.same(approved);
+    const checks = panel().getByRole('region', { name: 'Worker checkpoint checks', exact: true });
+    await checks.getByText('Task base · p1 · P1 · Revision ' + published.revision, { exact: true }).waitFor();
+    assert.deepEqual(await checks.getByRole('cell').allTextContents(), ['Fail · 5 mm', 'Pass · 6 mm']);
+    await bounds(6);
+    assert.equal(await review().count(), 0);
+    await button('Save').click();
+    await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText('reviewed-result.bcad', { exact: true }).waitFor();
+    assert.deepEqual(await localFile('reviewed-result.bcad'), acceptedBytes);
+    assert.deepEqual(await localFile(file), baselineBytes);
+    assert.deepEqual(await localFile(file + '.json', true), originalLog);
+    await f.snapshot('05-published-reviewed-checkpoint');
+    f.report.observations.push({ reviewDecision: { previousAttempt: candidateReview.attemptId, refreshedAttempt: freshReview.attemptId,
+      candidateDigest: freshReview.candidateDigest, sameGeometryAndSpec: true, oldReceiptDeclined: true, approvals: 1,
+      approvedSHA256: sha256(acceptedBytes), originalBaselineUnchanged: true, savedNativeMatches: true, placedHeights: [6, 3] } });
+  }
 });

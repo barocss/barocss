@@ -21,6 +21,7 @@ export interface CandidateReviewReceipt {
 }
 export interface CandidateReview {
   taskId: string;
+  attemptId: string;
   candidateDigest: string;
   occurrence: string;
   feature: string;
@@ -55,17 +56,22 @@ export function encodeCandidateReview(receipt: CandidateReviewReceipt): string {
   return json;
 }
 
-/** Match an offline review to the exact working baseline. This does not grant task authority. */
-export function readCandidateReview(text: string, baseline: StudioDoc) {
-  let receipt: CandidateReviewReceipt;
+/** Read one bounded offline receipt. It carries no task authority. */
+export function decodeCandidateReview(text: string): CandidateReviewReceipt | { error: string } {
   try {
     if (new TextEncoder().encode(text).length > MAX_TASK_CANDIDATE_BYTES) return refusal('The worker candidate exceeds the supported file size.');
     const value: unknown = JSON.parse(text);
     if (!isObj(value) || Object.keys(value).length !== 4 || value.format !== FORMAT || value.version !== 1 ||
         !isReceipt(value.receipt) || digestOf(value.receipt) !== value.digest)
       return refusal('The worker candidate receipt checksum or fields differ.');
-    receipt = value.receipt;
+    return value.receipt;
   } catch { return refusal('The worker candidate receipt is invalid.'); }
+}
+
+/** Match an offline review to the exact working baseline. */
+export function readCandidateReview(text: string, baseline: StudioDoc) {
+  const receipt = decodeCandidateReview(text);
+  if ('error' in receipt) return receipt;
   if (digestOf(baseline) !== receipt.baseline.modelDigest || sha256Hex(encodeStudioFile(baseline)) !== receipt.baseline.sha256)
     return refusal('Open the exact native baseline of this worker candidate first.');
   const plan = compileTaskPlan(baseline, receipt.plan), { submission, scope } = receipt;

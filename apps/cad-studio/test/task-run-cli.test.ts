@@ -11,29 +11,10 @@ import { encodeCandidateReview, readCandidateReview, verifyCandidateReview, type
 import { encodeTaskCheckpoint, readTaskCheckpoint, verifyTaskCheckpoint, type TaskCheckpoint } from '../src/files/taskCheckpoint';
 import { fixtureDoc, fixtureLimits, fixturePlan } from './task-run-fixture';
 
-const terminalApproval = String.raw`
-import os, pty, select, subprocess, sys, time
-challenge, *command = sys.argv[1:]
-master, slave = pty.openpty()
-child = subprocess.Popen(command, stdin=slave, stderr=slave, stdout=subprocess.PIPE)
-os.close(slave)
-try:
-    deadline, prompt = time.monotonic() + 20, b''
-    while b'> ' not in prompt and time.monotonic() < deadline:
-        if select.select([master], [], [], 0.2)[0]:
-            prompt += os.read(master, 4096)
-    if ('Type "' + challenge + '" to continue.').encode() not in prompt:
-        raise RuntimeError(prompt.decode(errors='replace'))
-    os.write(master, (challenge + '\n').encode())
-    stdout, _ = child.communicate(timeout=20)
-    sys.stdout.buffer.write(stdout)
-    sys.exit(child.returncode)
-finally:
-    if child.poll() is None:
-        child.kill()
-        child.wait()
-    os.close(master)
-`;
+const terminal = (challenge: string, args: string[], options = {}) => spawnSync('python3', [
+  '-I', 'test/fixtures/task-run-terminal.py', challenge, JSON.stringify(options),
+  process.execPath, 'scripts/cad-cli.mjs', 'task-run', ...args,
+], { cwd: process.cwd(), encoding: 'utf8', timeout: 90000 });
 
 test('D586 the existing CAD CLI runs real local workers and holds terminal authority', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'barocss-run-cli-'));
@@ -61,6 +42,42 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     assert.deepEqual(readFileSync(join(run, 'run.json')), pendingRecord);
     assert.deepEqual(readdirSync(run).sort(), pendingEntries);
     assert.equal(candidateReceipt.candidateDigest, status.tasks[0].candidateDigest);
+    const deniedReview = launch('decide', run, 'review-notty', 'base', 'approve', '--review', candidateFile);
+    assert.equal(deniedReview.status, 1);
+    assert.match(deniedReview.stderr, /requires a terminal operator/);
+    const mismatchFile = join(dir, 'mismatch.bcad-candidate');
+    for (const mismatch of [
+      { ...candidateReceipt, runId: 'another-run' },
+      { ...candidateReceipt, attemptId: 'old-attempt' },
+      { ...candidateReceipt, baseline: { ...candidateReceipt.baseline, sha256: '0'.repeat(64) } },
+      { ...candidateReceipt, submission: { ...candidateReceipt.submission, specRevision: '0'.repeat(64) } },
+      { ...candidateReceipt, scope: { ...candidateReceipt.scope, occurrence: 'p2' } },
+      { ...candidateReceipt, candidateDigest: '0'.repeat(64) },
+    ]) {
+      writeFileSync(mismatchFile, encodeCandidateReview(mismatch));
+      const stale = launch('decide', run, 'wrong-review', 'base', 'approve', '--review', mismatchFile);
+      assert.equal(stale.status, 1, stale.stderr);
+      assert.match(stale.stderr, /reviewed candidate differs from the current attempt/);
+    }
+    writeFileSync(mismatchFile, Buffer.alloc(128 * 1024 + 1));
+    const oversized = launch('decide', run, 'oversized-review', 'base', 'approve', '--review', mismatchFile);
+    assert.equal(oversized.status, 1, oversized.stderr);
+    assert.match(oversized.stderr, /within the supported size/);
+    const noConsent = terminal('approve ' + candidateReceipt.candidateDigest.slice(0, 12),
+      ['decide', run, 'review-denied', 'base', 'approve', '--review', candidateFile],
+      { answer: 'no', unchangedRecord: join(run, 'run.json') });
+    assert.equal(noConsent.status, 1, noConsent.stderr);
+    assert.match(noConsent.stderr, /terminal action was not confirmed/);
+    const invalidId = launch('decide', run, 'x'.repeat(161), 'base', 'approve', '--review', candidateFile);
+    assert.equal(invalidId.status, 1);
+    assert.match(invalidId.stderr, /Invalid operation ID/);
+    const reusedId = terminal('approve ' + candidateReceipt.candidateDigest.slice(0, 12),
+      ['decide', run, 'initial:base', 'base', 'approve', '--review', candidateFile],
+      { unchangedRecord: join(run, 'run.json') });
+    assert.equal(reusedId.status, 1, reusedId.stderr);
+    assert.match(reusedId.stderr, /operation ID is already in use/);
+    assert.deepEqual(readFileSync(join(run, 'run.json')), pendingRecord);
+    assert.deepEqual(readdirSync(run).sort(), pendingEntries);
     symlinkSync(join(run, 'native'), join(dir, 'run-native-link'));
     const alias = launch('review', run, 'base', dir + '/run-native-link/../escaped.bcad-candidate');
     assert.equal(alias.status, 1, alias.stderr);
@@ -119,9 +136,7 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     assert.deepEqual(readFileSync(saved), Buffer.from(original));
 
     const digest = status.tasks[0].candidateDigest;
-    const approved = spawnSync('python3', ['-I', '-c', terminalApproval, 'approve base ' + digest.slice(0, 12),
-      process.execPath, 'scripts/cad-cli.mjs', 'task-run', 'decide', run, 'terminal-approve', 'base', 'approve'],
-    { cwd: process.cwd(), encoding: 'utf8', timeout: 45000 });
+    const approved = terminal('approve base ' + digest.slice(0, 12), ['decide', run, 'terminal-approve', 'base', 'approve']);
     assert.equal(approved.status, 0, approved.stderr);
     assert.equal(JSON.parse(approved.stdout.trim().split('\n').at(-1)!).outcome.code, 'RUN_ACCEPTED');
     for (const task of ['base', 'lid']) {
@@ -134,6 +149,21 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     const doc = await readStudioFile(readFileSync(saved));
     assert.ok(!('error' in doc));
     assert.deepEqual(doc.doc.instances?.map(instance => 'height' in instance.doc.nodes[1] ? instance.doc.nodes[1].height : null), [6, 3]);
+    const retiredBase = launch('decide', run, 'repeat-review', 'base', 'approve', '--review', candidateFile);
+    assert.equal(retiredBase.status, 1);
+    assert.match(retiredBase.stderr, /No current candidate/);
+    const rebuilt = launch('refresh', run, 'refresh-lid', 'lid');
+    assert.equal(rebuilt.status, 0, rebuilt.stderr);
+    const lidFile = join(dir, 'lid.bcad-candidate'), lidExport = launch('review', run, 'lid', lidFile);
+    assert.equal(lidExport.status, 0, lidExport.stderr);
+    const lid = JSON.parse(lidExport.stdout).candidateReview as CandidateReviewReceipt;
+    const rejection = terminal('reject ' + lid.candidateDigest.slice(0, 12),
+      ['decide', run, 'terminal-reject-lid', 'lid', 'reject', '--review', lidFile]);
+    assert.equal(rejection.status, 0, rejection.stderr);
+    assert.equal(JSON.parse(rejection.stdout.trim().split('\n').at(-1)!).outcome.code, 'RUN_REJECTED');
+    const rejected = JSON.parse(readFileSync(join(run, 'run.json'), 'utf8')).record;
+    assert.deepEqual(rejected.accepted, lid.baseline);
+    assert.deepEqual(rejected.commits.map((commit: { taskId: string }) => commit.taskId), ['base']);
 
     const record = readFileSync(join(run, 'run.json')), entries = readdirSync(run).sort();
     const bundle = launch('export', run, checkpoint);
@@ -177,9 +207,7 @@ test('D586 the existing CAD CLI runs real local workers and holds terminal autho
     }
 
     const currentSpec = JSON.parse(launch('status', run).stdout).specRevision;
-    const policy = spawnSync('python3', ['-I', '-c', terminalApproval, 'policy new-policy ' + currentSpec.slice(0, 12),
-      process.execPath, 'scripts/cad-cli.mjs', 'task-run', 'policy', run, 'terminal-policy', 'new-policy', '1'],
-    { cwd: process.cwd(), encoding: 'utf8', timeout: 45000 });
+    const policy = terminal('policy new-policy ' + currentSpec.slice(0, 12), ['policy', run, 'terminal-policy', 'new-policy', '1']);
     assert.equal(policy.status, 0, policy.stderr);
     const policyRecord = readFileSync(join(run, 'run.json'));
     const afterPolicy = launch('export', run, checkpoint);

@@ -132,8 +132,8 @@ export class TaskRunHost {
     };
     return new TaskRunHost(TaskRunStore.create(path, runId, source, state, afterWrite), evaluate, source, plan);
   }
-  static async open(directory: string, evaluate: Evaluate, afterWrite?: (point: WritePoint) => void) {
-    const store = TaskRunStore.open(directory, afterWrite);
+  static async open(directory: string, evaluate: Evaluate, afterWrite?: (point: WritePoint) => void, guard?: (record: RunRecord) => void) {
+    const store = TaskRunStore.open(directory, afterWrite, guard);
     try {
       const record = store.snapshot, doc = await readNative(store.acceptedBytes, record.accepted.modelDigest);
       const plan = admitted(doc, record.state.plan);
