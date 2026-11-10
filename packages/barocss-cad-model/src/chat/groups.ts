@@ -62,7 +62,7 @@ export const GROUPS: Record<string, Group> = {
     title: 'History',
     about: 'Checkpoints, versions and branches.',
     actions: { checkpoint: ['checkpoint', 'name'], restore: ['restore', 'name'], best: ['restore_best', ''], diff: ['diff', 'from?, to?'],
-      version: ['make_version', 'name?'], versions: ['list_versions', ''], restore_version: ['restore_version', 'id'], compare: ['compare_versions', 'from?, to?'], approval_evidence: ['approved_requirement_evidence', 'from, to, part'], branch: ['make_branch', 'name'], switch: ['switch_branch', 'branch'], merge: ['merge_branch', 'from, resolve?'] },
+      version: ['make_version', 'name?'], versions: ['list_versions', ''], restore_version: ['restore_version', 'id'], compare: ['compare_versions', 'from?, to?'], approval_evidence: ['approved_requirement_evidence', 'from, to, part, later?'], branch: ['make_branch', 'name'], switch: ['switch_branch', 'branch'], merge: ['merge_branch', 'from, resolve?'] },
   },
   requirements: {
     title: 'Requirements',

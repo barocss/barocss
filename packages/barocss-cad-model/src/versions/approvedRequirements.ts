@@ -1,5 +1,5 @@
 import { nestedParameterOps } from '../chat/nestedParameterProposal';
-import { requirementEvidenceOf } from '../chat/requirementEvidence';
+import { isCurrentRequirement, requirementEvidenceOf, type RequirementEvidence } from '../chat/requirementEvidence';
 import { expectedOf, modelHash } from '../chat/spec';
 import type { Evaluate } from '../chat/tools';
 import type { PartInstance, StudioDoc } from '../engine/doc';
@@ -12,7 +12,6 @@ import { canonical } from '../util/revision';
 type Scope = { id: string; label: string };
 type Comparison = { before: StudioDoc; after: StudioDoc; revisions: AcceptanceEvidence; proposal: string; scopes: Scope[]; nested?: Proposal };
 type Recovery = { id: string; from: number | null; to: number | null; unit?: string };
-type Evidence = Exclude<Awaited<ReturnType<typeof requirementEvidenceOf>>, { error: string }>;
 type RequirementChange = {
   id: string;
   kind: 'changed' | 'withdrawn';
@@ -77,7 +76,7 @@ export function approvedRequirementComparison(before: StudioDoc, after: StudioDo
 }
 
 /** Re-run the same report producer for one scope. Only unchanged, current checks can prove recovery. */
-export async function compareApprovedRequirements(comparison: Comparison, part: string, evaluate: Evaluate): Promise<{ recoveries: Recovery[]; changed: RequirementChange[]; before: Evidence; after: Evidence | null } | { error: string }> {
+export async function compareApprovedRequirements(comparison: Comparison, part: string, evaluate: Evaluate): Promise<{ recoveries: Recovery[]; changed: RequirementChange[]; before: RequirementEvidence; after: RequirementEvidence | null } | { error: string }> {
   if (!comparison.scopes.some(scope => scope.id === part)) return { error: 'The occurrence cannot be matched across versions.' };
   let afterDoc: StudioDoc | undefined;
   if (comparison.nested) {
@@ -103,15 +102,11 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
   if (empty && requirementEvidenceRevision(comparison.after) !== comparison.revisions.after) return { error: 'The approval revision changed.' };
   const after = empty ? null : await requirementEvidenceOf(comparison.after, part, evaluate, comparison.revisions.after);
   if (after && 'error' in after) return after;
-  const current = (row: typeof before.evidence[number], revision: string) => row.result.kind === 'requirement' &&
-    (row.result.part ?? 'base') === part && row.result.run === revision && row.result.subject === row.requirement?.id &&
-    !row.result.late && row.result.status === 'ok' && row.freshness.state === 'current' &&
-    (row.result.number === null || Number.isFinite(row.result.number));
   const recoveries: Recovery[] = [], changed: RequirementChange[] = [];
   const noteChange = (old: typeof before.evidence[number], requirement?: Requirement) => {
     const previous = old.requirement!;
     const change: RequirementChange = { id: previous.id, kind: requirement ? 'changed' : 'withdrawn' };
-    if (current(old, comparison.revisions.before) && old.result.verdict === 'fail') {
+    if (isCurrentRequirement(old, part, comparison.revisions.before) && old.result.verdict === 'fail') {
       change.priorFailure = { measured: old.result.number, unit: previous.check.unit, expected: expectedOf(previous.check) };
     }
     if (requirement) change.criterion = expectedOf(requirement.check);
@@ -125,7 +120,7 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
     if (!old) continue;
     oldRows.delete(requirement.id);
     if (canonical(old.requirement) !== canonical(requirement)) { noteChange(old, requirement); continue; }
-    if (current(old, comparison.revisions.before) && current(next, comparison.revisions.after) &&
+    if (isCurrentRequirement(old, part, comparison.revisions.before) && isCurrentRequirement(next, part, comparison.revisions.after) &&
         old.result.verdict === 'fail' && next.result.verdict === 'pass') {
       recoveries.push({ id: requirement.id, from: old.result.number, to: next.result.number, unit: requirement.check.unit });
     }

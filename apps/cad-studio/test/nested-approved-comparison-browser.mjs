@@ -8,7 +8,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
-const agent = mode === '--agent';
+const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (agent) {
   const reserved = createServer().listen(0, '127.0.0.1');
@@ -23,6 +23,8 @@ const pins = [
   'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/versions/log.ts',
   ...(agent ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
     'packages/barocss-cad-model/src/versions/tools.ts', 'packages/barocss-cad-model/src/chat/tools.ts', 'packages/barocss-cad-model/src/chat/tools-v2.json'] : []),
+  ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
+    'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
 ];
 const oracleSource = String.raw`
 import json, sys
@@ -40,8 +42,10 @@ assert d['current'] == '8 mm (want <= 5 mm)'
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
+  name: 'nested-approved-comparison', envFrozen: lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  output, initialFiles: pins, requiredFrozen: pins, oracleSource,
+  qualification: lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+    agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
     comparison: document.querySelector('[aria-label="Saved approval checks"], [aria-label="Approved requirement checks"]')?.textContent ?? null,
@@ -258,6 +262,47 @@ process.exitCode = code ?? 1;
     await f.snapshot('05-reopened-owner-refuses-old-receipt');
     f.report.observations.push({ agentReportSHA256: file.sha256, measured, requested: first.done.versionsWanted,
       hydrated: Object.keys(second.wire.versions.snapshots), lateReceiptDiscarded: true, versionsUnchanged: true });
+    if (lifecycle) {
+      f.phase = 'read a saved regression after restoring the passing version as working geometry';
+      await f.page.reload();
+      await f.ready();
+      await openProject();
+      await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+      await versions().getByRole('button', { name: 'Restore Approved nested repair', exact: true }).click();
+      await f.same(JSON.parse(saved.snapshots[1]));
+      const requested = await turn([call({ later: later.id })]);
+      assert.deepEqual(Object.keys(requested.wire.versions.snapshots), [later.snapshot]);
+      assert.deepEqual(requested.done.versionsWanted, [initial.id, approved.id, later.id]);
+      assert.deepEqual(requested.results[0].body.missing, [initial.id, approved.id]);
+      const run = await turn([call({ later: later.id }), current, call({ later: 'current' }),
+        call({ from: approved.id, to: later.id, later: initial.id })]);
+      assert.deepEqual(run.results.map(item => item.error), [false, false, true, true]);
+      assert.equal(run.results[2].body.files, undefined);
+      assert.equal(run.results[3].body.code, 'VERSION_LINEAGE');
+      const [reportFile] = run.results[0].body.files;
+      assert.deepEqual([reportFile.path, reportFile.bytes, reportFile.sha256],
+        ['approved-requirement-evidence.json', Buffer.byteLength(reportFile.text), sha256(reportFile.text)]);
+      const lifecycleReport = JSON.parse(reportFile.text), liveReport = JSON.parse(run.results[1].body.files[0].text);
+      const { followUp, ...historic } = lifecycleReport;
+      assert.deepEqual(historic, report, 'the optional read preserves the exact historic report');
+      assert.equal(followUp.status, 'checked', JSON.stringify(followUp));
+      assert.deepEqual(followUp.findings, [{ id: 'HEIGHT', status: 'regressed' }]);
+      assert.deepEqual(followUp.version, { id: later.id, snapshot: later.snapshot, revision: later.revision, evidenceRevision: followUp.evidence.revision });
+      const check = evidence => {
+        const row = evidence.evidence.find(entry => entry.requirement?.id === 'HEIGHT');
+        assert.deepEqual([evidence.part, evidence.checker, row.result.run, row.freshness.state],
+          ['p1/p1', 'checkSpec', evidence.revision, 'current']);
+        return [row.result.number, row.result.verdict];
+      };
+      const savedAndWorking = [historic.before, historic.after, followUp.evidence, liveReport].map(check);
+      assert.deepEqual(savedAndWorking, [[6, 'fail'], [4, 'pass'], [8, 'fail'], [4, 'pass']]);
+      assert.deepEqual(await projectBytes(), saved);
+      await f.same(JSON.parse(saved.snapshots[1]));
+      await f.snapshot('06-saved-regression-working-pass');
+      await writeFile(join(output, 'saved-requirement-lifecycle.json'), reportFile.text);
+      f.report.observations.push({ lifecycleReportSHA256: reportFile.sha256, savedAndWorking, followUp: followUp.version,
+        requested: requested.done.versionsWanted, storedBytesUnchanged: true });
+    }
   } finally {
     chat.kill('SIGTERM');
     await closed;

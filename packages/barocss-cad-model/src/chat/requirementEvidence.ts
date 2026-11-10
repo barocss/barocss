@@ -9,11 +9,18 @@ import { checkRequirement } from './spec';
 import type { Evaluate } from './tools';
 
 interface RequirementEvidenceRow { requirement?: Requirement; result: Result; freshness: Freshness }
-interface RequirementEvidence {
+export interface RequirementEvidence {
   format: 'barocss-requirement-evidence'; version: 1; checker: 'checkSpec';
   revision: string; documentRevision: string; part: string; definitionRevision: string; evidence: RequirementEvidenceRow[];
 }
 const bad = (message: string) => ({ error: `[OUTPUT_INPUT] ${message}` });
+
+export function isCurrentRequirement(row: RequirementEvidenceRow, part: string, revision: string): boolean {
+  const { result, requirement, freshness } = row;
+  return result.kind === 'requirement' && (result.part ?? 'base') === part && result.run === revision &&
+    result.subject === requirement?.id && !result.late && result.status === 'ok' && freshness.state === 'current' &&
+    (result.number === null || Number.isFinite(result.number));
+}
 
 /** One part's authored requirements and evidence on this exact document revision. */
 export async function requirementEvidenceOf(doc: StudioDoc, part: string, evaluate: Evaluate, expectedRevision?: string): Promise<RequirementEvidence | { error: string }> {

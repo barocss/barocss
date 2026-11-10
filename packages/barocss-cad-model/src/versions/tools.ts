@@ -9,7 +9,8 @@ import { accept, fail, json, type ChatState, type PartHandler, type CallOptions,
 import { BarocssError } from '@barocss/cad/api';
 import { changesOf } from './compare';
 import { outputFile } from '../chat/outputFile';
-import { applyBranch, headOf, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
+import { requirementEvidenceRevision } from '../util/digest';
+import { applyBranch, headOf, isLinearSavedSequence, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
 import { applyMerge, type Conflict, type Side } from './merge';
 
 const now = () => new Date().toISOString();
@@ -70,23 +71,33 @@ function exactVersion(log: VersionLog, id: string): Version | undefined {
 const savedId = (value: unknown): value is string => typeof value === 'string' && /^v[0-9a-f]{16}$/.test(value);
 
 async function approvalEvidenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
-  const { from, to, part } = args, log = state.versions;
+  const { from, to, part, later } = args, log = state.versions;
   if (!savedId(from) || !savedId(to) || from === to || typeof part !== 'string')
     return fail(state, 'Supply two distinct saved version IDs and an exact nested leaf path.');
   const { host, path } = splitPart(part);
   if (!host || host === 'base' || !path.length || path.some(id => !id))
     return fail(state, 'Supply an exact nested leaf path.');
+  if (later !== undefined && (!savedId(later) || later === from || later === to))
+    return fail(state, 'Supply a distinct saved version ID for the follow-up.');
   if (!log) return fail(state, NO_LOG);
   if (!Array.isArray(log.versions) || !log.snapshots || typeof log.snapshots !== 'object' || Array.isArray(log.snapshots))
     return fail(state, 'The saved version log is invalid.', { code: 'VERSION_LOG' });
   const a = exactVersion(log, from), b = exactVersion(log, to);
   if (!a || !b) return fail(state, 'Both saved version IDs must identify unique versions in this log.', { code: 'VERSION_UNKNOWN' });
-  const missing = [a, b].filter(version => !Object.hasOwn(log.snapshots, version.snapshot)).map(version => version.id);
-  if (missing.length) return fail(state, 'A saved document is not with this turn. Request the same pair on the next turn if it fits the version snapshot budget.', {
-    code: 'VERSION_NOT_LOADED', wanted: [a.id, b.id], missing,
+  const c = savedId(later) ? exactVersion(log, later) : undefined;
+  if (later !== undefined && !c) return fail(state, 'The follow-up ID must identify a unique saved version in this log.', { code: 'VERSION_UNKNOWN' });
+  if (c && !isLinearSavedSequence(log, a, b, c))
+    return fail(state, 'A follow-up needs three consecutive versions on one branch without a merge.', { code: 'VERSION_LINEAGE' });
+  const versions = c ? [a, b, c] : [a, b];
+  const missing = versions.filter(version => !Object.hasOwn(log.snapshots, version.snapshot)).map(version => version.id);
+  if (missing.length) return fail(state, c
+    ? 'A saved document is not with this turn. Repeat the request on the next turn if it fits the version snapshot budget.'
+    : 'A saved document is not with this turn. Request the same pair on the next turn if it fits the version snapshot budget.', {
+    code: 'VERSION_NOT_LOADED', wanted: versions.map(version => version.id), missing,
   });
   try {
     const before = readVersion(log, a.id), after = readVersion(log, b.id);
+    const followUpDoc = c ? readVersion(log, c.id) : undefined;
     const { approvedRequirementComparison, compareApprovedRequirements } = await import('./approvedRequirements');
     const comparison = approvedRequirementComparison(before, after);
     if (!comparison?.nested) return fail(state, 'These saved versions do not have a matching nested approval.');
@@ -94,7 +105,15 @@ async function approvalEvidenceTool(state: ChatState, args: Record<string, unkno
     if ('error' in evidence) return fail(state, evidence.error);
     const pin = (version: Version, evidenceRevision: string) => ({ id: version.id, snapshot: version.snapshot, revision: version.revision, evidenceRevision });
     const context = { from: pin(a, comparison.revisions.before), to: pin(b, comparison.revisions.after), part, proposal: comparison.proposal };
-    const report = { format: 'barocss-approved-requirement-evidence', version: 1, ...context, ...evidence };
+    let followUp;
+    if (c && followUpDoc) {
+      const revision = requirementEvidenceRevision(followUpDoc);
+      const { requirementFollowUp } = await import('./requirementFollowUp');
+      const result = await requirementFollowUp(after, followUpDoc, comparison.nested.ops[0], part,
+        evidence.recoveries.map(recovery => recovery.id), evidence.after, revision, evaluate);
+      followUp = { version: pin(c, revision), ...result };
+    }
+    const report = { format: 'barocss-approved-requirement-evidence', version: 1, ...context, ...evidence, ...(followUp ? { followUp } : {}) };
     const file = outputFile('approved-requirement-evidence.json', 'application/json', JSON.stringify(report, null, 1) + '\n');
     return { state, content: json({ ...context, files: [file] }), isError: false, changed: false, summary: 'Read saved approval evidence' };
   } catch (error) { return refused(state, error); }

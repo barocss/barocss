@@ -100,6 +100,18 @@ export function versionNamed(log: VersionLog, id: string): Version {
 }
 /** The head of a branch (the current one when not named). */
 export const headOf = (log: VersionLog, branch?: string): Version => versionNamed(log, branchOf(log, branch).head);
+/** Check the selected edges of the turn's version index, which can arrive without their snapshots. */
+export function isLinearSavedSequence(log: VersionLog, first: Version, second: Version, third: Version): boolean {
+  const { branch } = first;
+  if (typeof branch !== 'string' || !BRANCH_NAME.test(branch) || second.branch !== branch || third.branch !== branch) return false;
+  if (!Array.isArray(first.parents) || first.parents.length > 1) return false;
+  const starts = log.versions.indexOf(first), middle = log.versions.indexOf(second), end = log.versions.indexOf(third);
+  const prior = first.parents[0];
+  return starts >= 0 && starts < middle && middle < end && (starts === 0) === (first.parents.length === 0) &&
+    (first.parents.length === 0 || (typeof prior === 'string' && log.versions.slice(0, starts).some(version => version?.id === prior))) &&
+    Array.isArray(second.parents) && second.parents.length === 1 && second.parents[0] === first.id &&
+    Array.isArray(third.parents) && third.parents.length === 1 && third.parents[0] === second.id;
+}
 /**
  * A version's document (by id or name): the working document when it is restored. Refused, VERSION_NOT_LOADED, when the
  * log is a turn's (`turnLog`) and does not hold that version's document; `details.ids` names it.

@@ -1,5 +1,5 @@
 ---
-work_id: D609
+work_id: D610
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -155,7 +155,9 @@ D608 links the exact saved nested failure and approved repair in Studio Versions
 
 D609 returns the saved nested approval report through Studio chat, with exact version and occurrence pins. A later failing working revision remains separate. [D609](../../notes/agent-saved-approval-evidence-2026-11-11/README.md).
 
-Next MAIN is D610 / P0 automation, B09 follow-up, rows 04, 12 and 16. Check the version-linked defect lifecycle on the same nested leaf. Use the saved failure, the verified approval and a later regression as separate inputs. Preserve the original failure and identify the exact revision and occurrence for each state. Inspect existing report contracts first. [#2279](https://github.com/barocss/barocss/issues/2279).
+D610 reports a saved regression after a verified nested approval, even when the restored working document passes. It preserves the original and approved checks and returns unresolved if the later proof fails. [D610](../../notes/saved-requirement-regression-2026-11-11/README.md).
+
+Next MAIN is D611 / P0 automation, B09 follow-up, rows 04, 12 and 16. Replace D600’s fixture-only worker delivery with a Studio intake for one existing local worker checkpoint. Start with the current checkpoint writer and project Open path. Keep the accepted native bytes and verification pins linked across Open and refuse invalid or mismatched checkpoint data before replacing the working document. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -39,6 +39,17 @@ function dependencyOf(parent: StudioDoc, inst: PartInstance): string | undefined
   return undefined;
 }
 
+export function editNestedDefinition(root: StudioDoc, scope: Exclude<ReturnType<typeof nestedRequirementScope>, { error: string }>, leaf: StudioDoc) {
+  const chain = [...scope.ancestors, scope.leaf], parents = [root, ...scope.ancestors.map(inst => inst.doc)];
+  let doc = leaf;
+  for (let i = chain.length - 1; i >= 0; i--) {
+    const updated = editDefinition(parents[i], chain[i].id, doc);
+    if ('error' in updated) return updated;
+    doc = updated.doc;
+  }
+  return { doc };
+}
+
 /** Replay a single value edit on a private root, then validate the rebuilt placed definition. */
 export async function nestedParameterEdit(state: ChatState, part: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const scope = nestedRequirementScope(state.doc, part);
@@ -62,13 +73,10 @@ export async function nestedParameterEdit(state: ChatState, part: string, args: 
   let next: StudioDoc;
   try {
     const old = scope.leaf.doc.parameters[name];
-    next = withParameters(scope.leaf.doc, { [name]: value });
     if (old === value) return fail(state, `${part}: ${name} is already ${value}.`);
-    for (let i = chain.length - 1; i >= 0; i--) {
-      const updated = editDefinition(parents[i], chain[i].id, next);
-      if ('error' in updated) return fail(state, updated.error);
-      next = updated.doc;
-    }
+    const updated = editNestedDefinition(state.doc, scope, withParameters(scope.leaf.doc, { [name]: value }));
+    if ('error' in updated) return fail(state, updated.error);
+    next = updated.doc;
     const changed = nestedRequirementScope(next, part);
     if ('error' in changed) return fail(state, changed.error);
     // Check the authored leaf before flattening, which substitutes parameter references.
