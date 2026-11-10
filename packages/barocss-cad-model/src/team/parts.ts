@@ -49,7 +49,7 @@ export function holesOff(bodies: readonly BodyResult[], p: HolePattern): [number
 }
 
 /** The part Integrator: a Part agent's patch under its lease, on its part only, against its contract. */
-export async function integratePart(state: ChatState, patch: PartPatch, leases: ReadonlyMap<string, Lease>, evaluate: Evaluate, seq: number): Promise<{ state: ChatState; trace: PartTrace }> {
+export async function integratePart(state: ChatState, patch: PartPatch, leases: ReadonlyMap<string, Lease>, evaluate: Evaluate, seq: number, options: { requireCompleteAssembly?: boolean } = {}): Promise<{ state: ChatState; trace: PartTrace }> {
   const gates: PartTrace['gates'] = [], done = (decision: Decision, s = state) => ({ state: s, trace: { seq, patch, decision, gates, revisionAfter: decision === 'applied' ? revisionOf(s.doc) : null } });
   const stop = (gate: 'lease' | 'validity' | 'contract' | 'assembly', code: PartCode, message: string, entities?: string[]) => {
     gates.push({ gate, verdict: 'fail', findings: [{ code, message, ...(entities ? { entities } : {}) }] });
@@ -85,7 +85,7 @@ export async function integratePart(state: ChatState, patch: PartPatch, leases: 
   gates.push({ gate: 'contract', verdict: findings.length ? 'fail' : 'pass', findings });
   if (findings.length) { gates.push({ gate: 'assembly', verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] }); return done('rejected'); }
   // (The Assembly integrator, A8.4: the whole assembly with this part as it would be — parts meeting, every pattern on every built part, the total mass.)
-  const whole = await checkAssembly(r.state.doc, evaluate);
+  const whole = await checkAssembly(r.state.doc, evaluate, { requireComplete: options.requireCompleteAssembly });
   gates.push({ gate: 'assembly', verdict: whole.verdict, findings: whole.findings });
   return whole.verdict === 'fail' ? done('rejected') : whole.verdict === 'undecided' ? done('held') : done('applied', r.state);
 }

@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D583 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D584 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D583 isolates hard-requirement reasons and response mode across independent typed tool calls. Actual Studio verifies the refused and permitted results, history and native Save/fresh Open. [D583](notes/tool-call-context-2026-11-10/README.md).
-- **Next MAIN:** D584 / P0, B09, rows 04 and 16. Bind AI task inputs, owned scope and verification duties to a spec revision. [#2399](https://github.com/barocss/barocss/issues/2399).
+- **Current position:** D584 binds two scoped native part tasks to a frozen spec, verifies each candidate and records one exact user approval. Actual Studio verifies the approved file through project Save, fresh Open and re-edit. [D584](notes/spec-task-contract-2026-11-11/README.md).
+- **Next MAIN:** D585 / P0, B09, rows 04 and 16. Reproduce and repair stale candidate commits, late cancellation and duplicate in-flight operations. [#2400](https://github.com/barocss/barocss/issues/2400).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

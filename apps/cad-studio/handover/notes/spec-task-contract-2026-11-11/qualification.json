@@ -1,0 +1,203 @@
+{
+  "workId": "D584",
+  "parent": "721093096a4a5a19f0a3f8cc03ce788109b91a60",
+  "issue": 2399,
+  "tier": "FULL",
+  "node": "22.19.0",
+  "gate": "gate.sh acquire heavy 300 D584-FULL-delivery",
+  "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d584-2026-11-11",
+  "studioCommand": "cd apps/cad-studio && D584_SOURCE_FROZEN=1 node test/task-contract-browser.mjs EXTERNAL/CASE",
+  "studio": [
+    {
+      "case": "studio-first",
+      "status": "PASS",
+      "receiptSha256": "27494427f19a352568d5d65590f79a538fba08ff7cb8e30d28630b7f4df3d694",
+      "frozenSha256": "8fcfdaafd7ce32cf1d963c5c7556f26d01644b6092a7e6021a4e42be2341afde",
+      "sourceCount": 943,
+      "frozenThroughCleanup": true,
+      "snapshots": 8,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 28207,
+        "nodePPID": 28206,
+        "serverURL": "http://127.0.0.1:56550"
+      },
+      "acceptedNativeSha256": "213a1f18b5005244fd9915bd40b6ad8726b5e4e807df151860027a2e9047c6f3",
+      "opfsNativeSha256": "213a1f18b5005244fd9915bd40b6ad8726b5e4e807df151860027a2e9047c6f3",
+      "opfsByteEquality": true
+    },
+    {
+      "case": "studio-final",
+      "status": "PASS",
+      "receiptSha256": "de416080cb3e1340be15ae146ac805c84e68e7da438b5ea3c379e4efe5adea85",
+      "frozenSha256": "3e43fccdcee327cf40ff6b1fb2ea9d53dbc867dbc2aec843824a9f324e9b288a",
+      "sourceCount": 943,
+      "frozenThroughCleanup": true,
+      "snapshots": 8,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "runtime": {
+        "nodePID": 77676,
+        "nodePPID": 77675,
+        "serverURL": "http://127.0.0.1:58568"
+      },
+      "acceptedNativeSha256": "310ca32cb5445609152baa647f365c977bf6ba0ecf0919477238a76f8b8434f8",
+      "opfsNativeSha256": "310ca32cb5445609152baa647f365c977bf6ba0ecf0919477238a76f8b8434f8",
+      "opfsByteEquality": true
+    }
+  ],
+  "visualReview": [
+    "06-fresh-open.png",
+    "08-edited-lid-local.png"
+  ],
+  "hostJoin": {
+    "identity": {
+      "projectId": "d584-housing",
+      "documentId": "d584-assembly"
+    },
+    "baselineDigest": "5d0d200803ba1d6132e743eb9a0e65c7ee337c35badce5037887a546b6ca7633",
+    "specRevision": "dcc1622cf70c315a35f890a561fb9367e11b51ef14a8732c4ad3dcaeeb48c464",
+    "approvedCandidateDigest": "2be884a2d8cfef9ec7ff8d73a441f9a5c5c9d89fc2b5dd7f1429b4cfacd47819",
+    "acceptedProposalId": "P1",
+    "hostReceiptSha256": "4d1987d5a12a7448c2d9f22cfa70544646e6564fc4bac5750d1ed32399e1bc84"
+  },
+  "pass": {
+    "model": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan.test task-execution.test brief spec questions team-ecr team-freshness team-input-authority team-v3 team-assembly proposals",
+      "receiptSha256": "dfadcec2efb9e8fdce03b9490f6f986cc633e9b9bd40c8a28f60ca065a655165",
+      "pass": 74,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "brief.test.ts",
+        "proposals.test.ts",
+        "spec.test.ts",
+        "task-execution.test.ts",
+        "task-plan.test.ts",
+        "team-assembly.test.ts",
+        "team-ecr.test.ts",
+        "team-freshness.test.ts",
+        "team-input-authority.test.ts",
+        "team-v3.test.ts"
+      ]
+    },
+    "studioTests": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test tool-contract-mcp toolset-mcp team-bundle team-metrics candidates.test",
+      "receiptSha256": "89b3c75a801676735641bdaf25ca5d144d6adeb56062161eeb2d511cc27adc7d",
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0,
+      "selectedFiles": [
+        "candidates.test.ts",
+        "team-bundle.test.ts",
+        "team-metrics.test.ts",
+        "tool-contract-mcp.test.ts",
+        "toolset-mcp.test.ts"
+      ]
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model type-check",
+      "receiptSha256": "4630ea693b63568ee1ae0f9fbd5a51feed26ebe53864b9ddf0c8ecf01ae832b7"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio type-check",
+      "receiptSha256": "235410bc7cef81e8f10926b9e90963210700c4f5eb6b17639c867f51d733098c"
+    },
+    "lint": {
+      "status": "PASS",
+      "command": "pnpm exec eslint packages/barocss-cad-model/src/team/{assembly,parts,taskPlan,taskExecution,taskQuestions,taskDrawing}.ts packages/barocss-cad-model/test/{task-plan,task-execution}.test.ts",
+      "receiptSha256": "59e69b87c19bfdd48616948a4b7c0db17cdc33ac7e8b560cd6ae30300ee986e2"
+    },
+    "driverSyntax": {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/task-contract-browser.mjs",
+      "receiptSha256": "f456f9fcf99f1b739362dcb9288a6a41125312e6bc05077b6881a6c089318c57"
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build",
+      "receiptSha256": "87f1cf7ad54d0cf1e3214ebc69e323eed24eea8eb86f6404fa04178c45f5b6bf"
+    },
+    "mutations": {
+      "results": [
+        {
+          "name": "admit-another-worker",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-rejected-prerequisite",
+          "status": "KILLED"
+        },
+        {
+          "name": "skip-reject-after-replay",
+          "status": "KILLED"
+        },
+        {
+          "name": "omit-failed-peer",
+          "status": "KILLED"
+        },
+        {
+          "name": "drop-native-required-check",
+          "status": "KILLED"
+        },
+        {
+          "name": "drop-pattern-input",
+          "status": "KILLED"
+        },
+        {
+          "name": "trust-stored-question",
+          "status": "KILLED"
+        }
+      ],
+      "status": "PASS",
+      "command": "node EXTERNAL/mutations.mjs WORKTREE EXTERNAL",
+      "receiptSha256": "19df9c5f4bb7d3b4db7245386a2a81cd6fd016aead51867425c6361f88b13237"
+    }
+  },
+  "firstFailures": [
+    {
+      "case": "focused reproduction",
+      "tests": 12,
+      "pass": 7,
+      "fail": 5,
+      "receiptSha256": "4011e916901752cb21fbe5ef5a9ad18f6f724c9ffd0bb9ddf0ac919026a3810a"
+    },
+    {
+      "case": "test tuple type inference",
+      "receiptSha256": "57f5b286ff5bcf5c70050ed473f79e4582991f6474803b8be29fcb0faaff5bc0"
+    },
+    {
+      "case": "mutation control did not distinguish preflight refusal from refusal after replay",
+      "receiptSha256": "5f9edf304089d3e8da204e27a2fd1d9e7a1c62cc51c9a520134ae4b0967bd7ef"
+    },
+    {
+      "case": "unused destructuring fields in candidate digest",
+      "receiptSha256": "ace68b6258bfb649a2fd53659e15b0baed5e10c6ea201a8237745855b7eec05f"
+    }
+  ],
+  "notRun": [
+    "live providers",
+    "Studio UI task admission or approval",
+    "simultaneous worker execution",
+    "durable coordinator recovery",
+    "independent drawing export",
+    "whole Model or kernel suites",
+    "distribution or release qualification",
+    "whole B09 acceptance"
+  ]
+}

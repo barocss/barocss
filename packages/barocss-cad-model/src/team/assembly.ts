@@ -27,16 +27,25 @@ import { materialOf } from '../library/materials';
 import { briefMaterial } from '../chat/brief';
 import { r3 } from '../util/round';
 
-export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT';
+export type AssemblyCode = 'NOT_EVALUATED' | 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
 export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ mass: number; beadAccounting?: BeadAccounting }
 
 /** Every part's bodies where the assembly places them (the base part's as they are). */
 export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promise<Map<string, BodyResult[]>> {
+  return collectAssemblyBodies(doc, evaluate);
+}
+
+async function collectAssemblyBodies(doc: StudioDoc, evaluate: Evaluate, missing?: string[]): Promise<Map<string, BodyResult[]>> {
   doc = resolveShopTree(doc);
   const out = new Map<string, BodyResult[]>(), base = await evaluate(doc);
   if (base?.ok && base.bodies.length) out.set('base', base.bodies);
-  for (const inst of doc.instances ?? []) if (!inst.hidden) { const b = await placedBodies(inst, evaluate, doc); if (b.length) out.set(inst.id, b); }
+  else if (!base?.ok || doc.nodes.length || doc.direct) missing?.push('base');
+  for (const inst of doc.instances ?? []) if (!inst.hidden) {
+    const bodies = await placedBodies(inst, evaluate, doc);
+    if (bodies.length) out.set(inst.id, bodies);
+    else missing?.push(inst.id);
+  }
   return out;
 }
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
@@ -53,8 +62,13 @@ function occurrenceMass(inst: PartInstance, bodies: readonly BodyResult[], paren
 }
 
 /** The whole assembly's gate: parts meeting, the patterns on every built part, the total mass. */
-export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise<AssemblyCheck> {
-  const parts = await assemblyBodies(doc, evaluate), ids = [...parts.keys()], findings: AssemblyFinding[] = [];
+export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate, options: { requireComplete?: boolean } = {}): Promise<AssemblyCheck> {
+  const missing = options.requireComplete ? [] as string[] : undefined;
+  const parts = await collectAssemblyBodies(doc, evaluate, missing), ids = [...parts.keys()], findings: AssemblyFinding[] = [];
+  if (missing?.length) return {
+    verdict: 'fail', mass: 0,
+    findings: missing.map(id => ({ code: 'NOT_EVALUATED', message: `${id} did not produce its expected assembly bodies`, entities: [id] })),
+  };
   // (Freeform faces measured against their part's B-rep, O59: the chord a placed body keeps, its depth unmoved.)
   for (const id of ids) { const d = id === 'base' ? doc : doc.instances?.find(x => x.id === id)?.doc; if (d) for (const b of parts.get(id)!) measureBody(d, b); }
   for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
