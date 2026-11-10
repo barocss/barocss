@@ -151,3 +151,7 @@ CAN-06/DOC-07/COMP-08 include version/compatibility concerns: validation and exi
 For each ID, keep its exact target text and add implementation availability, relevant producer/consumer, bounded PASS/FAIL/NOT_RUN, source eligibility, selected task and remaining acceptance. A source implementation can be available while its full registered target stays open. An epic stays open until all its declared requirements and quality gates are met; do not derive closure from this map or from a feature count.
 
 The live intake and primary destinations are in06-github-issues.md. No issue, checkbox, assignee, label, milestone or comment was edited by this registry. No product test, Studio execution, independent geometry or release acceptance follows.
+
+## Later issue intake boundary
+
+The [2026-11-10 follow-up](13-issue-followup-2026-11-10.md) routes newer issues to existing tracks and baselines. Its candidates are an append-only routing record. The adopted registry still contains these same 129 exact IDs in 15 epics. Adjudicate each affected ID against its original acceptance and current evidence before updating status.

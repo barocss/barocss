@@ -106,3 +106,7 @@ Issue bodies, historical READY labels, branch pins, gate commands, reviewer/agen
 After P0-R01, use a concrete current-source blocker or the first uncovered nonheld B01–B10/P1 acceptance to select work. Read the relevant full body, required-feature registry entry, current code, retained receipt and necessary comments before implementation; declare SMALL/FEATURE/FULL, current owner/dependencies and finite acceptance. Existing implementations and successful prefixes must be reused honestly, with source eligibility. A gallery, official competitor statement, issue-open flag or closed leaf is not a current product/native/file test.
 
 Whole-CAD readiness remains NOT_MEASURED and B01–B10 coverage remains NOT_ADJUDICATED. This file adds no global percentage, complete101-body audit, parity/performance result, network/download approval, new agent framework, WASM adoption, mobile test or new issue closure. Product/native/browser/build tests were NOT_RUN for this documentation intake.
+
+## Later intake
+
+The [2026-11-10 follow-up](13-issue-followup-2026-11-10.md) records the separate #2288–#2422 screen and selected current-source routes. Use it for new candidates under D520 and the current D550 MAIN. The 192-open snapshot and its 101 selected issues above are historical.
