@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D580 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D581 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D580 preserves unresolved body material IDs and reports mass as unknown. Actual Studio verifies explicit repair, history, malformed Open refusal and two native Save/fresh Open paths. [D580](notes/unresolved-body-material-2026-11-10/README.md).
-- **Next MAIN:** D581 / P0, B05, rows 10 and 16. Verify whether refused or missing ordinary part evaluations produce a complete-looking BOM. [#2420](https://github.com/barocss/barocss/issues/2420).
+- **Current position:** D581 refuses missing or failed ordinary BOM evaluations with occurrence and feature provenance. Actual Studio verifies BOM and Drawing export gates, recovery and native Save/fresh Open. [D581](notes/bom-evaluation-completeness-2026-11-10/README.md).
+- **Next MAIN:** D582 / P0, B09, rows 04 and 16. Reproduce keep-out equality and range verdicts with a chord error interval. [#2422](https://github.com/barocss/barocss/issues/2422).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

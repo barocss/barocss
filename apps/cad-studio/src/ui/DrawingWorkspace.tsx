@@ -101,9 +101,16 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // edited on it is merged back into the whole drawing's settings. With one sheet `settings` is `wholeSettings`, untouched.
   const [sheetNo, setSheetNo] = useState(0);
   const sheetTotal = sheetCount(wholeSettings), current = Math.min(sheetNo, sheetTotal - 1);
-  const settings = useMemo(() => forSheet(wholeSettings, current), [wholeSettings, current]);
+  const drawingSetWantsBom = !!wholeSettings.balloons || !!wholeSettings.tables?.some(table => table.from === 'bom');
+  const settings = useMemo(() => {
+    const local = forSheet(wholeSettings, current);
+    // A continuation sheet omits the BOM table, but a legacy drawing still uses assembly scope.
+    return current > 0 && local.scope === undefined && drawingSetWantsBom
+      ? { ...local, scope: { kind: 'assembly' as const } }
+      : local;
+  }, [wholeSettings, current, drawingSetWantsBom]);
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, drawingSetWantsBom, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
   /** The whole drawing's next settings, as the file will have them. */
   const commitWhole = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return false; }
@@ -621,9 +628,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
   // (11 ④: the SVG and the DXF are of the sheet shown, named by its number when there are several; the PDF has every sheet.)
   const sheetSuffix = sheetTotal > 1 ? `-sheet-${current + 1}` : '';
-  const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}${sheetSuffix}.svg`, 'image/svg+xml'); };
+  const exportableSheet = !wantsBom || bom ? sheet : null;
+  const canExportPdf = !!sheet && (!drawingSetWantsBom || !!bom);
+  const exportSvg = () => { if (exportableSheet) downloadBytes(new TextEncoder().encode(sheetSvg(exportableSheet, title)), `${fileName}${sheetSuffix}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {
-    if (!sheet) return;
+    if (!sheet || !canExportPdf) return;
     const all = sheetTotal > 1 && views ? buildSheets(views, wholeSettings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts).map(x => x.sheet) : [sheet];
     downloadBytes(sheetsPdf(all, title), `${fileName}.pdf`, 'application/pdf');
     const missing = [...new Set(all.flatMap(pdfMissing))];
@@ -670,9 +679,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
   const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
   const exportDxf = () => {
-    if (!sheet || !layout) return;
+    if (!exportableSheet || !layout) return;
     try {
-      const r = sheetDxf(sheet, layout, dxfVersion);
+      const r = sheetDxf(exportableSheet, layout, dxfVersion);
       downloadBytes(r.bytes, `${fileName}${sheetSuffix}.dxf`, 'image/vnd.dxf');
       // R12 has no ellipses, splines, hatches, line weights or units: say what was changed to fit it.
       if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
@@ -791,8 +800,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
         </div>
         <SheetTabs whole={wholeSettings} current={current} onSelect={setSheetNo} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); setSheetNo(sheetTotal); }} />
-        <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
-          <span>{hint}</span>
+        <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
+          <span>{bomError ?? hint}</span>
           {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
           <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
         </div>
@@ -833,7 +842,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
 
-        <ExportActions sheets={sheetTotal} sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
+        <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>
     </div>
   );

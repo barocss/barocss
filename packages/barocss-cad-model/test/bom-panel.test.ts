@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { editRingRows } from '../src/engine/rings';
 import { editBearingRows } from '../src/engine/bearings';
@@ -9,7 +9,8 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { runOutputTool } from '../src/chat/outputs';
 import { v2Result } from '../src/chat/groups';
 import { sha256Hex } from '../src/util/digest';
-import { bomPanelData, purchaseCsv, setBought } from '../src/bom/bom';
+import { bomPanelData, bomPanelDataOf, purchaseCsv, setBought } from '../src/bom/bom';
+import { addAssemblyCut } from '../src/assembly/cuts';
 
 // O147 B1: the BOM panel's data (S1's BOM, a part alone as its own line, the made elements), the bought/made choice on
 // every node a line merges (one change), and the purchase list as CSV.
@@ -113,4 +114,110 @@ test('A9-11: explicit key dimensions remain unchanged and do not imply a verifie
   const panel = await bomPanelData(doc, evaluate), key = panel.bom.lines.find(l => l.kind === 'key')!;
   assert.deepEqual([key.size, key.qty, key.row, key.source, key.estimate], ['5 × 5 × 16', 1, null, null, true]);
   assert.match(purchaseCsv(panel), /key 5 × 5 × 16,1,key,5 × 5 × 16,,,,estimate\n/);
+});
+
+const occurrence = (id: string, doc: StudioDoc, hidden = false): PartInstance => ({
+  id, name: 'Same display name', doc, position: [0, 0, 0], rotation: [0, 0, 0], ...(hidden ? { hidden } : {}),
+});
+
+function refusingShaft(): StudioDoc {
+  const doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
+  const shaft = doc.nodes[0];
+  assert.equal(shaft.kind, 'shaft');
+  return { ...doc, nodes: [{ ...shaft, steps: [{ diameter: 10, length: 20 }, { diameter: 10, length: 25 }] }] };
+}
+
+test('BOM producers distinguish missing and native refused results from a successful empty part', async () => {
+  const doc = refusingShaft(), before = JSON.stringify(doc);
+  const reason = /\[BOM_EVALUATION\] base \(original\).*SHAFT_STEPS.*steps 1 and 2 have one diameter/;
+  assert.throws(() => bomPanelDataOf(doc, d => evaluateDoc(d, 1)), reason);
+  await assert.rejects(bomPanelData(doc, evaluate), reason);
+
+  const missing = /\[BOM_EVALUATION\] base \(original\).*no (evaluation )?result/i;
+  assert.throws(() => bomPanelDataOf(doc, () => null), missing);
+  await assert.rejects(bomPanelData(doc, async () => null), missing);
+
+  const thrown = new Error('evaluator stopped');
+  assert.throws(() => bomPanelDataOf(doc, () => { throw thrown; }), error => error === thrown);
+  await assert.rejects(bomPanelData(doc, async () => { throw thrown; }), error => error === thrown);
+
+  const empty = emptyDoc();
+  const emptyData = bomPanelDataOf(empty, d => evaluateDoc(d, 1));
+  assert.deepEqual(await bomPanelData(empty, evaluate), emptyData);
+  assert.deepEqual([emptyData.bom.totalQty, emptyData.bom.totalMass], [1, 0]);
+  assert.equal(JSON.stringify(doc), before);
+});
+
+test('BOM producers keep occurrence paths and the existing hidden membership', async () => {
+  const base = rectanglePart(40, 40, 10), bad = refusingShaft();
+  const sub = { ...emptyDoc(), instances: [occurrence('good', base), occurrence('bad', bad)] };
+  const doc = { ...base, instances: [occurrence('sub', sub)] };
+  const before = JSON.stringify(doc);
+  const reason = /\[BOM_EVALUATION\] base\/sub\/bad \(original\).*SHAFT_STEPS/;
+  assert.throws(() => bomPanelDataOf(doc, d => evaluateDoc(d, 1)), reason);
+  await assert.rejects(bomPanelData(doc, evaluate), reason);
+  assert.equal(JSON.stringify(doc), before);
+
+  const hiddenSub = { ...sub, instances: [sub.instances[0], occurrence('bad', bad, true)] };
+  const hiddenNested = { ...base, instances: [occurrence('sub', hiddenSub)] };
+  const visible = await bomPanelData(hiddenNested, evaluate);
+  assert.deepEqual(visible.view.parts.map(p => p.id), ['sub', 'sub/good']);
+  assert.deepEqual(bomPanelDataOf(hiddenNested, d => evaluateDoc(d, 1)), visible);
+  const hiddenTop = { ...base, instances: [occurrence('bad', bad, true)] };
+  await assert.rejects(bomPanelData(hiddenTop, evaluate), /\[BOM_EVALUATION\] base\/bad \(original\).*SHAFT_STEPS/);
+});
+
+test('BOM producers require both the cut evaluation and the original source result', async () => {
+  const plate = rectanglePart(40, 40, 10);
+  const doc = addAssemblyCut({ ...emptyDoc(), instances: [occurrence('plate', plate)] }, {
+    profile: { kind: 'circle', radius: 5 }, at: [20, 20, 10], dir: [0, 0, -1], depth: 'through', targets: ['plate'],
+  }).doc;
+  const before = JSON.stringify(doc);
+  const baseline = await bomPanelData(doc, evaluate);
+  assert.ok(baseline.bom.totalMass > 0);
+  for (const stage of ['cut', 'original']) {
+    const read = (d: StudioDoc) => {
+      const cut = d.nodes.length > plate.nodes.length;
+      return (stage === 'cut' ? cut : d.nodes.length === plate.nodes.length) ? null : evaluateDoc(d, 1);
+    };
+    const reason = new RegExp(String.raw`\[BOM_EVALUATION\] base/plate \(${stage}\).*no (evaluation )?result`, 'i');
+    assert.throws(() => bomPanelDataOf(doc, read), reason);
+    await assert.rejects(bomPanelData(doc, async d => read(d)), reason);
+  }
+  assert.equal(JSON.stringify(doc), before);
+});
+
+test('BOM producers reuse one evaluation per resolved definition and keep successful suppression', async () => {
+  const shaft = refusingShaft();
+  const suppressed = { ...shaft, nodes: shaft.nodes.map(node => ({ ...node, suppressed: true as const })) };
+  const doc = asm(suppressed);
+  const counts = new Map<StudioDoc, number>();
+  const read = (d: StudioDoc) => {
+    counts.set(d, (counts.get(d) ?? 0) + 1);
+    return evaluateDoc(d, 1);
+  };
+  const data = bomPanelDataOf(doc, read);
+  assert.deepEqual([...counts.values()], [1, 1]);
+  counts.clear();
+  assert.deepEqual(await bomPanelData(doc, async d => read(d)), data);
+  assert.deepEqual([...counts.values()], [1, 1]);
+  assert.deepEqual(data.bom.lines.map(line => [line.parts, line.qty, line.mass]), [[['i0', 'i1'], 2, 0]]);
+  assert.deepEqual(data.made, []);
+});
+
+test('BOM and purchase output refuse a failed production read after successful preflight', async () => {
+  const doc = rectanglePart(10, 20, 30), before = JSON.stringify(doc);
+  for (const name of ['output_bom', 'output_purchase_csv']) {
+    const preflight = await runOutputTool(doc, [], name, {}, async () => null);
+    assert.ok('error' in preflight);
+    assert.match(preflight.error, /^\[OUTPUT_EVALUATION\] base/);
+
+    let reads = 0;
+    const output = await runOutputTool(doc, [], name, {}, async d => ++reads === 1 ? evaluateDoc(d, 1) : null);
+    assert.equal(reads, 2);
+    assert.deepEqual(Object.keys(output), ['error'], JSON.stringify(output));
+    assert.ok('error' in output);
+    assert.match(output.error, /^\[BOM_EVALUATION\] base \(original\).*no (evaluation )?result/i);
+  }
+  assert.equal(JSON.stringify(doc), before);
 });

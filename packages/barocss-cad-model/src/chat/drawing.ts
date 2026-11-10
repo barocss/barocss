@@ -70,6 +70,10 @@ export const DRAWING_TOOLS = [
 
 /** What the drawing is built from: the part's views, its drawing settings, callouts, threads and sections (O148 X1). */
 export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDrawing(doc.drawing)): SheetInputs | string {
+  return readDrawingInputs(doc, settings);
+}
+
+function readDrawingInputs(doc: StudioDoc, settings: DrawingSettings, includeBom = true): SheetInputs | string {
   let authored = doc;
   try { authored = drawingSource(doc, settings); doc = drawingDocument(doc, settings); } catch (cause) { return String(cause instanceof Error ? cause.message : cause); }
   // (O174: a part's drawing is what the part makes — its bought elements out of its views and sections; an assembly's keeps
@@ -79,7 +83,13 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
-  const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation, made)), elements = partElements(doc), bom = bomOf(doc, settings);
+  const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation, made)), elements = partElements(doc);
+  let bom: Bom | undefined;
+  try { if (includeBom) bom = bomOf(doc, settings); }
+  catch (cause) {
+    if (!isRefusal(cause, 'BOM_EVALUATION')) throw cause;
+    return cause.message;
+  }
   return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, (e, f) => holeCallout(doc.nodes, e, doc.parameters, f)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
@@ -115,7 +125,8 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     const why = firstProblem(checkDrawingScope(args.scope)); if (why) return { error: why };
     try { settings = changeDrawingScope(original, args.scope as DrawingScope); } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   }
-  const i = drawingInputs(doc, settings);
+  // Project the current geometry before an edit. Check the BOM only after the new settings are known.
+  const i = readDrawingInputs(doc, settings, name !== 'set_drawing');
   if (typeof i === 'string') return { error: i };
   // (`from`: the projection the settings are for — another front side's when one was turned to.)
   const set = (settings: DrawingSettings, summary: string, extra: Record<string, unknown> = {}, from: SheetInputs = i): Outcome => {
@@ -234,7 +245,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       if (isRecord(args.precision)) { const p = readDrawing({ precision: args.precision }).precision; if (p) s.precision = p; else delete s.precision; }
       if (typeof args.front === 'string' && args.front !== (s.orientation ?? 'y-')) {
         if (!['y-', 'x+', 'y+', 'x-'].includes(args.front)) return { error: 'front is one of y-, x+, y+, x- (the side the front view looks from).' };
-        const other = drawingInputs(doc, args.front === 'y-' ? (() => { const x = { ...s }; delete x.orientation; return x; })() : { ...s, orientation: args.front as 'x+' });
+        const other = readDrawingInputs(doc, args.front === 'y-' ? (() => { const x = { ...s }; delete x.orientation; return x; })() : { ...s, orientation: args.front as 'x+' }, false);
         if (typeof other === 'string') return { error: other };
         const t = reorient(i.views, other.views, s, args.front as 'y-');
         if (!t.ok) return { error: `[${t.code}] ${t.message}${t.code === 'ORIENTATION_REMAP_FAILED' ? ` ${t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('; ')}` : ''}` };

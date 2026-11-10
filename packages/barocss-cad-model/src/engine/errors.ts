@@ -6,6 +6,8 @@ export interface FriendlyError {
    * else the thrown error's own kind (`PARAMETER`, `GEOMETRY` …); absent when it gave neither. Callers tell refusals apart by it.
    */
   code?: string;
+  /** The kernel feature that refused the operation, when reported. */
+  feature?: string;
 }
 
 // A refusal maps here by its code: the kernel or model message carries a bracketed one (`[MY_CODE] …`, via the kernel's
@@ -252,6 +254,7 @@ export function friendly(message: string, kind?: string): FriendlyError {
 /** What was thrown, as friendly(): its message and, when it has one, its code (the kernel's errors carry a string `code`). */
 export function friendlyCause(cause: unknown): FriendlyError {
   if (!(cause instanceof Error)) return friendly(String(cause));
-  const kind = (cause as { code?: unknown }).code;
-  return friendly(cause.message, typeof kind === 'string' ? kind : undefined);
+  const { code, feature } = cause as { code?: unknown; feature?: unknown };
+  const error = friendly(cause.message, typeof code === 'string' ? code : undefined);
+  return typeof feature === 'string' && feature ? { ...error, feature } : error;
 }

@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool } from '../src/chat/tools';
 import { bomView, checkAssembly, checkBom, deriveBom } from '../src/team/assembly';
+import { bomResult } from '../src/team/freshness';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.4 (O36): the Assembly integrator's whole-assembly gate and the BOM agent. A part moved after its acceptance caught
@@ -16,6 +17,26 @@ import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const clean = async () => (await runPartsScenario(JSON.parse(readFileSync(join(CASES, 'parts-clean.json'), 'utf8')) as PartsScenario, evaluate)).final;
+
+test('D581: a successful team preflight cannot certify a later missing BOM evaluation', async () => {
+  const child = rectanglePart(10, 10, 10);
+  const doc: StudioDoc = { ...emptyDoc(), instances: [
+    { id: 'member', name: 'Member', doc: child, position: [0, 0, 0], rotation: [0, 0, 0] },
+  ] };
+  const before = JSON.stringify(doc);
+  let reads = 0;
+  const result = await bomResult(doc, async d => d.nodes.length && ++reads === 2 ? null : evaluate(d), 'D581');
+  assert.equal(reads, 2);
+  assert.equal(result.status, 'failed');
+  assert.equal(result.number, null);
+  assert.equal(result.value, null);
+  assert.equal(result.verdict, undefined);
+  assert.match(result.why ?? '', /\[BOM_EVALUATION\] base\/member \(original\).*no result/);
+  const refused = await bomResult({ ...doc, instances: [{ ...doc.instances![0], id: 'base', doc: rectanglePart(10, 10, 0) }] }, evaluate, 'D581');
+  assert.deepEqual([refused.status, refused.number, refused.value], ['failed', null, null]);
+  assert.match(refused.why ?? '', /\[BOM_EVALUATION\] base\/base \(original\).*n1.*PARAMETER.*height must not be zero/);
+  assert.equal(JSON.stringify(doc), before);
+});
 
 test('the whole-assembly gate: clean passes with its mass; a part moved off the shared pattern after acceptance is caught; a part resting on another is not passed', async () => {
   const doc = await clean(), ok = await checkAssembly(doc, evaluate);

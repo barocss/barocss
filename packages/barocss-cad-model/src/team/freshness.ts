@@ -23,11 +23,12 @@ import { printability } from '../print/rules';
 import { fromSig, markedReferences, toSig, verifyReferences, type Sig } from '../engine/references';
 import { matchSignature, signaturesOf, type Signature } from '../engine/rematch';
 import { bomView, checkBom, deriveBom } from './assembly';
+import { bomBodies } from '../bom/core';
 import { digestOf } from '../util/digest';
 import { readInterfaces } from './interfaces';
 import { modelContent } from '../util/revision';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
-import { refusal } from '../engine/refusal';
+import { isRefusal, refusal } from '../engine/refusal';
 
 export type ResultKind = 'requirement' | 'check_spec' | 'keepout' | 'mass' | 'inertia' | 'dfm' | 'bom' | 'drawing';
 export type InputName = 'model' | 'material' | 'process' | 'interfaces' | 'references' | 'requirement' | 'requirements' | 'drafts' | 'drawing';
@@ -261,17 +262,25 @@ export async function bomResult(doc: StudioDoc, evaluate: Evaluate, run: string)
   const base = { id: resultId('bom', 'assembly', run), kind: 'bom' as const, subject: 'assembly', run };
   const inspect = async (d: StudioDoc, scope: string): Promise<string | null> => {
     if (d.nodes.length || (scope && !d.instances?.length)) {
-      const b = await bodiesOf(d, evaluate);
-      if (!b.ok) return `${scope || 'base'}: ${b.why}`;
-      const incomplete = incompleteBeadReason(beadAccounting(d, b.bodies));
+      const bodies = bomBodies(await evaluate(d), scope ? `base/${scope}` : 'base');
+      if (!bodies.length) return `${scope || 'base'}: the part has no body`;
+      const incomplete = incompleteBeadReason(beadAccounting(d, bodies));
       if (incomplete) return `${scope || 'base'}: ${incomplete}`;
     }
     for (const inst of d.instances ?? []) { const why = await inspect(inst.doc, scope ? `${scope}/${inst.id}` : inst.id); if (why) return why; }
     return null;
   };
-  const incomplete = await inspect(resolveShopTree(doc), '');
-  if (incomplete) return stamp(doc, [], { ...base, status: /BEAD_ACCOUNTING_INCOMPLETE/.test(incomplete) ? 'unsupported' : 'failed', why: incomplete });
-  const view = await bomView(doc, evaluate), bom = deriveBom(view), problems = checkBom(view, bom);
+  let view: Awaited<ReturnType<typeof bomView>>;
+  try {
+    const incomplete = await inspect(resolveShopTree(doc), '');
+    if (incomplete) return stamp(doc, [], { ...base, status: /BEAD_ACCOUNTING_INCOMPLETE/.test(incomplete) ? 'unsupported' : 'failed', why: incomplete });
+    view = await bomView(doc, evaluate);
+  }
+  catch (cause) {
+    if (!isRefusal(cause, 'BOM_EVALUATION')) throw cause;
+    return stamp(doc, [], { ...base, status: 'failed', why: cause.message });
+  }
+  const bom = deriveBom(view), problems = checkBom(view, bom);
   return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMass, value: problems.length ? { bom, problems } : bom });
 }
 /** The drawing's issues: errors fail it; a drawing that cannot be built failed. */

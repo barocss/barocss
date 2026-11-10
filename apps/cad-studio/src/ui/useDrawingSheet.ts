@@ -29,9 +29,10 @@ import { Lanes } from '../engine/lanes';
 
 export const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, annotations: wantAnnotations = false, allSections }: {
+export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, annotations: wantAnnotations = false, allSections, drawingSetWantsBom = false }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string; annotations?: boolean;
   /** 11 ④: the whole drawing's sections, cut whichever sheet is shown (a detail on this sheet may enlarge a section on another). Absent: this settings' own. */ allSections?: readonly DrawingSection[];
+  drawingSetWantsBom?: boolean;
 }) {
   const scopeRead = (() => {
     try { return { scope: drawingScopeOf(settings), error: null }; }
@@ -106,18 +107,27 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (O9: the source revision the sheet is drawn from, in its title block.)
   const source = useMemo(() => revisionOf(doc), [doc]);
   // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
-  const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
-  const [bomRead, setBomRead] = useState<{ doc: StudioDoc; bom: Bom } | null>(null);
-  const bom = bomRead && bomRead.doc === doc ? bomRead.bom : null;
+  const wantsBom = (!!settings.balloons && settings.sheetContext?.balloonsHere !== false) || !!settings.tables?.some(x => x.from === 'bom');
+  const readBom = wantsBom || drawingSetWantsBom;
+  const [bomRead, setBomRead] = useState<{ doc: StudioDoc; title: string; result: { bom: Bom } | { error: string } } | null>(null);
+  const currentBom = readBom && bomRead?.doc === doc && bomRead.title === title ? bomRead.result : null;
+  const bom = currentBom && 'bom' in currentBom ? currentBom.bom : null;
+  const bomError = currentBom && 'error' in currentBom ? currentBom.error : null;
   const bomRevision = useRef(1);
   useEffect(() => {
-    if (!active || !wantsBom || scoped.error) { setBomRead(null); return; }
-    const t = setTimeout(() => { void lanes.run('drawing-bom', { revision: 0, source: title }, () => bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => d.bom, () => null)).then(reply => { if (!reply.stale) setBomRead(reply.result ? { doc, bom: reply.result } : null); }); }, 200);
+    if (!active || !readBom || scoped.error) { setBomRead(null); return; }
+    const t = setTimeout(() => {
+      void lanes.run('drawing-bom', { revision: 0, source: title }, async () => {
+        try { return { bom: (await bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title)).bom }; }
+        catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+      }).then(reply => { if (!reply.stale) setBomRead({ doc, title, result: reply.result }); });
+    }, 200);
     return () => { lanes.cancel('drawing-bom'); clearTimeout(t); };
-  }, [active, wantsBom, doc, title, scoped.error]);
+  }, [active, readBom, doc, title, scoped.error]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
   const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
-  const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
+  const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? (x.from === 'bom' && bom
+    ? tableContent(x, { doc, bom }) : { error: 'its source was not run for this sheet' }), [sourced, doc, bom]);
   const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
   const hasFrame = (bodies ?? []).some(b => b.cutPiece);
   // (O144: machine elements' tables, offered when the part has such an element.)
@@ -129,5 +139,5 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
+  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }

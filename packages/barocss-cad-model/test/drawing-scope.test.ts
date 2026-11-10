@@ -46,6 +46,29 @@ test('A9-13 legacy assembly BOM and balloon identity are preserved; assembly Aut
   const fixed=runDrawingTool(doc,'fix_drawing',{});assert.ok(!('error'in fixed));assert.deepEqual(readDrawing(fixed.doc.drawing).dimensions,[]);
   assert.deepEqual(doc.drawing.dimensions,[]);
 });
+test('D581: an incomplete BOM refuses drawing tables and balloons with the occurrence reason', () => {
+  const doc: StudioDoc = {
+    ...rectanglePart(10, 10, 10), instances: [
+      { id: 'failed', name: 'Hidden part', doc: rectanglePart(10, 10, 0), position: [30, 0, 0], rotation: [0, 0, 0], hidden: true },
+    ],
+  };
+  const before = JSON.stringify(doc);
+  const settings = { ...readDrawing(undefined), scope: { kind: 'assembly' as const } };
+  assert.notEqual(typeof drawingInputs(doc, settings), 'string');
+  for (const extra of [{ tables: [{ id: 'bom', from: 'bom' as const }] }, { balloons: true }]) {
+    assert.match(String(drawingInputs(doc, { ...settings, ...extra })), /\[BOM_EVALUATION\] base\/failed \(original\).*PARAMETER.*height must not be zero/);
+  }
+  const requested = { ...doc, drawing: { ...settings, tables: [{ id: 'bom', from: 'bom' as const }], balloons: true } };
+  const stillRequired = runDrawingTool(requested, 'set_drawing', { tables: [] });
+  assert.ok('error' in stillRequired);
+  assert.match(stillRequired.error, /BOM_EVALUATION/);
+  const removed = runDrawingTool(requested, 'set_drawing', { tables: [], balloons: false, front: 'x+' });
+  assert.ok(!('error' in removed), JSON.stringify(removed));
+  assert.equal(removed.doc.drawing?.balloons, undefined);
+  assert.equal(removed.doc.drawing?.tables, undefined);
+  assert.deepEqual(removed.doc.drawing?.scope, { kind: 'assembly' });
+  assert.equal(JSON.stringify(doc), before);
+});
 test('A9-13 v2 scope selection survives real file Save/Open; missing/invalid scopes refuse without fallback',async()=>{
   const doc=assembly(), e=await evaluate(doc);assert.ok(e.ok);const state={doc,bodies:e.bodies};
   const r=await dispatchTool(state,'drawing',{action:'set',scope:{kind:'part',part:'shaft'}},evaluate);

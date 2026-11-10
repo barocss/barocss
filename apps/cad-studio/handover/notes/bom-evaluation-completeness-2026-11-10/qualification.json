@@ -1,0 +1,344 @@
+{
+  "workId": "D581",
+  "parent": "77d14d12a5bbe76125ddeca31d90eb4373f3f7af",
+  "tier": "FULL",
+  "issue": 2420,
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D581-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d581-2026-11-10"
+  },
+  "modelRepro": {
+    "status": "FAIL",
+    "sourceSha256": "04d5b2e72dfb1e7c33e021a7c443d59787649910207b9f788551aa3a37ca5bae",
+    "resultSha256": "d39c4e51b47a4666b63683f00ad6b19e58c73efac925247577f4ef2ec8a2da40",
+    "command": "node EXTERNAL/bom-repro.mjs",
+    "nativeCode": "PARAMETER",
+    "nativeReason": "height must not be zero",
+    "missingOrRefusedRootMassG": 0,
+    "validEmptyRootMassG": 0,
+    "partialTreeMassG": 7.85,
+    "independentHealthyMassG": 10.55,
+    "displayToleranceG": 0.050000001
+  },
+  "studioCommand": "cd apps/cad-studio && D581_SOURCE_FROZEN=1 node test/bom-evaluation-completeness-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "harness": "FAIL",
+      "product": "NOT_ADJUDICATED",
+      "receiptSha256": "263a01acda91ec2e606bed189a609f2991128b819eb57a59b89fd03e16a309be",
+      "frozenSources": 299,
+      "snapshots": 1,
+      "oracles": 1,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Harness used an exact comparison for one-decimal displayed mass."
+    },
+    {
+      "output": "repro02",
+      "harness": "FAIL",
+      "product": "FAIL",
+      "receiptSha256": "4ecee6be0f93f775767f0b323543b068066e3309151bfe5b5c1da2ec51290179",
+      "frozenSources": 299,
+      "snapshots": 3,
+      "oracles": 2,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Harness assumed Undo would be disabled after Open."
+    },
+    {
+      "output": "repro03",
+      "harness": "FAIL",
+      "product": "FAIL",
+      "receiptSha256": "656d3558a3a0aa95c89f4f534c511900d41c443f64cec30e9aa772f79f04d8d7",
+      "frozenSources": 299,
+      "snapshots": 4,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Harness needed to close the BOM before using Versions."
+    },
+    {
+      "output": "repro04",
+      "harness": "PASS",
+      "product": "FAIL",
+      "receiptSha256": "ac6b319ee193374bbfabd65d60b93ea8dfe3908c20c10d49c87b36cee4358da3",
+      "frozenSources": 299,
+      "snapshots": 4,
+      "oracles": 4,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "The real Worker refused the second part, but Studio reported 7.8 g and offered the healthy CSV bytes.",
+      "frozenSha256": "0d017c2ace9657b9c2dded4a46d64ce435e5784a1be6885849a7a3343f04e425",
+      "frozenThroughCleanup": true
+    },
+    {
+      "output": "drawing-repro01",
+      "harness": "FAIL",
+      "product": "NOT_ADJUDICATED",
+      "receiptSha256": "0884f5bcdc919f3ec47d9dd9517980a4fafe842930383bab389e3776e51df0d3",
+      "frozenSources": 303,
+      "snapshots": 5,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "The native drawing fixture omitted required default fields."
+    },
+    {
+      "output": "drawing-repro02",
+      "harness": "PASS",
+      "product": "FAIL",
+      "receiptSha256": "dc9ecd0bdb1bd0107bb3e99ff521b174262bba40e3701cff0b30ffccc91b5124",
+      "frozenSources": 303,
+      "snapshots": 5,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Drawing offered export with its requested balloons missing.",
+      "frozenSha256": "4d320081b583ab7b7483bdff984fbf3e95d76132a5ef5a1d685ad41a0e33c7de",
+      "frozenThroughCleanup": true
+    },
+    {
+      "output": "fixed02",
+      "harness": "PASS",
+      "product": "PASS_AT_SINGLE_SHEET_SCOPE",
+      "receiptSha256": "0f4bc66c8e4a22005480927cdff779a24f672c0ed620b8c4c5786afb6c9c0fb6",
+      "frozenSources": 303,
+      "snapshots": 6,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "frozenSha256": "06ac1754079c566c4e253d3349ec2c704af6fab7f42ca39fd2027f2fdce1f840",
+      "frozenThroughCleanup": true
+    },
+    {
+      "output": "sheet-repro01",
+      "harness": "PASS",
+      "product": "FAIL",
+      "receiptSha256": "4d01d062548f42fd5c455f1b77241940cab7ab2e79c829a44c343145220015fb",
+      "frozenSources": 303,
+      "snapshots": 7,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "A legacy continuation sheet offered the whole PDF with an incorrect part-only source.",
+      "frozenSha256": "21da05f9384ec855452c323b1b0f09bfdc3a7c0914e12a53ef017e0ba8f0dccc",
+      "frozenThroughCleanup": true
+    },
+    {
+      "output": "fixed03",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "a73d378e0a527ee0d6cd7237a8a0ae5fe8ea396db5c9dda4500f9f5f8cdf3530",
+      "frozenSources": 303,
+      "snapshots": 8,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "frozenSha256": "3e9a2f27a0c098e2ddfa5327b9063cd428cf2eeb79263c548dc0412ef37a8283",
+      "frozenThroughCleanup": true,
+      "nodePID": 89942,
+      "serverURL": "http://127.0.0.1:64626",
+      "driverSha256": "9b6d8bd98a4e68b688a4eed5844c60e915a4a8a9ed643f2cb68be861036a4144",
+      "files": [
+        {
+          "label": "01-healthy",
+          "csvSha256": "70f7f6082e8235ea96380481d40d17d2bc59971c2aef69a20293459b9ed91c0d"
+        },
+        {
+          "label": "03-recovered",
+          "csvSha256": "70f7f6082e8235ea96380481d40d17d2bc59971c2aef69a20293459b9ed91c0d"
+        },
+        {
+          "file": "D581-recovered.bcad",
+          "sha256": "5144aef0534323077892aca302445d8689ca74434da0c0b4b13e57073257d69b",
+          "semanticEquality": true
+        },
+        {
+          "label": "04-fresh-open",
+          "csvSha256": "70f7f6082e8235ea96380481d40d17d2bc59971c2aef69a20293459b9ed91c0d"
+        }
+      ]
+    },
+    {
+      "output": "d575-regression",
+      "harness": "PASS",
+      "product": "PASS",
+      "receiptSha256": "8b57653327cc08e7e405739e53c3a4a8b3822c17dfbcc80465e9e158dd0b4859",
+      "frozenSources": 297,
+      "snapshots": 4,
+      "oracles": 3,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "frozenSha256": "811452d17f22dfa95f91c1421ef745b0c40da170bb32eaeb1fb0df52206885ea",
+      "frozenThroughCleanup": true
+    }
+  ],
+  "d575Command": "cd apps/cad-studio && D575_SOURCE_FROZEN=1 node test/bom-currentness-browser.mjs EXTERNAL/d575-regression --expect=fixed",
+  "checks": [
+    {
+      "status": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test bom- team-assembly team-freshness drawing-scope drawing-manufacturing shared-bead-lifecycle instance-looks frame-plates flexible-subassembly bearing-housing toolset.test tool-contract.test",
+      "log": "model-release.log",
+      "logSha256": "5b5031fa7f00a27c31c909076cdcc5be3a50b831ef348012f20c6e1046ecd73c",
+      "tests": 142,
+      "pass": 142,
+      "fail": 0
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio test bom-linked-ui bom-nested-ui drawing-commit-roundtrip drawing-revision-print tool-contract-mcp toolset-mcp",
+      "log": "studio-release.log",
+      "logSha256": "ad16034ed95b9cd83f317b2901daf249d74791016f11fcb1c5212319a7d06b81",
+      "tests": 32,
+      "pass": 32,
+      "fail": 0
+    },
+    {
+      "status": "FAIL",
+      "command": "pnpm --dir packages/barocss-cad-model test bom- team-assembly team-freshness drawing-scope drawing-manufacturing chat-drawing shared-bead-lifecycle instance-looks frame-plates flexible-subassembly bearing-housing toolset.test tool-contract.test rb9.test",
+      "log": "model-final.log",
+      "logSha256": "6a35423721f5ddab76bd717fcb7b985d8af110aaf204ae3aac6d4d068a17aa19",
+      "tests": 149,
+      "pass": 148,
+      "fail": 1,
+      "rb9": "PASS",
+      "firstFailure": "TEXT_OVER_LINES on dimension 12 in the existing chat-drawing proposal fixture."
+    },
+    {
+      "status": "FAIL",
+      "command": "node EXTERNAL/baseline-chat-drawing.mjs REPO EXTERNAL 77d14d12a5bbe76125ddeca31d90eb4373f3f7af",
+      "log": "chat-drawing-baseline.log",
+      "logSha256": "8687be2d5061eee185ebe9c9e8b43f01dbbf7114d6d5c1f0b8ce67fec7a9fdb7",
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "firstFailure": "Same dimension 12 TEXT_OVER_LINES with all changed Model sources from the parent.",
+      "sourceSha256": "741a8c157bfb88671b5eea6e6f1410bb363bf1ef3b3c1c09b1506032ec8ec5f1"
+    },
+    {
+      "status": "FAIL",
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "log": "model-types.log",
+      "logSha256": "190091bd8f212d1a4aa78fa6d820119248301633ff60568f98c3174c4555d22d",
+      "firstFailure": "A new test widened suppressed: true to boolean before the final type check."
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "log": "model-types-release.log",
+      "logSha256": "515d491151bfee4701e6d6ae119cc520e9b9e435baf2c79b368f9f412c3695cb"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "log": "studio-types-release.log",
+      "logSha256": "2e12755811c02738dc8caa1fd10a111f705db6cad1df9b37115b572ac34c598f"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec eslint packages/barocss-cad-model/src/{bom/bom.ts,bom/core.ts,chat/drawing.ts,engine/errors.ts,engine/refusal.ts,team/freshness.ts} packages/barocss-cad-model/test/{bom-panel,drawing-scope,team-assembly}.test.ts apps/cad-studio/src/ui/{DrawingWorkspace.tsx,useDrawingSheet.ts,drawing/ExportActions.tsx}",
+      "log": "lint-release.log",
+      "logSha256": "0ed74a1f31aaeab6370d6d2fab7b9c15b74c525622bccd97d94e5e5cff9f99a3"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/bom-evaluation-completeness-browser.mjs",
+      "log": "driver-syntax-release.log",
+      "logSha256": "e06a32ad3135a6cb2ca96e3a0728a7db2f252a6b29fab2bfd17ce64be6fcf80f"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir EXTERNAL/build-release",
+      "log": "build-release.log",
+      "logSha256": "1826088b0c4dd7cfa4839383a9744232ff14ef3874e767a07e3eb676dd2dc8a7"
+    }
+  ],
+  "mutations": {
+    "status": "PASS",
+    "command": "node EXTERNAL/d581-mutants.mjs REPO EXTERNAL",
+    "scriptSha256": "d4ff55318596872f8d0e8734c3e30162faa5d1f6bd655cd79b2755bfdbb29048",
+    "resultSha256": "acf809cff445141a21625224296a2ebdb296f4010635a7b1e16c5890616d3bb8",
+    "cases": [
+      {
+        "name": "empty-on-failure",
+        "status": "KILLED",
+        "expectedName": "BOM producers distinguish missing and native refused results from a successful empty part"
+      },
+      {
+        "name": "lost-root-prefix",
+        "status": "KILLED",
+        "expectedName": "BOM producers keep occurrence paths and the existing hidden membership"
+      },
+      {
+        "name": "lost-cut-stage",
+        "status": "KILLED",
+        "expectedName": "BOM producers require both the cut evaluation and the original source result"
+      },
+      {
+        "name": "drawing-reads-before-removal",
+        "status": "KILLED",
+        "expectedName": "D581: an incomplete BOM refuses drawing tables and balloons with the occurrence reason"
+      }
+    ]
+  },
+  "reviews": {
+    "quality": "APPROVE",
+    "functional": "APPROVE",
+    "security": "APPROVE",
+    "rootVisual": "BOM refusal, Drawing refusal and recovery"
+  },
+  "notRun": [
+    "Drawing PDF/SVG/DXF file contents or independent readback",
+    "Whole Model and kernel suites",
+    "Mobile and live agents",
+    "Whole B05 acceptance"
+  ]
+}
