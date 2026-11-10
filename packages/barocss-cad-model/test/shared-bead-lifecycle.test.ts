@@ -61,9 +61,13 @@ test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selec
   assert.equal(whole.status, 'unknown'); assert.match(whole.why!, /BEAD_ACCOUNTING_INCOMPLETE/);
   assert.equal((await runCheck(doc, e.bodies, evaluate, { op: '<=', query: { fn: 'volume' }, value: 1e9 })).status, 'unknown');
   assert.equal((await runCheck(doc, e.bodies, evaluate, { op: '<=', query: { fn: 'volume', body: 'b0_part0' }, value: 1e9 })).status, 'pass');
-  const material = { ...doc, bodies: { ...doc.bodies, b0_part0: { material: 'aluminium' } } } as StudioDoc;
+  const material = { ...doc, bodies: { ...doc.bodies, b0_part0: { material: 'al6061' } } } as StudioDoc;
   const selected = await runCheck(material, e.bodies, evaluate, { op: '<=', query: { fn: 'mass', body: 'b0_part0' }, value: 1e9 });
   assert.equal(selected.status, 'pass'); assert.ok(typeof selected.measured === 'number' && selected.measured > 0);
+  const unresolved = { ...material, bodies: { ...material.bodies, b0_part0: { material: 'unresolved-weld-fixture' } } };
+  const unresolvedWhole = await runCheck(unresolved, e.bodies, evaluate, { op: '<=', query: { fn: 'mass' }, value: 1e9 });
+  assert.equal(unresolvedWhole.status, 'unknown');
+  assert.match(unresolvedWhole.why!, /b0_part0.*unresolved-weld-fixture.*BEAD_ACCOUNTING_INCOMPLETE/);
   const tool = await dispatchTool({ doc, bodies: e.bodies }, 'mass_properties', {}, evaluate), data = JSON.parse(tool.content);
   assert.equal(data.beadAccounting.complete, false); assert.ok(data.bodies.length > 0, tool.content);
   const view = await bomView(doc, evaluate), bom = deriveBom(view);

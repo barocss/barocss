@@ -108,7 +108,10 @@ async function massPropertiesTool(state: ChatState, args: Record<string, unknown
   if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
   const out = massProperties(state.doc, shown);
   const accounting = beadAccounting(state.doc, state.bodies);
-  return { state, content: json({ bodies: out, ...(accounting ? { beadAccounting: accounting } : {}), ...(out.some(b => b.assumed) ? { note: 'a body without a material is taken as aluminium: set its material before using its mass' } : {}) }), isError: false, changed: false, summary: `${accounting && !accounting.complete ? 'incomplete welded-part accounting; ' : ''}mass of ${out.length} reported bodies` };
+  const note = out.some(b => b.unresolved_material !== undefined || b.material_invalid)
+    ? 'An unset or unresolved material uses an aluminium estimate. Set the material before using its mass.'
+    : out.some(b => b.assumed) ? 'a body without a material is taken as aluminium: set its material before using its mass' : undefined;
+  return { state, content: json({ bodies: out, ...(accounting ? { beadAccounting: accounting } : {}), ...(note ? { note } : {}) }), isError: false, changed: false, summary: `${accounting && !accounting.complete ? 'incomplete welded-part accounting; ' : ''}mass of ${out.length} reported bodies` };
 }
 /** O10: the part built from nothing, each feature timed (the studio's Rebuild panel shows the last evaluation instead). */
 async function rebuildReportTool(state: ChatState): Promise<ToolOutcome> {

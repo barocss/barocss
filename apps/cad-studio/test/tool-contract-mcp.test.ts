@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { starterDoc } from '@barocss/cad-model/engine/doc';
+import { rectanglePart, starterDoc } from '@barocss/cad-model/engine/doc';
 import { GROUPS } from '@barocss/cad-model/chat/groups';
 import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { TOOL_CONTRACT_V2, outputSchemaOf, validate } from '@barocss/cad-model/chat/contract';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
+import { docStore } from '../server/cadDoc';
 
 // The studio's side of A5.1 (PKG-h, O112): the MCP server listing the v2 tools and returning them — tool-contract.test.ts's
 // server test, kept with the server when it moved into @barocss/cad-model.
@@ -50,4 +52,54 @@ test('the MCP server: its contract version, the v2 tools with titles and annotat
   // The change was saved to the state file.
   assert.ok(JSON.parse(readFileSync(statePath, 'utf8')).changed);
   assert.deepEqual(TOOLS_LISTED.map(t => t.name), TOOLSET.tools.map(t => t.name));
+});
+
+test('D580: the native-file MCP preserves an unresolved ID and never qualifies its estimated mass', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'cad-unresolved-material-'));
+  const path = join(dir, 'fixture.bcad');
+  // This literal matches a v1 tool handler. It remains a material ID in the v2 response.
+  const id = 'check_spec';
+  const bytes = JSON.stringify({
+    ...rectanglePart(10, 10, 10), bodies: { b1: { material: id } },
+    requirements: [{ id: 'M', source: 'Mass at most 3 g', hard: true, check: { query: { fn: 'mass' }, op: '<=', value: 3 } }],
+  });
+  writeFileSync(path, bytes);
+  const input = new PassThrough(), output = new PassThrough();
+  const lines = createInterface({ input: output });
+  const replies = lines[Symbol.asyncIterator]();
+  const served = serveMcp(docStore(path), input, output);
+  let sequence = 0;
+  const call = async (name: string, action: string, handler: string) => {
+    const callId = ++sequence;
+    input.write(JSON.stringify({ jsonrpc: '2.0', id: callId, method: 'tools/call',
+      params: { name, arguments: { action, ...(action === 'summary' ? { response_format: 'concise' } : {}) } } }) + '\n');
+    const reply = await replies.next();
+    assert.equal(reply.done, false);
+    const message = JSON.parse(reply.value);
+    assert.equal(message.id, callId);
+    assert.equal(message.result?.isError, false, JSON.stringify(message));
+    const result = message.result.structuredContent;
+    assert.deepEqual(result, JSON.parse(message.result.content[0].text));
+    assert.deepEqual(validate(outputSchemaOf(handler)!, result), []);
+    return result;
+  };
+  try {
+    const mass = await call('query', 'mass', 'mass_properties');
+    assert.deepEqual([mass.bodies[0].body, mass.bodies[0].mass, mass.bodies[0].assumed, mass.bodies[0].unresolved_material], ['b1', 2.7, true, id]);
+    assert.match(mass.note, /estimate/);
+    const summary = await call('query', 'summary', 'get_part_summary');
+    assert.equal(summary.facts.mass_assumed, true);
+    assert.equal(summary.facts.materials[0].unresolved_material, id);
+    const checked = await call('requirements', 'check', 'check_spec');
+    assert.deepEqual(checked.summary, { pass: 0, fail: 0, unknown: 1, hard_failing: 0 });
+    assert.equal(checked.policy.best.hard_fulfilled, false);
+    assert.match(checked.unknowns[0].why, /b1.*check_spec/);
+    assert.equal(readFileSync(path, 'utf8'), bytes);
+  } finally {
+    input.end();
+    await served;
+    output.end();
+    lines.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

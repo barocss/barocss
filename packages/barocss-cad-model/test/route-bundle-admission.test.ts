@@ -51,6 +51,16 @@ function readError(doc: unknown): string {
   return read.error;
 }
 
+test('D580: an admitted schema-4 route bundle preserves an unresolved body material ID', () => {
+  const doc = bundledDocument();
+  const material = ' route-body-legacy-material ';
+  const read = readStudioDoc(JSON.stringify({ ...doc, bodies: { b1: { material } } }));
+  assert.ok('doc' in read, JSON.stringify(read));
+  assert.equal(read.doc.bodies?.b1.material, material);
+  assert.deepEqual(read.doc.routeBundles, doc.routeBundles);
+  assert.match(readError({ ...doc, bodies: { b1: { material: 42 } } }), /b1.*material.*string/);
+});
+
 test('route bundle admission: legacy export target stays 3 and plain JSON preserves copied sweeps', async () => {
   const doc = copiedDocument(), before = structuredClone(doc);
   assert.equal(SCHEMA, 3);

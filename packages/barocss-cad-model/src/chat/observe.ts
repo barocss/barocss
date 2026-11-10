@@ -4,8 +4,7 @@
 import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
-import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../library/materials';
+import { bodyMaterialOf } from '../app/bodies';
 import { materialFact } from '../analysis/analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
@@ -22,8 +21,8 @@ export interface Facts {
   solids: number; volume: number; mass: number; centroid: Vec3 | null;
   /** Mass/volume are valid body subtotals when the requested beads are incomplete. */
   beadAccounting?: BeadAccounting;
-  /** Each body's material; `assumed`: none set, aluminium taken (then `mass_assumed`: the mass is not a measured fact). */
-  materials: { body: string; material: string; assumed: boolean }[]; mass_assumed: boolean;
+  /** Assumed entries use an aluminium estimate. An unresolved ID is retained in its entry. */
+  materials: ({ body: string } & ReturnType<typeof materialFact>)[]; mass_assumed: boolean;
   bbox: { min: Vec3; max: Vec3 } | null;
   faces: number; edges: number; vertices: number;
 }
@@ -41,7 +40,7 @@ export function physicalTotalsOf(doc: StudioDoc, bodies: readonly BodyResult[]):
   const c: Vec3 = [0, 0, 0];
   for (const b of bodies) {
     const v = b.volume ?? 0;
-    volume += v; mass += massGOf(v, materialOf(materialIdOf(doc, b)).density);
+    volume += v; mass += massGOf(v, bodyMaterialOf(doc, b).material.density);
     if (b.centroid) for (let k = 0; k < 3; k++) c[k] += b.centroid[k] * v;
   }
   return { volume, mass, centroid: volume > 0 ? [c[0] / volume, c[1] / volume, c[2] / volume] : null };

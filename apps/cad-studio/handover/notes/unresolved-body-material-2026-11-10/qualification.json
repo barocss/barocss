@@ -1,0 +1,234 @@
+{
+  "workId": "D580",
+  "parent": "c765629a88dcc68877db20284b0e5f4d1134c5eb",
+  "tier": "FULL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D580-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d580-2026-11-10"
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D580_SOURCE_FROZEN=1 node test/unresolved-body-material-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "modelRepro": {
+    "status": "FAIL",
+    "sourceSha256": "c3b5e91afbe9a9fdc249170c64907a853cbb692f9777cf26612ebe8e044bc23d",
+    "resultSha256": "e6a269847650e545471c688c0203fea8677e9538b71c26cc4485ed55ac4c94df",
+    "independentVolumeMm3": 1000,
+    "limitG": 3,
+    "knownAl6061G": 2.7,
+    "knownSteelG": 7.85,
+    "unresolved": {
+      "original": "pass",
+      "expected": "unknown",
+      "reportedMassG": 2.7,
+      "reportedAssumed": false
+    }
+  },
+  "studio": [
+    {
+      "output": "repro01",
+      "harness": "PASS",
+      "product": "FAIL",
+      "frozenSources": 302,
+      "snapshots": 3,
+      "oracles": 3,
+      "wallSeconds": 11.43,
+      "receiptSha256": "b0384ba6b61fa7c65d626be7d7be526850b34790c1bda2b4bfaf479a78f99a25",
+      "driverSha256": "7f429df862c9a42dfc3b2d6a994ad606ca2bb7487babaa5ba87ece281b02bf12",
+      "chromePID": 61647,
+      "nodePID": 61594,
+      "serverURL": "http://127.0.0.1:56723"
+    },
+    {
+      "output": "fixed01",
+      "harness": "FAIL",
+      "product": "FAIL",
+      "frozenSources": 302,
+      "snapshots": 5,
+      "oracles": 4,
+      "wallSeconds": 48.8,
+      "receiptSha256": "8937ab8521cf05caa394c82594ad64e2094f48856839186f889447bdf95d434d",
+      "driverSha256": "a2f2cf6d2277e7ac8067986a032af350ee92a8342f2ae5658c8810aaf938eac0",
+      "chromePID": 76158,
+      "nodePID": 76115,
+      "serverURL": "http://127.0.0.1:57897",
+      "files": [
+        {
+          "file": "D580-unresolved-saved.bcad",
+          "sha256": "9e384ba43b20b10c0af4b0de2e78384af3ef927755b04da276e03de474f7f7a8",
+          "semanticEquality": true,
+          "destination": "OPFS"
+        }
+      ],
+      "firstFailure": "Accepted explicit al6061 while the Requirements panel kept the prior unknown"
+    },
+    {
+      "output": "fixed02",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 302,
+      "snapshots": 10,
+      "oracles": 10,
+      "wallSeconds": 23.17,
+      "receiptSha256": "34c4566ab40e0832f715738c8641998704bd8cca2cd2bf0363acd33bec66dde2",
+      "driverSha256": "a2f2cf6d2277e7ac8067986a032af350ee92a8342f2ae5658c8810aaf938eac0",
+      "chromePID": 89757,
+      "nodePID": 89663,
+      "serverURL": "http://127.0.0.1:59041",
+      "files": [
+        {
+          "file": "D580-unresolved-saved.bcad",
+          "sha256": "9e384ba43b20b10c0af4b0de2e78384af3ef927755b04da276e03de474f7f7a8",
+          "semanticEquality": true,
+          "destination": "OPFS"
+        },
+        {
+          "file": "D580-resolved-saved.bcad",
+          "sha256": "a8253987b8a8b23d4c98ae84aa18f965064611bb64215dc9cc6f7dc4124eea0c",
+          "semanticEquality": true,
+          "destination": "OPFS"
+        }
+      ]
+    },
+    {
+      "output": "d578-regression",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 298,
+      "snapshots": 8,
+      "oracles": 6,
+      "wallSeconds": 19.98,
+      "receiptSha256": "a2bee1bf9af1f963e963ebb68c60469a0513ac8f6d04f325778aeea518b71bc3",
+      "driverSha256": "c952fe23511150403e2275d34750d025011567768cfd996ef0869453d802cce9",
+      "chromePID": 27408,
+      "nodePID": 27395,
+      "serverURL": "http://127.0.0.1:60761",
+      "files": [
+        {
+          "file": "D578-saved.bcad",
+          "sha256": "5bad040b8b804c9937312b70758b37422a6865c4401bec834042f867c0c6398f",
+          "semanticEquality": true,
+          "destination": "OPFS"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs material-look analysis.test observe.test spec.test migrate.test instance-looks brief.test shared-bead-lifecycle bom- toolset.test tool-contract.test",
+      "status": "FAIL",
+      "exit": 1,
+      "passed": 112,
+      "failed": 3,
+      "firstFailure": "Schema-4 fixtures lacked admitted route bundles, and the BOM base fixture lacked an assembly",
+      "logSha256": "70c597a25086d5d700ee5871dea6871998ffc26e800f63bd21edfe6bc4d6f88e"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs material-look analysis.test observe.test spec.test migrate.test instance-looks brief.test shared-bead-lifecycle route-bundle-admission bom- toolset.test tool-contract.test",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 136,
+      "failed": 0,
+      "logSha256": "81b1e5fd6177c1c4fa82cd0a234b8701460f4be18c9b6f12ce45fd7bd7cdac39"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs material-look",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "logSha256": "2798c5b9081f7f992076624b1cd45b22889ecff0adea260b35bc4e0753d0a6bf"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs tool-contract-mcp toolset-mcp",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 5,
+      "failed": 0,
+      "logSha256": "4faa3a99e12827709500545e02b861484ba7d7187e44bc2c8a9b247e3e671934"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "FAIL",
+      "exit": 2,
+      "firstFailure": "TS7022 for one test document initializer",
+      "logSha256": "6f36db62ce263ed6d16ae4f77fa558710c6de7d379c747ff8bf1a086744be285"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "7ee8b4951159e8f02dccc4fd6529ef0de12ed58e7849afaaefe5132374b46bd9"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "1bde9ae5661e548728b9e1f7f4cf2ef9f32d1ea144e3bc39dce293c544997260"
+    },
+    {
+      "command": "pnpm exec eslint AFFECTED_FILES",
+      "status": "PASS",
+      "exit": 0,
+      "warnings": 1,
+      "errors": 0,
+      "logSha256": "e70cbae31030bce480588cace6bb9db6ce91335162951613022d01fc189c938f"
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "8de770c0752197538ec9a5be9fe21bcb0f90bae0665bdb6aa771875009f18250"
+    },
+    {
+      "command": "cd apps/cad-studio && DEBUG=pw:browser D578_SOURCE_FROZEN=1 node test/requirement-numeric-precision-browser.mjs EXTERNAL/d578-regression --expect=fixed",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "97940d24e59e4ac899ae5be87608a0d462598c0531ded89fbd354e9a88b67f2e"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/unresolved-body-material-browser.mjs",
+      "status": "PASS",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec eslint --format json apps/cad-studio/src/App.tsx",
+      "status": "PASS",
+      "exit": 0,
+      "warnings": 0,
+      "errors": 0,
+      "logSha256": "8f86292baa292d17bdd4d6cd1a5fc8af78a7fc9d99401f3a50d726432187354e"
+    }
+  ],
+  "finalStudioSourceSha256": {
+    "apps/cad-studio/test/unresolved-body-material-browser.mjs": "a2f2cf6d2277e7ac8067986a032af350ee92a8342f2ae5658c8810aaf938eac0",
+    "apps/cad-studio/src/App.tsx": "b751192421ee778afd71276b09491685c6b1f0dc9c401d2ba25c512b592f656d",
+    "apps/cad-studio/src/state/useModelChecks.ts": "be066023ecde4247768029f559d90904e776f5075270c9c7a5b2e4bc032e408c",
+    "apps/cad-studio/src/ui/RequirementsBrowser.tsx": "c54542dd778bcffb4e607d92f2124d681f04b67dd691729a71c5efc4d8ad473d",
+    "apps/cad-studio/src/ui/SelectionInspector.tsx": "c7eb72911e8029811d6e3fe9aa0e24ab9959b2d6a7acd2932b769f3e3da188f0",
+    "packages/barocss-cad-model/src/analysis/analysis.ts": "aa1834f892e7a5942dc6db30cf989c5e30e17fcc740b0aedaef4905b8b855e62",
+    "packages/barocss-cad-model/src/app/bodies.ts": "ceb0100698b78fca558432dfaf37270ce66bc8cf9b0bbb6605a59e8d6e7db067",
+    "packages/barocss-cad-model/src/chat/observe.ts": "2f230eaa26c6b38609ca95e0e8f61932f10b56df5e9a3a74f29db15a768e2728",
+    "packages/barocss-cad-model/src/chat/spec.ts": "f86d9a4cba1f68aba231499ab635e0d5b17017892c28e181cd6f7e42b566d82e",
+    "packages/barocss-cad-model/src/chat/part/query.ts": "85cba2a9fda5969f200a5970c3f881d271ecfea13af764ebe9974fda8876cd3c",
+    "packages/barocss-cad-model/src/engine/migrate.ts": "cac759588c0421dc8612c62dd8cfb4ecf15109693a5160223834b25038b26525",
+    "packages/barocss-cad-model/src/library/materials.ts": "e0da769287411e8fd678e399358d76603af21a5592fbc807f6708628565ba3d7"
+  },
+  "finalStudioVerdicts": {
+    "01-known-steel": "fail",
+    "02-unknown-open": "unknown",
+    "03-unknown-body": "unknown",
+    "04-unresolved-fresh-open": "unknown",
+    "05-explicit-aluminium": "pass",
+    "05b-malformed-refused": "pass",
+    "06-first-undo": "unknown",
+    "07-first-redo": "pass",
+    "08-resolved-fresh-open": "pass",
+    "09-edit-again": "fail"
+  },
+  "reviews": {
+    "functional": "APPROVE",
+    "quality": "APPROVE",
+    "security": "APPROVE"
+  },
+  "wholeCad": "NOT_MEASURED"
+}

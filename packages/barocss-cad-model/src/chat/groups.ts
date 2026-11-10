@@ -177,7 +177,12 @@ export function v2Value(v: unknown): unknown {
   if (typeof v.kind === 'string' && typeof v.id === 'string' && ['local', 'inherited', 'override'].includes(String(v.origin))) return v;
   if (isPersonFileSource(v) || (typeof v.kind === 'string' && typeof v.id === 'string' && typeof v.fingerprint === 'string' && isPersonFileSource(v.file))) return v;
   const out: Record<string, unknown> = {};
-  for (const k of Object.keys(v)) out[k] = k === 'tool' ? v[k] : v2Value(v[k]);
+  for (const k of Object.keys(v)) {
+    const value = v[k];
+    // An unresolved material ID is authored data, including in the mass-check diagnostic.
+    const materialEvidence = typeof value === 'string' && (k === 'unresolved_material' || k === 'why' && value.startsWith('unresolved material on '));
+    out[k] = k === 'tool' || materialEvidence ? value : v2Value(value);
+  }
   const call = typeof v.tool === 'string' && (v.args === undefined || isRecord(v.args)) ? v2Call(v.tool, out.args) : null;
   if (call) { out.tool = call[0]; out.args = call[1]; }
   return out;

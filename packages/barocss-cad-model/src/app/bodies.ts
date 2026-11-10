@@ -7,14 +7,27 @@ import { commands } from './commands';
 import { refOf } from './bodyRef';
 import { lookKey, rootOf } from './lookKey';
 import { briefMaterial } from '../chat/brief';
+import { materialData, materialOf } from '../library/materials';
 
 /** The colours offered for bodies (the theme's grey is no colour). */
 export const BODY_COLOURS = ['#d9534f', '#f0ad4e', '#e8d44d', '#5cb85c', '#3fb6a8', '#4a90d9', '#8e6bd8', '#d26fa9', '#8d6e63', '#5b6470'] as const;
 
 export { lookKey, rootOf };
 export const lookOf = (doc: StudioDoc, body: BodyResult): BodyLook => doc.bodies?.[lookKey(doc.nodes, body)] ?? {};
+function authoredMaterialId(doc: StudioDoc, body: BodyResult): string | undefined {
+  const id = lookOf(doc, body).material;
+  return id === '' ? undefined : id;
+}
 /** A body's material id: its own, else the brief's stated library material (A6.1), else none (the default, assumed). */
-export const materialIdOf = (doc: StudioDoc, body: BodyResult): string | undefined => lookOf(doc, body).material ?? briefMaterial(doc);
+export const materialIdOf = (doc: StudioDoc, body: BodyResult): string | undefined => authoredMaterialId(doc, body) ?? briefMaterial(doc);
+/** Material for physical reports. Keep the requested ID when the catalogue cannot resolve it. */
+export function bodyMaterialOf(doc: StudioDoc, body: BodyResult) {
+  const own: unknown = authoredMaterialId(doc, body);
+  const requested = own === undefined ? briefMaterial(doc) : own;
+  const known = typeof requested === 'string' ? materialData(requested) : undefined;
+  const unresolved = !known && typeof requested === 'string' ? requested : undefined;
+  return { material: known ?? materialOf(undefined), assumed: !known, unresolved, invalid: requested !== undefined && typeof requested !== 'string' };
+}
 /** The part's one material: the id every body has (null when they differ, or none is set); `mixed` when they differ. */
 export function partMaterial(doc: StudioDoc, bodies: readonly BodyResult[]): { id: string | null; mixed: boolean } {
   const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))];

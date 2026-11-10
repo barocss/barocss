@@ -7,26 +7,30 @@ import { withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { bodyKeyFor } from '../engine/ids';
-import { materialIdOf } from '../app/bodies';
+import { bodyMaterialOf } from '../app/bodies';
 import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
-import { materialOf } from '../library/materials';
 import { r3Signed as r3 } from '../util/round';
 import { KERNEL_DENSITY, massGOf } from '../app/mass';
 
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 
-/** A body's material and whether it is the default (none set: aluminium assumed). */
-export function materialFact(doc: StudioDoc, b: BodyResult): { material: string; assumed: boolean } {
-  const id = materialIdOf(doc, b), m = materialOf(id);
-  return { material: m.label, assumed: !id };
+function describeMaterial({ material, assumed, unresolved, invalid }: ReturnType<typeof bodyMaterialOf>) {
+  return { material: material.label, assumed, ...(unresolved === undefined ? {} : { unresolved_material: unresolved }),
+    ...(invalid ? { material_invalid: true } : {}) };
+}
+
+/** A body's resolved material or aluminium estimate, with any unresolved ID. */
+export function materialFact(doc: StudioDoc, b: BodyResult) {
+  return describeMaterial(bodyMaterialOf(doc, b));
 }
 
 /** Mass properties of bodies: volume, area, mass (its material's density), centroid, inertia about it, box. */
 export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): Record<string, unknown>[] {
   return bodies.map(b => {
-    const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).density;
+    const resolved = bodyMaterialOf(doc, b);
+    const mat = describeMaterial(resolved), rho = resolved.material.density;
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density — as (x · ρ) / 2.7, an order kept
     // apart from app/mass's x · (ρ / 2.7), which rounds differently.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / KERNEL_DENSITY).toPrecision(6))));
@@ -48,7 +52,7 @@ export function massBoundOf(doc: StudioDoc, bodies: readonly BodyResult[]): numb
   for (const b of bodies) {
     if (!b.volumeBasis) continue;
     if (b.volumeBasis.bound === null) return null;
-    g += massGOf(b.volumeBasis.bound, materialOf(materialIdOf(doc, b)).density);
+    g += massGOf(b.volumeBasis.bound, bodyMaterialOf(doc, b).material.density);
   }
   return g;
 }

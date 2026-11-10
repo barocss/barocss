@@ -1,5 +1,5 @@
 ---
-work_id: D579
+work_id: D580
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-10
@@ -95,7 +95,9 @@ D578 evaluates bbox, volume and mass before display rounding. The root desktop f
 
 D579 ranks snapshots with all hard checks passing before exploratory snapshots. Root runs the actual controlled Studio and MCP recovery with first Undo/Redo, native Save/fresh Open and a dimension edit. [D579](../requirement-best-snapshot-2026-11-10/README.md).
 
-Next MAIN is D580 / P0, B09, rows 04 and 16. Verify whether an unresolved explicit material ID can pass a mass requirement using the fallback density. [#2416](https://github.com/barocss/barocss/issues/2416).
+D580 keeps unresolved body material IDs and reports their mass requirements as unknown. Actual desktop Studio and native-file MCP verify provenance, and Studio verifies repair, refusal, history and native readback. [D580](../unresolved-body-material-2026-11-10/README.md).
+
+Next MAIN is D581 / P0, B05, rows 10 and 16. Verify whether refused or missing ordinary part evaluations produce a complete-looking BOM. [#2420](https://github.com/barocss/barocss/issues/2420).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

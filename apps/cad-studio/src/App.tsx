@@ -1613,7 +1613,7 @@ export function App() {
     }, 2000);
     return () => clearTimeout(t);
   }, [doc, undo, redo, repairAsk, inPlace]);
-  const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
+  const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning, specStale } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
   const [failingOnly, setFailingOnly] = useState(false);
   const proposals = useProposalPreview({ model: { doc, bodies, marker, active: !!active, sketch: !!sketch }, worker: { engine, lanes, nextRevision: () => revision.current++ },
@@ -2035,7 +2035,7 @@ export function App() {
         <ReferencesPanel set={readReferences(doc.references)} local={refLocal} verdicts={keepoutVerdicts} onAddFile={f => void addReferenceFile(f)} onPlace={placeRef}
           onDatum={(reference, face, kind) => void refTool('add_datum', { reference, face, kind })} onEnvelope={(reference, offset, clearance) => void refTool('add_keepout', { around: reference, offset, shape: 'box', clearance })} onRemove={removeRef} />
         {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}
-        <RequirementsBrowser doc={doc} evaluated={evaluated} bodies={bodies} spec={spec} specRunning={specRunning} failingOnly={failingOnly}
+        <RequirementsBrowser doc={doc} bodies={bodies} spec={spec} specRunning={specRunning} specStale={specStale} failingOnly={failingOnly}
           setFailingOnly={setFailingOnly} setSelection={setSelection} setRequirement={setRequirement} />
         <DesignHistory doc={doc} historyOpen={historyOpen} setHistoryOpen={setHistoryOpen} saveShared={saveShared} />
         {referenceDecisions}

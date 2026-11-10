@@ -96,12 +96,16 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
     case 'volume':
     case 'mass': {
       const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
-      if (incomplete) return { unknown: incomplete };
       const selected = bodiesOf(bodies, q.body);
       if (q.fn === 'mass') {
-        const assumed = selected.filter(b => materialFact(doc, b).assumed).map(b => b.key);
-        if (assumed.length) return { unknown: `the material of ${assumed.join(', ')} is not set: its mass is assumed (aluminium); set the material first` };
+        const materials = selected.map(b => ({ body: b.key, ...materialFact(doc, b) }));
+        const unresolved = materials.filter(m => m.unresolved_material !== undefined || m.material_invalid)
+          .map(m => `${m.body} (${m.material_invalid ? 'invalid ID' : JSON.stringify(m.unresolved_material)})`);
+        if (unresolved.length) return { unknown: `unresolved material on ${unresolved.join(', ')}. Set the material before checking mass.${incomplete ? ' ' + incomplete : ''}` };
+        const assumed = materials.filter(m => m.assumed).map(m => m.body);
+        if (!incomplete && assumed.length) return { unknown: `the material of ${assumed.join(', ')} is not set: its mass is assumed (aluminium); set the material first` };
       }
+      if (incomplete) return { unknown: incomplete };
       if (selected.some(b => b.volume === null && b.massRef !== undefined)) return { unknown: `the ${q.fn} is still being evaluated` };
       if (selected.some(b => b.volume === undefined)) return { unknown: `the ${q.fn} measurement is missing` };
       const x = physicalTotalsOf(doc, selected)[q.fn];

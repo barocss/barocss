@@ -71,6 +71,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (jointsProblem) return { error: refusal('VALUE', jointsProblem).message };
   const looksProblem = instanceLooksProblem(o, '');
   if (looksProblem) return { error: refusal('VALUE', looksProblem).message };
+  const materialProblem = bodyMaterialProblem(o);
+  if (materialProblem) return { error: refusal('VALUE', materialProblem).message };
   const skeletonProblem = skeletonDocumentProblem({ ...o, parameters });
   if (skeletonProblem) return { error: skeletonProblem };
   const fillProblem = fillPatternDocumentProblem({ ...o, parameters });
@@ -205,6 +207,25 @@ function instanceLooksProblem(raw: unknown, where: string): string | null {
     }
     const inner = instanceLooksProblem(instance.doc, `${where}instances[${i}].doc.`);
     if (inner) return inner;
+  }
+  return null;
+}
+
+/** Keep literal body material IDs, including unknown strings. A material ID must be a string. */
+function bodyMaterialProblem(root: unknown): string | null {
+  const stack = [{ raw: root, where: '' }];
+  while (stack.length) {
+    const { raw, where } = stack.pop()!;
+    if (!record(raw)) continue;
+    if (record(raw.bodies)) for (const [key, look] of Object.entries(raw.bodies)) {
+      if (record(look) && Object.hasOwn(look, 'material') && typeof look.material !== 'string') return `${where}bodies[${JSON.stringify(key)}].material must be a material ID string`;
+    }
+    if (Array.isArray(raw.instances)) raw.instances.forEach((instance, i) => {
+      if (record(instance)) stack.push({ raw: instance.doc, where: `${where}instances[${i}].doc.` });
+    });
+    if (record(raw.pendingParts)) for (const [id, pending] of Object.entries(raw.pendingParts)) {
+      if (record(pending)) stack.push({ raw: pending.doc, where: `${where}pendingParts[${JSON.stringify(id)}].doc.` });
+    }
   }
   return null;
 }

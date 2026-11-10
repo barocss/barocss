@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
@@ -45,22 +45,26 @@ export function useModelChecks({ model, worker, onNotice: setToast }: ModelCheck
   // The requirements checked against the part as it stands (chat/spec.ts), whenever either changes.
   // (After evaluation settles: debounced, a stale run dropped, none while a command previews or a sketch is open.
   // A person's edit is never refused for breaking a requirement — a hard one that passed and now fails is said.)
-  const [spec, setSpec] = useState<{ summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome>; of: readonly unknown[] } | null>(null);
+  const requirementInput = useMemo(() => ({
+    ...evaluated, requirements: doc.requirements, bodies: doc.bodies, brief: doc.brief,
+    ...(doc.references ? { references: doc.references } : {}),
+  }), [evaluated, doc.requirements, doc.bodies, doc.brief, doc.references]);
+  const [spec, setSpec] = useState<{ summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome>; of: StudioDoc } | null>(null);
   const [specRunning, setSpecRunning] = useState(false);
   const specPassed = useRef<Set<string>>(new Set());
   useEffect(() => {
     // (R1d: cleared only when there is something to clear — a set to the same null rendered the App again after each
     // preview result.)
-    if (!doc.requirements?.length) { if (spec !== null) setSpec(null); specPassed.current = new Set(); return; }
+    if (!requirementInput.requirements?.length) { if (spec !== null) setSpec(null); specPassed.current = new Set(); return; }
     if (busy || !fresh || active || sketch || previewBodies) return;
     let live = true;
     const t = setTimeout(() => {
       setSpecRunning(true);
-      // (The evaluated model follows model edits only: the requirements are the document's own.)
-      void checkSpec({ ...evaluated, requirements: doc.requirements, ...(doc.references ? { references: doc.references } : {}) }, bodies, d => engine.part(d, nextRevision(), 'check')).then(r => {
+      // Body looks and the brief can change without a geometry rebuild.
+      void checkSpec(requirementInput, bodies, d => engine.part(d, nextRevision(), 'check')).then(r => {
         if (!live) return;
         const passed = new Set<string>(), broke: string[] = [];
-        for (const { id, hard, check: { query } } of doc.requirements ?? []) {
+        for (const { id, hard, check: { query } } of requirementInput.requirements ?? []) {
           const status = r.outcomes.get(id)?.status;
           if (status === 'pass') passed.add(id);
           else if (specPassed.current.has(id)) {
@@ -71,11 +75,11 @@ export function useModelChecks({ model, worker, onNotice: setToast }: ModelCheck
           }
         }
         specPassed.current = passed;
-        setSpec({ summary: r.summary, outcomes: Object.fromEntries(r.outcomes), of: evaluated.nodes });
+        setSpec({ summary: r.summary, outcomes: Object.fromEntries(r.outcomes), of: requirementInput });
         if (broke.length) setToast({ title: `${broke.join(', ')} now fail${broke.length === 1 ? 's' : ''}`, hint: `A hard requirement that held no longer does: ${broke.map(id => { const o = r.outcomes.get(id); return `${id} measures ${String(o?.measured)}`; }).join('; ')}. Your change is kept; undo it or change the part.`, detail: '' });
       }).finally(() => { if (live) setSpecRunning(false); });
     }, 350);
     return () => { live = false; clearTimeout(t); };
-  }, [doc.requirements, doc.references, bodies, evaluated, fresh, busy, active, sketch, previewBodies]);
-  return { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning };
+  }, [requirementInput, bodies, fresh, busy, active, sketch, previewBodies]);
+  return { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning, specStale: spec !== null && spec.of !== requirementInput };
 }

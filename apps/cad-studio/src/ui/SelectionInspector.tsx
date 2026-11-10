@@ -2,7 +2,7 @@ import type { ReactNode, Dispatch, SetStateAction } from 'react';
 import { fmt, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { selectedBodies, refOf, type Selection } from '@barocss/cad-model/app/commands';
-import { BODY_COLOURS, bodyName, lookOf, materialIdOf, withLook } from '@barocss/cad-model/app/bodies';
+import { BODY_COLOURS, bodyMaterialOf, bodyName, lookOf, withLook } from '@barocss/cad-model/app/bodies';
 import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { measureItem } from '@barocss/cad-model/app/measure';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
@@ -29,6 +29,16 @@ export function SelectionInspector({ model, selection, materialSettings, display
   const { showBox, setShowBox, inertiaAt, setInertiaAt } = display;
   const { commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate } = changes;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
+  const groupMass = (list: BodyResult[]) => {
+    const parts = [];
+    for (const b of list) {
+      const mat = bodyMaterialOf(doc, b);
+      if (mat.unresolved !== undefined || mat.invalid) return { unresolved: true, properties: null };
+      const properties = bodyMass(b, (mat.assumed ? density : mat.material).density);
+      if (properties) parts.push(properties);
+    }
+    return { unresolved: false, properties: combined(parts) };
+  };
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
     : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
@@ -63,7 +73,11 @@ export function SelectionInspector({ model, selection, materialSettings, display
           <div className="empty" aria-busy="true">{busy ? 'Evaluating… its values show once the part is up to date.' : 'The part did not evaluate: fix it, or undo, to see this body\'s values.'}</div></>}
         {selBodies.length > 0 && fresh && <>
           <div className="card-title" style={{ marginTop: sel1 ? 10 : 0 }}>BODY{selBodies.length > 1 ? ` · ${selBodies.length} selected` : ''}</div>
-          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds, look = lookOf(doc, b), area = b.area ?? b.mesh.faces.reduce((t, f) => t + f.area, 0); return <div key={b.key}>
+          {selBodies.slice(0, 1).map(b => {
+            const { min, max } = b.mesh.bounds, look = lookOf(doc, b), area = b.area ?? b.mesh.faces.reduce((t, f) => t + f.area, 0);
+            const mat = bodyMaterialOf(doc, b), own = mat.assumed ? density : mat.material;
+            const unresolved = mat.unresolved !== undefined || mat.invalid;
+            return <div key={b.key}>
             <label className="kv">Name <input className="kv-input" aria-label="Name" key={b.key + bodyName(doc, b)} defaultValue={bodyName(doc, b)}
               onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }}
               onBlur={e => { const v = e.currentTarget.value.trim(); if (v !== bodyName(doc, b)) commit(withLook(doc, b, { name: v })); }} /></label>
@@ -79,16 +93,18 @@ export function SelectionInspector({ model, selection, materialSettings, display
             {b.volume !== null ? <div className="kv">Volume <b>{quantityText(b.volume, fmt(Math.round(b.volume)))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
             {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
             {b.volume !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.bound === null ? '?' : quantityText(b.volumeBasis.bound, fmt(Math.round(b.volumeBasis.bound * 10) / 10))} mm³</b></div>}
-            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
-              {b.volume !== null ? <div className="kv">Mass <b>{quantityText(b.volume * own.density / 1000, fmt(Math.round(b.volume * own.density / 100) / 10))} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
+              {b.volume !== null ? <div className="kv">Mass <b>{unresolved ? 'Unknown' : `${quantityText(b.volume * own.density / 1000, fmt(Math.round(b.volume * own.density / 100) / 10))} g`}</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
               {/* The body's own material (the default for new bodies stays the studio's). */}
-              <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
-              {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
-            </>; })()}
+              <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span>
+                <select aria-label="Material" value={unresolved ? mat.unresolved ?? '' : own.id} onChange={e => {
+                  const id = e.target.value;
+                  commit(withLook(doc, b, { material: !unresolved && id === (briefMaterial(doc) ?? material) ? undefined : id }));
+                }}>{unresolved && <option disabled value={mat.unresolved ?? ''}>Unresolved · {mat.unresolved ?? 'Invalid ID'}</option>}{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
+              {!unresolved && own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
               return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal sizes from your fastener rows — check the standard before manufacture.</div></> : null; })()}
             {b.centroid ? <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div> : b.massRef !== undefined ? <div className="kv">Centre of mass <b>…</b></div> : null}
-            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.density); if (!mp) return null;
+            {!unresolved && (() => { const mp = bodyMass(b, own.density); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.mass, mp.centroid, [0, 0, 0]) : mp.inertia;
               return <>
                 <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
@@ -106,14 +122,14 @@ export function SelectionInspector({ model, selection, materialSettings, display
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
           {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
-          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
-            return c && box ? <><div className="kv">Together <b>{quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const { unresolved, properties: c } = groupMass(selBodies), box = boundsOf(selBodies);
+            return unresolved || c ? <><div className="kv">Together <b>{c ? `${quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g` : 'Unknown'}</b></div>{c && <div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
               <div className="kv">Bounds <b>{[0, 1, 2].map(k => quantityText(box.max[k] - box.min[k], fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100))).join(' × ')}</b></div></> : null; })()}
         </>}
         {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
-          return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
-            <div className="kv">Mass <b>{quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && massReady && (() => { const { unresolved, properties: c } = groupMass(bodies), box = boundsOf(bodies);
+          return unresolved || c ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
+            <div className="kv">Mass <b>{c ? `${quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g` : 'Unknown'}</b></div>{c && <div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => quantityText(box.max[k] - box.min[k], fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100))).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {children}
       </aside>;

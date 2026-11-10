@@ -7,21 +7,21 @@ import { resolveNames } from '@barocss/cad-model/chat/names';
 import { expectedOf } from '@barocss/cad-model/chat/spec';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
-export type RequirementReport = { summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome>; of: readonly unknown[] };
+type RequirementReport = { summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome> };
 interface RequirementsBrowserProps {
   doc: StudioDoc;
-  evaluated: StudioDoc;
   bodies: BodyResult[];
   spec: RequirementReport | null;
   specRunning: boolean;
+  specStale: boolean;
   failingOnly: boolean;
   setFailingOnly: Dispatch<SetStateAction<boolean>>;
   setSelection: Dispatch<SetStateAction<Selection>>;
   setRequirement(id: string, value: number): void;
 }
-export function RequirementsBrowser({ doc, evaluated, bodies, spec, specRunning, failingOnly, setFailingOnly, setSelection, setRequirement }: RequirementsBrowserProps) {
+export function RequirementsBrowser({ doc, bodies, spec, specRunning, specStale, failingOnly, setFailingOnly, setSelection, setRequirement }: RequirementsBrowserProps) {
   return <>
-        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
+        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : specStale ? ' · stale' : ''}</span>
           <ToolIconButton size="tiny" state={failingOnly ? 'on' : 'idle'} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></ToolIconButton></div>
         {doc.requirements.map(q => {
           const o = spec?.outcomes[q.id], st = o?.status ?? 'unknown';
