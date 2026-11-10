@@ -1,0 +1,133 @@
+{
+  "decision": "D628",
+  "tier": "FULL interface",
+  "baseCommit": "2082e531c4d46e6d7cf78eb6691c5bb9ddfe497f",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d628-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio prepare and explicitly start a repair",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D628_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --prepare-repair",
+      "receiptSHA256": "eb6aaa313fca07acb926b152eacf10abd7cafb3e06e1d6f194175751d86cdab1",
+      "pinnedSources": 801,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "occurrence": "p3",
+        "protected": [
+          "p1",
+          "p2"
+        ],
+        "unsavedRefused": true,
+        "changedCriterionRefused": true,
+        "stalePreparedStartDisabled": true,
+        "explicitStarts": 1,
+        "savedSHA256": "bcf8d69942e5e1c4dbe537d085a60de3c135ead2ae4903d67125e5e632ea5fd8",
+        "repairedMm": 5
+      }
+    },
+    {
+      "label": "Desktop Studio existing single-task chat path",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D627_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-repair\" --repair",
+      "receiptSHA256": "e44d6287c0fe1ba25c3b0321e57d4009501c66e0387255f05ed2578bb2a32d88",
+      "pinnedSources": 801,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "sourceNote": "Ran before the final prepared-card label change. The existing chat-start controls retain their labels."
+    },
+    {
+      "label": "Desktop Studio two-task and historical checkpoint regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-two\" --width",
+      "receiptSHA256": "503ec3fe611531f4ad424be5c7ad8c4c06fa88f462446cc6cc3c3def121a428b",
+      "pinnedSources": 801,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "legacyCheckpoint": "/Users/user/.cache/barocss-cad-evidence/d622-2026-11-11/desktop/both-approved-http.bcad-run",
+      "sourceNote": "Ran before the final prepared-card label change. The existing chat-start controls retain their labels."
+    },
+    {
+      "label": "Independent native scope reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/prepared-repair-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "c752dca6db4f17dd7fefc788c4fd24f613291dac61f09f1ab3589946d8a15b87",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "protectedOccurrences": [
+          "p1",
+          "p2"
+        ],
+        "repairedMm": 5,
+        "exactScopedEdit": "p3/n1.height",
+        "savedSHA256": "bcf8d69942e5e1c4dbe537d085a60de3c135ead2ae4903d67125e5e632ea5fd8",
+        "checkpointSHA256": "bd647e323f4825245cf2bfe5ce8e65491c389021c9b97b3d80d0b17c539cd9ac"
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 175,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-final\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Nested and changed-criterion repair"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D627 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D628 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D627 repairs one selected occurrence with the same local run and terminal approval. Studio rechecks the repaired part and the native gates protect the siblings. [D627](notes/single-occurrence-local-repair-2026-11-11/README.md).
-- **Next MAIN:** D628 / P0 automation, B09 follow-up, rows 04, 12 and 16. Prepare a repair directly from a failed working check in the approval history card. Bind the existing one-task planner to the selected occurrence, verified unchanged criterion and exact saved working revision. Require an explicit start and refuse stale, unsaved or changed criteria. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+- **Current position:** D628 prepares a repair from a failed working check and binds the explicit Start to the saved model. Studio refuses unsaved, stale and changed-criterion cases. [D628](notes/prepare-repair-from-working-check-2026-11-11/README.md).
+- **Next MAIN:** D629 / P0 automation, B09 follow-up, rows 04, 12 and 16. Reopen a previously started local run in a fresh Studio session from its exact task handoff. Verify the same run identity and show its current candidate or approved checkpoint controls. Keep the working document and durable run unchanged during lookup. Refuse a missing run or mismatched handoff. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B09 v1 **9/9 accepted groups**; B03, B05–B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

@@ -21,7 +21,8 @@ import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, ver
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
-import { readWorkingApprovalChecks } from './workingApprovalChecks';
+import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
+import { planWorkingApprovalRepair, readWorkingApprovalChecks } from './workingApprovalChecks';
 import { localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
 import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
   type TaskRunCheckpointRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
@@ -33,7 +34,7 @@ interface StudioDocumentFileOptions {
     fileName: string;
     fileNameNow: RefObject<string>;
     recoveryDoc: StudioDoc | null;
-    project: Pick<ReturnType<typeof useProject>, 'save' | 'view' | 'readTaskSource'>;
+    project: Pick<ReturnType<typeof useProject>, 'save' | 'view' | 'readTaskSource' | 'taskSourceKey'>;
   };
   ownership: {
     saveAcceptanceScope: object;
@@ -263,6 +264,15 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
+  const prepareWorkingRepair = async (review: CheckpointReview, report: RequirementEvidence, version: object, selected: () => boolean) => {
+    if (version !== saveDocumentToken.current || !selected()) return;
+    const owner = captureImportOwner(), sourceKey = project.taskSourceKey();
+    if (!sourceKey) throw new Error('Save the working model in the project before preparing a repair.');
+    const offer = planWorkingApprovalRepair(docNow.current, review, report);
+    return withTaskRunHandoff(offer, sourceKey, 'preparing a repair',
+      () => selected() && owner.isCurrent() ? { offer, sourceKey } : undefined);
+  };
+
   const openTaskRunCheckpoint = async (run: TaskRunStatus) => {
     if (!run.checkpoint) throw new Error('Refresh the run to select an approved checkpoint.');
     const requireView = () => {
@@ -417,5 +427,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, checkWorkingApproval, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

@@ -1,6 +1,9 @@
-import { requirementEvidenceOf, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
+import { isCurrentRequirement, requirementEvidenceOf, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { inspectLocalHeightPlan } from '@barocss/cad-model/team/localHeightPlan';
+import { digestOf, requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
+import type { TaskRunOffer } from '../chat/taskRunOffer';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from './taskCheckpoint';
 
@@ -20,4 +23,32 @@ export async function readWorkingApprovalChecks(doc: StudioDoc, review: Checkpoi
   }
   if (!instance.doc.requirements?.length) return { error: 'The approved requirements are unavailable in the working model.' };
   return requirementEvidenceOf(doc, approved.part, evaluate);
+}
+
+/** Only a verified failure of an unchanged stated dimension can seed a repair. */
+export function hasWorkingRepairFailure(review: CheckpointReview, report: RequirementEvidence, requirementId?: string): boolean {
+  if (report.part !== review.approved.part) return false;
+  return report.evidence.some(row => {
+    const req = row.requirement;
+    if (!req?.hard || req.basis !== 'stated' || (requirementId !== undefined && req.id !== requirementId) ||
+        req.check.op !== '==' || req.check.query.fn !== 'bbox' || req.check.query.body !== undefined || req.check.unit !== 'mm' ||
+        (req.check.query.axis !== 'x' && req.check.query.axis !== 'z') || row.result.verdict !== 'fail' ||
+        row.result.number === null || !isCurrentRequirement(row, report.part, report.revision)) return false;
+    const prior = review.approved.evidence.find(before => before.requirement?.id === req.id);
+    return !!prior && canonical(prior.requirement) === canonical(req)
+      && isCurrentRequirement(prior, review.approved.part, review.approved.revision) && prior.result.verdict === 'pass';
+  });
+}
+
+export function planWorkingApprovalRepair(doc: StudioDoc, review: CheckpointReview, report: RequirementEvidence): TaskRunOffer {
+  if (report.revision !== requirementEvidenceRevision(doc)) throw new Error('The working model changed. Check it again.');
+  if (!hasWorkingRepairFailure(review, report)) throw new Error('The working check has no unchanged dimension to repair.');
+  const occurrences = [review.approved.part];
+  const inspection = inspectLocalHeightPlan(doc, occurrences, { projectId: 'studio', documentId: 'working-model' });
+  if ('error' in inspection) throw new Error(inspection.error.message);
+  if (inspection.issues.length) throw new Error(inspection.issues[0].message);
+  const { targets } = inspection;
+  if (targets.length !== 1 || !hasWorkingRepairFailure(review, report, targets[0].requirementId))
+    throw new Error('The repair target does not match the verified failure.');
+  return { occurrences, targets, revision: digestOf(doc) };
 }

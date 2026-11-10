@@ -98,9 +98,14 @@ export function retiresTaskRunReview(status: TaskRunStatus, request: TaskRunRevi
     || pin?.attemptId !== request.attemptId || pin.candidateDigest !== request.candidateDigest;
 }
 
+export interface SavedTaskRunPlan {
+  offer: TaskRunOffer;
+  sourceKey: string;
+}
+
 export interface TaskRunChatOutput {
   summary: string;
-  taskRun?: { offer: TaskRunOffer; sourceKey: string };
+  taskRun?: SavedTaskRunPlan;
 }
 
 const id = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 128 && value === value.trim();

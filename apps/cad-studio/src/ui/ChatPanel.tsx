@@ -12,8 +12,9 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
+import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { Message } from '@/components/ai/message';
@@ -58,6 +59,7 @@ export interface ChatPanelProps {
     observe(status: TaskRunStatus): void;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
     workingVersion: object;
+    prepareWorkingRepair(review: CheckpointReview, report: RequirementEvidence, version: object, current: () => boolean): Promise<SavedTaskRunPlan | undefined>;
     checkWorkingApproval(review: CheckpointReview, current: () => boolean): Promise<WorkingApprovalChecks | undefined>;
     readApproval(request: TaskRunCheckpointRequest, current: () => boolean): Promise<CheckpointReview | undefined>;
     review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
@@ -220,17 +222,38 @@ function ChatPart({ part: p, taskRunBlocked, runStatuses, ...props }: { part: St
   return <>
     <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}>
       <code>{brief(p.input)}</code>
-      {taskRun && props.taskRun && <TaskRunActions plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} statuses={runStatuses} />}
+      {taskRun && props.taskRun && <TaskRunCards plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} statuses={runStatuses} />}
     </Tool>
     {proposal && <ProposalLink proposal={proposal} stale={!!props.proposalStale?.(proposal)} busy={!!props.proposalBusy} onAccept={() => props.onAcceptProposal?.(proposal)} onReject={() => props.onRejectProposal?.(proposal)} />}
   </>;
 }
 
-function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses }: {
-  plan: NonNullable<TaskRunChatOutput['taskRun']>;
+interface TaskRunCardProps {
+  plan: SavedTaskRunPlan;
   actions: NonNullable<ChatPanelProps['taskRun']>;
   blocked: boolean;
   statuses: RunStatuses;
+}
+
+function TaskRunCards(props: TaskRunCardProps) {
+  const [repairs, setRepairs] = useState<ReadonlyMap<string, { plan: SavedTaskRunPlan; version: object }>>(() => new Map());
+  const prepared = (plan: SavedTaskRunPlan, version: object) => {
+    const key = JSON.stringify([plan.sourceKey, plan.offer.revision, plan.offer.occurrences]);
+    setRepairs(prior => new Map(prior).set(key, { plan, version }));
+  };
+  return <>
+    <TaskRunActions {...props} onPrepared={prepared} />
+    {[...repairs].map(([key, { plan, version }]) => <section key={key} aria-label="Prepared repair">
+      <strong>Prepared repair</strong>
+      <TaskRunActions {...props} plan={plan} repair startBlocked={version !== props.actions.workingVersion} onPrepared={prepared} />
+    </section>)}
+  </>;
+}
+
+function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses, repair = false, startBlocked = false, onPrepared }: TaskRunCardProps & {
+  repair?: boolean;
+  startBlocked?: boolean;
+  onPrepared(plan: SavedTaskRunPlan, version: object): void;
 }) {
   const busy = useRef(false);
   const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | { taskId: string }>();
@@ -240,7 +263,7 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
   const result = launch && latest?.runKey === launch.runKey ? { ...launch, ...latest } : launch;
   const [error, setError] = useState('');
   async function start() {
-    if (busy.current) return;
+    if (busy.current || blocked || startBlocked) return;
     busy.current = true;
     setWorking('start');
     setError('');
@@ -288,8 +311,9 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
   }
   return <>
     <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
-    <button className="ghost" type="button" disabled={blocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
-    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : 'Start local run'}</button>}
+    <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
+    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : repair ? 'Start repair' : 'Start local run'}</button>}
+    {startBlocked && !result && <div role="status">Check the saved working model and prepare the repair again.</div>}
     {error && <div role="status">{error}</div>}
     {result && <div role="status">
       <span>{(result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
@@ -307,7 +331,9 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked, statuses
           onClick={() => void review(task)}>{typeof working === 'object' && working.taskId === task.id ? 'Checking…' : 'Review'}</button>}
       </li>)}</ul>
       {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval}
-        workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval} />}
+        workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval}
+        prepareRepair={isLocalTaskRunHost(window.location.hostname) ? actions.prepareWorkingRepair : undefined}
+        repairBlocked={blocked} onPrepared={onPrepared} />}
       <code title={result.directory}>{result.directory}</code>
     </div>}
   </>;
