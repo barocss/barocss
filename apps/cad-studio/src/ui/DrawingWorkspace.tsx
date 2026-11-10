@@ -94,7 +94,7 @@ export interface DrawingReferenceLabel { dimensionId: string; view: DimView; tex
 
 export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
-  onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
+  onChange(next: DrawingSettings): boolean; onToast(e: FriendlyError): void;
   referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
   // 11 ④: a drawing of several sheets shows one at a time, as a drawing of its own (its views and what belongs to them); what is
@@ -106,8 +106,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
   /** The whole drawing's next settings, as the file will have them. */
   const commitWhole = (next: DrawingSettings) => {
-    if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
-    sourceOnChange(committedSettings(next, scopeRead.scope));
+    if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return false; }
+    return sourceOnChange(committedSettings(next, scopeRead.scope));
   };
   /** An edit of the sheet shown. */
   const onChange = (next: DrawingSettings) => commitWhole(mergeSheet(wholeSettings, current, next));
@@ -151,7 +151,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const acceptEvery = () => {
     if (!views) return;
     const r = acceptAll({ views, settings, fastenerSizes: fastenerSizesOf(doc), callout, locationOwner, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
-    onChange(r.settings);
+    if (!onChange(r.settings)) return;
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
@@ -165,10 +165,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const fixStep = (step: FixRoundStep) => {
     if (step.next) {
       fixing.current = { state: step.state, want: scopeRead.scope ? JSON.stringify(committedSheetSettings(wholeSettings, current, step.next, scopeRead.scope)) : JSON.stringify(step.next) };
-      onChange(step.next); return;
+      if (!onChange(step.next)) fixing.current = null;
+      return;
     }
     fixing.current = null;
-    if (JSON.stringify(step.settings) !== JSON.stringify(settings)) onChange(step.settings);
+    if (JSON.stringify(step.settings) !== JSON.stringify(settings) && !onChange(step.settings)) return;
     onToast({ title: `${step.applied.length} fix${step.applied.length === 1 ? '' : 'es'} applied`, hint: step.left.length ? `${step.left.length} issue${step.left.length === 1 ? '' : 's'} left: ${step.left[0].message}` : 'The drawing has no issues.', detail: step.left.slice(1).map(x => x.message).join('\n') });
   };
   const fixEvery = () => {
@@ -647,7 +648,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
     const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, locationOwner, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
-    onChange(next);
+    if (!onChange(next)) return;
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
     const where = `${report.sheet} at ${scaleLabel(report.scale)}${side}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
@@ -663,7 +664,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
     const t = reorient(views, r.views, settings, o);
     if (!t.ok) { onToast({ title: 'The drawing was not turned', hint: t.message, detail: t.code === 'ORIENTATION_REMAP_FAILED' ? t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('\n') : '' }); return; }
-    onChange(t.settings);
+    if (!onChange(t.settings)) return;
     if (t.moved.length) onToast({ title: `Front now seen from ${SIDE_NAMES[o]}`, hint: `Annotations moved with their axes: ${t.moved.map(m => `${m.from} → ${m.to}`).join(', ')}.`, detail: '' });
   };
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');

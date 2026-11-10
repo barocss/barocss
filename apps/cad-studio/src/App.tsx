@@ -890,10 +890,12 @@ export function App() {
     pushUndo(); if (!setDoc(next)) return; setDirty(true);
   }, [doc, marker, acceptanceScope]);
   /** One undoable change of the drawing settings (the model stays). */
-  const commitDrawing = useCallback((next: DrawingSettings) => {
-    if (!canChangeDocument()) return;
+  const commitDrawing = useCallback((next: DrawingSettings): boolean => {
+    if (!canChangeDocument()) return false;
     pushUndo();
-    if (!setDoc({ ...doc, drawing: next })) return; setDirty(true);
+    if (!setDoc({ ...doc, drawing: next })) return false;
+    setDirty(true);
+    return true;
   }, [doc, marker, acceptanceScope]);
   const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string }, select?: string[]) => {
     if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: candidate.failureTitle ?? 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }

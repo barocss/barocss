@@ -1,0 +1,273 @@
+{
+  "workId": "D576",
+  "parent": "9b2eefc527a31e1653a56da3b38bca94cdf05c47",
+  "tier": "SMALL",
+  "model": "GPT-6.1 Sol Medium",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D576-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d576-2026-11-10",
+    "frozenSourcesPerRun": 299
+  },
+  "fixtureSha256": {
+    "plate": "3302b95817a8ff6773aec8f081ed844834db22ec3cc96c9b666f84992af3b840",
+    "cross": "3bb1e2d0f6026e50177e94fec1f763a917969978eb46b60924a3d0c31b2d51a7"
+  },
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": {
+      "original": "69e2a6fee84f1113a4c33683001d107a038f86346eae87d93db03fbc659fabdb",
+      "fixed": "b2cf85979949db8f4654a24bc5eb12b93464a71c947fe1c15ba8a79f3d896696"
+    },
+    "apps/cad-studio/src/ui/DrawingWorkspace.tsx": {
+      "original": "d68012a9ade7d340c0ab95578e973965d4ff4177eed52a7c2f4120b676cbdf7f",
+      "fixed": "c6e61673cb57d0ff65c291e69978b44f4b72834a86a1f2a2dcab39bdeef192d0"
+    }
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser D576_SOURCE_FROZEN=1 node test/drawing-commit-ownership-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "snapshots": 4,
+      "wallSeconds": 11.87,
+      "nodePID": 93707,
+      "chromePID": 94055,
+      "receiptSha256": "d8e34e584ca433ba6b4e6316fda3f7766ffc09a1e1e6aa727ad479d4d919fb90",
+      "driverSha256": "a1b3fc52dba0fcf3dc8dc48547d4a23a2470b4347524c7062fdf5a5a807b8948",
+      "observations": [
+        {
+          "label": "front",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Front now seen from +XAnnotations moved with their axes: front \u2192 right, right \u2192 front.",
+          "title": "Newer title front",
+          "orientation": "y-"
+        },
+        {
+          "label": "auto",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "6 dimensions placed \u00b7 A4 at 1:1, the front seen from +X (the side now seen as the right view shows more (12 against 3: visible edges, round circles three times, less half the hidden lines)), without the right view (it shows nothing the others do)3 overall, 0 steps, 2 hole positions, 1 callout.",
+          "title": "Newer title auto",
+          "orientation": "y-"
+        }
+      ]
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "FAIL",
+      "product": "PARTIAL_FIXED_RUN",
+      "snapshots": 3,
+      "wallSeconds": 8.66,
+      "nodePID": 96111,
+      "chromePID": 96131,
+      "receiptSha256": "a358abfef146020bb11091c0665edaf3f6dce4e6e28e3d6ee0557cec9be00d7e",
+      "driverSha256": "a1b3fc52dba0fcf3dc8dc48547d4a23a2470b4347524c7062fdf5a5a807b8948",
+      "observations": [
+        {
+          "label": "front",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Change not appliedThe document or operation changed. Try this edit again.",
+          "title": "Newer title front",
+          "orientation": "y-"
+        }
+      ]
+    },
+    {
+      "output": "fixed02",
+      "mode": "fixed",
+      "harness": "FAIL",
+      "product": "PASS",
+      "snapshots": 7,
+      "wallSeconds": 11.82,
+      "nodePID": 97258,
+      "chromePID": 97279,
+      "receiptSha256": "5dcedef25bfd1eede45dbe929d2f6c4227f918efb1275ac69b9d4511bc11bb17",
+      "driverSha256": "ebf03674d3a9bf3ac52d77fad6298364111fb8a37ab1e1e1e1847cf42fbc271b",
+      "observations": [
+        {
+          "label": "front",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Change not appliedThe document or operation changed. Try this edit again.",
+          "title": "Newer title front",
+          "orientation": "y-"
+        },
+        {
+          "label": "front-current",
+          "title": "Newer title front",
+          "orientation": "x+",
+          "dimensions": [
+            "right 64",
+            "right 8",
+            "top 16",
+            "top 32",
+            "top 32",
+            "top \u00d88 THRU"
+          ]
+        },
+        {
+          "label": "auto",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Change not appliedThe document or operation changed. Try this edit again.",
+          "title": "Newer title auto",
+          "orientation": "y-"
+        },
+        {
+          "label": "auto-current",
+          "title": "Newer title auto",
+          "orientation": "x+",
+          "dimensions": [
+            "front 15",
+            "front 15",
+            "front 30",
+            "front 30",
+            "front \u00d88 THRU",
+            "top 60"
+          ]
+        }
+      ]
+    },
+    {
+      "output": "fixed03",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "snapshots": 6,
+      "wallSeconds": 11.93,
+      "nodePID": 98350,
+      "chromePID": 98386,
+      "receiptSha256": "e90b8d739417764ea675a73ae8d78d04637427a5e7ec0f2b6f749f346767a63b",
+      "driverSha256": "ebf03674d3a9bf3ac52d77fad6298364111fb8a37ab1e1e1e1847cf42fbc271b",
+      "observations": [
+        {
+          "label": "front",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Change not appliedThe document or operation changed. Try this edit again.",
+          "title": "Newer title front",
+          "orientation": "y-"
+        },
+        {
+          "label": "front-current",
+          "title": "Newer title front",
+          "orientation": "x+",
+          "dimensions": [
+            "right 64",
+            "right 8",
+            "top 16",
+            "top 32",
+            "top 32",
+            "top \u00d88 THRU"
+          ]
+        },
+        {
+          "label": "auto",
+          "held": {
+            "id": 6,
+            "orientation": "x+",
+            "ok": true
+          },
+          "notice": "Change not appliedThe document or operation changed. Try this edit again.",
+          "title": "Newer title auto",
+          "orientation": "y-"
+        },
+        {
+          "label": "auto-current",
+          "title": "Newer title auto",
+          "orientation": "x+",
+          "dimensions": [
+            "front 15",
+            "front 15",
+            "front 30",
+            "front 30",
+            "front \u00d88 THRU",
+            "top 60"
+          ]
+        }
+      ]
+    }
+  ],
+  "attemptNotes": [
+    {
+      "output": "fixed01",
+      "status": "FAIL",
+      "reason": "Expected bare nominal label, while Studio rendered the through-hole label"
+    },
+    {
+      "output": "fixed02",
+      "status": "FAIL",
+      "reason": "File watcher event, despite all assertions and frozen hashes passing"
+    },
+    {
+      "output": "fixed03",
+      "status": "PASS",
+      "reason": "Same bytes as fixed02, no watcher changes"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/drawing-commit-ownership-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "logSha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "logSha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee",
+      "status": "PASS"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs drawing-commit-roundtrip",
+      "logSha256": "266149ecc4cd98017df24265f57df4ecb77590f1d3f57b523015a59a0c08271b",
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs reorient auto-layout",
+      "logSha256": "0f70987595e3f129acab04dc5d195c94cac10ad0a2b8c857e01334e5fcf8fc20",
+      "status": "PASS",
+      "passed": 18,
+      "failed": 0
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "logSha256": "fc566b1cc24cdaa7fac0ad19367cc63bc05f74c3b2304b2f27f3bc27cd9c295b",
+      "status": "PASS"
+    }
+  ],
+  "reviews": {
+    "behavior": "APPROVE",
+    "security": "APPROVE",
+    "quality": "APPROVE"
+  },
+  "issue2359": "OPEN",
+  "wholeCad": "NOT_MEASURED"
+}
