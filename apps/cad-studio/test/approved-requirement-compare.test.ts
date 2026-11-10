@@ -5,6 +5,7 @@ import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engi
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { Op } from '@barocss/cad-model/engine/schema/proposals';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
+import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { approvedRequirementComparison, compareApprovedRequirements } from '../src/storage/approvedRequirementCompare';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
@@ -84,4 +85,78 @@ test('reusing a deleted occurrence ID does not link the replacement to the old f
   assert.equal(replacement?.part, undefined);
   assert.deepEqual(replacement?.doc.requirements, [requirement]);
   assert.equal(approvedRequirementComparison(twins, accepted), null);
+});
+
+const nestedPlate: StudioDoc = {
+  ...plate, parameters: { H: 11 }, nodes: plate.nodes.map(node => node.kind === 'extrude' ? { ...node, height: { parameter: 'H' } } : node),
+};
+const nestedTwins: StudioDoc = { ...emptyDoc(), instances: twins.instances!.map((instance, index) => ({
+  ...instance, name: index === 0 ? 'Left module' : 'Right module', part: { id: 'host' + index, rev: 'A' },
+  doc: { ...emptyDoc(), instances: [{ ...twins.instances![0], doc: nestedPlate }] },
+})) };
+const nestedOp = (part = 'p1/p1'): Op => ({ tool: 'features', args: { action: 'parameters', part, set: { H: 10 } } });
+
+test('historical nested approval replays only its recorded path and retains the original failure', async () => {
+  const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
+  for (const before of [nestedTwins, pending]) {
+    const pair = approvedRequirementComparison(before, accepted);
+    assert.ok(pair);
+    assert.deepEqual(pair.scopes, [{ id: 'p1/p1', label: 'Left module › Target' }]);
+    const first = JSON.stringify(before), last = JSON.stringify(accepted);
+    assert.deepEqual(await compareApprovedRequirements(pair, 'p1/p1', evaluate), {
+      recoveries: [{ id: 'H-CAP', from: 11, to: 10, unit: 'mm' }], changed: [],
+    });
+    assert.deepEqual([JSON.stringify(before), JSON.stringify(accepted)], [first, last]);
+    const sibling = await compareApprovedRequirements(pair, 'p2/p1', async () => assert.fail('Must not evaluate a sibling'));
+    assert.ok('error' in sibling);
+  }
+  const unrelated = { ...pending, proposals: pending.proposals!.map(proposal => ({ ...proposal, ops: [nestedOp('p2/p1')] })) };
+  assert.equal(approvedRequirementComparison(unrelated, accepted), null);
+  const later = { ...accepted, parameters: { later: 2 } };
+  assert.equal(approvedRequirementComparison(pending, later), null);
+});
+
+test('matching approval metadata cannot relabel a replacement or unrelated operation as a repair', async () => {
+  const { accepted } = await approve(nestedTwins, [nestedOp()]);
+  const incorrect = structuredClone(accepted);
+  const leaf = incorrect.instances![0].doc.instances![0].doc;
+  leaf.nodes = leaf.nodes.map(node => node.kind === 'sketch' && node.profile === 'rectangle'
+    ? { ...node, max: [25, 10] } : node);
+  const forgedAfter = requirementEvidenceRevision(incorrect);
+  incorrect.history!.at(-1)!.evidence_revisions!.after = forgedAfter;
+  incorrect.proposals![0].decided!.evidence_revisions!.after = forgedAfter;
+  const reused = approvedRequirementComparison(nestedTwins, incorrect);
+  assert.ok(reused);
+  const replay = await compareApprovedRequirements(reused, 'p1/p1', evaluate);
+  assert.ok('error' in replay);
+  assert.match(replay.error, /does not reproduce the saved revision/);
+
+  const unrelated = { ...accepted, proposals: accepted.proposals!.map(proposal => ({ ...proposal, ops: [nestedOp('p2/p1')] })) };
+  const wrongPart = approvedRequirementComparison(nestedTwins, unrelated);
+  assert.ok(wrongPart);
+  const wrongReplay = await compareApprovedRequirements(wrongPart, 'p2/p1', evaluate);
+  assert.ok('error' in wrongReplay);
+  assert.match(wrongReplay.error, /does not reproduce the saved revision/);
+
+  const malformed: StudioDoc = JSON.parse(JSON.stringify(accepted));
+  const [record] = malformed.proposals!;
+  for (const tool of ['constructor', '__proto__', 'toString']) {
+    record.ops = [{ tool, args: nestedOp().args }];
+    assert.equal(approvedRequirementComparison(nestedTwins, malformed), null);
+  }
+  const nullOp: StudioDoc = JSON.parse(JSON.stringify(accepted).replace('"ops":[', '"ops":[null,'));
+  assert.equal(approvedRequirementComparison(nestedTwins, nullOp), null);
+  for (const invalid of [{ history: {} }, { proposals: {} }, { history: [null] }, { proposals: [null] }]) {
+    const bad = JSON.parse(JSON.stringify({ ...accepted, ...invalid }));
+    assert.equal(approvedRequirementComparison(nestedTwins, bad), null);
+  }
+  const wrongHash = structuredClone(accepted);
+  wrongHash.history!.at(-1)!.model_hash = 'forged';
+  wrongHash.proposals![0].decided!.model_hash = 'forged';
+  assert.equal(approvedRequirementComparison(nestedTwins, wrongHash), null);
+
+  const stale = { ...reused, after: accepted };
+  const refused = await compareApprovedRequirements(stale, 'p1/p1', async () => assert.fail('Must not evaluate a stale comparison'));
+  assert.ok('error' in refused);
+  assert.match(refused.error, /approval revision changed/i);
 });

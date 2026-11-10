@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D608 — compare a saved nested failure with its approved repair](notes/saved-nested-approval-comparison-2026-11-11/README.md).
 - [D607 — propose a parameter repair for a nested part from the root](notes/root-nested-parameter-proposal-2026-11-11/README.md).
 - [D606 — verify a nested repair through a host revision](notes/nested-requirement-repair-2026-11-11/README.md).
 - [D605 — show local requirement verdicts for a selected nested part](notes/studio-nested-requirement-verdicts-2026-11-11/README.md).

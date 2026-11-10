@@ -153,7 +153,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
         : 'From the version to the working document'}{compared.same ? ': the same' : ''}</div>
       <ul className="m-0 list-disc pl-4">{changeLines(compared).map((l, k) => <li key={k}>{l}</li>)}</ul>
     </div>}
-    {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.after}`}
+    {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.before}:${approval.revisions.after}`}
       comparison={approval} evaluate={evaluate} historical={!!targetVersion} />}
 
     {log && <>

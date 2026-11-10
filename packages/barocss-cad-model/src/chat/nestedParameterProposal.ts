@@ -6,7 +6,6 @@ import { isRefusal } from '../engine/refusal';
 import { reconcileRowSources } from '../engine/rowSources';
 import { nestedRequirementDoc, nestedRequirementScope } from '../team/requirementScope';
 import { isObj } from '../util/guards';
-import { v1Call } from './groups';
 import { fail, json, type ChatState, type Evaluate, type ToolOutcome } from './toolKit';
 
 export function nestedParameterPart(name: string, args: unknown): string | undefined {
@@ -16,9 +15,9 @@ export function nestedParameterPart(name: string, args: unknown): string | undef
 export function nestedParameterOps(ops: unknown): string | undefined {
   if (!Array.isArray(ops)) return;
   for (const op of ops) {
-    if (!isObj(op) || typeof op.tool !== 'string') continue;
-    const call = v1Call(op.tool, op.args);
-    const part = call && 'name' in call ? nestedParameterPart(call.name, call.args) : nestedParameterPart(op.tool, op.args);
+    if (!isObj(op)) continue;
+    const named = op.tool === 'set_parameters' || (op.tool === 'features' && isObj(op.args) && op.args.action === 'parameters');
+    const part = named ? nestedParameterPart('set_parameters', op.args) : undefined;
     if (part !== undefined) return part;
   }
 }

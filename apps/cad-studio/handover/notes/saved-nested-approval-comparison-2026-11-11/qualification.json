@@ -1,0 +1,47 @@
+{
+  "decision": "D608",
+  "parent": "bce56571177a0e45d1dac1b9fd91e26929f0608e",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "pass": ["C01", "C02", "C03", "C04"],
+  "commands": [
+    {"command": "cd apps/cad-studio && D608_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs <output> <D607-desktop>", "status": "PASS"},
+    {"command": "cd apps/cad-studio && D595_SOURCE_FROZEN=1 node test/approved-requirement-compare-browser.mjs <output> <D592-final-desktop> historical", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence nested-parameter-proposal proposals.test team-freshness versions toolset", "status": "PASS", "pass": 62},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare project-open-ownership project-version-ownership storage-version-snapshot tool-contract-mcp version-tools-mcp nested-selection", "status": "PASS", "pass": 93},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit && pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/nestedParameterProposal.ts apps/cad-studio/src/storage/{ApprovedRequirementChecks.tsx,VersionsPanel.tsx,approvedRequirementCompare.ts} apps/cad-studio/test/approved-requirement-compare.test.ts", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/nested-approved-comparison-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "review": [
+    {"lane": "code", "status": "APPROVE", "scope": "Exact nested replay, malformed record refusal, asynchronous ownership"},
+    {"lane": "architecture", "status": "CLEAR", "scope": "Historical snapshot identity, working verdict separation and legacy comparison"}
+  ],
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "baseline/receipt.json", "sha256": "0f98c3dc6ac3a8a5d1a7e676f9a0547334b143acfa81052b74ba4e1e502bc4d0", "observation": "A detached same-name file could not overwrite the project file. The corrected harness reopens the exact file through the project."},
+    {"status": "FAIL", "receipt": "baseline-retry/receipt.json", "sha256": "04d09fd9838d1c40e56123c02802e1de5d5309649bd61d1eb991ad28f700b6ba", "observation": "The pre-change Versions comparison loaded the exact saved pair and omitted the nested approval check."}
+  ],
+  "evidence": {
+    "directory": "d608-2026-11-11",
+    "receiptSHA256": "afa2d8c8e5668a386ea258708e087ca3a6b4e6c51edba82f0aa61f7bc03362dd",
+    "legacyReceiptSHA256": "8c3eb77ba16117fc8052924566701213948e296aca7880ddb35a01855b93d972",
+    "sourceCapsuleSHA256": "c6f032485caa4920c7a3cc0327eaf090ce8ff648acdfc501cd617039f1b4a6d5",
+    "savedFailureSHA256": "4a171b922166b99ca5cf9488ffe94b2b8717809c616fd6ddabde1def9c6a727c",
+    "savedApprovedSHA256": "60005695aaf7a59dd6599f1f17058cb24a3f355ea9acd997992595188f0bab6c",
+    "savedWorkingSHA256": "5f5d7a43187139c526141346ced82b5b2ed5472aba34659506432fb38fba54e9",
+    "oracleSHA256": "2833044d28658a014e850509b26f21751b73a82326ca1820c890cb2a1d0b621e",
+    "numericChecks": 6,
+    "unchangedSourcePins": 302,
+    "legacyUnchangedSourcePins": 304,
+    "desktopStates": 3,
+    "legacyDesktopStates": 10,
+    "heldReads": 1,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["01-saved-repair-and-working-failure", "02-retired-read"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["structured approval report for agents", "independent defect ledger", "external signer authentication", "whole browser", "whole kernel", "mobile", "live providers"]
+}

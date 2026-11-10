@@ -8,15 +8,17 @@ type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
 const unitText = (unit?: string) => unit === 'mm3' ? 'mm³' : unit === 'mm2' ? 'mm²' : unit;
 
 function Checks({ comparison, part, evaluate }: { comparison: Comparison; part: string; evaluate: Evaluate }) {
-  const [result, setResult] = useState<CheckResult | null>(null);
+  const [settled, setSettled] = useState<{ comparison: Comparison; part: string; evaluate: Evaluate; report: CheckResult }>();
   useEffect(() => {
     let current = true;
+    const complete = (report: CheckResult) => { if (current) setSettled({ comparison, part, evaluate, report }); };
     void compareApprovedRequirements(comparison, part, input => current ? evaluate(input) : Promise.resolve(null)).then(
-      report => { if (current) setResult(report); },
-      () => { if (current) setResult({ error: 'Could not check both saved revisions.' }); },
+      complete,
+      () => complete({ error: 'Could not check both saved revisions.' }),
     );
     return () => { current = false; };
   }, [comparison, part, evaluate]);
+  const result = settled?.comparison === comparison && settled.part === part && settled.evaluate === evaluate ? settled.report : undefined;
   if (!result) return <div role="status">Checking both revisions…</div>;
   if ('error' in result) return <div role="status">{result.error}</div>;
   return <>
