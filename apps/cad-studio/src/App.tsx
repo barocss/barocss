@@ -2115,7 +2115,7 @@ export function App() {
         const inst = shownDoc.instances?.find(i => i.id === host), source = instanceSources.get(host);
         const current = entry && inst && source?.ok ? entry.sourceKey === source.key && samePlacement(entry.inst, inst) : false;
         const card = nestedCard(shownDoc, nestedSelected, entry, current);
-        return card ? <NestedPartPanel card={card} /> : null;
+        return card ? <NestedPartPanel key={workerSession} card={card} doc={shownDoc} evaluate={cutDraft ? undefined : evaluateVersion} /> : null;
       })()}
       {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {
         const inst = doc.instances?.find(i => i.id === instanceSel[0]);

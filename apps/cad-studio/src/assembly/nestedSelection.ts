@@ -111,6 +111,7 @@ export interface NestedCard {
   /** The sub-assembly cannot be folded right now: its bodies cannot be attributed to the part. */
   unavailable?: true;
   part?: PartInstance['part'];
+  hasRequirements: boolean;
   /** Where it sits in the sub-assembly directly above it (read only). */
   placement: { in: string; position: readonly number[]; rotation: readonly number[] };
   /** The sub-assembly whose definition owns it: the top-level instance. */
@@ -124,10 +125,12 @@ export function nestedCard(doc: StudioDoc, path: string, entry: PlacedEntry | un
   const have = current ? entry : undefined;
   const at = nestedBodyIndexes(path, have), mine = have && at ? at.map(k => have.bodies[k]) : [];
   const unknown = !have || !at || !mine.length || mine.some(b => b.massRef !== undefined);
+  const requirements = found.inst.doc.requirements;
   return {
     path, title: found.names.join(' › '), bodies: mine.length, pending: !have, ...(at ? {} : { unavailable: true as const }),
     volume: unknown ? null : mine.reduce((v, b) => v + (b.volume ?? 0), 0),
     ...(found.inst.part ? { part: found.inst.part } : {}),
+    hasRequirements: requirements !== undefined && (!Array.isArray(requirements) || requirements.length > 0),
     placement: { in: found.parent.name, position: found.inst.position, rotation: found.inst.rotation },
     host: { id: hostOf(path), name: found.names[0] },
   };

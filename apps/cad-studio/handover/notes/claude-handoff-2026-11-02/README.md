@@ -1,5 +1,5 @@
 ---
-work_id: D604
+work_id: D605
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -145,7 +145,9 @@ D603 repairs the zero body and volume summary for the D602 nested-only hosts. De
 
 D604 reads current requirements for exact visible leaf paths. Actual MCP retains distinct local results and effective materials after Studio project Save/Open. [D604](../../notes/nested-requirement-evidence-2026-11-11/README.md).
 
-Next MAIN is D605 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Show current requirement verdicts for a selected nested leaf in the existing Studio part inspector. Reuse the D604 evidence producer and read evaluator. Keep the root requirements separate and verify selection switching, late reads and fresh project Open. [#2279](https://github.com/barocss/barocss/issues/2279).
+D605 uses that report in the existing desktop nested inspector. Two late reads cannot replace the selected path or a reopened document's verdict. The committed cut control refuses a result. [D605](../../notes/studio-nested-requirement-verdicts-2026-11-11/README.md).
+
+Next MAIN is D606 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Take one failing nested occurrence through the existing definition edit or revision workflow. Verify a current passing result on the same path, retain the failing sibling and the original saved failure, and reproduce the first blocker in a supported consumer before extending the approval history. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

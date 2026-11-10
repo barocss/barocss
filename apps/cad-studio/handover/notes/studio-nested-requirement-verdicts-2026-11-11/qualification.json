@@ -1,0 +1,38 @@
+{
+  "decision": "D605",
+  "parent": "ec898da2391f28c4d501d5c1ddf5117fe1e7dbd9",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "pass": ["V01", "V02", "V03", "V04"],
+  "commands": [
+    {"command": "cd apps/cad-studio && D605_SOURCE_FROZEN=1 node test/nested-requirement-verdicts-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence team-freshness nested-references spec.test", "status": "PASS", "pass": 61},
+    {"command": "pnpm --dir apps/cad-studio test nested-selection approved-requirement-compare chat cad-external toolset-mcp tool-contract-mcp engine", "status": "PASS", "pass": 68},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit && pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint apps/cad-studio/src/{App.tsx,assembly/nestedSelection.ts,ui/NestedPartPanel.tsx,ui/NestedRequirementReadout.tsx}", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/nested-requirement-verdicts-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "review": {"status": "PASS", "scope": "Selection, immutable document, Worker generation, read-only ownership and measured value display"},
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "first/receipt.json", "sha256": "ec21da9aad88c911c887e7862fa06ed835ac7006e4ed4cf8ee3a680e70800ccd", "observation": "The DOM parser in the harness did not allow the leading verdict glyph."},
+    {"status": "FAIL", "receipt": "final/receipt.json", "sha256": "74fe4a5c7a63bf25b6d61d5c4633bc4598371e8f92e8f3b83d56439a3607d842", "observation": "The fixture had an explicit undefined look, which did not survive JSON serialization. The final fixture omits that optional field."}
+  ],
+  "evidence": {
+    "directory": "d605-2026-11-11/desktop",
+    "baselineReopenedScreenshotSHA256": "4e1d2211e03ad2fd8e23f15cfa50ac638b3f56f3eebe84eab1d241a754987c31",
+    "receiptSHA256": "4b9ca7c54b6b82c8a633b37777b4521307c2b04208adf0e027cb6d7d263b4ac1",
+    "sourceCapsuleSHA256": "6d565353f55cb2011125e39ddf141a5a35be717c3af5cde9609293884ba93aca",
+    "savedNativeSHA256": "bbd589645f24344491a7c3fde62eaa40f036933c81801d4561fb444c1369f72d",
+    "oracleSHA256": "9602c829ab4cf973834a4a7e276c82f89fb4a18dd73e9ad33ddaec73080e48d9",
+    "unchangedSourcePins": 302,
+    "desktopStates": 8,
+    "releasedLateReads": 2,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["reopened-right", "cut-refusal"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["nested repair and approval history", "placed-coordinate measurements", "live providers", "whole browser", "whole kernel", "mobile"]
+}

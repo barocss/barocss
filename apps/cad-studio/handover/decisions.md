@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D605 — show local requirement verdicts for a selected nested part](notes/studio-nested-requirement-verdicts-2026-11-11/README.md).
 - [D604 — read requirement evidence for nested occurrences](notes/nested-requirement-evidence-2026-11-11/README.md).
 - [D603 — measure placed nested assemblies in the tool summary](notes/nested-assembly-summary-2026-11-11/README.md).
 - [D602 — qualify the nested requirement scope boundary](notes/nested-requirement-scope-2026-11-11/README.md).
