@@ -1,0 +1,189 @@
+{
+  "decision": "D615",
+  "tier": "focused existing-workflow qualification",
+  "baseCommit": "46895a80f8e64ea21a380063bdf3221c7259c687",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d615-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio and real CLI",
+      "result": "PASS",
+      "command": "D615_SOURCE_FROZEN=1 node test/task-run-delivery-browser.mjs \"$EVIDENCE/desktop-final\"",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "fc296ca16d434c8bd5f6623d117cd1df6748e00c1e694beac604fcdcbabd8175",
+      "pinnedSources": 779,
+      "states": [
+        "base-review",
+        "lid-review",
+        "both-tasks-approved",
+        "working-lid-fails-at-5mm",
+        "working-edit-with-historical-approval",
+        "reopened-working-output"
+      ],
+      "visualReview": "PASS",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "browserDownloads": 0,
+      "observations": {
+        "commits": [
+          "base",
+          "lid"
+        ],
+        "priorLidRefused": true,
+        "firstApprovedSHA256": "e94abc2fb6bf56aec49ef201c0d9a721433e3508f487d63cf833fc28a43cc648",
+        "finalApprovedSHA256": "0100a04aab132ced41251f81a27fe90d0b39c3e6fdec7f1a692d28e5792c61d5",
+        "editedSHA256": "a55fe2393f17e90eaa02118396fb22c0a4015f2e627ca4869a1381a72d8610a3",
+        "meshSHA256": "1f12737ebc8a312d89db8a5f7c8ad6775e87243ce10397c56f134aa19577e33c",
+        "stages": [
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "basePins": [
+          "8dc9314097a678ef59f9be87bd273242b846ec5140b0241b64e53521c948661b",
+          "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3"
+        ],
+        "lidPins": [
+          "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3",
+          "2012fe3845c2114d0df15eb44bd952e3141e8527acf958a749e6b040dca95a1f"
+        ],
+        "originalNativeFilesUnchanged": true,
+        "workerStoreUnchangedByStudio": true
+      },
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop-final.log",
+      "logSHA256": "c00485601db4761222af5870c8aba445d35d0a099b1625872ab3988244c75336"
+    },
+    {
+      "label": "Independent Python ZIP, XML and geometry",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop-final/task-run-delivery-oracle.py\" < \"$EVIDENCE/desktop-final/delivery-oracle-oracle-input.json\"",
+      "scriptSHA256": "7b384aeee1d01bf126fda6732d234c2bc1d0075891a349dd043a219d8bc3bff7",
+      "stdoutSHA256": "f2855d014d23a82486ca02b1df5e59c69642951be207a24001fa8c1fd613125b",
+      "measurements": {
+        "status": "PASS",
+        "unit": "millimeter",
+        "closedMeshObjects": {
+          "Base": {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              20,
+              10,
+              6
+            ],
+            "volumeMm3": 1200,
+            "triangles": 12
+          },
+          "Lid": {
+            "min": [
+              45,
+              0,
+              0
+            ],
+            "max": [
+              57,
+              8,
+              5
+            ],
+            "volumeMm3": 480,
+            "triangles": 12
+          }
+        }
+      }
+    },
+    {
+      "label": "Studio 3MF export ownership",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test three-mf-export-ownership",
+      "passCount": 16,
+      "failCount": 0,
+      "log": "3mf-test.log",
+      "logSHA256": "9d5c0feba52c831dfeea7286e0bf92a55637284c8c59da555e581f24368cb828"
+    },
+    {
+      "label": "Model types after final test edit",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-delivery-browser.mjs",
+      "log": "syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "result": "FAIL",
+      "check": "First desktop driver",
+      "command": "D615_SOURCE_FROZEN=1 node test/task-run-delivery-browser.mjs \"$EVIDENCE/desktop\"",
+      "phase": "Save observer",
+      "cause": "The observer expected the Open button for the active file. Studio omits that button.",
+      "receiptSHA256": "de6e41a17aa6ede552dda766918e97a4b37d70d1f1b8d388c5db2f1b770a85aa",
+      "logSHA256": "e529093016f0e4cfb79a3b2adfcf14790d74500feeec11137c83ded9751a02b5"
+    }
+  ],
+  "artifacts": {
+    "base.bcad-candidate": "acc288684bc39a3b9fd7002234f0a4df944bafb3d4febde8b76e59d11ad75f39",
+    "lid.bcad-candidate": "3830bd8e6fc3502372cc1bff2d69fc7d1d6a1f5a29b913573f5cf2c883764fa6",
+    "base.bcad-run": "947aee8c8c971029b99e5d8b3ccc80aed394cf05952635ff5a3cfd6c92c35b1e",
+    "housing.bcad-run": "77792dc8a15f95a78daa1d6869b4621192ae08d3bada152cc1bedb71cd70fe44",
+    "saved-housing.bcad": "a55fe2393f17e90eaa02118396fb22c0a4015f2e627ca4869a1381a72d8610a3",
+    "housing.3mf": "1f12737ebc8a312d89db8a5f7c8ad6775e87243ce10397c56f134aa19577e33c",
+    "base-review.png": "2bbc8c32cd4e05263df4888773d0c935f229ac8f4689d546434273fc6219be8c",
+    "lid-review.png": "74e168e2573368ab1a74f6f1b927903839b6ce4b6bd502a8c8276dc93ab717af",
+    "both-tasks-approved.png": "c5497defa7b0d71efb6ee7cb342704e228cca20c142525cde963890b73d87e37",
+    "working-lid-fails-at-5mm.png": "5e8cd8da0d50518829e15e6b2d250c7d8846127f20bcd1229105c7a94b892634",
+    "working-edit-with-historical-approval.png": "cff2005519554ad32d163f83d41c753a8f4fd503b3c77ad66fd2ff1e56e54b71",
+    "reopened-working-output.png": "8bbc63ebf4210371799e0d07a65d467e0405f4c448b1179df820bc1bf836b949"
+  },
+  "notRun": [
+    "Live providers",
+    "Other worker task families",
+    "Physical print",
+    "Mobile",
+    "Whole suites"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "B09v1AcceptedGroups": "9/9",
+    "initialAcceptedScenarios": "4/10",
+    "wholeCadAndCore": "NOT_MEASURED"
+  }
+}
