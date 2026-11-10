@@ -1,5 +1,5 @@
 ---
-work_id: D593
+work_id: D594
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -123,7 +123,9 @@ D592 links a user-approved Studio occurrence edit to before and after evidence. 
 
 D593 verifies the placed candidate and the −200 mm³ delta in desktop Studio. Before and Hide restore both accepted placements. [D593](../../notes/placed-proposal-preview-2026-11-11/README.md).
 
-Next MAIN is D594 / P0, automation, rows 04, 12 and 16. Trace the existing report and history consumers for one persistent defect. Check how they distinguish a passing candidate or a changed requirement from a matching accepted revision.
+D594 shows approved requirement transitions in the existing Versions panel. The project reload keeps the native file, version log and snapshots byte-identical. [D594](../../notes/approved-requirement-version-compare-2026-11-11/README.md).
+
+Next MAIN is D595 / P0, automation, rows 04, 12 and 16. Read the original failure and approved recovery after a later working edit without restoring either saved model.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

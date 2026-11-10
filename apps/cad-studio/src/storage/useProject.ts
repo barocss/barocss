@@ -151,7 +151,7 @@ export function useProject(cb: ProjectCallbacks) {
           if (!current()) return false;
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
           if (call.current.canOpen && !call.current.canOpen()) return false;
-          tags.current.part = r.tag; set({ part: path, offered: null }); owner.path = path;
+          tags.current.part = r.tag; tags.current.log = null; set({ part: path, offered: null, log: null }); owner.path = path;
           const accepted = call.current.onOpened(r.doc, path, r.notes);
           if (accepted) owner.scope = accepted;
           if (!current()) return false;

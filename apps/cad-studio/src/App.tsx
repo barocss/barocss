@@ -117,7 +117,7 @@ import { useVariants } from './state/useVariants';
 import { VariantsPanel } from './ui/VariantsPanel';
 // (CG6: a project — a folder or one kept in this browser — its documents' versions and branches: src/storage/.)
 import { useProject } from './storage/useProject';
-import { VersionsPanel } from './storage/VersionsPanel';
+import { VersionsPanel, type VersionComparison } from './storage/VersionsPanel';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
@@ -461,6 +461,7 @@ export function App() {
     isOpenCurrent,
     onOpened: (d, path, notes) => {
       if (!openAccepted(inPlaceNow.current)) return openIntent.current;
+      setCompareBase(null);
       replaceDoc(d, true);
       const accepted = openIntent.current;
       setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
@@ -478,7 +479,7 @@ export function App() {
     },
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
-  const [compareBase, setCompareBase] = useState<{ id: string; doc: StudioDoc } | null>(null);
+  const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
   const [compareOverlay, setCompareOverlay] = useState<ProposalOverlay | null>(null);
   useEffect(() => { void project.loadRecent(); }, []);
   useEffect(() => {
@@ -630,6 +631,7 @@ export function App() {
   const lastEvalMs = useRef(0);
   const [menu, setMenu] = useState<ViewportMenu | null>(null);
   const revision = useRef(1);
+  const evaluateVersion = useCallback((input: StudioDoc) => engine.part(input, revision.current++, 'read'), [engine]);
   const fileInput = useRef<HTMLInputElement>(null);
   const pickRef = useRef<(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => void>(() => {});
 
@@ -1627,11 +1629,11 @@ export function App() {
   useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
   // (CG6: a version compared with the working document — its geometry's difference on the same overlay, version → working.)
   useEffect(() => {
-    if (!compareBase) { setCompareOverlay(null); return; }
+    if (!compareBase || compareBase.store !== project.view.store || compareBase.path !== project.view.part) { setCompareOverlay(null); return; }
     const at = revision.current++, key = `version:${compareBase.id}`;
     void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(compareBase.doc, doc, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setCompareOverlay('error' in reply.result ? null : reply.result); });
     return () => lanes.cancel('proposal-diff');
-  }, [compareBase, doc]);
+  }, [compareBase, doc, project.view.store, project.view.part]);
   const { setRequirement, answerQuestions, acceptAll, refTool, addDrawingFile, addReferenceFile, placeRef, removeRef, confirmBrief } =
     useSpecificationActions({ doc, bodies, commit, engine, revision, setToast, setChat, setChatOutbox });
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
@@ -2060,7 +2062,7 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
-      {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase?.id ?? null} onCompare={setCompareBase}
+      {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
         onOpen={d => { setCompareBase(null); replaceDoc(d, true); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}

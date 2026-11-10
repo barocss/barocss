@@ -1,17 +1,15 @@
 // Read-only document outputs, including verification and manufacturing files.
 import { OUTPUT_TOOLS } from './outputDefinitions';
-import { checkRequirement } from './spec';
+import { requirementEvidenceOf } from './requirementEvidence';
 export { OUTPUT_TOOLS, OUTPUT_TOOL_NAMES } from './outputDefinitions';
 import type { Evaluate } from './tools';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { bodyKeyFor } from '../engine/ids';
 import { resolveShopRows, resolveShopTree, provenanceOfTree } from '../engine/shopRows';
 import { bomPanelData, purchaseCsv } from '../bom/bom';
 import { assemblyPlacedBodies, clearanceMap } from '../team/clearanceMap';
 import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
-import { freshnessOf, requirementResults } from '../team/freshness';
-import { requirementEvidenceRevision, sha256Hex } from '../util/digest';
+import { sha256Hex } from '../util/digest';
 import { camPackage } from '../machining/camPackage';
 import { printLayers } from '../print/layers';
 import { madeBodies } from '../engine/elements';
@@ -45,8 +43,12 @@ export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult
   if (args.direction !== undefined && (!Array.isArray(args.direction) || args.direction.length !== 3 || !args.direction.every(finite) || !Number.isFinite(Math.hypot(...args.direction as number[])) || Math.hypot(...args.direction as number[]) < 1e-12)) return bad('direction must contain three finite numbers with nonzero length.');
   if (args.layers !== undefined && (!Array.isArray(args.layers) || args.layers.length < 1 || args.layers.length > 64 || !args.layers.every(k => Number.isInteger(k) && k >= 0) || new Set(args.layers).size !== args.layers.length)) return bad('layers must contain 1 to 64 distinct nonnegative integer indices.');
   try {
-    const authoredRevision = documentRevision(doc);
-    const revision = name === 'output_requirement_evidence' ? requirementEvidenceRevision(doc) : authoredRevision;
+    if (name === 'output_requirement_evidence') {
+      const report = await requirementEvidenceOf(doc, typeof args.part === 'string' ? args.part : 'base', evaluate, args.expectedRevision as string | undefined);
+      if ('error' in report) return report;
+      return { content: { revision: report.revision, files: [file('requirement-evidence.json', 'application/json', json(report))] }, summary: 'Requirement evidence exported' };
+    }
+    const revision = documentRevision(doc);
     if (args.expectedRevision !== undefined && args.expectedRevision !== revision) return { error: `[OUTPUT_STALE] Expected document revision ${String(args.expectedRevision)}, current ${revision}.` };
     if (name === 'output_bom' || name === 'output_purchase_csv' || name === 'output_clearance' || name === 'output_bundle') {
       const preflight = async (source: StudioDoc, parent: StudioDoc | undefined, path: string, owner?: string): Promise<string | null> => {
@@ -65,45 +67,6 @@ export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult
       };
       const failure = await preflight(doc, undefined, 'base');
       if (failure) return { error: failure };
-    }
-    if (name === 'output_requirement_evidence') {
-      const part = typeof args.part === 'string' ? args.part : 'base';
-      const occurrences = (doc.instances ?? []).filter(instance => instance.id === part);
-      if (part === 'base' && occurrences.length) return bad('Ambiguous part base.');
-      if (part !== 'base' && occurrences.length !== 1) return bad(occurrences.length ? `Ambiguous part ${part}.` : `No part ${part}.`);
-      const source = part === 'base' ? doc : occurrences[0].doc;
-      const requirements = source.requirements ?? [];
-      if (!Array.isArray(requirements) || !requirements.length) return bad(`Part ${part} has no requirements list.`);
-      for (const requirement of requirements) {
-        const reason = checkRequirement(requirement);
-        if (reason) return bad(`Part ${part}: ${reason}.`);
-      }
-      const byId = new Map(requirements.map(requirement => [requirement.id, requirement]));
-      if (byId.size !== requirements.length) return bad(`Part ${part} has duplicate requirement IDs.`);
-      const definitionRevision = requirementEvidenceRevision(source);
-      let evaluatedTarget = false, failedProbe = false;
-      const checkedEvaluate: Evaluate = async input => {
-        const result = await evaluate(input);
-        if (!evaluatedTarget) {
-          evaluatedTarget = true;
-          // Give this report its own body-array key for the printability cache.
-          return result?.ok ? { ...result, bodies: [...result.bodies] } : result;
-        }
-        // Some checks treat a failed auxiliary probe as zero.
-        const index = input.nodes.length - 1;
-        if (!result?.ok || (input.nodes[index]?.kind === 'intersect' &&
-            result.bodies.some(body => body.key === bodyKeyFor(input.nodes, index) && !finite(body.volume)))) failedProbe = true;
-        return result;
-      };
-      const results = await requirementResults(doc, checkedEvaluate, revision, part === 'base' ? undefined : part);
-      if (failedProbe) return { error: '[OUTPUT_EVALUATION] A requirement probe did not evaluate successfully.' };
-      const evidence = [];
-      for (const result of results) {
-        const freshness = await freshnessOf(result, doc, evaluate);
-        evidence.push(result.kind === 'requirement' ? { requirement: byId.get(result.subject), result, freshness } : { result, freshness });
-      }
-      const report = { format: 'barocss-requirement-evidence', version: 1, checker: 'checkSpec', revision, documentRevision: authoredRevision, part, definitionRevision, evidence };
-      return { content: { revision, files: [file('requirement-evidence.json', 'application/json', json(report))] }, summary: 'Requirement evidence exported' };
     }
     const shopRows = provenanceOfTree(doc);
     if (name === 'output_bundle') {

@@ -1,0 +1,42 @@
+{
+  "decision": "D594",
+  "parent": "887dbd6e064dc6bc5ddb5cf0eee072d9b72e0869",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "919b81829c72985c38dbcca8d47d1469bd0227ebef44f578c50841e209d1fc58",
+    "pass": ["C01", "C02", "C03", "C04"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D594_SOURCE_FROZEN=1 node test/approved-requirement-compare-browser.mjs <output> <D592-final-desktop>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare project-open-ownership project-version-ownership storage-version-snapshot tool-contract-mcp version-tools-mcp", "status": "PASS", "pass": 77},
+    {"command": "pnpm --dir packages/barocss-cad-model test requirement-evidence proposals.test tool-contract team-freshness", "status": "PASS", "pass": 30},
+    {"command": "pnpm --dir apps/cad-studio type-check && pnpm --dir packages/barocss-cad-model type-check", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/requirementEvidence.ts packages/barocss-cad-model/src/chat/outputs.ts", "status": "PASS"},
+    {"command": "node <output>/check-retained-mcp.mjs <repo> <D592-final-desktop>", "status": "PASS", "exactArtifacts": 4},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/approved-requirement-compare-browser.mjs && git diff --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "first/receipt.json",
+    "sha256": "23f2796b89da3599ac9a46eebc91ad66592f1c9da9662adc32d1e775a0c60949",
+    "observation": "Studio Versions had authored changes but no matched approved requirement checks."
+  },
+  "evidence": {
+    "directory": "d594-2026-11-11/verified-desktop",
+    "receiptSHA256": "29dba9723698bc2b50097a15a8788aad2550c38c6dc2431e905de1a7bcd21fe9",
+    "sourceCapsuleSHA256": "03c4de91888c11c4c2d0a026d0d8027e2f1eaf99a288dfcd510b31e1142da465",
+    "versionLogSHA256": "8f04197c206c1482c98ddf9ace4d9a5ac43690d51e3e6dc56aaf324f76607202",
+    "initialSnapshotSHA256": "e3ebc44a72e03f8e95944246ebdd55b1c7de23d01b73cfbaab21864041e1f5e1",
+    "approvedSnapshotAndSavedNativeSHA256": "cc46f80818ac5df191c9ffeae45d2af0e643e6a14a631a9d5ae7a16ceb9304b0",
+    "desktopStates": 5,
+    "unchangedSourcePins": 300,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["02-linked-first-failure", "05-reopened-version-evidence"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["historical comparison after a later edit", "nested occurrence matching", "broad assembly membership changes", "whole browser", "whole kernel", "live providers", "mobile", "release"]
+}
