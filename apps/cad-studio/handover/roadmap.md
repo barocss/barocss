@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D567 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-10 · Priority authority: D520 · Latest delivery: D568 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D567 verifies same-key clipboard isolation on Restore of a real browser-project autosave. Exact Undo and Redo pass, and the saved native document is retained. [D567](notes/body-clipboard-project-autosave-2026-11-10/README.md). [D566 history branch](notes/body-clipboard-history-branch-2026-11-10/README.md) and [D563 local recovery](notes/body-clipboard-recovery-2026-11-10/README.md) retain their recorded scope.
-- **Next MAIN:** D568 / P0 rows 12 and 16. Check that the two admitted copies survive native Save into a browser project and a fresh public Open of those bytes. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
+- **Current position:** D568 verifies that two admitted copies survive native browser-project Save and a fresh public Open of the exact saved bytes. Actual Studio retains both offsets and all feature references. [D568](notes/body-clipboard-save-reopen-2026-11-10/README.md). [D567 project autosave](notes/body-clipboard-project-autosave-2026-11-10/README.md) and [D566 history branch repair](notes/body-clipboard-history-branch-2026-11-10/README.md) retain their recorded scope.
+- **Next MAIN:** D569 / P0 rows 12 and 16. Check body clipboard isolation while Copy and Paste shortcuts target a text input. [#2310](https://github.com/barocss/barocss/issues/2310) remains open.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B03 and B05–B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
