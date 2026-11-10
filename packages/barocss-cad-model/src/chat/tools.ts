@@ -22,6 +22,7 @@ import { solveDoc } from '../assembly/edit';
 import { validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions } from '../assembly/connectors';
 import { resolveNames, type NameSelection } from './names';
 import { approvalOf } from './proposals';
+import { nestedParameterEdit, nestedParameterPart } from './nestedParameterProposal';
 import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
 import { checkPartEdit, refreshFollowed } from '../frames/skeleton';
@@ -50,19 +51,20 @@ export { BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArgumen
 export { agentMayNotAccept, autonomy, leaveOutClosure, partialDoc, proposalParts, toggledLeaveOut, type Decider, type ProposalPart } from './part/proposals';
 /** Every moved handler, by v1 tool name (R3): built once, at load. */
 const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS, ...HISTORY_HANDLERS, ...VERSION_HANDLERS, ...PROPOSAL_HANDLERS };
+const runProposalTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate, false, true);
 
 // (R3e: the proposal functions the studio and the team code call, with their signatures as they were; the work is in
 // chat/part/proposals.ts and chat/part/history.ts, this module's runner passed in.)
 /** A proposal's change worked out on a copy (A4.2): see proposalOfWith. */
-export function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate) { return proposalOfWith(runToolCounted, state, ops, evaluate); }
+export function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate) { return proposalOfWith(runProposalTool, state, ops, evaluate); }
 /** A proposal accepted (A4.2, A4.3): see acceptProposalWith. */
-export function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}) { return acceptProposalWith(runToolCounted, state, id, evaluate, o); }
+export function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}) { return acceptProposalWith(runProposalTool, state, id, evaluate, o); }
 /** A stale proposal made again on the part as it is now (D41): see rebaseProposalWith. */
-export function rebaseProposal(state: ChatState, id: string, evaluate: Evaluate, by: Decider = { agent: 'user' }) { return rebaseProposalWith(runToolCounted, state, id, evaluate, by); }
+export function rebaseProposal(state: ChatState, id: string, evaluate: Evaluate, by: Decider = { agent: 'user' }) { return rebaseProposalWith(runProposalTool, state, id, evaluate, by); }
 /** Ops made on one state replayed one at a time on another (O133): see moveOpsWith. */
 export function moveOps(state: ChatState, ops: readonly Op[], orders: readonly (readonly string[])[], evaluate: Evaluate, ids: Map<string, string> = new Map(), made?: readonly (readonly string[])[]) { return moveOpsWith(runToolCounted, state, ops, orders, evaluate, ids, made); }
 /** The bodies a proposal would leave (its ghost preview), or its refusal: see previewProposalWith. */
-export function previewProposal(state: ChatState, id: string, evaluate: Evaluate) { return previewProposalWith(runToolCounted, state, id, evaluate); }
+export function previewProposal(state: ChatState, id: string, evaluate: Evaluate) { return previewProposalWith(runProposalTool, state, id, evaluate); }
 
 /** A placed part as a part tool runs on it (A9-2, FRf2): its shop rows resolved from the assembly's, an evaluation that
  *  restores the part's own rows first, and its bodies (R3e: written once for both of the dispatcher's paths). */
@@ -113,14 +115,14 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
 /** The dispatcher without the session's gates (autonomy, approval): what proposals replay, and the tools' own tests. */
 export const dispatchTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate);
 /** `v1`: the name and input are a v1 call already (runTool translated them; R3e: translated once). */
-async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate, v1 = false): Promise<ToolOutcome> {
-  const out = await runToolUnchecked(state, name, input, evaluate, v1);
+async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate, v1 = false, proposal = false): Promise<ToolOutcome> {
+  const out = await runToolUnchecked(state, name, input, evaluate, v1, proposal);
   if (out.isError || !out.changed) return out;
   const context = state.rowFiles, refused = personRowsRefusal(state.doc, out.state.doc, context);
   if (refused) return fail(state, refused);
   return { ...out, state: { ...out.state, doc: reconcileRowSources(state.doc, out.state.doc, context) } };
 }
-async function runToolUnchecked(state: ChatState, name: string, input: unknown, evaluate: Evaluate, translated = false): Promise<ToolOutcome> {
+async function runToolUnchecked(state: ChatState, name: string, input: unknown, evaluate: Evaluate, translated = false, proposal = false): Promise<ToolOutcome> {
   if (!translated) {
     [name, input] = viaV2(name, input);
     const v1 = v1Call(name, input);
@@ -207,6 +209,10 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     return { state: { ...state, doc: out.doc, ...(e?.ok ? { bodies: e.bodies } : {}) }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
   }
   const { part, ...rest } = args;
+  const nested = nestedParameterPart(name, args);
+  if (nested !== undefined) return proposal && !state.partOf
+    ? nestedParameterEdit(state, nested, rest, evaluate)
+    : fail(state, 'A nested parameter edit requires a root proposal and Studio approval.', { code: 'needs_approval', kept: 'the part is unchanged' });
   if (part === undefined || part === 'base') {
     const out = await runPartTool(state, name, rest, evaluate, options);
     if (!out.changed || !state.doc.mates?.length) return out;
@@ -241,7 +247,10 @@ async function runPartTool(state: ChatState, name: string, args: Record<string, 
     return subToolResult(state, out);
   }
   // (R3: every part tool's handler, in a module per v2 action group, by name.)
-  if (Object.hasOwn(PART_HANDLERS, name)) return PART_HANDLERS[name](state, args, evaluate, options, runToolCounted);
+  if (Object.hasOwn(PART_HANDLERS, name)) {
+    const dispatch = Object.hasOwn(PROPOSAL_HANDLERS, name) ? runProposalTool : runToolCounted;
+    return PART_HANDLERS[name](state, args, evaluate, options, dispatch);
+  }
   // (R8.2: the SubD cage tools, D83.)
   if (CAGE_TOOL_NAMES.has(name)) {
     const r = runCageTool(state.doc, name, args);

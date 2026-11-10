@@ -1,5 +1,5 @@
 ---
-work_id: D606
+work_id: D607
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -149,7 +149,9 @@ D605 uses that report in the existing desktop nested inspector. Two late reads c
 
 D606 verifies a user-approved host-file repair, a separate root revision acceptance, Undo/Redo and the original saved failure. Exact nested proposal authoring from the root is refused. [D606](../../notes/nested-requirement-repair-2026-11-11/README.md).
 
-Next MAIN is D607 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Repair the first D606 blocker. Let an agent propose a named parameter change for one exact nested leaf from the root, with explicit Studio approval. Preserve the root revision pair, the sibling and any unaffected placement. Refuse unsafe scopes, stale proposals and direct agent application. Verify against the D606 part and saved failure before extending historical comparison. [#2279](https://github.com/barocss/barocss/issues/2279).
+D607 repairs the direct proposal blocker for an independent static leaf. The existing Studio approval records the root pair and retains the original failure and same-ID sibling. [D607](../../notes/root-nested-parameter-proposal-2026-11-11/README.md).
+
+Next MAIN is D608 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Compare the saved initial failure and the exact D607 user-approved repair in the existing Studio Versions inspector. Resolve the selected nested leaf at both saved revisions, preserve the first failed evidence, and refuse an unrelated approval, a stale comparison or a reused path. Keep the current working verdict separate. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

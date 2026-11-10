@@ -1,0 +1,47 @@
+{
+  "decision": "D607",
+  "parent": "508a5ed4ad915043b8bbe6959eae711fd2cb0872",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "pass": ["P01", "P02", "P03", "P04", "P05"],
+  "commands": [
+    {"command": "cd apps/cad-studio && D607_SOURCE_FROZEN=1 node test/root-nested-proposal-browser.mjs <output> <D606-original-snapshot>", "status": "PASS"},
+    {"command": "pnpm --dir packages/barocss-cad-model test nested-parameter-proposal requirement-evidence nested-references proposals transactions batch-changes unknown-arguments toolset tool-contract shop-context-tools person-rows", "status": "PASS", "pass": 89},
+    {"command": "pnpm --dir apps/cad-studio test approved-requirement-compare nested-selection chat cad-external tool-contract-mcp toolset-mcp", "status": "PASS", "pass": 52},
+    {"command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit && pnpm --dir apps/cad-studio exec tsc --noEmit", "status": "PASS"},
+    {"command": "pnpm exec eslint packages/barocss-cad-model/src/chat/{tools.ts,toolDefinitions.ts,nestedParameterProposal.ts,part/proposals.ts} packages/barocss-cad-model/test/nested-parameter-proposal.test.ts", "status": "PASS"},
+    {"command": "node <external>/mutations.mjs <repo> <output>", "status": "PASS", "killed": 8},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/root-nested-proposal-browser.mjs && git diff --cached --check", "status": "PASS"}
+  ],
+  "review": [
+    {"model": "GPT-6.1 Sol Medium", "status": "APPROVE", "scope": "Authority, replay, contract compatibility and risk"},
+    {"model": "GPT-6.1 Sol High", "status": "CLEAR", "scope": "Definition, placement, local evaluation and dependency boundaries"}
+  ],
+  "firstFailures": [
+    {"status": "FAIL", "receipt": "../d606-2026-11-11/first/root-before-mcp.jsonl", "sha256": "4147353841770e9074006e195da11ad82be7c93450ba99cc6de5239e6e2d1caa", "observation": "The D606 root proposal refused the exact path as an unknown part."},
+    {"status": "FAIL", "receipt": "first/03-placed-preview.png", "sha256": "14ebc55e200065af7e2fb5993ca3969bac90d5f44022752b2ad352455cd247ef", "observation": "Initial preview labelled a hard nested verdict transition low risk. Final preview reports the scoped checks and high risk."}
+  ],
+  "evidence": {
+    "directory": "d607-2026-11-11/desktop",
+    "receiptSHA256": "5b31ec5bb2f3f212a2f9797364443ccad7a6ec4bb9d895974bd9dacbda02131d",
+    "sourceCapsuleSHA256": "d999499bf694dbf623be507c7810bcf393a88471978521994b3e080724afe01a",
+    "d606InputSHA256": "18bf58e74c939982b8653df592a275ee7a2a59492ce2e77c254eee76454ec19c",
+    "savedFailureSHA256": "4a171b922166b99ca5cf9488ffe94b2b8717809c616fd6ddabde1def9c6a727c",
+    "savedApprovedSHA256": "60005695aaf7a59dd6599f1f17058cb24a3f355ea9acd997992595188f0bab6c",
+    "pendingMcpSHA256": "c1484e690c5bc2bb191227acfbcac7f85e011c7c0274236b82c9489cf9e2f0d7",
+    "approvedMcpSHA256": "cb4643cfabeac6dd883caf2e6b46551066540606996e57c3df22f13c714ab5de",
+    "oracleSHA256": "470d0412b1b712301ccd5042bb9187467195e90260d1937c6cf19c27b3d6cbb1",
+    "mutationScriptSHA256": "432da1a36b123316cbd5ffafd9ecc95b30829b656715b9045f93281c0035657b",
+    "mutationLogSHA256": "680135684fefce887ce09753d91de1c324bd07723c64694f9fd14ec6b0cba924",
+    "numericChecks": 8,
+    "unchangedSourcePins": 306,
+    "desktopStates": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["03-placed-preview", "04-approved-target"],
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["historical nested approval comparison", "whole browser", "whole kernel", "mobile", "live providers"]
+}
