@@ -1,0 +1,39 @@
+{
+  "decision": "D596",
+  "parent": "44a4de8c1afebcc60f9f15e5c6b07983937ba17e",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "matrix": {
+    "sha256": "74554c40c515cff2f741ba22a589c727ac5483b513187b26d29e6954c5cfc8b4",
+    "pass": ["R01", "R02", "R03"]
+  },
+  "commands": [
+    {"command": "cd apps/cad-studio && D596_SOURCE_FROZEN=1 node test/project-autosave-interruption-browser.mjs <output>", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio test project-autosave-feedback project-open-ownership project-version-ownership late-save-ownership storage", "status": "PASS", "pass": 100},
+    {"command": "pnpm --dir apps/cad-studio type-check && pnpm --dir packages/barocss-cad-model type-check", "status": "PASS"},
+    {"command": "pnpm --dir apps/cad-studio exec vite build --outDir <external-build-directory>", "status": "PASS"},
+    {"command": "node --check apps/cad-studio/test/project-autosave-interruption-browser.mjs && git diff --check", "status": "PASS"}
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "receipt": "baseline/receipt.json",
+    "sha256": "a642824ad1a4bc1839cca26af35ee397483e7e5dbd872cc1f25efcd19a1d2d36",
+    "observation": "The first recovery path was zero bytes after reload. Studio showed the unreadable-copy warning."
+  },
+  "evidence": {
+    "directory": "d596-2026-11-11/final-desktop",
+    "receiptSHA256": "a45b7f2e268f5a63c9dea2a808c1f3e1bfb2266bd3febd0a43aefbb7b93632b2",
+    "sourceCapsuleSHA256": "a80718f5e1a498722c6dd0988f16e4f33f2b2bb6ced02bdb1c3ee8ce01710ca9",
+    "originalSavedSHA256": "051eb245e985b8dee29d230369d0fc2a1c7c952593b9bf0dba05ab4224a03319",
+    "committedRecoveryAndFinalSaveSHA256": "e88cf79eb93c5cf82607632eb2b4f10ddd9c6147df1fef797a6dc245349383c1",
+    "nonemptyMalformedSidecarSHA256": "4344f9776712112f42992f045f08ea8695845908daba0c9d2c366dfdf8b7199f",
+    "desktopStates": 7,
+    "unchangedSourcePins": 297,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": ["02-reopen-interrupted-first-write", "07-corrupt-nonempty-warning"],
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "notRun": ["abrupt OS shutdown", "host permission or quota failure on this fixture", "local-folder interruption", "live providers", "mobile", "whole browser", "whole kernel", "release"]
+}

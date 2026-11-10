@@ -169,6 +169,24 @@ test('valid recovery is still offered without replacing the loaded project docum
   });
 });
 
+test('an empty first autosave leaves no offer or warning and keeps the saved document', async () => {
+  await project(async (api, seen, dir) => {
+    const path = autosavePath('a.bcad');
+    await dir.store.write(path, new Uint8Array());
+    await dir.store.write('empty.bcad', new Uint8Array());
+    assert.equal(await api.openPart('a.bcad'), true);
+    same(seen.doc, a);
+    assert.equal(seen.ready, 1);
+    assert.equal(await api.settleOffered(true), null);
+    assert.deepEqual(seen.errors, []);
+    assert.equal(dir.files.get(path)!.bytes.length, 0);
+    assert.equal(dir.removals(), 0);
+    assert.equal(await api.openPart('empty.bcad'), false);
+    assert.match(seen.errors[0], /could not open empty\.bcad/i);
+    same(seen.doc, a);
+  });
+});
+
 for (const kind of ['malformed', 'permission'] as const) {
   test(`stale ${kind} recovery read cannot replace B or report an A error`, async () => {
     await project(async (api, seen, dir) => {

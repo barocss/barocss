@@ -1,5 +1,5 @@
 ---
-work_id: D595
+work_id: D596
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -127,7 +127,9 @@ D594 shows approved requirement transitions in the existing Versions panel. The 
 
 D595 compares the first failed snapshot and the approved saved snapshot while the later failing model stays open. [D595](../../notes/historical-approval-evidence-2026-11-11/README.md).
 
-Next MAIN is D596 / P0, project recovery, rows 12 and 16. Reproduce the unreadable automatic recovery copy seen during D595 reload. Then return to the controlled dimensioned-drawing to editable-native workflow.
+D596 reproduces the unreadable-copy warning with a first native autosave interrupted before close. Actual Studio recovers the saved document, preserves an earlier committed copy and still reports nonempty corruption. [D596](../../notes/interrupted-project-autosave-2026-11-11/README.md).
+
+Next MAIN is D597 / P0 automation, B09 follow-up, rows 04, 07, 12 and 16. Freeze a self-authored dimensioned drawing and run the offline typed-tool control through editable native Save/Open.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

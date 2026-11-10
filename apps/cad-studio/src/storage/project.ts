@@ -8,7 +8,7 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { encodeStudioFile, readStudioFile, encodeStudioSnapshot, readStudioSnapshot } from '@barocss/cad-model/engine/container';
 import { checkVersions, type VersionLog } from '@barocss/cad-model/versions/log';
-import { refusal, type ProjectStore, type StoreEntry } from './store';
+import { refusal, type ProjectStore, type StoreEntry, type StoreFile } from './store';
 
 export const META = '.barocss';
 export const versionsPath = (part: string) => `${META}/versions/${part}.json`;
@@ -22,17 +22,15 @@ export async function partsOf(store: ProjectStore): Promise<StoreEntry[]> {
 }
 
 export type ReadPart = { doc: StudioDoc; notes: string[]; tag: string } | { error: string };
-async function readDoc(store: ProjectStore, path: string): Promise<ReadPart | null> {
-  const f = await store.read(path);
-  if (!f) return null;
+async function decodePart(f: StoreFile): Promise<ReadPart> {
   const r = await readStudioFile(f.bytes);
   return 'error' in r ? r : { doc: r.doc, notes: r.notes, tag: f.tag };
 }
 /** A document of the project, checked as Open checks a file. Refused, STORAGE_MISSING, when there is none. */
 export async function readPart(store: ProjectStore, path: string): Promise<ReadPart> {
-  const r = await readDoc(store, path);
-  if (!r) throw refusal('STORAGE_MISSING', `the project has no ${path}`);
-  return r;
+  const f = await store.read(path);
+  if (!f) throw refusal('STORAGE_MISSING', `the project has no ${path}`);
+  return decodePart(f);
 }
 /** A document written as Save writes it; `expect`: the tag it was read with (null: a new file), else written over. */
 export function writePart(store: ProjectStore, path: string, doc: StudioDoc, o: { expect?: string | null } = {}): Promise<{ tag: string }> {
@@ -71,8 +69,11 @@ export async function readVersions(store: ProjectStore, part: string): Promise<{
 export const writeAutosave = (store: ProjectStore, part: string, doc: StudioDoc) => store.write(autosavePath(part), encodeStudioFile(doc));
 /** The autosaved work, when there is some and it differs from the saved document. */
 export async function readAutosave(store: ProjectStore, part: string): Promise<ReadPart | null> {
-  const r = await readDoc(store, autosavePath(part));
-  if (!r || 'error' in r) return r;
+  const copy = await store.read(autosavePath(part));
+  // A first native write can create an empty entry before its writable closes.
+  if (!copy?.bytes.length) return null;
+  const r = await decodePart(copy);
+  if ('error' in r) return r;
   const saved = await store.read(part);
   // (Saved since: the same bytes as the document are nothing to offer.)
   if (saved && sameBytes(saved.bytes, encodeStudioFile(r.doc))) return null;
