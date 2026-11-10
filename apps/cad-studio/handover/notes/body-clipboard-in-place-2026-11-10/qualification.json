@@ -1,0 +1,73 @@
+{
+  "workId": "D564",
+  "parent": "bb6d4295b1b4e5a557d1743330262b7c105c6016",
+  "tier": "SMALL_PROOF_ONLY",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy",
+    "port": 52391,
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d564-2026-11-10"
+  },
+  "driverSha256": "b37ab78e787a0f568ac94dac68e8a882d7d727b73ee5401ac6aca43bd5f50075",
+  "productSha256": {
+    "apps/cad-studio/src/App.tsx": "d1edf569c3a6515761a66695d5b08a36f60e7ff895229fbf538ba14101409ed6",
+    "apps/cad-studio/src/app/editInPlace.ts": "79b5c75329d067eadf7839f78ccdcff28c7926d128fdc1fb852244001a79f3d7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "4dec8c9eb5678d6cd99e3d994ec520d2b9bd994d0f81f10d174226b48397b1f6",
+    "apps/cad-studio/src/ui/InstancePanel.tsx": "e1c549609363bcb48745d286acaca873610b458c03bee9633a3f423fb613c89d",
+    "apps/cad-studio/src/state/workOwnership.ts": "da1776f104666336529b74066ecc944d7ff64202ca8e881daa24d937d7ef943e",
+    "packages/barocss-cad-model/src/chat/features.ts": "fc17d6e41c5fa6d42e19be63bfc7e5668ed2b73710223b9bfe90f12a20d48c4d",
+    "packages/barocss-cad-model/src/assembly/definitions.ts": "6089b4b51c522b962c4eb6895990d9aee40f3149f8040263ba84e8e65aa47f83"
+  },
+  "physicalOracle": {
+    "baseSize": [
+      12,
+      13,
+      14
+    ],
+    "baseVolume": 2184,
+    "childSize": [
+      10,
+      10,
+      10
+    ],
+    "childVolume": 1000,
+    "editedChildSize": [
+      10,
+      10,
+      12
+    ],
+    "editedChildVolume": 1200,
+    "sharedKey": "b1",
+    "freshPasteOffsetX": 22,
+    "absoluteTolerance": 1e-09
+  },
+  "checks": [
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-in-place-browser.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "command": "node --check apps/cad-studio/test/body-clipboard-replacement-helper.mjs",
+      "status": "PASS"
+    }
+  ],
+  "studio": {
+    "command": "DEBUG=pw:browser,pw:api D564_SOURCE_FROZEN=1 node test/body-clipboard-in-place-browser.mjs EXTERNAL/studio01",
+    "status": "PASS",
+    "wallSeconds": 15.36,
+    "snapshots": 15,
+    "physicalJoins": 5,
+    "frozenPins": 300,
+    "receiptSha256": "690ef86a49456c9cedc9c5e52b1ea9439c9d3040e89559fbfece55cb598ee5a5",
+    "ownedPID": 51702,
+    "chromePID": 51736
+  },
+  "issue2310": "OPEN",
+  "wholeCad": "NOT_MEASURED",
+  "helperSha256": "cc2733421d2ffc9388a4dddec4bf9a5739928debc22db8625ed20b03670804c6"
+}
