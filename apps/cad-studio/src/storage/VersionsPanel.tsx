@@ -51,7 +51,7 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate }: {
+export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse }: {
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
@@ -62,7 +62,8 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   onInsert(path: string): void;
   evaluate: Evaluate;
   checkpointReview?: CheckpointReview | null;
-  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; hide(): void };
+  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void };
+  onCollapse?(): void;
 }) {
   const { view } = project, log = view.log;
   const [browserName, setBrowserName] = useState('My project');
@@ -93,7 +94,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
 
   const checkpoint = checkpointReview ? <CheckpointApprovalChecks review={checkpointReview} /> : null;
   const candidateSection = candidate ? <CandidateReviewSection {...candidate} /> : null;
-  if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project" onCollapse={candidate?.hide}>
+  if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project" onCollapse={onCollapse} expandOn={candidate?.review.localRun}>
     {candidateSection}
     {checkpoint}
     <div className="empty" role="status">Open a project to save into it and keep versions. A project is a folder of .bcad files; its versions are kept beside them in .barocss.</div>
@@ -107,7 +108,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     </form>}
   </DockSection></aside>;
 
-  return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary={log ? log.current : view.store.name} onCollapse={candidate?.hide}>
+  return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary={log ? log.current : view.store.name} onCollapse={onCollapse} expandOn={candidate?.review.localRun}>
     {candidateSection}
     {checkpoint}
     <div className={ROW} aria-label="Project">

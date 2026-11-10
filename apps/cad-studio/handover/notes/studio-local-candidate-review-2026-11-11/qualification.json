@@ -1,0 +1,287 @@
+{
+  "decision": "D620",
+  "tier": "FULL interface",
+  "baseCommit": "af2af744b130763321e60bc01369b9069c930083",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d620-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio direct candidate review and terminal race",
+      "result": "PASS",
+      "command": "D620_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-close\" --review",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "2a0b6c61806190654004508c56dc5867ae848a6d057772913a70c41df6ca434c",
+      "pinnedSources": 790,
+      "states": [
+        "01-ready-plan",
+        "04-export-task-run",
+        "06-local-run-started",
+        "07-local-preview-p1",
+        "07-local-preview-p2",
+        "08-retired-candidate-refused",
+        "02-stale-and-blocked",
+        "03-new-ready-plan",
+        "05-terminal-approved"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "expectedConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ],
+      "browserDownloads": 0,
+      "observations": [
+        {
+          "studioRunStarted": true,
+          "explicitPostCount": 2,
+          "durableReplayUnchanged": true,
+          "reversedSelectionReused": true,
+          "interruptedStartRecovered": true,
+          "forgedBytesRefused": true,
+          "unpublishedCandidates": 2,
+          "acceptedBaselineSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2"
+        },
+        {
+          "directReview": [
+            "p1",
+            "p2"
+          ],
+          "previewHeightsMm": [
+            [
+              6,
+              3
+            ],
+            [
+              5,
+              4
+            ]
+          ],
+          "volumeDeltaMm3": [
+            200,
+            96
+          ],
+          "competingInspectorBlocked": true,
+          "collapsedVersionsReopened": true,
+          "collapseRestoredBaseline": true,
+          "toolbarCloseRetiredLateReview": true,
+          "baselineBoundsRestored": true,
+          "runAndHistoryUnchangedByReview": true,
+          "malformedFinalResponseRefused": true,
+          "terminalRejectionRefused": true,
+          "wrongWorkingBaselineRefused": true
+        },
+        {
+          "handoffSHA256": "22d2c86316f43f0d7bb2bfad2ccdfee524719bbdcae72a895b67244ebe9df980",
+          "originalBytesPreserved": true,
+          "blockedOfferHasNoAction": true,
+          "geometryMm3": [
+            1200,
+            384
+          ],
+          "approvals": 1
+        },
+        {
+          "readyRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+          "blockedRevision": "1cd8d717e0b7a461f7f888f1d27007a7cd83fe5fb4fa3913a0ac492be35ff4f3",
+          "resolvedRevision": "430a4d7ce48e3b65bc9e2af177c5b278538d1b91ca610ec237c5f76203106551",
+          "targetHeights": [
+            [
+              6,
+              4
+            ],
+            [
+              6
+            ],
+            [
+              6,
+              5
+            ]
+          ],
+          "cliPlanMatches": true,
+          "staleRefused": true,
+          "authoredID": "check_spec",
+          "savedSourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+          "projectBytesUnchanged": true,
+          "documentWrites": 0
+        }
+      ],
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop-close.log",
+      "logSHA256": "01b51f2839d6fc7f739c4edd2b1f967b64c3f2a7a15190ca99f1b28ae70f80c0",
+      "visualReview": "PASS"
+    },
+    {
+      "label": "Desktop Studio offline candidate regression",
+      "result": "PASS",
+      "command": "D613_SOURCE_FROZEN=1 node test/task-candidate-review-browser.mjs \"$EVIDENCE/offline-desktop-final\"",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "9232e5bea61b73fab66e3afabbf9e8e2273467c9ae1f3174fc618a52ed60ec43",
+      "pinnedSources": 968,
+      "states": [
+        "01-placed-candidate",
+        "02-accepted-model",
+        "03-moved-baseline-refused"
+      ],
+      "pageErrors": 0,
+      "unexpectedConsoleErrors": 0,
+      "browserDownloads": 0,
+      "log": "offline-desktop-final.log",
+      "logSHA256": "2dcb850649d75365e585e9d84217849c9c1e2d9a3469b6c4a459fb7e7b6ab1c0",
+      "visualReview": "PASS"
+    },
+    {
+      "label": "Independent authored scope oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop-close/task-plan-agent-oracle.py\" < \"$EVIDENCE/desktop-close/authored-targets-oracle-input.json\"",
+      "scriptSHA256": "101272178d213640e254e998b0413963aa4ed59f2b7766f35af455ee12917d36",
+      "measurements": {
+        "status": "PASS",
+        "targetHeights": [
+          [
+            6,
+            4
+          ],
+          [
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "productImports": 0
+      },
+      "log": "desktop-close/authored-targets-oracle.json",
+      "logSHA256": "0f3cbfaecd36b1604f261fdf15ca4cb39a8a281c1436eb0f66379f5f7b6ecef2"
+    },
+    {
+      "label": "Independent candidate rectangle oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/rectangle-oracle.py\" \"$EVIDENCE/desktop-close\"",
+      "scriptSHA256": "f53bfe3f43b95d3441f0df72f7f5d98f845283fc48e84405c9a2908144a80ef3",
+      "measurements": {
+        "status": "PASS",
+        "productImports": 0,
+        "results": [
+          {
+            "part": "p1",
+            "beforeMm": 5,
+            "afterMm": 6,
+            "volumeMm3": 1200,
+            "deltaMm3": 200
+          },
+          {
+            "part": "p2",
+            "beforeMm": 3,
+            "afterMm": 4,
+            "volumeMm3": 384,
+            "deltaMm3": 96
+          }
+        ]
+      },
+      "log": "rectangle-oracle-final.log",
+      "logSHA256": "2619184cba656b2065c4db7b0f5f7ad42297978f67c2cf2fcfe90ec5c7fd4444"
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 167,
+      "failCount": 0,
+      "log": "studio-suite-final.log",
+      "logSHA256": "a1c0144a343a8491eb98d1743a9aecd68627b0794c8582b7e2574c637760b81c"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc-close.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Model types",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc-close.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts/.tsx paths>",
+      "errors": 0,
+      "existingWarnings": 34,
+      "log": "eslint-close.log",
+      "logSHA256": "000650b6d3df9ac1282da243e9b808a1737498f5ce0b4e0413a24b47f29fd33d"
+    },
+    {
+      "label": "Isolated review admission overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "76014f9e8f3f60631ec9a0b89d17e4acef657fdd669bc7dced6b42234e00cbb3",
+      "variants": {
+        "host-baseline": "PASS",
+        "http-baseline": "PASS",
+        "ignore-run-id": "KILLED",
+        "ignore-baseline": "KILLED",
+        "ignore-attempt": "KILLED",
+        "ignore-candidate-digest": "KILLED",
+        "follow-symlink-leaf": "KILLED",
+        "accept-arbitrary-path-field": "KILLED",
+        "ignore-host": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "91b7ed9193220d177d163488ebece0d5d4c821d7959176f90c7993adc847c331"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-close\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build-close.log",
+      "logSHA256": "2787b198347197da5ead191e16e458afb92ccba833fa17704f32b0b1600a91f2"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+      "log": "browser-syntax-close.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check-close.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [],
+  "reviews": [
+    {
+      "lane": "code",
+      "result": "PASS",
+      "notes": "The final source checks both receipts, clears prior local preview and rechecks on re-show. The desktop test covers the late toolbar close found in review."
+    },
+    {
+      "lane": "architecture",
+      "result": "PASS",
+      "notes": "The final review verified owned-root lookup, read-only authority and view eligibility."
+    }
+  ],
+  "notRun": [
+    "whole suites",
+    "live providers",
+    "mobile",
+    "other task profiles",
+    "live run status feed",
+    "D619 same-tag change and identical-source replacement subcases in the direct-review mode"
+  ]
+}

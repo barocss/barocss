@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
 import { isLocalTaskRunHost, readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
-import { createLocalTaskRuns, LocalRunRequestError } from './taskRun/localService';
+import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskCandidate } from './taskRun/localService';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -159,12 +159,11 @@ function readBody(req: IncomingMessage): Promise<string> {
     req.on('error', reject);
   });
 }
-function readTaskRunBody(req: IncomingMessage): Promise<Buffer> {
-  const limit = MAX_TASK_RUN_HANDOFF_BYTES;
+function readTaskRunBody(req: IncomingMessage, limit: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = Number(req.headers['content-length'] ?? 0) > limit ? limit + 1 : 0;
-    const oversized = () => reject(new LocalRunRequestError(413, 'The task run handoff is too large.'));
+    const oversized = () => reject(new LocalRunRequestError(413, 'The task run request is too large.'));
     if (size > limit) oversized();
     req.on('data', (chunk: Buffer) => {
       if (size > limit) return;
@@ -208,26 +207,35 @@ export function createChatServer(options: ChatServerOptions) {
     s.at = now; return s;
   };
   const teamDir = options.teamLibraries ?? process.env.CAD_STUDIO_TEAM_LIBRARIES ?? null;
-  const startTaskRun = createLocalTaskRuns(options.taskRunDir ?? process.env.CAD_STUDIO_TASK_RUN_DIR ?? join(homedir(), '.barocss', 'cad-task-runs'));
+  const taskRunDir = options.taskRunDir ?? process.env.CAD_STUDIO_TASK_RUN_DIR ?? join(homedir(), '.barocss', 'cad-task-runs');
+  const startTaskRun = createLocalTaskRuns(taskRunDir);
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && path === '/task-runs/start') {
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/review')) {
+      const start = path === '/task-runs/start';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
-        || req.headers['x-barocss-task-run'] !== 'start')
-        return sendJson(res, 403, { error: 'Start the local task run from Studio.' });
-      if (req.headers['content-type'] !== 'application/octet-stream')
-        return sendJson(res, 415, { error: 'Expected a binary task run handoff.' });
+        || req.headers['x-barocss-task-run'] !== (start ? 'start' : 'review'))
+        return sendJson(res, 403, { error: 'Use the local task run from Studio.' });
+      const contentType = start ? 'application/octet-stream' : 'application/json';
+      if (req.headers['content-type'] !== contentType)
+        return sendJson(res, 415, { error: start ? 'Expected a binary task run handoff.' : 'Expected a JSON candidate request.' });
+      res.setHeader('cache-control', 'no-store');
       try {
-        return sendJson(res, 200, await startTaskRun(await readTaskRunBody(req)));
+        const bytes = await readTaskRunBody(req, start ? MAX_TASK_RUN_HANDOFF_BYTES : 4096);
+        if (start) return sendJson(res, 200, await startTaskRun(bytes));
+        let request: unknown;
+        try { request = JSON.parse(bytes.toString('utf8')); }
+        catch { throw new LocalRunRequestError(400, 'The candidate request is invalid JSON.'); }
+        return sendJson(res, 200, { review: readLocalTaskCandidate(taskRunDir, request) });
       } catch (error) {
         if (error instanceof LocalRunRequestError) {
           if (error.status === 413) res.setHeader('connection', 'close');
           return sendJson(res, error.status, { error: error.message });
         }
-        return sendJson(res, 500, { error: 'Could not read the handoff or access the local task run directory.' });
+        return sendJson(res, 500, { error: 'Could not read the request or access the local task run directory.' });
       }
     }
     if (req.method === 'GET' && path === '/status') {

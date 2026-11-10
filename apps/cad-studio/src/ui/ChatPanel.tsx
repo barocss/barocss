@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunChatOutput, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest } from '../chat/taskRunOffer';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
@@ -51,6 +51,8 @@ export interface ChatPanelProps {
     sourceKey(): string | undefined;
     export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
     start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
+    review(candidate: Omit<TaskRunReviewRequest, 'baselineDigest'>): Promise<void>;
+    reviewBlocked: boolean;
   };
   /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
   scope?: object | null;
@@ -205,6 +207,7 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked }: {
 }) {
   const busy = useRef(false);
   const [starting, setStarting] = useState(false);
+  const [reviewing, setReviewing] = useState<string>();
   const [result, setResult] = useState<TaskRunLaunch>();
   const [error, setError] = useState('');
   async function start() {
@@ -221,14 +224,30 @@ function TaskRunActions({ plan: { offer, sourceKey }, actions, blocked }: {
       setError(error instanceof Error ? error.message : 'Could not start the local task run.');
     } finally { busy.current = false; setStarting(false); }
   }
+  async function review(task: TaskRunLaunch['tasks'][number]) {
+    if (busy.current || !result || !task.review) return;
+    busy.current = true;
+    setReviewing(task.id);
+    setError('');
+    try {
+      await actions.review({ runKey: result.runKey, runId: result.runId, taskId: task.id, ...task.review });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not review the local worker candidate.');
+    } finally { busy.current = false; setReviewing(undefined); }
+  }
   return <>
     <ul>{offer.targets.map(target => <li key={target.id}>{target.id} · {target.currentHeightMm} → {target.heightMm} mm</li>)}</ul>
     <button className="ghost" type="button" disabled={blocked} onClick={() => void actions.export(offer, sourceKey)}>Export task run</button>
-    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={blocked || starting} onClick={() => void start()}>{starting ? 'Starting local run…' : 'Start local run'}</button>}
+    {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={blocked || starting || !!reviewing} onClick={() => void start()}>{starting ? 'Starting local run…' : 'Start local run'}</button>}
     {error && <div role="status">{error}</div>}
     {result && <div role="status">
       <span>{(result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
-      <ul>{result.tasks.map(task => <li key={task.id}>{task.id} · {task.phase.replaceAll('-', ' ')}{task.reason ? ' · ' + task.reason : ''}</li>)}</ul>
+      <ul>{result.tasks.map(task => <li key={task.id}><span>{task.id + ' · ' + task.phase.replaceAll('-', ' ') + (task.reason ? ' · ' + task.reason : '')}</span>
+        {task.review && <button className="ghost" type="button" aria-label={`Review candidate ${task.id}`}
+          disabled={blocked || actions.reviewBlocked || starting || !!reviewing}
+          title={actions.reviewBlocked ? 'Return to the current model view to review the candidate.' : undefined}
+          onClick={() => void review(task)}>{reviewing === task.id ? 'Checking…' : 'Review'}</button>}
+      </li>)}</ul>
       <code title={result.directory}>{result.directory}</code>
     </div>}
   </>;

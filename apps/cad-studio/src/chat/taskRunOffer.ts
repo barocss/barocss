@@ -18,12 +18,25 @@ export interface TaskRunOffer {
   targets: [TaskRunTarget, TaskRunTarget];
 }
 
+export interface TaskRunCandidatePin {
+  attemptId: string;
+  candidateDigest: string;
+}
+
+export interface TaskRunReviewRequest extends TaskRunCandidatePin {
+  runKey: string;
+  runId: string;
+  taskId: string;
+  baselineDigest: string;
+}
+
 export interface TaskRunLaunch {
+  runKey: string;
   directory: string;
   runId: string;
   phase: string;
   reused: boolean;
-  tasks: { id: string; phase: string; reason?: string }[];
+  tasks: { id: string; phase: string; reason?: string; review?: TaskRunCandidatePin }[];
 }
 
 export interface TaskRunChatOutput {

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -11,6 +11,8 @@ import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
+import { LocalRunRequestError, readLocalTaskCandidate } from '../server/taskRun/localService';
+import { decodeCandidateReview } from '../src/files/taskCandidateReview';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -60,6 +62,44 @@ async function withRun(fn: (host: TaskRunHost, dir: string) => Promise<void>, bu
 }
 
 if (!(await serveTaskThread(evaluate))) {
+  test('D620 local candidate reads require an owned run, an exact baseline and the current attempt', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-run-review-')), key = 'a'.repeat(64), dir = join(root, key);
+    try {
+      const host = await TaskRunHost.create(dir, 'housing', fixtureDoc(), fixturePlan, fixtureLimits, 8, evaluate);
+      try {
+        assert.equal((await host.dispatch('review-base', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
+        assert.equal((await host.dispatch('review-lid', 'lid', async ticket => reply(ticket, 4))).phase, 'completed');
+        const request = { runKey: key, runId: host.snapshot.runId, taskId: 'base', attemptId: host.snapshot.state.tasks[0].attempt!.id,
+          candidateDigest: host.snapshot.state.tasks[0].candidate!.candidateDigest, baselineDigest: host.snapshot.accepted.modelDigest };
+        const accepted = host.snapshot.accepted, before = readFileSync(join(dir, 'run.json')), entries = readdirSync(dir).sort();
+        const receipt = decodeCandidateReview(readLocalTaskCandidate(root, request));
+        assert.ok(!('error' in receipt));
+        assert.deepEqual([receipt.runId, receipt.submission.taskId, receipt.attemptId, receipt.candidateDigest, receipt.baseline],
+          [request.runId, request.taskId, request.attemptId, request.candidateDigest, accepted]);
+        const fail = (patch: Record<string, unknown>, status: number, reason: RegExp) =>
+          assert.throws(() => readLocalTaskCandidate(root, { ...request, ...patch }),
+            (error: unknown) => error instanceof LocalRunRequestError && error.status === status && reason.test(error.message));
+        fail({ runKey: '../outside' }, 400, /expected the local run/i);
+        fail({ directory: dir }, 400, /expected the local run/i);
+        fail({ runKey: 'b'.repeat(64) }, 404, /could not be found/);
+        fail({ runId: 'different-run' }, 409, /local run changed/);
+        fail({ taskId: 'lid' }, 409, /candidate changed/);
+        fail({ attemptId: 'different-attempt' }, 409, /candidate changed/);
+        fail({ candidateDigest: 'b'.repeat(64) }, 409, /candidate changed/);
+        fail({ baselineDigest: 'b'.repeat(64) }, 409, /exact native baseline/);
+        symlinkSync(dir, join(root, 'c'.repeat(64)));
+        fail({ runKey: 'c'.repeat(64) }, 409, /private and owned/);
+        assert.deepEqual(readFileSync(join(dir, 'run.json')), before);
+        assert.deepEqual(readdirSync(dir).sort(), entries);
+        const rejected = { ...decision(host, 'base', 'terminal-reject'), approved: false };
+        assert.equal((await host.decide(rejected, trusted())).code, 'RUN_REJECTED');
+        fail({}, 409, /no longer awaiting review/);
+        assert.deepEqual(host.snapshot.accepted, accepted);
+        assert.deepEqual(host.snapshot.commits, []);
+      } finally { host.close(); }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
   test('D586 two reservations overlap and one writer rebuilds the other candidate on the latest accepted document', async () => withRun(async host => {
     const a = barrier(6), b = barrier(4), baseline = host.snapshot.accepted;
     const base = host.dispatch('worker-base', 'base', a.worker), lid = host.dispatch('worker-lid', 'lid', b.worker);

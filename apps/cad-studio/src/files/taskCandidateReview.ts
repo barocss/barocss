@@ -7,6 +7,7 @@ import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { PlacedProposalPreview } from '../viewport/instanceEvaluation';
+import type { TaskRunReviewRequest } from '../chat/taskRunOffer';
 import type { NativeRef } from './taskCheckpoint';
 
 export interface CandidateReviewReceipt {
@@ -20,6 +21,7 @@ export interface CandidateReviewReceipt {
   candidateDigest: string;
 }
 export interface CandidateReview {
+  localRun?: TaskRunReviewRequest;
   taskId: string;
   attemptId: string;
   candidateDigest: string;
@@ -71,7 +73,14 @@ export function decodeCandidateReview(text: string): CandidateReviewReceipt | { 
 /** Match an offline review to the exact working baseline. */
 export function readCandidateReview(text: string, baseline: StudioDoc) {
   const receipt = decodeCandidateReview(text);
-  if ('error' in receipt) return receipt;
+  return 'error' in receipt ? receipt : candidateReviewOnBaseline(receipt, baseline);
+}
+
+export function matchesCurrentCandidateReview(review: CandidateReviewReceipt, current: CandidateReviewReceipt) {
+  return review.revision <= current.revision && canonical({ ...review, revision: current.revision }) === canonical(current);
+}
+
+export function candidateReviewOnBaseline(receipt: CandidateReviewReceipt, baseline: StudioDoc) {
   if (digestOf(baseline) !== receipt.baseline.modelDigest || sha256Hex(encodeStudioFile(baseline)) !== receipt.baseline.sha256)
     return refusal('Open the exact native baseline of this worker candidate first.');
   const plan = compileTaskPlan(baseline, receipt.plan), { submission, scope } = receipt;

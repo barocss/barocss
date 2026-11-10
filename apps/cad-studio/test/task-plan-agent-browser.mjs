@@ -7,7 +7,8 @@ import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2), startMode = mode === '--start';
+const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
+const startMode = mode === '--start' || reviewMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -30,11 +31,13 @@ const pins = [
   'apps/cad-studio/src/files/taskRunHandoff.ts', 'apps/cad-studio/src/chat/taskRunOffer.ts',
   'apps/cad-studio/test/fixtures/task-run-terminal.py',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ChatPanel.tsx',
-  'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
+  'apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/files/taskCandidateReview.ts',
+  'apps/cad-studio/src/storage/CandidateReviewSection.tsx', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
+  'apps/cad-studio/src/layout/DockSection.tsx',
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { fixtureDoc } from './test/task-run-fixture';
@@ -62,13 +65,20 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP. Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const review = () => panel().getByRole('region', { name: 'Worker candidate review', exact: true });
+async function bounds(p1, p2) {
+  await f.page.waitForFunction(([p1, p2]) => {
+    const rows = window.__studioInstanceBounds?.();
+    return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
+  }, [p1, p2]);
+}
+const project = reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences: ['p1', 'p2'], ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -129,6 +139,8 @@ process.exitCode = code ?? 1;
   }));
   const isStart = request => new URL(request.url()).pathname === '/api/chat/task-runs/start' && request.method() === 'POST';
   const requests = [];
+  const isReview = request => new URL(request.url()).pathname === '/api/chat/task-runs/review' && request.method() === 'POST';
+  const expectedConsole = [];
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
 
   async function turn(label, calls) {
@@ -160,6 +172,10 @@ process.exitCode = code ?? 1;
     f.phase = 'save the current Studio model and read its plan through the actual agent';
     await f.newPage();
     f.page.on('request', request => { if (isStart(request)) requests.push(request); });
+    f.page.on('console', message => {
+      if (reviewMode && message.type() === 'error' && message.location().url === origin + '/api/chat/task-runs/review'
+        && /409/.test(message.text())) expectedConsole.push(message.text());
+    });
     const source = await f.inspect('fixture', {});
     await open('housing.bcad', source);
     await button('Project and versions').click();
@@ -296,46 +312,177 @@ process.exitCode = code ?? 1;
         assert.deepEqual(await readFile(runJson), initial);
         f.report.observations.push({ studioRunStarted: true, explicitPostCount: requests.length,
           durableReplayUnchanged: true, reversedSelectionReused: true, interruptedStartRecovered: true, forgedBytesRefused: true, unpublishedCandidates: 2, acceptedBaselineSHA256: record.accepted.sha256 });
-      }
-
-      f.phase = 'refuse a same-tag byte change during the final project read';
-      await f.page.evaluate(() => {
-        const read = File.prototype.arrayBuffer;
-        let count = 0;
-        File.prototype.arrayBuffer = async function () {
-          const buffer = await read.call(this);
-          if (this.name === 'housing.bcad' && ++count === 2) {
-            File.prototype.arrayBuffer = read;
-            const changed = new Uint8Array(buffer);
-            if (changed[0] !== 123 || changed[1] !== 10) throw new Error('Expected the saved JSON prefix');
-            changed[1] = 32;
+        if (reviewMode) {
+          const choose = id => row.getByRole('button', { name: 'Review candidate ' + id, exact: true });
+          const runFiles = (await readdir(studioRun)).sort();
+          f.phase = 'review and render both held candidates from the existing Studio row';
+          const undoBefore = await button('Undo').isDisabled(), redoBefore = await button('Redo').isDisabled();
+          await button('Parameters').click();
+          assert.equal(await choose('p1').isDisabled(), true);
+          await button('Parameters').click();
+          await panel().getByRole('button', { name: 'Collapse Project & versions', exact: true }).click();
+          assert.equal(await panel().getByRole('button', { name: 'Expand Project & versions', exact: true }).count(), 1);
+          for (const [id, oldHeight, newHeight, p1, p2, volume] of [['p1', 5, 6, 6, 3, 200], ['p2', 3, 4, 5, 4, 96]]) {
+            const pin = firstLaunch.tasks.find(task => task.id === id).review;
+            await choose(id).click();
+            await review().getByText(`Height · ${oldHeight} mm → ${newHeight} mm`, { exact: true }).waitFor();
+            await review().getByText(`Volume change · +${volume} mm³`, { exact: true }).waitFor();
+            await review().getByText(pin.candidateDigest.slice(0, 12), { exact: true }).waitFor();
+            await review().getByText(pin.attemptId, { exact: true }).waitFor();
+            assert.match(await review().getByRole('list', { name: 'Candidate checks' }).innerText(), /Pass/);
+            assert.equal(await review().getByRole('button', { name: /^(Approve|Reject)$/ }).count(), 0);
+            await bounds(p1, p2);
+            await f.same(source);
+            await f.snapshot('07-local-preview-' + id);
+            await review().getByRole('button', { name: 'Show accepted model', exact: true }).click();
+            await bounds(5, 3);
           }
-          return buffer;
-        };
-      });
-      if (startMode) {
-        await start.click();
-        await row.getByText(/The saved source moved/).waitFor();
-        assert.equal(requests.length, 2);
-      } else {
-        await row.getByRole('button', { name: 'Export task run', exact: true }).click();
-        await f.waitToast(/The saved source moved/);
-        assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
-        await f.dismissToasts();
+          await review().getByRole('button', { name: 'Preview candidate', exact: true }).click();
+          await bounds(5, 4);
+          await panel().getByRole('button', { name: 'Collapse Project & versions', exact: true }).click();
+          await bounds(5, 3);
+          assert.equal(await review().count(), 0);
+          await choose('p2').click();
+          await bounds(5, 4);
+          assert.deepEqual(await readFile(runJson), initial);
+          assert.deepEqual((await readdir(studioRun)).sort(), runFiles);
+          assert.deepEqual(await savedBytes(), saved);
+          assert.equal(await button('Undo').isDisabled(), undoBefore);
+          assert.equal(await button('Redo').isDisabled(), redoBefore);
+
+          const reviewRoute = '**/api/chat/task-runs/review';
+          async function withFinalReadHeld(onHeld, status) {
+            let release, readCount = 0, seen = 0;
+            const blockedRead = new Promise(resolve => { release = resolve; });
+            const holdFinal = async route => {
+              if (++readCount === 2) await blockedRead;
+              return route.fallback();
+            };
+            await f.page.route(reviewRoute, holdFinal);
+            try {
+              const finalRequest = f.page.waitForRequest(request => isReview(request) && ++seen === 2);
+              const found = f.page.waitForResponse(async response => isReview(response.request()) && response.request() === await finalRequest);
+              await choose('p2').click();
+              await finalRequest;
+              await onHeld();
+              release();
+              const response = await found;
+              assert.equal(response.status(), status, await response.text());
+              await choose('p2').filter({ hasText: /^Review$/ }).waitFor();
+              return response;
+            } finally { release(); await f.page.unroute(reviewRoute, holdFinal); }
+          }
+
+          f.phase = 'retire a late review when the Versions toolbar closes the panel';
+          await withFinalReadHeld(async () => {
+            await button('Project and versions').click();
+            await panel().waitFor({ state: 'hidden' });
+          }, 200);
+          assert.equal(await panel().count(), 0);
+          await bounds(5, 3);
+          await button('Project and versions').click();
+          await panel().waitFor();
+          assert.equal(await review().count(), 0);
+
+          f.phase = 'refuse a wrong successful response at the final freshness check';
+          let readCount = 0;
+          const corruptFinal = async route => {
+            if (++readCount !== 2) return route.fallback();
+            const actual = await route.fetch();
+            assert.equal(actual.status(), 200);
+            return route.fulfill({ response: actual, json: { review: 'invalid receipt' } });
+          };
+          await f.page.route(reviewRoute, corruptFinal);
+          try {
+            await choose('p2').click();
+            await row.getByText('The local run returned a different worker candidate.', { exact: true }).waitFor();
+            assert.equal(await review().count(), 0);
+            await bounds(5, 3);
+          } finally { await f.page.unroute(reviewRoute, corruptFinal); }
+
+          f.phase = 'refuse a candidate rejected at the terminal between the two review reads';
+          await choose('p2').click();
+          await bounds(5, 4);
+          const candidateFile = join(output, 'retire-lid.bcad-candidate');
+          const args = [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
+          const exported = spawnSync(args[0], [...args.slice(1), 'review', studioRun, 'p2', candidateFile],
+            { cwd: f.app, encoding: 'utf8', timeout: 30000 });
+          assert.equal(exported.status, 0, exported.stderr);
+          const pin = JSON.parse(exported.stdout).candidateReview;
+          const refusal = await withFinalReadHeld(async () => {
+            assert.equal(await review().count(), 0);
+            await bounds(5, 3);
+            const terminal = spawnSync('python3', ['-I', join(f.app, 'test/fixtures/task-run-terminal.py'),
+              'reject ' + pin.candidateDigest.slice(0, 12), '{}', ...args,
+              'decide', studioRun, 'd620-terminal-reject-lid', 'p2', 'reject', '--review', candidateFile],
+              { cwd: f.app, encoding: 'utf8', timeout: 90000 });
+            await writeFile(join(output, 'd620-terminal-reject.stdout.jsonl'), terminal.stdout);
+            await writeFile(join(output, 'd620-terminal-reject.stderr.txt'), terminal.stderr);
+            assert.equal(terminal.status, 0, terminal.error?.message ?? terminal.stderr);
+            assert.equal(JSON.parse(terminal.stdout.trim().split('\n').at(-1)).outcome.code, 'RUN_REJECTED');
+          }, 409);
+          assert.match((await refusal.json()).error, /no longer awaiting review/);
+          await row.getByText(/This candidate is no longer awaiting review/).waitFor();
+          assert.equal(await review().count(), 0);
+          await bounds(5, 3);
+          await f.same(source);
+          await f.snapshot('08-retired-candidate-refused');
+          f.phase = 'refuse a current candidate on a different working baseline';
+          const other = structuredClone(source);
+          other.instances[0].doc.nodes[1].height = 7;
+          await open('different-baseline.bcad', other);
+          await choose('p1').click();
+          await row.getByText(/Open the exact native baseline/).waitFor();
+          assert.equal(await review().count(), 0);
+          await bounds(7, 3);
+          await f.same(other);
+          assert.deepEqual(await savedBytes(), saved);
+          f.report.observations.push({ directReview: ['p1', 'p2'], previewHeightsMm: [[6, 3], [5, 4]], volumeDeltaMm3: [200, 96],
+            competingInspectorBlocked: true, collapsedVersionsReopened: true, collapseRestoredBaseline: true, toolbarCloseRetiredLateReview: true, baselineBoundsRestored: true, runAndHistoryUnchangedByReview: true,
+            malformedFinalResponseRefused: true, terminalRejectionRefused: true, wrongWorkingBaselineRefused: true });
+        }
       }
 
-      f.phase = 'refuse the old offer after opening a byte-identical model as another file';
-      await openFile('other-housing.bcad', saved);
-      await f.same(source);
-      if (startMode) {
-        await start.click();
-        await row.getByText(/The saved source moved/).waitFor();
-        assert.equal(requests.length, 2);
-      } else {
-        await row.getByRole('button', { name: 'Export task run', exact: true }).click();
-        await f.waitToast(/The saved source moved/);
-        assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
-        await f.dismissToasts();
+      if (!reviewMode) {
+        f.phase = 'refuse a same-tag byte change during the final project read';
+        await f.page.evaluate(() => {
+          const read = File.prototype.arrayBuffer;
+          let count = 0;
+          File.prototype.arrayBuffer = async function () {
+            const buffer = await read.call(this);
+            if (this.name === 'housing.bcad' && ++count === 2) {
+              File.prototype.arrayBuffer = read;
+              const changed = new Uint8Array(buffer);
+              if (changed[0] !== 123 || changed[1] !== 10) throw new Error('Expected the saved JSON prefix');
+              changed[1] = 32;
+            }
+            return buffer;
+          };
+        });
+        if (startMode) {
+          await start.click();
+          await row.getByText(/The saved source moved/).waitFor();
+          assert.equal(requests.length, 2);
+        } else {
+          await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+          await f.waitToast(/The saved source moved/);
+          assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+          await f.dismissToasts();
+        }
+
+        f.phase = 'refuse the old offer after opening a byte-identical model as another file';
+        await openFile('other-housing.bcad', saved);
+        await f.same(source);
+        if (startMode) {
+          await start.click();
+          await row.getByText(/The saved source moved/).waitFor();
+          assert.equal(requests.length, 2);
+        } else {
+          await row.getByRole('button', { name: 'Export task run', exact: true }).click();
+          await f.waitToast(/The saved source moved/);
+          assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
+          await f.dismissToasts();
+        }
       }
     }
 
@@ -391,7 +538,7 @@ process.exitCode = code ?? 1;
       const launched = startMode ? await invoke('studio-run-status', 'status', run)
         : await invoke('handoff-start', 'start', run, '--handoff', handoff);
       assert.deepEqual(launched.tasks.map(task => [task.id, task.phase, task.geometry.volumeMm3]),
-        [['p1', 'awaiting-decision', 1200], ['p2', 'awaiting-decision', 384]]);
+        [['p1', 'awaiting-decision', 1200], ['p2', reviewMode ? 'cancelled' : 'awaiting-decision', 384]]);
       assert.equal(launched.accepted.sha256, sha256(saved));
       const candidateFile = join(output, 'base.bcad-candidate');
       const { candidateReview } = await invoke('handoff-review', 'review', run, 'p1', candidateFile);
@@ -418,7 +565,16 @@ process.exitCode = code ?? 1;
       assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 1);
       await f.snapshot('05-terminal-approved');
       f.report.observations.push({ handoffSHA256: sha256(await readFile(handoff)), originalBytesPreserved: true,
-        sameContentReplacementRefused: true, sameTagByteChangeRefused: true, blockedOfferHasNoAction: true, geometryMm3: [1200, 384], approvals: 1 });
+        ...(!reviewMode ? { sameContentReplacementRefused: true, sameTagByteChangeRefused: true } : {}), blockedOfferHasNoAction: true, geometryMm3: [1200, 384], approvals: 1 });
+    }
+    if (reviewMode) {
+      assert.equal(expectedConsole.length, 2);
+      f.report.expectedConsoleErrors = [...expectedConsole];
+      for (const expected of expectedConsole) {
+        const index = f.report.consoleErrors.indexOf(expected);
+        assert.ok(index >= 0);
+        f.report.consoleErrors.splice(index, 1);
+      }
     }
     f.report.observations.push({ readyRevision: first.revision, blockedRevision: second.revision, resolvedRevision: third.revision,
       targetHeights: [[6, 4], [6], [6, 5]], cliPlanMatches: true, staleRefused: true, authoredID: 'check_spec',

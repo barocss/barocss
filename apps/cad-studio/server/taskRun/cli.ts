@@ -9,7 +9,7 @@ import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
-import { decodeCandidateReview, encodeCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
+import { decodeCandidateReview, encodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
   TASK_CANDIDATE_EXT, type CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../../src/files/taskRunHandoff';
 import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
@@ -107,7 +107,7 @@ async function readStart(args: readonly string[]) {
 
 function requireMatchingReview(review: CandidateReviewReceipt, current: CandidateReviewReceipt) {
   // Unrelated work and writer recovery can advance the run revision without changing the candidate.
-  if (review.revision > current.revision || canonical({ ...review, revision: current.revision }) !== canonical(current))
+  if (!matchesCurrentCandidateReview(review, current))
     throw new Error('The reviewed candidate differs from the current attempt. Export and review it again.');
 }
 

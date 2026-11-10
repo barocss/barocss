@@ -238,6 +238,7 @@ export function App() {
   // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
   // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
   const docNow = useRef(doc); docNow.current = doc;
+  const localCandidateView = useRef<(occurrence?: string) => boolean>(() => false);
   const [candidateReview, setCandidateReview] = useState<{ review: CandidateReview; shown: boolean } | null>(null);
   // Save completion belongs to a document dispatch, independently of evaluation/Stop ownership.
   // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
@@ -1588,15 +1589,20 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const { open, save, saveShared, exportTaskRun, startTaskRun, meshImport, editRepair } = useStudioDocumentFiles({
+  const { open, save, saveShared, exportTaskRun, startTaskRun, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair } = useStudioDocumentFiles({
     document: { doc, docNow, fileName, fileNameNow, recoveryDoc: recovery?.doc ?? null, project },
     ownership: { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked,
-      canOpenImport: () => openAccepted(inPlaceNow.current) },
+      canOpenImport: () => openAccepted(inPlaceNow.current), canReviewLocalCandidate: occurrence => localCandidateView.current(occurrence) },
     worker: { engine, workerSessionNow, nextRevision: () => revision.current++,
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
     changes: { replaceDoc, setDocState, setFileName, setDirty,
       onCheckpointOpened: review => { setCheckpointReview(review); setVersionsOpen(true); },
-      onCandidateOpened: review => { setCandidateReview({ review, shown: false }); setVersionsOpen(true); },
+      onCandidateOpened: review => {
+        setCandidateReview({ review, shown: !!review.localRun });
+        setVersionsOpen(true);
+        if (review.localRun) layout.setDockSheet(true);
+      },
+      onLocalCandidateReviewIntent: () => setCandidateReview(value => value?.review.localRun ? null : value),
       setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
     fit: () => viewport.current?.fit(),
     onNotice: setToast,
@@ -1929,12 +1935,30 @@ export function App() {
   const instancesStepped = useMemo(() => stepsDisp?.hidden.size ? instancesLooked.filter(it => !stepsDisp.hidden.has(it.id)) : instancesLooked, [instancesLooked, stepsDisp]);
   const placedPreviewEnabled = !section && !rendering && !drawing && !cutDraft && !instDrag && !assembly.draft && !stepsDisp && !cageEd.session && !sketch && !active;
   const versionsVisible = versionsOpen && !inPlace && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active;
+  const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
+  const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
+  const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
+  const reviewView = placedPreviewEnabled && !inPlace && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen
+    && !stepAsk && !routePanelOpen && fresh && marker === null && !ghost && !workingComparison;
+  const visibleCandidate = (occurrence: string) => (!isolatedInstances || isolatedInstances.includes(occurrence))
+    && instancesStepped.some(instance => instance.id === occurrence && instance.bodies.length > 0);
+  localCandidateView.current = occurrence => reviewView && (occurrence === undefined || visibleCandidate(occurrence));
   const candidatePart = candidateReview?.review.occurrence;
-  const candidateAvailable = versionsVisible && placedPreviewEnabled && fresh && marker === null && !ghost && !workingComparison &&
-    candidatePart !== undefined && (!isolatedInstances || isolatedInstances.includes(candidatePart)) &&
-    instancesStepped.some(instance => instance.id === candidatePart && instance.bodies.length > 0);
+  const candidateAvailable = versionsVisible && placedPreviewEnabled && fresh && marker === null && !ghost && !workingComparison
+    && candidatePart !== undefined && visibleCandidate(candidatePart)
+    && (!candidateReview?.review.localRun || (reviewView && (dockDocked || layout.dockSheet)));
   const hideCandidatePreview = useCallback(() => setCandidateReview(value => value?.shown ? { ...value, shown: false } : value), []);
-  useEffect(() => { if (!candidateAvailable) hideCandidatePreview(); }, [candidateAvailable, hideCandidatePreview]);
+  useEffect(() => { if (!candidateAvailable && candidateReview?.shown) hideCandidatePreview(); }, [candidateAvailable, candidateReview?.shown, hideCandidatePreview]);
+  const toggleCandidatePreview = () => {
+    const review = candidateReview?.review.localRun;
+    if (review && !candidateReview?.shown) {
+      void reviewTaskRun(review).catch(error => setToast({
+        title: 'Could not review the worker candidate', hint: error instanceof Error ? error.message : String(error), detail: '',
+      }));
+      return;
+    }
+    setCandidateReview(value => value && { ...value, shown: !value.shown });
+  };
   const placedCandidate = candidateAvailable && candidateReview?.shown ? candidateReview.review.preview.bodies : undefined;
   const placedProposal = placedPreviewEnabled && ghost?.after && ghost.placed?.kind === 'ready' ? ghost.placed.bodies : placedCandidate;
   const previewTint = placedCandidate ? WORKER_CANDIDATE_TINT : undefined;
@@ -2018,8 +2042,6 @@ export function App() {
     : !isolationSelection ? 'Select a visible placed instance to isolate.' : undefined;
 
   // (G12a: proposals are in the chat column; while one is open the column shows it, the chat open or not.)
-  const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
-  const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
   // (G12e: the chosen preview's settings in the dock's Preview & analysis section, the switch its enable; the 3D annotations
   // an overlay toggle at the section's header, their status under the panel.)
   const previewPanel = previewMode === 'print' ? <PrintPanel options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
@@ -2035,7 +2057,6 @@ export function App() {
   // (G12b: the right dock — the Browser (its mount movable: browserPlacement), the running command's HUD and the inspector;
   // the HUD floats at the stage's right as before when the dock is a strip.)
   const browserPlacement = BROWSER_PLACEMENT;
-  const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
   // (The strips over the stage's edges, left and right: the bottom row's room is the stage less them.)
   // (What the dock takes at the stage's right edge when it is not docked: its strip, and its sheet while open — the view bar,
   // the view cube and the HUD stand clear of both.)
@@ -2091,8 +2112,8 @@ export function App() {
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
-        candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, hide: hideCandidatePreview,
-          toggle: () => setCandidateReview(value => value && { ...value, shown: !value.shown }) } : undefined}
+        onCollapse={() => { cancelLocalCandidateReview(); hideCandidatePreview(); }}
+        candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, toggle: toggleCandidatePreview } : undefined}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
         onOpen={d => { setCompareBase(null); replaceDoc(d, 'project'); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
@@ -2261,7 +2282,11 @@ export function App() {
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
           <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A model, worker checkpoint or supported exchange file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
           <ToolIconButton key="tool8" aria-label="Save" data-tip="Save" data-tip-key="⌘S" data-tip-desc={project.view.store ? `Into ${project.view.store.name}` : undefined} onClick={save}><Icon name="save" /></ToolIconButton>,
-          <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => { if (!sessionBlocked('opening the project')) setVersionsOpen(v => !v); }} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
+          <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => {
+            if (sessionBlocked('opening the project')) return;
+            if (versionsOpen) cancelLocalCandidateReview();
+            setVersionsOpen(v => !v);
+          }} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
           <ToolIconButton key="tool9" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={askStlExport}><Icon name="download" /></ToolIconButton>,
           <ToolIconButton key="tool10" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></ToolIconButton>,
           <ToolIconButton key="tool11" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></ToolIconButton>,
@@ -2400,7 +2425,7 @@ export function App() {
       </div>}
       </div>
       </div>
-      <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={layout.setDockSheet}>
+      <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={open => { if (!open) cancelLocalCandidateReview(); layout.setDockSheet(open); }}>
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
         {stepAsk ? <StepExportPanel controller={modelExports} /> : routePanelOpen ? <RouteBundlePanel doc={routeViewDoc ?? doc} directSelection={directSel} busy={routeContext.current.blocked || routePhase === 'preview' || routePhase === 'validating'} phase={routePhase}
@@ -2416,7 +2441,7 @@ export function App() {
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
-        taskRun={inPlace ? undefined : { sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        taskRun={inPlace ? undefined : { sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, review: reviewTaskRun, reviewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)

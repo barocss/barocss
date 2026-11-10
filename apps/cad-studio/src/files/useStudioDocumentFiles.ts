@@ -1,4 +1,4 @@
-import type { Dispatch, RefObject, SetStateAction } from 'react';
+import { useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
@@ -18,10 +18,10 @@ import { placedProposalPreview } from '../viewport/instanceEvaluation';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
-import { MAX_TASK_CANDIDATE_BYTES, readCandidateReview, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview } from './taskCandidateReview';
+import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
-import { isLocalTaskRunHost, type TaskRunLaunch, type TaskRunOffer } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -40,6 +40,7 @@ interface StudioDocumentFileOptions {
     isOpenCurrent(scope: OpenScope): boolean;
     sessionBlocked(action: string): boolean;
     canOpenImport(): boolean;
+    canReviewLocalCandidate(occurrence?: string): boolean;
   };
   worker: {
     engine: EngineClient;
@@ -55,6 +56,7 @@ interface StudioDocumentFileOptions {
     setRefProblems(problems: RefProblem[]): void;
     onCheckpointOpened(review: CheckpointReview): void;
     onCandidateOpened(review: CandidateReview): void;
+    onLocalCandidateReviewIntent(): void;
     commit(doc: StudioDoc): boolean;
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
@@ -72,6 +74,10 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
   const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
+  const candidateIntent = useRef<{ local: boolean }>(null);
+  const cancelLocalCandidateReview = () => {
+    if (candidateIntent.current?.local) candidateIntent.current = null;
+  };
 
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
@@ -134,7 +140,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
         body: new Blob([handoff as BlobPart]),
       });
       const value = await res.json().catch(() => null);
-      if (!res.ok || typeof value?.directory !== 'string' || !Array.isArray(value.tasks))
+      if (!res.ok || typeof value?.directory !== 'string' || typeof value.runKey !== 'string' || !Array.isArray(value.tasks))
         throw new Error(typeof value?.error === 'string' ? value.error : 'The local task run service did not respond.');
       return value as TaskRunLaunch;
     });
@@ -201,30 +207,89 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       detail: `Accepted model SHA-256 ${receipt.accepted.sha256}` });
   };
 
-  const openCandidate = async (file: File, current: () => boolean) => {
-    const refused = (hint: string) => setToast({ title: CANDIDATE_REVIEW_REFUSED, hint, detail: '' });
-    const baseline = docNow.current;
-    if (file.size > MAX_TASK_CANDIDATE_BYTES) { refused('The worker candidate exceeds the supported file size.'); return; }
-    const text = await file.text();
-    if (!current()) return;
-    const candidate = readCandidateReview(text, baseline);
-    if ('error' in candidate) { refused(candidate.error); return; }
+  const prepareCandidate = async (receipt: CandidateReviewReceipt, baseline: StudioDoc, current: () => boolean): Promise<CandidateReview | undefined> => {
+    const candidate = candidateReviewOnBaseline(receipt, baseline);
+    if ('error' in candidate) throw new Error(candidate.error);
     const verified = await verifyCandidateReview(candidate, d => current() ? engine.part(d, nextRevision(), 'read') : Promise.resolve(null));
     if (!current()) return;
-    if ('error' in verified) { refused(verified.error); return; }
+    if ('error' in verified) throw new Error(verified.error);
     const preview = await placedProposalPreview(baseline, candidate.doc, new Map(), (inst, base, parent) => {
       if (!current()) throw new Error('The worker candidate review moved.');
       return engine.placed(placedDoc(inst, parent), base, placementOf(inst), nextRevision());
     });
     if (!current()) return;
     const { occurrence, feature } = candidate.receipt.scope;
-    if (preview?.kind !== 'ready' || preview.bodies.size !== 1 || !preview.bodies.has(occurrence)) {
-      refused('Could not preview the exact placed occurrence.'); return;
-    }
+    if (preview?.kind !== 'ready' || preview.bodies.size !== 1 || !preview.bodies.has(occurrence))
+      throw new Error('Could not preview the exact placed occurrence.');
+    return { taskId: candidate.task.id, attemptId: candidate.receipt.attemptId, candidateDigest: candidate.receipt.candidateDigest,
+      occurrence, feature, beforeMm: candidate.beforeMm, candidateMm: candidate.receipt.submission.heightMm, checks: verified.checks, preview };
+  };
+
+  const showCandidateReview = (review: CandidateReview) => {
     if (sessionBlocked('reviewing a worker candidate')) return;
-    changes.onCandidateOpened({ taskId: candidate.task.id, attemptId: candidate.receipt.attemptId, candidateDigest: candidate.receipt.candidateDigest, occurrence, feature,
-      beforeMm: candidate.beforeMm, candidateMm: candidate.receipt.submission.heightMm, checks: verified.checks, preview });
+    changes.onCandidateOpened(review);
     setToast(current => current?.title === CANDIDATE_REVIEW_REFUSED ? null : current);
+  };
+
+  const openCandidate = async (file: File, owner: () => boolean) => {
+    const baseline = docNow.current, intent = { local: false };
+    candidateIntent.current = intent;
+    const current = () => owner() && candidateIntent.current === intent;
+    try {
+      if (file.size > MAX_TASK_CANDIDATE_BYTES) throw new Error('The worker candidate exceeds the supported file size.');
+      const text = await file.text();
+      if (!current()) return;
+      const receipt = decodeCandidateReview(text);
+      if ('error' in receipt) throw new Error(receipt.error);
+      const review = await prepareCandidate(receipt, baseline, current);
+      if (review && current()) showCandidateReview(review);
+    } catch (error) {
+      if (current()) setToast({ title: CANDIDATE_REVIEW_REFUSED, hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  };
+
+  const reviewTaskRun = async (selection: Omit<TaskRunReviewRequest, 'baselineDigest'>) => {
+    if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to review a local task run.');
+    if (sessionBlocked('reviewing a worker candidate')) return;
+    const requireView = (occurrence?: string) => {
+      if (!ownership.canReviewLocalCandidate(occurrence)) throw new Error('Return to the current model view to review the candidate.');
+    };
+    requireView();
+    const baseline = docNow.current, owner = captureImportOwner(), intent = { local: true };
+    candidateIntent.current = intent;
+    const current = () => owner.isCurrent() && candidateIntent.current === intent && docNow.current === baseline;
+    changes.onLocalCandidateReviewIntent();
+    const request: TaskRunReviewRequest = { ...selection, baselineDigest: digestOf(baseline) };
+    const read = async () => {
+      const res = await fetch('/api/chat/task-runs/review', {
+        method: 'POST', redirect: 'error',
+        headers: { 'content-type': 'application/json', 'x-barocss-task-run': 'review' },
+        body: JSON.stringify(request),
+      });
+      const value = await res.json().catch(() => null);
+      if (!res.ok || typeof value?.review !== 'string')
+        throw new Error(typeof value?.error === 'string' ? value.error : 'The local candidate service did not respond.');
+      const receipt = decodeCandidateReview(value.review);
+      if ('error' in receipt || receipt.runId !== request.runId || receipt.submission.taskId !== request.taskId
+        || receipt.attemptId !== request.attemptId || receipt.candidateDigest !== request.candidateDigest
+        || receipt.baseline.modelDigest !== request.baselineDigest)
+        throw new Error('The local run returned a different worker candidate.');
+      return receipt;
+    };
+    try {
+      const receipt = await read();
+      if (!current()) return;
+      const review = await prepareCandidate(receipt, baseline, current);
+      if (!review || !current()) return;
+      // A terminal operator can retire the attempt while Studio evaluates the geometry.
+      const latest = await read();
+      if (!current()) return;
+      if (!matchesCurrentCandidateReview(receipt, latest)) throw new Error('The worker candidate changed during review.');
+      requireView(review.occurrence);
+      showCandidateReview({ ...review, localRun: request });
+    } catch (error) {
+      if (current()) throw error;
+    }
   };
 
   const open = async (file: File) => {
@@ -262,5 +327,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }
