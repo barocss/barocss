@@ -1497,6 +1497,7 @@ export function App() {
     cancelStepExportRef.current(); invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
     try {
       if (!commit(next, false, true)) return;
+      clipboard.current = null;
       if (!fromProject) { project.detach(); setCompareBase(null); }
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }

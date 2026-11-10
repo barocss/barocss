@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D552: prevent same-tab Open from rebinding a stale body clipboard key](notes/body-clipboard-owner-2026-11-10/README.md).
+
 - [D551: adopt one shared Python invocation contract after two actual Studio consumer comparisons](notes/studio-oracle-pilot-2026-11-10/README.md).
 
 - [D550: qualify Auto-dimension, first Undo/Redo, native Save/Open and annotated SVG in six actual Studio groups](notes/section-detail-auto-dimensions-2026-11-05/README.md).

@@ -1,0 +1,83 @@
+{
+  "workId": "D552",
+  "status": "QUALIFIED_SAME_TAB_OPEN",
+  "priority": "P0",
+  "rows": [
+    12,
+    16
+  ],
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "baseHead": "0313fdc346e61800f0e98365818233da1d5fa551",
+  "wholeCad": "NOT_MEASURED",
+  "evidenceRoot": "/Users/user/.cache/barocss-cad-evidence/d552-2026-11-10",
+  "driverSHA256": "7d446fb3da5247fc326b3b3bf781f2b36f7945476a3b4f4fc111ef5169770532",
+  "fixedAppSHA256": "90c70fc8e34f2357e73fb49fb61bf52693bc67bf3350143e78de678ab3fa7082",
+  "fixtures": {
+    "A": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+    "B": "e619317078bab4c90637ee14ed7abbee602a9033c95cd156b700026f71698772",
+    "localKey": "b1"
+  },
+  "checks": {
+    "nativeAbsoluteComparison": 1e-09,
+    "syntax": "PASS",
+    "ModelTypes": "PASS",
+    "StudioTypes": "PASS"
+  },
+  "repro": {
+    "product": "FAIL",
+    "characterization": "PASS",
+    "snapshots": 5,
+    "independentJoins": 4,
+    "pins": 297,
+    "ownedPIDsAbsent": [
+      46350,
+      46375
+    ],
+    "firstUndo": "B",
+    "actualDuplicate": {
+      "key": "b4",
+      "volumeMM3": 2184,
+      "centroidMM": [
+        28,
+        6.5,
+        7
+      ]
+    },
+    "wallSeconds": 10.52
+  },
+  "fixed": {
+    "product": "PASS",
+    "snapshots": 9,
+    "independentJoins": 7,
+    "pins": 297,
+    "ownedPIDsAbsent": [
+      51484,
+      51505
+    ],
+    "firstUndo": "A",
+    "firstRedo": "B",
+    "sameDocumentPasteOffsetsMM": [
+      22,
+      44
+    ],
+    "wallSeconds": 11.56
+  },
+  "pinDifferencesAcrossRuns": [
+    "apps/cad-studio/src/App.tsx"
+  ],
+  "screenshotsViewed": 3,
+  "receiptSHA256": {
+    "repro01/receipt.json": "4c501e6c17ed6c374936379c75d7a1ae0ab187913df0ad01760578854df355a9",
+    "fixed01/receipt.json": "c707ebdf46ba66d40cc78b7da2d4beb432274080dbb31ff001deb94b75a48216",
+    "final-model-types01.log": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+    "studio-types01.log": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+  },
+  "commands": {
+    "browser": "D552_SOURCE_FROZEN=1 node test/body-clipboard-owner-browser.mjs <output> --expect=repro|fixed",
+    "ModelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "StudioTypes": "pnpm --filter @barocss/cad-studio-app type-check"
+  },
+  "issue2310": "OPEN_REMAINING_TRANSITIONS_NOT_RUN",
+  "next": "D553_VIEWPORT_INTERACTION_REFACTOR"
+}
