@@ -24,10 +24,11 @@ import { MAX_TASK_RUN_HANDOFF_BYTES, TASK_RUN_HANDOFF_EXT } from './taskRunHando
 import { useMeshImport } from './useMeshImport';
 import { downloadBytes } from '../ui/files';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
+import { planWorkingTaskReplacement } from './workingTaskReplacement';
 import { planWorkingApprovalRepair, readWorkingApprovalChecks } from './workingApprovalChecks';
 import { localTaskBaselineBytes, localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
-import { isLocalTaskRunHost, isTaskRunStatus, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
-  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, isTaskRunStatus, matchesTaskRunReplan, sameTaskRunCheckpoint, retiresTaskRunReview, type TaskRunLaunch, type TaskRunOffer,
+  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type SavedTaskRunPlan, type TaskRunRebuildRequest, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -141,8 +142,13 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
-  const startTaskRun = async (offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined> => {
+  const startTaskRun = async ({ offer, sourceKey, replaces }: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined> => {
     if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
+    if (replaces) {
+      const owner = captureImportOwner();
+      await requireCurrentReplacement(replaces);
+      if (!owner.isCurrent()) return;
+    }
     return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
       const value = await localTaskRunJSON('start', new Blob([handoff as BlobPart]));
       const { directory, reused } = value;
@@ -152,15 +158,20 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     });
   };
 
-  const checkedRunStatus = (run: TaskRunStatus, value: unknown): TaskRunStatus => {
+  const checkedRunStatus = (run: TaskRunLocator & { revision: number }, value: unknown): TaskRunStatus => {
     if (!isTaskRunStatus(value) || value.runKey !== run.runKey || value.runId !== run.runId || value.revision < run.revision)
       throw new Error('The local task run service returned a different or older run status.');
     const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = value;
     return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
   };
 
-  const refreshTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> =>
+  const refreshTaskRun = async (run: TaskRunLocator & { revision: number }): Promise<TaskRunStatus> =>
     checkedRunStatus(run, await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
+
+  const requireCurrentReplacement = async (selection: TaskRunReplanSelection) => {
+    if (!matchesTaskRunReplan(await refreshTaskRun(selection), selection))
+      throw new Error('The stale task changed. Refresh the local run before replanning.');
+  };
 
   const rebuildTaskRun = async (run: TaskRunStatus, taskId: string, attemptId: string) => {
     const { runKey, runId, revision, baselineDigest } = run;
@@ -293,6 +304,31 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       () => selected() && owner.isCurrent() ? { offer, sourceKey } : undefined);
   };
 
+  const readExactRunBaseline = async (request: TaskRunBaselineRequest, current: () => boolean) => {
+    const bytes = await localTaskBaselineBytes(request, current);
+    if (!bytes || !current()) return;
+    const decoded = await readStudioWorkingCopy(bytes);
+    if (!current()) return;
+    if ('error' in decoded || digestOf(decoded.doc) !== request.baselineDigest ||
+        sha256Hex(encodeStudioFile(decoded.doc)) !== sha256Hex(bytes))
+      throw new Error('The native model does not match the selected run baseline.');
+    return decoded.doc;
+  };
+
+  const prepareTaskReplacement = async (selection: TaskRunReplanSelection): Promise<SavedTaskRunPlan | undefined> => {
+    const owner = captureImportOwner(), sourceKey = project.taskSourceKey();
+    if (!sourceKey) throw new Error('Save the revised working model in the project before replanning.');
+    await requireCurrentReplacement(selection);
+    if (!owner.isCurrent()) return;
+    const { runKey, runId, baselineDigest } = selection;
+    const baseline = await readExactRunBaseline({ runKey, runId, baselineDigest }, owner.isCurrent);
+    if (!baseline || !owner.isCurrent()) return;
+    const offer = planWorkingTaskReplacement(baseline, docNow.current, selection.pin);
+    await requireCurrentReplacement(selection);
+    if (!owner.isCurrent()) return;
+    return withTaskRunHandoff(offer, sourceKey, 'preparing a replacement plan', () => ({ offer, sourceKey, replaces: selection }));
+  };
+
   const withRunDocumentOpen = async (request: TaskRunLocator, kind: 'baseline' | 'checkpoint',
     read: (current: () => boolean, observed: () => TaskRunStatus | undefined, requireView: () => void) => Promise<void>) => {
     const requireView = () => {
@@ -334,20 +370,15 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     const { runKey, runId, baselineDigest } = run;
     const request: TaskRunBaselineRequest = { runKey, runId, baselineDigest };
     return withRunDocumentOpen(request, 'baseline', async (current, observed, requireView) => {
-      const bytes = await localTaskBaselineBytes(request, current);
-      if (!bytes || !current()) return;
-      const decoded = await readStudioWorkingCopy(bytes);
-      if (!current()) return;
-      if ('error' in decoded || digestOf(decoded.doc) !== baselineDigest ||
-          sha256Hex(encodeStudioFile(decoded.doc)) !== sha256Hex(bytes))
-        throw new Error('The native model does not match the selected run baseline.');
+      const baseline = await readExactRunBaseline(request, current);
+      if (!baseline || !current()) return;
       const latest = await refreshTaskRun(run);
       if (!current()) return;
       const seen = observed();
       if (latest.baselineDigest !== baselineDigest || (seen && seen.revision >= latest.revision && seen.baselineDigest !== baselineDigest))
         throw new Error('The run baseline changed during Open. Refresh the local run status.');
       requireView();
-      if (adoptExactWorkerDocument(decoded.doc, 'worker-baseline'))
+      if (adoptExactWorkerDocument(baseline, 'worker-baseline'))
         setToast({ title: 'Worker baseline opened', hint: 'The exact local run model is ready for candidate review.', detail: '' });
     });
   };
@@ -489,5 +520,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

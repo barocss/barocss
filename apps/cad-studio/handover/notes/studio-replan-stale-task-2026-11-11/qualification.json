@@ -1,0 +1,134 @@
+{
+  "decision": "D632",
+  "tier": "FULL interface",
+  "baseCommit": "503e0468243a1d12c23a921d7bb47798580be39a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d632-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio replacement plan and approval",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D632_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --replan",
+      "receiptSHA256": "7245f3a8108af79cf158e8aa62bdeefab4f106dfa64ab09de5f367e7d3913279",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "selectedOccurrence": "p2",
+        "oldTargetMm": 4,
+        "revisedTargetMm": 5,
+        "earlierRunUnchanged": true,
+        "retiredApprovalRefused": true,
+        "unsavedAndChangedSiblingRefused": true,
+        "explicitStarts": 1,
+        "finalHeightsMm": [
+          6,
+          5
+        ]
+      }
+    },
+    {
+      "label": "Desktop Studio stale rebuild regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D631_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-rebuild\" --rebuild",
+      "receiptSHA256": "b000bc0a082acb4ca8806afbde5935a690311ec7af3df67e3cda9c009b7e9439",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop Studio scoped repair regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D628_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-repair\" --prepare-repair",
+      "receiptSHA256": "7df6dc97e24930c77466d1c8ade7525921ae9fe0b3836007d13c0105aeeecf6e",
+      "pinnedSources": 806,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent native checkpoint and run reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/replacement-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "10df108db24e238d9d98c0a50b2d686ff999e4deae5cdaa9a7b0039a12687925",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "terminalPublications": [
+          1,
+          1
+        ],
+        "revisedTargetMm": 5,
+        "finalHeightsMm": [
+          6,
+          5
+        ],
+        "finalSHA256": "2a3eb7226b213120f17ac600d4da6a6e6243dc025917a6afd5d0697f1b68d6f1"
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan toolset tool-contract requirement-evidence",
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 177,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers",
+    "Desktop width replacements",
+    "Geometry changes between runs",
+    "Dependent candidate replacements"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

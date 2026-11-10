@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunOffer, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
@@ -55,13 +55,14 @@ export interface ChatPanelProps {
     reopened?: TaskRunLaunch;
     sourceKey(): string | undefined;
     export(offer: TaskRunOffer, sourceKey: string): Promise<void>;
-    start(offer: TaskRunOffer, sourceKey: string): Promise<TaskRunLaunch | undefined>;
+    start(plan: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
     openBaseline(status: TaskRunStatus): Promise<void>;
     openCheckpoint(status: TaskRunStatus): Promise<void>;
     workingVersion: object;
+    prepareTaskReplacement(selection: TaskRunReplanSelection): Promise<SavedTaskRunPlan | undefined>;
     prepareWorkingRepair(review: CheckpointReview, report: RequirementEvidence, version: object, current: () => boolean): Promise<SavedTaskRunPlan | undefined>;
     checkWorkingApproval(review: CheckpointReview, current: () => boolean): Promise<WorkingApprovalChecks | undefined>;
     readApproval(request: TaskRunCheckpointRequest, current: () => boolean): Promise<CheckpointReview | undefined>;
@@ -246,13 +247,13 @@ interface TaskRunCardProps {
 function TaskRunCards({ initialRun, ...props }: TaskRunCardProps) {
   const [repairs, setRepairs] = useState<ReadonlyMap<string, { plan: SavedTaskRunPlan; version: object }>>(() => new Map());
   const prepared = (plan: SavedTaskRunPlan, version: object) => {
-    const key = JSON.stringify([plan.sourceKey, plan.offer.revision, plan.offer.occurrences]);
+    const key = JSON.stringify([plan.sourceKey, plan.offer.revision, plan.offer.occurrences, plan.replaces?.runId]);
     setRepairs(prior => new Map(prior).set(key, { plan, version }));
   };
   return <>
     <TaskRunActions {...props} initialRun={initialRun} onPrepared={prepared} />
-    {[...repairs].map(([key, { plan, version }]) => <section key={key} aria-label="Prepared repair">
-      <strong>Prepared repair</strong>
+    {[...repairs].map(([key, { plan, version }]) => <section key={key} aria-label={plan.replaces ? 'Prepared replacement' : 'Prepared repair'}>
+      <strong>{plan.replaces ? 'Prepared replacement' : 'Prepared repair'}</strong>
       <TaskRunActions {...props} plan={plan} repair startBlocked={version !== props.actions.workingVersion} onPrepared={prepared} />
     </section>)}
   </>;
@@ -264,7 +265,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   onPrepared(plan: SavedTaskRunPlan, version: object): void;
 }) {
   const busy = useRef(false);
-  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string; action: 'review' | 'rebuild' }>();
+  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string; action: 'review' | 'rebuild' | 'replan' }>();
   const disabled = blocked || working !== undefined;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const base = launch ?? initialRun;
@@ -277,7 +278,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     setWorking('start');
     setError('');
     try {
-      const launched = await actions.start(plan.offer, plan.sourceKey);
+      const launched = await actions.start(plan);
       if (launched) {
         statuses.remember(launched);
         setLaunch(launched);
@@ -327,11 +328,25 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     catch (error) { setError(error instanceof Error ? error.message : 'Could not rebuild the local candidate.'); }
     finally { busy.current = false; setWorking(undefined); }
   }
+  async function replan(task: TaskRunLaunch['tasks'][number]) {
+    if (busy.current || !result || !task.replan) return;
+    const { runKey, runId, baselineDigest, revision } = result, version = actions.workingVersion;
+    busy.current = true;
+    setWorking({ taskId: task.id, action: 'replan' });
+    setError('');
+    try {
+      const replacement = await actions.prepareTaskReplacement({ runKey, runId, baselineDigest, revision, taskId: task.id, pin: task.replan });
+      if (replacement) onPrepared(replacement, version);
+      else setError('The saved working model changed. Prepare the replacement again.');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not prepare the replacement.');
+    } finally { busy.current = false; setWorking(undefined); }
+  }
   return <>
     {plan && <>
       <ul>{plan.offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
-      <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan.offer, plan.sourceKey)}>Export task run</button>
-      {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : repair ? 'Start repair' : 'Start local run'}</button>}
+      {!plan.replaces && <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan.offer, plan.sourceKey)}>Export task run</button>}
+      {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : plan.replaces ? 'Start replacement' : repair ? 'Start repair' : 'Start local run'}</button>}
     </>}
     {startBlocked && !result && <div role="status">Check the saved working model and prepare the repair again.</div>}
     {error && <div role="status">{error}</div>}
@@ -356,6 +371,10 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
         {task.rebuild && <button className="ghost" type="button" aria-label={`Rebuild candidate ${task.id}`}
           disabled={disabled} onClick={() => void rebuild(task)}>
           {typeof working === 'object' && working.taskId === task.id && working.action === 'rebuild' ? 'Rebuilding…' : 'Rebuild'}
+        </button>}
+        {task.replan && <button className="ghost" type="button" aria-label={`Prepare replacement for ${task.id}`}
+          disabled={disabled} onClick={() => void replan(task)}>
+          {typeof working === 'object' && working.taskId === task.id && working.action === 'replan' ? 'Preparing…' : 'Prepare replacement'}
         </button>}
       </li>)}</ul>
       {!!result.approvals?.length && <TaskRunApprovalHistory key={result.runId} run={result} read={actions.readApproval}

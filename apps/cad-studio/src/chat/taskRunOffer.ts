@@ -27,6 +27,19 @@ export interface TaskRunBaselineRequest extends TaskRunLocator {
   baselineDigest: string;
 }
 
+export interface TaskRunReplanPin {
+  attemptId: string;
+  occurrence: string;
+  feature: string;
+  field: 'height' | 'width';
+}
+
+export interface TaskRunReplanSelection extends TaskRunBaselineRequest {
+  revision: number;
+  taskId: string;
+  pin: TaskRunReplanPin;
+}
+
 export interface TaskRunRebuildRequest extends TaskRunBaselineRequest {
   revision: number;
   taskId: string;
@@ -55,7 +68,7 @@ export interface TaskRunStatus extends TaskRunLocator {
   baselineDigest: string;
   checkpoint?: TaskRunCheckpointPin;
   approvals?: TaskRunCheckpointPin[];
-  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin; rebuild?: string }[];
+  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin; rebuild?: string; replan?: TaskRunReplanPin }[];
 }
 
 export interface TaskRunLaunch extends TaskRunStatus {
@@ -88,6 +101,19 @@ export function sameTaskRunCheckpoint(a: TaskRunCheckpointPin, b: TaskRunCheckpo
   return a.taskId === b?.taskId && a.operationId === b.operationId && a.acceptedSHA256 === b.acceptedSHA256;
 }
 
+function isTaskRunReplanPin(value: unknown): value is TaskRunReplanPin {
+  return isObj(value) && Object.keys(value).length === 4 && label(value.attemptId) && label(value.occurrence)
+    && label(value.feature) && (value.field === 'height' || value.field === 'width');
+}
+
+export function matchesTaskRunReplan(status: TaskRunStatus, selection: TaskRunReplanSelection): boolean {
+  if (status.runKey !== selection.runKey || status.runId !== selection.runId || status.revision !== selection.revision ||
+      status.baselineDigest !== selection.baselineDigest) return false;
+  const pin = status.tasks.find(task => task.id === selection.taskId)?.replan;
+  return !!pin && pin.attemptId === selection.pin.attemptId && pin.occurrence === selection.pin.occurrence
+    && pin.feature === selection.pin.feature && pin.field === selection.pin.field;
+}
+
 export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   if (!isObj(value) || !isTaskRunLocator(value) || !hash(value.baselineDigest)
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
@@ -96,6 +122,7 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   const { checkpoint, approvals, tasks } = value;
   return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
+    && (task.replan === undefined || (value.phase === 'active' && task.phase === 'stale' && isTaskRunReplanPin(task.replan)))
     && (task.rebuild === undefined || (value.phase === 'active' && task.phase === 'stale' && label(task.rebuild)))
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'
       && isObj(task.review) && label(task.review.attemptId) && hash(task.review.candidateDigest))))
@@ -121,6 +148,7 @@ export function retiresTaskRunReview(status: TaskRunStatus, request: TaskRunRevi
 export interface SavedTaskRunPlan {
   offer: TaskRunOffer;
   sourceKey: string;
+  replaces?: TaskRunReplanSelection;
 }
 
 export interface TaskRunChatOutput {

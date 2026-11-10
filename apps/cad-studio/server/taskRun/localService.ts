@@ -9,7 +9,7 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
 import { TaskRunHost } from './host';
@@ -165,7 +165,16 @@ function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
     ...(approvals.length ? { approvals } : {}),
     tasks: record.state.tasks.map(task => ({
       id: task.id, phase: task.phase, reason: task.reason, review: reviewPin(record, task.id), rebuild: rebuildPin(record, task),
+      replan: replanPin(record, task),
     })) };
+}
+
+function replanPin(record: RunRecord, task: RunTask): TaskRunReplanPin | undefined {
+  if (record.state.phase !== 'active' || record.pending || task.phase !== 'stale' || !task.attempt || !task.submission) return;
+  const bound = record.state.plan.tasks.find(bound => bound.id === task.id);
+  if (!bound) return;
+  return { attemptId: task.attempt.id, occurrence: bound.occurrence, feature: bound.feature,
+    field: bound.capability === 'rectangle-width' ? 'width' : 'height' };
 }
 
 function rebuildPin(record: RunRecord, task: RunTask): string | undefined {

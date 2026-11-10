@@ -1,5 +1,5 @@
 ---
-work_id: D631
+work_id: D632
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -199,7 +199,9 @@ D630 opens the exact native model from the reopened run card. Desktop verifies t
 
 D631 rebuilds a stale independent candidate from its Studio run card. Desktop verifies retired pins, the new candidate and exact terminal publication. [D631](../../notes/studio-rebuild-stale-candidate-2026-11-11/README.md).
 
-Next MAIN is D632 / P0 automation, B09 follow-up, rows 04, 12 and 16. Prepare a new plan for a stale task when its stored submission is invalidated by changed inputs. Use the selected occurrence and the newly saved working requirements, retain the existing accepted state and require a separate explicit start. Verify that the old attempt cannot publish and that the replacement candidate targets the new criterion. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D632 prepares an independent replacement for a stale task from one revised saved dimension. Desktop and independent native checks confirm that the old attempt cannot publish and the earlier accepted sibling stays intact. [D632](../studio-replan-stale-task-2026-11-11/README.md).
+
+Next MAIN is D633 / P0 automation, B09 follow-up, rows 04, 12 and 16. Retain a verifiable link from a replacement run to the exact stale task and attempt. Reopen the replacement in a fresh Studio session and verify that its provenance remains readable without changing the original run. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
