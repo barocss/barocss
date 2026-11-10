@@ -1,0 +1,218 @@
+{
+  "workId": "D579",
+  "parent": "cbd96a470e8c40f74b124ea9a62235494fe18da2",
+  "tier": "FULL",
+  "environment": {
+    "node": "22.19.0",
+    "gate": "gate.sh acquire heavy 240 D579-root-CASE",
+    "externalEvidence": "/Users/user/.cache/barocss-cad-evidence/d579-2026-11-10"
+  },
+  "studioCommand": "cd apps/cad-studio && DEBUG=pw:browser CAD_STUDIO_CHAT_PORT=52392 D579_SOURCE_FROZEN=1 node test/requirement-best-snapshot-browser.mjs EXTERNAL/CASE --expect=MODE",
+  "groupedRepro": {
+    "entrySha256": "3d75a485921325fa62f767b3b4261b210ed70002053fbe73b7a02235e2354102",
+    "outputSha256": "687f3ad840a03de668cb25034dd26e3391f9ef02dc33d7be0b90ad82611e1d5e",
+    "status": "FAIL",
+    "orders": 2,
+    "selectedVolumeMm3": 2000
+  },
+  "groupedFixed": {
+    "entrySha256": "3193532fbfd188dfed595a667c6add40129d0d256a164a127581ac314bb95dcd",
+    "outputSha256": "03c464c328f5f184f96872f6f92106c7e5811431a5c29554df1001bf388c18a5",
+    "status": "PASS",
+    "orders": 2,
+    "selectedVolumeMm3": 500
+  },
+  "studio": [
+    {
+      "output": "repro01",
+      "mode": "repro",
+      "harness": "FAIL",
+      "product": "HARNESS_FAIL",
+      "frozenSources": 305,
+      "snapshots": 2,
+      "independentOracles": 1,
+      "wallSeconds": 16.99,
+      "receiptSha256": "6e2456d3147eab24ae485af45b1d51025a60705b1e43e5c4373dc9eec62d7133",
+      "driverSha256": "5bb32ab3a11bd427e45f3547c3fb9e67949247a1308fc2f0e80da305bab0573a",
+      "rawMcpToolResultsSha256": "f7d0d4548be4acfee4a42f4ae0fafb81fc014b18a118ca62fccc5c7231f7b8c5",
+      "chromePID": 27287,
+      "nodePID": 27264,
+      "chatPID": 27558,
+      "serverURL": "http://127.0.0.1:53956",
+      "firstFailure": "Playwright response text decoded mm³ differently from the accepted App document"
+    },
+    {
+      "output": "repro02",
+      "mode": "repro",
+      "harness": "PASS",
+      "product": "FAIL",
+      "frozenSources": 305,
+      "snapshots": 6,
+      "independentOracles": 6,
+      "wallSeconds": 19.65,
+      "receiptSha256": "ec20a10ee4f9bfe6f9e8ad8e60826d3f3fef20891e12af66871375e0eec7c0e3",
+      "driverSha256": "6efa70b469faea2fe9cbf58f27f2b315e47cf9815b3ed3f0b712929573c3c63d",
+      "rawMcpToolResultsSha256": "c82b7b49ae1338fafdd23bc49994f5bb502436f001e6647c1dd2578eb5424d33",
+      "chromePID": 28816,
+      "nodePID": 28792,
+      "chatPID": 28849,
+      "serverURL": "http://127.0.0.1:54065",
+      "saveSha256": "38e68ae0ee9690c6c38d1586a3292caf30cc718314197d182ff7388b88426fa4",
+      "restoredVolumeMm3": 2000
+    },
+    {
+      "output": "fixed01",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS for the initial scope",
+      "frozenSources": 305,
+      "snapshots": 6,
+      "independentOracles": 6,
+      "wallSeconds": 17.38,
+      "receiptSha256": "280b59326b7af2e35c9b4974f983d897bf6dea65010bc1d7bfb16466f45c4707",
+      "driverSha256": "2754eedea5ab00ea3bcd7404e7638c4e0a615f638c24c125835f5aa6fb7a5a21",
+      "rawMcpToolResultsSha256": "459e54073fd583a5061e06573b5ecdb042728c3f53614494263844daac601767",
+      "chromePID": 36534,
+      "nodePID": 36510,
+      "chatPID": 36587,
+      "serverURL": "http://127.0.0.1:54712",
+      "saveSha256": "92c4d6ce95097d977b3ad5ad9d234b3a88c63c6e05effbd70b71b9d898cf0a2c",
+      "restoredVolumeMm3": 500
+    },
+    {
+      "output": "fixed02",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 305,
+      "snapshots": 6,
+      "independentOracles": 6,
+      "wallSeconds": 16.88,
+      "receiptSha256": "4b27b3d96df222631f379d61c77501e8ca7ecf4adbaba3fdb0dbb5a722162755",
+      "driverSha256": "8c5243e65989f757d9d005f9b600887b3c9127ed38af67cc802b0904d2e2110f",
+      "rawMcpToolResultsSha256": "5660e96026d6773ba21626d1c1ebf91bc607052c643128753d5905f76f5a079a",
+      "chromePID": 47039,
+      "nodePID": 47014,
+      "chatPID": 47104,
+      "serverURL": "http://127.0.0.1:55649",
+      "saveSha256": "dffd8cfe0d70cc911e668bc7e6b7fe454a96cda08c2ba8facba9f8b90a5f16cc",
+      "restoredVolumeMm3": 500
+    },
+    {
+      "output": "fixed03",
+      "mode": "fixed",
+      "harness": "PASS",
+      "product": "PASS",
+      "frozenSources": 305,
+      "snapshots": 7,
+      "independentOracles": 6,
+      "wallSeconds": 18.43,
+      "receiptSha256": "3963bc5d5d5f1c16efe97e57932c81e3e1ddbece2e3755277bbf4a30175c40fd",
+      "driverSha256": "cd30b1c791eb4baafe971545a6a3301a7d97882a888958b62f22e776c7087f99",
+      "rawMcpToolResultsSha256": "5660e96026d6773ba21626d1c1ebf91bc607052c643128753d5905f76f5a079a",
+      "chromePID": 50794,
+      "nodePID": 50764,
+      "chatPID": 50845,
+      "serverURL": "http://127.0.0.1:55916",
+      "saveSha256": "995e9514205c0c02c6bbb9532490432034c1d13f7e3cbd754f021530e4bf93cf",
+      "restoredVolumeMm3": 500
+    }
+  ],
+  "checks": [
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs spec.test toolset.test tool-contract.test proposals.test transactions.test brief.test",
+      "status": "FAIL",
+      "exit": 1,
+      "passed": 50,
+      "failed": 1,
+      "firstFailure": "Material-only fixture used an invalid brief without a version",
+      "logSha256": "883392f32d9e9d71789408f5d776be0f4d3a517b7b56644805ba03a66a55adb5"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "FAIL",
+      "exit": 2,
+      "firstFailure": "TS2322 for widened bbox query literal in the test",
+      "logSha256": "ee8dd7f0aabca1d825755653d0ddf9c171847af4e9dd167e784cdbcb58aaa254"
+    },
+    {
+      "command": "cd packages/barocss-cad-model && TEST_CONCURRENCY=1 node scripts/test.mjs spec.test toolset.test tool-contract.test proposals.test transactions.test brief.test",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 52,
+      "failed": 0,
+      "logSha256": "a467408f90669a30e64a8960d0ece69fdf5769d6a98e2ce38d3aa3121f794124"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "2a7823889024ff504099dc792b24c0da80a25dfb832e8ff226602b24425a9c28"
+    },
+    {
+      "command": "pnpm --filter @barocss/cad-studio-app type-check",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "f22c5662ba9b4f64f56c7d63f6c0f9858e816004248391e104da7db49fe0f134"
+    },
+    {
+      "command": "pnpm exec eslint AFFECTED_FILES",
+      "status": "PASS",
+      "exit": 0,
+      "warnings": 2,
+      "errors": 0,
+      "logSha256": "561cf2569bd8bc6004486ceec2341e1f149f323f1288f9bcad943fca32794ad2"
+    },
+    {
+      "command": "pnpm exec eslint apps/cad-studio/test/requirement-best-snapshot-browser.mjs",
+      "status": "PASS",
+      "exit": 0,
+      "warnings": 0,
+      "errors": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cd apps/cad-studio && TEST_CONCURRENCY=1 node scripts/test.mjs toolset-mcp tool-contract-mcp",
+      "status": "PASS",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "logSha256": "acfeb2581c022ec5958a9d27f690fea2bafad3e6f7cec8cc63e9088a59ca494f"
+    },
+    {
+      "command": "cd apps/cad-studio && pnpm exec vite build --outDir EXTERNAL/build",
+      "status": "PASS",
+      "exit": 0,
+      "logSha256": "e3051e49ff48d9816a19c31ef6eb9ef6f33feba9f6e9d075b7ea8732fd65e63a"
+    }
+  ],
+  "finalStudioSourceSha256": {
+    "apps/cad-studio/test/requirement-best-snapshot-browser.mjs": "cd30b1c791eb4baafe971545a6a3301a7d97882a888958b62f22e776c7087f99",
+    "packages/barocss-cad-model/src/chat/spec.ts": "91ad9d37e27913382ad31a14232aea21964e4680324b5ddd681e2a0f7f27ac94",
+    "packages/barocss-cad-model/src/chat/part/history.ts": "970e6507002916eab4e748fe6904cfa889f079fbab1c17835def26034f3e4e4c",
+    "packages/barocss-cad-model/src/chat/toolDefinitions.ts": "4fec899413235d5afcb80168ea6c884f18d3f30e84bd815d8135f784508c6c1a"
+  },
+  "finalStudioVerdicts": {
+    "01-before": "0 ✓ · 3 ✗ · 0 ?",
+    "02-restored": "1 ✓ · 2 ✗ · 0 ?",
+    "03-first-undo": "0 ✓ · 3 ✗ · 0 ?",
+    "04-first-redo": "1 ✓ · 2 ✗ · 0 ?",
+    "05-fresh-open": "1 ✓ · 2 ✗ · 0 ?",
+    "06-reedit-accepted": "1 ✓ · 2 ✗ · 0 ? · stale",
+    "07-reedit-settled": "1 ✓ · 2 ✗ · 0 ?"
+  },
+  "lintFiles": [
+    "packages/barocss-cad-model/src/chat/spec.ts",
+    "packages/barocss-cad-model/src/chat/part/history.ts",
+    "packages/barocss-cad-model/src/chat/toolDefinitions.ts",
+    "packages/barocss-cad-model/src/engine/schema/spec.ts",
+    "packages/barocss-cad-model/test/spec.test.ts",
+    "apps/cad-studio/test/requirement-best-snapshot-browser.mjs"
+  ],
+  "reviews": {
+    "functional": "APPROVE",
+    "quality": "APPROVE",
+    "security": "APPROVE"
+  },
+  "wholeCad": "NOT_MEASURED"
+}

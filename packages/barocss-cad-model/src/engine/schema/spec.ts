@@ -66,7 +66,7 @@ export interface Validation {
 // ---- the iteration policy, kept by the tools (A3.2) ------------------------------------------------------------
 /** What the tools remember across a session's checks: the best snapshot, each failing requirement's rounds. */
 export interface Policy {
-  best?: { hash: string; pass: number; score: number; doc: StudioDoc };
+  best?: { hash: string; pass: number; score: number; doc: StudioDoc; hardFulfilled?: boolean };
   /** Each failing requirement's last |delta| and checks run since it last improved. */
   last: Record<string, number>; rounds: Record<string, number>;
   /** Hard requirements passing at the last check: a change breaking one is refused unless it says why. */

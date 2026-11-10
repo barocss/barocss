@@ -291,7 +291,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'restore_best',
-    description: 'Puts the part back to the best snapshot check_spec has seen this session (most requirements passing, then the smallest misses): the restart point when repairs stop making progress.',
+    description: 'Puts the part back to the best snapshot check_spec has seen for the current requirements in this session. A snapshot with all hard requirements passing ranks first, then more total passes, then smaller misses. The best snapshot may still have unmet requirements.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {

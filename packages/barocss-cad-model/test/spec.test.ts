@@ -5,8 +5,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import type { Predicate, Query } from '../src/engine/schema/spec';
-import { runTool, type ChatState } from '../src/chat/tools';
+import type { Predicate, Query, Requirement } from '../src/engine/schema/spec';
+import { runTool, type ChatState, type Evaluate } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 
 // Requirements as declarative checks (A3.1): kept in the document, run by check_spec.
@@ -182,6 +182,251 @@ test('D578: the chat hard gate rejects a sub-display resize and honors because',
     req_id: 'WIDTH', check: 'bbox', measured: 40.0002, expected: `<= ${WIDTH_CAP} mm`, delta: 0.0001,
     hint: 'the overall x size; hard: "limit the width"',
   }]);
+});
+
+const boxCap: Requirement = {
+  id: 'H', source: 'Volume at most 600 mm³', hard: true, check: { query: { fn: 'volume' }, op: '<=', value: 600 },
+};
+const boxPreferences: Requirement[] = (['x', 'y'] as const).map(axis => ({
+  id: `S${axis}`, source: `${axis} length of 20 mm`, hard: false, check: { query: { fn: 'bbox', axis }, op: '==', value: 20 },
+}));
+
+function squareBox(width: number, requirements: Requirement[]): StudioDoc {
+  const doc = rectanglePart(width, width, 5);
+  const [sketch, solid] = doc.nodes;
+  assert.ok(sketch.kind === 'sketch' && sketch.profile === 'rectangle');
+  const W = { parameter: 'W' };
+  return { ...doc, parameters: { W: width }, nodes: [{ ...sketch, max: [W, W] }, solid], requirements };
+}
+
+async function checkBox(state: ChatState) {
+  const checked = await runTool(state, 'requirements', { action: 'check' }, evaluate);
+  assert.equal(checked.isError, false, checked.content);
+  return { state: checked.state, report: parse(checked.content) };
+}
+
+function editWidth(state: ChatState, W: number, because?: string) {
+  return runTool(state, 'features', { action: 'parameters', set: { W }, ...(because ? { because } : {}) }, evaluate);
+}
+
+function assertBoxVolume(state: ChatState, expected: number) {
+  const volume = state.bodies[0].volume;
+  assert.ok(volume !== null && Math.abs(volume - expected) <= 1e-9, `Expected ${expected} mm³, got ${volume}`);
+}
+
+for (const [first, second] of [[10, 20], [20, 10]]) {
+  test(`D579: grouped history restores the hard-fulfilled box after checking ${first} then ${second}`, async () => {
+    const start = await stateOf(squareBox(first, [boxCap, ...boxPreferences]));
+    const a = await checkBox(start);
+    const change = await editWidth(a.state, second, 'test the alternate box');
+    assert.equal(change.isError, false, change.content);
+    const b = await checkBox(change.state);
+    const [valid, invalid] = first === 10 ? [a, b] : [b, a];
+    assert.deepEqual(valid.report.summary, { pass: 1, fail: 2, unknown: 0, hard_failing: 0 });
+    assert.deepEqual(invalid.report.summary, { pass: 2, fail: 1, unknown: 0, hard_failing: 1 });
+    assertBoxVolume(valid.state, 500);
+    assertBoxVolume(invalid.state, 2000);
+
+    const intermediate = await editWidth(b.state, 12, 'test recovery from another hard failure');
+    assert.equal(intermediate.isError, false, intermediate.content);
+    const restored = await runTool(intermediate.state, 'history', { action: 'best' }, evaluate);
+    assert.equal(restored.isError, false, restored.content);
+    assert.equal(restored.changed, true);
+    assert.equal(restored.state.doc.parameters.W, 10, `check order ${first}, ${second}`);
+    assertBoxVolume(restored.state, 500);
+    assert.deepEqual(restored.state.doc.requirements, start.doc.requirements);
+    assert.deepEqual(b.report.policy.best, {
+      model_hash: valid.report.model_hash, pass: 1, this_is_best: second === 10, hard_fulfilled: true,
+    });
+
+    const confirmed = await checkBox(restored.state);
+    const refusal = await editWidth(confirmed.state, 20);
+    assert.equal(refusal.isError, true, refusal.content);
+    assert.equal(refusal.changed, false);
+    assert.equal(refusal.state, confirmed.state);
+    assert.match(parse(refusal.content).error, /breaks hard requirement that passed: H/);
+    const overridden = await editWidth(confirmed.state, 20, 'compare the wider box');
+    assert.equal(overridden.isError, false, overridden.content);
+    assertBoxVolume(overridden.state, 2000);
+    assert.equal(overridden.state.policy?.calls, confirmed.report.policy.tool_calls + 1);
+  });
+}
+
+test('D579: a hard unknown prevents fulfillment and a soft unknown does not', async () => {
+  const massCheck: Requirement = {
+    id: 'M', source: 'Mass at most 10 g', hard: true, check: { query: { fn: 'mass' }, op: '<=', value: 10 },
+  };
+  for (const hard of [true, false]) {
+    const doc = squareBox(10, [{ ...massCheck, hard }, boxPreferences[0]]);
+    const unknown = await stateOf(doc);
+    let checked = await checkBox(unknown);
+    assert.deepEqual(checked.report.summary, { pass: 0, fail: 1, unknown: 1, hard_failing: 0 });
+    assert.equal(checked.report.policy.best.hard_fulfilled, !hard);
+    for (let i = 0; i < 2; i++) checked = await checkBox(checked.state);
+    assert.equal(checked.report.policy.tool_calls, 3);
+    assert.deepEqual(checked.report.policy.rounds_without_progress, { Sx: 2 });
+    assert.match(checked.report.policy.hint, hard ? /hard requirements unmet or unknown/ : /hard requirements fulfilled/);
+  }
+
+  const softUnknown = await checkBox(await stateOf(squareBox(10, [boxCap, { ...massCheck, hard: false }])));
+  assert.deepEqual(softUnknown.report.summary, { pass: 1, fail: 0, unknown: 1, hard_failing: 0 });
+  assert.equal(softUnknown.report.policy.best.hard_fulfilled, true);
+
+  const doc = squareBox(20, [{ ...massCheck, check: { ...massCheck.check, value: 100 } }, ...boxPreferences]);
+  const unknown = await checkBox(await stateOf(doc));
+  const smaller = await editWidth(unknown.state, 10);
+  assert.equal(smaller.isError, false, smaller.content);
+  const material = await runTool(smaller.state, 'features', { action: 'material', bodies: ['b1'], material: 'steel' }, evaluate);
+  assert.equal(material.isError, false, material.content);
+  const known = await checkBox(material.state);
+  assert.equal(unknown.report.summary.pass, 2);
+  assert.equal(known.report.summary.pass, 1);
+  assert.equal(known.report.policy.best.model_hash, known.report.model_hash);
+  assert.equal(known.report.policy.best.hard_fulfilled, true);
+});
+
+test('D579: equal fulfillment keeps pass count, normalized miss, and first tie ordering', async () => {
+  const preferences: Requirement[] = [
+    { id: 'MIN', source: 'At least 20 mm wide', hard: false, check: { query: { fn: 'bbox', axis: 'x' }, op: '>=', value: 20 } },
+    ...(['x', 'y'] as const).map((axis): Requirement => ({
+      id: axis, source: `${axis} at most 19 mm`, hard: false, check: { query: { fn: 'bbox', axis }, op: '<=', value: 19 },
+    })),
+  ];
+  const first = await checkBox(await stateOf(squareBox(19.5, preferences)));
+  const closerEdit = await editWidth(first.state, 19.25);
+  assert.equal(closerEdit.isError, false, closerEdit.content);
+  const closer = await checkBox(closerEdit.state);
+  assert.equal(closer.report.summary.pass, 0);
+  assert.equal(closer.report.policy.best.model_hash, closer.report.model_hash);
+  assert.notEqual(closer.report.model_hash, first.report.model_hash);
+
+  const tiedEdit = await runTool(closer.state, 'features', { action: 'parameters', add: { UNUSED: 1 } }, evaluate);
+  assert.equal(tiedEdit.isError, false, tiedEdit.content);
+  const tied = await checkBox(tiedEdit.state);
+  assert.notEqual(tied.report.model_hash, closer.report.model_hash);
+  assert.equal(tied.report.policy.best.model_hash, closer.report.model_hash);
+  assert.equal(tied.report.policy.best.this_is_best, false);
+
+  const furtherEdit = await editWidth(tied.state, 30);
+  assert.equal(furtherEdit.isError, false, furtherEdit.content);
+  const further = await checkBox(furtherEdit.state);
+  assert.equal(further.report.summary.pass, 1);
+  assert.equal(further.report.policy.best.model_hash, further.report.model_hash);
+  assert.equal(further.report.policy.best.hard_fulfilled, true);
+});
+
+test('D579: changing the requirement scope starts a new ranking and refuses stale recovery', async () => {
+  const old = await checkBox(await stateOf(squareBox(10, [boxCap, ...boxPreferences])));
+  const edit = await editWidth(old.state, 20, 'compare the wider box');
+  assert.equal(edit.isError, false, edit.content);
+  let checked = await checkBox(edit.state);
+  for (let i = 0; i < 2; i++) checked = await checkBox(checked.state);
+  assert.deepEqual(checked.report.policy.rounds_without_progress, { H: 2 });
+  const replacement = { ...boxCap, source: 'Volume at most 400 mm³', check: { ...boxCap.check, value: 400 } };
+  const updated = await runTool(checked.state, 'requirements', { action: 'set', requirements: [replacement], replace: true }, evaluate);
+  assert.equal(updated.isError, false, updated.content);
+  const refused = await runTool(updated.state, 'history', { action: 'best' }, evaluate);
+  assert.equal(refused.isError, true, refused.content);
+  assert.equal(refused.state, updated.state);
+  assert.equal(refused.state.doc.parameters.W, 20);
+  assert.equal(refused.state.doc.requirements?.[0].check.value, 400);
+
+  const fresh = await checkBox(refused.state);
+  assert.equal(fresh.report.policy.tool_calls, checked.report.policy.tool_calls + 2);
+  assert.deepEqual(fresh.report.policy.rounds_without_progress, { H: 0 });
+  assert.equal(fresh.report.policy.best.model_hash, fresh.report.model_hash);
+  assert.equal(fresh.report.policy.best.hard_fulfilled, false);
+  assert.equal(fresh.report.policy.hint, undefined);
+  const smaller = await editWidth(fresh.state, 8);
+  assert.equal(smaller.isError, false, smaller.content);
+  const improved = await checkBox(smaller.state);
+  assert.equal(improved.report.policy.best.model_hash, improved.report.model_hash);
+  assert.equal(improved.report.policy.best.hard_fulfilled, true);
+  assert.equal(improved.report.policy.rounds_without_progress, undefined);
+});
+
+test('D579: reordering the same authored requirements keeps the rank and current order', async () => {
+  const checked = await checkBox(await stateOf(squareBox(10, [boxCap, ...boxPreferences])));
+  const edit = await editWidth(checked.state, 20, 'compare the wider box');
+  assert.equal(edit.isError, false, edit.content);
+  const requirements = [...edit.state.doc.requirements!].reverse();
+  const reordered = await checkBox({ ...edit.state, doc: { ...edit.state.doc, requirements } });
+  assert.equal(reordered.report.policy.best.model_hash, checked.report.model_hash);
+  const restored = await runTool(reordered.state, 'history', { action: 'best' }, evaluate);
+  assert.equal(restored.isError, false, restored.content);
+  assert.deepEqual(restored.state.doc.requirements, requirements);
+  assertBoxVolume(restored.state, 500);
+});
+
+test('D579: a material-only change with the same public hash does not hide a valid snapshot', async () => {
+  const requirement: Requirement = {
+    id: 'M', source: 'Mass at most 10 g', hard: true, check: { query: { fn: 'mass' }, op: '<=', value: 10 },
+  };
+  const doc: StudioDoc = {
+    ...squareBox(10, [requirement]),
+    brief: { version: 1, material: { value: 'al6061', basis: 'stated', source: 'Use 6061 aluminium' } },
+  };
+  const checked = await checkBox(await stateOf(doc));
+  assert.equal(checked.report.policy.best.hard_fulfilled, true);
+  const changed = await runTool(checked.state, 'requirements', {
+    action: 'brief', fields: { material: { value: 'Custom alloy', basis: 'stated', source: 'Use the custom alloy' } },
+  }, evaluate);
+  assert.equal(changed.isError, false, changed.content);
+  const unknown = await checkBox(changed.state);
+  assert.equal(unknown.report.summary.unknown, 1);
+  assert.equal(unknown.report.model_hash, checked.report.model_hash);
+  assert.equal(unknown.report.policy.best.this_is_best, false);
+  const restored = await runTool(unknown.state, 'history', { action: 'best' }, evaluate);
+  assert.equal(restored.isError, false, restored.content);
+  assert.deepEqual(restored.state.doc.brief, doc.brief);
+  assert.equal((await checkBox(restored.state)).report.summary.pass, 1);
+});
+
+test('D579: a duplicate ID cannot turn an earlier hard failure into fulfillment', async () => {
+  const duplicate = { ...boxPreferences[0], id: boxCap.id };
+  const checked = await checkBox(await stateOf(squareBox(20, [boxCap, duplicate])));
+  assert.equal(checked.report.summary.hard_failing, 1);
+  assert.equal(checked.report.summary.pass, 1);
+  assert.equal(checked.report.policy.best.hard_fulfilled, false);
+});
+
+test('D579: best recovery keeps the existing autonomy and proposal guards', async () => {
+  const checked = await checkBox(await stateOf(squareBox(20, [boxCap, ...boxPreferences])));
+  const edit = await editWidth(checked.state, 10);
+  assert.equal(edit.isError, false, edit.content);
+  const state = { ...edit.state, turnBase: edit.state.doc };
+  const originalLevel = process.env.CAD_AUTONOMY;
+  try {
+    for (const [level, reason] of [['1', /At autonomy L1/], ['2', /leaves hard requirement H failing/]] as const) {
+      process.env.CAD_AUTONOMY = level;
+      const restored = await runTool(state, 'history', { action: 'best' }, evaluate);
+      assert.equal(restored.isError, true, restored.content);
+      assert.equal(restored.state, state);
+      assert.match(parse(restored.content).error, reason);
+    }
+  } finally {
+    if (originalLevel === undefined) delete process.env.CAD_AUTONOMY;
+    else process.env.CAD_AUTONOMY = originalLevel;
+  }
+});
+
+test('D579: unsuccessful best-snapshot evaluation keeps recovery retryable', async () => {
+  const checked = await checkBox(await stateOf(squareBox(10, [boxCap, ...boxPreferences])));
+  const edit = await editWidth(checked.state, 12, 'test snapshot recovery');
+  assert.equal(edit.isError, false, edit.content);
+  const failed: Evaluate = async () => ({
+    ok: false, revision: 1, wallTime: 0, error: { title: 'Fixture refusal', hint: 'Retry', detail: 'Fixture refusal' },
+  });
+  for (const [evaluator, error] of [[async () => null, /superseded/], [failed, /Fixture refusal/]] as const) {
+    const result = await runTool(edit.state, 'history', { action: 'best' }, evaluator);
+    assert.equal(result.isError, true, result.content);
+    assert.equal(result.changed, false);
+    assert.equal(result.state, edit.state);
+    assert.match(parse(result.content).error, error);
+  }
+  const retried = await runTool(edit.state, 'history', { action: 'best' }, evaluate);
+  assert.equal(retried.isError, false, retried.content);
+  assertBoxVolume(retried.state, 500);
 });
 
 test('D578: a refused sub-display mass increase reports its pre-rounding value', async () => {

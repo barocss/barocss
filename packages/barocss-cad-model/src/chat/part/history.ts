@@ -10,7 +10,7 @@ import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from '../transaction
 import { canonical } from '../../util/revision';
 import { moveOp } from '../remap';
 import type { Op } from '../../engine/schema/proposals';
-import { modelHash } from '../spec';
+import { modelHash, sameRecoveryInputs, sameRequirementSuite } from '../spec';
 import { verifyReferences } from '../../engine/references';
 import { rememberedEvaluate } from '../../engine/evalMemo';
 import { BATCHABLE, takesArgument } from '../toolDefinitions';
@@ -156,8 +156,11 @@ async function diffTool(state: ChatState, args: Record<string, unknown>): Promis
 async function restoreBestTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const best = state.policy?.best;
   if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
-  if (best.hash === modelHash(state.doc)) return fail(state, 'The part is the best snapshot already.');
-  return accept(state, best.doc, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing)`);
+  if (!sameRequirementSuite(best.doc, state.doc)) return fail(state, 'The requirements have changed: run check_spec before restoring the best snapshot.');
+  if (sameRecoveryInputs(best.doc, state.doc)) return fail(state, 'The part is the best snapshot already.');
+  const hardStatus = best.hardFulfilled === true ? 'hard requirements fulfilled' : 'hard requirements unmet or unknown';
+  const next = best.doc.requirements === state.doc.requirements ? best.doc : { ...best.doc, requirements: state.doc.requirements };
+  return accept(state, next, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing, ${hardStatus})`);
 }
 
 /** The history group's handlers, by v1 tool name (R3). */

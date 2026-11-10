@@ -22,6 +22,7 @@ import { faceTableOf } from '../assembly/faces';
 import { checkKeepouts, datumToFace, datumWorld, readReferences } from './references';
 import { unconfirmed, unitAssumptions } from './drafts';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
+import { canonical, canonicalOf } from '../util/revision';
 import type { Query, Predicate, Failure, Report, Outcome, Evaluate, Validation, Policy } from '../engine/schema/spec';
 
 
@@ -344,6 +345,15 @@ export async function validateSuite(doc: StudioDoc, bodies: readonly BodyResult[
 }
 
 export const newPolicy = (): Policy => ({ last: {}, rounds: {}, passedHard: [], calls: 0 });
+/** @internal Recovery compares candidates under the same authored requirement suite. */
+export function sameRequirementSuite(a: StudioDoc, b: StudioDoc): boolean {
+  const key = (doc: StudioDoc) => (doc.requirements ?? []).map(canonical).sort().join('\n');
+  return a.requirements === b.requirements || key(a) === key(b);
+}
+/** @internal Snapshot identity includes check inputs outside the public model hash. The suite is compared separately. */
+export function sameRecoveryInputs(a: StudioDoc, b: StudioDoc): boolean {
+  return a === b || canonicalOf({ ...a, requirements: undefined }) === canonicalOf({ ...b, requirements: undefined });
+}
 /** A failing suite's score (higher is better): minus each failure's miss relative to what it asked for. */
 const scoreOf = (doc: StudioDoc, failures: readonly Failure[]) => -failures.reduce((a, f) => {
   const req = doc.requirements?.find(r => r.id === f.req_id), ref = Math.max(1e-9, Math.abs(req?.check.value ?? req?.check.max ?? req?.check.min ?? 1));
@@ -351,9 +361,16 @@ const scoreOf = (doc: StudioDoc, failures: readonly Failure[]) => -failures.redu
 }, 0);
 /** The policy after a check: the best snapshot, the rounds without progress, and what to tell the agent. */
 export function updatePolicy(policy: Policy, doc: StudioDoc, report: Report, outcomes: ReadonlyMap<string, Outcome>, maxTurns?: number): { policy: Policy; out: Record<string, unknown> } {
-  const p: Policy = { ...policy, last: { ...policy.last }, rounds: { ...policy.rounds } };
-  const score = scoreOf(doc, report.failures);
-  if (!p.best || report.summary.pass > p.best.pass || report.summary.pass === p.best.pass && score > p.best.score) p.best = { hash: report.model_hash, pass: report.summary.pass, score, doc };
+  const sameSuite = !policy.best || sameRequirementSuite(policy.best.doc, doc);
+  const previous = sameSuite ? policy.best : undefined;
+  const requirements = doc.requirements ?? [];
+  const uniqueIds = new Set(requirements.map(r => r.id)).size === requirements.length;
+  const hardFulfilled = uniqueIds && requirements.every(r => !r.hard || outcomes.get(r.id)?.status === 'pass');
+  const pass = report.summary.pass, score = scoreOf(doc, report.failures);
+  const best = !previous || previous.hardFulfilled === undefined || (hardFulfilled === previous.hardFulfilled
+    ? pass > previous.pass || pass === previous.pass && score > previous.score
+    : hardFulfilled) ? { hash: report.model_hash, pass, score, doc, hardFulfilled } : previous;
+  const p: Policy = { ...policy, best, last: sameSuite ? { ...policy.last } : {}, rounds: sameSuite ? { ...policy.rounds } : {} };
   for (const f of report.failures) {
     const d = Math.abs(f.delta ?? Infinity), was = p.last[f.req_id];
     p.rounds[f.req_id] = was !== undefined && !(d < was - 1e-9) ? (p.rounds[f.req_id] ?? 0) + 1 : 0;
@@ -362,10 +379,11 @@ export function updatePolicy(policy: Policy, doc: StudioDoc, report: Report, out
   for (const id of Object.keys(p.rounds)) if (!report.failures.some(f => f.req_id === id)) { delete p.rounds[id]; delete p.last[id]; }
   p.passedHard = (doc.requirements ?? []).filter(r => r.hard && outcomes.get(r.id)?.status === 'pass').map(r => r.id);
   const stuck = Object.entries(p.rounds).filter(([, n]) => n >= 2).map(([id]) => id);
+  const bestStatus = best.hardFulfilled ? 'hard requirements fulfilled' : 'hard requirements unmet or unknown';
   return { policy: p, out: {
-    best: { model_hash: p.best.hash, pass: p.best.pass, this_is_best: p.best.hash === report.model_hash },
+    best: { model_hash: best.hash, pass: best.pass, this_is_best: sameRecoveryInputs(best.doc, doc), hard_fulfilled: best.hardFulfilled === true },
     ...(Object.keys(p.rounds).length ? { rounds_without_progress: p.rounds } : {}),
-    ...(stuck.length ? { hint: `no progress on ${stuck.join(', ')} for 2 rounds: start again from the brief, these checks and the best snapshot (${p.best.hash}), rather than patching further` } : {}),
+    ...(stuck.length ? { hint: `no progress on ${stuck.join(', ')} for 2 rounds: start again from the brief, these checks and the best snapshot (${best.hash}, ${bestStatus}), rather than patching further` } : {}),
     tool_calls: p.calls, ...(maxTurns ? { turns_budget: maxTurns } : {}),
   } };
 }
