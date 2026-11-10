@@ -188,7 +188,7 @@ function readObject(directory: string, ref: NativeRef): Uint8Array {
   try {
     const bytes = readFileSync(join(directory, 'native', ref.sha256 + '.bcad'));
     if (sha256Hex(bytes) !== ref.sha256) issue('RUN_CORRUPT', 'The accepted native file digest differs.');
-    return bytes;
+    return new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   } catch (error) {
     if (error instanceof RunStoreError) throw error;
     return issue('RUN_CORRUPT', messageOf(error));

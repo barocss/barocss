@@ -1,23 +1,25 @@
 import { closeSync, constants, fstatSync, openSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
+import { readStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
 import { decodeCandidateReview, encodeCandidateReview, MAX_TASK_CANDIDATE_BYTES, readCandidateReview,
   TASK_CANDIDATE_EXT, type CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
-import { openModel, writeAtomic } from '../cadDoc';
+import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
+import { deriveLocalRunPlan, localRunPlanInputs } from './localPlan';
 import { candidateReviewFor, TaskRunStore, type RunLimits, type RunRecord } from './store';
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
 interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm: Record<string, number> }
-const HELP = 'cad-cli task-run <start dir config.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+const HELP = 'cad-cli task-run <plan source.bcad occurrenceA occurrenceB | start dir config.json | start dir --plan plan.json | status dir | work dir operation task height | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
@@ -39,11 +41,11 @@ async function operator(challenge: string) {
   } finally { terminal.close(); }
 }
 
-function readDecisionReview(file: string): CandidateReviewReceipt {
+function readLocalFile(file: string, limit: number, label: string) {
   const fd = openSync(file, constants.O_RDONLY | constants.O_NONBLOCK);
   try {
     const stat = fstatSync(fd);
-    if (!stat.isFile() || stat.size > MAX_TASK_CANDIDATE_BYTES) throw new Error('Expected a local candidate review file within the supported size.');
+    if (!stat.isFile() || stat.size > limit) throw new Error(`Expected a local ${label} file within the supported size.`);
     const bytes = Buffer.alloc(stat.size + 1);
     let size = 0;
     while (size < bytes.length) {
@@ -51,11 +53,50 @@ function readDecisionReview(file: string): CandidateReviewReceipt {
       if (!count) break;
       size += count;
     }
-    if (size !== stat.size) throw new Error('The worker candidate review changed while reading.');
-    const review = decodeCandidateReview(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, size)));
-    if ('error' in review) throw new Error(review.error);
-    return review;
+    if (size !== stat.size) throw new Error(`The ${label} changed while reading.`);
+    return new Uint8Array(bytes.buffer, bytes.byteOffset, size);
   } finally { closeSync(fd); }
+}
+
+function readDecisionReview(file: string): CandidateReviewReceipt {
+  const bytes = readLocalFile(file, MAX_TASK_CANDIDATE_BYTES, 'candidate review');
+  const review = decodeCandidateReview(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  if ('error' in review) throw new Error(review.error);
+  return review;
+}
+
+async function localPlan(sourcePath: string, occurrences: readonly string[], expectedSHA256?: string) {
+  const why = notLocalModel(sourcePath);
+  if (why) throw new Error(why);
+  const source = resolve(sourcePath), bytes = readLocalFile(source, 16 * 1024 * 1024, 'native plan source');
+  const sourceSHA256 = sha256Hex(bytes);
+  if (expectedSHA256 !== undefined && expectedSHA256 !== sourceSHA256)
+    throw new Error('The native source bytes changed. Generate and review a new plan.');
+  const model = await readStudioFile(bytes);
+  if ('error' in model) throw new Error(model.error);
+  if (model.notes.length) throw new Error('Save the native source in Studio before planning: ' + model.notes.join(', '));
+  return { doc: model.doc, plan: deriveLocalRunPlan(model.doc, source, sourceSHA256, occurrences) };
+}
+
+async function readStart(args: readonly string[]) {
+  if (args.length === 2 && args[0] === '--plan') {
+    const bytes = readLocalFile(args[1], 128 * 1024, 'local run plan');
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    const inputs = localRunPlanInputs(value);
+    const { doc, plan } = await localPlan(inputs.source, inputs.occurrences, inputs.sourceSHA256);
+    if (canonical(plan) !== canonical(value)) throw new Error('The plan differs from the authored source and local run limits. Generate and review it again.');
+    return { doc, config: plan, tasks: plan.targets.map(target => ({ id: target.id, height: target.heightMm })) };
+  }
+  if (args.length !== 1 || args[0] === '--plan') throw new Error(HELP);
+  const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
+  const source = await openModel(config.source);
+  if ('error' in source) throw new Error(source.error);
+  const tasks = config.plan.tasks.map(task => {
+    const height = config.heightsMm[task.id];
+    if (!Number.isFinite(height) || height <= 0) throw new Error(`Expected a positive height for ${task.id}.`);
+    return { id: task.id, height };
+  });
+  return { doc: source.doc, config, tasks };
 }
 
 function requireMatchingReview(review: CandidateReviewReceipt, current: CandidateReviewReceipt) {
@@ -90,7 +131,7 @@ function status(record: RunRecord) {
 export async function taskRunMain(argv: readonly string[], io: Io): Promise<number> {
   const [command, directory, ...args] = argv;
   const print = (value: unknown) => io.stdout.write(JSON.stringify(value) + '\n');
-  if (!directory || !['start', 'status', 'work', 'refresh', 'export', 'review', 'decide', 'pause', 'resume', 'stop', 'policy', 'answer'].includes(command)) {
+  if (!directory || !['plan', 'start', 'status', 'work', 'refresh', 'export', 'review', 'decide', 'pause', 'resume', 'stop', 'policy', 'answer'].includes(command)) {
     io.stderr.write(HELP + '\n');
     return 2;
   }
@@ -98,17 +139,14 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
   const evaluate = async (doc: StudioDoc) => evaluatePart(doc, ++revision);
   const worker = new URL('./taskRunWorker.mjs', import.meta.url);
   try {
+    if (command === 'plan') {
+      if (args.length !== 2) throw new Error(HELP);
+      print((await localPlan(directory, args)).plan);
+      return 0;
+    }
     if (command === 'start') {
-      if (args.length !== 1) throw new Error(HELP);
-      const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
-      const source = await openModel(config.source);
-      if ('error' in source) throw new Error(source.error);
-      const tasks = config.plan.tasks.map(task => {
-        const height = config.heightsMm[task.id];
-        if (!Number.isFinite(height) || height <= 0) throw new Error(`Expected a positive height for ${task.id}.`);
-        return { id: task.id, height };
-      });
-      host = await TaskRunHost.create(directory, config.name, source.doc, config.plan, config.limits, config.budget, evaluate);
+      const { doc, config, tasks } = await readStart(args);
+      host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate);
       const active = host;
       const run = ({ id, height }: typeof tasks[number]) => active.dispatch('initial:' + id, id, threadWorker(worker, height), 'height-mm:' + height);
       const outcomes = config.limits.concurrent === 2 ? await Promise.all(tasks.map(run)) : [await run(tasks[0]), await run(tasks[1])];

@@ -1,0 +1,264 @@
+{
+  "decision": "D616",
+  "tier": "FULL interface",
+  "baseCommit": "10c202c1e67639cce312867b74f5bbc6f45fb7b1",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d616-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label>; gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio and real CLI",
+      "result": "PASS",
+      "command": "D616_SOURCE_FROZEN=1 node test/task-run-delivery-browser.mjs \"$EVIDENCE/desktop\" --plan",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "91cbeed08d8a3a8ecc3996bf362f1c151e3210a784daed66c355c741ae4f2346",
+      "pinnedSources": 780,
+      "states": [
+        "base-review",
+        "lid-review",
+        "both-tasks-approved",
+        "working-lid-fails-at-5mm",
+        "working-edit-with-historical-approval",
+        "reopened-working-output"
+      ],
+      "visualReview": "PASS",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "browserDownloads": 0,
+      "sourceSHA256": "75ebf243a529b9fd1755dcd31b76a57f1a495d5d1d072015b0a82202543ca8cd",
+      "planSHA256": "8e772630aabd5d5876c593adf3b5ba257c74001beb03873ef658c4c10dc82e63",
+      "specRevision": "0df7c0030a7cfb4749059c10f698e3a6c5d6a12905b645a54ec2673e4109ffb4",
+      "targets": [
+        {
+          "id": "p1",
+          "requirementId": "height",
+          "currentHeightMm": 5,
+          "heightMm": 6,
+          "toleranceMm": 0.001
+        },
+        {
+          "id": "p2",
+          "requirementId": "height",
+          "currentHeightMm": 3,
+          "heightMm": 4,
+          "toleranceMm": 0.001
+        }
+      ],
+      "staleSourceRefusedBeforeWriter": true,
+      "delivery": {
+        "commits": [
+          "p1",
+          "p2"
+        ],
+        "priorLidRefused": true,
+        "firstApprovedSHA256": "1e0d315e4c48a71324c7ae357453ad24ad0f76960ee90251ff6e32a83f25538c",
+        "finalApprovedSHA256": "babc698560f8e2e39def01ca6a21c6d31b90fb173129e8567a59d441f2306952",
+        "editedSHA256": "b840e69f97c406c6554ba10f84054c194e8e54192ab1268e8f43a33b1364ad13",
+        "meshSHA256": "35c25680550241481dbeab35b4a03a1c3d0eaafc12130b31e501131f66cb3e63",
+        "stages": [
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "basePins": [
+          "8dc9314097a678ef59f9be87bd273242b846ec5140b0241b64e53521c948661b",
+          "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3"
+        ],
+        "lidPins": [
+          "ea153840609355e34a6a39b0800790ba3b41cc23a41a0d90a642ec04212de3c3",
+          "2012fe3845c2114d0df15eb44bd952e3141e8527acf958a749e6b040dca95a1f"
+        ],
+        "originalNativeFilesUnchanged": true,
+        "workerStoreUnchangedByStudio": true
+      },
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "log": "desktop.log",
+      "logSHA256": "259963ff4ea1b3e280a4da3ab31b0fef4952882eeaba74eb6d92dca36e464084"
+    },
+    {
+      "label": "Independent 3MF ZIP, XML and geometry",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop/task-run-delivery-oracle.py\" < \"$EVIDENCE/desktop/delivery-oracle-oracle-input.json\"",
+      "scriptSHA256": "7b384aeee1d01bf126fda6732d234c2bc1d0075891a349dd043a219d8bc3bff7",
+      "stdoutSHA256": "f2855d014d23a82486ca02b1df5e59c69642951be207a24001fa8c1fd613125b",
+      "measurements": {
+        "status": "PASS",
+        "unit": "millimeter",
+        "closedMeshObjects": {
+          "Base": {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              20,
+              10,
+              6
+            ],
+            "volumeMm3": 1200,
+            "triangles": 12
+          },
+          "Lid": {
+            "min": [
+              45,
+              0,
+              0
+            ],
+            "max": [
+              57,
+              8,
+              5
+            ],
+            "volumeMm3": 480,
+            "triangles": 12
+          }
+        }
+      }
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run document-file cad-cli three-mf-export-ownership",
+      "passCount": 59,
+      "failCount": 0,
+      "packedRunReopen": "PASS",
+      "log": "studio-suite.log",
+      "logSHA256": "b2dff0708477491b59f05d4c1c5554f2f416216f4382dbe2b337a0d5f71c6789"
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-plan task-execution",
+      "passCount": 14,
+      "failCount": 0,
+      "log": "model-suite.log",
+      "logSHA256": "6d5762ba7ea4d59908dec02658843b6c6f573f0a7d04f59e814e9eefa764e092"
+    },
+    {
+      "label": "Model types after final test edit",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+      "log": "model-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Studio types",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit",
+      "log": "studio-tsc.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <explicit changed .ts paths>",
+      "errors": 0,
+      "warnings": 0,
+      "log": "eslint.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Isolated regression overlays",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "7f359f0e2ea11c103eff672f440558df26edfa53b5b7c9dba23b44a076165d31",
+      "variants": {
+        "baseline": "PASS",
+        "ignore-exact-source": "KILLED",
+        "ignore-plan-rederivation": "KILLED",
+        "ignore-other-height-check": "KILLED",
+        "allow-no-op": "KILLED",
+        "reopen-packed-with-buffer": "KILLED"
+      },
+      "log": "mutations.log",
+      "logSHA256": "8cd68ca1cd9fc8fb191cbe810fec096ba971b3edac2d867f9a274d9845f36062"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+      "existingWarning": "Rolldown module-level use client directive",
+      "log": "studio-build.log",
+      "logSHA256": "83189c4edde25f761d3bae6c39460e8e0423a35e77bd5b1a47370f0b5b24a0df"
+    },
+    {
+      "label": "Browser driver syntax",
+      "result": "PASS",
+      "command": "node --check apps/cad-studio/test/task-run-delivery-browser.mjs",
+      "log": "browser-syntax.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "Diff whitespace",
+      "result": "PASS",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initialFailures": [
+    {
+      "result": "FAIL",
+      "check": "Initial focused test bundle",
+      "command": "pnpm --dir apps/cad-studio test task-run-local-plan",
+      "cause": "The new test misspelled the Model blob import.",
+      "logSHA256": "b0447db95245172c6cd5f709b010ebaf35c5e8a72d1685a2fc165a41c8aee39a"
+    }
+  ],
+  "review": {
+    "code": "APPROVE",
+    "architecture": "CLEAR",
+    "resolved": [
+      "Use plain Uint8Array for packed input and reopen",
+      "Refuse a target that equals the current extrusion before dispatch"
+    ]
+  },
+  "artifacts": {
+    "seed.bcad": "75ebf243a529b9fd1755dcd31b76a57f1a495d5d1d072015b0a82202543ca8cd",
+    "config.json": "8e772630aabd5d5876c593adf3b5ba257c74001beb03873ef658c4c10dc82e63",
+    "base.bcad-candidate": "d60493840ec9a06ba889be0efba8a5705f463fbca37ef4be43eab69ab0d2c1a1",
+    "lid.bcad-candidate": "0b4e01f672de223c6e2034fdb9bda6861b67df61e67cae3ae11e195f5848bc0e",
+    "base.bcad-run": "1c5faa7f7822fecee6eb6d231428fafef5f0ba1b836fb5ac1b9aa2d73e91338b",
+    "housing.bcad-run": "58105c8452bd2d44dbf00f61a01469464dbb397ae8136403cb1ee64ed8ce4dee",
+    "saved-housing.bcad": "b840e69f97c406c6554ba10f84054c194e8e54192ab1268e8f43a33b1364ad13",
+    "housing.3mf": "35c25680550241481dbeab35b4a03a1c3d0eaafc12130b31e501131f66cb3e63",
+    "base-review.png": "52315a11ad96997cc5ea0e84ed4f6d6231a8e257defe4b4cdd2c257fd65c9161",
+    "lid-review.png": "ee44b171e8f545e30437357f38cb11cbc6b6058ac98d68b4233758b228d77d59",
+    "reopened-working-output.png": "d84336c4075d96137cd1521d9e69d1596a76e8ea0ab4e0484e45b5dbdbbb4afb"
+  },
+  "notRun": [
+    "Active packed mesh evaluation",
+    "Live AI providers",
+    "Other task families",
+    "Mobile",
+    "Whole suites"
+  ],
+  "issues": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  },
+  "progress": {
+    "B09v1AcceptedGroups": "9/9",
+    "initialAcceptedScenarios": "4/10",
+    "wholeCadAndCore": "NOT_MEASURED"
+  }
+}

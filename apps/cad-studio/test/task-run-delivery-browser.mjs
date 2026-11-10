@@ -5,8 +5,11 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || mode === '--plan');
+const planned = mode === '--plan';
+const tasks = planned ? { base: 'p1', lid: 'p2' } : { base: 'base', lid: 'lid' };
 await mkdir(output);
 const pins = [
   'apps/cad-studio/test/task-run-delivery-browser.mjs',
@@ -15,7 +18,7 @@ const pins = [
   'apps/cad-studio/scripts/cad-cli.mjs',
   'apps/cad-studio/server/cadCli.ts',
   'apps/cad-studio/server/cadDoc.ts',
-  ...['cli', 'store', 'host', 'thread', 'workerEntry'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
+  ...['cli', 'store', 'host', 'thread', 'workerEntry', 'localPlan'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
   ...['team/taskPlan', 'team/taskExecution', 'versions/approvedRequirements', 'print/export3mf', 'print/threemf']
     .map(name => `packages/barocss-cad-model/src/${name}.ts`),
 ];
@@ -73,16 +76,17 @@ assert set(measurements) == set(expected)
 print(json.dumps({'status': 'PASS', 'unit': root.get('unit'), 'closedMeshObjects': measurements}))
 `;
 const f = await createFlow({
-  name: 'task-run-delivery', envFrozen: 'D615_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, oracleSource,
+  name: 'task-run-delivery', envFrozen: planned ? 'D616_SOURCE_FROZEN' : 'D615_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins, oracleSource,
   inspectorSource: `import { fixtureDoc, fixturePlan, fixtureLimits } from './test/task-run-fixture';
 console.log(JSON.stringify({ doc: fixtureDoc(), plan: fixturePlan, limits: fixtureLimits }));`,
-  qualification: 'Two reviewed local worker tasks through editable Studio delivery and independent 3MF readback',
+  qualification: planned ? 'Derive a local run from Studio Save and deliver both stated height changes' :
+    'Two reviewed local worker tasks through editable Studio delivery and independent 3MF readback',
   limits: ['Two independent top-level extrusion-height tasks and one user edit. Controlled local workers.',
     'The 3MF bytes are captured at Studio’s export boundary before Chrome writes a download. The independent ZIP/XML reader checks the two placed prisms.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = 'D615 worker delivery';
+const project = planned ? 'D616 planned delivery' : 'D615 worker delivery';
 const argv = () => [process.execPath, join(f.app, 'scripts/cad-cli.mjs'), 'task-run'];
 const run = join(output, 'run'), recordFile = join(run, 'run.json');
 const record = async () => JSON.parse(await readFile(recordFile, 'utf8')).record;
@@ -97,7 +101,7 @@ async function cli(label, args, failure) {
 }
 async function approve(task, file, receipt) {
   const result = spawnSync('python3', ['-I', join(f.app, 'test/fixtures/task-run-terminal.py'),
-    'approve ' + receipt.candidateDigest.slice(0, 12), '{}', ...argv(), 'decide', run, 'approve-' + task, task, 'approve', '--review', file],
+    'approve ' + receipt.candidateDigest.slice(0, 12), '{}', ...argv(), 'decide', run, 'approve-' + task, tasks[task], 'approve', '--review', file],
     { cwd: f.app, encoding: 'utf8', timeout: 90000 });
   await writeFile(join(output, task + '-approval.stdout.jsonl'), result.stdout ?? '');
   await writeFile(join(output, task + '-approval.stderr.txt'), result.stderr ?? '');
@@ -119,7 +123,7 @@ async function bounds(p1, p2) {
 async function reviewTask(task, file, receipt, baseline, before, after) {
   await open(task + '.bcad-candidate', await readFile(file));
   const review = panel().getByRole('region', { name: 'Worker candidate review', exact: true });
-  await review.getByText(`Task ${task} · ${receipt.scope.occurrence}/n1`, { exact: true }).waitFor();
+  await review.getByText(`Task ${tasks[task]} · ${receipt.scope.occurrence}/n1`, { exact: true }).waitFor();
   await review.getByText(receipt.attemptId, { exact: true }).waitFor();
   await review.getByText(receipt.candidateDigest.slice(0, 12), { exact: true }).waitFor();
   await review.getByText(`Height · ${before} mm → ${after} mm`, { exact: true }).waitFor();
@@ -152,13 +156,13 @@ async function openProject() {
   await panel().getByRole('button', { name: 'Project in this browser', exact: true }).click();
   await panel().getByLabel('Project', { exact: true }).waitFor();
 }
-async function projectFile() {
-  return Buffer.from(await f.page.evaluate(async name => {
+async function projectFile(fileName = 'housing.bcad') {
+  return Buffer.from(await f.page.evaluate(async ({ project, fileName }) => {
     const root = await navigator.storage.getDirectory();
-    const directory = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(name);
-    const file = await (await directory.getFileHandle('housing.bcad')).getFile();
+    const directory = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(project);
+    const file = await (await directory.getFileHandle(fileName)).getFile();
     return [...new Uint8Array(await file.arrayBuffer())];
-  }, project));
+  }, { project, fileName }));
 }
 
 await f.run(async () => {
@@ -175,31 +179,60 @@ await f.run(async () => {
 
   f.phase = 'start two local workers and review base in Studio';
   const fixture = await f.inspect('fixture', {}), source = join(output, 'seed.bcad'), config = join(output, 'config.json');
-  await writeFile(source, JSON.stringify(fixture.doc));
-  await writeFile(config, JSON.stringify({ ...fixture, source, name: 'editable-delivery', budget: 8, heightsMm: { base: 6, lid: 4 } }));
-  const started = await cli('start', ['start', run, config]), initial = await record();
+  let startArgs, savedSource;
+  if (planned) {
+    f.phase = 'save the source from Studio and derive its reviewed local run plan';
+    await f.newPage();
+    await open('seed.bcad', Buffer.from(JSON.stringify(fixture.doc)));
+    await f.same(fixture.doc);
+    await openProject();
+    await button('Save').click();
+    await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText('seed.bcad', { exact: true }).waitFor();
+    savedSource = await projectFile('seed.bcad');
+    await writeFile(source, savedSource);
+    const proposal = await cli('derived-plan', ['plan', source, tasks.base, tasks.lid]);
+    assert.equal(proposal.sourceSHA256, sha256(savedSource));
+    assert.deepEqual(proposal.targets.map(t => [t.id, t.requirementId, t.currentHeightMm, t.heightMm, t.toleranceMm]),
+      [['p1', 'height', 5, 6, 0.001], ['p2', 'height', 3, 4, 0.001]]);
+    await writeFile(config, await readFile(join(output, 'derived-plan.stdout.json')));
+    await writeFile(source, Buffer.concat([savedSource, Buffer.from('\n')]));
+    startArgs = ['start', run, '--plan', config];
+    await cli('stale-plan-refused', startArgs, /native source bytes changed/);
+    await assert.rejects(readdir(run), { code: 'ENOENT' });
+    await writeFile(source, savedSource);
+    f.report.observations.push({ plan: proposal, planSHA256: sha256(await readFile(config)), staleSourceRefusedBeforeWriter: true });
+    f.phase = 'start the reviewed plan and preview both authored heights';
+  } else {
+    await writeFile(source, JSON.stringify(fixture.doc));
+    await writeFile(config, JSON.stringify({ ...fixture, source, name: 'editable-delivery', budget: 8, heightsMm: { base: 6, lid: 4 } }));
+    startArgs = ['start', run, config];
+  }
+  const started = await cli('start', startArgs), initial = await record();
   assert.deepEqual(started.tasks.map(task => task.phase), ['awaiting-decision', 'awaiting-decision']);
+  if (planned) assert.equal(initial.state.specRevision, f.report.observations[0].plan.specRevision);
   const baselineBytes = await native(initial.accepted), baseline = JSON.parse(baselineBytes);
   const baseFile = join(output, 'base.bcad-candidate'), staleFile = join(output, 'lid-original.bcad-candidate');
-  const { candidateReview: base } = await cli('base-export', ['review', run, 'base', baseFile]);
-  const { candidateReview: stale } = await cli('lid-original-export', ['review', run, 'lid', staleFile]);
+  const { candidateReview: base } = await cli('base-export', ['review', run, tasks.base, baseFile]);
+  const { candidateReview: stale } = await cli('lid-original-export', ['review', run, tasks.lid, staleFile]);
   assert.deepEqual(base.baseline, initial.accepted);
   assert.deepEqual(stale.baseline, initial.accepted);
-  await f.newPage();
-  await open('seed.bcad', baselineBytes);
+  if (!planned) {
+    await f.newPage();
+    await open('seed.bcad', baselineBytes);
+    await button('Project and versions').click();
+  } else assert.deepEqual(baselineBytes, savedSource);
   await f.same(baseline);
-  await button('Project and versions').click();
   await reviewTask('base', baseFile, base, baseline, 5, 6);
   await approve('base', baseFile, base);
 
   f.phase = 'open first approval and refresh lid against its exact accepted file';
   const first = await record(), baseBytes = await native(first.accepted), approvedBase = JSON.parse(baseBytes);
-  assert.deepEqual(first.commits.map(commit => commit.taskId), ['base']);
+  assert.deepEqual(first.commits.map(commit => commit.taskId), [tasks.base]);
   assert.deepEqual(first.commits[0].from, initial.accepted);
   assert.deepEqual(approvedBase.instances[1], baseline.instances[1]);
   assert.equal(first.state.tasks[1].phase, 'stale');
   const firstRecord = await readFile(recordFile), firstEntries = (await readdir(run)).sort();
-  await cli('old-lid-refused', ['decide', run, 'old-lid', 'lid', 'approve', '--review', staleFile], /No current candidate/);
+  await cli('old-lid-refused', ['decide', run, 'old-lid', tasks.lid, 'approve', '--review', staleFile], /No current candidate/);
   assert.deepEqual(await readFile(recordFile), firstRecord);
   assert.deepEqual((await readdir(run)).sort(), firstEntries);
   const baseCheckpointFile = join(output, 'base.bcad-run');
@@ -208,9 +241,9 @@ await f.run(async () => {
   await f.same(approvedBase);
   const basePins = await checkApproval(baseCheckpoint, approvedBase, 5, 6);
   await f.dismissToasts();
-  await cli('lid-refresh', ['refresh', run, 'refresh-lid', 'lid']);
+  await cli('lid-refresh', ['refresh', run, 'refresh-lid', tasks.lid]);
   const lidFile = join(output, 'lid.bcad-candidate');
-  const { candidateReview: lid } = await cli('lid-export', ['review', run, 'lid', lidFile]);
+  const { candidateReview: lid } = await cli('lid-export', ['review', run, tasks.lid, lidFile]);
   assert.deepEqual(lid.baseline, first.accepted);
   assert.notEqual(lid.attemptId, stale.attemptId);
   assert.notEqual(lid.submission.specRevision, stale.submission.specRevision);
@@ -219,7 +252,7 @@ await f.run(async () => {
 
   f.phase = 'open both approvals and edit the working lid in place';
   const final = await record(), finalRecord = await readFile(recordFile), finalEntries = (await readdir(run)).sort();
-  assert.deepEqual(final.commits.map(commit => commit.taskId), ['base', 'lid']);
+  assert.deepEqual(final.commits.map(commit => commit.taskId), [tasks.base, tasks.lid]);
   assert.deepEqual(final.commits[0], first.commits[0]);
   assert.deepEqual(final.commits[1].from, first.accepted);
   assert.deepEqual(final.commits[1].to, final.accepted);
@@ -258,7 +291,8 @@ await f.run(async () => {
   await editing.waitFor({ state: 'hidden' });
   await f.same(edited);
   await bounds(6, 5);
-  await openProject();
+  if (!planned) await openProject();
+  else await button('Project and versions').click();
   assert.deepEqual(await checkApproval(finalCheckpoint, approved, 3, 4), lidPins);
   await f.snapshot('working-edit-with-historical-approval');
 
@@ -302,6 +336,10 @@ await f.run(async () => {
   assert.deepEqual(await native(first.accepted), baseBytes);
   assert.deepEqual(await native(final.accepted), approvedBytes);
   assert.deepEqual(await projectFile(), saved);
+  if (planned) {
+    assert.deepEqual(await projectFile('seed.bcad'), savedSource);
+    assert.deepEqual(await readFile(source), savedSource);
+  }
   assert.deepEqual(f.report.downloads, []);
   await f.snapshot('reopened-working-output');
   f.report.observations.push({ commits: final.commits.map(commit => commit.taskId), priorLidRefused: true,
