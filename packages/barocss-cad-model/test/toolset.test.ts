@@ -168,3 +168,17 @@ test('O105b pass-through: names a user chose that are not handlers\' come back u
   assert.equal(v2Text('my_bracket_v2, set_material_x, xset_material and set_materials'), 'my_bracket_v2, set_material_x, xset_material and set_materials');
   assert.equal(v2Text('a part named add_part'), 'a part named assembly.add_part', 'the known limit, pinned');
 });
+
+test('D705 formats only generated assembly guidance and preserves assembly data', () => {
+  const row = { id: 'check_spec', name: 'A place_part plate', body_keys: ['check_spec'],
+    note: 'use get_assembly', joints_note: 'set with place_part',
+    parts_inside: [{ path: 'check_spec/check_spec', name: 'A get_assembly plate' }] };
+  const data = { base: { id: 'base' }, instances: [row], note: 'use get_assembly',
+    mates: [{ id: 'place_part', a: { part: 'check_spec' }, b: { part: 'check_spec/check_spec' } }],
+    problems: ['The check_spec part is hidden'] };
+  assert.deepEqual(JSON.parse(v2Result(JSON.stringify(data), 'get_assembly')), {
+    ...data, note: 'use assembly.get', instances: [{ ...row, note: 'use assembly.get', joints_note: 'set with assembly.place' }],
+  });
+  const refusal = JSON.stringify({ ok: false, error: 'No part "check_spec".' });
+  assert.equal(v2Result(refusal, 'get_assembly'), refusal);
+});

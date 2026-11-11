@@ -7,7 +7,7 @@ import { dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/t
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { serveMcp } from '../server/cadMcp';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
-import { fixtureDoc } from './task-run-fixture';
+import { assemblyIdentityDoc, fixtureDoc } from './task-run-fixture';
 
 const occurrences = ['p1', 'p2'];
 const call = { action: 'plan_tasks', occurrences };
@@ -105,5 +105,56 @@ test('D617 MCP preserves authored IDs in both formats and does not write the pla
     await served;
     output.end();
     lines.close();
+  }
+});
+
+test('D705 MCP plans against each ID exactly as discovered, including a distinct literal action name', async () => {
+  for (const collision of [false, true]) {
+    const doc = assemblyIdentityDoc(collision ? 'collision' : 'single');
+    const input = new PassThrough(), output = new PassThrough(), lines = createInterface({ input: output });
+    const replies = lines[Symbol.asyncIterator]();
+    const served = serveMcp({
+      open: async () => ({ doc, changed: false, version: 0 }),
+      save: () => { assert.fail('Discovery and planning cannot write state'); },
+    }, input, output);
+    let id = 0;
+    const callTool = async (name: string, args: Record<string, unknown>) => {
+      input.write(JSON.stringify({ jsonrpc: '2.0', id: ++id, method: 'tools/call', params: { name, arguments: args } }) + '\n');
+      const reply = await replies.next();
+      assert.equal(reply.done, false);
+      const { result } = JSON.parse(reply.value);
+      assert.equal(result.isError, false, result.content[0].text);
+      const body = JSON.parse(result.content[0].text);
+      if (name === 'requirements') assert.deepEqual(result.structuredContent, body);
+      return body;
+    };
+    try {
+      const discovery = await callTool('assembly', { action: 'get' });
+      const ids = discovery.instances.map((instance: { id: string }) => instance.id);
+      const occurrences = collision ? ids.slice(0, 3) : ids;
+      const report = await callTool('requirements', { action: 'plan_tasks', occurrences });
+      assert.equal(report.status, 'ready', JSON.stringify(report));
+      const expected = collision ? ['check_spec', 'p2', 'requirements.check'] : ['check_spec', 'p2'];
+      assert.deepEqual(report.tasks, expected.map(occurrence => ({ occurrence, feature: 'n1', field: 'height' })));
+      assert.deepEqual(report.targets, [
+        { id: 'check_spec', requirementId: 'set_requirements', currentHeightMm: 5, heightMm: 6, toleranceMm: 0.001 },
+        { id: 'p2', requirementId: 'height', currentHeightMm: 3, heightMm: 4, toleranceMm: 0.001 },
+        ...(collision ? [{ id: 'requirements.check', requirementId: 'get_assembly', currentHeightMm: 2, heightMm: 9, toleranceMm: 0.001 }] : []),
+      ]);
+      if (collision) {
+        const nested = discovery.instances[3].parts_inside[0].path;
+        const detail = await callTool('assembly', { action: 'get', faces_of: nested });
+        assert.ok(detail.instances[3].faces.some((face: { name: string }) => face.name === 'n1.top'));
+        const refused = await callTool('requirements', { action: 'plan_tasks', occurrences: [nested, 'p2'] });
+        assert.equal(refused.status, 'blocked');
+        assert.deepEqual(refused.tasks, []);
+        assert.equal(refused.issues[0].code, 'BAD_TASK');
+      }
+    } finally {
+      input.end();
+      await served;
+      output.end();
+      lines.close();
+    }
   }
 });

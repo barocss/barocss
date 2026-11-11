@@ -63,6 +63,29 @@ export function threeOccurrenceDoc(): StudioDoc {
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });
   return doc;
 }
+export function assemblyIdentityDoc(kind: 'single' | 'collision' | 'substitution' = 'single'): StudioDoc {
+  const doc = fixtureDoc();
+  const [base, lid] = doc.instances!;
+  base.id = 'check_spec';
+  base.name = 'Base check_spec';
+  base.doc.requirements![0].id = 'set_requirements';
+  if (kind === 'single') return doc;
+  if (kind === 'substitution') {
+    base.doc.requirements![0].check.value = 5;
+    lid.doc.requirements![0].check.value = 3;
+  }
+
+  const literal = { ...base, id: 'requirements.check', name: 'Distinct literal', position: [80, 0, 0] as [number, number, number], doc: plate(8, 7, 2, 9) };
+  literal.doc.requirements![0].id = 'get_assembly';
+  const nested = { ...base, position: [0, 0, 0] as [number, number, number], doc: rectanglePart(20, 10, 5) };
+  doc.instances!.push(literal, {
+    id: 'sub', name: 'Subassembly', position: [45, 20, 0], rotation: [0, 0, 0],
+    doc: { ...emptyDoc(), instances: [nested] },
+  });
+  doc.mates = [{ id: 'place_part', kind: 'coincident',
+    a: { part: 'base', face: 'origin:xy' }, b: { part: 'sub/check_spec', face: 'n1.bottom' }, flip: true }];
+  return doc;
+}
 export function singleRepairDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances![0].doc = plate(20, 10, 6, 6);

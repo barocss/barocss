@@ -36,6 +36,14 @@ test('the MCP server: the v2 contract, 13 tools, v2 calls, structured results fo
   const mass = (await request('tools/call', { name: 'query', arguments: { action: 'mass' } })).result!;
   assert.equal(mass.isError, false); assert.deepEqual(mass.structuredContent, JSON.parse(mass.content[0].text));
   assert.deepEqual(validate(outputSchemaOf('mass_properties')!, mass.structuredContent), []);
+  const assembly = (await request('tools/call', { name: 'assembly', arguments: { action: 'get' } })).result!;
+  assert.equal(assembly.isError, false);
+  assert.deepEqual(assembly.structuredContent, JSON.parse(assembly.content[0].text));
+  assert.deepEqual(validate(outputSchemaOf('get_assembly')!, assembly.structuredContent), []);
+  assert.match(assembly.structuredContent.note, /assembly\.get/);
+  const invalidAssembly = (await request('tools/call', { name: 'assembly', arguments: { action: 'get', extra: true } })).result!;
+  assert.equal(invalidAssembly.isError, true);
+  assert.match(invalidAssembly.content[0].text, /assembly\.get takes no/);
   const old = await request('tools/call', { name: 'mass_properties', arguments: {} });
   assert.equal(old.error?.code, -32602, 'a handler\'s name is not a tool'); assert.equal(old.result, undefined);
   const edit = (await request('tools/call', { name: 'features', arguments: { action: 'edit', index: 1, values: { h: 12 } } })).result!;

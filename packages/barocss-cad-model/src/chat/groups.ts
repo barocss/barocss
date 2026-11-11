@@ -187,9 +187,25 @@ export function v2Value(v: unknown): unknown {
   if (call) { out.tool = call[0]; out.args = call[1]; }
   return out;
 }
-/** A tool result's text as a v2 caller reads it: JSON through v2Value, other text through v2Text. */
-export function v2Result(text: string): string {
+function translateNotes(record: unknown, fields: readonly string[]): void {
+  if (!isRecord(record)) return;
+  for (const field of fields) {
+    const note = record[field];
+    if (typeof note === 'string') record[field] = v2Text(note);
+  }
+}
+
+/** A tool result as a v2 caller reads it. Assembly discovery translates only its generated guidance. */
+export function v2Result(text: string, handler?: string): string {
   let parsed: unknown;
   try { parsed = JSON.parse(text); } catch { return v2Text(text); }
+  if (handler === 'get_assembly') {
+    // A refusal names literal occurrences too. Argument diagnostics already name the public action.
+    if (!isRecord(parsed) || !Array.isArray(parsed.instances)) return text;
+    translateNotes(parsed, ['note']);
+    translateNotes(parsed.base, ['note']);
+    for (const part of parsed.instances) translateNotes(part, ['note', 'joints_note', 'looks_note']);
+    return JSON.stringify(parsed);
+  }
   return JSON.stringify(v2Value(parsed));
 }

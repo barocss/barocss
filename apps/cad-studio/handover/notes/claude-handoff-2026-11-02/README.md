@@ -345,7 +345,9 @@ D703 keeps Delete, Backspace and Undo from changing the Model while shortcut hel
 
 D704 requalifies H12 on current Auto and Section producers. B06 is qualified at 6/7 with PDF held. [D704](../h12-section-detail-current-2026-11-11/README.md).
 
-Next MAIN is D705 / P3 B05, rows 04 and 10. Verify that the existing requirements planner receives the literal occurrence ID returned by `assembly.get`. [#2427](https://github.com/barocss/barocss/issues/2427).
+D705 qualifies exact occurrence discovery and read-only planning in Studio Chat and external MCP. [D705](../assembly-occurrence-agent-identity-2026-11-11/README.md).
+
+Next MAIN is D706 / P0 B05, rows 10 and 16. Reuse D575 and D581. Check the remaining current-BOM project reopen and saved CSV readback for [#2356](https://github.com/barocss/barocss/issues/2356).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at six of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

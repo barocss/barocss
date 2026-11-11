@@ -73,7 +73,9 @@ Finite closeout is one source-linked two-sheet drawing and one declared exchange
 
 ## P3 — Static assembly workflows
 
-D705 checks the read-to-plan ownership of literal occurrence IDs through the existing public agent tools. [#2427](https://github.com/barocss/barocss/issues/2427)
+[D705](../notes/assembly-occurrence-agent-identity-2026-11-11/README.md) qualifies literal occurrence IDs, nested paths and mate references through public assembly discovery and read-only local planning. [#2427](https://github.com/barocss/barocss/issues/2427).
+
+D706 / P0 B05, rows 10 and 16. Reuse D575 and D581. Check the remaining current-BOM project reopen and saved CSV readback for [#2356](https://github.com/barocss/barocss/issues/2356).
 
 Row [10](../roadmap-rows/10.md), with file/reference dependencies in rows 12/16. Model/assembly owns occurrence identity, placements and mates; Studio owns selection and linked revision acceptance; drawing/BOM consumers own their current source binding. Motion and Physics activation are not part of static assembly.
 
