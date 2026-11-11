@@ -36,3 +36,32 @@ test('STEP declared unsupported SI length prefixes are typed refusals even besid
   assert.deepEqual(stepLengthUnit(angle), { name: 'millimetres', to: 1, declared: false });
   assert.deepEqual(stepLengthUnit(angle + mm), { name: 'millimetres', to: 1, declared: true });
 });
+
+test('an unsupported STEP conversion length name cannot fall through to any supported declaration', () => {
+  const mm = '#10=(LENGTH_UNIT() NAMED_UNIT(*) SI_UNIT(.MILLI.,.METRE.));';
+  const inch = "#12=(CONVERSION_BASED_UNIT('INCH',#5) LENGTH_UNIT() NAMED_UNIT(#3));";
+  for (const [name, expected] of [['CUSTOM_INCH', 'CUSTOM_INCH'], ["custom''s unit", "custom's unit"], ['constructor', 'constructor'], ['', '(empty name)']]) {
+    const unknown = "#13=( length_unit ( /**/ ) named_unit(#3) conversion_based_unit ( '" + name + "', #999 ) );";
+    for (const text of [unknown, mm + unknown, unknown + mm, inch + unknown, unknown + inch, mm + inch + unknown]) {
+      assert.throws(() => stepLengthUnit(text), error => isRefusal(error, 'NOT_READ') &&
+        /unsupported conversion-based length unit/.test(error.message) && error.message.includes(expected));
+    }
+  }
+});
+
+test('STEP length selection ignores fake unit statements and angle or nested components', () => {
+  const mm = '#10=(LENGTH_UNIT() NAMED_UNIT(*) SI_UNIT(.MILLI.,.METRE.));';
+  const fake = [
+    "/* ; #21=(LENGTH_UNIT() CONVERSION_BASED_UNIT('FAKE',#99)); */",
+    "#22=PRODUCT('test; #23=(LENGTH_UNIT() CONVERSION_BASED_UNIT(''FAKE'',#99)); /*', $);",
+    "#24=(CONVERSION_BASED_UNIT('LENGTH_UNIT(); CUSTOM_ANGLE',#99) PLANE_ANGLE_UNIT() NAMED_UNIT(#3));",
+    "#25=(CONVERSION_BASED_UNIT('FAKE',#99) NAMED_UNIT(LENGTH_UNIT()) OTHER_LENGTH_UNIT());",
+    '#26=(PLANE_ANGLE_UNIT() NAMED_UNIT(*) SI_UNIT(.NANO.,.METRE.));',
+  ].join('\n');
+  assert.deepEqual(stepLengthUnit(fake), { name: 'millimetres', to: 1, declared: false });
+  assert.deepEqual(stepLengthUnit(fake + mm), { name: 'millimetres', to: 1, declared: true });
+  const mixed = "#27=(conversion_based_unit /* ; */ ('  InCh  ',#5) LENGTH_UNIT() NAMED_UNIT(#3));";
+  for (const text of [fake + mixed, fake + mm + mixed, mixed + mm + fake]) {
+    assert.deepEqual(stepLengthUnit(text), { name: 'inches', to: 25.4, declared: true });
+  }
+});

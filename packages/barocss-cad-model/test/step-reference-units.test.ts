@@ -45,3 +45,38 @@ test('supported STEP references keep exact source text and physical scale throug
     assert.deepEqual(opened.doc, accepted); assert.deepEqual(ref, before);
   }
 });
+
+test('unsupported STEP length conversion preserves an accepted reference and blocks evaluation', async () => {
+  const base = block(), step = exportStudioStep(base, { name: 'unit block' }).text;
+  const basis = /(#\d+)=\(LENGTH_UNIT\(\)NAMED_UNIT\(\*\)SI_UNIT\(\.MILLI\.,\.METRE\.\)\);/.exec(step)?.[1];
+  assert.ok(basis);
+  const inch = step.replace('GLOBAL_UNIT_ASSIGNED_CONTEXT((' + basis + ',', 'GLOBAL_UNIT_ASSIGNED_CONTEXT((#9002,')
+    .replace(/\nENDSEC;\s*END-ISO-10303-21;/, '\n#9000=DIMENSIONAL_EXPONENTS(1.,0.,0.,0.,0.,0.,0.);\n' +
+      '#9001=LENGTH_MEASURE_WITH_UNIT(LENGTH_MEASURE(25.4),' + basis + ");\n" +
+      "#9002=(CONVERSION_BASED_UNIT('INCH',#9001) LENGTH_UNIT() NAMED_UNIT(#9000));\nENDSEC;\nEND-ISO-10303-21;");
+  const custom = inch.replace("'INCH'", "'CUSTOM_INCH'"), customRef = reference(custom);
+  assert.notEqual(custom, inch);
+  const acceptedRef = reference(inch);
+  const doc = { ...base, references: { version: 1 as const, references: [acceptedRef], datums: [], keepouts: [] } };
+  const part = evaluatePart(base, 1);
+  assert.ok(part.ok);
+  const state: ChatState = { doc, bodies: part.bodies }, before = structuredClone(state);
+  let evaluations = 0;
+  const evaluateRead = (incoming: typeof base) => { evaluations++; return evaluate(incoming); };
+  await assert.rejects(referenceLocal(customRef, evaluateRead), error => isRefusal(error, 'NOT_READ') && /CUSTOM_INCH/.test(error.message));
+  const rejected = await dispatchTool(state, 'add_reference', { name: 'custom box', step: custom }, evaluateRead);
+  assert.equal(rejected.isError, true);
+  assert.match(rejected.content, /NOT_READ.*CUSTOM_INCH/);
+  assert.equal(evaluations, 0);
+  assert.deepEqual(rejected.state, before);
+  assert.deepEqual(state, before);
+  assert.deepEqual(customRef.source, { step: custom });
+
+  const local = await referenceLocal(acceptedRef, evaluateRead);
+  assert.equal(local.length, 1);
+  assert.ok(Math.abs(local[0].volume! - 24 * 25.4 ** 3) < 1e-7);
+  const recovered = await dispatchTool(state, 'add_reference', { name: 'mm box', step }, evaluateRead);
+  assert.equal(recovered.isError, false);
+  assert.deepEqual(recovered.state.doc.references?.references.map(item => item.source), [{ step: inch }, { step }]);
+  assert.deepEqual(state, before);
+});
