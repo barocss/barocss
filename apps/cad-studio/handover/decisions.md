@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D713 — keep bodies behind the perspective eye out of box selection](notes/perspective-box-selection-depth-2026-11-11/README.md).
 - [D712 — require a native bore wall for hole-diameter checks](notes/native-bore-diameter-requirement-2026-11-11/README.md).
 - [D711 — verify Render image delivery order and lifecycle](notes/render-image-delivery-lifecycle-2026-11-11/README.md).
 - [D710 — verify per-body Render images and their native file](notes/render-body-image-native-file-2026-11-11/README.md).

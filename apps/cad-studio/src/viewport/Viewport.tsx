@@ -12,7 +12,7 @@ import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import { modelFitArea } from './modelFitArea';
 import type { FrameCost } from './frameCost';
-import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera } from '@barocss/cad-model/engine/render';
@@ -80,7 +80,6 @@ export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R
 interface Props extends ViewportPointerProps {
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
-  camActive?: boolean;
   annotationSelected?: string | null;
   /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
   displayMode?: DisplayMode;
@@ -137,8 +136,6 @@ interface Props extends ViewportPointerProps {
   instances?: InstanceItem[];
   /** Instances shown moved (posed by the joints, exploded) by a matrix each (column-major 4 × 4), the rest as placed (G1). */
   instanceTransforms?: ReadonlyMap<string, Float64Array>;
-  /** The section's clip plane on the GPU (G2): kept where dot(normal, p) ≥ offset; the part's bodies cut too, or only the placed parts. */
-  clip?: SectionClip | null;
   /** The hatch on the cut as lines (G19.3): WebGL2's clipped caps, the exact section's cut faces. */
   sectionHatch?: SectionHatch | null;
   /** Analysis maps on the bodies (G6), and the value under the pointer as it moves over them (null off them). */

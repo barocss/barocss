@@ -15,12 +15,13 @@ import { respline, splineEditError, splineOutline, type SplineDef } from '@baroc
 import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { pickCage, type CageHit } from '@barocss/cad-model/subd/cageEdit';
+import { bodyEntirelyBehindEye } from './boxSelectionDepth';
 import type { OrbitCamera } from './camera';
 import { ellipseClick, type EllipseDraft } from './ellipseDraft';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { pmiPick } from './pmiGeometry';
 import type { PrintDisplay } from './printDisplay';
-import type { EdgeRef, FaceRef, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, SectionClip, ViewRenderer, ViewState } from './renderer';
 import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
@@ -31,6 +32,9 @@ export interface ViewportPointerProps {
   /** Bed-frame print display, separate from the authored/native document. */
   printDisplay?: PrintDisplay | null;
   printActive?: boolean;
+  camActive?: boolean;
+  /** G2: the section's clip plane keeps dot(normal, p) ≥ offset on native bodies or placed parts. */
+  clip?: SectionClip | null;
   /** G24: the drawing's annotations on the model (model-annotations-v1 items), the one picked, and a pick's callback. */
   annotations?: readonly ModelAnnotation[] | null;
   onPickAnnotation?(id: string): void;
@@ -733,26 +737,29 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const c = canvas.current!; const w = c.clientWidth, h = c.clientHeight;
     const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
     const crossing = x1 < x0; const picked: number[] = [];
-    propsRef.current.bodies.forEach((b, i) => {
-      if (propsRef.current.printActive && propsRef.current.hiddenBodies?.has(i)) return;
+    const p = propsRef.current, cam = camera.current;
+    const basis = !cam.ortho && !p.printActive && !p.camActive && !p.clip && !p.render ? cam.basis() : null;
+    p.bodies.forEach((b, i) => {
+      if (p.printActive && p.hiddenBodies?.has(i)) return;
       const P = b.mesh.positions; let inside = 0, total = 0;
-      if (propsRef.current.printActive) {
+      if (p.printActive) {
         // G19 can retain unused original vertices; only the displayed triangles can enter this box.
         for (const index of new Set(b.mesh.indices)) {
-          const k = index * 3, q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
+          const k = index * 3, q = cam.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
           if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
         }
         if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
         return;
       }
+      if (basis && bodyEntirelyBehindEye(b.mesh, basis.eye, basis.forward)) return;
       const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
       for (let k = 0; k < P.length; k += step) {
-        const q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
+        const q = cam.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
         if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
       }
       if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
     });
-    propsRef.current.onBoxSelect(picked, additive);
+    p.onBoxSelect(picked, additive);
   };
 
   const onWheel = (e: WheelEvent<HTMLCanvasElement>) => {
