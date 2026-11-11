@@ -2,10 +2,11 @@
 // the right — in a "More tools" menu, so a narrow window never clips a control or scrolls the page sideways. The
 // shapes strip gives way first: the tray counts it at its least (its More button alone), so the tray folds only when
 // even that leaves no room. The room is measured again whenever the bar or one of its children changes size.
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cloneElement, isValidElement, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
+import { TemplatePicker } from './TemplatePicker';
 
 /** A tool's width (the tray adds its own gap between them, the bar's spacing). */
 const TOOL = 30, SHAPE = 31;
@@ -27,25 +28,41 @@ function fitting(tray: HTMLElement, count: number): number {
   return all >= count ? count : Math.max(0, all - 1);
 }
 
+type ToolProps = { hidden?: boolean; disabled?: boolean; 'aria-label'?: string; inOverflow?: boolean };
+
 export function ToolsTray({ items }: { items: readonly ReactNode[] }) {
+  const tools = items.filter((item): item is ReactElement<ToolProps> => isValidElement<ToolProps>(item) && !item.props.hidden);
   const ref = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState(items.length), [open, setOpen] = useState(false);
+  const [fit, setFit] = useState(tools.length), [open, setOpen] = useState(false);
   useLayoutEffect(() => {
     const tray = ref.current, bar = tray?.parentElement; if (!tray || !bar) return;
-    const measure = () => setFit(fitting(tray, items.length));
+    const measure = () => setFit(fitting(tray, tools.length));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(bar); for (const el of Array.from(bar.children)) if (el !== tray) ro.observe(el);
     return () => ro.disconnect();
-  }, [items.length]);
-  const rest = items.slice(fit);
+  }, [tools.length]);
+  const rest = tools.slice(fit);
   return <div className="tools-tray" role="toolbar" aria-label="Tools bar" ref={ref}>
-    {items.slice(0, fit)}
+    {tools.slice(0, fit)}
     {rest.length > 0 && <span className="tools-more-anchor">
-      {/* (G12f: shadcn's DropdownMenu, in place — Radix's dismissal: a click outside, Escape; a pick closes it, but Templates, whose own menu opens inside it.) */}
       <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
-        <DropdownMenuTrigger asChild><ToolIconButton state={open ? 'on' : 'idle'} aria-label="More tools" data-tip="More tools" data-tip-desc={`${rest.length} more`}><Icon name="more_vert" /></ToolIconButton></DropdownMenuTrigger>
-        <DropdownMenuContent portal={false} className="card tools-more min-w-0 p-2" aria-label="More tools" align="end" onClick={e => { if (!(e.target as HTMLElement).closest('.tpl-anchor')) setOpen(false); }}>{rest}</DropdownMenuContent>
+        <DropdownMenuTrigger asChild>
+          <ToolIconButton state={open ? 'on' : 'idle'} aria-label="More tools" data-tip="More tools"
+            data-tip-desc={`${rest.length} more`} onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') event.stopPropagation();
+            }}>
+            <Icon name="more_vert" />
+          </ToolIconButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent portal={false} className="card tools-more min-w-0 p-2 has-[.templates]:overflow-visible"
+          aria-label="More tools" align="end" loop onKeyDown={event => event.stopPropagation()}
+          onEscapeKeyDown={event => event.stopPropagation()}>
+          {rest.map(item => item.type === TemplatePicker ? cloneElement(item, { inOverflow: true })
+            : <DropdownMenuItem key={item.key} asChild className="p-0" disabled={item.props.disabled} textValue={item.props['aria-label']}>
+              {item}
+            </DropdownMenuItem>)}
+        </DropdownMenuContent>
       </DropdownMenu>
     </span>}
   </div>;

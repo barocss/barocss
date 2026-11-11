@@ -1,6 +1,7 @@
-import type { Dispatch, SetStateAction } from 'react';
+import { useEffect, useLayoutEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 import { prefixDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Icon } from './atoms';
 import { BUILT_IN, fontTemplateProblem, removeTemplate, saveTemplate, savedTemplates } from '../app/templates';
 import { ROBOT_SAMPLES, robotSampleFile } from '../app/samples';
 interface TemplatePickerProps {
+  inOverflow?: boolean;
   doc: StudioDoc;
   state: { templatesOpen: boolean; setTemplatesOpen: Dispatch<SetStateAction<boolean>>; templateName: string; setTemplateName: Dispatch<SetStateAction<string>> };
   onTemplate(doc: StudioDoc): void;
@@ -15,10 +17,27 @@ interface TemplatePickerProps {
   open(file: File): Promise<void>;
   onNotice(notice: FriendlyError): void;
 }
-export function TemplatePicker({ doc, state, onTemplate, fitLater, open, onNotice: setToast }: TemplatePickerProps) {
+export function TemplatePicker({ doc, state, onTemplate, fitLater, open, onNotice: setToast, inOverflow }: TemplatePickerProps) {
   const { templatesOpen, setTemplatesOpen, templateName, setTemplateName } = state;
-  return           <span className="tpl-anchor"><ToolIconButton state={templatesOpen ? 'on' : 'idle'} aria-label="New from a template" data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template" onClick={() => setTemplatesOpen(v => !v)}><Icon name="library_add" /></ToolIconButton>
-          {templatesOpen && <div className="card templates" role="menu" aria-label="Templates">
+  const panel = useRef<HTMLDivElement>(null), focusOnOpen = useRef(false);
+  useEffect(() => {
+    if (inOverflow) return () => setTemplatesOpen(false);
+  }, [inOverflow, setTemplatesOpen]);
+  useLayoutEffect(() => {
+    if (templatesOpen && inOverflow && focusOnOpen.current) {
+      focusOnOpen.current = false;
+      panel.current?.querySelector<HTMLElement>('button[role="menuitem"]:not([disabled])')?.focus();
+    }
+  }, [templatesOpen, inOverflow]);
+  const button = <ToolIconButton state={templatesOpen ? 'on' : 'idle'} aria-label="New from a template" aria-haspopup="menu"
+    aria-expanded={templatesOpen} data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template"
+    onClick={event => { focusOnOpen.current = event.detail === 0; setTemplatesOpen(value => !value); }}>
+    <Icon name="library_add" />
+  </ToolIconButton>;
+  return <span className="tpl-anchor">
+          {inOverflow ? <DropdownMenuItem asChild className="p-0" textValue="New from a template" onSelect={event => event.preventDefault()}>{button}</DropdownMenuItem> : button}
+          {templatesOpen && <div ref={panel} className="card templates" role="menu" aria-label="Templates"
+            onKeyDown={inOverflow ? event => event.stopPropagation() : undefined}>
             <div className="card-title">NEW FROM A TEMPLATE</div>
             {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
               <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { onTemplate({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setTemplatesOpen(false); fitLater(); }}>{t.name}</Button>
