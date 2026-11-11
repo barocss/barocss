@@ -2386,7 +2386,7 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.bcad-task,.bcad-run,.bcad-candidate,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport ref={viewport} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
+      <SceneViewport ref={viewport} onProjectionChange={setOrtho} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
         poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced: viewportPlacements, cpuInstanceSection }} liveSection={sectionLiveView}
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
@@ -2460,7 +2460,7 @@ export function App() {
       <ViewDisplayControls model={{ doc, bodies, instancesPlaced }} viewport={viewport} cornerRight={cornerRight}
         display={{ displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason, displayModeReason, displayModeNotice,
           clearDisplayModeFailure: () => setDisplayModeFailure(null), isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection }}
-        view={{ ortho, setOrtho, ao, setAo, theme, setTheme, rendering, printing: !!printing, viewBackend }}
+        view={{ ortho, ao, setAo, theme, setTheme, rendering, printing: !!printing, viewBackend }}
         section={{ section, setSection, sectionHatchOn, setSectionHatchOn, sectionBox, sectionFacePick, setSectionFacePick, sketchSection, cameraEye }}
         analysis={{ analysis, setAnalysis, mapKind, setMapKind, mapLegend, mapHover, setMapHover, mouldResult, mouldSpread, setMouldSpread }}
         picking={{ pickFilter, setPickFilter, snapStep, setSnapStep, setSelection }} explodeStore={explodeStore} />

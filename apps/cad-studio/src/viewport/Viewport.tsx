@@ -93,6 +93,7 @@ interface Props extends ViewportPointerProps {
   /** Reports backend capability failures to the existing application controls. */
   onDisplayModeStatus?(status: DisplayModeStatus): void;
   onRecoveryNotice?(notice: ViewportRecoveryNotice): void;
+  onProjectionChange?(orthographic: boolean): void;
   /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
   onBackend?(backend: 'webgpu' | 'webgl2'): void;
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
@@ -354,6 +355,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const [printError, setPrintError] = useState<string | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  const setOrthographic = (orthographic: boolean) => {
+    const c = camera.current;
+    if (c.ortho === orthographic) return;
+    c.ortho = orthographic;
+    propsRef.current.onProjectionChange?.(orthographic);
+  };
   const focusPick = useRef<((focus: number | null) => void) | null>(null);
   const [pickingFocus, setPickingFocus] = useState(false);
   const finishFocusPick = (focus: number | null) => {
@@ -483,7 +490,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         if (box) { c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); printCamera.current.summary = sourceProps.printDisplay.summaryKey; }
       }
     } else if (printCamera.current) {
-      const old = printCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; printCamera.current = null;
+      const old = printCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; setOrthographic(old.ortho); printCamera.current = null;
     }
     request();
   }, [sourceProps.printActive, sourceProps.printDisplay?.summaryKey, backend]);
@@ -501,7 +508,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); camCamera.current.key = camKey;
       }
     } else if (camCamera.current) {
-      const old = camCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; camCamera.current = null;
+      const old = camCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; setOrthographic(old.ortho); camCamera.current = null;
     }
     request();
   }, [props.camActive, camKey, backend]);
@@ -707,7 +714,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);
       camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
     },
-    toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
+    toggleOrtho() { setOrthographic(!camera.current.ortho); request(); return camera.current.ortho; },
     getDisplayModeStatus() {
       const status = renderer.current?.getDisplayModeStatus?.() ?? null;
       return instanceDisplayStatus(status, renderer.current, !!propsRef.current.instances?.length);
@@ -732,7 +739,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       return () => { if (focusPick.current === done) finishFocusPick(null); };
     },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
-    setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
+    setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; setOrthographic(v.ortho); request(); },
     get backend() { return backend; },
     overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
     overlayTexts() { return renderer.current?.overlayTexts?.() ?? {}; },

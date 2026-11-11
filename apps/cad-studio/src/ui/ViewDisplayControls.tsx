@@ -1,4 +1,4 @@
-import { Profiler, type ComponentProps, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { Profiler, type ComponentProps, type Dispatch, type KeyboardEvent, type RefObject, type SetStateAction } from 'react';
 import { Button } from '@/components/ui/button';
 import { fmt, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -6,7 +6,7 @@ import type { Selection } from '@barocss/cad-model/app/commands';
 import { CAD_DISPLAY_MODES, emptySel } from '../app/studioConstants';
 import { onBlockRender } from '../devRenders';
 import type { ViewportHandle } from '../viewport/Viewport';
-import type { DisplayMode } from '../viewport/renderer';
+import { lineDisplayMode, type DisplayMode } from '../viewport/renderer';
 import { axisSection, type Section } from '../viewport/sectionView';
 import type { MapKind, ScalarMap } from '../viewport/scalarMaps';
 import type { ValueStore } from '../state/valueStore';
@@ -20,6 +20,10 @@ type SectionProps = ComponentProps<typeof SectionBar>;
 type AnalysisMode = 'zebra' | 'curvature' | 'overhang' | null;
 type AnalysisMap = MapKind | 'parting' | 'halves' | null;
 type PickFilter = 'all' | 'face' | 'edge' | 'body';
+
+function keepViewToggleKeys(event: KeyboardEvent<HTMLButtonElement>) {
+  if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+}
 
 export interface ViewDisplayState {
   displayOpen: boolean;
@@ -39,7 +43,6 @@ export interface ViewDisplayState {
 
 export interface ViewCameraControls {
   ortho: boolean;
-  setOrtho: StateSetter<boolean>;
   ao: boolean;
   setAo: StateSetter<boolean>;
   theme: 'dark' | 'light';
@@ -99,7 +102,8 @@ export function ViewDisplayControls({ model, viewport, cornerRight, display, vie
   const { doc, bodies, instancesPlaced } = model;
   const { displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason,
     displayModeReason, displayModeNotice, clearDisplayModeFailure, isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection } = display;
-  const { ortho, setOrtho, ao, setAo, theme, setTheme, rendering, printing, viewBackend } = view;
+  const { ortho, ao, setAo, theme, setTheme, rendering, printing, viewBackend } = view;
+  const aoAvailable = !lineDisplayMode(effectiveDisplayMode), aoActive = aoAvailable && ao;
   const { section, setSection, sectionHatchOn, setSectionHatchOn, sectionBox, sectionFacePick, setSectionFacePick, sketchSection, cameraEye } = sectionState;
   const { analysis, setAnalysis, mapKind, setMapKind, mapLegend, mapHover, setMapHover, mouldResult, mouldSpread, setMouldSpread } = analysisState;
   const { pickFilter, setPickFilter, snapStep, setSnapStep, setSelection } = picking;
@@ -138,8 +142,12 @@ export function ViewDisplayControls({ model, viewport, cornerRight, display, vie
             onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSectionFacePick(null); setSection(axisSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' })); }}>
             <Icon name="cad-split" small /></Button>
 
-          <Button size="sm" variant={ortho ? 'default' : 'ghost'} onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</Button>
-          <Button size="sm" variant={ao ? 'default' : 'ghost'} onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</Button>
+          <Button size="sm" variant={ortho ? 'default' : 'ghost'} aria-pressed={ortho} className={ortho ? 'on' : ''}
+            onKeyDown={keepViewToggleKeys} onClick={() => viewport.current?.toggleOrtho()}>Ortho</Button>
+          {(!rendering || viewBackend === 'webgl2') && <Button size="sm" variant={aoActive ? 'default' : 'ghost'}
+            aria-pressed={aoActive} disabled={!aoAvailable} className={aoActive ? 'on' : ''}
+            title={aoAvailable ? 'Ambient occlusion' : 'Ambient occlusion requires a shaded view'}
+            onKeyDown={keepViewToggleKeys} onClick={() => setAo(v => !v)}>AO</Button>}
           {!rendering && <Button size="sm" variant={analysis ? 'default' : 'ghost'} aria-label="Surface analysis" className={analysis ? 'on' : ''} data-tip={analysis === 'zebra' ? 'Zebra stripes' : analysis === 'curvature' ? 'Curvature map' : 'Surface analysis'}
             data-tip-desc="Click: zebra stripes (a bend or break in a stripe is a joint that is not smooth), then the curvature map (flat blue, tight red), then — for a printing process — the overhang map (red past its limit), then off"
             onClick={() => setAnalysis(a => a === null ? 'zebra' : a === 'zebra' ? 'curvature' : a === 'curvature' && printing ? 'overhang' : null)}>{analysis === 'zebra' ? 'Zebra' : analysis === 'curvature' ? 'Curv' : analysis === 'overhang' ? 'Overhang' : 'Analyse'}</Button>}

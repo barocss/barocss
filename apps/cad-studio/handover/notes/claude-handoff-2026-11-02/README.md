@@ -279,7 +279,9 @@ D670 carries the current approval requirement into state-backed CAD MCP. Direct 
 
 D671 exposes all ViewCube directions to keyboard users. Desktop Studio verified keyboard focus and direction changes, pointer selection and drag orbit at two sizes. [D671](../studio-view-cube-keyboard-2026-11-11/README.md).
 
-Next MAIN is D672 / P4, row 21. Verify and expose the Ortho and AO toggle states. Check keyboard activation and the resulting viewport state.
+D672 synchronizes Ortho and AO with the live viewport. Desktop Studio verified keyboard toggles, line-only AO, a saved Render camera and Print preview restoration. [D672](../studio-view-toggle-state-2026-11-11/README.md).
+
+Next MAIN is D673 / P4, row 21. Reproduce the duplicate Studio Chat startup instructions. Keep one action for each unavailable-server state and verify the running-server control.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
