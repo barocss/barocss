@@ -40,7 +40,7 @@ A second desktop Chrome/WebGPU audit used an independent copy at `0c374f4e0aeb6f
 
 | ID | Boundary and owner | Required acceptance |
 | --- | --- | --- |
-| R17 | Studio shortcut focus ownership, rows 16 and 21 | With a committed Box, append a character to the filename and press the native Undo shortcut. Only the text edit must revert. CAD geometry and both history stacks must stay intact. With New part focused, Space must activate the button. Verify normal CAD Undo/Redo and Space palette from the workspace. [D684 PASS](../notes/studio-shortcut-focus-2026-11-11/README.md). |
+| R17 | Studio shortcut focus ownership, rows 16 and 21 | With a committed Box, append a character to the filename and press the native Undo shortcut. Only the text edit must revert. CAD geometry and both history stacks must stay intact. With New part focused, Space must activate the button. Verify normal CAD Undo/Redo and Space palette from the workspace. [D684 PASS](../notes/studio-shortcut-focus-2026-11-11/README.md). D703 checks whether Model commands reach the document while Keyboard and mouse help owns focus. Source-inspected, Studio NOT_RUN. |
 | R18 | Feature draft through workspace changes, rows 12, 16 and 21 | Enter Box width 48 mm, switch to Drawing and return to Model. Preserve the draft and its values until Apply or an explicit discard. Preserve input focus when the user stays. Keep the existing sketch transition behavior. [D686 PASS](../notes/studio-feature-mode-exit-2026-11-11/README.md). |
 
 ## Source and retained evidence

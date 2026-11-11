@@ -9,7 +9,7 @@ import { projectViews } from '../src/drawing/project';
 import { holeCallout } from '../src/drawing/callout';
 import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { autoLayout } from '../src/drawing/layout';
-import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
+import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, applySuggestion, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
 import { sheetDxfDocument } from '../src/io/dxf';
 import { sheetPdf, pdfMissing } from '../src/io/pdf';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
@@ -95,6 +95,54 @@ test('suggestions are never applied by themselves; a mode switch only changes wh
   // A note the user wrote with the same opening is not suggested again.
   const own = { ...pm, notes: [{ id: 'n1', text: `${GENERAL_NOTE_PREFIX}: ±0.1`, at: [20, 150] as [number, number] }] };
   assert.ok(!toleranceSuggestions(issueContext(inputsOf(doc, own))).some(x => x.kind === 'general-note'));
+});
+
+test('general tolerance acceptance keeps its explicit source units in every drawing display profile', () => {
+  const own = { id: 'n1', text: 'REFERENCE ONLY · LINEAR ±0.2', at: [25, 35] as [number, number] };
+  const initial: DrawingSettings = { ...defaultDrawing(), sheet: 'A3', scale: 1, notes: [own] };
+  const inputs = inputsOf(rectanglePart(25.4, 12.7, 6.35), initial);
+  const note = 'UNLESS OTHERWISE STATED:\nLINEAR ±0.2 mm · ANGULAR ±0.5°';
+  for (const units of [undefined, 'inch'] as const) for (const dual of [undefined, true] as const) {
+    for (const tolerancing of [undefined, 'geometric'] as const) for (const digits of [undefined, 0, 2, 6]) {
+      const settings = readDrawing({ ...initial, units, dual, tolerancing, ...(digits === undefined ? {} : { precision: { mm: digits, inch: digits } }) });
+      const before = structuredClone(settings), i = { ...inputs, settings };
+      const general = toleranceSuggestions(issueContext(i)).find(s => s.kind === 'general-note');
+      assert.ok(general?.change.kind === 'note' && general.estimate);
+      assert.match(general.message, /linear ±0\.2 mm, angular ±0\.5°/);
+      assert.match(general.basis, /not from a standard/);
+      assert.equal(general.change.text, note);
+      const direct = applySuggestion(settings, general), all = acceptAll(i).settings;
+      for (const accepted of [direct, all]) {
+        const saved = readDrawing(JSON.parse(JSON.stringify(accepted)));
+        assert.deepEqual(saved.notes, accepted.notes);
+        assert.equal(saved.notes?.length, 2);
+        assert.deepEqual(saved.notes?.[0], own);
+        assert.equal(saved.notes?.[1]?.id, 'n2');
+        assert.equal(saved.notes?.[1]?.text, note);
+        assert.deepEqual(saved.dimensions, settings.dimensions);
+        assert.equal(saved.units, settings.units);
+        assert.equal(saved.dual, settings.dual);
+        assert.deepEqual(saved.precision, settings.precision);
+        assert.ok(!toleranceSuggestions(issueContext({ ...i, settings: saved })).some(s => s.kind === 'general-note'));
+      }
+      assert.deepEqual(settings, before);
+    }
+  }
+});
+
+test('loading or changing drawing units leaves legacy and handwritten tolerance notes literal', () => {
+  const original = [
+    { id: 'n1', text: 'UNLESS OTHERWISE STATED:\nLINEAR ±0.2 · ANGULAR ±0.5°', at: [25, 35] },
+    { id: 'n2', text: 'UNLESS OTHERWISE STATED: SHOP RULE ±0.15 po', at: [25, 50] },
+  ];
+  const inputs = inputsOf(rectanglePart(25.4, 12.7, 6.35), defaultDrawing());
+  for (const units of [undefined, 'inch']) {
+    const settings = readDrawing({ ...inputs.settings, units, dual: true, notes: original });
+    assert.deepEqual(settings.notes, original);
+    const i = { ...inputs, settings };
+    assert.ok(!toleranceSuggestions(issueContext(i)).some(s => s.kind === 'general-note'));
+    assert.deepEqual(acceptAll(i).settings.notes, original);
+  }
 });
 
 test('datums and frames: saved and read back, drawn in the SVG, PDF and DXF; their issues', () => {

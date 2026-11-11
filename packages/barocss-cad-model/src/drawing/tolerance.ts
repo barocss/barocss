@@ -3,7 +3,7 @@
 // never applied by itself.
 //
 // Either mode:
-//   general note   "UNLESS OTHERWISE STATED: LINEAR ±0.2 · ANGULAR ±0.5°" — an estimate (a common shop default, no standard)
+//   general note   "UNLESS OTHERWISE STATED: LINEAR ±0.2 mm · ANGULAR ±0.5°" — an estimate (a common shop default, no standard)
 // ± mode (`tolerancing` unset or 'plus-minus'):
 //   hole positions ± the value that keeps a hole kind's screws passing, on its location dimensions
 // Geometric mode ('geometric'):
@@ -165,8 +165,9 @@ function datumPlace(ctx: IssueContext, view: ViewId, line: [XY, XY], letter: str
 export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
   const s = ctx.settings, out: ToleranceSuggestion[] = [], geometric = s.tolerancing === 'geometric';
   if (!(s.notes ?? []).some(n => n.text.startsWith(GENERAL_NOTE_PREFIX))) {
-    const [x0, y0] = ctx.layout.title, text = `${GENERAL_NOTE_PREFIX}:\nLINEAR ±${GENERAL_TOLERANCE.linear} · ANGULAR ±${GENERAL_TOLERANCE.angular}°`;
-    out.push({ id: 'general-note', kind: 'general-note', message: `A general tolerance note: linear ±${GENERAL_TOLERANCE.linear} mm, angular ±${GENERAL_TOLERANCE.angular}° where a dimension says nothing.`, basis: GENERAL_TOLERANCE.basis, estimate: true, change: { kind: 'note', text, at: [x0, y0 - 14] } });
+    const linear = `${GENERAL_TOLERANCE.linear} mm`, angular = `${GENERAL_TOLERANCE.angular}°`;
+    const [x0, y0] = ctx.layout.title, text = `${GENERAL_NOTE_PREFIX}:\nLINEAR ±${linear} · ANGULAR ±${angular}`;
+    out.push({ id: 'general-note', kind: 'general-note', message: `A general tolerance note: linear ±${linear}, angular ±${angular} where a dimension says nothing.`, basis: GENERAL_TOLERANCE.basis, estimate: true, change: { kind: 'note', text, at: [x0, y0 - 14] } });
   }
   const kinds = holeKinds(ctx);
   if (!geometric) {

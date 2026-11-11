@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D702](../notes/general-tolerance-note-units-2026-11-11/README.md) keeps the explicit source units on new general tolerance notes. [B06 v1](14-b06-evidence-ledger.md) records five qualified groups, the current H12 check and the PDF hold.
+
 [D701](../notes/detail-annotation-ownership-2026-11-11/README.md) keeps a Detail with referenced dimensions or frames and reserves the letters of unresolved records. Desktop Studio and eight independent SVG reads verify current ownership and safe reuse.
 
 [D700](../notes/axial-thread-visibility-2026-11-11/README.md) applies Hidden lines to fully occluded axial cosmetic threads. Studio and eight independent SVG/DXF pairs verify omitted, hidden and visible marks through history, reopen and a source edit.
