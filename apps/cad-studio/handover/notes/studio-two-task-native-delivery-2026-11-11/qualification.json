@@ -1,0 +1,118 @@
+{
+  "decision": "D644",
+  "tier": "FEATURE qualification",
+  "baseCommit": "69f645c83f623ad0088e7b766ca966bda97ae229",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d644-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio two approvals, sibling rebuild and exact project Save and Open",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D644_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --studio-delivery",
+      "receiptSHA256": "b9dabe448019d6e8d3630d37ace07389969e6fe0c9183d53900ad1a65a8b356f",
+      "pinnedSources": 812,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "studioApprovals": [
+          "p1",
+          "p2"
+        ],
+        "studioRebuilds": 1,
+        "terminalDecisions": 0,
+        "originalHeightsMm": [
+          5,
+          3
+        ],
+        "finalHeightsMm": [
+          6,
+          4
+        ],
+        "originalVerdicts": [
+          "fail",
+          "fail"
+        ],
+        "finalVerdicts": [
+          "pass",
+          "pass"
+        ],
+        "oldP2Attempt": "2:2:p2",
+        "rebuiltP2Attempt": "4:3:p2",
+        "runRevisions": [
+          9,
+          13,
+          16
+        ],
+        "originalEvidenceRevision": "18f9672d1d631f6366697517396310be3ebbbb797dbd618a322d9646b8495728",
+        "finalEvidenceRevision": "007f4b336ee43be84f0bf8487c51309a20c2cd06b45a39ff501178cfdb66b1d9",
+        "sourcePreserved": true,
+        "freshProjectOpen": true
+      }
+    },
+    {
+      "label": "Independent checkpoint ancestry, native bytes and authored geometry reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/delivery-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "65da50f904f525353926b71cf69bbd005beb733c054f3d3a4bdf04a8951cc60b",
+      "resultSHA256": "0b6c27558715fc66fb6b7dfb72c3a98cc504aca42481b3c4392c262404af07ba",
+      "productImports": 0,
+      "originalSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+      "firstSHA256": "9e6a58b9bb494b9b87de7d960328f53eeaa676a1987942d6c9c537541c3367e8",
+      "finalSHA256": "1039cfa0aa2b6d42a39ee52474c1a71a7ab6aae9bd1ad39a16c1e6777a05e6cf",
+      "recordSHA256": "5a5dc04fcb6d9fa708c15c6df11c7899b5e34fcd93fe73725e99519aeb13c2f3",
+      "derivedRectangleVolumesMm3": [
+        1200,
+        384
+      ]
+    },
+    {
+      "label": "Desktop Studio single-approval regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D643_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-approval\" --studio-approval",
+      "receiptSHA256": "c7452e64150aa87611dcf657f42ad0dfbfc5f6dbb71b6c3675f28452c63ae89b",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Live provider execution",
+    "Exchange export",
+    "Production build",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2400": "CLOSED",
+    "2401": "CLOSED",
+    "2402": "OPEN"
+  }
+}

@@ -1,0 +1,148 @@
+import assert from 'node:assert/strict';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { sha256 } from './flow-helper.mjs';
+
+const base = '/api/chat/task-runs/';
+const button = (parent, name) => parent.getByRole('button', { name, exact: true });
+const parts = ['p1', 'p2'];
+
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview }) {
+  const directory = launch.directory, runFile = join(directory, 'run.json');
+  const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  const files = () => versions().getByRole('list', { name: 'Project documents', exact: true });
+  const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
+  const capture = async (action, control) => {
+    const [response] = await Promise.all([
+      f.page.waitForResponse(res => new URL(res.url()).pathname === base + action && res.request().method() === 'POST'),
+      control.click(),
+    ]);
+    assert.equal(response.status(), 200, await response.text());
+    return response;
+  };
+  const bounds = heights => f.page.waitForFunction(expected => {
+    const bounds = window.__studioInstanceBounds?.();
+    return bounds?.length === 2 && expected.every((height, index) => {
+      const part = bounds.find(item => item.id === 'p' + (index + 1));
+      return part && part.max[2] - part.min[2] === height;
+    });
+  }, heights);
+  const openCheckpoint = async (status, name, previous, heights) => {
+    const pin = status.checkpoint, response = await capture('checkpoint', button(row, 'Open approved checkpoint'));
+    assert.deepEqual(response.request().postDataJSON(), { runKey: status.runKey, runId: status.runId, ...pin });
+    const checkpoint = await response.body();
+    assert.equal(checkpoint.subarray(0, 8).toString(), 'BCADRUN1');
+    const headerEnd = 16 + checkpoint.readUInt32LE(8), modelStart = headerEnd + checkpoint.readUInt32LE(12);
+    assert.deepEqual(checkpoint.subarray(headerEnd, modelStart), previous);
+    const native = checkpoint.subarray(modelStart);
+    assert.equal(sha256(native), pin.acceptedSHA256);
+    assert.deepEqual(native, await readFile(join(directory, 'native', pin.acceptedSHA256 + '.bcad')));
+    await f.same(JSON.parse(native));
+    await bounds(heights);
+    await writeFile(join(f.output, name + '.bcad-run'), checkpoint);
+    return native;
+  };
+  const checkHeights = async (label, doc, heights, verdict) => {
+    const { revision, results } = await turn(label, parts.map(part => ({ tool: 'requirements', args: { action: 'evidence', part } })),
+      { requirementEvidence: true });
+    for (const [index, { error, body }] of results.entries()) {
+      const part = parts[index], [artifact] = body.files;
+      assert.equal(error, false, JSON.stringify(body));
+      assert.deepEqual([artifact.path, artifact.bytes, artifact.sha256],
+        ['requirement-evidence.json', Buffer.byteLength(artifact.text), sha256(artifact.text)]);
+      const report = JSON.parse(artifact.text), [item] = report.evidence.filter(row => row.result.kind === 'requirement');
+      assert.deepEqual([report.part, report.revision, report.checker], [part, revision, 'checkSpec']);
+      assert.deepEqual(item.requirement, doc.instances[index].doc.requirements[0]);
+      assert.deepEqual([item.requirement.hard, item.result.subject, item.result.part, item.result.run, item.result.status,
+        item.result.verdict, item.result.number, item.freshness.state], [true, item.requirement.id, part, revision, 'ok', verdict, heights[index], 'current']);
+      await writeFile(join(f.output, label + '-' + part + '.json'), artifact.text);
+    }
+    await f.same(doc);
+    return revision;
+  };
+
+  f.phase = 'check the unchanged source and open the first Studio approval';
+  const originalEvidence = await checkHeights('d644-source', source, [5, 3], 'fail');
+  const first = await openCheckpoint(firstStatus, 'd644-first', saved, [6, 3]);
+  const firstDoc = JSON.parse(first);
+  await f.snapshot('09-first-studio-checkpoint');
+
+  f.phase = 'rebuild p2 from the first approved native model';
+  const rebuild = await capture('rebuild', button(row, 'Rebuild candidate p2'));
+  const rebuilt = await rebuild.json(), oldAttempt = launch.tasks[1].review.attemptId;
+  assert.deepEqual(rebuild.request().postDataJSON(), { runKey: firstStatus.runKey, runId: firstStatus.runId,
+    revision: firstStatus.revision, baselineDigest: firstStatus.baselineDigest, taskId: 'p2', attemptId: oldAttempt });
+  assert.deepEqual(rebuilt.tasks.map(task => task.phase), ['completed', 'awaiting-decision']);
+  assert.deepEqual([rebuilt.baselineDigest, rebuilt.checkpoint, rebuilt.approvals],
+    [firstStatus.baselineDigest, firstStatus.checkpoint, firstStatus.approvals]);
+  const fresh = rebuilt.tasks[1].review;
+  assert.notEqual(fresh.attemptId, oldAttempt);
+  assert.notEqual(fresh.candidateDigest, launch.tasks[1].review.candidateDigest);
+  const heldRecord = JSON.parse(await readFile(runFile)).record;
+  assert.deepEqual(heldRecord.commits, firstRecord.commits);
+  assert.deepEqual(heldRecord.state.tasks[1].attempt.base, firstRecord.accepted);
+  await f.same(firstDoc);
+
+  f.phase = 'approve the rebuilt p2 from its actual Studio preview';
+  const pinned = await readReview('p2', 3, 4);
+  assert.deepEqual([pinned.baselineDigest, pinned.attemptId, pinned.candidateDigest], [firstStatus.baselineDigest, fresh.attemptId, fresh.candidateDigest]);
+  await bounds([6, 4]);
+  await f.same(firstDoc);
+  await f.snapshot('10-second-studio-candidate');
+  const approval = await capture('approve', button(review, 'Approve candidate'));
+  assert.deepEqual(approval.request().postDataJSON(), pinned);
+  const complete = await approval.json();
+  assert.deepEqual(complete.tasks.map(task => task.phase), ['completed', 'completed']);
+  assert.deepEqual(complete.approvals, [firstStatus.checkpoint, complete.checkpoint]);
+  assert.equal(complete.checkpoint.taskId, 'p2');
+  await row.getByText('p2 · completed', { exact: true }).waitFor();
+  await review.waitFor({ state: 'detached' });
+  await f.same(firstDoc);
+  const completedBytes = await readFile(runFile), { record } = JSON.parse(completedBytes);
+  assert.deepEqual(record.commits.map(commit => commit.taskId), parts);
+  assert.deepEqual(record.commits[0], firstRecord.commits[0]);
+  assert.deepEqual(record.commits[1].from, firstRecord.accepted);
+  assert.deepEqual(record.commits[1].to, record.accepted);
+  assert.ok(record.commits.every(commit => commit.operationId.startsWith('studio:approve:')));
+  assert.equal(record.pending, undefined);
+  const native = await openCheckpoint(complete, 'd644-complete', first, [6, 4]), doc = JSON.parse(native);
+  const expected = structuredClone(firstDoc.instances);
+  expected[1].doc.nodes[1].height = 4;
+  assert.deepEqual(doc.instances, expected);
+  await f.snapshot('11-both-studio-approved');
+
+  f.phase = 'save the final native project document without overwriting the source';
+  const name = 'studio-approved-assembly.bcad';
+  await f.page.getByRole('textbox', { name: 'File name', exact: true }).fill('studio-approved-assembly');
+  await button(f.page, 'Save').click();
+  await files().getByText(name, { exact: true }).waitFor();
+  assert.deepEqual(await savedBytes(name), native);
+  assert.deepEqual(await savedBytes(), saved);
+  await writeFile(join(f.output, name), native);
+
+  f.phase = 'reopen the native project document in a fresh page and check both requirements';
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
+  await f.ready();
+  assert.notDeepEqual(await f.doc(), doc);
+  if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
+  await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(versions(), 'Project in this browser').click();
+  await button(files(), 'Open ' + name).click();
+  await f.same(doc);
+  await bounds([6, 4]);
+  const reopened = await f.snapshot('12-fresh-project-open');
+  const reopenedBytes = Buffer.from(JSON.stringify(reopened.doc, null, 2));
+  assert.deepEqual(reopenedBytes, native);
+  await writeFile(join(f.output, 'd644-reopened.bcad'), reopenedBytes);
+  const finalEvidence = await checkHeights('d644-delivered', doc, [6, 4], 'pass');
+  assert.notEqual(finalEvidence, originalEvidence);
+  assert.deepEqual(await savedBytes(), saved);
+  assert.deepEqual(await savedBytes(name), native);
+  assert.deepEqual(await readFile(runFile), completedBytes);
+  await writeFile(join(f.output, 'd644-run.json'), completedBytes);
+  await writeFile(join(f.output, 'd644-delivery.json'), JSON.stringify({ firstStatus, rebuilt, complete, pinned, originalEvidence, finalEvidence }));
+  f.report.observations.push({ studioApprovals: parts, studioRebuilds: 1, terminalDecisions: 0, originalHeightsMm: [5, 3],
+    finalHeightsMm: [6, 4], finalVerdicts: ['pass', 'pass'], oldAttempt, rebuiltAttempt: fresh.attemptId,
+    nativeSHA256: sha256(native), sourcePreserved: true, freshProjectOpen: true, approvalRecordSHA256: sha256(completedBytes) });
+}

@@ -1,5 +1,5 @@
 ---
-work_id: D643
+work_id: D644
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -223,7 +223,9 @@ D642 adds Stop after reopen. Studio refuses a live terminal writer and an older 
 
 D643 adds explicit approval to the verified local candidate preview. The writer refuses a mismatched or retired receipt. The same approval can be retried without a second commit. Fresh Studio Open reads the exact approved checkpoint. [D643](../studio-reviewed-worker-approval-2026-11-11/README.md).
 
-Next MAIN is D644 / P0 automation, B09 follow-up, rows 04, 12 and 16. Finish the two-task assembly entirely in Studio. Rebuild the sibling on the first approved model, review and approve it in Studio, then save and reopen the exact native assembly with both requirements passing. [#2402](https://github.com/barocss/barocss/issues/2402).
+D644 completes both height tasks through Studio approval and rebuild. It saves a separate native project file and reopens the exact bytes with both current requirements passing. [D644](../studio-two-task-native-delivery-2026-11-11/README.md).
+
+Next MAIN is D645 / P0 automation, B09 follow-up, rows 04, 12 and 16. Add explicit rejection of a reviewed worker candidate in Studio. Bind rejection to the exact review and keep a separate pending candidate available for approval. Verify the accepted model, run record and both decisions in Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

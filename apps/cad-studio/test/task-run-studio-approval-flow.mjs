@@ -7,7 +7,7 @@ const base = '/api/chat/task-runs/';
 const matches = action => response => new URL(response.url()).pathname === base + action && response.request().method() === 'POST';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 
-export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile }) {
+export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver }) {
   const run = launch.directory, file = join(run, 'run.json');
   const durable = async () => ({ bytes: await readFile(file), entries: (await readdir(run)).sort() });
   const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
@@ -69,6 +69,8 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
   assert.equal(duplicate.status(), 200);
   assert.deepEqual(await duplicate.json(), status);
   assert.deepEqual(await durable(), approved);
+
+  if (deliver) return deliver({ firstStatus: status, firstRecord: record, readReview });
 
   f.phase = 'reopen and open the exact Studio-approved checkpoint';
   await f.newPage();
