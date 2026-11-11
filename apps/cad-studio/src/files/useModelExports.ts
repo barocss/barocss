@@ -43,6 +43,9 @@ function currentStepOwner(s: { model: ModelExportContext; fileName: string; curr
     fresh: s.model.fresh && s.model.instancesFresh && !s.model.busy && s.current.doc.current === s.model.doc && s.current.evaluated.current === s.model.evaluated && s.current.shown.current === s.model.shown,
     hasBody: all.some(b => b.role !== 'infill' && !b.band), hasMeshes: all.some(b => b.family === 'faceted' && b.role !== 'infill') };
 }
+const stlMeshLoss = 'Triangles only. Coordinates use millimetres. STL leaves out the unit setting, colours, body names and editable CAD data.';
+const stlPlacedLoss = 'Visible placed parts are omitted. Automatic writes root bodies only.';
+
 function lastStepMeshes(): StepMeshes {
   try { const stored = localStorage.getItem('studio.stepMeshes'); if (stored === 'planar' || stored === 'tessellated') return stored; } catch { /* private mode */ }
   return 'auto';
@@ -66,6 +69,9 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   useEffect(() => { stepControl.current?.reconcile(); }, [doc, evaluated, model.shown, fileName, fresh, busy, instanceBodies, model.instancesFresh]);
   useEffect(() => () => stepControl.current?.dispose(), []);
   const [stlAsk, setStlAsk] = useState(false), [stlQuality, setStlQuality] = useState<'automatic' | '8' | '16' | '32'>('automatic'), [stlBusy, setStlBusy] = useState(false);
+  const stlHasPlacedParts = model.shown.instances?.some(i => !i.hidden) ?? false;
+  const stlPlacedHint = stlQuality === 'automatic' ? stlPlacedLoss : 'Draft, Standard and Fine require no visible placed parts.';
+  const stlLossHint = stlHasPlacedParts ? `${stlPlacedHint} ${stlMeshLoss}` : stlMeshLoss;
   const stlGeneration = useRef(0), stlPending = useRef(false), stlCancelButton = useRef<HTMLButtonElement>(null);
   const cancelStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlAsk(false); };
   const askStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlQuality('automatic'); setStlAsk(true); };
@@ -81,7 +87,7 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
     const captured = { doc, shown: model.shown, evaluated, bodies: [...bodies], quality: stlQuality, name: fileName }, explicit = captured.quality !== 'automatic';
     const refuse = (hint: string, detail = '') => { setStlAsk(false); onNotice({ title: 'Could not write STL', hint, detail }); };
     if (!captured.bodies.length) { refuse('There are no root bodies to export.'); return; }
-    if (explicit && captured.doc.instances?.some(i => !i.hidden)) { refuse('This STL quality cannot export a document with visible placed instances. Export the placed part from its own document.'); return; }
+    if (explicit && stlHasPlacedParts) { refuse('This STL quality cannot export a document with visible placed instances. Export the placed part from its own document.'); return; }
     if (explicit) for (const body of captured.bodies) {
       if (body.lumpTouch?.length) { refuse(`${bodyName(captured.doc, body)} needs a separate STL for each touching piece. That output uses the on-screen mesh; use Automatic.`); return; }
       if (body.family === 'faceted') { refuse(`${bodyName(captured.doc, body)} is a mesh body. The selected STL quality needs a BRep body; use Automatic.`); return; }
@@ -117,7 +123,14 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
       for (const file of prepared) downloadBytes(file.bytes, file.name, 'model/stl');
       downloadBytes(sidecar, `${captured.name}.source.json`, 'application/json');
       setStlAsk(false);
-      onNotice({ title: `STL written: ${prepared.length} file${prepared.length === 1 ? '' : 's'}`, hint: `${draftWarning(captured.doc) ? `${draftWarning(captured.doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
+      const hints = [
+        draftWarning(captured.doc),
+        stlHasPlacedParts ? stlPlacedLoss : null,
+        stlMeshLoss,
+        fallback.length ? `${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : null,
+        split ? 'A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : null,
+      ];
+      onNotice({ title: `STL written: ${prepared.length} file${prepared.length === 1 ? '' : 's'}`, hint: hints.filter(Boolean).join(' '), detail: '' });
     } catch (error) {
       if (current()) refuse('STL export could not finish.', error instanceof Error ? error.message : String(error));
     } finally {
@@ -171,7 +184,7 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   const changeStlQuality = (value: string) => {
     if (value === 'automatic' || value === '8' || value === '16' || value === '32') { stlGeneration.current++; setStlQuality(value); }
   };
-  return { stepAsk: !!stepPreview, stepPreview, downloadStep, stlAsk, stlQuality, stlBusy, stlCancelButton, clearStepAsk, changeStlQuality,
+  return { stepAsk: !!stepPreview, stepPreview, downloadStep, stlAsk, stlQuality, stlBusy, stlLossHint, stlCancelButton, clearStepAsk, changeStlQuality,
     askStlExport, cancelStlExport, exportStepFile, exportStl, exportQuote, exportThreeMf };
 }
 

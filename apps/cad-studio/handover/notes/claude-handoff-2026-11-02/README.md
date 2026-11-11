@@ -313,7 +313,9 @@ D687 qualifies the compact Model rail, named Sketch and Extrude, selection-aware
 
 D688 verifies actual 3MF output from Master, Tall and restored Master with an independent ZIP/XML reader. Studio refuses export while the placed mesh replies are pending. [D688](../three-mf-shown-variant-2026-11-11/README.md).
 
-Next MAIN is D689 / P2 B07, rows 10 and 13. Freeze the supported exchange cases and check the first uncovered loss-report requirement in Studio. Use the existing [exchange acceptance](../../roadmap-tracks/02-core-workflows.md).
+D689 freezes the B07 exchange cases. Automatic STL now discloses omitted visible placed parts. Actual export independently verifies the root-only mesh and Fine refuses the same assembly. [D689](../stl-assembly-loss-2026-11-11/README.md).
+
+Next MAIN is D690 / P2 B07, rows 10 and 13. Disclose editable CAD and assembly losses in the existing 3MF notice and verify it against the actual shown-variant package.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
