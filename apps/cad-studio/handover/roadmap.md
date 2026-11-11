@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D648 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D649 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D648 verifies one explicit inch through-hole task through native approval and Studio checkpoint Open. The native model uses mm and requirement evidence retains inches. [D648](notes/studio-inch-through-hole-diameter-2026-11-11/README.md).
-- **Next MAIN:** D649 / P0 Studio chat diagnostics, rows 04 and 16. Reproduce a local path in chat status or a failed turn. Show a concise recovery message and retain technical detail in the local server log. [#2402](https://github.com/barocss/barocss/issues/2402).
+- **Current position:** D649 removes local paths from Studio chat CLI status and failed-turn diagnostics. Desktop Studio verifies three cases and the next successful turn. [D649](notes/studio-chat-cli-diagnostics-2026-11-11/README.md).
+- **Next MAIN:** D650 / P0 automation evidence, rows 04, 12 and 16. Extend the existing Studio saved-approval comparison to show one direct saved successor for the same nested occurrence. Reuse D610 lineage and check logic. Verify original failure, approved pass and later saved regression after fresh Open. [#2279](https://github.com/barocss/barocss/issues/2279).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B09 v1 **9/9 accepted groups**; B03, B05–B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

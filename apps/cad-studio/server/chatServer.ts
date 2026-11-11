@@ -32,6 +32,10 @@ import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
 const MAX_BODY = 32 * 1024 * 1024;
+const CLI_UNAVAILABLE = 'Claude Code is unavailable. Check the installation, sign in with claude auth login, then restart the chat server.';
+const CLI_START_FAILED = 'Could not start Claude Code. Check the installation and restart the chat server.';
+const CLI_TURN_FAILED = 'Claude Code could not complete the turn. Try again or check the local chat server log.';
+const CLI_EXITED = 'Claude Code stopped before completing the turn. Try again or check the local chat server log.';
 /** Images a turn may carry (base64; the browser scales them down first). */
 export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 export const MAX_IMAGES = 4;
@@ -276,7 +280,7 @@ export function createChatServer(options: ChatServerOptions) {
     }
     if (req.method === 'GET' && path === '/status') {
       const v = await claudeVersion();
-      return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });
+      return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: CLI_UNAVAILABLE });
     }
     // The team's libraries (LIB4, D64): each `<id>.json` with its sharing check `<id>.check.json` beside it. Shared only
     // when this server's own run of the check passes, the library is licensed, and an agent's has been confirmed.
@@ -372,7 +376,13 @@ export function createChatServer(options: ChatServerOptions) {
       child.stdin?.on('error', () => { /* the CLI exited first */ });
       child.stdin?.end(JSON.stringify(userMessage(prompt, images)) + '\n');
     }
-    catch (e) { emit({ type: 'done', end: 'error', error: e instanceof Error ? e.message : String(e) }); res.end(); rmSync(dir, { recursive: true, force: true }); return; }
+    catch (error) {
+      console.error('[cad-studio chat] Could not start Claude Code:', error);
+      emit({ type: 'done', end: 'error', error: CLI_START_FAILED });
+      res.end();
+      rmSync(dir, { recursive: true, force: true });
+      return;
+    }
     let aborted = false, session: string | undefined = typeof body.session === 'string' ? body.session : undefined, failure: string | undefined, stderr = '';
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });
     // (O15: a client gone before the CLI started — its 'close' already past — stops it now; else it runs on, unbilled to
@@ -406,12 +416,26 @@ export function createChatServer(options: ChatServerOptions) {
         }
       } else if (m.type === 'result') {
         if (m.usage || m.num_turns !== undefined) usage = { ...(m.usage ?? {}), ...(m.num_turns !== undefined ? { num_turns: m.num_turns } : {}), ...(m.total_cost_usd !== undefined ? { total_cost_usd: m.total_cost_usd } : {}) };
-        if (m.is_error || m.subtype !== 'success') failure = m.subtype === 'error_max_turns' ? `Stopped after ${MAX_TURNS} steps.` : String(m.result ?? m.subtype ?? 'The turn failed.');
+        if (m.subtype === 'error_max_turns') failure = `Stopped after ${MAX_TURNS} steps.`;
+        else if (m.is_error || m.subtype !== 'success') {
+          console.error('[cad-studio chat] Claude Code turn failed:', m.result ?? m.errors ?? m.subtype);
+          failure = CLI_TURN_FAILED;
+        }
       }
     });
-    const code = await new Promise<number | null>(resolve => { child.on('error', e => { failure = e.message; resolve(null); }); child.on('close', resolve); });
+    const code = await new Promise<number | null>(resolve => {
+      child.on('error', error => {
+        console.error('[cad-studio chat] Claude Code process error:', error);
+        failure = CLI_START_FAILED;
+        resolve(null);
+      });
+      child.on('close', resolve);
+    });
     const s = read();
-    if (!aborted && code !== 0 && !failure) failure = stderr.trim().split('\n').slice(-3).join(' ') || `claude exited with ${code}`;
+    if (!aborted && code !== 0 && !failure) {
+      console.error('[cad-studio chat] Claude Code stopped before completing the turn:', code, stderr.trim());
+      failure = CLI_EXITED;
+    }
     // (CG6: the turn's version log back when a call moved it — the studio folds it into the project's, versions/log.ts withTurnLog.)
     emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.versionsChanged && s.versions ? { versions: s.versions } : {}), ...(s?.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
     res.end();

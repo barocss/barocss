@@ -476,14 +476,25 @@ test('the chat server runs the claude CLI with only the studio tools and streams
   assert.match(stateNote(emptyDoc()), /0 features/);
 });
 
-test('the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn', async () => {
-  const missing = (() => { const c = new EventEmitter() as any; c.stdout = new PassThrough(); c.stderr = new PassThrough(); setImmediate(() => c.emit('error', new Error('spawn claude ENOENT'))); return c; }) as any;
-  let srv = await serve(createChatServer({ mcpScript: 'x', spawn: missing, workDir: scratch() }));
+test('the chat server keeps missing CLI paths local, reports failed turns, and kills the CLI on browser stop', async t => {
+  const executable = '/Users/studio-test/Private CAD/missing-claude';
+  const failure = new Error('spawn ' + executable + ' ENOENT');
+  const diagnostic = t.mock.method(console, 'error', () => {});
+  const missing = (() => { const c = new EventEmitter() as any; c.stdout = new PassThrough(); c.stderr = new PassThrough(); setImmediate(() => c.emit('error', failure)); return c; }) as any;
+  let srv = await serve(createChatServer({ mcpScript: 'x', claude: executable, spawn: missing, workDir: scratch() }));
   try {
     const st = await (await fetch(`${srv.url}/status`, { headers: STUDIO })).json();
     assert.equal(st.enabled, false); assert.match(st.reason, /claude auth login/);
+    assert.ok(!st.reason.includes(executable));
     const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
-    assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'spawn claude ENOENT' }]);
+    assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'Could not start Claude Code. Check the installation and restart the chat server.' }]);
+    assert.equal(diagnostic.mock.calls[0]?.arguments[1], failure);
+  } finally { await srv.close(); }
+  srv = await serve(createChatServer({ mcpScript: 'x', claude: executable, spawn: () => { throw failure; }, workDir: scratch() }));
+  try {
+    const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
+    assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'Could not start Claude Code. Check the installation and restart the chat server.' }]);
+    assert.equal(diagnostic.mock.calls[1]?.arguments[1], failure);
   } finally { await srv.close(); }
   const capped = fakeClaude(() => [JSON.stringify({ type: 'result', subtype: 'error_max_turns', is_error: true, session_id: 's1' })]);
   srv = await serve(createChatServer({ mcpScript: 'x', spawn: capped.spawn, workDir: scratch() }));

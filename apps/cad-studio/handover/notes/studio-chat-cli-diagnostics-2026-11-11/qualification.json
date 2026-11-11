@@ -1,0 +1,69 @@
+{
+  "decision": "D649",
+  "tier": "FEATURE qualification",
+  "baseCommit": "2df49b7c04507034737a247def2db20c5a5b27c5",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d649-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Original desktop CLI diagnostics",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D649_SOURCE_FROZEN=1 node \"$EVIDENCE/chat-cli-diagnostics-browser.mjs\" \"$EVIDENCE/baseline\" --expect-leak",
+      "scriptSHA256": "1106061a5ac7561e2d86b0f5450f94308095213a80c672aeac8ae170387f3801",
+      "receiptSHA256": "a49ed9c0f4b1556a3fc70561bf3251aca19159d79075a4ed71ce49e817cee81f",
+      "reproduced": [
+        "unavailable executable",
+        "failed CLI result",
+        "nonzero exit with stderr"
+      ],
+      "pinnedSources": 308,
+      "receiptMeaning": "The reproduction driver passed because it observed the three pre-fix product failures."
+    },
+    {
+      "label": "Actual Studio path-free diagnostics and recovery",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D649_SOURCE_FROZEN=1 node test/chat-cli-diagnostics-browser.mjs \"$EVIDENCE/desktop\"",
+      "receiptSHA256": "1473f3b30006ecb054ade09515428a7618d419a37f5a73204eb5148bcedfb3b1",
+      "pinnedSources": 308,
+      "visiblePaths": 0,
+      "responsePaths": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "sourceChanges": 0,
+      "downloads": 0,
+      "unchangedModelTurns": 4,
+      "localLogRetained": [
+        "failed CLI result",
+        "nonzero exit with stderr"
+      ],
+      "stepLimit": 24,
+      "followUpTurn": "done"
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test chat task-run task-plan-agent toolset-mcp tool-contract-mcp",
+      "passCount": 88,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio typecheck, lint, syntax and build",
+      "result": "PASS",
+      "commands": [
+        "pnpm --dir apps/cad-studio exec tsc --noEmit",
+        "pnpm exec eslint apps/cad-studio/server/chatServer.ts apps/cad-studio/test/chat.test.ts",
+        "node --check apps/cad-studio/test/chat-cli-diagnostics-browser.mjs",
+        "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+        "git diff --check"
+      ]
+    },
+    {
+      "label": "Paid live model execution, mobile, and whole CAD suites",
+      "result": "NOT_RUN"
+    }
+  ]
+}
