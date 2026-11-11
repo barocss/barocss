@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D704 — requalify the H12 drawing on current producers](notes/h12-section-detail-current-2026-11-11/README.md).
 - [D703 — keep Model shortcuts out of shortcut help](notes/studio-shortcut-help-ownership-2026-11-11/README.md).
 - [D702 — keep source units on an accepted general tolerance note](notes/general-tolerance-note-units-2026-11-11/README.md).
 - [D701 — preserve detail annotation ownership](notes/detail-annotation-ownership-2026-11-11/README.md).

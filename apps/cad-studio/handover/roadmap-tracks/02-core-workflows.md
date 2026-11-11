@@ -38,7 +38,9 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
-[D702](../notes/general-tolerance-note-units-2026-11-11/README.md) keeps the explicit source units on new general tolerance notes. [B06 v1](14-b06-evidence-ledger.md) records five qualified groups, the current H12 check and the PDF hold.
+[D704](../notes/h12-section-detail-current-2026-11-11/README.md) requalifies the original H12 profile on current Auto and Section producers. [B06 v1](14-b06-evidence-ledger.md) records six qualified groups and the PDF hold.
+
+[D702](../notes/general-tolerance-note-units-2026-11-11/README.md) keeps the explicit source units on new general tolerance notes.
 
 [D701](../notes/detail-annotation-ownership-2026-11-11/README.md) keeps a Detail with referenced dimensions or frames and reserves the letters of unresolved records. Desktop Studio and eight independent SVG reads verify current ownership and safe reuse.
 
@@ -71,6 +73,8 @@ Finite closeout is one source-linked two-sheet drawing and one declared exchange
 
 ## P3 — Static assembly workflows
 
+D705 checks the read-to-plan ownership of literal occurrence IDs through the existing public agent tools. [#2427](https://github.com/barocss/barocss/issues/2427)
+
 Row [10](../roadmap-rows/10.md), with file/reference dependencies in rows 12/16. Model/assembly owns occurrence identity, placements and mates; Studio owns selection and linked revision acceptance; drawing/BOM consumers own their current source binding. Motion and Physics activation are not part of static assembly.
 
 Existing placement, static mates, patterns/skips, linked updates, cuts and BOM are implemented. Evidence includes [D457 linked planar mate](../notes/static-mate-linked-update-2026-11-03/README.md), [D493 constrained mates](../notes/fully-constrained-mate-workflow-2026-11-04/README.md), [D487 linked assembly cut](../notes/assembly-cut-linked-revision-2026-11-04/README.md), [D511 patterned material/BOM](../notes/patterned-material-bom-mass-2026-11-04/README.md), [D512 nested revision/BOM](../notes/nested-selection-bom-revision-2026-11-04/README.md), and [D513 transient card correction](../notes/nested-card-freshness-2026-11-04/README.md).
@@ -88,4 +92,4 @@ Finite P3 closeout is one small static assembly with repeated and nested occurre
 
 Each case names the requirement owner, source/consumer modules, existing evidence reused, affected SMALL/FEATURE/FULL tier, actual desktop observations and numeric authority. Record PASS, FAIL, NOT_RUN and UNKNOWN separately. A retained partial checkpoint is valid work, but does not close the category.
 
-The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B03 and B05–B10 remain NOT_ADJUDICATED; no whole-P1 or aggregate baseline result follows.
+The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B03, B05, B08 and B10 remain NOT_ADJUDICATED. B06 is qualified at 6/7 with PDF held. B07 and B09 are accepted at their recorded scopes.
