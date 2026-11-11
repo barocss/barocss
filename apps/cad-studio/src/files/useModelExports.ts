@@ -51,7 +51,7 @@ function lastStepMeshes(): StepMeshes {
 /** STEP, STL, quote and 3MF actions for the current evaluated model. */
 export function useModelExports({ model, engine, fileName, current, onNotice }: ModelExportOptions) {
   const { doc, evaluated, bodies, fresh, busy, massReady, instanceBodies } = model;
-  const { doc: docNow, evaluated: evaluatedRef } = current;
+  const { doc: docNow, evaluated: evaluatedRef, shown: shownRef } = current;
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
   const [stepPreview, setStepPreview] = useState<StepPreview | null>(null);
   const stepLatest = useRef({ model, engine, fileName, current, onNotice }); stepLatest.current = { model, engine, fileName, current, onNotice };
@@ -78,7 +78,7 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   const exportStl = async () => {
     if (stlPending.current) return;
     if (!fresh) { setStlAsk(false); onNotice({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const captured = { doc, evaluated, bodies: [...bodies], quality: stlQuality, name: fileName }, explicit = captured.quality !== 'automatic';
+    const captured = { doc, shown: model.shown, evaluated, bodies: [...bodies], quality: stlQuality, name: fileName }, explicit = captured.quality !== 'automatic';
     const refuse = (hint: string, detail = '') => { setStlAsk(false); onNotice({ title: 'Could not write STL', hint, detail }); };
     if (!captured.bodies.length) { refuse('There are no root bodies to export.'); return; }
     if (explicit && captured.doc.instances?.some(i => !i.hidden)) { refuse('This STL quality cannot export a document with visible placed instances. Export the placed part from its own document.'); return; }
@@ -90,7 +90,7 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
     stlPending.current = true; setStlBusy(true); stlCancelButton.current?.focus();
     const current = () => {
       if (stlGeneration.current !== generation) return false;
-      if (docNow.current !== captured.doc || evaluatedRef.current !== captured.evaluated) { refuse('The design changed while the STL files were being prepared. Export the current design again.'); return false; }
+      if (docNow.current !== captured.doc || evaluatedRef.current !== captured.evaluated || shownRef.current !== captured.shown) { refuse('The design changed while the STL files were being prepared. Export the current design again.'); return false; }
       return true;
     };
     try {
@@ -110,7 +110,9 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
         prepared.push({ name: `${captured.name}-${body.key}.stl`, bytes: kernel ?? meshToStl(body.mesh, body.key) });
       }
       // Prepare the sidecar before any download: a failed body or stale request writes no files.
-      const names = prepared.map(f => f.name), sidecar = sourceBytes(sourceRecord(captured.doc, names));
+      const names = prepared.map(f => f.name);
+      const source = { ...captured.shown, nodes: captured.evaluated.nodes, outputs: captured.evaluated.outputs };
+      const sidecar = sourceBytes(sourceRecord(source, names));
       if (!current()) return;
       for (const file of prepared) downloadBytes(file.bytes, file.name, 'model/stl');
       downloadBytes(sidecar, `${captured.name}.source.json`, 'application/json');
