@@ -9,6 +9,7 @@
 import { CadNumericPolicy } from '@barocss/cad';
 import type { LoopSegment } from '../engine/doc';
 import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
+import { createDxfVisibility } from './dxfVisibility';
 import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
 import { refusal, type BarocssError } from '../engine/refusal';
 
@@ -80,6 +81,7 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
   const unit = { declared: declared && units !== 0, name: u ? u[0] : 'millimetres (none declared)', to: u ? u[1] : 1 };
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
   if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
+  const visibility = createDxfVisibility(pairs);
   const edges: Edge[] = [], circles: { c: P; r: number }[] = [], ignored: Record<string, number> = {};
   let i = start + 1, entities = 0;
   const k = unit.to;
@@ -94,6 +96,7 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
     // (Splines, ellipses, blocks and text: the underlay's, never the profile's, O68.)
     if (UNDERLAY_TOP.has(type)) continue;
     if (!GEOMETRY.has(type)) throw refusal('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE as the profile, and SPLINE, ELLIPSE, INSERT, TEXT and MTEXT as an underlay to trace over`);
+    if (visibility.entity(type, body) === null) continue;
     const g = (code: number, d?: number) => { const v = body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw refusal('DXF_MALFORMED', `a ${type} without its group ${code}`); } return num(v[1], `${type} group ${code}`); };
     if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw refusal('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
     if (type === 'LINE') edges.push({ a: [g(10) * k, g(20) * k], b: [g(11) * k, g(21) * k] });
@@ -121,6 +124,7 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
       if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1]));
     }
   }
+  visibility.finish();
   return { edges: edges.filter(e => Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]) > 0 || e.c), circles, unit, ignored, entities };
 }
 

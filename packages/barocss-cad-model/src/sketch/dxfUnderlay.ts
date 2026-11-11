@@ -7,6 +7,7 @@
 // sketch entity or a dimension: the profile reader reads regions from the top level's LINE, ARC, CIRCLE, LWPOLYLINE and
 // POLYLINE alone, as before. A spline given by fit points only is left out and listed (its interpolation is the writer's).
 import { pairsOf } from './dxfRead';
+import { createDxfVisibility } from './dxfVisibility';
 import { refusal } from '../engine/refusal';
 
 type P = [number, number];
@@ -29,6 +30,7 @@ export type { M2 as UnderlayMap };
 export const UNDERLAY_TOLERANCE = 0.01;
 /** The kinds the underlay shows at the top level (the profile reader takes the rest of the geometry). */
 export const UNDERLAY_TOP = new Set(['SPLINE', 'ELLIPSE', 'INSERT', 'TEXT', 'MTEXT']);
+const UNDERLAY_BLOCK = new Set([...UNDERLAY_TOP, 'LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE']);
 
 const I2: M2 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 const mul = (p: M2, q: M2): M2 => ({ a: p.a * q.a + p.b * q.c, b: p.a * q.b + p.b * q.d, c: p.c * q.a + p.d * q.c, d: p.c * q.b + p.d * q.d, e: p.a * q.e + p.b * q.f + p.e, f: p.c * q.e + p.d * q.f + p.f });
@@ -68,15 +70,19 @@ function entitiesOf(pairs: [number, string][], from: number, until: (p: [number,
   return { list, end: i };
 }
 /** The BLOCKS section: each block's base point and entities (POLYLINE's VERTEX entities kept with it). */
-function blocksOf(pairs: [number, string][]): Map<string, { base: P; entities: Entity[] }> {
-  const out = new Map<string, { base: P; entities: Entity[] }>();
+interface Block { name: string; base: P; entities: Entity[]; flags: string | undefined; hasExternalPath: boolean }
+function blocksOf(pairs: [number, string][]): Map<string, Block> {
+  const out = new Map<string, Block>();
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'BLOCKS' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
   if (start < 0) return out;
   const { list } = entitiesOf(pairs, start + 1, p => p[0] === 0 && p[1] === 'ENDSEC');
-  let current: { name: string; base: P; entities: Entity[] } | null = null;
+  let current: Block | null = null;
   for (const e of list) {
-    if (e.type === 'BLOCK') { current = { name: str(e, 2) ?? '', base: [get(e, 10, 0), get(e, 20, 0)], entities: [] }; continue; }
-    if (e.type === 'ENDBLK') { if (current) out.set(current.name, { base: current.base, entities: current.entities }); current = null; continue; }
+    if (e.type === 'BLOCK') {
+      current = { name: str(e, 2) ?? '', base: [get(e, 10, 0), get(e, 20, 0)], entities: [], flags: str(e, 70), hasExternalPath: !!str(e, 1) };
+      continue;
+    }
+    if (e.type === 'ENDBLK') { if (current) out.set(current.name, current); current = null; continue; }
     current?.entities.push(e);
   }
   return out;
@@ -138,17 +144,21 @@ export function plainMtext(s: string): string {
 /** The underlay of a DXF drawing, its lengths times toMM. */
 export function readUnderlay(text: string, to: number, o: { detail?: boolean } = {}): Underlay {
   const pairs = pairsOf(text), blocks = blocksOf(pairs);
+  const visibility = createDxfVisibility(pairs);
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
   if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
   const top = entitiesOf(pairs, start + 1, p => p[0] === 0 && p[1] === 'ENDSEC').list;
   const u: Underlay = { polylines: [], texts: [], counts: {}, left: {}, ...(o.detail ? { curves: [] } : {}) }, unit = scale(to, to);
   const count = (t: string) => { u.counts[t] = (u.counts[t] ?? 0) + 1; };
   const leave = (t: string, why: string) => { const l = u.left[t] ?? (u.left[t] = { count: 0, why }); l.count++; };
-  const walk = (list: readonly Entity[], m: M2, inBlock: boolean, path: string[]) => {
+  const walk = (list: readonly Entity[], m: M2, path: string[], inherited: string) => {
+    const inBlock = path.length > 0;
     for (let k = 0; k < list.length; k++) {
       const e = list[k];
       if (e.type === 'VERTEX' || e.type === 'SEQEND' || e.type === 'ATTRIB') continue;
       if (!inBlock && !UNDERLAY_TOP.has(e.type)) continue;
+      const layer = UNDERLAY_BLOCK.has(e.type) ? visibility.entity(e.type, e.body, inherited) : inherited;
+      if (layer === null) continue;
       const z = get(e, 230, 1);
       if (Math.abs(Math.abs(z) - 1) > 1e-9 || all(e, 30).some(v => Math.abs(v) > 1e-9) && e.type !== 'INSERT' && e.type !== 'TEXT' && e.type !== 'MTEXT') throw refusal('DXF_UNSUPPORTED', `a ${e.type} off the XY plane: the drawing reader takes 2D drawings`);
       const M = mul(m, ocs(z));
@@ -156,11 +166,12 @@ export function readUnderlay(text: string, to: number, o: { detail?: boolean } =
       if (e.type === 'INSERT') {
         const name = str(e, 2) ?? '', b = blocks.get(name);
         if (!b) throw refusal('DXF_MALFORMED', `an INSERT of a block "${name}" the file does not define`);
+        if (!visibility.block(name, layer, b.flags, b.hasExternalPath)) continue;
         if (path.includes(name)) throw refusal('DXF_MALFORMED', `block "${name}" inserts itself (${[...path, name].join(' → ')})`);
         const cols = get(e, 70, 1), rows = get(e, 71, 1), cs = get(e, 44, 0), rs = get(e, 45, 0), rot = get(e, 50, 0);
         for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
           const cell = mul(mul(mul(mul(shift(get(e, 10), get(e, 20)), turn(rot)), shift(c * cs, r * rs)), scale(get(e, 41, 1), get(e, 42, 1))), shift(-b.base[0], -b.base[1]));
-          walk(b.entities, mul(M, cell), true, [...path, name]);
+          walk(b.entities, mul(M, cell), [...path, name], layer);
         }
         continue;
       }
@@ -226,6 +237,7 @@ export function readUnderlay(text: string, to: number, o: { detail?: boolean } =
       leave(e.type, inBlock ? 'not read inside a block' : 'not read');
     }
   };
-  walk(top, I2, false, []);
+  walk(top, I2, [], '0');
+  visibility.finish();
   return u;
 }
