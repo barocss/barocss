@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { xyPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
+import { currentModelSketchSnaps, modelSketchSnaps } from '../src/viewport/modelSketchSnaps';
+
+test('model snap candidates follow visible body indices and retire on visibility, plane or body changes', () => {
+  let doc = withNode(rectanglePart(4, 4, 4), { kind: 'sketch', profile: 'rectangle', min: [10.25, 12.25], max: [14.25, 16.25] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 4 });
+  const before = structuredClone(doc), result = evaluateDoc(doc, 1);
+  assert.ok(result.ok);
+  const { bodies } = result, plane = xyPlane(), hiddenB = new Set([1]), visible = new Set<number>();
+  const all = modelSketchSnaps(null, bodies, visible, plane);
+  const at = (cache: typeof all, x: number, y: number) => cache.points.find(p => p.at[0] === x && p.at[1] === y);
+  assert.equal(at(all, 10.25, 12.25)?.kind, 'end');
+  assert.equal(at(all, 2, 0)?.kind, 'mid');
+  assert.equal(modelSketchSnaps(all, bodies, visible, { ...plane }), all);
+  assert.equal(currentModelSketchSnaps(all, bodies, hiddenB, JSON.stringify(plane)), false);
+  const filtered = modelSketchSnaps(all, bodies, hiddenB, plane);
+  assert.equal(at(filtered, 10.25, 12.25), undefined);
+  assert.equal(at(filtered, 2, 0)?.kind, 'mid');
+  assert.equal(modelSketchSnaps(filtered, bodies, hiddenB, plane), filtered);
+  const restored = modelSketchSnaps(filtered, bodies, visible, plane);
+  assert.equal(at(restored, 10.25, 12.25)?.kind, 'end');
+  const reversed = modelSketchSnaps(filtered, [...bodies].reverse(), hiddenB, plane);
+  assert.equal(at(reversed, 10.25, 12.25)?.kind, 'end');
+  assert.equal(at(reversed, 2, 0), undefined);
+  const elevated: SketchPlane = { ...plane, origin: [0, 0, 1] };
+  assert.deepEqual(modelSketchSnaps(all, bodies, visible, elevated).points, []);
+  assert.deepEqual(doc, before);
+  assert.deepEqual(bodies.map(body => body.key), ['b1', 'b3']);
+});

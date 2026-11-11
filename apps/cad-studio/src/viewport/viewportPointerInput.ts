@@ -1,4 +1,4 @@
-import { useRef, type DragEvent, type MouseEvent, type PointerEvent, type RefObject, type WheelEvent } from 'react';
+import { useLayoutEffect, useRef, type DragEvent, type MouseEvent, type PointerEvent, type RefObject, type WheelEvent } from 'react';
 import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -6,7 +6,8 @@ import type { RenderSettings } from '@barocss/cad-model/engine/render';
 import { bandShapes } from '@barocss/cad-model/sketch/band';
 import { bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
-import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
+import { nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
+import { currentModelSketchSnaps, modelSketchSnaps, type ModelSketchSnaps } from './modelSketchSnaps';
 import { rayOnPlane, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { bulgeThrough } from '@barocss/cad-model/sketch/profile';
 import { isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
@@ -221,14 +222,27 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
-  /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
-  const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
+  const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
+  const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
+  const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
+  useLayoutEffect(() => {
+    const cached = modelSnapCache.current;
+    if (!cached || currentModelSketchSnaps(cached, snapBodies, snapHidden, snapPlaneKey)) return;
+    modelSnapCache.current = null;
+    const draft = sketchDraft.current;
+    if (draft.snap && cached.points.includes(draft.snap)) {
+      draft.snap = null;
+      draft.cursor = null;
+      propsRef.current.onCursor(null);
+      requestRef.current();
+    }
+  }, [snapBodies, snapHidden, snapPlaneKey, propsRef, requestRef]);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
   const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null } => {
-    const key = JSON.stringify(sk.plane), bodies = propsRef.current.bodies;
-    if (!modelSnapCache.current || modelSnapCache.current.bodies !== bodies || modelSnapCache.current.plane !== key) modelSnapCache.current = { bodies, plane: key, points: modelSnaps(bodies.map(b => b.mesh), sk.plane) };
+    const { bodies, hiddenBodies } = propsRef.current;
+    const model = modelSnapCache.current = modelSketchSnaps(modelSnapCache.current, bodies, hiddenBodies, sk.plane);
     const live = liveShape.current as SnapShape | null;
-    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...modelSnapCache.current.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
+    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
     const hit = nearestSnap(points, q => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; }, [x, y]);
     return hit ? { at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4], snap: hit } : { at: [snap(p[0]), snap(p[1])], snap: null };
   };
