@@ -16,6 +16,7 @@ import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/ske
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { pickCage, type CageHit } from '@barocss/cad-model/subd/cageEdit';
 import { sketchCutInputs } from '../app/sketchControls';
+import { meshCrossesBox } from './boxSelectionCrossing';
 import { bodyEntirelyBehindEye } from './boxSelectionDepth';
 import type { OrbitCamera } from './camera';
 import { ellipseClick, type EllipseDraft } from './ellipseDraft';
@@ -62,6 +63,8 @@ export interface ViewportPointerProps {
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
+  /** Use projected triangle overlap for crossing boxes in the idle native Model view. */
+  meshBoxCrossing?: boolean;
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
@@ -616,7 +619,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       if (same && changed && d.splineLast) emit(d.splineLast); else liveShape.current = cur ?? null;
       request(); return;
     }
-    if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
+    if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey, e.pointerType === 'mouse'); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const { face, edge } = pickAt(renderer.current!, x, y);
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
@@ -735,13 +738,15 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
 
   /** Window selection left→right (fully inside), crossing right→left (touching). */
-  const boxSelect = (x0: number, y0: number, x1: number, y1: number, additive: boolean) => {
+  const boxSelect = (x0: number, y0: number, x1: number, y1: number, additive: boolean, mouse: boolean) => {
     const c = canvas.current!; const w = c.clientWidth, h = c.clientHeight;
     const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
     const crossing = x1 < x0; const picked: number[] = [];
     const p = propsRef.current, cam = camera.current;
     const ordinaryModel = !p.printActive && !p.camActive && !p.clip && !p.render;
     const basis = ordinaryModel && !cam.ortho ? cam.basis() : null;
+    const crossingViewport = crossing && mouse && ordinaryModel && cam.ortho && p.meshBoxCrossing ? c.getBoundingClientRect() : null;
+    const box = { left: lx, right: hx, top: ly, bottom: hy };
     p.bodies.forEach((b, i) => {
       if ((ordinaryModel || p.printActive) && p.hiddenBodies?.has(i)) return;
       const P = b.mesh.positions; let inside = 0, total = 0;
@@ -755,6 +760,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         return;
       }
       if (basis && bodyEntirelyBehindEye(b.mesh, basis.eye, basis.forward)) return;
+      if (crossingViewport) {
+        if (meshCrossesBox(b.mesh, box, point => cam.project(point, crossingViewport.width, crossingViewport.height))) picked.push(i);
+        return;
+      }
       const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
       for (let k = 0; k < P.length; k += step) {
         const q = cam.project([P[k], P[k + 1], P[k + 2]], w, h); total++;

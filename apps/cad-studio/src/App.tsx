@@ -2060,6 +2060,10 @@ export function App() {
   const previewTint = placedCandidate ? WORKER_CANDIDATE_TINT : undefined;
   const viewportInstances = useMemo(() => withPlacedProposalBodies(instancesStepped, placedProposal, previewTint), [instancesStepped, placedProposal, previewTint]);
   const viewportPlacements = useMemo(() => withPlacedProposalBodies(instancesPlaced, placedProposal, previewTint), [instancesPlaced, placedProposal, previewTint]);
+  // CPU sections and previews can replace the displayed bodies without setting a GPU clip plane.
+  const meshBoxCrossing = viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
+    && !active && !sketch && !drawing && !section && !measure && !inPlace && !assembly.draft
+    && !cageEd.session && !skel.session && !ghost && !compareOverlay && !bodyDrag && !animatedOffsets?.size;
   const viewportPicking = placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
     const id = args[0].instance;
     if (id && placedProposal.has(id)) return;
@@ -2443,7 +2447,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={viewportPicking} sketchActions={sketchViewportActions} onCursor={onCursor}
+        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
