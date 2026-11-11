@@ -305,7 +305,9 @@ D683 exports the current Tall assembly through Studio and reopens the exact STEP
 
 D684 fixes file-name Undo/Redo and focused-button Space. Root reproduced both failures and verified the repair and its Browser and Clipboard controls. [D684](../studio-shortcut-focus-2026-11-11/README.md).
 
-Next MAIN is D685 / P4, row 21. The owner selected top toolbar clipping next, then D686 / P0 R18 feature draft retention. The Model rail is a planned follow-up. The next P2 case remains actual 3MF output from the shown assembly variant. See the [reliability intake](../../roadmap-tracks/01-reliability.md) and [P4 desktop usability queue](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
+D685 fixes top toolbar clipping at the two reported desktop sizes. All 14 tools remain reachable, and the existing More tools and Templates keyboard flow passed. [D685](../studio-top-toolbar-overflow-2026-11-11/README.md).
+
+Next MAIN is D686 / P0 R18, rows 12, 16 and 21. Reproduce feature draft loss on workspace switch and qualify the repair. The owner-selected Model rail is a planned follow-up. The next P2 case remains actual 3MF output from the shown assembly variant. See the [reliability intake](../../roadmap-tracks/01-reliability.md) and [P4 desktop usability queue](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
@@ -326,6 +328,8 @@ P2 in the new order means drawings/exchange. The historical manufacturing gate n
 Read and retain the [previous handoff §5](../codex-handoff-2026-11-01/README.md#5-지킬-규칙-오너-결정). Latest owner instructions override old operating text. Use Sol Medium for ordinary implementation/testing and Sol High for difficult Boolean/B-rep/tolerance/geometry judgment; record the actual model used. Replies are short Korean; code, decisions, commits and issues are English. Keep UI explanation layers limited under the owner's later instruction.
 
 Run one heavy job under gate.sh at a time. Do not write anything in the worktree while an actual Studio flow runs. Terminate only owned PIDs. The last test edit requires final Model tsc; whole kernel runs remain B-rep-core-only. Public API/geometry/tolerance changes need FULL review/mutations; new behavior needs FEATURE review/actual; private bounded repair needs SMALL checks/actual. Numerical claims require independent physical/native evidence, not display geometry or hashes alone. Raw logs/screenshots/archives stay outside Git; record commands/counts in small decision notes/qualification JSON.
+
+When a new fix request comes from another lane while MAIN is active, assign the request to a separate agent. Keep MAIN moving. Coordinate file ownership and reserve the heavy gate for one run at a time.
 
 D519/D520 do not claim new Studio/runtime/physical PASS; D521–D536 add only their recorded bounded controlled and actual Studio proofs. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
 

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D685 — fit the top toolbar to the rendered controls](notes/studio-top-toolbar-overflow-2026-11-11/README.md).
 - [D684 — give focused controls their keyboard shortcuts](notes/studio-shortcut-focus-2026-11-11/README.md).
 - [D683 — export and reopen the current assembly variant as STEP](notes/step-variant-roundtrip-2026-11-11/README.md).
 - [D682 — cancel pending STL on document replacement](notes/stl-late-reply-2026-11-11/README.md).
