@@ -18,6 +18,7 @@ import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
 import { validate, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
+import { compactLocalPaths } from '../src/chat/localPathDisplay';
 import { planHollow } from '@barocss/cad-model/print/hollow';
 import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
 import { defaultRender } from '@barocss/cad-model/engine/render';
@@ -36,6 +37,23 @@ async function stateOf(doc: StudioDoc): Promise<ChatState> {
 const parse = (content: string) => JSON.parse(content) as Record<string, any>;
 const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 const scratch = () => mkdtempSync(join(tmpdir(), 'cad-chat-test-'));
+
+test('the transcript keeps the last local path component and preserves URLs and relative references', () => {
+  assert.equal(
+    compactLocalPaths('Open /Users/example/Private CAD/session/plate.bcad:42 and outputs/bom.json.'),
+    'Open …/plate.bcad:42 and outputs/bom.json.',
+  );
+  assert.equal(
+    compactLocalPaths('Use "~/Design Files/Revision 4/" or file:///home/example/copy.bcad.'),
+    'Use "…/Revision 4/" or …/copy.bcad.',
+  );
+  assert.equal(
+    compactLocalPaths(String.raw`Try "D:\Private CAD\base plate.bcad" or \\server\share\folder\part.bcad.`),
+    'Try "…/base plate.bcad" or …/part.bcad.',
+  );
+  const unchanged = 'See https://example.test/Users/guide and https://example.test/?path=/home/guide. Use parts/p1 at 10/20 mm.';
+  assert.equal(compactLocalPaths(unchanged), unchanged);
+});
 
 /** An MCP client over in-memory pipes to the real tool server. */
 function mcpClient(statePath: string) {

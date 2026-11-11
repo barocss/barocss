@@ -12,6 +12,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 - [D651 — preserve a saved approval review in the Studio project](notes/studio-persisted-approval-evidence-2026-11-11/README.md).
 - [D650 — show a saved requirement regression in Studio Versions](notes/studio-saved-requirement-follow-up-2026-11-11/README.md).
 - [D649 — keep local CLI paths out of Studio chat diagnostics](notes/studio-chat-cli-diagnostics-2026-11-11/README.md).
+  - [D649 follow-up — shorten local paths in the Studio transcript](notes/studio-chat-path-display-2026-11-11/README.md).
 - [D648 — normalize an explicit inch through-hole diameter](notes/studio-inch-through-hole-diameter-2026-11-11/README.md).
 - [D647 — deliver a mixed height and through-hole diameter run in Studio](notes/studio-mixed-height-diameter-delivery-2026-11-11/README.md).
 - [D646 — approve an existing through-hole diameter in Studio](notes/studio-through-hole-diameter-task-2026-11-11/README.md).

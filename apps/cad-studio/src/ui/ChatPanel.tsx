@@ -11,6 +11,7 @@ import type { Merged } from '@barocss/cad-model/chat/merge';
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
+import { compactLocalPaths } from '../chat/localPathDisplay';
 import type { StudioMessage } from '../chat/transport';
 import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunFindingSelection, type TaskRunLaunch, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
@@ -86,7 +87,7 @@ export interface ChatPanelProps {
 }
 
 const brief = (input: unknown) => {
-  const s = JSON.stringify(input ?? {});
+  const s = JSON.stringify(input ?? {}, (_, value) => typeof value === 'string' ? compactLocalPaths(value) : value);
   return s.length > 140 ? s.slice(0, 137) + '…' : s;
 };
 
@@ -209,7 +210,7 @@ export function ChatPanel(props: ChatPanelProps) {
         {messages.map(m => m.role === 'user'
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
-              {m.parts.map(p => p.type === 'text' ? p.text : '').join('')}</Message>
+              {compactLocalPaths(m.parts.map(p => p.type === 'text' ? p.text : '').join(''))}</Message>
           : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} runStatuses={statuses} />)}</Fragment>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
@@ -248,17 +249,17 @@ export function ChatPanel(props: ChatPanelProps) {
 
 /** One part of an assistant message: a run of text, a tool call (a proposal's linked card under its `propose`), a notice, the thinking. */
 function ChatPart({ part: p, taskRunBlocked, runStatuses, ...props }: { part: StudioMessage['parts'][number]; taskRunBlocked: boolean; runStatuses: RunStatuses } & ChatPanelProps) {
-  if (p.type === 'text') return <Message from="assistant">{p.text}</Message>;
-  if (p.type === 'data-notice') return <Message from="notice">{p.data.text}</Message>;
+  if (p.type === 'text') return <Message from="assistant">{compactLocalPaths(p.text)}</Message>;
+  if (p.type === 'data-notice') return <Message from="notice">{compactLocalPaths(p.data.text)}</Message>;
   // (O17c: the model's thinking, when the CLI streams it — one collapsed line.)
-  if (p.type === 'reasoning') return p.text ? <Reasoning text={p.text} /> : null;
+  if (p.type === 'reasoning') return p.text ? <Reasoning text={compactLocalPaths(p.text)} /> : null;
   if (p.type !== 'dynamic-tool') return null;
   const output = p.state === 'output-available' ? p.output as TaskRunChatOutput | undefined : undefined;
   const failed = p.state === 'output-error', summary = failed ? p.errorText ?? '' : output?.summary ?? '';
   const label = toolLabel(p.toolName, p.input), id = label === 'proposals.propose' && !failed ? /\bP\d+\b/.exec(summary)?.[0] : undefined, proposal = id ? props.proposals?.find(q => q.id === id) : undefined;
   const taskRun = label === 'requirements.plan_tasks' ? output?.taskRun : undefined;
   return <>
-    <Tool failed={failed} label={label} summary={summary} icon={<Icon name={failed ? 'error' : 'build'} small />}>
+    <Tool failed={failed} label={compactLocalPaths(label)} summary={compactLocalPaths(summary)} icon={<Icon name={failed ? 'error' : 'build'} small />}>
       <code>{brief(p.input)}</code>
       {taskRun && props.taskRun && <TaskRunCards plan={taskRun} actions={props.taskRun} blocked={taskRunBlocked} statuses={runStatuses} />}
     </Tool>

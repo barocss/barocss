@@ -6,8 +6,9 @@ import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
 
-const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || mode === '--transcript-baseline' || mode === '--transcript');
 
 const probe = createServer();
 probe.listen(0, '127.0.0.1');
@@ -22,10 +23,11 @@ const source = [
   'apps/cad-studio/src/chat/transport.ts',
   'apps/cad-studio/src/chat/useStudioChat.ts',
   'apps/cad-studio/src/ui/ChatPanel.tsx',
+  ...(mode === '--transcript' ? ['apps/cad-studio/src/chat/localPathDisplay.ts'] : []),
 ];
 const f = await createFlow({
   name: 'chat-cli-diagnostics', envFrozen: 'D649_SOURCE_FROZEN', output,
-  qualification: 'D649 path-free local CLI diagnostics',
+  qualification: mode ? 'D649 follow-up: local paths in the desktop Studio transcript' : 'D649 path-free local CLI diagnostics',
   limits: ['The fixture supplies CLI output to the actual Studio server. No external model is called.'],
   initialFiles: source, requiredFrozen: source,
 });
@@ -44,6 +46,10 @@ await f.run(async () => {
   };
 
   const marker = '/Users/studio-test/Private CAD/session/state.json';
+  const windows = String.raw`C:\Users\studio-test\Private CAD\source.bcad`;
+  const linux = '/home/studio-test/secret/review.json';
+  const url = 'https://cad.example.com/home/docs/review.json';
+  const relativeFile = 'outputs/bom.json';
   const fixture = join(output, 'scripted-cli.mjs');
   const fixtureSource = `#!/usr/bin/env node
 if (process.argv.includes('--version')) {
@@ -53,6 +59,10 @@ if (process.argv.includes('--version')) {
   for await (const chunk of process.stdin) input += chunk;
   const event = value => console.log(JSON.stringify(value));
   const marker = ${JSON.stringify(marker)};
+  const windows = ${JSON.stringify(windows)};
+  const linux = ${JSON.stringify(linux)};
+  const url = ${JSON.stringify(url)};
+  const relativeFile = ${JSON.stringify(relativeFile)};
   if (input.includes('D649-result')) {
     event({ type: 'result', subtype: 'error_during_execution', is_error: true, result: 'Could not open ' + marker });
   } else if (input.includes('D649-stderr')) {
@@ -60,6 +70,15 @@ if (process.argv.includes('--version')) {
     process.exitCode = 2;
   } else if (input.includes('D649-cap')) {
     event({ type: 'result', subtype: 'error_max_turns', is_error: true });
+  } else if (input.includes('D649-transcript')) {
+    if (!input.includes(linux)) process.exit(3);
+    const delta = value => event({ type: 'stream_event', event: { type: 'content_block_delta', delta: value } });
+    delta({ type: 'thinking_delta', thinking: 'Checking "' + windows + '".' });
+    delta({ type: 'text_delta', text: 'Opened ' + marker.slice(0, 14) });
+    delta({ type: 'text_delta', text: marker.slice(14) + '. See ' + url + ' and ' + relativeFile + '.' });
+    event({ type: 'assistant', message: { content: [{ type: 'tool_use', id: 'call-1', name: 'mcp__cad__requirements', input: { action: 'plan_tasks', files: [windows, linux, relativeFile] } }] } });
+    event({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'call-1', is_error: true, content: JSON.stringify({ error: 'Open failed: ' + marker }) }] } });
+    event({ type: 'result', subtype: 'success', is_error: false });
   } else {
     event({ type: 'stream_event', event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'The bore is 6.35 mm.' } } });
     event({ type: 'result', subtype: 'success', is_error: false });
@@ -141,6 +160,35 @@ if (process.argv.includes('--version')) {
       await f.same(doc);
       f.report.observations.push({ case: key, turnEnd: done.end, visiblePath: false, wirePath: false, modelPreserved: true });
       await f.snapshot(label);
+    }
+    if (mode) {
+      f.phase = 'show assistant, tool and user text with local paths';
+      const response = pending();
+      await input().fill('D649-transcript ' + linux);
+      await input().press('Enter');
+      const wire = await (await response).text();
+      const wireEvents = wire.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
+      assert.equal(wireEvents.at(-1).end, 'done');
+      assert.deepEqual(wireEvents.find(event => event.type === 'tool').input.files, [windows, linux, relativeFile]);
+      const thinking = chat().locator('[data-slot="reasoning"]');
+      const tool = chat().locator('[data-slot="tool"]');
+      await thinking.locator('summary').click();
+      await tool.locator('summary').click();
+      const transcript = await chat().innerText();
+      const hidden = !['/Users/studio-test', '/home/studio-test', 'C:\\Users', 'Private CAD', 'secret/review.json'].some(part => transcript.includes(part));
+      assert.equal(hidden, mode === '--transcript');
+      if (mode === '--transcript') {
+        assert.match(transcript, /Opened …\/state\.json\./);
+        assert.match(transcript, /Checking "…\/source\.bcad"\./);
+        assert.match(transcript, /Open failed: …\/state\.json/);
+        assert.match(transcript, /D649-transcript …\/review\.json/);
+        assert.match(await tool.locator('code').innerText(), /\["…\/source\.bcad","…\/review\.json","outputs\/bom\.json"\]/);
+      }
+      assert.ok(transcript.includes(url));
+      assert.ok(transcript.includes(relativeFile));
+      await f.same(doc);
+      f.report.observations.push({ case: 'transcript', hidden, filenamesRetained: mode === '--transcript', linksPreserved: true, originalToolInputPreserved: true, modelPreserved: true });
+      await f.snapshot('06-paths-in-transcript');
     }
   });
   const localLog = await readFile(join(output, 'online-server.log'), 'utf8');
