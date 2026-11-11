@@ -7,6 +7,10 @@ import type { Op } from '@barocss/cad-model/engine/schema/proposals';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { approvedRequirementComparison, compareApprovedRequirements as evidenceOf } from '@barocss/cad-model/versions/approvedRequirements';
+import { approvalEvidenceFile } from '@barocss/cad-model/versions/approvalEvidenceReport';
+import { makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
+import { bindSavedApproval, readSavedApprovalEvidence, saveApprovalEvidence } from '../src/storage/savedApprovalEvidence';
+import { memoryStore } from '../src/storage/memoryStore';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
   check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 10, unit: 'mm' } };
@@ -99,6 +103,49 @@ const nestedTwins: StudioDoc = { ...emptyDoc(), instances: twins.instances!.map(
   doc: { ...emptyDoc(), instances: [{ ...twins.instances![0], doc: nestedPlate }] },
 })) };
 const nestedOp = (part = 'p1/p1'): Op => ({ tool: 'features', args: { action: 'parameters', part, set: { H: 10 } } });
+
+test('D651 keeps an exact saved approval once and refuses altered evidence without replacing it', async () => {
+  const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
+  const comparison = approvedRequirementComparison(pending, accepted);
+  assert.ok(comparison?.nested);
+  const evidence = await evidenceOf(comparison, 'p1/p1', evaluate);
+  assert.ok(!('error' in evidence));
+  const first = makeVersions(pending, { at: '2026-11-11T00:00:00Z' });
+  const { version: to } = makeVersion(first, accepted, { at: '2026-11-11T00:01:00Z' });
+  const store = memoryStore(), pair = { store, document: 'assembly.bcad', from: first.versions[0], to };
+  const review = bindSavedApproval(pair, comparison, 'p1/p1');
+  assert.equal(await readSavedApprovalEvidence(review), null);
+  await Promise.all([saveApprovalEvidence(review, evidence), saveApprovalEvidence(review, evidence)]);
+  const kept = await store.read(review.path);
+  assert.ok(kept);
+  assert.deepEqual(await readSavedApprovalEvidence(review), JSON.parse(JSON.stringify(evidence)));
+  await saveApprovalEvidence(review, evidence);
+  assert.deepEqual(await store.read(review.path), kept);
+  const anotherFile = bindSavedApproval({ ...pair, document: 'copy.bcad' }, comparison, 'p1/p1');
+  assert.equal(await readSavedApprovalEvidence(anotherFile), null);
+
+  const original = approvalEvidenceFile(review.context, evidence);
+  const reencode = (context = review.context, next = evidence) => approvalEvidenceFile(context, next);
+  const altered = structuredClone(evidence);
+  altered.before.evidence[0].result.run = to.id;
+  const invalid = [
+    { ...original, sha256: '0'.repeat(64) },
+    reencode({ ...review.context, part: 'p2/p1' }),
+    reencode(review.context, altered),
+    reencode(review.context, { ...evidence, recoveries: [{ ...evidence.recoveries[0], from: 99 }] }),
+  ];
+  for (const artifact of invalid) {
+    const bytes = new TextEncoder().encode(JSON.stringify(artifact));
+    await store.write(review.path, bytes);
+    assert.deepEqual(await readSavedApprovalEvidence(review), { error: 'Saved approval evidence does not match this review.' });
+    await assert.rejects(saveApprovalEvidence(review, evidence), { code: 'STORAGE_CHANGED' });
+    assert.deepEqual((await store.read(review.path))?.bytes, bytes);
+  }
+  await store.write(review.path, new Uint8Array());
+  assert.equal(await readSavedApprovalEvidence(review), null);
+  await saveApprovalEvidence(review, evidence);
+  assert.deepEqual((await store.read(review.path))?.bytes, kept.bytes);
+});
 
 test('historical nested approval replays only its recorded path and retains the original failure', async () => {
   const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);

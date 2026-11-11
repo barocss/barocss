@@ -1,0 +1,140 @@
+{
+  "decision": "D651",
+  "tier": "FEATURE qualification with MCP report compatibility",
+  "baseCommit": "8cbc9affd8d30fc290e87e9d1522c9d9c48c5566",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d651-2026-11-11",
+  "priorFixture": "$HOME/.cache/barocss-cad-evidence/d607-2026-11-11/desktop",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "First baseline driver",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D651_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/baseline\" \"$PRIOR\" --save-review-baseline",
+      "receiptSHA256": "457583d8bf461185ba89db476187a7dc60def9264327d7f9b0de4f29a3d208aa",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "firstFailure": "The baseline driver accessed the historical observation before initialization."
+    },
+    {
+      "label": "Original product save action and artifact",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D651_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/baseline-verified\" \"$PRIOR\" --save-review-baseline",
+      "receiptSHA256": "e66d625074c235aadd621a591ca6fdae69728a374a8d3af37e89bebfe3649294",
+      "pinnedSources": 311,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "receiptMeaning": "The baseline driver confirms that the original product offers no save action or artifact."
+    },
+    {
+      "label": "Actual Studio save, fresh Open and mismatched-pin refusal",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D651_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/desktop-verified\" \"$PRIOR\" --save-review",
+      "receiptSHA256": "92980562891917647164136614f3caabb1021da887c44b7db48e7c5e3d8b212b",
+      "pinnedSources": 313,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "pins": {
+          "from": {
+            "id": "v9d02ceb8291a2925",
+            "snapshot": "35336cb9c7a6e532",
+            "revision": "6868500b8c0fb6f6",
+            "evidenceRevision": "b11f5ecae09046643e13cc6e6cff844a473ed6c87b040d4986515601590e7b04"
+          },
+          "to": {
+            "id": "v7e7a690c2e7b1a53",
+            "snapshot": "2a58dc068d9faf56",
+            "revision": "0f0148aa4c4e690c",
+            "evidenceRevision": "155d2fbcddb44df39c157f6258d3cb6bb735480240698a6e407571840fef464f"
+          }
+        },
+        "persistedFileSHA256": "5603b84f0faac463b14b50d34ecdfbbcc7a3378261a1769c70ebe4c273e9a9e1",
+        "payloadSHA256": "578bb56c315fc95c96ac42895566a3f04e2b727aafdad35e15cd244c31b4e955",
+        "reopenedWithoutCheckEvaluation": true,
+        "mismatchedPinRefused": true,
+        "storedVersionsUnchanged": true,
+        "checkEvaluationCalls": 0,
+        "initialMm": 6,
+        "approvedMm": 4,
+        "workingMm": 8,
+        "limitMm": 5
+      }
+    },
+    {
+      "label": "Independent saved artifact and native source reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop-verified/nested-approved-comparison-oracle.py\" < \"$EVIDENCE/desktop-verified/persisted-approval-oracle-input.json\"",
+      "scriptSHA256": "5d93ff4c624e636a1b420d320e7d1a350c295f17c25fceb4e02ed5e68fe07bc8",
+      "resultSHA256": "2833044d28658a014e850509b26f21751b73a82326ca1820c890cb2a1d0b621e",
+      "localHeightChecks": 6,
+      "productImports": 0
+    },
+    {
+      "label": "Desktop D650 successor comparison regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D650_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d650\" \"$PRIOR\" --follow-up",
+      "receiptSHA256": "8c4c599facf25ff0d81df47f181e98fb6e573a0dd5bc72e170303e60c117c261",
+      "pinnedSources": 313,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop D610 Studio agent and MCP regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D610_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d610\" \"$PRIOR\" --lifecycle",
+      "receiptSHA256": "a905b04b3994ecabd14c255563e791134b380adb39c21b6379000831ca4eb86f",
+      "pinnedSources": 322,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Model",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "passCount": 73,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Focused Studio",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test approved-requirement-compare version-tools-mcp project-open-ownership project-version-ownership late-save-ownership storage-version-snapshot edit-in-place chat toolset-mcp tool-contract-mcp",
+      "passCount": 131,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model and Studio types, syntax, changed TypeScript lint and build",
+      "result": "PASS",
+      "commands": [
+        "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+        "pnpm --dir apps/cad-studio exec tsc --noEmit",
+        "node --check apps/cad-studio/test/nested-approved-comparison-browser.mjs",
+        "pnpm exec eslint apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx apps/cad-studio/src/storage/VersionsPanel.tsx apps/cad-studio/src/storage/savedApprovalEvidence.ts apps/cad-studio/test/approved-requirement-compare.test.ts packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts packages/barocss-cad-model/src/versions/approvedRequirements.ts packages/barocss-cad-model/src/versions/tools.ts",
+        "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+        "git diff --check"
+      ]
+    },
+    {
+      "label": "Paid live execution, mobile and whole CAD suites",
+      "result": "NOT_RUN"
+    }
+  ]
+}

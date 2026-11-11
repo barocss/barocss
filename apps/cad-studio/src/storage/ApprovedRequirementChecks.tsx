@@ -2,16 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import { expectedOf } from '@barocss/cad-model/chat/spec';
+import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { approvedRequirementComparison, compareApprovedRequirements } from '@barocss/cad-model/versions/approvedRequirements';
+import type { ApprovalCheck } from '@barocss/cad-model/versions/approvalEvidenceReport';
 import { readVersion, type Version, type VersionLog } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
 import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
+import { bindSavedApproval, readSavedApprovalEvidence, saveApprovalEvidence, type SavedApprovalPair } from './savedApprovalEvidence';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
+type BoundReview = ReturnType<typeof bindSavedApproval>;
 type SavedSuccessor = { log: VersionLog; version: Version };
 type FollowUpResult = Awaited<ReturnType<typeof requirementFollowUp>>;
 const unitText = (unit?: string) => unit === 'mm3' ? 'mm³' : unit === 'mm2' ? 'mm²' : unit;
@@ -24,7 +28,7 @@ const FOLLOW_UP_STATUS = {
 };
 
 function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }: {
-  pin: SavedSuccessor; comparison: Comparison; part: string; approval: Exclude<CheckResult, { error: string }>; evaluate: Evaluate;
+  pin: SavedSuccessor; comparison: Comparison; part: string; approval: ApprovalCheck; evaluate: Evaluate;
 }) {
   const [selected, setSelected] = useState(false);
   const request = useMemo(() => selected ? { pin, comparison, part, approval, evaluate } : null,
@@ -69,20 +73,44 @@ function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }:
   </div>;
 }
 
-function Checks({ comparison, part, evaluate, followUp }: {
-  comparison: Comparison; part: string; evaluate: Evaluate; followUp?: SavedSuccessor;
+function KeepApprovalEvidence({ review, report, stored }: { review: BoundReview; report: ApprovalCheck; stored: boolean }) {
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  if (stored || state === 'saved') return <div role="status">Approval evidence saved</div>;
+  return <div className="mt-1">
+    <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => {
+      setState('saving');
+      void saveApprovalEvidence(review, report).then(() => setState('saved'), () => setState('failed'));
+    }}>{state === 'saving' ? 'Saving approval evidence…' : 'Save approval evidence'}</Button>
+    {state === 'failed' && <div role="status">Could not save approval evidence.</div>}
+  </div>;
+}
+
+function Checks({ comparison, part, evaluate, followUp, savedPair }: {
+  comparison: Comparison; part: string; evaluate: Evaluate; followUp?: SavedSuccessor; savedPair?: SavedApprovalPair;
 }) {
-  const [settled, setSettled] = useState<{ comparison: Comparison; part: string; evaluate: Evaluate; report: CheckResult }>();
+  const review = useMemo(() => savedPair ? bindSavedApproval(savedPair, comparison, part) : null, [savedPair, comparison, part]);
+  const [settled, setSettled] = useState<{ comparison: Comparison; part: string; evaluate: Evaluate; review: BoundReview | null;
+    report: CheckResult; stored: boolean }>();
   useEffect(() => {
     let current = true;
-    const complete = (report: CheckResult) => { if (current) setSettled({ comparison, part, evaluate, report }); };
-    void compareApprovedRequirements(comparison, part, input => current ? evaluate(input) : Promise.resolve(null)).then(
-      complete,
+    const complete = (report: CheckResult, stored = false) => {
+      if (current) setSettled({ comparison, part, evaluate, review, report, stored });
+    };
+    const load = async () => {
+      const saved = review ? await readSavedApprovalEvidence(review) : null;
+      if (!current) return;
+      if (saved) { complete(saved, true); return; }
+      const report = await compareApprovedRequirements(comparison, part, input => current ? evaluate(input) : Promise.resolve(null));
+      complete(report);
+    };
+    void load().catch(
       () => complete({ error: 'Could not check both saved revisions.' }),
     );
     return () => { current = false; };
-  }, [comparison, part, evaluate]);
-  const result = settled?.comparison === comparison && settled.part === part && settled.evaluate === evaluate ? settled.report : undefined;
+  }, [comparison, part, evaluate, review]);
+  const current = settled?.comparison === comparison && settled.part === part && settled.evaluate === evaluate && settled.review === review
+    ? settled : undefined;
+  const result = current?.report;
   if (!result) return <div role="status">Checking both revisions…</div>;
   if ('error' in result) return <div role="status">{result.error}</div>;
   return <>
@@ -100,13 +128,14 @@ function Checks({ comparison, part, evaluate, followUp }: {
         : `${priorFailure.measured}${priorFailure.unit ? ' ' + unitText(priorFailure.unit) : ''} (want ${priorFailure.expected})`}</div>}
       {criterion && <div>New criterion · {criterion}</div>}
     </div>)}
+    {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} />}
     {followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={followUp.version.id}
       pin={followUp} comparison={comparison} part={part} approval={result} evaluate={evaluate} />}
   </>;
 }
 
-export function ApprovedRequirementChecks({ comparison, evaluate, historical, followUp }: {
-  comparison: Comparison; evaluate: Evaluate; historical: boolean; followUp?: SavedSuccessor;
+export function ApprovedRequirementChecks({ comparison, evaluate, historical, followUp, savedPair }: {
+  comparison: Comparison; evaluate: Evaluate; historical: boolean; followUp?: SavedSuccessor; savedPair?: SavedApprovalPair;
 }) {
   const [part, setPart] = useState(comparison.scopes[0].id);
   const label = historical ? 'Saved approval checks' : 'Approved requirement checks';
@@ -115,7 +144,7 @@ export function ApprovedRequirementChecks({ comparison, evaluate, historical, fo
     <NativeSelect aria-label="Requirement occurrence" value={part} onChange={event => setPart(event.currentTarget.value)}>
       {comparison.scopes.map(scope => <option key={scope.id} value={scope.id}>{scope.label}{scope.id !== 'base' ? ` (${scope.id})` : ''}</option>)}
     </NativeSelect>
-    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} followUp={followUp} />
+    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} followUp={followUp} savedPair={savedPair} />
   </section>;
 }
 

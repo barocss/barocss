@@ -10,6 +10,7 @@ const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline;
+const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (agent) {
   const reserved = createServer().listen(0, '127.0.0.1');
@@ -27,9 +28,11 @@ const pins = [
   ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
     'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
   ...(followUp ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts'] : []),
+  ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
+    'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts'] : []),
 ];
 const oracleSource = String.raw`
-import json, sys
+import hashlib, json, sys
 d = json.load(sys.stdin)
 for stage, heights in [('first', [6, 7]), ('approved', [4, 7]), ('working', [8, 7])]:
     for host, height in zip(d[stage]['instances'], heights, strict=True):
@@ -45,12 +48,29 @@ if 'followUp' in d:
     regressed, = d['followUp']
     assert regressed == {'id':'HEIGHT','status':'Regressed','number':'8 mm'}
     assert d['workingRestored'] == d['approved']
+if 'artifact' in d:
+    a = d['artifact']
+    data = a['text'].encode('utf-8')
+    assert len(data) == a['bytes'] and hashlib.sha256(data).hexdigest() == a['sha256']
+    r = json.loads(data)
+    assert (r['format'], r['version'], r['part'], r['proposal']) == ('barocss-approved-requirement-evidence', 1, 'p1/p1', 'P1')
+    for state, pin, name, number, verdict in [('first','from','before',6,'fail'), ('approved','to','after',4,'pass')]:
+        saved = d['pins'][pin]
+        assert r[pin] == saved
+        e = r[name]
+        assert e['part'] == r['part'] and e['revision'] == saved['evidenceRevision'] and e['checker'] == 'checkSpec'
+        row, = [v for v in e['evidence'] if v.get('requirement', {}).get('id') == 'HEIGHT']
+        leaf, = d[state]['instances'][0]['doc']['instances']
+        criterion, = [q for q in leaf['doc']['requirements'] if q['id'] == 'HEIGHT']
+        assert row['requirement'] == criterion
+        assert (row['result']['run'], row['result']['number'], row['result']['verdict'], row['freshness']['state']) == (e['revision'], number, verdict, 'current')
+    assert r['recoveries'] == [{'id':'HEIGHT','from':6,'to':4,'unit':'mm'}]
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+  qualification: saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
@@ -205,6 +225,104 @@ async function inspectSavedFollowUp(saved, approved, historical) {
     directSuccessor: laterVersion.id, skippedVersion: skippedVersion.id, findings, workingPass, exactFilesPreserved: true, heldReadRetired: true });
   await f.snapshot('05-late-follow-up-retired');
   return { followUp: findings, workingRestored };
+}
+
+function approvalEvidenceFile(name, replacement) {
+  return f.page.evaluate(async ({ project, name, replacement }) => {
+    const root = await navigator.storage.getDirectory();
+    const dir = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(project);
+    try {
+      const folder = await (await dir.getDirectoryHandle('.barocss')).getDirectoryHandle('approval-evidence');
+      const handle = await folder.getFileHandle(name);
+      if (replacement !== undefined) {
+        const writer = await handle.createWritable();
+        await writer.write(replacement);
+        await writer.close();
+      }
+      return (await handle.getFile()).text();
+    } catch (error) {
+      if (error.name === 'NotFoundError') return null;
+      throw error;
+    }
+  }, { project, name, replacement });
+}
+
+async function verifyPersistentReview({ saved, pair, first, approved, working, historical, current }) {
+  const [beforeVersion, afterVersion, laterVersion] = JSON.parse(saved.log).versions;
+  const file = sha256(JSON.stringify([filename, beforeVersion.id, afterVersion.id, 'p1/p1'])) + '.json';
+  const save = () => history().getByRole('button', { name: 'Save approval evidence', exact: true });
+  const stored = () => history().getByText('Approval evidence saved', { exact: true });
+  const measurement = () => history().getByText(historical, { exact: true });
+  assert.equal(await approvalEvidenceFile(file), null);
+  if (evidenceBaseline) {
+    assert.equal(await save().count(), 0);
+    f.report.observations.push({ approvalVisible: true, saveActionAvailable: false, artifactExists: false });
+    await f.snapshot('00-approval-evidence-baseline');
+    return;
+  }
+
+  f.phase = 'save exact approval evidence without changing the model or versions';
+  await save().click();
+  await stored().waitFor();
+  const bytes = await approvalEvidenceFile(file);
+  assert.ok(bytes);
+  const artifact = JSON.parse(bytes);
+  const pin = (version, evidenceRevision) => ({ id: version.id, snapshot: version.snapshot, revision: version.revision, evidenceRevision });
+  const pins = { from: pin(beforeVersion, pair.before), to: pin(afterVersion, pair.after) };
+  const report = JSON.parse(artifact.text);
+  assert.deepEqual([report.from, report.to], [pins.from, pins.to]);
+  await f.runOracle({ first, approved, working, historical, current, artifact, pins }, 'persisted-approval');
+  assert.deepEqual(await projectBytes(), saved);
+  await f.same(working);
+  await f.snapshot('06-approval-evidence-saved');
+  await writeFile(join(output, 'approval-evidence-envelope.json'), bytes);
+
+  async function reopenAndBlockChecks() {
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(working);
+    await f.page.evaluate(async () => {
+      const url = '/src/engine/client.ts';
+      const { EngineClient } = await import(url);
+      const original = EngineClient.prototype.part;
+      window.__d651ReadAttempts = 0;
+      EngineClient.prototype.part = function (doc, revision, slot) {
+        if (slot === 'read') {
+          window.__d651ReadAttempts++;
+          return Promise.reject(new Error('Read-slot evaluation blocked by D651.'));
+        }
+        return original.call(this, doc, revision, slot);
+      };
+    });
+    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+    await selectTarget().selectOption(afterVersion.id);
+  }
+
+  f.phase = 'open the persisted review in a fresh page with check evaluation blocked';
+  await reopenAndBlockChecks();
+  await stored().waitFor();
+  await measurement().waitFor();
+  assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
+  assert.equal(await approvalEvidenceFile(file), bytes);
+  await f.snapshot('07-approval-evidence-reopened');
+
+  f.phase = 'refuse a mismatched approval pin even when the payload checksum is valid';
+  const wrongReport = JSON.stringify({ ...report, to: { ...report.to, id: laterVersion.id } }) + '\n';
+  const wrongBytes = JSON.stringify({ ...artifact, text: wrongReport, bytes: Buffer.byteLength(wrongReport), sha256: sha256(wrongReport) });
+  assert.equal(await approvalEvidenceFile(file, wrongBytes), wrongBytes);
+  await reopenAndBlockChecks();
+  await history().getByText('Saved approval evidence does not match this review.', { exact: true }).waitFor();
+  assert.equal(await measurement().count(), 0);
+  assert.equal(await save().count(), 0);
+  assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
+  assert.equal(await approvalEvidenceFile(file), wrongBytes);
+  await f.same(working);
+  assert.deepEqual(await projectBytes(), saved);
+  await f.snapshot('08-approval-evidence-refused');
+  f.report.observations.push({ pins, persistedFileSHA256: sha256(bytes), payloadSHA256: artifact.sha256,
+    reopenedWithoutCheckEvaluation: true, mismatchedPinRefused: true, storedVersionsUnchanged: true });
 }
 
 async function agentEvidence(origin, saved, working, pair) {
@@ -453,6 +571,11 @@ await f.run(async () => {
   assert.equal(await inspectWorkingHeight(), current);
   const compared = await f.snapshot('01-saved-repair-and-working-failure');
   assert.equal(compared.overlay, null);
+  if (saveReview) {
+    await verifyPersistentReview({ saved, pair, first, approved, working, historical, current });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (followUp) {
     const observation = await inspectSavedFollowUp(saved, approved, historical);
     if (observation) await f.runOracle({ first, approved, working, historical, current, ...observation }, 'saved-follow-up-heights');

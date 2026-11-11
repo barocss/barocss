@@ -8,8 +8,8 @@ import { splitPart } from '../engine/occurrences';
 import { accept, fail, json, type ChatState, type PartHandler, type CallOptions, type ToolOutcome } from '../chat/toolKit';
 import { BarocssError } from '@barocss/cad/api';
 import { changesOf } from './compare';
-import { outputFile } from '../chat/outputFile';
 import { requirementEvidenceRevision } from '../util/digest';
+import { approvalEvidenceFile, approvalEvidencePin } from './approvalEvidenceReport';
 import { applyBranch, headOf, isLinearSavedSequence, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
 import { applyMerge, type Conflict, type Side } from './merge';
 
@@ -103,18 +103,17 @@ async function approvalEvidenceTool(state: ChatState, args: Record<string, unkno
     if (!comparison?.nested) return fail(state, 'These saved versions do not have a matching nested approval.');
     const evidence = await compareApprovedRequirements(comparison, part, evaluate);
     if ('error' in evidence) return fail(state, evidence.error);
-    const pin = (version: Version, evidenceRevision: string) => ({ id: version.id, snapshot: version.snapshot, revision: version.revision, evidenceRevision });
-    const context = { from: pin(a, comparison.revisions.before), to: pin(b, comparison.revisions.after), part, proposal: comparison.proposal };
+    const context = { from: approvalEvidencePin(a, comparison.revisions.before), to: approvalEvidencePin(b, comparison.revisions.after),
+      part, proposal: comparison.proposal };
     let followUp;
     if (c && followUpDoc) {
       const revision = requirementEvidenceRevision(followUpDoc);
       const { requirementFollowUp } = await import('./requirementFollowUp');
       const result = await requirementFollowUp(after, followUpDoc, comparison.nested.ops[0], part,
         evidence.recoveries.map(recovery => recovery.id), evidence.after, revision, evaluate);
-      followUp = { version: pin(c, revision), ...result };
+      followUp = { version: approvalEvidencePin(c, revision), ...result };
     }
-    const report = { format: 'barocss-approved-requirement-evidence', version: 1, ...context, ...evidence, ...(followUp ? { followUp } : {}) };
-    const file = outputFile('approved-requirement-evidence.json', 'application/json', JSON.stringify(report, null, 1) + '\n');
+    const file = approvalEvidenceFile(context, evidence, followUp);
     return { state, content: json({ ...context, files: [file] }), isError: false, changed: false, summary: 'Read saved approval evidence' };
   } catch (error) { return refused(state, error); }
 }

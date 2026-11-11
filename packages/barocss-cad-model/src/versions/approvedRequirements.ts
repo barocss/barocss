@@ -102,11 +102,16 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
   if (empty && requirementEvidenceRevision(comparison.after) !== comparison.revisions.after) return { error: 'The approval revision changed.' };
   const after = empty ? null : await requirementEvidenceOf(comparison.after, part, evaluate, comparison.revisions.after);
   if (after && 'error' in after) return after;
+  return { ...summarizeApprovalEvidence(before, after), before, after };
+}
+
+/** Derive the visible approval findings from reports pinned by the caller. */
+export function summarizeApprovalEvidence(before: RequirementEvidence, after: RequirementEvidence | null) {
   const recoveries: Recovery[] = [], changed: RequirementChange[] = [];
   const noteChange = (old: typeof before.evidence[number], requirement?: Requirement) => {
     const previous = old.requirement!;
     const change: RequirementChange = { id: previous.id, kind: requirement ? 'changed' : 'withdrawn' };
-    if (isCurrentRequirement(old, part, comparison.revisions.before) && old.result.verdict === 'fail') {
+    if (isCurrentRequirement(old, before.part, before.revision) && old.result.verdict === 'fail') {
       change.priorFailure = { measured: old.result.number, unit: previous.check.unit, expected: expectedOf(previous.check) };
     }
     if (requirement) change.criterion = expectedOf(requirement.check);
@@ -120,11 +125,11 @@ export async function compareApprovedRequirements(comparison: Comparison, part: 
     if (!old) continue;
     oldRows.delete(requirement.id);
     if (canonical(old.requirement) !== canonical(requirement)) { noteChange(old, requirement); continue; }
-    if (isCurrentRequirement(old, part, comparison.revisions.before) && isCurrentRequirement(next, part, comparison.revisions.after) &&
+    if (after && isCurrentRequirement(old, before.part, before.revision) && isCurrentRequirement(next, after.part, after.revision) &&
         old.result.verdict === 'fail' && next.result.verdict === 'pass') {
       recoveries.push({ id: requirement.id, from: old.result.number, to: next.result.number, unit: requirement.check.unit });
     }
   }
   for (const old of oldRows.values()) noteChange(old);
-  return { recoveries, changed, before, after };
+  return { recoveries, changed };
 }

@@ -83,15 +83,22 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   const comparedTo = target ? (targetVersion ? target.doc : null) : doc;
   const compared = useMemo(() => comparedFrom && comparedTo ? changesOf(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
   const approval = useMemo(() => comparedFrom && comparedTo ? approvedRequirementComparison(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
-  const followUp = useMemo(() => {
-    if (!log || !version || !targetVersion || !approval?.nested) return;
-    // The current branch is listed newest first. Only the next saved child can qualify.
-    const successor = list[list.indexOf(targetVersion) - 1];
-    if (!successor || !isLinearSavedSequence(log, version, targetVersion, successor)) return;
-    if ([version, targetVersion, successor].some(pin => log.versions.some(item => item.name === pin.id && item.id !== pin.id))) return;
+  const { store, part: projectDocument } = view;
+  const savedPair = useMemo(() => {
+    if (!store || !projectDocument || !log || !version || !targetVersion || !approval?.nested) return;
+    if ([version, targetVersion].some(pin => log.versions.some(item => item.name === pin.id && item.id !== pin.id))) return;
     if (snapshotKeyOf(approval.before) !== version.snapshot || snapshotKeyOf(approval.after) !== targetVersion.snapshot) return;
+    return { store, document: projectDocument, from: version, to: targetVersion };
+  }, [store, projectDocument, log, version, targetVersion, approval]);
+  const followUp = useMemo(() => {
+    if (!log || !savedPair) return;
+    const { from, to } = savedPair;
+    // The current branch is listed newest first. Only the next saved child can qualify.
+    const successor = list[list.indexOf(to) - 1];
+    if (!successor || !isLinearSavedSequence(log, from, to, successor)) return;
+    if (log.versions.some(item => item.name === successor.id && item.id !== successor.id)) return;
     return { log, version: successor };
-  }, [log, list, version, targetVersion, approval]);
+  }, [log, list, savedPair]);
   const others = log ? log.branches.filter(b => b.name !== log.current) : [];
   const linkedCount = useMemo(() => new Set((doc.instances ?? []).flatMap(i => linkedPath(i.part?.source) !== null ? [i.part!.id] : [])).size, [doc.instances]);
 
@@ -176,7 +183,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
       <ul className="m-0 list-disc pl-4">{changeLines(compared).map((l, k) => <li key={k}>{l}</li>)}</ul>
     </div>}
     {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.before}:${approval.revisions.after}`}
-      comparison={approval} evaluate={evaluate} historical={!!targetVersion} followUp={followUp} />}
+      comparison={approval} evaluate={evaluate} historical={!!targetVersion} followUp={followUp} savedPair={savedPair} />}
 
     {log && <>
       <div className="card-title" style={{ marginTop: 8 }}>BRANCHES · {log.branches.length}</div>

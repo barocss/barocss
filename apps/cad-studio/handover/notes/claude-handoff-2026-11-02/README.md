@@ -1,5 +1,5 @@
 ---
-work_id: D650
+work_id: D651
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -237,7 +237,9 @@ D649 qualifies three path-free CLI diagnostics, the existing step limit, and the
 
 D650 adds the D610 saved regression to the read-only Studio Versions comparison. Fresh Open, exact stored bytes, the restored passing working model and the retired late check are verified. [D650](../studio-saved-requirement-follow-up-2026-11-11/README.md).
 
-Next MAIN is D651 / P0 automation evidence, rows 04, 12 and 16. Persist one exact saved approval review using the existing v1 evidence format and project storage. Verify that fresh Open reads the original failure and approval pins from the artifact, and refuses mismatched pins. Keep the native document schema. [#2279](https://github.com/barocss/barocss/issues/2279).
+D651 keeps a saved approval review in the project. Fresh Studio Open reads the v1 artifact without a check evaluation and refuses mismatched approval pins. [D651](../studio-persisted-approval-evidence-2026-11-11/README.md).
+
+Next MAIN is D652 / P0 automation evidence, rows 04, 12 and 16. Let the user attach a saved approval review to a Studio agent turn. Return the exact retained report through a read-only tool. Verify that the report remains bound to its project document, saved versions and occurrence, and that changing the project or document retires the selection. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
