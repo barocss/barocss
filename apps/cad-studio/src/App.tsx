@@ -267,11 +267,12 @@ export function App() {
   const routeAcceptedHandoff = useRef<{ doc: StudioDoc; identity: string; evaluatedIdentity: string; revision: number; result: Extract<EvalResult, { ok: true }> } | null>(null);
   const workOwnership = useRef(createWorkOwnership<StudioDoc, StudioDoc>());
   const acceptanceScope = workOwnership.current.scope;
-  const replacementScope = useRef<object | null>(null), workCompletion = useRef<object | null>(null);
+  const replacement = useRef<{ scope: object; identity?: WorkHistory<StudioDoc>['documentIdentity'] } | null>(null);
+  const workCompletion = useRef<object | null>(null);
   const shownVariant = useRef<string | null>(null);
   const undoFor = useRef<{ entry: WorkHistory<StudioDoc>; scope: object; base: StudioDoc; beforeInput: StudioDoc } | null>(null);
   const canChangeDocument = () => {
-    const why = !replacementScope.current && doc !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacementScope.current ?? acceptanceScope, workCompletion.current);
+    const why = !replacement.current && doc !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacement.current?.scope ?? acceptanceScope, workCompletion.current);
     if (!why) return true;
     undoFor.current = null;
     setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' });
@@ -279,7 +280,7 @@ export function App() {
   };
   const setDoc = (next: StudioDoc, whole = false): boolean => {
     const intent = undoFor.current; undoFor.current = null;
-    const why = !replacementScope.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacementScope.current ?? intent?.scope ?? acceptanceScope, workCompletion.current);
+    const why = !replacement.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacement.current?.scope ?? intent?.scope ?? acceptanceScope, workCompletion.current);
     if (why) { setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' }); return false; }
     const pathProblem = curvePatternDocumentProblem(next);
     if (pathProblem) { setToast({ title: 'Change not applied', hint: pathProblem, detail: 'The document is unchanged.' }); return false; }
@@ -295,7 +296,9 @@ export function App() {
         && next.nodes.some((_, i) => featureId(next.nodes, i) === copied.featureId)) {
         clearBodyClipboard();
       }
-      const entry: WorkHistory<StudioDoc> = replacementScope.current === null ? intent.entry : { ...intent.entry, documentBoundary: true };
+      const identity = replacement.current?.identity;
+      const entry: WorkHistory<StudioDoc> = replacement.current
+        ? { ...intent.entry, documentBoundary: true, ...(identity ? { documentIdentity: identity } : {}) } : intent.entry;
       setUndo(u => [...u.slice(-49), entry]); setRedo([]);
       workOwnership.current = reserveAcceptedChange(workOwnership.current, entry, next, intent.beforeInput);
     }
@@ -456,7 +459,10 @@ export function App() {
   const setFileName = useCallback((next: string) => { fileNameNow.current = next; setFileNameRaw(next); }, []);
   // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
   const [docGeneration, setDocGeneration] = useState(0);
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirtyRaw] = useState(false);
+  const dirtyNow = useRef(dirty);
+  const setDirty = useCallback((next: boolean) => { dirtyNow.current = next; setDirtyRaw(next); }, []);
+  const currentDocumentIdentity = useCallback(() => ({ fileName: fileNameNow.current, dirty: dirtyNow.current }), []);
   /** Unsaved work kept from an earlier visit, offered back once. */
   // (The copy offered is set aside until answered: this session's copies do not write over it, O-log flow-39 note.)
   const [recovery, setRecovery] = useState<Recovery | null>(() => offerRecovery());
@@ -870,7 +876,7 @@ export function App() {
   };
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
-  const pushUndo = () => { undoFor.current = { entry: { doc: docNow.current, marker: markerNow.current }, scope: replacementScope.current ?? acceptanceScope, base: doc, beforeInput: evaluatedRef.current }; };
+  const pushUndo = () => { undoFor.current = { entry: { doc: docNow.current, marker: markerNow.current }, scope: replacement.current?.scope ?? acceptanceScope, base: doc, beforeInput: evaluatedRef.current }; };
   // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
   // `whole`: a new or opened document, nothing of the one before carried into it.)
   // A proposal replay uses the authored document, so its result needs no fields from the evaluated copy.
@@ -1440,8 +1446,23 @@ export function App() {
     setCheckpointReview(null);
     clearBodyClipboard();
     resetDocumentDraft();
-    return { doc, marker, documentBoundary: true };
-  }, [clearBodyClipboard, resetDocumentDraft]);
+    return { doc, marker, documentBoundary: true, ...(target.documentIdentity ? { documentIdentity: currentDocumentIdentity() } : {}) };
+  }, [clearBodyClipboard, currentDocumentIdentity, resetDocumentDraft]);
+  const detachProject = project.detach;
+  const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
+    setDocState(entry.doc);
+    setMarker(entry.marker);
+    if (entry.documentIdentity) {
+      // Neither side of a New part history boundary can borrow the other document's Save destination.
+      detachProject();
+      setCompareBase(null);
+      setDocGeneration(generation => generation + 1);
+      setFileName(entry.documentIdentity.fileName);
+      setDirty(entry.documentIdentity.dirty);
+      if (!entry.documentIdentity.dirty) clearRecovery();
+    }
+    cancel();
+  }, [cancel, detachProject, setDirty, setDocState, setFileName]);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1454,24 +1475,27 @@ export function App() {
     if (target) {
       const redoEntry = reverseHistoryEntry(target, docNow.current, markerNow.current);
       setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1));
-      docNow.current = target.doc; setDocState(target.doc); setMarker(target.marker); setDirty(true); cancel();
+      restoreHistoryEntry(target);
+      if (!target.documentIdentity) setDirty(true);
       setToast({ title: 'Stopped', hint: 'The computation was stopped and its change taken back.', detail: '' });
     } else setToast({ title: 'Stopped', hint: 'The computation was stopped; no unrelated change was taken back.', detail: 'The document is unchanged. The view is not up to date.' });
   };
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
-    invalidateDocumentWork(); docNow.current = last.doc;
+    invalidateDocumentWork();
     const redoEntry = reverseHistoryEntry(last, doc, marker);
-    setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
-  }, [undo, doc, marker, cancel, reverseHistoryEntry]);
+    setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1));
+    restoreHistoryEntry(last);
+  }, [undo, doc, marker, restoreHistoryEntry, reverseHistoryEntry]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
-    invalidateDocumentWork(); docNow.current = last.doc;
+    invalidateDocumentWork();
     const undoEntry = reverseHistoryEntry(last, doc, marker);
-    setUndo(u => [...u, undoEntry]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
-  }, [redo, doc, marker, cancel, reverseHistoryEntry]);
+    setUndo(u => [...u, undoEntry]); setRedo(r => r.slice(0, -1));
+    restoreHistoryEntry(last);
+  }, [redo, doc, marker, restoreHistoryEntry, reverseHistoryEntry]);
 
   const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
     changes: { canChangeDocument, commit, setSelection }, onNotice: setToast });
@@ -1528,16 +1552,18 @@ export function App() {
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // A detached replacement clears the project document. Editing a part in place retains the root's checkpoint review.
-  const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project' | 'in-place' = 'detached') => {
-    cancelStepExportRef.current(); invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
+  const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project' | 'in-place' | 'new-part' = 'detached') => {
+    cancelStepExportRef.current(); invalidateDocumentWork();
+    replacement.current = { scope: workOwnership.current.scope, ...(mode === 'new-part' ? { identity: currentDocumentIdentity() } : {}) };
     try {
       if (!commit(next, false, true)) return;
       clearBodyClipboard();
       resetDocumentDraft();
       if (mode !== 'in-place') setCheckpointReview(null);
-      if (mode === 'detached') { project.detach(); setCompareBase(null); }
+      if (mode === 'detached' || mode === 'new-part') { project.detach(); setCompareBase(null); }
+      if (mode === 'new-part') setFileName('Untitled');
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
-    } finally { replacementScope.current = null; }
+    } finally { replacement.current = null; }
   };
   // Roadmap 10 ⑧: a part edited in place. The session swaps the working document for the part's own and back; the other parts are drawn around it
   // (inPlace.context). Begin: the assembly's undo and redo stacks are set aside and the session's own start empty. Finish: one commit of the assembly
@@ -2330,7 +2356,7 @@ export function App() {
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
           <ToolIconButton key="tool1" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></ToolIconButton>,
           <ToolIconButton key="tool2" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></ToolIconButton>,
-          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { if (sessionBlocked('starting a new part')) return; replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></ToolIconButton>,
+          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { if (sessionBlocked('starting a new part')) return; replaceDoc(emptyDoc(), 'new-part'); }}><Icon name="add_box" /></ToolIconButton>,
           <TemplatePicker key="tool4" doc={doc} state={{ templatesOpen, setTemplatesOpen, templateName, setTemplateName }} open={open} onNotice={setToast}
             onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,

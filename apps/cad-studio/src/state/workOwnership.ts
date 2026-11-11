@@ -4,6 +4,8 @@ export interface WorkHistory<D extends object> {
   marker: number | null;
   /** Applying this entry crosses a document replacement. */
   documentBoundary?: true;
+  /** The working title and save state on an undoable New part transition. */
+  documentIdentity?: { fileName: string; dirty: boolean };
 }
 interface Reservation<D extends object, I extends object> {
   entry: WorkHistory<D>; after: D; beforeInput: I; generation: object;

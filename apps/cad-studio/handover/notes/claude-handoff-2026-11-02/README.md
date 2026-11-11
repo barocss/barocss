@@ -1,5 +1,5 @@
 ---
-work_id: D663
+work_id: D664
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -263,7 +263,9 @@ D662 lets the user attach one saved face repair review to a Studio agent turn. M
 
 D663 protects a live sketch when switching to Model, Drawing or Render. Keeping the draft preserves dimensions, constraints and focus. The desktop flow finished one sketch and extruded it 18 mm. [D663](../studio-live-sketch-mode-exit-2026-11-11/README.md).
 
-Next MAIN is D664 / P0 R14, rows 12 and 16. Reproduce New part on a named unsaved document. Keep the document recoverable and verify its name, geometry, history and dirty state through the desktop transition and recovery.
+D664 restores the title, authored model, history and dirty flag when Undo or Redo crosses New part. The desktop run reopens the corrected recovery copy and preserves both saved project files. [D664](../studio-new-part-history-identity-2026-11-11/README.md).
+
+Next MAIN is D665 / P4, rows 02 and 21. Reproduce the Drawing toolbar obstruction with the chat rail collapsed. Verify the full tool buttons at 1440 × 900 and 1280 × 720, then place a linear dimension with pointer and keyboard and check Fit sheet.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
