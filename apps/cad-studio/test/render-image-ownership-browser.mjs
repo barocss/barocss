@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { imagePixels, installDecodeHold } from './render-image-test-helpers.mjs';
 
 const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
@@ -22,7 +23,7 @@ const fixture = {
 };
 const nativeBytes = Buffer.from(JSON.stringify(fixture));
 const asPng = buffer => 'data:image/png;base64,' + buffer.toString('base64');
-const pins = ['apps/cad-studio/test/render-image-ownership-browser.mjs', 'apps/cad-studio/src/App.tsx',
+const pins = ['apps/cad-studio/test/render-image-ownership-browser.mjs', 'apps/cad-studio/test/render-image-test-helpers.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/ui/RenderPanel.tsx', ...paths];
 const f = await createFlow({
   name: 'render-image-ownership', envFrozen: documentBoundary ? 'D709_SOURCE_FROZEN' : 'D577_SOURCE_FROZEN', output,
@@ -42,39 +43,6 @@ const modeButton = name => f.page.locator('.mode').getByRole('button', { name, e
 const input = kind => f.page.getByLabel(kind === 'texture' ? 'Texture image' : 'Environment image', { exact: true });
 const imageOf = (doc, kind) => (kind === 'texture' ? doc.render?.defaultAppearance.texture : doc.render?.environment.map)?.image;
 
-function installDecodeHold() {
-  const decode = window.createImageBitmap;
-  const held = new Map();
-  const closed = [];
-  const bitmapNames = new WeakMap();
-  const closeBitmap = ImageBitmap.prototype.close;
-  ImageBitmap.prototype.close = function () {
-    const name = bitmapNames.get(this);
-    if (name) closed.push(name);
-    return closeBitmap.call(this);
-  };
-  window.createImageBitmap = function (source, ...options) {
-    const decoded = decode.call(this, source, ...options);
-    if (!(source instanceof File) || !source.name.startsWith('D577-')) return decoded;
-    return new Promise((resolve, reject) => {
-      decoded.then(bitmap => {
-        bitmapNames.set(bitmap, source.name);
-        held.set(source.name, { ok: true, deliver: () => resolve(bitmap) });
-      }, error => held.set(source.name, { ok: false, deliver: () => reject(error) }));
-    });
-  };
-  window.__d577Hold = {
-    read: name => held.get(name)?.ok ?? null,
-    release(name) {
-      const entry = held.get(name);
-      if (!entry) throw new Error('No held decode for ' + name);
-      held.delete(name);
-      entry.deliver();
-    },
-    closed: () => [...closed],
-  };
-}
-
 async function openNative(name, doc) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
@@ -91,20 +59,11 @@ async function open(kind) {
 }
 async function load(kind, name, buffer, ok = true) {
   await input(kind).setInputFiles({ name, mimeType: 'image/png', buffer });
-  await f.page.waitForFunction(([name, ok]) => window.__d577Hold.read(name) === ok, [name, ok]);
+  await f.page.waitForFunction(([name, ok]) => window.__renderDecodeHold.read(name) === ok, [name, ok]);
 }
-const release = name => f.page.evaluate(name => window.__d577Hold.release(name), name);
-const closed = () => f.page.evaluate(() => window.__d577Hold.closed());
-const pixels = url => f.page.evaluate(async url => {
-  const bitmap = await createImageBitmap(await (await fetch(url)).blob());
-  try {
-    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height), ctx = canvas.getContext('2d');
-    ctx.drawImage(bitmap, 0, 0);
-    const rgba = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
-    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', rgba)), x => x.toString(16).padStart(2, '0')).join('');
-    return { hash, width: bitmap.width, height: bitmap.height, transparent: rgba.some((v, i) => i % 4 === 3 && v < 255) };
-  } finally { bitmap.close(); }
-}, url);
+const release = name => f.page.evaluate(name => window.__renderDecodeHold.release(name), name);
+const closed = () => f.page.evaluate(() => window.__renderDecodeHold.closed());
+const pixels = url => imagePixels(f.page, url);
 const keptFields = ['doc', 'dirty', 'history', 'historyControls', 'selection', 'notices'];
 
 async function verifyDocumentBoundaries() {
@@ -160,7 +119,7 @@ async function verifyDocumentBoundaries() {
     assert.ok(!before.notices.some(notice => notice.includes('Could not use that image')), boundary + ' must retire the previous document’s import error');
     await release(bad);
     await release(good);
-    await f.page.waitForFunction(name => window.__d577Hold.closed().includes(name), good);
+    await f.page.waitForFunction(name => window.__renderDecodeHold.closed().includes(name), good);
     const after = await f.snapshot(boundary.replaceAll(' ', '-') + '-after-delivery');
     for (const field of keptFields) assert.deepEqual(after[field], before[field], boundary + ' ' + field);
     assert.deepEqual(after.bodies, before.bodies);

@@ -355,7 +355,9 @@ D708 protects a newer Studio-saved file from a stale external MCP session. [D708
 
 D709 verifies pending Render imports across Undo, Redo, Open and New part, and binds the import error notice to its document. [D709](../render-import-document-ownership-2026-11-11/README.md).
 
-Next MAIN is D710 / P0, rows 06 and 16. Verify per-body Render image ownership and native project Save/Open for the accepted images. [#2419](https://github.com/barocss/barocss/issues/2419).
+D710 verifies per-body Render image ownership and reopens the exact saved Texture and Environment payloads. [D710](../render-body-image-native-file-2026-11-11/README.md).
+
+Next MAIN is D711 / P0, rows 06 and 16. Verify reverse and three-file Render import delivery, Drawing exit and remount, and the modeling-work guard. [#2419](https://github.com/barocss/barocss/issues/2419).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at six of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

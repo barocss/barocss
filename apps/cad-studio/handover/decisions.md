@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D710 — verify per-body Render images and their native file](notes/render-body-image-native-file-2026-11-11/README.md).
 - [D709 — keep Render image import errors with their document](notes/render-import-document-ownership-2026-11-11/README.md).
 - [D708 — protect a newer saved file from a stale external MCP session](notes/external-mcp-stale-save-2026-11-11/README.md).
 - [D707 — keep nested BOM actions and errors with their source](notes/bom-nested-currentness-2026-11-11/README.md).
