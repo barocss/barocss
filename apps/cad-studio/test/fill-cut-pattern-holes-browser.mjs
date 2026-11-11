@@ -2,6 +2,7 @@
 // node test/fill-cut-pattern-holes-browser.mjs /absolute/artifacts
 // One Chrome, serial contexts. Public seed API and actual UI actions author all accepted changes.
 import assert from 'node:assert/strict';
+import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -87,7 +88,7 @@ async function freshOpen(file, expected, label) {
   await page.goto(server.resolvedUrls.local[0]); await page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
   await page.setInputFiles('input[aria-label="Model file"]', file); await same(expected); await snapshot(label);
 }
-async function command(label) { await page.keyboard.press('Space'); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter'); }
+async function command(label) { await pressWorkspaceSpace(page); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter'); }
 async function selectTarget() {
   await ready(); const state = await page.evaluate(() => window.__studioBodies());
   const index = state.bodies.findIndex(b => b.key !== report.witness.key); assert.ok(index >= 0);

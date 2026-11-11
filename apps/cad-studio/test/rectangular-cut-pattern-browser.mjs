@@ -3,6 +3,7 @@
 // Optional D333_RESUME_FILE=/absolute/accepted.bcad reuses the saved 3×2 prefix and runs only the edit/file tail.
 // Seed generation uses the existing public Model API. Dev hooks observe; public controls perform all Studio edits.
 import assert from 'node:assert/strict';
+import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -84,7 +85,7 @@ async function selectBody() {
   await page.waitForFunction(() => /Bounds\s*60\s*×\s*40\s*×\s*10/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
 }
 async function command() {
-  await selectBody(); await page.keyboard.press('Space'); await page.locator('.palette input').fill('Rectangular cut pattern'); await page.keyboard.press('Enter'); await hud().waitFor();
+  await selectBody(); await pressWorkspaceSpace(page); await page.locator('.palette input').fill('Rectangular cut pattern'); await page.keyboard.press('Enter'); await hud().waitFor();
 }
 async function preview() {
   await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 60000 });

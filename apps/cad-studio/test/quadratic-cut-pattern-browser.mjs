@@ -3,6 +3,7 @@
 // node test/quadratic-cut-pattern-browser.mjs /absolute/artifacts
 // Actual UI authors the curve. Readonly hooks observe; no source/selection mutation hooks.
 import assert from 'node:assert/strict';
+import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -170,7 +171,7 @@ async function freshOpen(file, expected, label) {
   page.on('pageerror', e => report.errors.push(e.stack ?? String(e))); page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push(m.text()); }); page.on('download', d => report.downloads.push({ phase, suggestedFilename: d.suggestedFilename() })); page.on('dialog', d => d.accept());
   await page.goto(server.resolvedUrls.local[0]); await page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 }); await page.setInputFiles('input[aria-label="Model file"]', file); await same(expected); await snapshot(label);
 }
-async function command(label) { await page.keyboard.press('Space'); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter'); }
+async function command(label) { await pressWorkspaceSpace(page); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter'); }
 async function worldClick(point) { const pixel = await page.evaluate(point => window.__studioScreenOf?.(point), point); assert.ok(pixel?.length === 2); await page.mouse.click(pixel[0], pixel[1]); }
 async function selectTarget() {
   await ready(); const state = await page.evaluate(() => window.__studioBodies()), index = state.bodies.findIndex(b => b.key !== report.witness.key); assert.ok(index >= 0);

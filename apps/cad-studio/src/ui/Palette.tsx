@@ -14,7 +14,8 @@ export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: Stu
   const all = useMemo(() => extra?.length ? [...commands, ...extra] : commands, [extra]);
   const list = useMemo(() => filletPaletteRows(paletteList(q, ctx, all), q, ctx), [q, ctx, all]);
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
-    <DialogContent className="card palette top-[18vh] translate-y-0" overlayClassName="palette-backdrop bg-black/25" aria-label="Command palette" aria-describedby={undefined}>
+    <DialogContent className="card palette top-[18vh] translate-y-0" overlayClassName="palette-backdrop bg-black/25"
+      aria-label="Command palette" aria-describedby={undefined} onEscapeKeyDown={event => event.stopPropagation()}>
       <DialogTitle className="sr">Command palette</DialogTitle>
       {/* (Enter is the palette's here: the window's — finish a sketch, apply — must not see it once the command starts.) */}
       <Command shouldFilter={false} loop onKeyDown={e => { if (e.key === 'Enter') e.stopPropagation(); }}>

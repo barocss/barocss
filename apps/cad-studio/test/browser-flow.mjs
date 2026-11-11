@@ -4,6 +4,7 @@
 // FLOW_ONLY runs the first step and the steps whose names match (for steps that start from a new part).
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
+import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -157,7 +158,8 @@ const loadSampleSizes = async () => {
 };
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
-const press = (k) => page.keyboard.press(k);
+// The Space calls in this flow open the workspace command palette.
+const press = k => k === ' ' ? pressWorkspaceSpace(page) : page.keyboard.press(k);
 /** A shape's button. */
 // (Since 21b the placed shapes are the tool rail's first group, every one in view.)
 const shape = async label => { await page.click(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${label}"]`); };

@@ -2,6 +2,7 @@
 // PW_DIR=/absolute/playwright CHROME=/absolute/chrome node test/curve-cut-pattern-browser.mjs /absolute/artifacts
 // D334_RESUME_FILE=/absolute/edited.bcad runs only the live-path tail of the retained count-four prefix.
 import assert from 'node:assert/strict';
+import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -105,7 +106,7 @@ async function freshPage() {
   await page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 }); await ready();
 }
 async function command(label) {
-  await page.keyboard.press('Space'); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter');
+  await pressWorkspaceSpace(page); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter');
 }
 async function selectBody() { await ready(); await page.locator('.outliner .ol:not(.ol-step)').first().click(); }
 async function save(label) {

@@ -2127,7 +2127,11 @@ export function App() {
     ? <ReferenceDecisions doc={doc} referenceLabels={referenceLabels} refMarks={refMarks} refProblems={refProblems} refChoices={refChoices}
       previewReference={previewReference} settleRef={settleRef} showRefChoices={showRefChoices} /> : null;
   const browserPanel = (
-      <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
+      <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser"
+        onKeyDown={e => {
+          // Let Space click the focused Browser button instead of opening the workspace palette.
+          if (e.key === ' ' && e.target instanceof HTMLButtonElement) e.stopPropagation();
+        }}>
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>Base part · {fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
