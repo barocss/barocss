@@ -28,6 +28,24 @@ const SUB_DISPLAY = 1 / 4096;
 const WIDTH = 40 + SUB_DISPLAY;
 const WIDTH_CAP = 40 + SUB_DISPLAY / 2;
 
+test('D648: inch hole checks use the raw diameter before rounding the evidence', async () => {
+  const check: Predicate = { op: '==', query: { fn: 'hole_diameter', face: 'n2.side0' }, value: 0.25, tol: 0.001, unit: 'in' };
+  const makeBore = (diameterMm: number) => stateOf(withNode(rectanglePart(20, 10, 5), {
+    kind: 'hole', parent: { node: 1, side: 'solid' }, center: [5, 5], radius: diameterMm / 2,
+  }));
+  const inside = await makeBore(6.3752), outside = await makeBore(6.3756);
+  const pass = await runCheck(inside.doc, inside.bodies, evaluate, check);
+  const fail = await runCheck(outside.doc, outside.bodies, evaluate, check);
+  assert.deepEqual([pass.status, pass.measured, pass.delta], ['pass', 0.251, 0.001]);
+  assert.deepEqual([fail.status, fail.measured, fail.delta], ['fail', 0.251, 0.001]);
+  assert.match(fail.hint ?? '', /in before display rounding/);
+  const legacy = await runCheck(outside.doc, outside.bodies, evaluate, { ...check, unit: undefined, value: 6.3756 });
+  assert.deepEqual([legacy.status, legacy.measured], ['pass', 6.3756]);
+  assert.equal(Math.abs(legacy.delta ?? NaN), 0);
+  for (const invalid of [{ ...check, unit: 'inch' }, { ...check, tol: 1e308 }, { ...check, op: '>=' as const }])
+    assert.equal((await runCheck(outside.doc, outside.bodies, evaluate, invalid)).status, 'unknown');
+});
+
 const keepoutQuery = { fn: 'keepout', keepout: 'K1' } as const;
 function keepoutPart(curved: boolean): StudioDoc {
   return {

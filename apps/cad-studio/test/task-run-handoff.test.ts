@@ -12,7 +12,7 @@ import { readTaskRunOffer } from '../src/chat/taskRunOffer';
 import { TurnChunker } from '../src/chat/transport';
 import { encodeTaskRunHandoff, readTaskRunHandoff } from '../src/files/taskRunHandoff';
 import { planWorkingTaskReplacement } from '../src/files/workingTaskReplacement';
-import { fixtureDoc, holeDiameterDocs } from './task-run-fixture';
+import { fixtureDoc, holeDiameterDocs, inchDiameterDocs } from './task-run-fixture';
 
 function fixture() {
   const doc = fixtureDoc(), native = encodeStudioFile(doc), occurrences = ['p1', 'p2'];
@@ -31,6 +31,17 @@ test('D646 replan requires a changed diameter criterion rather than a different 
   check.value = 8;
   assert.deepEqual(planWorkingTaskReplacement(source, working, pin).targets,
     [{ id: 'p1', requirementId: 'bore', toleranceMm: 0.001, currentDiameterMm: 4, diameterMm: 8 }]);
+});
+
+test('D648 a change of display unit alone does not replan the same physical diameter', () => {
+  const { source } = inchDiameterDocs(), working = structuredClone(source);
+  const pin = { occurrence: 'p1', feature: 'n2', field: 'diameter' as const, attemptId: '1:1:p1' };
+  const check = working.instances![0].doc.requirements![0].check;
+  Object.assign(check, { value: 6.35, tol: 0.0254, unit: 'mm' });
+  assert.throws(() => planWorkingTaskReplacement(source, working, pin), /changed stated dimension/);
+  Object.assign(check, { value: 0.3125, tol: 0.001, unit: 'in' });
+  assert.deepEqual(planWorkingTaskReplacement(source, working, pin).targets,
+    [{ id: 'p1', requirementId: 'bore', toleranceMm: 0.0254, currentDiameterMm: 4, diameterMm: 7.9375 }]);
 });
 
 test('D618 preserves exact native bytes and carries only the selected plan', async () => {

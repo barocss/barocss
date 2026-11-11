@@ -1,5 +1,5 @@
 ---
-work_id: D647
+work_id: D648
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -231,7 +231,9 @@ D646 binds an existing native through-hole and its cylindrical wall to a hard di
 
 D647 approves the height, retires the original diameter receipt, then rebuilds and approves the diameter. Fresh project Open preserves the exact final model and reports both current requirements passing. [D647](../studio-mixed-height-diameter-delivery-2026-11-11/README.md).
 
-Next MAIN is D648 / P0 automation, B09 follow-up, rows 04, 07 and 16. Verify and correct explicit inch-to-mm normalization for one through-hole diameter task. Keep the authored unit and tolerance in the requirement evidence, keep native dimensions in mm, and refuse ambiguous units or a radius in the diameter input. [#2402](https://github.com/barocss/barocss/issues/2402).
+D648 converts the explicit inch bore and tolerance for native approval and preserves the authored criterion through Studio checkpoint Open. [D648](../studio-inch-through-hole-diameter-2026-11-11/README.md).
+
+Next MAIN is D649 / P0 Studio chat diagnostics, rows 04 and 16. Reproduce a local path in chat status or a failed turn. Show a concise recovery message and retain technical detail in the local server log. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

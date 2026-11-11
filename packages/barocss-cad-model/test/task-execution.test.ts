@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { askBatch, checkBatch } from '../src/chat/questions';
+import { requirementEvidenceOf } from '../src/chat/requirementEvidence';
 import type { ChatState } from '../src/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
@@ -12,7 +13,7 @@ import { taskDrawingCandidate, taskDrawingImpact } from '../src/team/taskDrawing
 import { interfacesRevision, readInterfaces } from '../src/team/interfaces';
 import { applyTaskDecision, bindTaskDecision, buildTaskCandidate, taskCandidateImpact, taskSubmissionForDimension, type TaskSubmission, type TaskWorkerContext } from '../src/team/taskExecution';
 import { inspectLocalHeightPlan } from '../src/team/localHeightPlan';
-import { compileTaskPlan, type TaskPlanRequest, type TaskRequest } from '../src/team/taskPlan';
+import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlanRequest, type TaskRequest } from '../src/team/taskPlan';
 import { answerTaskQuestions, bindTaskQuestions } from '../src/team/taskQuestions';
 import { digestOf } from '../src/util/digest';
 
@@ -427,4 +428,44 @@ test('D646 checks the existing native bore, edits its diameter once and reopens 
   assert.ok(body.volume !== null && Math.abs(body.volume - expected) < 1e-8);
   const centroid = [(20 * solid - 12 * removed) / expected, (15 * solid - 9 * removed) / expected, 3];
   assert.ok(body.centroid?.every((value, index) => Math.abs(value - centroid[index]) < 1e-8));
+});
+
+test('D648 keeps the inch requirement while the native bore task consumes millimetres', async () => {
+  const doc = assembly();
+  delete doc.interfaces;
+  const [base, lid] = doc.instances!;
+  const bore: Requirement = { ...height('bore', 0.25), source: 'Make the existing bore 0.25 ± 0.001 in through.',
+    check: { query: { fn: 'hole_diameter', face: { feature: 'n2', role: 'side0' } }, op: '==', value: 0.25, tol: 0.001, unit: 'in' } };
+  base.doc.requirements = [bore];
+  lid.doc.requirements = [];
+  const inspection = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspection), JSON.stringify(inspection));
+  assert.deepEqual(inspection.issues, []);
+  const [target] = inspection.targets;
+  assert.equal(target.currentDiameterMm, 4);
+  assert.equal(target.diameterMm, 6.35);
+  assert.ok(Math.abs(target.toleranceMm - 0.0254) < 1e-15);
+  const { plan, state, context } = setup(doc, { ...inspection.request, policyRevision });
+  const [bound] = plan.tasks, worker = { ...context, worker: bound.holder };
+  const pin = { taskId: bound.id, specRevision: plan.specRevision, inputDigest: bound.inputDigest };
+  const refuseBeforeNative = async () => { throw new Error('Invalid diameter reached the evaluator'); };
+  for (const diameterMm of [0.25, 3.175, 6.3245, 6.3755])
+    refuses(await buildTaskCandidate(plan, state, { ...pin, diameterMm }, worker, refuseBeforeNative), 'TASK_REQUIRED_CHECK');
+  const current = taskTarget(doc, bound);
+  assert.ok(!('error' in current));
+  for (const diameterMm of [6.3246, 6.3754]) {
+    const edit = taskDimensionEdit(doc, bound, current, diameterMm);
+    assert.ok(!('error' in edit), JSON.stringify(edit));
+    assert.deepEqual(edit.args, { index: 2, values: { dia: diameterMm } });
+  }
+
+  const baseline = await requirementEvidenceOf(doc, 'p1', evaluate);
+  assert.ok(!('error' in baseline));
+  const [row] = baseline.evidence;
+  assert.deepEqual(row.requirement, bore);
+  assert.deepEqual([row.result.verdict, row.result.number, row.result.value],
+    ['fail', 0.1575, { measured: 0.1575, delta: -0.0925, entities: ['n2.side0'] }]);
+  const candidate = await buildTaskCandidate(plan, state, { ...pin, diameterMm: 6.35 }, worker, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.deepEqual(candidate.checks.map(c => [c.id, c.status, c.expected, c.measured]), [['bore', 'pass', '0.25 ± 0.001 in', 0.25]]);
 });

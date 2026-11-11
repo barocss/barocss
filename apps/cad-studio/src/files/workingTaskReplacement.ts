@@ -1,5 +1,6 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
+import { holeDiameterRequirementMm } from '@barocss/cad-model/chat/spec';
 import { inspectLocalHeightPlan } from '@barocss/cad-model/team/localHeightPlan';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
@@ -8,13 +9,14 @@ import type { TaskRunOffer, TaskRunReplanPin } from '../chat/taskRunOffer';
 
 function criterion(req: Requirement, { field, feature }: TaskRunReplanPin): boolean {
   const { check } = req;
-  if (!req.hard || req.basis !== 'stated' || check.op !== '==' || check.unit !== 'mm') return false;
+  if (!req.hard || req.basis !== 'stated' || check.op !== '==') return false;
   if (field === 'diameter') {
-    if (check.query.fn !== 'hole_diameter') return false;
+    if (check.query.fn !== 'hole_diameter' || !holeDiameterRequirementMm(check)) return false;
     const { face } = check.query;
     return face === feature + '.side0' || (isObj(face) && face.feature === feature && face.role === 'side0');
   }
-  return check.query.fn === 'bbox' && check.query.axis === (field === 'width' ? 'x' : 'z') && check.query.body === undefined;
+  return check.unit === 'mm' && check.query.fn === 'bbox'
+    && check.query.axis === (field === 'width' ? 'x' : 'z') && check.query.body === undefined;
 }
 
 /** Preserve the accepted geometry and history while replanning the selected occurrence's edited requirements. */
@@ -38,7 +40,7 @@ export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioD
   if (previous.length !== 1 || revised.length !== 1)
     throw new Error('Save a changed stated dimension for this occurrence before replanning.');
   const before = previous[0].check, after = revised[0].check;
-  const sameCheck = pin.field === 'diameter' ? before.value === after.value && (before.tol ?? 0) === (after.tol ?? 0)
+  const sameCheck = pin.field === 'diameter' ? canonical(holeDiameterRequirementMm(before)) === canonical(holeDiameterRequirementMm(after))
     : canonical(before) === canonical(after);
   if (sameCheck)
     throw new Error('Save a changed stated dimension for this occurrence before replanning.');

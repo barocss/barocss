@@ -23,6 +23,7 @@ import { checkKeepouts, datumToFace, datumWorld, readReferences } from './refere
 import { unconfirmed, unitAssumptions } from './drafts';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 import { canonical, canonicalOf } from '../util/revision';
+import { MM_PER_INCH } from '../util/units';
 import type { Query, Predicate, Failure, Report, Outcome, Evaluate, Validation, Policy } from '../engine/schema/spec';
 
 
@@ -52,6 +53,26 @@ export function meets(x: number, p: Predicate): { ok: boolean; delta: number } {
     case '>=': return { ok: x >= p.value! - t, delta: Math.min(0, x - p.value!) };
     case 'between': return { ok: x >= p.min! - PREDICATE_EPSILON && x <= p.max! + PREDICATE_EPSILON, delta: x < p.min! ? x - p.min! : x > p.max! ? x - p.max! : 0 };
   }
+}
+
+/** Convert an exact, explicitly authored hole diameter and its tolerance for the native millimetre model. */
+export function holeDiameterRequirementMm(p: Predicate): { diameterMm: number; toleranceMm: number } | undefined {
+  if (p.query.fn !== 'hole_diameter' || p.op !== '==' || (p.unit !== 'mm' && p.unit !== 'in')
+    || typeof p.value !== 'number' || !Number.isFinite(p.value) || p.value <= 0) return;
+  const tolerance = p.tol === undefined ? 0 : p.tol;
+  if (!Number.isFinite(tolerance) || tolerance < 0) return;
+  const factor = p.unit === 'in' ? MM_PER_INCH : 1;
+  const diameterMm = p.value * factor, toleranceMm = tolerance * factor;
+  if (!Number.isFinite(diameterMm + toleranceMm)) return;
+  return { diameterMm, toleranceMm };
+}
+
+/** Compare the raw native diameter and express the signed delta in the authored unit. */
+export function meetsHoleDiameterMm(diameterMm: number, p: Predicate): ReturnType<typeof meets> | undefined {
+  const bound = holeDiameterRequirementMm(p);
+  if (!bound || !Number.isFinite(diameterMm) || diameterMm <= 0) return;
+  const { ok, delta } = meets(diameterMm, { ...p, value: bound.diameterMm, tol: bound.toleranceMm });
+  return { ok, delta: p.unit === 'in' ? delta / MM_PER_INCH : delta };
 }
 
 /** True if the positive chord bound leaves the predicate undecided. */
@@ -254,11 +275,16 @@ export async function runCheck(doc: StudioDoc, bodies: readonly BodyResult[], ev
   if (m.chord !== undefined && m.chord > 0 && chordCanChangeVerdict(m.x, m.chord, p)) {
     return { status: 'unknown', why: `undecided: ${r4(m.x)} is within the meshes' chord tolerance (${Number.isFinite(m.chord) ? `${r4(m.chord)} mm` : 'unbounded'}) of the limit${m.hint ? ` — ${m.hint}` : ''}` };
   }
-  const r = meets(m.x, p);
-  const measured = r4(m.x);
+  const inchDiameter = p.query.fn === 'hole_diameter' && p.unit === 'in';
+  if (p.query.fn === 'hole_diameter' && p.unit !== undefined && p.unit !== 'mm' && !inchDiameter)
+    return { status: 'unknown', why: 'the hole diameter unit must be mm or in' };
+  const r = inchDiameter ? meetsHoleDiameterMm(m.x, p) : meets(m.x, p);
+  if (!r) return { status: 'unknown', why: 'the inch hole diameter needs a positive exact value and a finite tolerance range' };
+  const raw = inchDiameter ? m.x / MM_PER_INCH : m.x;
+  const measured = r4(raw);
   const physical = p.query.fn === 'bbox' || p.query.fn === 'volume' || p.query.fn === 'mass';
-  const hint = !r.ok && physical && meets(measured, p).ok
-    ? [m.hint, `measured ${m.x}${p.unit ? ' ' + p.unit : ''} before display rounding`].filter(Boolean).join('. ')
+  const hint = !r.ok && (physical || inchDiameter) && meets(measured, p).ok
+    ? [m.hint, `measured ${raw}${p.unit ? ' ' + p.unit : ''} before display rounding`].filter(Boolean).join('. ')
     : m.hint;
   return { status: r.ok ? 'pass' : 'fail', measured, delta: r4(r.delta), ...(m.entities ? { entities: m.entities } : {}), ...(hint ? { hint } : {}) };
 }

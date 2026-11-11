@@ -6,7 +6,10 @@ import { sha256 } from './flow-helper.mjs';
 const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 
-export async function taskRunHoleDiameterFlow({ f, row, launch, source, saved, bytes, openFile, turn }) {
+export async function taskRunHoleDiameterFlow({ f, row, launch, source, saved, bytes, openFile, turn, inch = false }) {
+  const prefix = inch ? 'd648' : 'd646';
+  const diameterMm = inch ? 6.35 : 6, radiusMm = diameterMm / 2;
+  const volumeDelta = Math.round((4 - radiusMm ** 2) * Math.PI * 6 * 1000) / 1000;
   const capture = async (action, click) => {
     const [response] = await Promise.all([
       f.page.waitForResponse(res => new URL(res.url()).pathname === base + action && res.request().method() === 'POST'), click(),
@@ -36,22 +39,23 @@ export async function taskRunHoleDiameterFlow({ f, row, launch, source, saved, b
   };
 
   f.phase = 'review the exact through-hole candidate and verify the original diameter';
-  const beforeEvidence = await verifyRequirement('d646-before', 4, 'fail');
-  const beforeNative = await f.inspect('d646-before-native', source, 'hole-native-evidence');
+  const beforeEvidence = await verifyRequirement(prefix + '-before', inch ? 0.1575 : 4, 'fail');
+  const beforeNative = await f.inspect(prefix + '-before-native', source, 'hole-native-evidence');
   assert.deepEqual([beforeNative.face.kind, beforeNative.face.outer, beforeNative.face.radius], ['cylinder', false, 2]);
   const [held] = launch.tasks, durableBefore = await readFile(runFile);
   const { record: before } = JSON.parse(durableBefore);
   const task = before.state.tasks[0];
   assert.deepEqual(task.candidate.scope, scope);
-  assert.equal(task.submission.diameterMm, 6);
+  assert.equal(task.submission.diameterMm, diameterMm);
   assert.equal(task.submission.widthMm ?? task.submission.heightMm, undefined);
   const reviewed = await capture('review', () => button(row, 'Review candidate p1').click());
   const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
   const read = await reviewed.json(), envelope = JSON.parse(read.review);
   assert.deepEqual(envelope.receipt.scope, scope);
   assert.equal(envelope.receipt.candidateDigest, held.review.candidateDigest);
-  await review.getByText('Diameter · 4 mm → 6 mm', { exact: true }).waitFor();
-  await review.getByText('Volume change · -94.248 mm³', { exact: true }).waitFor();
+  await review.getByText('Diameter · 4 mm → ' + diameterMm + ' mm', { exact: true }).waitFor();
+  await review.getByText('Volume change · ' + volumeDelta + ' mm³', { exact: true }).waitFor();
+  if (inch) await review.getByText('0.25 ± 0.001 in', { exact: false }).waitFor();
   await f.same(source);
   assert.deepEqual(await readFile(runFile), durableBefore);
   await f.snapshot('07-through-hole-review');
@@ -81,19 +85,26 @@ export async function taskRunHoleDiameterFlow({ f, row, launch, source, saved, b
   const accepted = checkpoint.subarray(acceptedStart), actual = JSON.parse(accepted);
   assert.equal(sha256(accepted), status.checkpoint.acceptedSHA256);
   const expected = structuredClone(source.instances);
-  expected[0].doc.nodes[2].radius = 3;
+  expected[0].doc.nodes[2].radius = radiusMm;
   assert.deepEqual(actual.instances, expected);
   await f.same(actual);
-  const afterEvidence = await verifyRequirement('d646-approved', 6, 'pass');
+  if (inch) {
+    const checks = f.page.getByRole('region', { name: 'Worker checkpoint checks', exact: true });
+    await checks.getByText('Fail · 0.1575 in', { exact: true }).waitFor();
+    await checks.getByText('Pass · 0.25 in', { exact: true }).waitFor();
+  }
+  const afterEvidence = await verifyRequirement(prefix + '-approved', inch ? 0.25 : diameterMm, 'pass');
   assert.notEqual(afterEvidence, beforeEvidence);
-  const afterNative = await f.inspect('d646-approved-native', actual, 'hole-native-evidence');
-  assert.deepEqual([afterNative.face.kind, afterNative.face.outer, afterNative.face.radius], ['cylinder', false, 3]);
+  const afterNative = await f.inspect(prefix + '-approved-native', actual, 'hole-native-evidence');
+  assert.deepEqual([afterNative.face.kind, afterNative.face.outer], ['cylinder', false]);
+  assert.ok(Math.abs(afterNative.face.radius - radiusMm) < 1e-10);
   assert.ok(Math.abs(afterNative.volumeMm3 - task.candidate.geometry.volumeMm3) < 1e-8);
   assert.deepEqual(await readFile(runFile), durableAfter);
   await f.snapshot('08-approved-through-hole-opened');
-  await writeFile(join(f.output, 'd646-checkpoint.bcad-run'), checkpoint);
-  await writeFile(join(f.output, 'd646-approval.json'), JSON.stringify({ status, beforeEvidence, afterEvidence, scope, request }));
-  f.report.observations.push({ sharedPatternRefused: true, feature: scope.feature, face: 'n2.side0', beforeDiameterMm: 4, afterDiameterMm: 6,
+  await writeFile(join(f.output, prefix + '-checkpoint.bcad-run'), checkpoint);
+  await writeFile(join(f.output, prefix + '-approval.json'), JSON.stringify({ status, beforeEvidence, afterEvidence, scope, request }));
+  f.report.observations.push({ sharedPatternRefused: true, feature: scope.feature, face: 'n2.side0', beforeDiameterMm: 4, afterDiameterMm: diameterMm,
+    ...(inch ? { authoredDiameterIn: 0.25, authoredToleranceIn: 0.001, normalizedToleranceMm: 0.0254, measuredIn: [0.1575, 0.25] } : {}),
     finalRadiusMm: afterNative.face.radius, protectedPartUnchanged: true, publications: 1,
     acceptedSHA256: sha256(accepted), finalNativeVolumeMm3: afterNative.volumeMm3 });
 }

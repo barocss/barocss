@@ -1,0 +1,140 @@
+{
+  "decision": "D648",
+  "tier": "FEATURE with targeted tolerance and mutation checks",
+  "baseCommit": "33ac6ad3b967a46939cf47679e7547c6e7902077",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d648-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Original native check and planning",
+      "result": "FAIL",
+      "command": "node \"$EVIDENCE/baseline.mjs\"",
+      "receiptSHA256": "d1f59525d88733347411844a3f741143f16f4a84083e33348b6297de748d2158",
+      "measured": 4,
+      "reportedUnit": "in",
+      "refusal": "UNSUPPORTED_CHECK"
+    },
+    {
+      "label": "First after-run desktop test",
+      "result": "FAIL",
+      "command": "D648_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --inch-diameter",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "f81758b67ad53278b94787ce80b9b3d12f6f09c62b003e22436b806b43884c9e",
+      "firstFailure": "Exact comparison of the derived cylinder radius. Expected 3.175 mm, measured 3.1750000000000007 mm."
+    },
+    {
+      "label": "Desktop Studio exact inch through-hole task",
+      "result": "PASS",
+      "command": "D648_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified\" --inch-diameter",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "2cffaeb4b43067b6906ef8689377ad97cb5c6948546f2d2439dc465f92becff1",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "authoredDiameterIn": 0.25,
+        "authoredToleranceIn": 0.001,
+        "beforeDiameterMm": 4,
+        "targetDiameterMm": 6.35,
+        "targetToleranceMm": 0.0254,
+        "persistedRadiusMm": 3.175,
+        "evaluatedRadiusMm": 3.1750000000000007,
+        "measuredIn": [
+          0.1575,
+          0.25
+        ],
+        "verdicts": [
+          "fail",
+          "pass"
+        ],
+        "protectedPartUnchanged": true,
+        "studioApprovals": 1,
+        "beforeEvidenceRevision": "48a2d0529bbebabab9ed829131538fb476ea8e2d28fa0cca0e32638229946252",
+        "afterEvidenceRevision": "3c6db3aade14791b7c7af71cc498c31f14770e40cc2860c588873ebd7176ba53",
+        "refusedInputs": [
+          "missing diameter unit",
+          "radius query",
+          "shared H1 bore"
+        ]
+      }
+    },
+    {
+      "label": "Independent file, authored unit and native cylinder reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/inch-diameter-oracle.py\" \"$EVIDENCE/desktop-verified\"",
+      "scriptSHA256": "432d9ba9aad663ccb33dfc4e8c73372f650f4ac14ac5294506cfcc401bf8eb97",
+      "resultSHA256": "5ea2e1a900a0cd7b90bceaeae30e988f636062657b504601935b480960e53996",
+      "productImports": 0,
+      "sourceSHA256": "cdd99fbafef433be02961b20dbb6431c3a20d837e5e11d0593f812a1a9e9c8b7",
+      "approvedSHA256": "9966ba6005abd3b1d4aa90893495ac124168928ecb943fe552fa52aba7f32ed1",
+      "nativeVolumeMm3": 7009.984695338433,
+      "analyticVolumeMm3": 7009.9846953384385,
+      "maximumRadiusErrorMm": 1e-10,
+      "maximumVolumeErrorMm3": 1e-08
+    },
+    {
+      "label": "Desktop Studio millimetre through-hole regression",
+      "result": "PASS",
+      "command": "D646_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-hole-diameter\" --hole-diameter",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "8857a27818ee32e147e72018e1f17614ffead6d7ed967d33e9f81c569233dd92",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio mixed dimension regression",
+      "result": "PASS",
+      "command": "D647_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-mixed-diameter\" --mixed-diameter",
+      "cwd": "apps/cad-studio",
+      "receiptSHA256": "6cd1b50c51cfd43ec811c1657a424aa96f30f4703f74761707e66f609ea14f7c",
+      "pinnedSources": 812,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Model tests",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan tool-contract spec mates team-ecr requirement-evidence",
+      "passCount": 77,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent task-candidate task-checkpoint proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "passCount": 183,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model and Studio types, test script syntax, tool docs, changed TypeScript lint and Studio build",
+      "result": "PASS",
+      "commands": [
+        "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+        "pnpm --dir apps/cad-studio exec tsc --noEmit",
+        "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+        "node --check apps/cad-studio/test/task-run-hole-diameter-flow.mjs",
+        "node apps/library-docs/scripts/agent-tools.mjs --check",
+        "git diff --name-only -- '*.ts' '*.tsx' | xargs pnpm exec eslint",
+        "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+        "git diff --check"
+      ],
+      "eslintWarnings": 2,
+      "eslintErrors": 0
+    },
+    {
+      "label": "Paid live model, whole CAD/kernel suites and mobile",
+      "result": "NOT_RUN"
+    }
+  ]
+}

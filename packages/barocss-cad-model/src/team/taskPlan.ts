@@ -2,7 +2,7 @@
 import { briefGaps, readBrief } from '../chat/brief';
 import { unitAssumptions, unconfirmed } from '../chat/drafts';
 import { checkNode } from '../chat/features';
-import { checkRequirement, meets } from '../chat/spec';
+import { checkRequirement, holeDiameterRequirementMm, meets, meetsHoleDiameterMm } from '../chat/spec';
 import { bodyKey, type BodyRef, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BRIEF_FIELDS, type Brief } from '../engine/schema/brief';
 import type { Predicate, Requirement } from '../engine/schema/spec';
@@ -168,7 +168,7 @@ export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclu
       || !boreFits(shape, hole.x, hole.y, radius))
       return error('TASK_VALUE', 'The requested diameter must keep the through hole wholly inside the rectangle.');
     const check = task.checks.find(req => req.hard && req.check.query.fn === 'hole_diameter');
-    if (!check || !meets(value, check.check).ok)
+    if (!check || !meetsHoleDiameterMm(value, check.check)?.ok)
       return error('TASK_REQUIRED_CHECK', 'The requested diameter must satisfy the bound hole diameter requirement.');
     const local = { ...instance.doc, nodes: instance.doc.nodes.map((n, at) => at === index ? { ...node, radius } : n) };
     return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
@@ -200,7 +200,7 @@ const pendingDrafts = (doc: StudioDoc, scope: string) => [
 const hardChecks = (doc: StudioDoc) => (doc.requirements ?? []).filter(r => r.hard);
 
 function diameterCheckMatches(check: Predicate, target: TaskTarget): boolean {
-  if (!target.holeFace || check.query.fn !== 'hole_diameter' || check.unit !== 'mm' || check.op !== '==' || !positive(check.value)) return false;
+  if (!target.holeFace || check.query.fn !== 'hole_diameter') return false;
   const face = check.query.face;
   if (face === target.holeFace) return true;
   return isObj(face) && only(face, ['feature', 'role', 'on']) && Object.hasOwn(face, 'feature') && Object.hasOwn(face, 'role')
@@ -218,7 +218,7 @@ function protectedChecksPass(doc: StudioDoc, id: string): boolean {
   return checks.every(req => {
     const check = req.check;
     if (checkRequirement(req) || req.basis !== 'stated' || !req.source.trim() || (check.tol ?? 0) < 0) return false;
-    if (diameterCheckMatches(check, target)) return meets(2 * target.shape.hole!.radius, check).ok;
+    if (diameterCheckMatches(check, target)) return meetsHoleDiameterMm(2 * target.shape.hole!.radius, check)?.ok === true;
     return check.query.fn === 'bbox' && check.query.body === undefined && check.unit === 'mm'
       && (check.op !== 'between' || ((check.tol ?? 0) === 0 && check.min! <= check.max!)) && meets(bounds[check.query.axis], check).ok;
   });
@@ -304,14 +304,14 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
     if (invalid) return error('BAD_REQUIREMENT', invalid);
     const p = req.check;
     if (req.hard && p.query.fn === 'hole_diameter') {
-      if (!diameterCheckMatches(p, target))
-        return error('UNSUPPORTED_CHECK', `${req.id} must check the stable cylindrical wall of the native Hole with a positive exact diameter in mm.`);
-      if ((p.tol ?? 0) < 0) return error('BAD_REQUIREMENT', `${req.id} has an invalid tolerance.`);
+      if (!diameterCheckMatches(p, target) || p.op !== '==' || (p.unit !== 'mm' && p.unit !== 'in') || !positive(p.value))
+        return error('UNSUPPORTED_CHECK', `${req.id} must check the stable cylindrical wall of the native Hole with a positive exact diameter in mm or in.`);
+      if (!holeDiameterRequirementMm(p)) return error('BAD_REQUIREMENT', `${req.id} has an invalid diameter tolerance range in mm.`);
       diameterChecks++;
       if (req.basis === 'assumed' || req.basis === 'ambiguous') blockers.push(`requirement:${req.id}:${req.basis}`);
       else if (req.basis !== 'stated' || !req.source.trim())
         return error('BAD_REQUIREMENT', `${req.id} needs a stated source for the hole diameter.`);
-      else if (dimension !== 'diameter' && !meets(2 * shape.hole!.radius, p).ok)
+      else if (dimension !== 'diameter' && !meetsHoleDiameterMm(2 * shape.hole!.radius, p)?.ok)
         return error('CONFLICTING_REQUIREMENT', `${req.id} cannot be met by a ${dimension} edit.`);
       continue;
     }
@@ -341,7 +341,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
     if (p.op === '==' || p.op === '<=') high = Math.min(high, p.value! + tolerance);
   }
   if (dimension === 'diameter' && diameterChecks !== 1)
-    return error('MISSING_REQUIRED_CHECK', `${instance.id} needs one hard exact diameter requirement for the through hole in mm.`);
+    return error('MISSING_REQUIRED_CHECK', `${instance.id} needs one hard exact diameter requirement for the through hole in mm or in.`);
   if (axis && !hardAxis) return error('MISSING_REQUIRED_CHECK', `${instance.id} needs a hard check of local ${axis.toUpperCase()} ${dimension} in mm.`);
   if (low > high || high <= 0) return error('CONFLICTING_REQUIREMENT', `${instance.id} has incompatible ${dimension} requirements.`);
 

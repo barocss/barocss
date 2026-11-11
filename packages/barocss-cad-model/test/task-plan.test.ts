@@ -219,7 +219,7 @@ test('D584 refuses interface geometry the native gate cannot verify', () => {
 });
 
 
-test('D646 admits only a hard millimetre diameter equality for the stable through-hole wall', () => {
+test('D646 and D648 admit a hard diameter equality in mm or in for the stable through-hole wall', () => {
   const boreCheck: Requirement = {
     ...heightCheck('bore', 6),
     check: { op: '==', query: { fn: 'hole_diameter', face: { feature: 'n17', role: 'side0', on: 'b17' } }, value: 6, tol: 0.01, unit: 'mm' },
@@ -242,9 +242,20 @@ test('D646 admits only a hard millimetre diameter equality for the stable throug
   }
   const named = compileTaskPlan(changeRequirement({ ...boreCheck, check: { ...check, query: { fn: 'hole_diameter', face: 'n17.side0' } } }), input);
   assert.ok(!('error' in named));
-  refuses(changeRequirement({ ...boreCheck, check: { ...check, unit: 'in' } }), input, 'UNSUPPORTED_CHECK');
+  const inchBore: Requirement = { ...boreCheck, source: 'Make the bore 0.25 ± 0.001 in.',
+    check: { ...check, unit: 'in', value: 0.25, tol: 0.001 } };
+  const inchPlan = compileTaskPlan(changeRequirement(inchBore), input);
+  assert.ok(!('error' in inchPlan), JSON.stringify(inchPlan));
+  assert.equal(inchPlan.tasks[0].units, 'mm');
+  assert.deepEqual(inchPlan.tasks[0].checks, [inchBore]);
+  for (const unit of [undefined, 'inch', 'MM', 'mm/in'])
+    refuses(changeRequirement({ ...boreCheck, check: { ...check, unit } }), input, 'UNSUPPORTED_CHECK');
+  refuses(changeRequirement({ ...boreCheck, check: { ...check, query: { fn: 'radius', face: 'n17.side0' }, unit: 'in' } }), input, 'UNSUPPORTED_CHECK');
   refuses(changeRequirement({ ...boreCheck, check: { ...check, op: '>=' } }), input, 'UNSUPPORTED_CHECK');
   refuses(changeRequirement({ ...boreCheck, check: { ...check, tol: -1 } }), input, 'BAD_REQUIREMENT');
+  for (const invalid of [{ value: 1e308 }, { tol: 1e308 }, { value: 5e306, tol: 5e306 }])
+    refuses(changeRequirement({ ...inchBore, check: { ...inchBore.check, ...invalid } }), input, 'BAD_REQUIREMENT');
+  refuses(changeRequirement({ ...inchBore, check: { ...inchBore.check, value: 0 } }), input, 'UNSUPPORTED_CHECK');
   refuses(changeRequirement({ ...boreCheck, hard: false }), input, 'MISSING_REQUIRED_CHECK');
   refuses({ ...doc, interfaces: { ...readInterfaces(undefined), holePatterns: [
     { id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[12, 9, 0]], parts: ['p1', 'p2'] },

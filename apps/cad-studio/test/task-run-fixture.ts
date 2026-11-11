@@ -44,6 +44,20 @@ export function mixedDiameterDoc(): StudioDoc {
   doc.instances![1].doc = holeDiameterDocs().source.instances![0].doc;
   return doc;
 }
+export function inchDiameterDocs() {
+  const { source, shared } = holeDiameterDocs();
+  for (const doc of [source, shared]) {
+    const [requirement] = doc.instances![0].doc.requirements!;
+    requirement.source = 'Use one Ø0.25 in through-hole with ±0.001 in tolerance.';
+    Object.assign(requirement.check, { value: 0.25, tol: 0.001, unit: 'in' });
+  }
+  const ambiguous = structuredClone(source), radius = structuredClone(source);
+  delete ambiguous.instances![0].doc.requirements![0].check.unit;
+  Object.assign(radius.instances![0].doc.requirements![0].check, {
+    query: { fn: 'radius', face: { feature: 'n2', role: 'side0' } }, value: 0.125,
+  });
+  return { source, shared, ambiguous, radius };
+}
 export function threeOccurrenceDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });

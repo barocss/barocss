@@ -1,4 +1,4 @@
-import { meets } from '../chat/spec';
+import { holeDiameterRequirementMm, meets } from '../chat/spec';
 import type { StudioDoc } from '../engine/doc';
 import type { Predicate } from '../engine/schema/spec';
 import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlan, type TaskPlanRequest } from './taskPlan';
@@ -45,7 +45,7 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
       const diameter = checks.filter(req => isDiameter(req.check));
       const currentDiameter = hole?.kind === 'hole' && typeof hole.radius === 'number' ? 2 * hole.radius : undefined;
       const useDiameter = diameter.length > 0 && ((!width && !height)
-        || diameter.some(req => req.check.op !== '==' || req.check.value !== currentDiameter));
+        || diameter.some(req => holeDiameterRequirementMm(req.check)?.diameterMm !== currentDiameter));
       const useWidth = !useDiameter && width && !height;
       const feature = useDiameter ? hole : useWidth ? sketch : extrusion;
       const capability = useDiameter ? 'hole-diameter' : useWidth ? 'rectangle-width' : 'extrusion-height';
@@ -74,10 +74,12 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
     const hardAxis = task.checks.filter(req => req.hard && (dimension === 'diameter' ? isDiameter(req.check)
       : isExtent(req.check, dimension === 'width' ? 'x' : 'z')));
     const exact = hardAxis.filter(req => req.check.op === '==');
-    const target = exact[0], value = target?.check.value;
+    const target = exact[0];
+    const diameter = dimension === 'diameter' && target ? holeDiameterRequirementMm(target.check) : undefined;
+    const value = dimension === 'diameter' ? diameter?.diameterMm : target?.check.value;
     if (exact.length !== 1 || target.basis !== 'stated' || !target.source.trim() || typeof value !== 'number' || value <= 0)
-      return blocked('MISSING_REQUIRED_CHECK', `${task.id} needs one stated positive exact ${dimension} requirement in mm.`, exact.map(req => req.id));
-    if (hardAxis.some(req => !meets(value, req.check).ok))
+      return blocked('MISSING_REQUIRED_CHECK', `${task.id} needs one stated positive exact ${dimension} requirement in ${dimension === 'diameter' ? 'mm or in' : 'mm'}.`, exact.map(req => req.id));
+    if (dimension !== 'diameter' && hardAxis.some(req => !meets(value, req.check).ok))
       return blocked('CONFLICTING_REQUIREMENT', `${task.id}'s stated ${dimension} does not satisfy its other hard ${dimension} checks.`);
     const current = taskTarget(doc, task);
     if ('error' in current) return blocked(current.error.code, current.error.message);
@@ -86,7 +88,7 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
       const edit = taskDimensionEdit(doc, task, current, value);
       if ('error' in edit) return blocked(edit.error.code, edit.error.message);
     }
-    const id = task.id, requirementId = target.id, toleranceMm = target.check.tol ?? 0;
+    const id = task.id, requirementId = target.id, toleranceMm = diameter?.toleranceMm ?? target.check.tol ?? 0;
     const base = { id, requirementId, toleranceMm };
     if (dimension === 'diameter') return [{ ...base, currentDiameterMm: current.value, diameterMm: value }];
     if (dimension === 'width') return [{ ...base, currentWidthMm: current.value, widthMm: value }];
