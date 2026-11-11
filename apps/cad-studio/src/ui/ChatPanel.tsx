@@ -399,7 +399,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   }
   return <>
     {plan && <>
-      <ul>{plan.offer.targets.map(target => <li key={target.id}>{target.id} · {target.widthMm === undefined ? '' : 'Width '}{target.currentHeightMm ?? target.currentWidthMm} → {target.heightMm ?? target.widthMm} mm</li>)}</ul>
+      <ul>{plan.offer.targets.map(target => <li key={target.id}>{target.id} · {target.diameterMm !== undefined ? 'Diameter ' : target.widthMm !== undefined ? 'Width ' : ''}{target.currentHeightMm ?? target.currentWidthMm ?? target.currentDiameterMm} → {target.heightMm ?? target.widthMm ?? target.diameterMm} mm</li>)}</ul>
       {(!plan.replaces || result?.replacement) && <button className="ghost" type="button" disabled={blocked || startBlocked} onClick={() => void actions.export(plan)}>Export task run</button>}
       {isLocalTaskRunHost(window.location.hostname) && <button className="ghost" type="button" disabled={disabled || startBlocked} onClick={() => void start()}>{working === 'start' ? 'Starting local run…' : plan.replaces ? 'Start replacement' : repair ? 'Start repair' : 'Start local run'}</button>}
     </>}

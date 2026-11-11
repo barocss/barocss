@@ -45,7 +45,7 @@ function isReceipt(value: unknown): value is CandidateReviewReceipt {
   if (!isObj(value) || Object.keys(value).length !== 8 || !isObj(value.plan) || !isObj(value.baseline) ||
       !isObj(value.scope) || !isObj(value.submission)) return false;
   const { baseline, scope } = value, submission = readTaskSubmission(value.submission);
-  if (!submission || (scope.field !== 'height' && scope.field !== 'width')) return false;
+  if (!submission || (scope.field !== 'height' && scope.field !== 'width' && scope.field !== 'diameter')) return false;
   const dimension = taskSubmissionValue(submission, scope.field);
   return id(value.runId) && id(value.attemptId) && typeof value.revision === 'number' &&
     Number.isSafeInteger(value.revision) && value.revision > 0 && sha(value.candidateDigest) &&

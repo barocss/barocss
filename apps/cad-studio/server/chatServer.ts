@@ -129,7 +129,8 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === SELECTED_NATIVE_CHECK) return String(j.finding?.code ?? 'Selected native check');
   if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
-    const dimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width') ? 'dimension' : 'height';
+    const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'diameter');
+    const dimension = hasDimension || j.issues.some(issue => issue?.code === 'SHARED_HOLE_PATTERN') ? 'dimension' : 'height';
     return j.status === 'ready' ? `${j.targets.length} local ${dimension} target${j.targets.length === 1 ? '' : 's'} ready` : `Local ${dimension} plan blocked · ${j.issues.length} issue${j.issues.length === 1 ? '' : 's'}`;
   }
   if (name === 'get_part_summary') return `${j.feature_count} features, ${j.bodies?.length ?? 0} bodies`;

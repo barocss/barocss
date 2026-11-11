@@ -7,7 +7,7 @@ import { readStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { userToken } from '@barocss/cad-model/team/ecr';
-import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
+import { compileTaskPlan, taskField } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
@@ -253,7 +253,7 @@ function replanPin(record: RunRecord, task: RunTask): TaskRunReplanPin | undefin
   const bound = record.state.plan.tasks.find(bound => bound.id === task.id);
   if (!bound) return;
   return { attemptId: task.attempt.id, occurrence: bound.occurrence, feature: bound.feature,
-    field: bound.capability === 'rectangle-width' ? 'width' : 'height' };
+    field: taskField(bound.capability) };
 }
 
 function rebuildPin(record: RunRecord, task: RunTask): string | undefined {

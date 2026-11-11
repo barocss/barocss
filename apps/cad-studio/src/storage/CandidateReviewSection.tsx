@@ -17,6 +17,7 @@ export function CandidateReviewSection({ review, shown, available, toggle, decid
     catch (error) { setError(error instanceof Error ? error.message : 'Could not record the candidate decision.'); }
     finally { setDeciding(undefined); }
   }
+  const dimension = { height: 'Height', width: 'Width', diameter: 'Diameter' }[review.field];
   const volume = review.preview.volumeChange;
   const delta = volume === null ? null : Math.round(volume * 1000) / 1000;
   return <section className="my-2 text-[11px]" aria-label="Worker candidate review">
@@ -25,7 +26,7 @@ export function CandidateReviewSection({ review, shown, available, toggle, decid
     <div>Candidate <code>{review.candidateDigest.slice(0, 12)}</code></div>
     <div>Attempt <code>{review.attemptId}</code></div>
     <div>{review.localRun ? 'Awaiting decision' : 'Awaiting decision at export. Decide in the local run.'}</div>
-    <div>{review.field === 'width' ? 'Width' : 'Height'} · {review.beforeMm} mm → {review.candidateMm} mm</div>
+    <div>{dimension} · {review.beforeMm} mm → {review.candidateMm} mm</div>
     {delta !== null && <div>Volume change · {delta > 0 ? '+' : ''}{delta} mm³</div>}
     <ul className="m-0 list-none p-0" aria-label="Candidate checks">
       {review.checks.map(check => <li key={check.id}>

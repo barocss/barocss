@@ -32,7 +32,7 @@ export interface CheckpointReview {
   proposalId: string;
   occurrence: {
     feature: string;
-    kind: 'sketch' | 'extrude';
+    kind: 'sketch' | 'extrude' | 'hole';
     definition?: PartInstance['part'];
     pattern?: PartInstance['pattern'];
     approvalAt: string;
@@ -55,7 +55,7 @@ function isCheckpoint(value: unknown): value is TaskCheckpoint {
   const { scope } = value;
   return id(value.runId) && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision > 0 &&
     id(value.taskId) && id(value.operationId) && sha(value.specRevision) && sha(value.candidateDigest) && id(value.proposalId) &&
-    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && (scope.field === 'height' || scope.field === 'width') &&
+    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && (scope.field === 'height' || scope.field === 'width' || scope.field === 'diameter') &&
     nativeRef(value.from) && nativeRef(value.accepted) && value.from.sha256 !== value.accepted.sha256;
 }
 
@@ -148,8 +148,9 @@ export async function verifyTaskCheckpoint(checkpoint: NonNullable<Awaited<Retur
   const instance = checkpoint.doc.instances?.find(instance => instance.id === part);
   const approvalAt = checkpoint.doc.proposals?.find(proposal => proposal.id === proposalId)?.decided?.at;
   if (!instance || !approvalAt) return refusal('The approved occurrence or decision is missing.');
+  const kind = scope.field === 'diameter' ? 'hole' : scope.field === 'width' ? 'sketch' : 'extrude';
   const occurrence: CheckpointReview['occurrence'] = { feature: scope.feature,
-    kind: scope.field === 'width' ? 'sketch' : 'extrude', definition: instance.part, pattern: instance.pattern, approvalAt };
+    kind, definition: instance.part, pattern: instance.pattern, approvalAt };
   const review: CheckpointReview = { taskId, revision, proposalId, occurrence, before: result.before, approved };
   return { ...checkpoint, checks: rows.length, review };
 }

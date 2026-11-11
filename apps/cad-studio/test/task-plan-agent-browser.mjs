@@ -6,6 +6,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { taskRunSharedInterfaceFlow } from './task-run-shared-interface-flow.mjs';
+import { taskRunHoleDiameterFlow } from './task-run-hole-diameter-flow.mjs';
 import { taskRunStudioRejectionFlow } from './task-run-studio-rejection-flow.mjs';
 import { taskRunStudioDeliveryFlow } from './task-run-studio-delivery-flow.mjs';
 import { taskRunStudioApprovalFlow } from './task-run-studio-approval-flow.mjs';
@@ -43,9 +44,10 @@ const repairMode = mode === '--repair';
 const prepareRepairMode = mode === '--prepare-repair';
 const workingMode = mode === '--working' || prepareRepairMode;
 const historyMode = mode === '--history' || workingMode;
+const diameterMode = mode === '--hole-diameter';
 const threeMode = liveStopMode || mode === '--three' || historyMode;
-const occurrences = repairMode ? ['p3'] : threeMode ? ['p1', 'p2', 'p3'] : ['p1', 'p2'];
-const widthMode = mode === '--width' || threeMode, checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = studioRejectionMode || studioApprovalMode || liveStartMode || interfaceMode || replanMode || rebuildMode || reopenMode || repairMode || mode === '--start' || reviewMode || statusMode;
+const occurrences = diameterMode ? ['p1'] : repairMode ? ['p3'] : threeMode ? ['p1', 'p2', 'p3'] : ['p1', 'p2'];
+const widthMode = mode === '--width' || threeMode, checkpointMode = mode === '--checkpoint' || widthMode, statusMode = mode === '--status' || checkpointMode, startMode = diameterMode || studioRejectionMode || studioApprovalMode || liveStartMode || interfaceMode || replanMode || rebuildMode || reopenMode || repairMode || mode === '--start' || reviewMode || statusMode;
 const handoffMode = mode === '--handoff' || startMode, repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === undefined || handoffMode);
@@ -83,20 +85,28 @@ const pins = [
   ...(liveStopMode ? ['apps/cad-studio/test/task-run-live-stop-flow.mjs'] : []),
   ...(reopenedStopMode ? ['apps/cad-studio/test/task-run-reopened-stop-flow.mjs'] : []),
   ...(studioApprovalMode ? ['apps/cad-studio/test/task-run-studio-approval-flow.mjs'] : []),
+  ...(diameterMode ? ['apps/cad-studio/test/task-run-hole-diameter-flow.mjs', 'packages/barocss-cad-model/src/team/localHeightPlan.ts'] : []),
   ...(studioRejectionMode ? ['apps/cad-studio/test/task-run-studio-rejection-flow.mjs'] : []),
   ...(studioDeliveryMode ? ['apps/cad-studio/test/task-run-studio-delivery-flow.mjs', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts'] : []),
   ...((liveStartMode || liveStopMode) ? ['apps/cad-studio/test/fixtures/task-run-worker-barrier.mjs'] : []),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: diameterMode ? 'D646_SOURCE_FROZEN' : studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf, requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
-import { fixtureDoc, sharedHoleDoc, singleRepairDoc, threeOccurrenceDoc } from './test/task-run-fixture';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { fixtureDoc, holeDiameterDocs, sharedHoleDoc, singleRepairDoc, threeOccurrenceDoc } from './test/task-run-fixture';
 if (process.argv[3]) {
   const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-  const revision = JSON.parse(process.argv[3]) === 'requirement-evidence' ? requirementEvidenceRevision(doc) : digestOf(doc);
-  console.log(JSON.stringify(revision));
+  const action = JSON.parse(process.argv[3]);
+  if (action === 'hole-native-evidence') {
+    const native = evaluatePart(doc.instances[0].doc, 0);
+    if (!native.ok || native.bodies.length !== 1 || !native.faceTable?.['n2.side0']) throw new Error('Expected a native bore and one body.');
+    const [body] = native.bodies;
+    console.log(JSON.stringify({ face: native.faceTable['n2.side0'], volumeMm3: body.volume, centroidMm: body.centroid }));
+  } else console.log(JSON.stringify(action === 'requirement-evidence' ? requirementEvidenceRevision(doc) : digestOf(doc)));
 }
+else if (${diameterMode}) console.log(JSON.stringify(holeDiameterDocs()));
 else {
   const doc = ${interfaceMode} ? sharedHoleDoc() : ${repairMode} ? singleRepairDoc() : ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
@@ -124,10 +134,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: diameterMode ? 'Approve a native through-hole diameter and refuse a shared pattern in Studio' : studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    diameterMode ? 'One independent native through-hole and one protected sibling, with a shared-pattern refusal control.' : sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -138,8 +148,8 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
-const readySummary = `${occurrences.length} local ${widthMode ? 'dimension' : 'height'} target${repairMode ? '' : 's'} ready`;
+const project = diameterMode ? 'D646 through-hole diameter' : studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const readySummary = `${occurrences.length} local ${widthMode || diameterMode ? 'dimension' : 'height'} target${occurrences.length === 1 ? '' : 's'} ready`;
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences, ...extra } });
 async function openFile(name, buffer) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -251,7 +261,22 @@ process.exitCode = code ?? 1;
       if (reviewMode && message.type() === 'error' && message.location().url === origin + '/api/chat/task-runs/review'
         && /409/.test(message.text())) expectedConsole.push(message.text());
     });
-    const source = await f.inspect('fixture', {});
+    const fixture = await f.inspect('fixture', {});
+    const source = diameterMode ? fixture.source : fixture;
+    if (diameterMode) {
+      f.phase = 'refuse a through-hole diameter task on a shared pattern';
+      await open('shared-pattern.bcad', fixture.shared);
+      const blocked = await turn('shared-diameter', [call()]);
+      assert.equal(blocked.results[0].body.status, 'blocked');
+      assert.deepEqual(blocked.results[0].body.issues.map(issue => issue.code), ['SHARED_HOLE_PATTERN']);
+      assert.equal(blocked.events[0].taskRunOffer, undefined);
+      await f.page.getByText('Local dimension plan blocked · 1 issue', { exact: true }).waitFor();
+      await writeFile(join(output, 'd646-shared-planning.json'), JSON.stringify(blocked.results[0].body));
+      await f.same(fixture.shared);
+      await assert.rejects(readdir(runRoot), { code: 'ENOENT' });
+      await f.snapshot('00-shared-pattern-refused');
+      f.phase = 'save the independent through-hole and inspect its dimension plan';
+    }
     await open('housing.bcad', source);
     await button('Project and versions').click();
     await panel().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -270,6 +295,11 @@ process.exitCode = code ?? 1;
     assert.equal(first.results[0].body.revision, cliPlan.modelDigest);
     assert.equal(first.results[0].body.status, 'ready');
     assert.equal(first.events[0].summary, readySummary);
+    if (diameterMode) {
+      assert.deepEqual(cliPlan.targets, [{ id: 'p1', requirementId: 'bore', currentDiameterMm: 4, diameterMm: 6, toleranceMm: 0.001 }]);
+      assert.deepEqual(first.results[0].body.tasks, [{ occurrence: 'p1', feature: 'n2', field: 'diameter' }]);
+      assert.deepEqual(cliPlan.plan.protectedOccurrences, ['p2']);
+    }
     if (repairMode) {
       assert.deepEqual(cliPlan.targets.map(t => [t.id, t.currentHeightMm, t.heightMm]), [['p3', 7, 5]]);
       assert.equal(cliPlan.limits.concurrent, 1);
@@ -304,7 +334,8 @@ process.exitCode = code ?? 1;
       assert.equal(await f.page.evaluate(() => window.__d618Exports.length), 0);
       const row = f.page.locator('details.chat-tool').filter({ hasText: readySummary });
       await row.locator('summary').click();
-      if (repairMode) await row.getByText('p3 · 7 → 5 mm', { exact: true }).waitFor();
+      if (diameterMode) await row.getByText('p1 · Diameter 4 → 6 mm', { exact: true }).waitFor();
+      else if (repairMode) await row.getByText('p3 · 7 → 5 mm', { exact: true }).waitFor();
       else {
         await row.getByText(widthMode ? 'p1 · Width 20 → 24 mm' : 'p1 · 5 → 6 mm', { exact: true }).waitFor();
         await row.getByText('p2 · 3 → 4 mm', { exact: true }).waitFor();
@@ -393,7 +424,10 @@ process.exitCode = code ?? 1;
         assert.equal(record.epoch, 2);
         assert.equal(record.accepted.sha256, sha256(saved));
         const volumes = record.state.tasks.map(task => task.candidate.geometry.volumeMm3);
-        if (interfaceMode) {
+        if (diameterMode) {
+          assert.equal(volumes.length, 1);
+          assert.ok(Math.abs(volumes[0] - (1200 - 9 * Math.PI) * 6) < 1e-8);
+        } else if (interfaceMode) {
           for (const [actual, expected] of volumes.map((actual, i) => [actual, ([200, 96][i] - 4 * Math.PI) * [6, 4][i]]))
             assert.ok(Math.abs(actual - expected) < 1e-8, JSON.stringify({ actual, expected }));
         } else assert.deepEqual(volumes, repairMode ? [480] : threeMode ? [1200, 384, 480] : [1200, 384]);
@@ -403,6 +437,11 @@ process.exitCode = code ?? 1;
         await row.getByText('Existing local run · active', { exact: true }).waitFor();
         assert.deepEqual(await readFile(runJson), initial);
         assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
+        if (diameterMode) {
+          await taskRunHoleDiameterFlow({ f, row, launch: firstLaunch, source, saved, bytes, openFile, turn });
+          assert.deepEqual(f.report.downloads, []);
+          return;
+        }
         if (studioRejectionMode) {
           await taskRunStudioRejectionFlow({ f, row, launch: firstLaunch, source, saved, bytes, openFile });
           assert.deepEqual(f.report.downloads, []);

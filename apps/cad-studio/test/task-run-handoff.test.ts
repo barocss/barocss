@@ -11,7 +11,8 @@ import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
 import { readTaskRunOffer } from '../src/chat/taskRunOffer';
 import { TurnChunker } from '../src/chat/transport';
 import { encodeTaskRunHandoff, readTaskRunHandoff } from '../src/files/taskRunHandoff';
-import { fixtureDoc } from './task-run-fixture';
+import { planWorkingTaskReplacement } from '../src/files/workingTaskReplacement';
+import { fixtureDoc, holeDiameterDocs } from './task-run-fixture';
 
 function fixture() {
   const doc = fixtureDoc(), native = encodeStudioFile(doc), occurrences = ['p1', 'p2'];
@@ -20,6 +21,17 @@ function fixture() {
   assert.ok(offer);
   return { doc, native, offer };
 }
+
+test('D646 replan requires a changed diameter criterion rather than a different name for the same face', () => {
+  const { source } = holeDiameterDocs(), working = structuredClone(source);
+  const pin = { occurrence: 'p1', feature: 'n2', field: 'diameter' as const, attemptId: '1:1:p1' };
+  const check = working.instances![0].doc.requirements![0].check;
+  check.query = { fn: 'hole_diameter', face: 'n2.side0' };
+  assert.throws(() => planWorkingTaskReplacement(source, working, pin), /changed stated dimension/);
+  check.value = 8;
+  assert.deepEqual(planWorkingTaskReplacement(source, working, pin).targets,
+    [{ id: 'p1', requirementId: 'bore', toleranceMm: 0.001, currentDiameterMm: 4, diameterMm: 8 }]);
+});
 
 test('D618 preserves exact native bytes and carries only the selected plan', async () => {
   const { doc, native, offer } = fixture();

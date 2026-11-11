@@ -2,7 +2,7 @@ import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import type { BoundTask, TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import type { TaskRunReplacementProvenance, TaskRunReplanSelection } from '../../src/chat/taskRunOffer';
 import { readTaskRunHandoff } from '../../src/files/taskRunHandoff';
 import { TaskRunHost } from './host';
@@ -14,13 +14,16 @@ interface LocalTaskRun {
   replaces?: TaskRunReplanSelection;
   doc: StudioDoc;
   config: { name: string; plan: TaskPlanRequest; limits: RunLimits; budget: number };
-  tasks: { id: string; valueMm: number; field: 'height' | 'width' }[];
+  tasks: { id: string; valueMm: number; field: BoundTask['writes']['field'] }[];
 }
 
 export function localRunTargets(targets: ReturnType<typeof deriveLocalRunPlan>['targets']): LocalTaskRun['tasks'] {
-  return targets.map(target => target.widthMm !== undefined
-    ? { id: target.id, valueMm: target.widthMm, field: 'width' }
-    : { id: target.id, valueMm: target.heightMm, field: 'height' });
+  return targets.map(target => {
+    const { id, diameterMm, widthMm, heightMm } = target;
+    if (diameterMm !== undefined) return { id, valueMm: diameterMm, field: 'diameter' };
+    if (widthMm !== undefined) return { id, valueMm: widthMm, field: 'width' };
+    return { id, valueMm: heightMm, field: 'height' };
+  });
 }
 
 export async function prepareTaskRunHandoff(bytes: Uint8Array) {

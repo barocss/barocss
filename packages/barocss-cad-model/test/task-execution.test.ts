@@ -10,7 +10,7 @@ import type { Requirement } from '../src/engine/schema/spec';
 import { decideEcr, openEcr, userToken } from '../src/team/ecr';
 import { taskDrawingCandidate, taskDrawingImpact } from '../src/team/taskDrawing';
 import { interfacesRevision, readInterfaces } from '../src/team/interfaces';
-import { applyTaskDecision, bindTaskDecision, buildTaskCandidate, taskCandidateImpact, type TaskWorkerContext } from '../src/team/taskExecution';
+import { applyTaskDecision, bindTaskDecision, buildTaskCandidate, taskCandidateImpact, taskSubmissionForDimension, type TaskSubmission, type TaskWorkerContext } from '../src/team/taskExecution';
 import { inspectLocalHeightPlan } from '../src/team/localHeightPlan';
 import { compileTaskPlan, type TaskPlanRequest, type TaskRequest } from '../src/team/taskPlan';
 import { answerTaskQuestions, bindTaskQuestions } from '../src/team/taskQuestions';
@@ -357,4 +357,74 @@ test('D584 dependency rejection during replay prevents the approved document fro
     resume();
   }
   refuses(await attempt, 'TASK_DEPENDENCY_UNVERIFIED');
+});
+
+
+test('D646 checks the existing native bore, edits its diameter once and reopens the approved native document', async () => {
+  const doc = assembly();
+  delete doc.interfaces;
+  const [base, lid] = doc.instances!;
+  const diameter: Requirement = { ...height('bore', 6), source: 'Make the existing bore Ø6 mm through.',
+    check: { query: { fn: 'hole_diameter', face: { feature: 'n2', role: 'side0' } }, op: '==', value: 6, tol: 0.001, unit: 'mm' } };
+  base.doc = { ...withNode(rectanglePart(40, 30, 6), {
+    kind: 'hole', parent: { node: 1, side: 'solid' }, center: [12, 9], radius: 2, face: 'n1.top',
+  }), requirements: [diameter, height('fixed-height', 6)] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+  const inspection = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspection), JSON.stringify(inspection));
+  assert.deepEqual(inspection.issues, []);
+  assert.deepEqual(inspection.targets, [{ id: 'p1', requirementId: 'bore', currentDiameterMm: 4, diameterMm: 6, toleranceMm: 0.001 }]);
+  assert.deepEqual(inspection.plan.protectedOccurrences, ['p2']);
+  const { plan, state, context } = setup(doc, { ...inspection.request, policyRevision });
+  const bound = plan.tasks[0], worker = { ...context, worker: bound.holder };
+  const pin = { taskId: bound.id, specRevision: plan.specRevision, inputDigest: bound.inputDigest };
+  const submission = taskSubmissionForDimension(pin, bound.writes.field, 6);
+  assert.deepEqual(submission, { ...pin, diameterMm: 6 });
+  const refuseBeforeNative = async () => { throw new Error('Invalid diameter reached the evaluator'); };
+  for (const invalid of [{ ...pin, heightMm: 6 }, { ...pin, diameterMm: 6, widthMm: 6 }]) {
+    refuses(await buildTaskCandidate(plan, state, invalid as unknown as TaskSubmission, worker, refuseBeforeNative), 'TASK_SUBMISSION_MISMATCH');
+  }
+  for (const diameterMm of [4, 18, 20, NaN]) {
+    refuses(await buildTaskCandidate(plan, state, { ...pin, diameterMm }, worker, refuseBeforeNative), 'TASK_VALUE');
+  }
+  refuses(await buildTaskCandidate(plan, state, { ...pin, diameterMm: 3 }, worker, refuseBeforeNative), 'TASK_REQUIRED_CHECK');
+
+  const changedFace = (onRadius: number, mode: 'outer' | 'short') => async (model: StudioDoc) => {
+    const result = await evaluate(model);
+    const node = model.nodes[2];
+    if (!result.ok || node?.kind !== 'hole' || node.radius !== onRadius || !model.requirements?.some(req => req.id === 'bore')) return result;
+    const face = result.faceTable?.['n2.side0'];
+    assert.ok(face?.kind === 'cylinder');
+    return { ...result, faceTable: { ...result.faceTable, 'n2.side0': mode === 'outer' ? { ...face, outer: true }
+      : { ...face, span: [0, 3] as [number, number] } } };
+  };
+  refuses(await buildTaskCandidate(plan, state, submission, worker, changedFace(2, 'outer')), 'TASK_HOLE_FACE');
+  refuses(await buildTaskCandidate(plan, state, submission, worker, changedFace(3, 'short')), 'TASK_HOLE_FACE');
+  const candidate = await buildTaskCandidate(plan, state, submission, worker, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.equal(digestOf(state.doc), plan.baselineDigest);
+  assert.deepEqual(candidate.scope, { occurrence: 'p1', feature: 'n2', field: 'diameter' });
+  assert.deepEqual(candidate.gates, ['lease', 'validity', 'contract', 'assembly']);
+  assert.deepEqual(candidate.checks.map(check => [check.id, check.status, check.measured]), [['bore', 'pass', 6], ['fixed-height', 'pass', 6]]);
+  const decision = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in decision));
+  const approved = await applyTaskDecision(decision, state, worker, evaluate);
+  assert.ok(!('error' in approved), JSON.stringify(approved));
+  const read = await readStudioFile(encodeStudioFile(approved.doc));
+  assert.ok(!('error' in read), JSON.stringify(read));
+  assert.equal(digestOf(read.doc), digestOf(approved.doc));
+  assert.deepEqual(read.doc.instances![0].doc.nodes, base.doc.nodes.map(node => node.kind === 'hole' ? { ...node, radius: 3 } : node));
+  assert.deepEqual(read.doc.instances![1], lid);
+
+  const reopened = await evaluate(read.doc.instances![0].doc);
+  assert.ok(reopened.ok);
+  const [body] = reopened.bodies, bore = reopened.faceTable?.['n2.side0'];
+  assert.ok(bore?.kind === 'cylinder' && !bore.outer && bore.span);
+  assert.ok(Math.abs(2 * bore.radius - 6) < 1e-8);
+  assert.deepEqual(bore.point.slice(0, 2), [12, 9]);
+  assert.ok(Math.abs(bore.span[1] - bore.span[0] - 6) < 1e-8);
+  const removed = Math.PI * 3 ** 2 * 6, solid = 40 * 30 * 6, expected = solid - removed;
+  assert.ok(body.volume !== null && Math.abs(body.volume - expected) < 1e-8);
+  const centroid = [(20 * solid - 12 * removed) / expected, (15 * solid - 9 * removed) / expected, 3];
+  assert.ok(body.centroid?.every((value, index) => Math.abs(value - centroid[index]) < 1e-8));
 });

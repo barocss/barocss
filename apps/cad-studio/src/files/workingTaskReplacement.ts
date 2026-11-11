@@ -2,13 +2,19 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { inspectLocalHeightPlan } from '@barocss/cad-model/team/localHeightPlan';
 import { digestOf } from '@barocss/cad-model/util/digest';
+import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { TaskRunOffer, TaskRunReplanPin } from '../chat/taskRunOffer';
 
-function criterion(req: Requirement, field: TaskRunReplanPin['field']): boolean {
+function criterion(req: Requirement, { field, feature }: TaskRunReplanPin): boolean {
   const { check } = req;
-  return req.hard && req.basis === 'stated' && check.op === '==' && check.query.fn === 'bbox'
-    && check.query.axis === (field === 'width' ? 'x' : 'z') && check.query.body === undefined && check.unit === 'mm';
+  if (!req.hard || req.basis !== 'stated' || check.op !== '==' || check.unit !== 'mm') return false;
+  if (field === 'diameter') {
+    if (check.query.fn !== 'hole_diameter') return false;
+    const { face } = check.query;
+    return face === feature + '.side0' || (isObj(face) && face.feature === feature && face.role === 'side0');
+  }
+  return check.query.fn === 'bbox' && check.query.axis === (field === 'width' ? 'x' : 'z') && check.query.body === undefined;
 }
 
 /** Preserve the accepted geometry and history while replanning the selected occurrence's edited requirements. */
@@ -27,9 +33,14 @@ export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioD
       || !extendsHistory(baseline, working) || !extendsHistory(original.doc, current.doc))
     throw new Error('The working model does not retain the accepted run geometry and history.');
 
-  const previous = original.doc.requirements?.filter(req => criterion(req, pin.field)) ?? [];
-  const revised = current.doc.requirements?.filter(req => criterion(req, pin.field)) ?? [];
-  if (previous.length !== 1 || revised.length !== 1 || canonical(previous[0].check) === canonical(revised[0].check))
+  const previous = original.doc.requirements?.filter(req => criterion(req, pin)) ?? [];
+  const revised = current.doc.requirements?.filter(req => criterion(req, pin)) ?? [];
+  if (previous.length !== 1 || revised.length !== 1)
+    throw new Error('Save a changed stated dimension for this occurrence before replanning.');
+  const before = previous[0].check, after = revised[0].check;
+  const sameCheck = pin.field === 'diameter' ? before.value === after.value && (before.tol ?? 0) === (after.tol ?? 0)
+    : canonical(before) === canonical(after);
+  if (sameCheck)
     throw new Error('Save a changed stated dimension for this occurrence before replanning.');
 
   const occurrences = [pin.occurrence];

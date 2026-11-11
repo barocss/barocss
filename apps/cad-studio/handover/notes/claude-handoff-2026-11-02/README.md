@@ -1,5 +1,5 @@
 ---
-work_id: D645
+work_id: D646
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -227,7 +227,9 @@ D644 completes both height tasks through Studio approval and rebuild. It saves a
 
 D645 rejects one reviewed candidate without changing the accepted native file. The same pending sibling remains reviewable and can publish after explicit Studio approval. Fresh Studio Open reads that checkpoint and the earlier rejection. [D645](../studio-reviewed-worker-rejection-2026-11-11/README.md).
 
-Next MAIN is D646 / P0 automation, B09 follow-up, rows 04, 07 and 16. Add a local task for the diameter of one existing native through-hole with a hard diameter requirement. Bind the feature and cylindrical face, preserve mm diameter semantics and refuse edits to a shared hole pattern from this task. Verify the approved result in Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
+D646 binds an existing native through-hole and its cylindrical wall to a hard diameter requirement. Studio approves Ø4 to Ø6 mm, preserves the protected sibling and reopens the exact native checkpoint. The planner refuses shared H1. [D646](../studio-through-hole-diameter-task-2026-11-11/README.md).
+
+Next MAIN is D647 / P0 automation, B09 follow-up, rows 04, 07 and 16. Deliver one mixed run with an independent through-hole diameter task and a sibling extrusion-height task. Approve the height first, rebuild the diameter from the new accepted model, and verify both requirements after native project Save and fresh Open. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

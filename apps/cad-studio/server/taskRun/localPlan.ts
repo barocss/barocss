@@ -13,8 +13,8 @@ export function deriveLocalRunPlan(doc: StudioDoc, source: string, sourceSHA256:
   const { request, plan, targets, issues } = inspection;
   if (issues.length) throw new Error(issues[0].message);
   const limits: RunLimits = { concurrent: targets.length === 1 ? 1 : 2, attemptsPerTask: 3, reservation: 2, leaseTicks: 5, timeoutMs: 10000 };
-  const hasWidth = targets.some(target => target.widthMm !== undefined);
-  return { format: hasWidth ? DIMENSION_FORMAT : FORMAT, version: 1, name: hasWidth ? 'local-dimension' : 'local-height', source, sourceSHA256, modelDigest: plan.baselineDigest,
+  const hasOtherDimension = targets.some(target => target.heightMm === undefined);
+  return { format: hasOtherDimension ? DIMENSION_FORMAT : FORMAT, version: 1, name: hasOtherDimension ? 'local-dimension' : 'local-height', source, sourceSHA256, modelDigest: plan.baselineDigest,
     specRevision: plan.specRevision, plan: request, targets, limits, budget: targets.length * 4 };
 }
 

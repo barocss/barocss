@@ -106,7 +106,7 @@ test('D584 task admission refuses unit, frame, target and ownership violations',
     [{ units: 'in' }, 'WRONG_UNIT'],
     [{ frame: 'part-local-x' }, 'WRONG_FRAME'],
     [{ frame: 'assembly-z' }, 'WRONG_FRAME'],
-    [{ capability: 'hole-diameter' }, 'UNSUPPORTED_CAPABILITY'],
+    [{ capability: 'hole-radius' }, 'UNSUPPORTED_CAPABILITY'],
     [{ feature: 'n99' }, 'WRONG_TARGET'],
     [{ feature: '1' }, 'WRONG_TARGET'],
     [{ holder: '' }, 'BAD_TASK'],
@@ -216,4 +216,44 @@ test('D584 refuses interface geometry the native gate cannot verify', () => {
   }
   doc.interfaces = { ...readInterfaces(undefined), keepouts: ['exclusion-1'] };
   refuses(doc, request(), 'UNSUPPORTED_INTERFACE');
+});
+
+
+test('D646 admits only a hard millimetre diameter equality for the stable through-hole wall', () => {
+  const boreCheck: Requirement = {
+    ...heightCheck('bore', 6),
+    check: { op: '==', query: { fn: 'hole_diameter', face: { feature: 'n17', role: 'side0', on: 'b17' } }, value: 6, tol: 0.01, unit: 'mm' },
+  };
+  const doc = replacePart(replacePart(assembly(), 'p1', part => ({
+    ...withNode(part, { kind: 'hole', id: 'n17', parent: { node: 1, side: 'solid' }, center: [12, 9], radius: 2, face: 'n1.top' }),
+    requirements: [boreCheck, heightCheck('fixed-height', 6)],
+  })), 'p2', part => ({ ...part, requirements: [] }));
+  const input: TaskPlanRequest = { ...request(), maxTasks: 1, tasks: [{ ...request().tasks[0], feature: 'n17', capability: 'hole-diameter' }] };
+  const plan = compileTaskPlan(doc, input);
+  assert.ok(!('error' in plan), JSON.stringify(plan));
+  assert.deepEqual(plan.tasks[0].writes, { occurrence: 'p1', feature: 'n17', field: 'diameter' });
+  assert.equal(plan.tasks[0].reads.holeFace, 'n17.side0');
+  assert.equal(plan.tasks[0].frame, 'part-local-z');
+  const changeRequirement = (requirement: Requirement) => replacePart(doc, 'p1', part => ({ ...part, requirements: [requirement] }));
+  const { check } = boreCheck;
+  for (const face of ['n1.side0', 'n17.top', { feature: 2, role: 'side0' }, { feature: 'n17', role: 'side' },
+    { feature: 'n17', role: 'side0', on: 'b1' }, { feature: 'n17', role: 'side0', all: true }]) {
+    refuses(changeRequirement({ ...boreCheck, check: { ...check, query: { fn: 'hole_diameter', face } } }), input, 'UNSUPPORTED_CHECK');
+  }
+  const named = compileTaskPlan(changeRequirement({ ...boreCheck, check: { ...check, query: { fn: 'hole_diameter', face: 'n17.side0' } } }), input);
+  assert.ok(!('error' in named));
+  refuses(changeRequirement({ ...boreCheck, check: { ...check, unit: 'in' } }), input, 'UNSUPPORTED_CHECK');
+  refuses(changeRequirement({ ...boreCheck, check: { ...check, op: '>=' } }), input, 'UNSUPPORTED_CHECK');
+  refuses(changeRequirement({ ...boreCheck, check: { ...check, tol: -1 } }), input, 'BAD_REQUIREMENT');
+  refuses(changeRequirement({ ...boreCheck, hard: false }), input, 'MISSING_REQUIRED_CHECK');
+  refuses({ ...doc, interfaces: { ...readInterfaces(undefined), holePatterns: [
+    { id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[12, 9, 0]], parts: ['p1', 'p2'] },
+  ] } }, input, 'SHARED_HOLE_PATTERN');
+  const changeHole = (edit: object) => replacePart(doc, 'p1', part => ({
+    ...part, nodes: part.nodes.map(node => node.kind === 'hole' ? { ...node, ...edit } : node),
+  }));
+  for (const edit of [{ depth: 3 }, { pattern: { count: 2, step: [7, 0] } }, { countersink: 10 }, { thread: 'M6×1' },
+    { axis: 'x' }, { face: 'n1.side0' }, { radius: { parameter: 'r' } }]) {
+    refuses(changeHole(edit), input, 'UNSUPPORTED_PROFILE');
+  }
 });

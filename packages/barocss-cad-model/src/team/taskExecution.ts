@@ -3,6 +3,7 @@ import { isCurrentRequirement, requirementEvidenceOf } from '../chat/requirement
 import { expectedOf, checkSpec } from '../chat/spec';
 import { acceptProposal, runTool, type ChatState, type Evaluate } from '../chat/tools';
 import type { StudioDoc } from '../engine/doc';
+import type { EvalResult } from '../engine/evaluate';
 import type { Requirement } from '../engine/schema/spec';
 import { digestOf } from '../util/digest';
 import { isObj } from '../util/guards';
@@ -23,7 +24,17 @@ export interface TaskContext {
 /** The host's assigned worker identity. It is never taken from a submitted operation. */
 export interface TaskWorkerContext extends TaskContext { worker: string }
 type TaskSubmissionPin = { taskId: string; specRevision: string; inputDigest: string };
-export type TaskSubmission = TaskSubmissionPin & ({ heightMm: number; widthMm?: never } | { widthMm: number; heightMm?: never });
+export type TaskSubmission = TaskSubmissionPin & (
+  { heightMm: number; widthMm?: never; diameterMm?: never } |
+  { widthMm: number; heightMm?: never; diameterMm?: never } |
+  { diameterMm: number; heightMm?: never; widthMm?: never }
+);
+
+export function taskSubmissionForDimension(pin: TaskSubmissionPin, field: BoundTask['writes']['field'], valueMm: number): TaskSubmission {
+  if (field === 'diameter') return { ...pin, diameterMm: valueMm };
+  if (field === 'width') return { ...pin, widthMm: valueMm };
+  return { ...pin, heightMm: valueMm };
+}
 
 export function readTaskSubmission(value: unknown): TaskSubmission | undefined {
   if (!isObj(value) || Object.keys(value).length !== 4 || Reflect.ownKeys(value).length !== 4
@@ -33,10 +44,11 @@ export function readTaskSubmission(value: unknown): TaskSubmission | undefined {
   const { taskId, specRevision, inputDigest } = value;
   if (Object.hasOwn(value, 'heightMm') && typeof value.heightMm === 'number') return { taskId, specRevision, inputDigest, heightMm: value.heightMm };
   if (Object.hasOwn(value, 'widthMm') && typeof value.widthMm === 'number') return { taskId, specRevision, inputDigest, widthMm: value.widthMm };
+  if (Object.hasOwn(value, 'diameterMm') && typeof value.diameterMm === 'number') return { taskId, specRevision, inputDigest, diameterMm: value.diameterMm };
 }
 
 export function taskSubmissionValue(submission: TaskSubmission, field: BoundTask['writes']['field']): number | undefined {
-  return field === 'width' ? submission.widthMm : submission.heightMm;
+  return submission[`${field}Mm`];
 }
 export interface TaskCheckReceipt {
   readonly id: string;
@@ -152,11 +164,32 @@ function dependencyProofs(plan: TaskPlan, task: BoundTask, prerequisites: readon
   return { proofs: Object.freeze(proofs), records: [...records] };
 }
 
+type TaskShape = Exclude<ReturnType<typeof taskTarget>, TaskPlanError>['shape'];
+
+function verifyHoleFace(result: Extract<EvalResult, { ok: true }>, shape: TaskShape, height: number, task: BoundTask): TaskPlanError | undefined {
+  const name = task.reads.holeFace;
+  if (!name) return;
+  const bore = shape.hole, face = result.faceTable?.[name];
+  const matches = result.bodies.flatMap(body => body.mesh.faces.filter(f => f.name.split('+').includes(name) || f.id === name));
+  const close = (actual: number, want: number, scale: number) => Number.isFinite(actual)
+    && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, scale);
+  if (!bore || face?.kind !== 'cylinder' || face.outer || !face.span || matches.length !== 1 || matches[0].exact?.kind !== 'cylinder'
+    || !close(face.radius, bore.radius, bore.radius) || !close(matches[0].exact.r, bore.radius, bore.radius)
+    || !close(face.point[0], bore.x, bore.radius) || !close(face.point[1], bore.y, bore.radius)
+    || !close(face.axis[0], 0, 1) || !close(face.axis[1], 0, 1) || !close(Math.abs(face.axis[2]), 1, 1))
+    return failure('TASK_HOLE_FACE', `Native face ${name} must resolve to one inner cylinder on the authored hole axis and radius.`);
+  const z = face.span.map(t => face.point[2] + face.axis[2] * t);
+  if (!close(Math.min(...z), 0, height) || !close(Math.max(...z), height, height))
+    return failure('TASK_HOLE_FACE', `Native face ${name} must span the full extrusion height.`);
+}
+
 /** Recheck a local task's native geometry and requirements without granting a lease or decision. */
-export async function verifyTaskGeometry(local: StudioDoc, shape: Exclude<ReturnType<typeof taskTarget>, TaskPlanError>['shape'],
+export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   height: number, task: BoundTask, evaluate: Evaluate): Promise<Pick<TaskCandidate, 'geometry' | 'checks'> | TaskPlanError> {
   const result = await evaluate(local);
   if (!result?.ok || result.bodies.length !== 1) return failure('TASK_NATIVE_GATE', 'the owned occurrence did not evaluate to one body');
+  const holeFace = verifyHoleFace(result, shape, height, task);
+  if (holeFace) return holeFace;
   const [body] = result.bodies;
   const { min, max } = body.mesh.bounds;
   const size = [shape.width, shape.depth, height] as const;
@@ -229,6 +262,12 @@ export async function buildTaskCandidate(
   if ('error' in target) return target;
   const edit = taskDimensionEdit(doc, task, target, value);
   if ('error' in edit) return edit;
+  if (task.writes.field === 'diameter') {
+    const before = await evaluate(target.instance.doc);
+    if (!before?.ok || before.bodies.length !== 1) return failure('TASK_NATIVE_GATE', 'the baseline occurrence did not evaluate to one body');
+    const holeFace = verifyHoleFace(before, target.shape, target.height, task);
+    if (holeFace) return holeFace;
+  }
   const { args, doc: expected, local, shape, height } = edit;
   const patch = { id: task.id, by: task.holder, part: task.occurrence, contract: interfacesRevision(doc), ops: [{ tool: 'edit_feature', args }] };
   const staged = await integratePart(own, patch, context.leases, evaluate, context.sequence, { requireCompleteAssembly: true });

@@ -25,6 +25,20 @@ export function sharedHoleDoc(): StudioDoc {
     holePatterns: [{ id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[5, 5, 0]], parts: ['p1', 'p2'] }] };
   return doc;
 }
+export function holeDiameterDocs() {
+  const source = fixtureDoc(), [base, lid] = source.instances!;
+  const bore = (doc: StudioDoc) => withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [12, 9], radius: 2 });
+  base.doc = bore(plate(40, 30, 6, 6));
+  base.doc.requirements = [{ id: 'bore', source: 'Use one Ø6 mm through-hole.', hard: true, basis: 'stated',
+    check: { query: { fn: 'hole_diameter', face: { feature: 'n2', role: 'side0' } }, op: '==', value: 6, unit: 'mm', tol: 0.001 } }];
+  lid.doc = plate(12, 8, 3, 3);
+  const shared = structuredClone(source);
+  shared.instances![1].position = [0, 0, 20];
+  shared.instances![1].doc = bore(plate(40, 30, 6, 6));
+  shared.interfaces = { ...readInterfaces(undefined),
+    holePatterns: [{ id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[12, 9, 0]], parts: ['p1', 'p2'] }] };
+  return { source, shared };
+}
 export function threeOccurrenceDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });

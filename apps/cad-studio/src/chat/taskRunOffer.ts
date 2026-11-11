@@ -1,6 +1,7 @@
 import type { TaskNativeFinding } from '@barocss/cad-model/team/taskExecution';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
+import type { BoundTask } from '@barocss/cad-model/team/taskPlan';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 
@@ -37,7 +38,7 @@ export interface TaskRunReplanPin {
   attemptId: string;
   occurrence: string;
   feature: string;
-  field: 'height' | 'width';
+  field: BoundTask['writes']['field'];
 }
 
 export interface TaskRunReplanSelection extends TaskRunBaselineRequest {
@@ -151,7 +152,7 @@ export function sameTaskRunCheckpoint(a: TaskRunCheckpointPin, b: TaskRunCheckpo
 
 function isTaskRunReplanPin(value: unknown): value is TaskRunReplanPin {
   return isObj(value) && Object.keys(value).length === 4 && label(value.attemptId) && label(value.occurrence)
-    && label(value.feature) && (value.field === 'height' || value.field === 'width');
+    && label(value.feature) && (value.field === 'height' || value.field === 'width' || value.field === 'diameter');
 }
 
 export function isTaskRunReplanSelection(value: unknown): value is TaskRunReplanSelection {
@@ -238,14 +239,20 @@ const number = (value: unknown): value is number => typeof value === 'number' &&
 function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
   if (!isObj(value) || value.id !== occurrence || typeof value.requirementId !== 'string' || !value.requirementId
     || !number(value.toleranceMm) || value.toleranceMm < 0) return null;
-  const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, toleranceMm } = value;
+  const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, currentDiameterMm, diameterMm, toleranceMm } = value;
   const shared = { id: occurrence, requirementId, toleranceMm };
-  if (currentWidthMm === undefined && widthMm === undefined
+  const hasHeight = currentHeightMm !== undefined || heightMm !== undefined;
+  const hasWidth = currentWidthMm !== undefined || widthMm !== undefined;
+  const hasDiameter = currentDiameterMm !== undefined || diameterMm !== undefined;
+  if (!hasWidth && !hasDiameter
     && number(currentHeightMm) && currentHeightMm > 0 && number(heightMm) && heightMm > 0)
-    return { id: shared.id, requirementId, currentHeightMm, heightMm, toleranceMm };
-  if (currentHeightMm === undefined && heightMm === undefined
+    return { ...shared, currentHeightMm, heightMm };
+  if (!hasHeight && !hasDiameter
     && number(currentWidthMm) && currentWidthMm > 0 && number(widthMm) && widthMm > 0)
     return { ...shared, currentWidthMm, widthMm };
+  if (!hasHeight && !hasWidth
+    && number(currentDiameterMm) && currentDiameterMm > 0 && number(diameterMm) && diameterMm > 0)
+    return { ...shared, currentDiameterMm, diameterMm };
   return null;
 }
 

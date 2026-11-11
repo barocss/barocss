@@ -54,7 +54,7 @@ async function inspectLocalTaskPlanTool(state: ChatState, args: Record<string, u
   const tasks = 'error' in inspection ? [] : inspection.plan.tasks.map(task => task.writes);
   const targets = 'error' in inspection ? [] : inspection.targets;
   const status = issues.length ? 'blocked' : 'ready';
-  const dimension = tasks.some(task => task.field === 'width') ? 'dimension' : 'height';
+  const dimension = tasks.some(task => task.field !== 'height') ? 'dimension' : 'height';
   return { state, content: json({ revision, status, occurrences, tasks, targets, issues }), isError: false, changed: false,
     summary: status === 'ready' ? `${targets.length} local ${dimension} target${targets.length === 1 ? '' : 's'} ready` : `${issues.length} local planning issue${issues.length === 1 ? '' : 's'}` };
 }

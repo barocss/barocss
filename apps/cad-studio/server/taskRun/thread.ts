@@ -2,7 +2,7 @@ import { isMainThread, parentPort, threadId, Worker, workerData } from 'node:wor
 import { performance } from 'node:perf_hooks';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { interfacesRevision } from '@barocss/cad-model/team/interfaces';
-import { buildTaskCandidate } from '@barocss/cad-model/team/taskExecution';
+import { buildTaskCandidate, taskSubmissionForDimension } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import type { TaskWorker, WorkerReply, WorkerTicket } from './host';
 
@@ -91,12 +91,12 @@ export async function serveTaskThread(evaluate: Evaluate): Promise<boolean> {
       return true;
     }
     const pin = { taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest };
-    const submission = task.writes.field === 'width' ? { ...pin, widthMm: valueMm } : { ...pin, heightMm: valueMm };
+    const submission = taskSubmissionForDimension(pin, task.writes.field, valueMm);
     const candidate = await buildTaskCandidate(plan, { doc, bodies: [] }, submission, {
       activePlan: plan, identity: plan.identity, policyRevision: plan.policyRevision, worker: task.holder,
       sequence: 0, leases: new Map([[task.occurrence, { part: task.occurrence, holder: task.holder, contract: interfacesRevision(doc), until: attempt.leaseUntil }]]),
     }, native);
-    if ('error' in candidate && candidate.error.code !== 'TASK_NATIVE_GATE') {
+    if ('error' in candidate && candidate.error.code !== 'TASK_NATIVE_GATE' && candidate.error.code !== 'TASK_HOLE_FACE') {
       send({ type: 'failure', code: candidate.error.code });
       return true;
     }

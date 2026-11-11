@@ -1,0 +1,171 @@
+{
+  "decision": "D646",
+  "tier": "FULL bounded native and tool contract",
+  "baseCommit": "bd21103709a700883dfb40e44f6e97f342687ead",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d646-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "geometryImplementation": "GPT-6.1 Sol High",
+  "checks": [
+    {
+      "label": "Desktop Studio native through-hole approval and shared-pattern refusal",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D646_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-published\" --hole-diameter",
+      "receiptSHA256": "3f32771b6b99aa691b0a51515d8adbfbda3ad1292ecf91f34528fb392dff743b",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "sharedRefusal": "SHARED_HOLE_PATTERN",
+        "feature": "n2",
+        "face": "n2.side0",
+        "diameterMm": [
+          4,
+          6
+        ],
+        "nativeRadiusMm": 3,
+        "approvedRevision": 6,
+        "protectedOccurrence": "p2",
+        "publications": 1
+      }
+    },
+    {
+      "label": "Independent native diameter, cylinder span, volume, centroid and checkpoint reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/diameter-oracle.py\" \"$EVIDENCE/desktop-published\"",
+      "scriptSHA256": "eae91d0bdab6efdd79d098de7d8db2fe4b435654a31058f89db835568b63b1f6",
+      "resultSHA256": "aa965e79edd6129184a807638912e4e0db853f9e130b0e55c10b96253565bf3d",
+      "productImports": 0,
+      "originalSHA256": "c070fa8ce6c3b80b8d1defea9873ef4c5572bcc08694a7b9adc33c333618104e",
+      "approvedSHA256": "99ad319d59f3790455f86c9a65b8e13ef83494e24e449c38a6200faa49cde4fb",
+      "volumeMm3": 7030.3539967061515,
+      "centroidMm": [
+        20.193044052545098,
+        15.144783039408825,
+        3
+      ]
+    },
+    {
+      "label": "CLI starts the Studio-generated diameter plan",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "node scripts/cad-cli.mjs task-run start \"$EVIDENCE/cli-run\" --plan \"$EVIDENCE/desktop-published/cli-plan.json\"",
+      "resultSHA256": "c4441e64ca22e336dc987f973ee079b901174f277f6bf80cfaab7094bb13f267",
+      "heldScope": "p1/n2 diameter",
+      "publications": 0
+    },
+    {
+      "label": "Desktop Studio width and historical height regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/verified-width\" --width",
+      "receiptSHA256": "494b6885226877575031bd506ce44744e3963ac3b869d20b07cf78c66a23fff1",
+      "legacyCheckpointSHA256": "07b28ae1d74457808faf557f69650f0cae3275eecb941accc2091575350a5e43",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio existing shared-hole height delivery regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D638_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/verified-shared-hole-delivery\" --shared-hole-delivery",
+      "receiptSHA256": "26abeb128f7abc42f866ec356070800b95500bb8cf5a2d0964427c054cb6e78b",
+      "pinnedSources": 816,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Model focused tests and native wall mutations",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan tool-contract spec mates team-ecr requirement-evidence",
+      "pass": 75,
+      "fail": 0,
+      "skipped": 0,
+      "mutations": [
+        "Outer cylinder flag on the original bore",
+        "Shortened cylinder span on the candidate"
+      ]
+    },
+    {
+      "label": "Studio focused tests including diameter replan criterion",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent task-candidate task-checkpoint proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 182,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "existingWarnings": 2,
+      "errors": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Generated reference checks, browser syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node apps/library-docs/scripts/refusals.mjs --check, node apps/library-docs/scripts/agent-tools.mjs --check, node --check <changed browser modules>, git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First Model type check",
+      "logSHA256": "02a0d18eefcd0578db853dbda1871fe18d43f418ba4c4cea653a8e50f366877b",
+      "reason": "The malformed test submission needed an explicit cast at its runtime validation boundary."
+    },
+    {
+      "result": "FAIL",
+      "check": "First Desktop Studio diameter plan label",
+      "receiptSHA256": "3707d12ade8583f010bceab52171d0438cb25729a50fd04f3399cd13b52b35fb",
+      "reason": "The chat server used the height label for the new diameter field."
+    },
+    {
+      "result": "FAIL",
+      "check": "First shared-pattern label check after the label fix",
+      "receiptSHA256": "9a5ebd6595655e2e5b20d6ae46133862f570189b06a7c61ab76f294c0f4c3ab1",
+      "reason": "The raw response reader misdecoded the middle dot. The final check reads the rendered Studio label."
+    },
+    {
+      "result": "FAIL",
+      "check": "First width regression setup",
+      "receiptSHA256": "137f9f0efcfd587abfd2dcdb6a18ef0ab93cca1d58fcd030889fdaa5d13a1915",
+      "reason": "The historical checkpoint environment variable was missing. The final run uses the retained D622 checkpoint."
+    }
+  ],
+  "notRun": [
+    "Other hole profiles",
+    "Coordinated shared-pattern edits through a diameter task",
+    "Live provider execution",
+    "Whole kernel suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

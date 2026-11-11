@@ -6,7 +6,7 @@ import { readStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { isLocalTaskCount } from '@barocss/cad-model/team/localHeightPlan';
 import { userToken } from '@barocss/cad-model/team/ecr';
-import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { taskField, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
@@ -21,7 +21,7 @@ import { localRunStatus, localRunTargets, prepareTaskRunHandoff, startLocalTaskR
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
-interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number> }
+interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number>; diametersMm?: Record<string, number> }
 const HELP = 'cad-cli task-run <plan source.bcad occurrenceA [occurrenceB] [occurrenceC] | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
@@ -98,9 +98,9 @@ async function readStart(args: readonly string[]) {
   const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
   const source = await openModel(config.source);
   if ('error' in source) throw new Error(source.error);
+  const dimensions = { height: config.heightsMm, width: config.widthsMm, diameter: config.diametersMm };
   const tasks = config.plan.tasks.map(task => {
-    const field = task.capability === 'rectangle-width' ? 'width' as const : 'height' as const;
-    const valueMm = (field === 'width' ? config.widthsMm : config.heightsMm)?.[task.id];
+    const field = taskField(task.capability), valueMm = dimensions[field]?.[task.id];
     if (typeof valueMm !== 'number' || !Number.isFinite(valueMm) || valueMm <= 0) throw new Error(`Expected a positive ${field} for ${task.id}.`);
     return { id: task.id, field, valueMm };
   });
@@ -193,7 +193,8 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       return 0;
     }
     if (command === 'work' && args.length === 3 && Number.isFinite(Number(value)) && Number(value) > 0) {
-      const field = record.state.plan.tasks.find(item => item.id === task)?.capability === 'rectangle-width' ? 'width' : 'height';
+      const capability = record.state.plan.tasks.find(item => item.id === task)?.capability;
+      const field = capability ? taskField(capability) : 'height';
       outcome = await host.dispatch(operation, task, threadWorker(worker, Number(value)), field + '-mm:' + Number(value));
     } else if (command === 'refresh' && args.length === 2) {
       outcome = await host.refresh(operation, task);
