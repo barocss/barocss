@@ -72,7 +72,10 @@ test('unknown, nested and unsafe output inputs refuse without changing the docum
     ['output_clearance', { near: NaN }], ['output_bundle', { baseline: { id: 'BL1' } }],
     ['output_cam_package', { part: 'missing' }], ['output_bom', { approve: true }],
   ] as [string, Record<string, unknown>][]) assert.ok('error' in await output(doc, name, args), `${name}: ${JSON.stringify(args)}`);
-  assert.equal(OUTPUT_TOOL_NAMES.size, 6);
+  assert.deepEqual(OUTPUT_TOOL_NAMES, new Set([
+    'output_requirement_evidence', 'output_bom', 'output_purchase_csv', 'output_clearance',
+    'output_cam_package', 'output_print_layers', 'output_bundle',
+  ]));
   for (const name of OUTPUT_TOOL_NAMES) {
     const stale = await output(doc, name, { expectedRevision: '0'.repeat(64) });
     assert.ok('error' in stale && stale.error.startsWith('[OUTPUT_STALE]'), JSON.stringify(stale));

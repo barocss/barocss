@@ -87,7 +87,16 @@ export function setBought(doc: StudioDoc, parts: readonly string[], value: boole
   };
 }
 
-const cell = (v: string | number | null | undefined) => v === null || v === undefined ? '' : typeof v === 'number' ? String(v) : /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+function purchaseCell(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number') return String(value);
+
+  const leading = value.match(/^[\s\p{Cc}\p{Cf}']*/u)![0];
+  const formula = /^[=+@＝＋－＠-]/u.test(value.slice(leading.length));
+  const protect = formula || /[\p{Cc}\p{Cf}]/u.test(leading);
+  const text = protect ? "'" + value : value;
+  return protect || /[",;\t\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
 /** Whether a BOM line is bought: an element marked so, or a library part (a catalogue part). */
 export const isBoughtLine = (l: BomLine) => l.kind !== undefined || l.source !== null;
 /** A line's size cell: its size, and (O8) the solids it comes as when several — the column as before when one. */
@@ -95,6 +104,7 @@ const sizeCell = (l: BomLine) => l.lumps ? `${l.size ? `${l.size}; ` : ''}${l.lu
 /**
  * The purchase list as CSV: item no., item, qty, kind, size, row, catalogue, source, estimate — the bought lines (the
  * bought elements, the library parts); with `withMade`, the made parts and the made elements after them.
+ * Formula-like text receives a leading apostrophe in CSV. Use BOM JSON for the exact source values.
  */
 export function purchaseCsv(p: BomPanelData, withMade = false): string {
   const rows: (string | number | null)[][] = [['item no.', 'item', 'qty', 'kind', 'size', 'row', 'catalogue', 'source', 'estimate']];
@@ -111,5 +121,5 @@ export function purchaseCsv(p: BomPanelData, withMade = false): string {
     for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push(l.plate ? [no, l.item, l.qty, l.plate.kind, sizeCell(l), '', '', '', ''] : [no, l.item, l.qty, 'part', sizeCell(l), '', '', '', '']);
     p.made.forEach((m, k) => rows.push([lines.length + k + 1, m.item, m.qty, m.kind, m.size, m.row ?? '', '', '', '']));
   }
-  return rows.map(r => r.map(cell).join(',')).join('\n') + '\n';
+  return rows.map(r => r.map(purchaseCell).join(',')).join('\n') + '\n';
 }

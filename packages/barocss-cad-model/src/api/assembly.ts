@@ -232,7 +232,7 @@ export class Assembly {
 
   /** output_bom's reply: the BOM (each part's line, the bought elements', the totals) and bom.json. Async: the tool's own. */
   bom() { return outputOf(this.#doc, 'output_bom'); }
-  /** output_purchase_csv's reply: the purchase list (bought lines; with the made ones too when `withMade`) and purchase.csv. */
+  /** The purchase list and spreadsheet-oriented CSV. Use `bom()` for exact authored text values. */
   purchaseCsv(withMade = false) { return outputOf(this.#doc, 'output_purchase_csv', withMade ? { withMade } : {}); }
 
   /** `assembly.inputs` (O11): inputs added or replaced by name, null removing one — the core's input shape, bindings by part and mate id. */
