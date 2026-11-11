@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D642 — stop a reopened CAD run and keep approved work](notes/studio-stop-reopened-local-run-2026-11-11/README.md).
 - [D641 — stop a local CAD run from Studio while workers are active](notes/studio-stop-live-local-run-2026-11-11/README.md).
 - [D640 — show local CAD runs while initial workers are active](notes/studio-live-local-run-2026-11-11/README.md).
 - [D639 — reopen a stopped CAD run with historical native findings](notes/studio-stopped-native-run-2026-11-11/README.md).

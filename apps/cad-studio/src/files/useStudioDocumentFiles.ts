@@ -189,9 +189,12 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const refreshTaskRun = async (run: TaskRunLocator & { revision: number }): Promise<TaskRunStatus> =>
     checkedRunStatus(run, await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
 
-  const stopTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> => {
-    const stopped = checkedRunStatus(run, await localTaskRunJSON('stop', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
-    if (stopped.phase !== 'stopped') throw new Error('The local task run service did not confirm Stop.');
+  const stopTaskRun = async (run: TaskRunStatus, reopened: boolean): Promise<TaskRunStatus> => {
+    const { runKey, runId, revision, baselineDigest } = run;
+    const request = reopened ? { runKey, runId, revision, baselineDigest } : { runKey, runId };
+    const stopped = checkedRunStatus(run, await localTaskRunJSON('stop', JSON.stringify(request)));
+    if (stopped.phase !== 'stopped' || stopped.baselineDigest !== baselineDigest)
+      throw new Error('The local task run service did not confirm Stop for this model.');
     return stopped;
   };
 

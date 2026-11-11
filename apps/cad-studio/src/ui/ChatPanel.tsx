@@ -56,7 +56,7 @@ export interface ChatPanelProps {
     sourceKey(): string | undefined;
     export(plan: SavedTaskRunPlan): Promise<void>;
     start(plan: SavedTaskRunPlan, onAdmitted?: (run: TaskRunLaunch) => void): Promise<TaskRunLaunch | undefined>;
-    stop(run: TaskRunStatus): Promise<TaskRunStatus>;
+    stop(run: TaskRunStatus, reopened: boolean): Promise<TaskRunStatus>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
@@ -314,13 +314,14 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       if (mounted.current) setError(error instanceof Error ? error.message : 'Could not start the local task run.');
     } finally { busy.current = false; setWorking(undefined); }
   }
-  const showStop = working === 'start' && admitted && result?.phase === 'active';
+  const showStop = result?.phase === 'active' && (!!initialRun || (working === 'start' && admitted));
+  const stopDisabled = stopping || (!!initialRun && (working !== undefined || refreshPending));
   async function stop() {
-    if (!showStop || !result || stopping) return;
+    if (!showStop || !result || stopDisabled) return;
     setStopping(true);
     setError('');
     try {
-      const stopped = await actions.stop(result);
+      const stopped = await actions.stop(result, !!initialRun);
       if (mounted.current) statuses.remember(stopped);
     } catch (error) {
       if (mounted.current) setError(error instanceof Error ? error.message : 'Could not stop the local task run.');
@@ -405,7 +406,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       <button className="ghost" type="button" aria-label="Refresh local run status" disabled={refreshDisabled} onClick={() => void refresh(true)}>
         {refreshPending ? 'Refreshing…' : 'Refresh status'}
       </button>
-      {(showStop || stopping) && <button className="ghost" type="button" disabled={stopping} onClick={() => void stop()}>
+      {(showStop || stopping) && <button className="ghost" type="button" disabled={stopDisabled} onClick={() => void stop()}>
         {stopping ? 'Stopping…' : 'Stop local run'}
       </button>}
       {initialRun && <button className="ghost" type="button" aria-label="Open run baseline"

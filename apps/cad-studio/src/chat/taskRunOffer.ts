@@ -28,6 +28,10 @@ export interface TaskRunBaselineRequest extends TaskRunLocator {
   baselineDigest: string;
 }
 
+export interface TaskRunStopRequest extends TaskRunBaselineRequest {
+  revision: number;
+}
+
 export interface TaskRunReplanPin {
   attemptId: string;
   occurrence: string;
@@ -105,6 +109,11 @@ export function isTaskRunLocator(value: unknown): value is TaskRunLocator {
 
 export function isTaskRunBaselineRequest(value: unknown): value is TaskRunBaselineRequest {
   return isObj(value) && Object.keys(value).length === 3 && isTaskRunLocator(value) && hash(value.baselineDigest);
+}
+
+export function isTaskRunStopRequest(value: unknown): value is TaskRunStopRequest {
+  return isObj(value) && Object.keys(value).length === 4 && isTaskRunLocator(value) && hash(value.baselineDigest)
+    && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0;
 }
 
 export function isTaskRunRebuildRequest(value: unknown): value is TaskRunRebuildRequest {

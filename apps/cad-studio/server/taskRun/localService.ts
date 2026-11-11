@@ -11,7 +11,7 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, isTaskRunStopRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { planWorkingTaskReplacement } from '../../src/files/workingTaskReplacement';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
@@ -28,7 +28,7 @@ type AdmissionNotice = (run: TaskRunLaunch) => void;
 type BindRunControl = (run: TaskRunLaunch, stop: () => void) => (() => void) | void;
 
 type HandoffAction = 'start' | 'reopen';
-type LocalRunAction = HandoffAction | 'rebuild';
+type LocalRunAction = HandoffAction | 'rebuild' | 'stop';
 
 function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
   // Only the process that admitted Start can stop its live workers.
@@ -87,6 +87,14 @@ export function createLocalTaskRuns(root: string) {
     return follow(run, false, onAdmitted);
   };
   const stop = async (request: unknown): Promise<TaskRunStatus> => {
+    if (isTaskRunStopRequest(request)) {
+      const { runKey, runId } = request;
+      const locator = { runKey, runId };
+      const status = readLocalTaskRunStatus(root, locator);
+      if (status.phase === 'stopped') return status;
+      await run(Buffer.from(JSON.stringify(request)), 'stop');
+      return readLocalTaskRunStatus(root, locator);
+    }
     if (!isTaskRunLocator(request) || Object.keys(request).length !== 2)
       throw new LocalRunRequestError(400, 'Invalid local task run locator.');
     const current = active;
@@ -98,7 +106,7 @@ export function createLocalTaskRuns(root: string) {
     }
     const status = readLocalTaskRunStatus(root, request);
     if (status.phase === 'stopped') return status;
-    throw new LocalRunRequestError(409, 'The local run has finished starting. Stop it from the terminal.');
+    throw new LocalRunRequestError(409, 'The local run has finished starting. Reopen it before stopping.');
   };
   return { run, stop };
 }
@@ -285,6 +293,29 @@ export async function runLocalTaskRebuild(root: string, request: unknown): Promi
     if (error instanceof RunStoreError && error.code === 'RUN_BUSY') return { status: 409, error: 'Another process owns this local task run.' };
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 404, error: 'The local task run could not be found.' };
     return { status: 409, error: 'Could not rebuild the local task candidate.' };
+  } finally { host?.close(); }
+}
+
+export async function runLocalTaskStop(root: string, request: unknown): Promise<LocalRunReply> {
+  if (!isTaskRunStopRequest(request)) return { status: 400, error: 'Expected the local run, revision and baseline IDs.' };
+  let host: TaskRunHost | undefined;
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), request.runKey));
+    const guard = (record: RunRecord) => {
+      if (record.runId !== request.runId || record.revision !== request.revision
+        || record.accepted.modelDigest !== request.baselineDigest || record.state.phase !== 'active')
+        throw new LocalRunRequestError(409, 'The local run changed. Refresh its status before stopping.');
+    };
+    host = await TaskRunHost.open(directory, async doc => evaluatePart(doc, 0), undefined, guard);
+    const outcome = host.control('studio:stop:' + digestOf(request), 'stop', userToken(new Date().toISOString()));
+    if (outcome.phase !== 'completed')
+      throw new LocalRunRequestError(409, 'Could not stop the local task run. Refresh its status.');
+    return { result: { ...taskRunStatus(request.runKey, host.snapshot), directory, reused: true } };
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) return { status: error.status, error: error.message };
+    if (error instanceof RunStoreError && error.code === 'RUN_BUSY') return { status: 409, error: 'Another process owns this local task run.' };
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 404, error: 'The local task run could not be found.' };
+    return { status: 409, error: 'Could not stop the local task run.' };
   } finally { host?.close(); }
 }
 

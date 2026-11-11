@@ -1,0 +1,142 @@
+{
+  "decision": "D642",
+  "tier": "FEATURE qualification",
+  "baseCommit": "24b322b02e493323a54a0b3264d8069a30cec05f",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d642-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio Stop after reopen with one approved checkpoint",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D642_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --reopened-stop",
+      "receiptSHA256": "82c197b0cffc10a28f8ad63b08788133597fe6291f57bd62df60d9685e894a8b",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 1,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "busyStatus": 409,
+        "staleStatus": 409,
+        "retiredApprovalRefused": true,
+        "duplicateStopChangedRecord": false,
+        "stopOperations": 1,
+        "publicationsBeforeAndAfter": [
+          1,
+          1
+        ],
+        "revisions": [
+          14,
+          16
+        ],
+        "finalHeightsMm": [
+          6,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Independent writer, commit and checkpoint byte reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/reopened-stop-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "028e15dbc4f6d25b0c011075bb1cfee92884160de02ed15544969a0439c9610d",
+      "resultSHA256": "69c0031ddd83f3a5ef297fa05b27ddeaa59bf12e42af15878f70ee7c0d02ffd8",
+      "productImports": 0,
+      "approvedSHA256": "1a2e938c4a5b852a9f49b50258409613e3df3d2b8a6c41ba6f7c35ba5dc63799",
+      "stoppedRecordSHA256": "900bb1f8e4bdb3b126265ab3a3276782410bb09dfbaca0a4bcccd9057e39b72d"
+    },
+    {
+      "label": "Desktop Studio Stop during initial Start regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D641_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-live-stop\" --live-stop",
+      "receiptSHA256": "023a7fd51a5d5c4bbebb53b877220ce2b217f96bec35e129132d5a09b64ec7a2",
+      "pinnedSources": 811,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio stopped native finding regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D639_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-stopped-finding\" --stopped-finding",
+      "receiptSHA256": "7ecea16c2a6059342f2be03ebc6d0383000000b38d33689928e73fb1c0271338",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio type check",
+      "logSHA256": "4b68f089674663e8f61f5fa3f978084af874500f391a8da8f8791483a6cd6cd0",
+      "reason": "The host evaluator requires an asynchronous callback."
+    },
+    {
+      "result": "FAIL",
+      "check": "First desktop terminal writer contention test",
+      "receiptSHA256": "31398624e00658571d78e19248dc40ca5a88c106d8ad3dbe7cf2e7a4c0356493",
+      "reason": "The terminal test helper buffered its prompt. The test waited until the helper's barrier timed out."
+    },
+    {
+      "result": "FAIL",
+      "check": "First independent commit reader",
+      "scriptSHA256": "415acad394acc6a1a8985f74c4b3a3faab9fee112d359fc69f191fcdd3720cc9",
+      "reason": "The reader used the checkpoint field name instead of the stored commit target field."
+    }
+  ],
+  "notRun": [
+    "Forced writer exit",
+    "Live provider execution",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}
