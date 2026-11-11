@@ -1,11 +1,12 @@
 // A DXF drawing read as a sketch draft (A6.4, O28): our own reader of the 2D geometry a profile needs — LINE, ARC,
 // CIRCLE, LWPOLYLINE (bulges as arcs) and POLYLINE/VERTEX (what AC1009 files, ours included, write) — in the file's
-// unit ($INSUNITS) scaled to mm. The edges are chained into closed loops end to end (within 1e-6 of the drawing's
-// size); the largest loop and the loops beside it are the regions, a loop inside one a hole. Splines, ellipses, blocks
+// unit ($INSUNITS) scaled to mm. Edges join within 1e-6 mm of one another. The largest loop and the loops beside it
+// are the regions, a loop inside one a hole. Splines, ellipses, blocks
 // and text are the underlay's (dxfUnderlay.ts, O68): shown to trace over, never regions. Dimensions, hatches and points
 // are annotation: left out, and listed. Other geometry (3D entities) is refused, typed, as are an edge left open, a loop
 // inside a hole and a file that is not DXF.
 // What it gives is a draft: its dimensions read from the drawing are the user's to confirm (drafts.ts).
+import { CadNumericPolicy } from '@barocss/cad';
 import type { LoopSegment } from '../engine/doc';
 import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
 import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
@@ -28,7 +29,7 @@ export function dwgRefusal(head: string): BarocssError | null {
 }
 type P = [number, number];
 /** An edge: a line, or an arc from a to b about c, counter-clockwise when ccw. */
-type Edge = { a: P; b: P; c?: P; ccw?: boolean };
+type Edge = { a: P; b: P } & ({ c?: undefined } | { c: P; r: number; ccw: boolean });
 export interface DxfLoop { segments: LoopSegment[]; area: number; box: [number, number, number, number]; circle?: { center: P; radius: number } }
 export interface DxfSketch {
   /** The regions (each a closed loop) and the holes (each inside a region), in mm. */
@@ -66,7 +67,7 @@ function bulgeEdge(a: P, b: P, bulge: number): Edge {
   const dx = b[0] - a[0], dy = b[1] - a[1], chord = Math.hypot(dx, dy), theta = 4 * Math.atan(bulge), r = chord / (2 * Math.sin(theta / 2));
   // (The centre is on the chord's perpendicular, at r cos(θ/2) from its middle, to the bulge's left for a positive one.)
   const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, h = r * Math.cos(theta / 2), nx = -dy / chord, ny = dx / chord;
-  return { a, b, c: [mx + nx * h, my + ny * h], ccw: bulge > 0 };
+  return { a, b, c: [mx + nx * h, my + ny * h], r: Math.abs(r), ccw: bulge > 0 };
 }
 const arcPoint = (c: P, r: number, deg: number): P => [c[0] + r * Math.cos(deg * Math.PI / 180), c[1] + r * Math.sin(deg * Math.PI / 180)];
 
@@ -97,7 +98,7 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
     if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw refusal('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
     if (type === 'LINE') edges.push({ a: [g(10) * k, g(20) * k], b: [g(11) * k, g(21) * k] });
     else if (type === 'CIRCLE') circles.push({ c: [g(10) * k, g(20) * k], r: g(40) * k });
-    else if (type === 'ARC') { const c: P = [g(10) * k, g(20) * k], r = g(40) * k; edges.push({ a: arcPoint(c, r, g(50)), b: arcPoint(c, r, g(51)), c, ccw: true }); }
+    else if (type === 'ARC') { const c: P = [g(10) * k, g(20) * k], r = g(40) * k; edges.push({ a: arcPoint(c, r, g(50)), b: arcPoint(c, r, g(51)), c, r, ccw: true }); }
     else if (type === 'LWPOLYLINE') {
       const closed = (g(70, 0) & 1) === 1, pts: P[] = [], bulges: number[] = [];
       for (const [code, v] of body) { if (code === 10) { pts.push([num(v, 'LWPOLYLINE x') * k, 0]); bulges.push(0); } else if (code === 20 && pts.length) pts[pts.length - 1][1] = num(v, 'LWPOLYLINE y') * k; else if (code === 42 && pts.length) bulges[bulges.length - 1] = num(v, 'LWPOLYLINE bulge'); }
@@ -157,6 +158,25 @@ function insideLoop(p: P, edges: readonly Edge[]): boolean {
 }
 const toSegments = (edges: readonly Edge[]): LoopSegment[] => edges.map(e => (e.c ? { kind: 'arc', start: [e.a[0], e.a[1]], center: [e.c[0], e.c[1]], direction: e.ccw ? 'ccw' : 'cw' } : { kind: 'line', start: [e.a[0], e.a[1]] }));
 
+// The old minimum connection allowance also matches the draft's stored coordinate resolution.
+const ENDPOINT_GAP_MM = 1e-6;
+function withinDistance(a: P, b: P, tolerance: number): boolean {
+  const dx = Math.abs(a[0] - b[0]), dy = Math.abs(a[1] - b[1]);
+  return dx <= tolerance && dy <= tolerance && Math.hypot(dx, dy) <= tolerance;
+}
+
+/** Recognize a full loop of arcs using their original centres and radii, before endpoint snapping. */
+function circleOf(chain: readonly Edge[]): DxfLoop['circle'] {
+  const first = chain[0];
+  if (!first.c || !(first.r > 0)) return;
+  for (const edge of chain) {
+    if (!edge.c || edge.ccw !== first.ccw) return;
+    const tol = Math.max(CadNumericPolicy.linearTolerance, CadNumericPolicy.relativeLinearTolerance * Math.min(first.r, edge.r));
+    if (!withinDistance(edge.c, first.c, tol) || !(Math.abs(edge.r - first.r) <= tol)) return;
+  }
+  return { center: first.c, radius: first.r };
+}
+
 /** A DXF drawing's profile: its regions and holes, in mm. */
 export function readDxfSketch(text: string): DxfSketch {
   const dwg = dwgRefusal(text.slice(0, 6)); if (dwg) throw dwg;
@@ -168,27 +188,37 @@ export function readDxfSketch(text: string): DxfSketch {
     if (shown) return { regions: [], holes: [], unit, ignored, entities, underlay };
     throw refusal('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
   }
-  let size = 0; for (const e of edges) size = Math.max(size, Math.abs(e.a[0]), Math.abs(e.a[1]), Math.abs(e.b[0]), Math.abs(e.b[1])); for (const c of circles) size = Math.max(size, Math.abs(c.c[0]) + c.r, Math.abs(c.c[1]) + c.r);
-  const tol = 1e-6 * Math.max(1, size), same = (p: P, q: P) => Math.abs(p[0] - q[0]) <= tol && Math.abs(p[1] - q[1]) <= tol;
+  const sameEndpoint = (p: P, q: P) => withinDistance(p, q, ENDPOINT_GAP_MM);
   // (Chained end to start; an edge may be walked backwards — a reversed arc turns the other way.)
   const left = edges.slice(), loops: { edges: Edge[]; circle?: { center: P; radius: number } }[] = [];
   while (left.length) {
     const chain = [left.shift()!];
     for (;;) {
       const end = chain[chain.length - 1].b;
-      if (same(end, chain[0].a)) break;
-      const k = left.findIndex(e => same(e.a, end) || same(e.b, end));
-      if (k < 0) throw refusal('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it${underlay.counts.SPLINE || underlay.counts.ELLIPSE || underlay.left.SPLINE ? ` (the drawing's splines and ellipses are shown as underlay only: a profile takes lines, arcs and circles)` : ''}`);
-      const e = left.splice(k, 1)[0];
-      chain.push(same(e.a, end) ? { ...e, a: end } : { a: end, b: e.a, ...(e.c ? { c: e.c, ccw: !e.ccw } : {}) });
+      const closes = sameEndpoint(end, chain[0].a);
+      let next = -1, reverse = false;
+      for (const [i, edge] of left.entries()) {
+        const startsHere = sameEndpoint(end, edge.a), endsHere = sameEndpoint(end, edge.b);
+        if (!startsHere && !endsHere) continue;
+        if (closes || next >= 0 || (startsHere && endsHere)) {
+          throw refusal('DXF_OPEN', `the profile has ambiguous connections at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: more than one endpoint could join there`);
+        }
+        next = i;
+        reverse = endsHere;
+      }
+      if (closes) break;
+      if (next < 0) throw refusal('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it${underlay.counts.SPLINE || underlay.counts.ELLIPSE || underlay.left.SPLINE ? ` (the drawing's splines and ellipses are shown as underlay only: a profile takes lines, arcs and circles)` : ''}`);
+      const edge = left.splice(next, 1)[0];
+      chain.push(!reverse ? { ...edge, a: end } : edge.c
+        ? { ...edge, a: end, b: edge.a, ccw: !edge.ccw }
+        : { a: end, b: edge.a });
     }
     chain[chain.length - 1] = { ...chain[chain.length - 1], b: chain[0].a };
     // (A loop of arcs about one centre at one radius is a circle — as a polyline of bulges writes one.)
-    const c0 = chain[0].c, r0 = c0 ? Math.hypot(chain[0].a[0] - c0[0], chain[0].a[1] - c0[1]) : 0;
-    const round = !!c0 && chain.every(e => e.c && same(e.c, c0) && Math.abs(Math.hypot(e.a[0] - c0[0], e.a[1] - c0[1]) - r0) <= tol && e.ccw === chain[0].ccw);
-    loops.push({ edges: chain, ...(round ? { circle: { center: c0!, radius: r0 } } : {}) });
+    const circle = circleOf(chain);
+    loops.push({ edges: chain, ...(circle ? { circle } : {}) });
   }
-  for (const c of circles) loops.push({ edges: [{ a: [c.c[0] + c.r, c.c[1]], b: [c.c[0] - c.r, c.c[1]], c: c.c, ccw: true }, { a: [c.c[0] - c.r, c.c[1]], b: [c.c[0] + c.r, c.c[1]], c: c.c, ccw: true }], circle: { center: c.c, radius: c.r } });
+  for (const { c, r } of circles) loops.push({ edges: [{ a: [c[0] + r, c[1]], b: [c[0] - r, c[1]], c, r, ccw: true }, { a: [c[0] - r, c[1]], b: [c[0] + r, c[1]], c, r, ccw: true }], circle: { center: c, radius: r } });
   const measured = loops.map(l => ({ ...l, ...areaOf(l.edges) }));
   // (Nesting: a loop inside another is its hole; inside a hole, refused.)
   const depthOf = (i: number) => measured.filter((o, j) => j !== i && Math.abs(o.area) > Math.abs(measured[i].area) && insideLoop(measured[i].edges[0].a, o.edges)).length;
