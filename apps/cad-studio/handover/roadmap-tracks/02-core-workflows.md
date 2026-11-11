@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D674](../notes/two-sheet-leader-svg-2026-11-11/README.md) verifies one view-attached leader in four real A4 SVG exports. The note follows Top between the 5:1 and 2:1 sheets. The first Undo and Redo restore ownership in Studio. Next, compare D503 and D548 for the remaining actual SVG counterbore callout check.
+
 Rows [01](../roadmap-rows/01.md), [02](../roadmap-rows/02.md), [04](../roadmap-rows/04.md), [11](../roadmap-rows/11.md), [13](../roadmap-rows/13.md). Drawings/Model own source linkage and annotations; CAD/Interop own supported exchange profiles; Studio owns the actual file and page workflow. P0 currentness and the existing source-revision contract are prerequisites.
 
 | Family | Existing support and evidence | Testable remaining scenario |
