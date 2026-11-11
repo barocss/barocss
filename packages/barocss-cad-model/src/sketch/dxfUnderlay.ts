@@ -215,6 +215,10 @@ export function readUnderlay(text: string, to: number, o: { detail?: boolean } =
         // (MTEXT's direction: its X axis (11, 21) when given, else its rotation (50).)
         const rot = e.type === 'MTEXT' && e.body.some(p => p[0] === 11) ? Math.atan2(get(e, 21), get(e, 11)) * 180 / Math.PI : get(e, 50, 0);
         const d = apply({ ...W, e: 0, f: 0 }, Math.cos(rot * Math.PI / 180), Math.sin(rot * Math.PI / 180)), up = apply({ ...W, e: 0, f: 0 }, -Math.sin(rot * Math.PI / 180), Math.cos(rot * Math.PI / 180));
+        // An angle and a positive height cannot represent a left-handed glyph frame.
+        if (e.type === 'TEXT' && d[0] * up[1] < d[1] * up[0]) {
+          throw refusal('DXF_UNSUPPORTED', 'reflected planar TEXT cannot be displayed as a drawing underlay');
+        }
         const raw = e.type === 'MTEXT' ? [...e.body.filter(p => p[0] === 3).map(p => p[1]), str(e, 1) ?? ''].join('') : str(e, 1) ?? '';
         u.texts.push({ at: point(x, y), text: e.type === 'MTEXT' ? plainMtext(raw) : raw, height: h * Math.hypot(up[0], up[1]), angle: Math.atan2(d[1], d[0]) * 180 / Math.PI });
         count(e.type); continue;

@@ -144,3 +144,41 @@ test('import_drawing: the plate\'s underlay beside its draft (counts in the resu
   const t = await dispatchTool(empty, 'import_drawing', { dxf: fixture('texts'), name: 'notes' }, evaluate);
   assert.ok(t.isError); assert.match(t.content, /DXF_EMPTY/);
 });
+
+function planarTextDrawing(extrusion: 1 | -1, angle: number, blockScale?: number): string {
+  const label = [0, 'TEXT', 10, 4, 20, 6, 30, 0, 40, 2, 1, 'F2', 50, angle, 210, 0, 220, 0, 230, extrusion];
+  const block = blockScale === undefined ? [] : [
+    0, 'SECTION', 2, 'BLOCKS', 0, 'BLOCK', 2, 'NOTES', 10, 0, 20, 0,
+    ...label, 0, 'ENDBLK', 0, 'ENDSEC',
+  ];
+  return [
+    0, 'SECTION', 2, 'HEADER', 9, '$INSUNITS', 70, 4, 0, 'ENDSEC', ...block,
+    0, 'SECTION', 2, 'ENTITIES', 0, 'CIRCLE', 10, 0, 20, 0, 40, 5,
+    0, 'CIRCLE', 10, 0, 20, 0, 40, 1,
+    ...(blockScale === undefined ? label : [0, 'INSERT', 2, 'NOTES', 10, 0, 20, 0, 41, blockScale, 42, 1]),
+    0, 'ENDSEC', 0, 'EOF', '',
+  ].join('\n');
+}
+
+test('reflected planar TEXT is refused before an ordinary closed profile can be accepted', () => {
+  for (const angle of [0, 30, 90]) {
+    const reflected = planarTextDrawing(-1, angle);
+    assert.throws(() => readUnderlay(reflected, 1), /\[DXF_UNSUPPORTED\].*reflected planar TEXT/);
+    assert.throws(() => readDxfSketch(reflected), /\[DXF_UNSUPPORTED\].*reflected planar TEXT/);
+    const normal = readDxfSketch(planarTextDrawing(1, angle));
+    assert.deepEqual(normal.underlay.counts, { TEXT: 1 });
+    const [label] = normal.underlay.texts;
+    assert.deepEqual(label.at, [4, 6]);
+    assert.equal(label.text, 'F2');
+    assert.ok(Math.abs(label.height - 2) < 1e-12 && Math.abs(label.angle - angle) < 1e-12);
+    assert.deepEqual(normal.regions.map(r => r.circle), [{ center: [0, 0], radius: 5 }]);
+    assert.deepEqual(normal.holes.map(r => r.circle), [{ center: [0, 0], radius: 1 }]);
+  }
+});
+
+test('TEXT uses the composed handedness of the reached block, including cancelling reflections', () => {
+  assert.throws(() => readUnderlay(planarTextDrawing(1, 30, -1), 1), /\[DXF_UNSUPPORTED\].*reflected planar TEXT/);
+  const doubleReflection = readUnderlay(planarTextDrawing(-1, 30, -1), 1);
+  const normal = readUnderlay(planarTextDrawing(1, 30), 1);
+  assert.deepEqual(doubleReflection, normal);
+});
