@@ -27,7 +27,8 @@ import { hasNestedFaceRepair, nestedFaceRepairOp, replayNestedFaceRepair, type N
  * proposals of low or medium risk changing no hard requirement; L4 any that breaks no hard requirement.
  * A proposal with approval reasons (an assembly, mates, a drawing, a locked part) is always the user's.
  */
-export function autonomy(): 1 | 2 | 3 | 4 {
+export function autonomy(state?: Pick<ChatState, 'approvalRequired'>): 1 | 2 | 3 | 4 {
+  if (state?.approvalRequired) return 1;
   const n = typeof process !== 'undefined' ? Number(process.env?.CAD_AUTONOMY) : NaN;
   return n === 1 || n === 3 || n === 4 ? n : 2;
 }
@@ -312,7 +313,7 @@ async function acceptProposalTool(state: ChatState, args: Record<string, unknown
   if (nestedParameterOps(p.ops) !== undefined) return fail(state, 'A nested parameter proposal always needs the user’s approval in Studio.');
   if (hasNestedFaceRepair(p.ops)) return fail(state, 'A nested face repair needs selection and approval by the user in Studio.');
   const env = typeof process !== 'undefined' ? process.env : undefined, by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
-  const level = autonomy();
+  const level = autonomy(state);
   const early = level < 3 || p.risk.approval.length ? agentMayNotAccept(p, level) : null;
   if (early) return fail(state, early);
   // (Stale: made again on the part as it is, and shown; accepting it is a second call, D41.)

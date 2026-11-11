@@ -22,6 +22,7 @@ import { isTaskRunFindingSelection, type TaskRunFindingSelection } from '../src/
 import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
 import type { ApprovalAttachmentPayload } from '../src/storage/faceRepairEvidence';
 import { isObj } from '@barocss/cad-model/util/guards';
+import { requiresTurnApproval } from './turnAutonomy';
 import { faceDiagnosisMatchesDocument, isFaceDiagnosisSelection, type FaceDiagnosisSelection } from '../src/chat/faceDiagnosis';
 import { SELECTED_FACE_DIAGNOSIS, readSelectedFaceDiagnosis, selectedFaceDiagnosisTool } from './selectedFaceDiagnosis';
 import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn,
@@ -47,7 +48,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalAttachmentPayload; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
+  open(): Promise<{ doc: StudioDoc; approvalRequired?: true; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalAttachmentPayload; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[]; versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }, why: 'change' | 'select' | 'versions'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
@@ -55,9 +56,12 @@ export function stateFileStore(statePath: string): McpStore {
   return {
     async open() {
       const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
+      const lastTurn = Array.isArray(saved.turns) ? saved.turns.at(-1) : undefined;
+      // The turn file carries the latest authored message. Hosts without that history can provide the current prompt.
+      const approvalRequired = requiresTurnApproval(typeof lastTurn === 'string' ? lastTurn : process.env.CAD_PROMPT ?? '');
       for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
       const rowFiles = saved.rowFiles ? receivePersonRowFiles(saved.rowConversation ?? '', saved.rowFiles, saved.turns?.length ?? 0) : undefined;
-      return { doc: saved.doc, ...(saved.taskFinding ? { taskFinding: saved.taskFinding } : {}), ...(saved.selectedApproval ? { selectedApproval: saved.selectedApproval } : {}), selectedFaceDiagnosis: saved.selectedFaceDiagnosis, ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
+      return { doc: saved.doc, ...(approvalRequired ? { approvalRequired: true } : {}), ...(saved.taskFinding ? { taskFinding: saved.taskFinding } : {}), ...(saved.selectedApproval ? { selectedApproval: saved.selectedApproval } : {}), selectedFaceDiagnosis: saved.selectedFaceDiagnosis, ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
     },
     save(s) {
       const previous = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
@@ -123,7 +127,7 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         const handler = v1Name(name, args);
         const out = repair
           ? await (await import('./selectedFollowUpRepair')).prepareSelectedFollowUpRepair(state, args, repair, evaluate)
-          : await runTool(state, name, args ?? {}, evaluate);
+          : await runTool(saved.approvalRequired ? { ...state, approvalRequired: true } : state, name, args ?? {}, evaluate);
         if (out.changed) {
           const v1 = v1Call(name, args ?? {});
           ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : name, v1 && !('error' in v1) ? v1.args : repair && isObj(args) ? args : {}));

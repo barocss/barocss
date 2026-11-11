@@ -96,7 +96,8 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   const v1 = v1Call(name, input);
   if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
   // (Autonomy L1: the agent proposes, the user changes the part, D41.)
-  if (autonomy() === 1 && changesPart(name, input)) return fail(state, 'At autonomy L1 the agent only proposes: make this change with propose, and the user accepts it in the studio.');
+  const level = autonomy(state);
+  if (level === 1 && changesPart(name, input)) return fail(state, 'At autonomy L1 the agent only proposes: make this change with propose, and the user accepts it in the studio.');
   // (Every call counted; the policy rides on the state the call leaves.)
   const policy = { ...(state.policy ?? newPolicy()) }; policy.calls++;
   const out = await runToolCounted({ ...state, policy }, name, input, evaluate, true);
@@ -109,7 +110,7 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   // feature or of parameters and keep every hard requirement passing; anything else is a proposal, D41. The owner's
   // exception: a turn that starts on an empty part — no features yet — builds it directly, the first build.)
   // (O11: the assembly's inputs are its structure, as features are: at L2 they are proposed, even on an empty part.)
-  if (!out.isError && out.changed && autonomy() === 2 && ((state.turnBase?.nodes.length && changesPart(name, input)) || name === 'set_inputs') && name !== 'propose') {
+  if (!out.isError && out.changed && level === 2 && ((state.turnBase?.nodes.length && changesPart(name, input)) || name === 'set_inputs') && name !== 'propose') {
     const why = name === 'set_inputs' ? 'this changes the assembly\'s inputs (its structure)' : await proposalNeededAtL2(state.turnBase!, out.state, evaluate);
     if (why) return { ...fail(state, `At autonomy L2 ${why}: propose it (propose) instead, and the user accepts it. Value edits of one feature or of parameters that keep every hard requirement passing apply directly.`, { code: 'needs_proposal', kept: 'the part is unchanged' }), state };
   }

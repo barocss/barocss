@@ -15,13 +15,13 @@ function isApprovalInstruction(clause: string): boolean {
 }
 
 /** Recognize explicit approval instructions in the current person's own text. */
-function approvalRequested(text: string): boolean {
+export function requiresTurnApproval(text: string): boolean {
   const lines = text.normalize('NFKC').replace(/[‘’]/g, "'").replace(/```[\s\S]*?(?:```|$)/g, '').split(/\r?\n/);
   return lines.some(line => !/^\s*>/.test(line) && line.split(/[.!?。！？]+(?=\s|$)/u).some(isApprovalInstruction));
 }
 
 export function turnAutonomy(preference: unknown, text: string): { level: Autonomy; approvalRequested: boolean } {
   const level = Number(preference);
-  const approval = approvalRequested(text);
+  const approval = requiresTurnApproval(text);
   return { level: approval ? 1 : level === 1 || level === 3 || level === 4 ? level : 2, approvalRequested: approval };
 }
