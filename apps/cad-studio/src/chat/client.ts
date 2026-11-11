@@ -19,15 +19,15 @@ export type TurnEvent =
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; ops?: TurnOp[] };
 
-const OFF = 'The chat server is not running. Start it beside the studio with `pnpm --filter @barocss/cad-studio-app chat` (it uses the claude CLI and its sign-in).';
+export const START_CHAT_COMMAND = 'pnpm --filter @barocss/cad-studio-app chat';
+const OFF = `The chat server is not running. Start it with \`${START_CHAT_COMMAND}\`.`;
 
 export async function chatStatus(base = '/api/chat'): Promise<ChatStatus> {
   try {
     const res = await fetch(`${base}/status`);
-    if (!res.ok) return { enabled: false, reason: OFF };
-    const status = await res.json() as ChatStatus;
-    return status.enabled ? status : { ...status, reason: status.reason ?? OFF };
-  } catch { return { enabled: false, reason: OFF }; }
+    if (!res.ok) return { enabled: false };
+    return (await res.json() as ChatStatus | null) ?? { enabled: false };
+  } catch { return { enabled: false }; }
 }
 
 /** Splits a server-sent event stream into its JSON payloads (any chunking). */

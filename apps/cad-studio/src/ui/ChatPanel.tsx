@@ -11,6 +11,7 @@ import type { Merged } from '@barocss/cad-model/chat/merge';
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
+import { START_CHAT_COMMAND } from '../chat/client';
 import { compactLocalPaths } from '../chat/localPathDisplay';
 import type { StudioMessage } from '../chat/transport';
 import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunFindingSelection, type TaskRunLaunch, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
@@ -202,9 +203,11 @@ export function ChatPanel(props: ChatPanelProps) {
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
         {status && !enabled && <div className="chat-setup" role="note">
-          <b>Chat is off.</b> {status.reason ?? 'Start the chat server.'}
-          <code>pnpm --filter @barocss/cad-studio-app chat</code>
-          It runs the claude CLI with its own sign-in; the browser only talks to the local server.
+          <b>Chat is off.</b>
+          {status.reason ? <span>{status.reason}</span> : <>
+            <span>Start the local Chat server from a terminal.</span>
+            <code>{START_CHAT_COMMAND}</code>
+          </>}
         </div>}
         {enabled && !messages.length && !props.taskRun?.reopened && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
         {props.taskRun?.reopened && <section className="chat-tool" aria-label="Reopened task run">

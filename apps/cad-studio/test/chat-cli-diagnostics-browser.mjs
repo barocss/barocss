@@ -8,7 +8,9 @@ import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === undefined || mode === '--transcript-baseline' || mode === '--transcript');
+assert.ok([undefined, '--transcript-baseline', '--transcript', '--startup-baseline', '--startup'].includes(mode));
+const startup = mode === '--startup-baseline' || mode === '--startup';
+const transcript = mode === '--transcript-baseline' || mode === '--transcript';
 
 const probe = createServer();
 probe.listen(0, '127.0.0.1');
@@ -26,8 +28,8 @@ const source = [
   ...(mode === '--transcript' ? ['apps/cad-studio/src/chat/localPathDisplay.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'chat-cli-diagnostics', envFrozen: 'D649_SOURCE_FROZEN', output,
-  qualification: mode ? 'D649 follow-up: local paths in the desktop Studio transcript' : 'D649 path-free local CLI diagnostics',
+  name: 'chat-cli-diagnostics', envFrozen: startup ? 'D673_SOURCE_FROZEN' : 'D649_SOURCE_FROZEN', output,
+  qualification: startup ? 'D673 desktop Chat startup and recovery' : transcript ? 'D649 follow-up: local paths in the desktop Studio transcript' : 'D649 path-free local CLI diagnostics',
   limits: ['The fixture supplies CLI output to the actual Studio server. No external model is called.'],
   initialFiles: source, requiredFrozen: source,
 });
@@ -119,6 +121,27 @@ if (process.argv.includes('--version')) {
     if (!(await input().isVisible())) await button('Chat').first().click();
   }
 
+  const command = 'pnpm --filter @barocss/cad-studio-app chat';
+  const note = () => chat().getByRole('note');
+  const countStartupCommands = async () => (await note().innerText()).split(command).length - 1;
+  const setupControls = async () => {
+    assert.equal(await input().isDisabled(), true);
+    assert.equal(await chat().getByRole('button', { name: 'Send', exact: true }).isDisabled(), true);
+  };
+  if (startup) {
+    f.phase = 'open Chat without a local server';
+    await openChat();
+    await note().waitFor();
+    const status = await f.page.evaluate(() => fetch('/api/chat/status').then(reply => reply.json()));
+    assert.deepEqual(status, { enabled: false });
+    await setupControls();
+    const commands = await countStartupCommands();
+    assert.equal(commands, mode === '--startup-baseline' ? 2 : 1);
+    assert.equal(await note().locator('code').innerText(), command);
+    f.report.observations.push({ case: 'server-off', commands, controlsDisabled: true });
+    await f.snapshot('00-server-off');
+  }
+
   f.phase = 'show the unavailable CLI status in Studio';
   const missing = join(output, 'Private CAD', 'missing-claude');
   await withServer(missing, async () => {
@@ -130,14 +153,32 @@ if (process.argv.includes('--version')) {
     assert.match(statusText, /claude auth login/);
     assert.equal(status.reason.includes(missing), false);
     assert.equal(statusText.includes(missing), false);
+    if (startup) {
+      await setupControls();
+      const commands = await countStartupCommands();
+      assert.equal(commands, mode === '--startup-baseline' ? 1 : 0);
+      assert.equal((await note().innerText()).split('claude auth login').length - 1, 1);
+      f.report.observations.push({ case: 'cli-unavailable', commands, signInCommands: 1, controlsDisabled: true });
+    }
     f.report.observations.push({ case: 'unavailable-cli', visiblePath: false, statusEnabled: false });
     await f.snapshot('01-cli-unavailable');
   });
 
   await withServer(fixture, async () => {
-    await openChat();
+    if (startup) {
+      f.phase = 'reopen Chat after starting a working server';
+      const doc = await f.doc();
+      await chat().getByRole('button', { name: 'Close chat', exact: true }).click();
+      await input().waitFor({ state: 'hidden' });
+      await button('Chat').first().click();
+      await f.same(doc);
+    } else await openChat();
     await input().waitFor();
     await f.page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    if (startup) {
+      assert.equal(await note().count(), 0);
+      f.report.observations.push({ case: 'running-server', noteCleared: true, samePage: true });
+    }
     const doc = await f.doc();
     const pending = () => f.page.waitForResponse(r => new URL(r.url()).pathname === '/api/chat/turn' && r.request().method() === 'POST');
     for (const [key, expected, label] of [
@@ -161,7 +202,7 @@ if (process.argv.includes('--version')) {
       f.report.observations.push({ case: key, turnEnd: done.end, visiblePath: false, wirePath: false, modelPreserved: true });
       await f.snapshot(label);
     }
-    if (mode) {
+    if (transcript) {
       f.phase = 'show assistant, tool and user text with local paths';
       const response = pending();
       await input().fill('D649-transcript ' + linux);
