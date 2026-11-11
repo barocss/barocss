@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D717 — preserve authored sketch dimensions on inline confirmation](notes/inline-sketch-dimension-precision-2026-11-12/README.md).
 - [D716 — protect hidden construction from direct sketch cuts](notes/hidden-construction-cut-ownership-2026-11-11/README.md).
 - [D715 — extend a sketch line to its nearest valid boundary](notes/sketch-extend-nearest-boundary-2026-11-11/README.md).
 - [D714 — keep hidden Model bodies out of box selection](notes/hidden-body-box-selection-2026-11-11/README.md).

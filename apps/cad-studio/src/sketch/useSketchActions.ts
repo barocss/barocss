@@ -1,7 +1,7 @@
 import { emptyDirect } from '../app/directGeometry';
 import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { dropStaleMade, prefixDoc, withNode, NODE_EXTRA_FIELDS, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
@@ -52,6 +52,7 @@ function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
   const { doc, bodies, selection, marker } = model;
   const { sketch, setSketch, sketchGeneration } = editor;
+  const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
   const { docNow, acceptanceScope } = owner;
   const { engine, nextRevision } = worker;
   const { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies } = changes;
@@ -136,7 +137,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     catch (error) { setToast({ title: 'Cannot open sketch', hint: error instanceof Error ? error.message.replace(/^\[[A-Z_]+\] /, '') : String(error), detail: '' }); return; }
     const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
+    const draft = startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select');
+    reopenedDraft.current = { source: stored, draft };
+    setSketch(draft);
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   };
   const linkSketchInset = (insetMM: number) => {
@@ -158,6 +161,17 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return;
     }
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
+    const opened = reopenedDraft.current;
+    const stored = sketch.editNode === undefined ? undefined : doc.nodes[sketch.editNode];
+    // Keep the source and history of an unchanged sketch. Legacy positional sides still need migration.
+    if (opened && !sketch.positional && stored === opened.source && sketch.editNode === opened.draft.editNode
+      && sketch.shape === opened.draft.shape && sketch.done === opened.draft.done
+      && sketch.plane === opened.draft.plane && sketch.base === opened.draft.base
+      && sketch.band === opened.draft.band && sketch.association === opened.draft.association
+      && sketch.associationDetached === opened.draft.associationDetached) {
+      setSketch(null);
+      return;
+    }
     const requestedGeneration = sketchGeneration.current;
     const linked = !!(sketch.association || sketch.associationDetached);
     const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;

@@ -4,14 +4,14 @@
 import type { ReactNode } from 'react';
 import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
-import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { dimensionLabel, dimensionValue, drivingDimensionValue, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { Project } from '@barocss/cad-model/sketch/select';
 import './constraints.css';
 
 export interface MarkHandlers {
   onDimClick?(key: string): void;
   onDimEdit?(key: string | null): void;
-  onDimCommit?(key: string, value: number): void;
+  onDimCommit?(key: string, value: number, source: Polygon): void;
 }
 interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
@@ -177,7 +177,8 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
   // The inline editor, over the dimension being edited.
   let html: ReactNode = null;
   if (editDim) {
-    const v = dimensionValue(s, editDim);
+    const authored = drivingDimensionValue(s, editDim);
+    const v = authored ?? dimensionValue(s, editDim);
     const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim), cd = /^(?:cdist|cdx|cdy)(\d+)_(\d+)$/.exec(editDim);
     const cc = /^(?:ccdist|ccdx|ccdy)(\d+)_(\d+)$/.exec(editDim), ce = /^cedge(\d+)_(\d+)$/.exec(editDim);
     const centreOf = (j: number) => s.circles?.[j] ? P(s.circles[j].c) : null;
@@ -186,14 +187,19 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
       return c && s.points[e] ? halfway(P(footOf(e, s.hv?.h.includes(e) ? 1 : 0, c.c)), P(c.c)) : null; })() : cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
-      html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}
-        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d || cd || cc ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
+      html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={String(v)} aria-label={dimensionLabel(s, editDim)}
+        title={`${dimensionLabel(s, editDim)}${authored !== undefined ? '' : ' · Enter adds it as a driving dimension'}${d || cd || cc ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         style={{ left: at[0] - 42, top: at[1] - 13 }}
         onFocus={e => e.currentTarget.select()}
         onKeyDown={e => {
           e.stopPropagation();
           // Committing blurs at once, so keys that follow reach the app even before the editor unmounts.
-          if (e.key === 'Enter') { e.preventDefault(); const v = Number(e.currentTarget.value); onDimCommit?.(editDim, v); e.currentTarget.blur(); }
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const input = e.currentTarget;
+            onDimCommit?.(editDim, input.value === '' ? NaN : Number(input.value), s);
+            input.blur();
+          }
           else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
           // Between two points: A aligned, H horizontal, V vertical.
           else if ((d || cd || cc) && /^[ahv]$/i.test(e.key)) {

@@ -426,7 +426,16 @@ export function App() {
     else if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
     if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
-    setSketchError(r.error); setSketch(s => s && { ...(JSON.stringify(s.shape) === JSON.stringify(r.shape) && !keep ? s : detachSketchLink(s)), shape: r.shape, ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}) });
+    setSketchError(r.error);
+    setSketch(s => {
+      if (!s) return s;
+      const changed = keep || JSON.stringify(s.shape) !== JSON.stringify(r.shape);
+      return {
+        ...(changed ? { ...detachSketchLink(s), editDim: null } : s),
+        shape: r.shape,
+        ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}),
+      };
+    });
   }, [setSketch]);
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);

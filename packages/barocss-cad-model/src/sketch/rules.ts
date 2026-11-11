@@ -211,17 +211,34 @@ export function dimensionValue(s: Polygon, key: string): number | null {
   if (!a || (d.kind === 'rad') !== !!bulge) return null;
   return bulge ? arcOf(a, b, bulge).radius : Math.hypot(b[0] - a[0], b[1] - a[1]);
 }
-/** Whether a dimension is driving (locked). */
-export function isDriving(s: Polygon, key: string): boolean {
+/** The authored value of a driving dimension, independent of the solved geometry. */
+export function drivingDimensionValue(s: Polygon, key: string): number | undefined {
+  const authored = (matches: (r: SketchRule) => boolean) => {
+    const rule = s.rules?.find(matches);
+    return rule && 'value' in rule ? rule.value : undefined;
+  };
   const l = parseLinkKey(key);
-  if (l) return l.kind === 'cedge' ? hasRule(s, r => r.kind === 'cedge' && r.edge === l.edge && r.circle === l.j) : hasRule(s, r => r.kind === l.kind && r.a === l.a && r.b === l.b);
+  if (l) {
+    if (l.kind === 'cedge') return authored(r => r.kind === 'cedge' && r.edge === l.edge && r.circle === l.j);
+    return authored(r => r.kind === l.kind && r.a === l.a && r.b === l.b);
+  }
   const c = parseCircleKey(key);
-  if (c) return c.kind === 'cdia' ? false : hasRule(s, r => r.kind === c.kind && r.a === c.a && r.circle === c.j);
-  const d = parseKey(key); if (!d) return false;
-  if (d.kind === 'ang') return hasRule(s, r => r.kind === 'angle' && r.a === d.a && r.b === d.b);
-  if ('a' in d) { const kind = ruleKind[d.kind]; return hasRule(s, r => r.kind === kind && 'b' in r && r.a === d.a && r.b === d.b); }
-  return (d.kind === 'rad' ? s.radii : s.lengths)?.[d.i] !== undefined;
+  if (c) {
+    if (c.kind === 'cdia') return undefined;
+    return authored(r => r.kind === c.kind && r.a === c.a && r.circle === c.j);
+  }
+  const d = parseKey(key);
+  if (!d) return undefined;
+  if (d.kind === 'ang') return authored(r => r.kind === 'angle' && r.a === d.a && r.b === d.b);
+  if ('a' in d) {
+    const kind = ruleKind[d.kind];
+    return authored(r => r.kind === kind && 'b' in r && r.a === d.a && r.b === d.b);
+  }
+  return (d.kind === 'rad' ? s.radii : s.lengths)?.[d.i];
 }
+
+/** Whether a dimension is driving (locked). */
+export const isDriving = (s: Polygon, key: string): boolean => drivingDimensionValue(s, key) !== undefined;
 type LinkDim = { kind: 'cedge'; edge: number; j: number } | { kind: 'ccdist' | 'ccdx' | 'ccdy'; a: number; b: number };
 /** Edge-to-circle (cedge<edge>_<circle>) and circle-to-circle (ccdist / ccdx / ccdy <lo>_<hi>) dimension keys. */
 function parseLinkKey(key: string): LinkDim | null {

@@ -1,6 +1,6 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { toggleBandPick } from '@barocss/cad-model/sketch/band';
-import { commitDimension, isSettled } from '@barocss/cad-model/sketch/rules';
+import { commitDimension, dimensionValue, drivingDimensionValue } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import type { SceneSketchActions } from './SceneViewport';
@@ -26,11 +26,13 @@ export function studioSketchViewportActions({ liveShape, setSketch, setSketchErr
       input?.select();
     },
     onDimEdit: editDim => setSketch(sketch => sketch && { ...sketch, editDim }),
-    onDimCommit(key, value) {
-      const shape = liveShape.current;
+    onDimCommit(key, value, source) {
+      if (liveShape.current !== source) return;
       setSketch(sketch => sketch && { ...sketch, editDim: null });
-      if (!isSettled(shape)) return;
-      const result = commitDimension(shape, key, value);
+      if (value === drivingDimensionValue(source, key)) return;
+      // An attached circle already stores its size. Confirming it adds no constraint.
+      if (key.startsWith('cdia') && value === dimensionValue(source, key)) return;
+      const result = commitDimension(source, key, value);
       if (result.ok) updateShape(result.shape);
       else setSketchError(result.reason);
     },

@@ -1,3 +1,4 @@
+import type { MarkHandlers } from '../ui/SketchMarks';
 import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
@@ -77,7 +78,7 @@ export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: nu
  */
 export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
-interface Props extends ViewportPointerProps {
+interface Props extends ViewportPointerProps, MarkHandlers {
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
   annotationSelected?: string | null;
@@ -101,9 +102,6 @@ interface Props extends ViewportPointerProps {
   bodyColors?: Map<number, [number, number, number]>;
   faceColors?: Map<number, Map<number, [number, number, number]>>;
   hoverBody?: number | null;
-  onDimClick?(key: string): void;
-  onDimEdit?(key: string | null): void;
-  onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
   /** The robot's tool and sensor frames at the pose shown (G13): a triad each — X red, Y green, Z blue — and its name.
