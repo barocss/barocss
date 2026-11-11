@@ -250,6 +250,7 @@ export function App() {
   const openIntent = useRef<OpenScope>({});
   const discardDirectCandidateRef = useRef<() => void>(() => {});
   const cancelStepExportRef = useRef<() => void>(() => {});
+  const cancelStlExportRef = useRef<() => void>(() => {});
   const beginOpenIntent = useCallback((): OpenScope => { discardDirectCandidateRef.current(); cancelStepExportRef.current(); const scope = {}; openIntent.current = scope; return scope; }, []);
   const currentOpenScope = useCallback(() => openIntent.current, []);
   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
@@ -1450,6 +1451,7 @@ export function App() {
   }, [clearBodyClipboard, currentDocumentIdentity, resetDocumentDraft]);
   const detachProject = project.detach;
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
+    if (entry.documentBoundary) cancelStlExportRef.current();
     setDocState(entry.doc);
     setMarker(entry.marker);
     if (entry.documentIdentity) {
@@ -1557,6 +1559,7 @@ export function App() {
     replacement.current = { scope: workOwnership.current.scope, ...(mode === 'new-part' ? { identity: currentDocumentIdentity() } : {}) };
     try {
       if (!commit(next, false, true)) return;
+      cancelStlExportRef.current();
       clearBodyClipboard();
       resetDocumentDraft();
       if (mode !== 'in-place') setCheckpointReview(null);
@@ -1748,6 +1751,7 @@ export function App() {
   const modelExports = useModelExports({ model: { doc, evaluated, shown: shownDoc, bodies, fresh, busy, massReady, instanceBodies, instancesFresh: (shownDoc.instances ?? []).filter(i => !i.hidden).every(i => { const source = instanceSources.get(i.id), have = instanceBodies.get(i.id); return source?.ok && have?.sourceKey === source.key && samePlacement(have.inst, i); }) },
     engine, fileName: inPlace ? inPlace.name : fileName, current: { doc: docNow, evaluated: evaluatedRef, shown: shownDocNow, name: inPlace ? undefined : fileNameNow }, onNotice: setToast });
   cancelStepExportRef.current = modelExports.clearStepAsk;
+  cancelStlExportRef.current = modelExports.cancelStlExport;
   const { stepAsk, stlAsk, askStlExport, exportStepFile, exportQuote, exportThreeMf, clearStepAsk } = modelExports;
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view

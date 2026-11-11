@@ -299,7 +299,9 @@ D680 verifies Open of the exact D679 STL under mm and cm, with Cancel retaining 
 
 D681 fixes binary STL Float32 collapse and verifies Studio refusal with no partial STL set and intact native Save/Open. [D681](../stl-float32-collapse-2026-11-11/README.md).
 
-Next MAIN is D682 / P2 B07, rows 13 and 16. Verify that delayed real STL replies cannot produce output after Cancel or document replacement. Check the remaining [#2425](https://github.com/barocss/barocss/issues/2425) acceptance.
+D682 cancels STL preparation on accepted document replacement and verifies real late replies after Cancel, same-name Open and document-boundary Redo. A genuine unavailable-family case for [#2425](https://github.com/barocss/barocss/issues/2425) stays open. [D682](../stl-late-reply-2026-11-11/README.md).
+
+Next MAIN is D683 / P2 B07, rows 13 and 16. Export the current placed assembly variant through Studio and reopen the exact STEP bytes. Independently check baked placement, geometry, units and declared losses.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
