@@ -295,7 +295,9 @@ D678 verifies STEP preparation across Master → Tall → Master and prevents au
 
 D679 binds the actual STL geometry and companion record to the shown source through Master → unsaved Variant → Master. [D679](../stl-variant-source-2026-11-11/README.md).
 
-Next MAIN is D680 / P2 B07, rows 13 and 16. Reopen the exact generated 9 mm D679 STL in Studio. Verify unit selection, cancellation retention and the accepted mesh's dimensions and losses.
+D680 verifies Open of the exact D679 STL under mm and cm, with Cancel retaining the prior 8 mm draft. [D680](../stl-variant-roundtrip-2026-11-11/README.md).
+
+Next MAIN is D681 / P2 B07, rows 13 and 16. Reproduce the current binary STL Float32 collapse at the serializer and supported native/Studio boundary. Scope the repair and error propagation from the observed case. [#2425](https://github.com/barocss/barocss/issues/2425).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
