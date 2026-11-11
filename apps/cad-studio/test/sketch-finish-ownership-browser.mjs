@@ -1,15 +1,17 @@
 // D574 / #2364. Run under the heavy gate from apps/cad-studio.
 // D574_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=repro|fixed
 // D734_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=transitions
+// D735_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=refusal
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
-assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions'].includes(mode));
+assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions', '--expect=refusal'].includes(mode));
 const repro = mode === '--expect=repro';
 const transitions = mode === '--expect=transitions';
+const refusal = mode === '--expect=refusal';
 const fixture = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
@@ -20,6 +22,12 @@ const fixture = {
 };
 const payload = (name, bytes) => ({ name, mimeType: 'application/json', buffer: bytes });
 const input = payload('D574-box.bcad', Buffer.from(JSON.stringify(fixture)));
+const drilled = {
+  ...fixture,
+  nodes: [...fixture.nodes, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [34, 10], radius: 2, id: 'n2' }],
+  outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3,
+};
+const drilledInput = payload('D735-drilled.bcad', Buffer.from(JSON.stringify(drilled)));
 const oracleSource = String.raw`
 import json, math, sys
 d = json.load(sys.stdin)
@@ -35,7 +43,13 @@ for i, extent in enumerate([w, 20]):
     assert math.isclose(max(coords) - min(coords), extent, abs_tol=1e-9, rel_tol=0), points
 assert len(d['bodies']) == 1
 body = d['bodies'][0]
-assert math.isclose(body['volume'], w * 20 * 10, abs_tol=1e-9, rel_tol=0), body
+area = w * 20
+if d.get('drilled'):
+    hole = d['doc']['nodes'][2]
+    assert hole['id'] == 'n2' and hole['kind'] == 'hole' and hole['parent'] == {'node': 1, 'side': 'solid'}
+    assert hole['center'] == [34, 10] and hole['radius'] == 2
+    area -= math.pi * 2**2
+assert math.isclose(body['volume'], area * 10, abs_tol=1e-9, rel_tol=0), body
 print(json.dumps({'status': 'PASS', 'width': w, 'volume': body['volume'], 'absoluteTolerance': 1e-9}))
 `;
 const pins = [
@@ -45,10 +59,11 @@ const pins = [
   ...(transitions ? ['apps/cad-studio/src/ui/useWorkspaceModeExit.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-finish-ownership', envFrozen: transitions ? 'D734_SOURCE_FROZEN' : 'D574_SOURCE_FROZEN', output,
-  qualification: transitions ? 'D734 #2364 workspace transitions and reversed replies' : 'D574 #2364 desktop',
+  name: 'sketch-finish-ownership', envFrozen: refusal ? 'D735_SOURCE_FROZEN' : transitions ? 'D734_SOURCE_FROZEN' : 'D574_SOURCE_FROZEN', output,
+  qualification: refusal ? 'D735 #2364 actual refused Finish responses' : transitions ? 'D734 #2364 workspace transitions and reversed replies' : 'D574 #2364 desktop',
   initialFiles: pins, requiredFrozen: pins, oracleSource,
-  limits: ['One ordinary reopened rectangle and extrusion. The test holds an actual successful evaluate reply without changing it.'],
+  limits: [refusal ? 'Ordinary reopened rectangle with an extrude and downstream hole. The test holds an actual refused reply without changing it.'
+    : 'One ordinary reopened rectangle and extrusion. The test holds actual successful evaluate replies without changing them.'],
   snapshotExtra: () => ({
     fileName: document.querySelector('.doc-tab input')?.value,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -129,7 +144,8 @@ function installSequenceHold() {
       onMessage.set.call(this, callback && function (event) {
         const request = requests.find(request => request.worker === this && request.id === event.data?.id);
         if (request && !request.reply && event.data.result) {
-          request.reply = { ok: event.data.result.ok, revision: event.data.result.revision };
+          const result = event.data.result;
+          request.reply = { ok: result.ok, revision: result.revision, ...(result.ok ? {} : { error: result.error }) };
           request.deliver = () => callback.call(this, event);
           return;
         }
@@ -170,15 +186,15 @@ async function setWidth(width) {
   await widthInput().press('Enter');
   assert.equal(await widthInput().inputValue(), String(width));
 }
-async function physical(label, state, width) {
+async function physical(label, state, width, withHole = false) {
   await f.ready();
-  const physical = await f.runOracle({ doc: state, bodies: (await f.bodies()).bodies, width }, label);
+  const physical = await f.runOracle({ doc: state, bodies: (await f.bodies()).bodies, width, drilled: withHole }, label);
   assert.deepEqual(state.nodes[1], fixture.nodes[1]);
   assert.equal(state.nodes[0].id, 'n0');
-  assert.deepEqual(state.outputs, fixture.outputs);
+  assert.deepEqual(state.outputs, (withHole ? drilled : fixture).outputs);
   return physical;
 }
-async function saveThenReopen(label, doc, width) {
+async function saveThenReopen(label, doc, width, withHole = false) {
   f.phase = 'Save and fresh Open ' + label;
   const projectName = 'D574 ' + label;
   const fileName = label + '.bcad';
@@ -202,28 +218,30 @@ async function saveThenReopen(label, doc, width) {
   f.report.files.push({ label, sha256: sha256(bytes), byteLength: bytes.length });
   await f.newPage();
   await open(payload(fileName, bytes), doc);
-  await physical(label + '-fresh-open', await f.doc(), width);
+  await physical(label + '-fresh-open', await f.doc(), width, withHole);
+}
+
+const arm = count => f.page.evaluate(count => window.__d734Hold.arm(count), count);
+const release = index => f.page.evaluate(index => window.__d734Hold.release(index), index);
+async function held(count, ok = true) {
+  await f.page.waitForFunction(count => {
+    const requests = window.__d734Hold.read();
+    return requests.length === count && requests.every(request => request.reply);
+  }, count);
+  const requests = await f.page.evaluate(() => window.__d734Hold.read());
+  assert.ok(requests.every(({ revision, reply }) => reply.ok === ok && revision === reply.revision));
+  return requests;
+}
+function sameState(after, before, { noticeChanged = false } = {}) {
+  for (const key of ['doc', 'bodies', 'selection', 'notices', 'history', 'historyControls', 'dirty', 'fileName']) {
+    if (noticeChanged && key === 'notices') continue;
+    assert.deepEqual(after[key], before[key], key);
+  }
 }
 
 async function verifyPendingTransitions() {
   const tab = name => f.page.getByRole('group', { name: 'Mode', exact: true }).getByRole('button', { name, exact: true });
   const dialog = () => f.page.getByRole('dialog', { name: 'Discard sketch changes?', exact: true });
-  const arm = count => f.page.evaluate(count => window.__d734Hold.arm(count), count);
-  const release = index => f.page.evaluate(index => window.__d734Hold.release(index), index);
-  const held = async count => {
-    await f.page.waitForFunction(count => {
-      const requests = window.__d734Hold.read();
-      return requests.length === count && requests.every(request => request.reply);
-    }, count);
-    const requests = await f.page.evaluate(() => window.__d734Hold.read());
-    assert.ok(requests.every(({ revision, reply }) => reply.ok && revision === reply.revision));
-    return requests;
-  };
-  const sameState = (after, before) => {
-    for (const key of ['doc', 'bodies', 'selection', 'notices', 'history', 'historyControls', 'dirty', 'fileName']) {
-      assert.deepEqual(after[key], before[key], key);
-    }
-  };
   const begin = async count => {
     await f.newPage();
     await open(input, fixture);
@@ -305,15 +323,63 @@ async function verifyPendingTransitions() {
   await saveThenReopen('D734-current-60', await f.doc(), 60);
 }
 
+async function verifyRefusedFinish() {
+  for (const action of ['cancel', 'supersede', 'current']) {
+    f.phase = 'A genuine refused Finish is ' + action;
+    await f.newPage();
+    await open(drilledInput, drilled);
+    await reopen();
+    await setWidth(30);
+    await arm(1);
+    await finish();
+    const [request] = await held(1, false);
+    assert.equal(request.reply.error.code, 'SELECTION');
+    assert.equal(request.reply.error.feature, 'n2');
+    assert.match(request.reply.error.title, /hole misses the body/i);
+
+    if (action === 'cancel') {
+      await f.page.keyboard.press('Escape');
+      await f.sketchPanel().waitFor({ state: 'hidden' });
+    } else if (action === 'supersede') {
+      await setWidth(50);
+    }
+    const before = await f.snapshot(action + '-before-error');
+    await release(0);
+    await f.same(drilled);
+    if (action === 'current') await f.waitToast(/The hole misses the body/);
+    const after = await f.snapshot(action + '-after-error');
+    sameState(after, before, { noticeChanged: action === 'current' });
+    await physical(action + '-retained', after.doc, 40, true);
+    assert.equal(await f.sketchPanel().isVisible(), action !== 'cancel');
+    if (action !== 'cancel') assert.equal(await widthInput().inputValue(), action === 'current' ? '30' : '50');
+    f.report.observations.push({ action, request, retainedVolume: 8000 - 40 * Math.PI });
+
+    if (action === 'current') {
+      await f.dismissToasts();
+      await setWidth(50);
+      await finish();
+      await f.changed(drilled);
+      await f.sketchPanel().waitFor({ state: 'hidden' });
+      const accepted = await f.snapshot('valid-retry-50');
+      await physical('valid-retry-50', accepted.doc, 50, true);
+      await f.undo();
+      await f.same(drilled);
+      await f.redo();
+      await f.same(accepted.doc);
+      await saveThenReopen('D735-valid-retry', accepted.doc, 50, true);
+    }
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   f.report.runtimeOwnership = { nodePID: process.pid, serverURL: origin };
-  f.report.fixtureSha256 = sha256(input.buffer);
+  f.report.fixtureSha256 = sha256((refusal ? drilledInput : input).buffer);
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     try {
-      await context.addInitScript(transitions ? installSequenceHold : installReplyHold);
+      await context.addInitScript(transitions || refusal ? installSequenceHold : installReplyHold);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -327,8 +393,9 @@ await f.run(async () => {
     }
   };
 
-  if (transitions) {
-    await verifyPendingTransitions();
+  if (transitions || refusal) {
+    if (refusal) await verifyRefusedFinish();
+    else await verifyPendingTransitions();
     f.report.productResult = 'PASS';
     assert.deepEqual(f.report.downloads, []);
     return;
