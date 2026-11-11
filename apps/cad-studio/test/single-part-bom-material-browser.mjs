@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, input] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
@@ -29,7 +30,7 @@ const pins = [
 const f = await createFlow({
   name: 'single-part-bom-material', envFrozen: 'D588_SOURCE_FROZEN', output,
   qualification: 'Known standalone BOM material from actual Studio and local stdio MCP',
-  initialFiles: pins, requiredFrozen: pins,
+  initialFiles: [...pins, 'apps/cad-studio/test/model-rail-helper.mjs'], requiredFrozen: pins,
   limits: ['One known-material native plate. Studio shows quantity and mass. The public BOM JSON exposes material identity.'],
   oracleSource: `
 import json, math, sys
@@ -75,7 +76,7 @@ async function publicBom(file, label) {
 }
 
 async function studioBom(label, expectedG) {
-  await f.page.locator('nav.toolbar button[aria-label="BOM"]').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   const totals = f.page.getByLabel('BOM totals', { exact: true });
   await totals.waitFor();
   await f.page.getByRole('row', { name: 'BOM line 1', exact: true }).waitFor();

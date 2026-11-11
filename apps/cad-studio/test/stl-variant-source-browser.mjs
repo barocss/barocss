@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const output = process.argv[2];
 const repo = resolve(import.meta.dirname, '../../..');
@@ -82,6 +83,7 @@ const f = await createFlow({
   name: 'stl-variant-source', envFrozen: 'D679_SOURCE_FROZEN', output, oracleSource,
   qualification: 'D679 Studio STL source identity with unsaved variant values',
   initialFiles: [
+    'apps/cad-studio/test/model-rail-helper.mjs',
     'apps/cad-studio/test/stl-variant-source-browser.mjs',
     'packages/barocss-cad-model/src/team/source.ts', 'packages/barocss-cad-model/src/util/revision.ts',
     'packages/barocss-cad-model/src/engine/stl.ts',
@@ -170,7 +172,7 @@ await f.run(async () => {
   await f.same(master);
   const original = await qualify('01-master', 0, 6, 'automatic');
 
-  await button('Variants').click();
+  await clickModelCommand(f.page, 'Inspect', 'Variants');
   await variants().getByLabel('Value of height', { exact: true }).fill('9');
   await variants().getByLabel('Variant shown', { exact: true }).getByText('Master, edited', { exact: true }).waitFor();
   const shown = await qualify('02-unsaved-variant', 1, 9, '32');

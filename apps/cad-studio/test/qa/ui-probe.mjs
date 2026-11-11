@@ -304,7 +304,8 @@ try {
     const ch = (await doc()).nodes.length - 1;
     const sel = await page.evaluate(nm => window.__studioSelectFace(nm), `n${ch}.face`); await page.waitForTimeout(200);
     const panel = (await page.locator('[aria-label="Selection"]').innerText()).replace(/\s+/g, ' ');
-    const title = await page.locator('[aria-label="Hole"]').getAttribute('title').catch(() => null);
+    const hole = page.locator('nav.toolbar button[aria-label="Hole"]:visible');
+    const title = await hole.count() ? await hole.first().getAttribute('title') : null;
     await press('h'); await page.waitForTimeout(400);
     const toast = (await page.locator('.toast[role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ');
     await page.locator('[aria-label="Dismiss"]').click().catch(() => {});

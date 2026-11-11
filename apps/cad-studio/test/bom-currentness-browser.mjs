@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
@@ -39,7 +40,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'bom-currentness', envFrozen: 'D575_SOURCE_FROZEN', output, qualification: 'D575 #2356 desktop',
-  initialFiles: pins, requiredFrozen: pins, oracleSource,
+  initialFiles: [...pins, 'apps/cad-studio/test/model-rail-helper.mjs'], requiredFrozen: pins, oracleSource,
   limits: ['Ordinary root shafts with the same feature ID. Real Worker reply delayed. CSV Blob and anchor captured before browser download.'],
   snapshotExtra: () => ({
     historyControls: ['Undo', 'Redo'].map(name => {
@@ -156,7 +157,7 @@ await f.run(async () => {
   f.phase = 'seed current BOM A';
   await f.newPage();
   await open('D575-A', a);
-  await button('BOM').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await currentRow('Ø10–Ø10 × 20');
   await panel().getByLabel('Purchase list with made parts').check();
   f.report.files.push(await csv('current-A-csv', 'D575-A', '1 steps Ø10–Ø10 × 20', ['D575-A']));

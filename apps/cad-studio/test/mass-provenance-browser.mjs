@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 import { build } from 'esbuild';
 
 const expectation = process.argv.find(arg => arg.startsWith('--expect='))?.split('=')[1] ?? 'fixed';
@@ -138,7 +139,7 @@ async function snapshotExtra() {
 }
 const f = await createFlow({ name: 'mass-provenance', envFrozen: 'D530_SOURCE_FROZEN', output, oracleSource, inspectorSource, snapshotExtra,
   qualification: `D530/P0-R10 passive native massMethod transport vs same-Doc original native producer plus unchanged D526 catalog mass/inertia/BOM consumer; ${expectation}`,
-  initialFiles: ['apps/cad-studio/test/mass-provenance-browser.mjs'],
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/mass-provenance-browser.mjs'],
   requiredFrozen: ['apps/cad-studio/src/ui/SelectionInspector.tsx', 'apps/cad-studio/src/ui/BomPanel.tsx'],
   extraFrozen: [...producerSources, ...Object.keys(observerBuild.metafile.inputs).filter(file => !file.includes('d530-observer.ts')).map(file => resolve(file)), 'packages/barocss-cad-model/src/library/builtin/materials.json', 'packages/barocss-cad-model/src/app/mass.ts', 'packages/barocss-cad-model/src/bom/bom.ts'],
   limits: ['Passive native Worker observation only: no substituted results, callbacks, handlers, geometry or UI status.', 'Native box method is read from original MassProps for the same accepted Doc, not inferred from its Box name. Imported and placed-method breadth require separate producer tests.', 'Worker volume matching uses absolute 1e-8 mm3 tolerance, consistent with the existing literal volume oracle; method equality is exact.', 'Desktop 1440x900 only; root must review screenshots.', 'Only existing valid Aluminium 6061 and Steel (mild) catalog inputs, 2.7 and 7.85 g/cm3.',
@@ -188,7 +189,7 @@ const selectBody = async () => {
   await f.page.getByLabel('Inertia about', { exact: true }).selectOption('centre');
 };
 const withBom = async label => {
-  await f.page.locator('nav.toolbar button[aria-label="BOM"]').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await f.page.getByRole('complementary', { name: 'BOM panel', exact: true }).waitFor();
   await f.page.getByLabel('BOM totals', { exact: true }).waitFor({ timeout: 30000 });
   const state = await capture(label);

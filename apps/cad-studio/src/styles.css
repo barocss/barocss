@@ -184,9 +184,13 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .tool.off { opacity: 0.4; }
 .tool.tiny { width: 22px; height: 22px; }
 .toolbar { position: absolute; top: 50px; left: calc(12px + var(--strip-w, 0px)); min-width: 44px; box-sizing: border-box; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
-/* (Roadmap 21: each group a grid under its label, as few columns as fit the window's height — ui/ModelTools.tsx sets --tool-cols.) */
-.tool-group { display: grid; grid-template-columns: repeat(var(--tool-cols, 1), var(--tool-w, 34px)); justify-items: center; justify-content: start; align-self: stretch; gap: 2px; }
-.tool-group-label { grid-column: 1 / -1; justify-self: start; height: 12px; margin: 2px 2px 2px; font: 600 9px/12px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.model-toolbar { width: var(--rail-w); }
+.model-command-rail, .model-commands, .model-command-groups { width: 100%; display: flex; flex-direction: column; gap: 2px; }
+.model-command-groups { border-top: 1px solid var(--line-soft); margin-top: 2px; padding-top: 2px; }
+.model-toolbar .tool.model-command, .model-toolbar .tool.model-group-trigger { width: 100%; gap: 7px; font: 500 11px var(--sans); }
+.model-group-trigger[aria-expanded='true'] { background: var(--line-soft); }
+.tool-group { display: grid; grid-template-columns: repeat(3, var(--tool-w, 34px)); justify-content: center; gap: 2px; padding: 2px 0; }
+.tool-group[hidden] { display: none; }
 .sep { height: 1px; width: 26px; background: var(--line); margin: 4px 0; }
 
 .right-col { position: absolute; right: 12px; top: 50px; width: 248px; display: flex; flex-direction: column; gap: 10px; z-index: 2; max-height: calc(100vh - 120px); }

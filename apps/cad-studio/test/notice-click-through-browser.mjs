@@ -8,15 +8,26 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { openModelGroup } from './model-rail-helper.mjs';
 
 const through = process.env.NOTICE_EXPECT === 'through';
 const fixture = join(import.meta.dirname, 'fixtures', 'drag-preview-timing.bcad');
 const f = await createFlow({ name: 'notice', envFrozen: 'NOTICE_SOURCE_FROZEN', output: process.argv[2], qualification: through ? 'NOTICE_CLICK_THROUGH' : 'NOTICE_CLICK_MEASUREMENT',
   limits: ['One notice kind (a tool that cannot run here) at 1440 x 1000; the dialog-like notices (recovery, delete with dependents) share the same rule but are not raised here.'],
-  initialFiles: ['apps/cad-studio/test/notice-click-through-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/src/styles.css', 'apps/cad-studio/src/App.tsx'], requiredFrozen: ['apps/cad-studio/src/styles.css'] });
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/notice-click-through-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/src/styles.css', 'apps/cad-studio/src/App.tsx'], requiredFrozen: ['apps/cad-studio/src/styles.css'] });
 
 const faces = () => f.page.evaluate(() => window.__studioSelection?.selection?.faces?.length ?? 0);
 await f.run(async () => {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin, newContext = f.browser.newContext.bind(f.browser);
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return url.origin === origin ? route.continue() : route.abort();
+    });
+    return context;
+  };
   await f.newPage(); await f.openFile(fixture, 5);
   // The point P: where the notice's title will be (the empty stack's box: left + 60, top + 14).
   const at = await f.page.evaluate(() => { const r = document.querySelector('.toast-stack').getBoundingClientRect(); return [r.left + 60, r.top + 14]; });
@@ -32,7 +43,9 @@ await f.run(async () => {
   assert.ok(picked > 0, 'a click at P picks a face once zoomed in');
   await f.page.keyboard.press('Escape'); await f.page.waitForFunction(() => (window.__studioSelection?.selection?.faces?.length ?? 0) === 0, null, { timeout: 5000 });
   f.phase = 'raise a notice';
-  await f.page.locator('nav.toolbar .tool-group button.off').first().click({ force: true }); await f.page.waitForSelector('.toast', { timeout: 10000 });
+  const modify = await openModelGroup(f.page, 'Modify');
+  await modify.locator('button.off').first().click({ force: true });
+  await f.page.waitForSelector('.toast', { timeout: 10000 });
   const cover = await f.page.evaluate(([x, y]) => { const t = document.querySelector('.toast'), r = t.getBoundingClientRect(), e = document.elementFromPoint(x, y);
     return { toast: [r.left, r.top, r.right, r.bottom], covers: x >= r.left && x <= r.right && y >= r.top && y <= r.bottom, hit: e ? `${e.tagName.toLowerCase()}.${e.className}` : null, hitInToast: !!e?.closest('.toast') }; }, at);
   f.report.observations.push({ P: at, ...cover }); await f.snapshot('01-notice-over-face', () => ({}));

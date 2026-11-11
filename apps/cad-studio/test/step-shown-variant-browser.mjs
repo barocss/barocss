@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(mode === undefined || mode === '--round-trip');
@@ -90,6 +91,7 @@ const f = await createFlow({
   name: 'step-shown-variant', envFrozen: roundTrip ? 'D683_SOURCE_FROZEN' : 'D678_SOURCE_FROZEN', output, oracleSource,
   qualification: roundTrip ? 'D683 Studio Export and fresh Open of the exact Tall STEP bytes' : 'D678 desktop STEP preparation uses Master, Tall and restored Master',
   initialFiles: [
+    'apps/cad-studio/test/model-rail-helper.mjs',
     'apps/cad-studio/test/step-shown-variant-browser.mjs',
     'packages/barocss-cad-model/src/assembly/variability.ts', 'packages/barocss-cad-model/src/engine/evaluate.ts',
     'packages/barocss-cad-model/src/engine/wireDoc.ts', 'packages/barocss-cad/src/io/step.ts',
@@ -284,7 +286,7 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'step-variant.bcad', mimeType: 'application/json', buffer: seed });
   await f.same(master);
-  await button('Variants').click();
+  await clickModelCommand(f.page, 'Inspect', 'Variants');
   await variants().waitFor();
   const original = roundTrip ? undefined : (await prepare('01-master', 6, 2, 0, undefined)).result;
   await variants().getByRole('button', { name: 'Show Tall', exact: true }).click();

@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const oracleSource = String.raw`"""BOM of a plate, a two-cube sub-assembly and a pin, from the stored document and aluminium's density. Product imports: zero."""
 import json, sys
@@ -45,7 +46,7 @@ const f = await createFlow({ name: 'bom-nested', envFrozen: 'BOM_NESTED_SOURCE_F
     'The BOM view (lines, totalMass) is read through a bundled product read of the saved document; the panel rows from the DOM.'],
   inspectorSource: `import {readFileSync} from 'node:fs';import {evaluateDoc} from '../../packages/barocss-cad-model/src/engine/evaluate.ts';import {bomViewOf,deriveBom} from '../../packages/barocss-cad-model/src/bom/core.ts';
 const doc=JSON.parse(readFileSync(process.argv[2],'utf8'));const b=deriveBom(bomViewOf(doc,(d:any)=>evaluateDoc(d,0) as any));console.log(JSON.stringify(b));`,
-  initialFiles: ['apps/cad-studio/test/bom-nested-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/nested-mate.bcad', 'apps/cad-studio/src/ui/BomPanel.tsx', 'packages/barocss-cad-model/src/bom/core.ts', 'packages/barocss-cad-model/src/bom/bom.ts'],
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/bom-nested-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/nested-mate.bcad', 'apps/cad-studio/src/ui/BomPanel.tsx', 'packages/barocss-cad-model/src/bom/core.ts', 'packages/barocss-cad-model/src/bom/bom.ts'],
   requiredFrozen: ['packages/barocss-cad-model/src/bom/core.ts'] });
 
 const panelRows = () => f.page.evaluate(() => [...document.querySelectorAll('[aria-label="BOM lines"] tr[aria-label^="BOM line"]')].map(r => {
@@ -53,7 +54,7 @@ const panelRows = () => f.page.evaluate(() => [...document.querySelectorAll('[ar
 }));
 async function bom(label) {
   f.phase = `BOM ${label}`;
-  await f.page.locator('nav.toolbar button[aria-label="BOM"]').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await f.page.locator('[aria-label="BOM lines"] tr[aria-label^="BOM line"]').first().waitFor({ timeout: 60000 });
   const rows = await panelRows(), totals = await f.page.locator('[aria-label="BOM totals"]').textContent();
   f.report.observations.push({ label, rows, totals }); await f.snapshot(`${label}-bom`);

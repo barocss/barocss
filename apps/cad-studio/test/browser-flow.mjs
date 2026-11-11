@@ -5,6 +5,7 @@
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { pressWorkspaceSpace } from './workspace-palette-shortcut.mjs';
+import { clickModelCommand, modelRail, openModelGroup } from './model-rail-helper.mjs';
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -74,7 +75,15 @@ async function check(name, fn) {
   const before = sawLoad, files = changedFiles.length;
   // (G12: each step starts with the columns as a fresh viewer has them — a chat opened or dragged in one step stays in it.)
   await page.evaluate(() => window.__studioLayoutReset?.()).catch(() => {});
-  try { await fn(); results.push({ step, name, ok: true }); }
+  try {
+    const expanded = modelRail(page).locator('button[aria-expanded="true"]');
+    if (await expanded.count()) {
+      await expanded.click();
+      await blurModelRail();
+    }
+    await fn();
+    results.push({ step, name, ok: true });
+  }
   catch (e) {
     const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';
     results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] + reloaded }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500));
@@ -160,9 +169,13 @@ const hudReady = async () => { await page.waitForTimeout(250); return page.waitF
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 // The Space calls in this flow open the workspace command palette.
 const press = k => k === ' ' ? pressWorkspaceSpace(page) : page.keyboard.press(k);
-/** A shape's button. */
-// (Since 21b the placed shapes are the tool rail's first group, every one in view.)
-const shape = async label => { await page.click(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${label}"]`); };
+const blurModelRail = () => modelRail(page).locator('button:focus').evaluateAll(buttons => {
+  for (const button of buttons) button.blur();
+});
+const shape = async label => {
+  await clickModelCommand(page, 'Shapes', label);
+  await blurModelRail();
+};
 const canvasCenter = async () => { const b = await page.locator('canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 
 try {
@@ -2459,7 +2472,13 @@ try {
     await hudReady(); await page.waitForTimeout(250); await snap('preview-tint'); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // The cylinder dragged from the shapes bar onto the ground beside the box.
-    await page.dragAndDrop('nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
+    const shapes = await openModelGroup(page, 'Shapes');
+    const canvas = page.locator('canvas');
+    const target = await canvas.boundingBox();
+    await shapes.getByRole('button', { name: 'Cylinder', exact: true }).dragTo(canvas, {
+      targetPosition: { x: target.width * 0.7, y: target.height * 0.45 },
+    });
+    await blurModelRail();
     await page.waitForFunction(() => /Cylinder/.test(document.querySelector('.hud')?.textContent ?? '') && /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -4969,8 +4988,7 @@ try {
       await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
-    // (The BOM is an inspect tool on the left toolbar, not on the top bar: O90's shapes strip keeps its room.)
-    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+    await clickModelCommand(page, 'Inspect', 'BOM');
     try {
       await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
       assert.match(await page.textContent('[aria-label="BOM line 1"]'), /Untitled/);
@@ -5004,7 +5022,7 @@ try {
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
     const purchase = async () => {
-      await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+      await clickModelCommand(page, 'Inspect', 'BOM');
       try {
         await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
         // (The panel says what the file says: the key's source is the estimate, not a row.)
@@ -5066,7 +5084,7 @@ try {
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
     // (O174: a part's drawing is what it makes — a bought key is not drawn and has no note; set made in the BOM, it is the part's.)
-    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+    await clickModelCommand(page, 'Inspect', 'BOM');
     try {
       await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
       await page.locator('[aria-label="BOM line 2"] select').selectOption('made');
@@ -6868,7 +6886,7 @@ try {
     const card = page.locator('[aria-label="Variants panel"]'), sets = () => card.locator('[aria-label^="Set "]').evaluateAll(ls => ls.map(l => `${l.getAttribute('aria-label').slice(4)}${l.dataset.active ? '*' : ''}`));
     const variants = () => page.evaluate(() => window.__studioDoc.variability.variants.map(v => `${v.name}:${v.values.offset}`).join(' '));
     assert.ok(Math.abs(await pinZ() - 13) < 1e-6, 'the master: the pin 5 above the 8 mm plate');
-    await page.click('[aria-label="Variants"]'); await card.waitFor({ timeout: 5000 });
+    await clickModelCommand(page, 'Inspect', 'Variants'); await card.waitFor({ timeout: 5000 });
     assert.deepEqual(await sets(), ['Master*', 'high', 'low']);
     assert.equal(await card.locator('[aria-label="Variant shown"]').count(), 0);
     // Show high: the pin 25 above; the banner; the loop's two mates listed unmet; the document's own master untouched.
@@ -7932,14 +7950,19 @@ try {
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
-  await check('shapes in the tool rail (21b): no sideways page scroll at 1440, 1100 or 860; every placed shape in view in the rail, none lost; a pick from it starts', async () => {
+  await check('shapes in the tool rail (21b): no sideways page scroll at 1440, 1100 or 860; every placed shape in view when Shapes is open, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
-    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge; the rail's Shapes group whole and in view.)
+    const shapes = await openModelGroup(page, 'Shapes');
     const wide = () => page.evaluate(() => {
       const rail = document.querySelector('nav.toolbar')?.getBoundingClientRect(), shapes = [...document.querySelectorAll('nav.toolbar [role="group"][aria-label="Shapes"] button')];
       return { page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
         bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
-        shapes: shapes.length, hidden: shapes.filter(b => { const r = b.getBoundingClientRect(); return !rail || r.bottom > rail.bottom + 0.5 || r.right > rail.right + 0.5; }).length,
+        shapes: shapes.map(b => b.getAttribute('aria-label')),
+        hidden: shapes.filter(b => {
+          const r = b.getBoundingClientRect();
+          return !rail || !r.width || !r.height || r.left < rail.left - 0.5 || r.top < rail.top - 0.5
+            || r.bottom > Math.min(rail.bottom, innerHeight) + 0.5 || r.right > Math.min(rail.right, innerWidth) + 0.5;
+        }).length,
         strip: document.querySelectorAll('.topbar .shapes').length };
     });
     const seen = [];
@@ -7952,11 +7975,13 @@ try {
         assert.equal(w.hidden, 0, `${width}: every shape in view: ${JSON.stringify(w)}`);
         seen.push([width, w.shapes]);
       }
-      assert.ok(seen.every(([, n]) => n === seen[0][1]) && seen[0][1] > 0, `none lost: ${JSON.stringify(seen)}`);
+      assert.ok(seen[0][1].length > 0);
+      for (const [width, labels] of seen) assert.deepEqual(labels, seen[0][1], `${width}: Shapes inventory`);
       // A shape from the rail starts its command (its button lit).
-      const last = page.locator('nav.toolbar [role="group"][aria-label="Shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
+      const last = shapes.locator('.tool:not(.off)').last();
+      const label = await last.getAttribute('aria-label');
       await last.click();
-      await page.waitForFunction(l => document.querySelector(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
+      await shapes.getByRole('button', { name: label, exact: true }).and(shapes.locator('.tool.on')).waitFor({ timeout: 5000 });
       await snap('shapes-rail');
       await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
@@ -9300,7 +9325,7 @@ try {
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioFresh === true, null, { timeout: 15000 }); await idle();
     const hole = await page.evaluate(() => { const n = window.__studioDoc.nodes; return n.at(-1).id ?? `n${n.length - 1}`; });
-    await page.click('[aria-label="Rebuild"]');
+    await clickModelCommand(page, 'Inspect', 'Rebuild');
     const panel = page.locator('[aria-label="Rebuild panel"]');
     await panel.waitFor({ timeout: 5000 });
     const rows = () => panel.locator('tr[data-rebuild-state]').evaluateAll(rs => rs.map(r => [r.getAttribute('aria-label').slice(8), r.dataset.rebuildState, +r.children[2].textContent]));

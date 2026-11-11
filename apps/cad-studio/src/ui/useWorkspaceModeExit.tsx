@@ -12,6 +12,7 @@ type Request = {
   keepFeature: boolean;
   switchMode(): void;
   keepFocus: HTMLElement | null;
+  discardFocus: HTMLElement | null;
   trigger: HTMLElement | null;
 };
 
@@ -38,25 +39,27 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   const rememberFocus = (event: PointerEvent<HTMLButtonElement>) => {
     pointer.current = { trigger: event.currentTarget, focus: activeElement() };
   };
-  const switchWhenReady = (switchMode: () => void, { event, keepFeature = false }: {
-    event?: MouseEvent<HTMLButtonElement>; keepFeature?: boolean;
+  const switchWhenReady = (switchMode: () => void, { event, keepFeature = false, destinationFocus }: {
+    event?: MouseEvent<HTMLButtonElement>; keepFeature?: boolean; destinationFocus?: HTMLElement | null;
   } = {}) => {
     const previous = pointer.current;
     pointer.current = null;
     const feature = keepFeature ? null : featureDraft();
     if (!sketchDraft && !feature) {
       switchMode();
+      destinationFocus?.focus({ preventScroll: true });
       return;
     }
     const trigger = event?.currentTarget ?? activeElement();
     const focus = event?.detail && previous?.trigger === trigger ? previous.focus : trigger;
     setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, keepFeature, switchMode, trigger,
+      discardFocus: destinationFocus ?? trigger,
       keepFocus: focus?.isConnected && focus !== document.body ? focus : trigger });
   };
   const settle = (discard: boolean) => {
     if (!current) return;
     const stillOwned = owns(current);
-    focusAfterClose.current = discard || !stillOwned ? current.trigger : current.keepFocus;
+    focusAfterClose.current = stillOwned ? (discard ? current.discardFocus : current.keepFocus) : current.trigger;
     setRequest(null);
     if (discard && stillOwned) current.switchMode();
   };

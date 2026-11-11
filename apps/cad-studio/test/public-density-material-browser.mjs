@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const output = process.argv[2]; assert.ok(output && isAbsolute(output));
 assert.ok(relative(resolve(import.meta.dirname, '../../..'), resolve(output)).startsWith('../'));
@@ -47,7 +48,7 @@ async function snapshotExtra() {
 }
 const f = await createFlow({ name: 'public-density-material', envFrozen: 'D526_SOURCE_FROZEN', output, oracleSource, snapshotExtra,
   qualification: 'D526/P0-R06 finite catalog material Studio consumer regression; not invalid-density API acceptance',
-  initialFiles: ['apps/cad-studio/test/public-density-material-browser.mjs'],
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/public-density-material-browser.mjs'],
   requiredFrozen: ['apps/cad-studio/src/ui/SelectionInspector.tsx', 'apps/cad-studio/src/ui/BomPanel.tsx'],
   extraFrozen: ['packages/barocss-cad-model/src/library/builtin/materials.json', 'packages/barocss-cad-model/src/app/mass.ts', 'packages/barocss-cad-model/src/bom/bom.ts'],
   limits: ['Desktop 1440x900 only; root must review screenshots.', 'Only existing valid Aluminium 6061 and Steel (mild) catalog inputs, 2.7 and 7.85 g/cm3.',
@@ -64,7 +65,7 @@ const selectBody = async () => {
   await f.page.getByLabel('Inertia about', { exact: true }).selectOption('centre');
 };
 const withBom = async label => {
-  await f.page.locator('nav.toolbar button[aria-label="BOM"]').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await f.page.getByRole('complementary', { name: 'BOM panel', exact: true }).waitFor();
   await f.page.getByLabel('BOM totals', { exact: true }).waitFor({ timeout: 30000 });
   const state = await capture(label);

@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
@@ -49,7 +50,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'variant-document-draft', envFrozen: 'D573_SOURCE_FROZEN', output, qualification: 'D573 #2362 desktop',
-  initialFiles: pins, requiredFrozen: pins, oracleSource,
+  initialFiles: [...pins, 'apps/cad-studio/test/model-rail-helper.mjs'], requiredFrozen: pins, oracleSource,
   limits: ['Synthetic boxes, actual native Open and Variants controls, passive outgoing evaluation observer and independent box arithmetic.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
@@ -84,7 +85,7 @@ async function history(action, doc) {
   await f.same(doc);
 }
 async function showPanel() {
-  await button('Variants').click();
+  await clickModelCommand(f.page, 'Inspect', 'Variants');
   await panel().waitFor();
 }
 async function viewIs(expected, showing = null) {

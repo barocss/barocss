@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, evidence] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
@@ -63,6 +64,7 @@ const f = await createFlow({
   name: 'stl-variant-roundtrip', envFrozen: 'D680_SOURCE_FROZEN', output, oracleSource,
   qualification: 'D680 Studio Open of exact D679 STL, with unit selection and cancellation',
   initialFiles: [
+    'apps/cad-studio/test/model-rail-helper.mjs',
     'apps/cad-studio/test/stl-variant-roundtrip-browser.mjs', receiptFile, inputFile,
     'packages/barocss-cad-model/src/engine/meshImport.ts', 'packages/barocss-cad-model/src/engine/blobs.ts',
   ],
@@ -158,7 +160,7 @@ await f.run(async () => {
   f.phase = 'Open D679 Master and edit the preview';
   await open('stl-source-variant.bcad', 'application/json', Buffer.from(JSON.stringify(master)));
   await f.same(master);
-  await button('Variants').click();
+  await clickModelCommand(f.page, 'Inspect', 'Variants');
   await variants().getByLabel('Value of height', { exact: true }).fill('8');
   await variants().getByLabel('Variant shown', { exact: true }).getByText('Master, edited', { exact: true }).waitFor();
   await f.page.waitForFunction(() => {

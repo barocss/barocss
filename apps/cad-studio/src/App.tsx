@@ -18,7 +18,7 @@ import { ViewContextMenu } from './ui/ViewContextMenu';
 import { TemplatePicker } from './ui/TemplatePicker';
 import { useCommandPreview } from './state/useCommandPreview';
 import { DirectInspector } from './ui/DirectInspector';
-import { ModelTools, useToolColumns } from './ui/ModelTools';
+import { ModelTools } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useSketchActions } from './sketch/useSketchActions';
@@ -49,7 +49,7 @@ import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { activeKey, type Active } from './app/commandState';
-import { emptySel, NO_CUTS, NO_INSTANCES, GROUP_COMMANDS, PLACE_COMMANDS, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
+import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
 import { routeMessage } from './app/routeSession';
 import { CursorReadout } from './ui/CursorReadout';
 import { iconFor } from './ui/featureIcon';
@@ -104,7 +104,6 @@ import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { useScenePoses } from './state/useScenePoses';
-import { commandStates } from './ui/ToolButton';
 import type { CamOptions } from './viewport/camDisplay';
 import { withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
@@ -357,6 +356,7 @@ export function App() {
   const sketchGeneration = useRef(0);
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
   const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => activeStore.get()?.ctx ?? null);
+  const sketchModeButton = useRef<HTMLButtonElement>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
   /** The Drawing workspace: the part's dimensioned 2D views on a sheet. */
@@ -651,8 +651,6 @@ export function App() {
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
-  // (The tool rail's columns for the window height; the notices sit beside its width: roadmap 21.)
-  const rail = useToolColumns();
   // (The same time for the drag preview's whole-part cost, read while dragging: roadmap 20 ①.)
   const lastEvalMs = useRef(0);
   const [menu, setMenu] = useState<ViewportMenu | null>(null);
@@ -1723,6 +1721,10 @@ export function App() {
   };
   const requestWorkspace = (mode: Parameters<typeof showWorkspace>[0], event: React.MouseEvent<HTMLButtonElement>) =>
     workspaceModeExit.switchWhenReady(() => showWorkspace(mode), { event, keepFeature: mode === 'Model' });
+  const requestSketchWorkspace = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!sketch) workspaceModeExit.switchWhenReady(() => startRef.current(commands.find(c => c.id === 'sketch')!),
+      { event, destinationFocus: sketchModeButton.current });
+  };
   const previewReference = (where: string, edge?: string, inModel = false) => {
     const dimension = referenceDimension(where);
     if (dimension && !inModel) {
@@ -1872,8 +1874,6 @@ export function App() {
   const toolDragEnd = useCallback((c: Command, e: React.DragEvent) => {
     if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); }
   }, []);
-  // (The commands' availability in this render: the button lists are made again only when it, or the active command, changes.)
-  const placeStates = commandStates(PLACE_COMMANDS, ctx), groupStates = GROUP_COMMANDS.map(list => commandStates(list, ctx));
   activeRef.current = active;
   /** The viewport selection by name, for the chat's context chips (A4.3). */
   const chatContext = useMemo(() => [
@@ -2349,7 +2349,7 @@ export function App() {
   const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
     setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFilletType={type => changeFillet(type)} onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }} onFile={uploadFont} onApply={owner => { if (filletApplyCurrent(owner, activeStore.get())) apply(); }} onCancel={cancel} />;
   return (
-    <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px', '--rail-w': (sketch || rendering || drawing ? 44 : rail.width) + 'px' } as CSSProperties}>
+    <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px', '--rail-w': sketch || rendering || drawing ? '44px' : '116px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
@@ -2360,12 +2360,8 @@ export function App() {
         <div className="mode" role="group" aria-label="Mode" data-workspace-mode>
           <Button size="sm" variant={!sketch && !rendering && !drawing ? 'default' : 'ghost'} className={!sketch && !rendering && !drawing ? 'on' : ''}
             onPointerDown={workspaceModeExit.rememberFocus} onClick={event => requestWorkspace('Model', event)}>Model</Button>
-          <Button size="sm" variant={sketch ? 'default' : 'ghost'} className={sketch ? 'on sketching' : ''}
-            onPointerDown={workspaceModeExit.rememberFocus} onClick={event => {
-              if (!sketch) workspaceModeExit.switchWhenReady(() => {
-                startRef.current(commands.find(c => c.id === 'sketch')!);
-              }, { event });
-            }}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
+          <Button ref={sketchModeButton} size="sm" variant={sketch ? 'default' : 'ghost'} className={sketch ? 'on sketching' : ''}
+            onPointerDown={workspaceModeExit.rememberFocus} onClick={requestSketchWorkspace}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
           <Button size="sm" variant={rendering ? 'default' : 'ghost'} className={rendering ? 'on' : ''}
             onPointerDown={workspaceModeExit.rememberFocus} onClick={event => requestWorkspace('Render', event)}>Render</Button>
           <Button size="sm" variant={drawing ? 'default' : 'ghost'} className={drawing ? 'on' : ''}
@@ -2434,8 +2430,9 @@ export function App() {
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null} />
 
       <TooltipLayer />
-      <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
-        <ModelTools columns={rail.columns} sketch={sketch} setSketch={setSketch} command={{ placeStates, groupStates, activeId: active && filletType(active.cmd.id) ? 'fillet' : active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
+      <Profiler id="toolbar" onRender={onBlockRender}><nav className={'card toolbar' + (sketch ? '' : ' model-toolbar')} aria-label="Tools" hidden={rendering || drawing}>
+        <ModelTools sketch={sketch} setSketch={setSketch} sketchWorkspace={{ request: requestSketchWorkspace, rememberFocus: workspaceModeExit.rememberFocus }}
+          command={{ ctx, current: fresh && !busy && !variants.showing && !instanceSel.length, activeId: active && filletType(active.cmd.id) ? 'fillet' : active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
           panels={{ bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen }} />
       </nav></Profiler>
 

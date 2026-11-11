@@ -309,7 +309,9 @@ D685 fixes top toolbar clipping at the two reported desktop sizes. All 14 tools 
 
 D686 protects the Box draft on workspace requests and checks focus, Apply, Undo/Redo and simultaneous sketch and feature drafts in Studio. [D686](../studio-feature-mode-exit-2026-11-11/README.md).
 
-Next MAIN is D687 / P4, row 21. Implement the owner-selected compact Model rail and qualify the named Sketch and Extrude flow, selection context and keyboard access at both desktop sizes. The next P2 case remains actual 3MF output from the shown assembly variant. See the [P4 desktop usability acceptance](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
+D687 qualifies the compact Model rail, named Sketch and Extrude, selection-aware Hole and Fillet, and access to the grouped tools and search at the two selected desktop sizes. [D687](../studio-model-command-rail-2026-11-11/README.md).
+
+Next MAIN is D688 / P2 B07, rows 10 and 13. Verify actual 3MF output from the shown assembly variant with the independent ZIP/XML reader. Use the existing [exchange acceptance](../../roadmap-tracks/02-core-workflows.md).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

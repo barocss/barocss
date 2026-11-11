@@ -10,6 +10,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const oracleSource = String.raw`"""Two cube occurrences, one overridden blue and steel. Product imports: zero."""
 import json, math, sys
@@ -31,7 +32,7 @@ const f = await createFlow({ name: 'instance-looks', envFrozen: 'INSTANCE_LOOKS_
   inspectorSource: `import {readFileSync} from 'node:fs';import {evaluateDoc} from '../../packages/barocss-cad-model/src/engine/evaluate.ts';import {bomViewOf,deriveBom} from '../../packages/barocss-cad-model/src/bom/core.ts';
 const doc=JSON.parse(readFileSync(process.argv[2],'utf8'));console.log(JSON.stringify(deriveBom(bomViewOf(doc,(d:any)=>evaluateDoc(d,0) as any))));`,
   limits: ['Colours on screen are judged from screenshots by the root (WebGPU); WebGL2 is not run.', 'BOM masses read from the panel (rounded to its display).'],
-  initialFiles: ['apps/cad-studio/test/instance-looks-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/instance-looks.bcad', 'apps/cad-studio/test/fixtures/instance-looks-rev-b.bcad',
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/instance-looks-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/instance-looks.bcad', 'apps/cad-studio/test/fixtures/instance-looks-rev-b.bcad',
     'apps/cad-studio/src/ui/InstanceLooks.tsx', 'packages/barocss-cad-model/src/assembly/looks.ts'],
   requiredFrozen: ['packages/barocss-cad-model/src/assembly/looks.ts'] });
 
@@ -39,7 +40,7 @@ const panel = () => f.page.getByRole('complementary', { name: 'Instance', exact:
 const looksGroup = () => panel().getByRole('group', { name: 'Appearance (this occurrence)', exact: true });
 const pick = async name => { await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: name }).first().click(); await panel().waitFor(); };
 async function bomRows() {
-  await f.page.locator('nav.toolbar button[aria-label="BOM"]').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await f.page.locator('[aria-label="BOM lines"] tr[aria-label^="BOM line"]').first().waitFor({ timeout: 60000 });
   await f.page.waitForTimeout(500);
   const rows = await f.page.evaluate(() => {

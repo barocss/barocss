@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
@@ -58,7 +59,7 @@ const pins = ['apps/cad-studio/test/bom-evaluation-completeness-browser.mjs', 'a
     'engine/refusal', 'team/freshness'].map(p => 'packages/barocss-cad-model/src/' + p + '.ts')];
 const f = await createFlow({
   name: 'bom-evaluation-completeness', envFrozen: 'D581_SOURCE_FROZEN', output, qualification: 'D581 #2420 desktop',
-  initialFiles: pins, requiredFrozen: pins, oracleSource,
+  initialFiles: [...pins, 'apps/cad-studio/test/model-rail-helper.mjs'], requiredFrozen: pins, oracleSource,
   limits: ['Real Worker evaluates an ordinary zero-height child. Observe its reply without replacing it. Capture local CSV before any browser download.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -165,7 +166,7 @@ await f.run(async () => {
   f.report.runtimeOwnership = { nodePID: process.pid, serverURL: origin };
   await f.newPage();
   await open('D581-healthy', good);
-  await button('BOM').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await readCsv('01-healthy', false);
   await f.snapshot('01-healthy');
 
@@ -215,7 +216,7 @@ await f.run(async () => {
   f.report.files.push({ file, sha256: sha256(saved), semanticEquality: true });
   await f.newPage();
   await open('D581-fresh', good, Buffer.from(saved));
-  await button('BOM').click();
+  await clickModelCommand(f.page, 'Inspect', 'BOM');
   await readCsv('04-fresh-open', false);
   await f.snapshot('04-fresh-open');
   if (!repro) {

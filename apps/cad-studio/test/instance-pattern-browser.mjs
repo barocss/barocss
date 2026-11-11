@@ -10,6 +10,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const oracleSource = String.raw`"""Instance pattern placements, independent of the product: occurrence k of a linear pattern is the seed moved k * spacing along unit(dir); of a circular
 pattern the seed's placement turned k * angle about the axis through origin (rotation matrix from the X-then-Y-then-Z degrees convention, back to those angles)."""
@@ -54,7 +55,7 @@ const fixture = join(import.meta.dirname, 'fixtures', 'instance-pattern.bcad'), 
 const f = await createFlow({ name: 'instance-pattern', envFrozen: 'INSTANCE_PATTERN_SOURCE_FROZEN', output: process.argv[2], qualification: 'INSTANCE_PATTERN', oracleSource,
   limits: ['One seed part (a cube) on a base plate; circular axis X/Y/Z through the origin only (the UI); patterns of patterns and edge/datum axes are not offered.',
     'The BOM check counts the panel\'s lines for the cube; drawing, STEP and 3MF consistency are the model tests\' (instance-patterns.test.ts).'],
-  initialFiles: ['apps/cad-studio/test/instance-pattern-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/instance-pattern.bcad', 'apps/cad-studio/src/ui/InstancePattern.tsx', 'apps/cad-studio/src/ui/InstancePanel.tsx',
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/instance-pattern-browser.mjs', 'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/test/fixtures/instance-pattern.bcad', 'apps/cad-studio/src/ui/InstancePattern.tsx', 'apps/cad-studio/src/ui/InstancePanel.tsx',
     'apps/cad-studio/src/App.tsx', 'packages/barocss-cad-model/src/assembly/patterns.ts'],
   requiredFrozen: ['packages/barocss-cad-model/src/assembly/patterns.ts'] });
 
@@ -106,7 +107,7 @@ await f.run(async () => {
   const beforeSave = await check('09-skip-1', 1, 3); assert.deepEqual(beforeSave.instancePatterns[0].skip, [1]);
   const saved = await f.save('instance-pattern'); await f.freshOpen(saved.file, beforeSave, '10-fresh-open'); await check('10-fresh-open', 1, 3);
 
-  f.phase = 'BOM'; await f.page.locator('nav.toolbar button[aria-label="BOM"]').click(); await f.page.getByRole('complementary', { name: 'BOM panel' }).waitFor();
+  f.phase = 'BOM'; await clickModelCommand(f.page, 'Inspect', 'BOM'); await f.page.getByRole('complementary', { name: 'BOM panel' }).waitFor();
   await f.page.locator('[aria-label="BOM lines"] tr[aria-label^="BOM line"]').first().waitFor({ timeout: 60000 });
   const bom = await f.page.evaluate(() => [...document.querySelectorAll('[aria-label="BOM lines"] tr[aria-label^="BOM line"]')].map(r => [...r.querySelectorAll('td')].map(td => td.textContent.trim())));
   f.report.observations.push({ bom }); await f.snapshot('11-bom');

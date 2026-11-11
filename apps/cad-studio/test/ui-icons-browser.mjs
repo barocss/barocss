@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
+import { openModelGroup } from './model-rail-helper.mjs';
 
 const gallery = resolve(process.argv[3] ?? ''), output = resolve(process.argv[2] ?? ''); assert.ok(process.argv[2] && process.argv[3]);
 await mkdir(output, { recursive: true });
@@ -13,7 +14,7 @@ const registry = JSON.parse(await readFile(join(gallery, 'registry.json'), 'utf8
 const metadata = JSON.parse(await readFile(join(gallery, 'producer-inputs.json'), 'utf8'));
 const f = await createFlow({
   name: 'ui-icons', envFrozen: 'UI_ICONS_SOURCE_FROZEN', output, qualification: 'D415_LUCIDE_UI_ICONS',
-  initialFiles: ['apps/cad-studio/test/ui-icons-browser.mjs', 'apps/cad-studio/test/ui-icon-gallery.mjs', 'apps/cad-studio/test/fixtures/bracket.bcad', native],
+  initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/ui-icons-browser.mjs', 'apps/cad-studio/test/ui-icon-gallery.mjs', 'apps/cad-studio/test/fixtures/bracket.bcad', native],
   extraFrozen: Object.keys(metadata.inputs).filter(path => path !== 'apps/cad-studio/ui-icon-gallery.tsx'),
   requiredFrozen: ['apps/cad-studio/src/ui/atoms.tsx', 'apps/cad-studio/src/ui/uiIcons.ts', 'apps/cad-studio/src/ui/cadIcons.tsx'],
   limits: [
@@ -58,11 +59,13 @@ await f.run(async () => {
   for (const [label, name] of [['Chat', 'chat'], ['Undo', 'undo'], ['Redo', 'redo'], ['Parameters', 'function'], ['Open', 'folder_open'], ['Save', 'save']]) {
     await uiIcon(f.page.getByRole('button', { name: label, exact: true }).first(), name);
   }
-  const box = f.page.getByRole('button', { name: 'Box', exact: true });
+  const shapes = await openModelGroup(f.page, 'Shapes');
+  const box = shapes.getByRole('button', { name: 'Box', exact: true });
   assert.equal(await box.locator('svg.cad-icon').count(), 1, 'existing CAD renderer remains in toolbar');
   await noMissing('main'); await f.snapshot('01-main-svg-controls');
 
   f.phase = 'keyboard command palette and existing CAD command';
+  await f.page.evaluate(() => document.activeElement?.blur());
   await f.page.keyboard.press('Space');
   const palette = f.page.getByRole('dialog', { name: 'Command palette', exact: true }); await palette.waitFor();
   await uiIcon(palette.locator('.palette-input'), 'search');
