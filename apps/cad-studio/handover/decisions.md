@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D747 — preserve deletion of the last horizontal or vertical constraint](notes/sketch-last-hv-removal-2026-11-12/README.md).
 - [D746 — respect body visibility in sketch snapping](notes/sketch-snap-body-visibility-2026-11-12/README.md).
 - [D745 — keep interference results with their current inspection](notes/interference-request-ownership-2026-11-12/README.md).
 - [D744 — preserve unchecked interference pairs](notes/interference-unchecked-pairs-2026-11-12/README.md).

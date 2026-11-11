@@ -331,7 +331,13 @@ test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension whil
   // A typed width keeps it a rectangle; the editor then offers width, depth and corner.
   const wide = (commitDimension(outline, 'len0', 55) as { shape: Polygon }).shape;
   const node = shapeNode(wide)!;
-  assert.deepEqual(node, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [55, 20] });
+  assert.deepEqual(node, {
+    kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [55, 20],
+    outline: {
+      points: [[0, 0], [55, 0], [55, 20], [0, 20]],
+      lengths: { 0: 55 }, hv: { h: [0, 2], v: [1, 3] },
+    },
+  });
   const d = withNode(withNode(emptyDoc(), node), { kind: 'extrude', sketch: 0, height: 5 });
   assert.deepEqual(editFields(d.nodes, 1).map(f => f.label).slice(0, 4), ['Width', 'Depth', 'Corner X', 'Corner Y']);
   // A removed H/V edge or an explicit rule makes it an outline again.

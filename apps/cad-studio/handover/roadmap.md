@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-12 · Priority authority: D520 · Latest delivery: D746 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-12 · Priority authority: D520 · Latest delivery: D747 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D746 keeps explicitly hidden top-level bodies out of actual sketch snap cues and authored coordinates. [D746](notes/sketch-snap-body-visibility-2026-11-12/README.md).
-- **Next MAIN:** D747 / P0, rows 09 and 16. Verify whether Finish, Edit sketch and native Save/Open preserve deletion of the last horizontal or vertical constraint. [#2320](https://github.com/barocss/barocss/issues/2320). [Core workflows](roadmap-tracks/02-core-workflows.md).
+- **Current position:** D747 keeps the deleted last horizontal or vertical constraint absent after Finish, Edit sketch and native Save/Open. [D747](notes/sketch-last-hv-removal-2026-11-12/README.md).
+- **Next MAIN:** D748 / P0, rows 09 and 16. Reproduce and prevent Finish from silently discarding an authored open line or arc beside a closed profile. [#2295](https://github.com/barocss/barocss/issues/2295). [Core workflows](roadmap-tracks/02-core-workflows.md).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **5/10 accepted**; B06 **6/7 qualified groups, PDF held**; B03, B05, B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
