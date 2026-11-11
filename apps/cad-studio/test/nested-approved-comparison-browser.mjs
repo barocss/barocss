@@ -9,7 +9,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
-const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline;
+const persistFollowUpBaseline = mode === '--save-follow-up-baseline';
+const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline;
+const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline || persistFollowUp;
 const attachBaseline = mode === '--attach-review-baseline', attachReview = mode === '--attach-review';
 const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline || attachBaseline || attachReview;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
@@ -29,6 +31,7 @@ const pins = [
   ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
     'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
   ...(followUp ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts'] : []),
+  ...(persistFollowUp ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
   ...(attachReview ? ['apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts',
     'apps/cad-studio/src/chat/useStudioChat.ts', 'apps/cad-studio/src/chat/client.ts', 'apps/cad-studio/src/ui/ChatPanel.tsx'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
@@ -68,10 +71,20 @@ if 'artifact' in d:
         assert row['requirement'] == criterion
         assert (row['result']['run'], row['result']['number'], row['result']['verdict'], row['freshness']['state']) == (e['revision'], number, verdict, 'current')
     assert r['recoveries'] == [{'id':'HEIGHT','from':6,'to':4,'unit':'mm'}]
+    if 'later' in d['pins']:
+        f = r['followUp']
+        assert f['version'] == d['pins']['later'] and f['status'] == 'checked'
+        assert f['findings'] == [{'id':'HEIGHT','status':'regressed'}]
+        e = f['evidence']
+        assert e['part'] == r['part'] and e['revision'] == f['version']['evidenceRevision'] and e['checker'] == 'checkSpec'
+        row, = [v for v in e['evidence'] if v.get('requirement', {}).get('id') == 'HEIGHT']
+        leaf, = d['working']['instances'][0]['doc']['instances']
+        assert row['requirement'] == leaf['doc']['requirements'][0]
+        assert (row['result']['run'], row['result']['number'], row['result']['verdict'], row['freshness']['state']) == (e['revision'], 8, 'fail', 'current')
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
   qualification: saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
@@ -171,7 +184,7 @@ async function installHold() {
   });
 }
 
-async function inspectSavedFollowUp(saved, approved, historical) {
+async function inspectSavedFollowUp({ saved, first, approved, working, skipped, historical, current, pair }) {
   const select = () => history().getByLabel('Follow-up version', { exact: true });
   const result = () => history().getByRole('region', { name: 'Saved follow-up checks', exact: true });
   const [firstVersion, approvedVersion, laterVersion, skippedVersion] = JSON.parse(saved.log).versions;
@@ -203,6 +216,16 @@ async function inspectSavedFollowUp(saved, approved, historical) {
   await f.same(approved);
   assert.deepEqual(await projectBytes(), saved);
   await f.snapshot('04-saved-regression-working-restored');
+  if (persistFollowUpBaseline) {
+    assert.equal(await result().getByRole('button', { name: 'Save follow-up evidence', exact: true }).count(), 0);
+    f.report.observations.push({ laterVerdictVisible: true, saveActionAvailable: false });
+    return null;
+  }
+
+  if (persistFollowUp) {
+    await verifyPersistedFollowUp({ saved, first, approved, working, skipped, historical, current, pair });
+    return null;
+  }
 
   f.phase = 'retire the successor check when the saved comparison changes';
   await select().selectOption('');
@@ -250,6 +273,29 @@ function approvalEvidenceFile(name, replacement) {
   }, { project, name, replacement });
 }
 
+async function reopenAndBlockChecks(working, approvedVersionId) {
+  await f.page.reload();
+  await f.ready();
+  await openProject();
+  await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+  await f.same(working);
+  await f.page.evaluate(async () => {
+    const url = '/src/engine/client.ts';
+    const { EngineClient } = await import(url);
+    const original = EngineClient.prototype.part;
+    window.__d651ReadAttempts = 0;
+    EngineClient.prototype.part = function (doc, revision, slot) {
+      if (slot === 'read') {
+        window.__d651ReadAttempts++;
+        return Promise.reject(new Error('Read-slot evaluation blocked by the saved evidence test.'));
+      }
+      return original.call(this, doc, revision, slot);
+    };
+  });
+  await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+  await selectTarget().selectOption(approvedVersionId);
+}
+
 async function verifyPersistentReview({ saved, pair, first, approved, working, historical, current }) {
   const [beforeVersion, afterVersion, laterVersion] = JSON.parse(saved.log).versions;
   const file = sha256(JSON.stringify([filename, beforeVersion.id, afterVersion.id, 'p1/p1'])) + '.json';
@@ -280,31 +326,8 @@ async function verifyPersistentReview({ saved, pair, first, approved, working, h
   await f.snapshot('06-approval-evidence-saved');
   await writeFile(join(output, 'approval-evidence-envelope.json'), bytes);
 
-  async function reopenAndBlockChecks() {
-    await f.page.reload();
-    await f.ready();
-    await openProject();
-    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
-    await f.same(working);
-    await f.page.evaluate(async () => {
-      const url = '/src/engine/client.ts';
-      const { EngineClient } = await import(url);
-      const original = EngineClient.prototype.part;
-      window.__d651ReadAttempts = 0;
-      EngineClient.prototype.part = function (doc, revision, slot) {
-        if (slot === 'read') {
-          window.__d651ReadAttempts++;
-          return Promise.reject(new Error('Read-slot evaluation blocked by D651.'));
-        }
-        return original.call(this, doc, revision, slot);
-      };
-    });
-    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
-    await selectTarget().selectOption(afterVersion.id);
-  }
-
   f.phase = 'open the persisted review in a fresh page with check evaluation blocked';
-  await reopenAndBlockChecks();
+  await reopenAndBlockChecks(working, afterVersion.id);
   await stored().waitFor();
   await measurement().waitFor();
   assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
@@ -324,7 +347,7 @@ async function verifyPersistentReview({ saved, pair, first, approved, working, h
   const wrongReport = JSON.stringify({ ...report, to: { ...report.to, id: laterVersion.id } }) + '\n';
   const wrongBytes = JSON.stringify({ ...artifact, text: wrongReport, bytes: Buffer.byteLength(wrongReport), sha256: sha256(wrongReport) });
   assert.equal(await approvalEvidenceFile(file, wrongBytes), wrongBytes);
-  await reopenAndBlockChecks();
+  await reopenAndBlockChecks(working, afterVersion.id);
   await history().getByText('Saved approval evidence does not match this review.', { exact: true }).waitFor();
   assert.equal(await measurement().count(), 0);
   assert.equal(await save().count(), 0);
@@ -335,6 +358,73 @@ async function verifyPersistentReview({ saved, pair, first, approved, working, h
   await f.snapshot('08-approval-evidence-refused');
   f.report.observations.push({ pins, persistedFileSHA256: sha256(bytes), payloadSHA256: artifact.sha256,
     reopenedWithoutCheckEvaluation: true, mismatchedPinRefused: true, storedVersionsUnchanged: true });
+}
+
+async function verifyPersistedFollowUp({ saved, first, approved, working, skipped, historical, current, pair }) {
+  const [beforeVersion, approvedVersion, laterVersion, skippedVersion] = JSON.parse(saved.log).versions;
+  const stem = sha256(JSON.stringify([filename, beforeVersion.id, approvedVersion.id, 'p1/p1']));
+  const pairFile = stem + '.json', laterFile = stem + '-' + laterVersion.id + '.json';
+  const section = () => history().getByRole('region', { name: 'Saved follow-up checks', exact: true });
+  const save = () => section().getByRole('button', { name: 'Save follow-up evidence', exact: true });
+  const stored = () => section().getByText('Follow-up evidence saved', { exact: true });
+  const regression = () => section().getByText('Regressed', { exact: true });
+
+  f.phase = 'save the three pinned revisions without creating a separate approval file';
+  assert.equal(await approvalEvidenceFile(pairFile), null);
+  assert.equal(await approvalEvidenceFile(laterFile), null);
+  await save().click();
+  await stored().waitFor();
+  const bytes = await approvalEvidenceFile(laterFile);
+  assert.ok(bytes);
+  assert.equal(await approvalEvidenceFile(pairFile), null);
+  const artifact = JSON.parse(bytes), report = JSON.parse(artifact.text);
+  const pin = (version, evidenceRevision) => ({ id: version.id, snapshot: version.snapshot, revision: version.revision, evidenceRevision });
+  const pins = { from: pin(beforeVersion, pair.before), to: pin(approvedVersion, pair.after),
+    later: pin(laterVersion, report.followUp.evidence.revision) };
+  assert.deepEqual([report.from, report.to, report.followUp.version], [pins.from, pins.to, pins.later]);
+  await f.runOracle({ first, approved, working, historical, current, artifact, pins }, 'persisted-follow-up');
+  await f.same(approved);
+  assert.deepEqual(await projectBytes(), saved);
+  await writeFile(join(output, 'follow-up-evidence-envelope.json'), bytes);
+  await f.snapshot('06-follow-up-evidence-saved');
+
+  f.phase = 'reopen all three saved checks with the live evaluation blocked';
+  const select = () => history().getByLabel('Follow-up version', { exact: true });
+  await reopenAndBlockChecks(skipped, approvedVersion.id);
+  await history().getByText(historical, { exact: true }).waitFor();
+  assert.deepEqual(await select().locator('option').evaluateAll(options => options.map(option => option.value)), ['', laterVersion.id]);
+  await select().selectOption(laterVersion.id);
+  await stored().waitFor();
+  await regression().waitFor();
+  assert.equal(await section().getByText('8 mm', { exact: true }).count(), 1);
+  assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
+  assert.equal(await approvalEvidenceFile(laterFile), bytes);
+  await f.snapshot('07-follow-up-evidence-reopened');
+
+  // Keep the original pair through the independent action, then verify it stays readable through the refused later record.
+  await history().getByRole('button', { name: 'Save approval evidence', exact: true }).click();
+  await history().getByText('Approval evidence saved', { exact: true }).waitFor();
+  const pairBytes = await approvalEvidenceFile(pairFile);
+  assert.ok(pairBytes);
+  const wrong = JSON.stringify({ ...report, followUp: { ...report.followUp, version: { ...pins.later, id: skippedVersion.id } } }) + '\n';
+  const invalid = JSON.stringify({ ...artifact, text: wrong, bytes: Buffer.byteLength(wrong), sha256: sha256(wrong) });
+  await approvalEvidenceFile(laterFile, invalid);
+
+  f.phase = 'refuse a mismatched later pin while preserving the original pair';
+  await reopenAndBlockChecks(skipped, approvedVersion.id);
+  await history().getByText('Approval evidence saved', { exact: true }).waitFor();
+  await select().selectOption(laterVersion.id);
+  await section().getByText('Saved follow-up evidence does not match this review.', { exact: true }).waitFor();
+  assert.equal(await regression().count(), 0);
+  assert.equal(await save().count(), 0);
+  assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
+  assert.equal(await approvalEvidenceFile(pairFile), pairBytes);
+  assert.equal(await approvalEvidenceFile(laterFile), invalid);
+  assert.deepEqual(await projectBytes(), saved);
+  await f.same(skipped);
+  await f.snapshot('08-follow-up-pin-refused');
+  f.report.observations.push({ pins, payloadSHA256: artifact.sha256, persistedFileSHA256: sha256(bytes), laterVerdict: 'regressed',
+    reopenedWithoutCheckEvaluation: true, separatePairPreserved: true, mismatchedPinRefused: true, storedVersionsUnchanged: true });
 }
 
 async function withScriptedAgent(origin, check) {
@@ -670,7 +760,7 @@ await f.run(async () => {
     return;
   }
   if (followUp) {
-    const observation = await inspectSavedFollowUp(saved, approved, historical);
+    const observation = await inspectSavedFollowUp({ saved, first, approved, working, skipped, historical, current, pair });
     if (observation) await f.runOracle({ first, approved, working, historical, current, ...observation }, 'saved-follow-up-heights');
     assert.deepEqual(f.report.downloads, []);
     return;

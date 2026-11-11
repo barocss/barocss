@@ -1,0 +1,182 @@
+{
+  "decision": "D653",
+  "tier": "FEATURE qualification with targeted persisted-format mutations",
+  "baseCommit": "f6514ea1b39170354c09032a5660cbd51dd3f53e",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d653-2026-11-11",
+  "priorFixture": "$HOME/.cache/barocss-cad-evidence/d607-2026-11-11/desktop",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Original product follow-up save action",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D653_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/baseline\" \"$PRIOR\" --save-follow-up-baseline",
+      "receiptSHA256": "6deb52e59160408167db5bf89941fd37cc2f9f6eac46e142caa514de4e13a310",
+      "pinnedSources": 315,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "receiptMeaning": "The baseline driver confirmed that the original UI displays a regression without a save action."
+    },
+    {
+      "label": "Actual Studio retained follow-up, fresh Open and mismatched-pin refusal",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D653_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/desktop\" \"$PRIOR\" --save-follow-up",
+      "receiptSHA256": "5edff3e78eebcde9ea00aba7298528d5341b7371ebd6d5b9cb1181bb41dd6f3a",
+      "pinnedSources": 315,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "pins": {
+          "from": {
+            "id": "vb08b7d28ea3b0deb",
+            "snapshot": "35336cb9c7a6e532",
+            "revision": "6868500b8c0fb6f6",
+            "evidenceRevision": "b11f5ecae09046643e13cc6e6cff844a473ed6c87b040d4986515601590e7b04"
+          },
+          "to": {
+            "id": "vad43c0909e0da6c0",
+            "snapshot": "2a58dc068d9faf56",
+            "revision": "0f0148aa4c4e690c",
+            "evidenceRevision": "155d2fbcddb44df39c157f6258d3cb6bb735480240698a6e407571840fef464f"
+          },
+          "later": {
+            "id": "v98586cd9491948db",
+            "snapshot": "dc822d99ac449fca",
+            "revision": "d829797f1380e4f8",
+            "evidenceRevision": "ac6c8ab14c38be662d89230f231cb460a4777dd051bbff0bd6727559ba1a6aa0"
+          }
+        },
+        "payloadSHA256": "4b3540bc4f48b5b823a8a755b23fd969033fc99fcb9044054d5ae3e7ba9a9d8c",
+        "persistedFileSHA256": "1707b36f21741c3bd60946b84e875a7bdc2abbca0e76942fcba3bf45ddcf959d",
+        "laterVerdict": "regressed",
+        "reopenedWithoutCheckEvaluation": true,
+        "separatePairPreserved": true,
+        "mismatchedPinRefused": true,
+        "storedVersionsUnchanged": true,
+        "initialMm": 6,
+        "approvedMm": 4,
+        "laterMm": 8,
+        "workingMm": 3,
+        "limitMm": 5,
+        "checkEvaluationCalls": 0
+      }
+    },
+    {
+      "label": "Independent retained follow-up, three saved pins and local heights",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop/nested-approved-comparison-oracle.py\" < \"$EVIDENCE/desktop/persisted-follow-up-oracle-input.json\"",
+      "scriptSHA256": "32ec14a5aed647f4269545b5965d2f178092b42da7a6abab8d170c73a61765e8",
+      "resultSHA256": "2833044d28658a014e850509b26f21751b73a82326ca1820c890cb2a1d0b621e",
+      "productImports": 0,
+      "localHeightChecks": 6
+    },
+    {
+      "label": "Desktop D650 successor comparison regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D650_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d650\" \"$PRIOR\" --follow-up",
+      "receiptSHA256": "38b02d58b15883fb69968b20251069ad7b65d47913df3bfbda7c9f421f17033e",
+      "pinnedSources": 314,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop D652 retained approval attachment and MCP regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D652_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d652\" \"$PRIOR\" --attach-review",
+      "receiptSHA256": "0d3ae2fd3d1019adaf1e17d30cbf12793a200a3d1c8744ba367cf960037bfff3",
+      "pinnedSources": 323,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop D610 history evidence and stdio MCP regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D610_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d610\" \"$PRIOR\" --lifecycle",
+      "receiptSHA256": "1eccf1634b9b591cdbcd8ca232505b95daba946576d8a6c6a1cb81e9b20c27b1",
+      "pinnedSources": 323,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Isolated persisted reader and lineage mutations",
+      "result": "PASS",
+      "command": "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE\"",
+      "scriptSHA256": "a9fc0c58a990c617d87a8afeb3d73c8692fa86aaa20d015709cd0b0b1b30a83b",
+      "resultSHA256": "c0ac504e7bff3e9c3d3fcdc85a04a0caa680081e8f6ecbc99b219bec2106d9b6",
+      "variants": [
+        {
+          "name": "baseline",
+          "status": "PASS"
+        },
+        {
+          "name": "ignore-direct-lineage",
+          "status": "KILLED"
+        },
+        {
+          "name": "ignore-later-version-pin",
+          "status": "KILLED"
+        },
+        {
+          "name": "trust-saved-verdict",
+          "status": "KILLED"
+        },
+        {
+          "name": "accept-follow-up-as-pair",
+          "status": "KILLED"
+        },
+        {
+          "name": "use-approved-source-for-later-check",
+          "status": "KILLED"
+        }
+      ]
+    },
+    {
+      "label": "Focused Model",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "passCount": 73,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Focused Studio and persisted regression tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test approved-requirement-compare version-tools-mcp project-open-ownership project-version-ownership late-save-ownership storage-version-snapshot edit-in-place chat toolset-mcp tool-contract-mcp",
+      "passCount": 133,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model and Studio types, syntax, changed TypeScript lint and Studio build",
+      "result": "PASS",
+      "commands": [
+        "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+        "pnpm --dir apps/cad-studio exec tsc --noEmit",
+        "node --check apps/cad-studio/test/nested-approved-comparison-browser.mjs",
+        "git diff --name-only -- '*.ts' '*.tsx' | xargs pnpm exec eslint",
+        "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+        "git diff --check"
+      ]
+    },
+    {
+      "label": "Live model execution, mobile and whole CAD suites",
+      "result": "NOT_RUN"
+    }
+  ]
+}

@@ -14,6 +14,7 @@ export function approvalEvidencePin(version: Version, evidenceRevision: string) 
 type EvidencePin = ReturnType<typeof approvalEvidencePin>;
 export type ApprovalEvidenceContext = { from: EvidencePin; to: EvidencePin; part: string; proposal: string };
 type FollowUp = Awaited<ReturnType<typeof requirementFollowUp>> & { version: EvidencePin };
+export type CheckedApprovalFollowUp = Extract<FollowUp, { status: 'checked' }>;
 
 export function approvalEvidenceFile(context: ApprovalEvidenceContext, evidence: ApprovalCheck, followUp?: FollowUp) {
   const report = { format: APPROVAL_EVIDENCE_FORMAT, version: 1, ...context, ...evidence, ...(followUp ? { followUp } : {}) };

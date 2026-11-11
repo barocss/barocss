@@ -1,5 +1,5 @@
 ---
-work_id: D652
+work_id: D653
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -241,7 +241,9 @@ D651 keeps a saved approval review in the project. Fresh Studio Open reads the v
 
 D652 lets the person attach a retained approval review to a Studio agent turn. The exact file is read-only and bound to the saved versions and occurrence. Document or project changes retire the pending attachment. [D652](../studio-agent-saved-approval-attachment-2026-11-11/README.md).
 
-Next MAIN is D653 / P0 automation evidence, rows 04, 12 and 16. Persist one explicitly selected direct saved follow-up with its original failure and approval. Verify all three version pins and the later verdict after fresh Open. Reuse the v1 report and preserve existing pair artifacts. [#2279](https://github.com/barocss/barocss/issues/2279).
+D653 retains one direct saved successor with the original failure and approval. Studio reads the three checked results after fresh Open and refuses a mismatched later pin. [D653](../studio-persisted-follow-up-evidence-2026-11-11/README.md).
+
+Next MAIN is D654 / P0 automation evidence, rows 04, 12 and 16. Attach the retained direct follow-up to one explicit Studio agent turn. Return the exact three-version file through the selected evidence tool, and verify direct lineage, pin and document ownership controls. Preserve the saved pair attachment path. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

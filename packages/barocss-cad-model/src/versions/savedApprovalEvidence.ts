@@ -1,12 +1,15 @@
 import type { RequirementEvidence } from '../chat/requirementEvidence';
 import type { StudioDoc } from '../engine/doc';
+import type { Proposal } from '../engine/schema/proposals';
 import { documentRevision } from '../team/bundle';
 import { nestedRequirementScope } from '../team/requirementScope';
 import { requirementEvidenceRevision, sha256Hex } from '../util/digest';
 import { isObj } from '../util/guards';
 import { canonical } from '../util/revision';
 import { summarizeApprovalEvidence } from './approvedRequirements';
-import { APPROVAL_EVIDENCE_FORMAT, APPROVAL_EVIDENCE_NAME, type ApprovalCheck, type ApprovalEvidenceContext } from './approvalEvidenceReport';
+import { APPROVAL_EVIDENCE_FORMAT, APPROVAL_EVIDENCE_NAME, type ApprovalCheck, type ApprovalEvidenceContext,
+  type CheckedApprovalFollowUp } from './approvalEvidenceReport';
+import { followUpFindings, followUpRequirements } from './requirementFollowUp';
 
 export type ApprovalEvidenceFile = { path: typeof APPROVAL_EVIDENCE_NAME; mime: 'application/json'; encoding: 'utf-8'; bytes: number; sha256: string; text: string };
 const encoder = new TextEncoder();
@@ -18,7 +21,7 @@ export function parseApprovalEvidenceFile(value: unknown): { file: ApprovalEvide
   if (value.bytes !== bytes.length || value.sha256 !== sha256) return null;
   try {
     const report: unknown = JSON.parse(value.text);
-    if (!isObj(report) || report.format !== APPROVAL_EVIDENCE_FORMAT || report.version !== 1 || report.followUp !== undefined) return null;
+    if (!isObj(report) || report.format !== APPROVAL_EVIDENCE_FORMAT || report.version !== 1) return null;
     return { file: { path: APPROVAL_EVIDENCE_NAME, mime: 'application/json', encoding: 'utf-8', bytes: bytes.length, sha256, text: value.text }, report };
   } catch {
     return null;
@@ -50,7 +53,7 @@ function boundEvidence(value: unknown, root: StudioDoc, part: string, revision: 
   });
 }
 
-export function matchSavedApprovalEvidence(report: Record<string, unknown>, context: ApprovalEvidenceContext,
+function matchApprovalPair(report: Record<string, unknown>, context: ApprovalEvidenceContext,
   before: StudioDoc, after: StudioDoc): ApprovalCheck | null {
   const { from, to, part, proposal } = context;
   if (canonical(report.from) !== canonical(from) || canonical(report.to) !== canonical(to)
@@ -60,4 +63,28 @@ export function matchSavedApprovalEvidence(report: Record<string, unknown>, cont
   const { recoveries, changed } = summarizeApprovalEvidence(report.before, report.after);
   if (!recoveries.length || canonical(report.recoveries) !== canonical(recoveries) || canonical(report.changed) !== canonical(changed)) return null;
   return { before: report.before, after: report.after, recoveries, changed };
+}
+
+export function matchSavedApprovalEvidence(report: Record<string, unknown>, context: ApprovalEvidenceContext,
+  before: StudioDoc, after: StudioDoc): ApprovalCheck | null {
+  return report.followUp === undefined ? matchApprovalPair(report, context, before, after) : null;
+}
+
+export function matchSavedFollowUpEvidence(report: Record<string, unknown>, context: ApprovalEvidenceContext,
+  before: StudioDoc, after: StudioDoc, source: {
+    version: CheckedApprovalFollowUp['version']; doc: StudioDoc; operation: Proposal['ops'][number];
+  }): { approval: ApprovalCheck; followUp: CheckedApprovalFollowUp } | null {
+  const approval = matchApprovalPair(report, context, before, after);
+  const saved = report.followUp, { part } = context, { version, doc, operation } = source;
+  if (!approval || !isObj(saved) || saved.status !== 'checked' || canonical(saved.version) !== canonical(version)) return null;
+  const scope = followUpRequirements(after, doc, operation, part, version.evidenceRevision);
+  if ('reason' in scope) return null;
+  let evidence: RequirementEvidence | null = null;
+  if (scope.requirements?.length) {
+    if (!boundEvidence(saved.evidence, doc, part, version.evidenceRevision)) return null;
+    evidence = saved.evidence;
+  } else if (saved.evidence !== null) return null;
+  const findings = followUpFindings(approval.recoveries.map(row => row.id), approval.after, evidence, part, version.evidenceRevision);
+  if (canonical(saved.findings) !== canonical(findings)) return null;
+  return { approval, followUp: { version, status: 'checked', findings, evidence } };
 }

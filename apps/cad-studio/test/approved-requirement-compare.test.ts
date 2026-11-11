@@ -2,16 +2,20 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PassThrough } from 'node:stream';
 import { validate } from '@barocss/cad-model/chat/contract';
+import { editNestedDefinition } from '@barocss/cad-model/chat/nestedParameterProposal';
 import { acceptProposal, runTool } from '@barocss/cad-model/chat/tools';
 import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { Op } from '@barocss/cad-model/engine/schema/proposals';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
+import { nestedRequirementScope } from '@barocss/cad-model/team/requirementScope';
 import { approvedRequirementComparison, compareApprovedRequirements as evidenceOf } from '@barocss/cad-model/versions/approvedRequirements';
 import { approvalEvidenceFile } from '@barocss/cad-model/versions/approvalEvidenceReport';
 import { makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
-import { bindSavedApproval, readSavedApprovalEvidence, saveApprovalEvidence } from '../src/storage/savedApprovalEvidence';
+import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
+import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence, saveApprovalEvidence,
+  saveFollowUpEvidence } from '../src/storage/savedApprovalEvidence';
 import { memoryStore } from '../src/storage/memoryStore';
 import { serveMcp } from '../server/cadMcp';
 import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalEvidenceTool, selectedApprovalForTurn } from '../server/selectedApprovalEvidence';
@@ -149,6 +153,52 @@ test('D651 keeps an exact saved approval once and refuses altered evidence witho
   assert.equal(await readSavedApprovalEvidence(review), null);
   await saveApprovalEvidence(review, evidence);
   assert.deepEqual((await store.read(review.path))?.bytes, kept.bytes);
+});
+
+test('D653 retains a direct saved regression and refuses substituted pins and verdicts', async () => {
+  const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
+  const comparison = approvedRequirementComparison(pending, accepted);
+  assert.ok(comparison?.nested);
+  const part = 'p1/p1', operation = comparison.nested.ops[0];
+  const approval = await evidenceOf(comparison, part, evaluate);
+  assert.ok(!('error' in approval));
+  const leaf = nestedRequirementScope(accepted, part);
+  assert.ok(!('error' in leaf));
+  const changed = editNestedDefinition(accepted, leaf, { ...leaf.leaf.doc, parameters: { ...leaf.leaf.doc.parameters, H: 12 } });
+  assert.ok(!('error' in changed));
+  const first = makeVersions(pending, { at: '2026-11-11T00:00:00Z' });
+  const approved = makeVersion(first, accepted, { at: '2026-11-11T00:01:00Z' });
+  const later = makeVersion(approved.log, changed.doc, { at: '2026-11-11T00:02:00Z' });
+  const skipped = makeVersion(later.log, { ...changed.doc, parameters: { extra: 1 } }, { at: '2026-11-11T00:03:00Z' });
+  const store = memoryStore();
+  const review = bindSavedApproval({ store, document: 'assembly.bcad', from: first.versions[0], to: approved.version }, comparison, part);
+  const source = bindSavedFollowUp(review, later.log, later.version, operation);
+  assert.ok(source);
+  assert.equal(bindSavedFollowUp(review, skipped.log, skipped.version, operation), null);
+  const followUp = await requirementFollowUp(accepted, changed.doc, operation, part, ['H-CAP'], approval.after,
+    source.version.evidenceRevision, evaluate);
+  assert.ok(followUp.status === 'checked');
+  assert.deepEqual(followUp.findings, [{ id: 'H-CAP', status: 'regressed' }]);
+  await saveApprovalEvidence(review, approval);
+  const pair = await store.read(review.path);
+  await Promise.all([saveFollowUpEvidence(source, approval, followUp), saveFollowUpEvidence(source, approval, followUp)]);
+  const retained = await store.read(source.path);
+  assert.ok(retained);
+  assert.deepEqual(await readSavedFollowUpEvidence(source), JSON.parse(JSON.stringify({ approval, followUp: { version: source.version, ...followUp } })));
+  for (const invalid of [
+    { ...followUp, version: { ...source.version, id: skipped.version.id } },
+    { ...followUp, version: source.version, findings: [{ id: 'H-CAP', status: 'passing' as const }] },
+  ]) {
+    const artifact = approvalEvidenceFile(review.context, approval, invalid);
+    const bytes = new TextEncoder().encode(JSON.stringify(artifact));
+    await store.write(source.path, bytes);
+    assert.deepEqual(await readSavedFollowUpEvidence(source), { error: 'Saved follow-up evidence does not match this review.' });
+    await assert.rejects(saveFollowUpEvidence(source, approval, followUp), { code: 'STORAGE_CHANGED' });
+    assert.deepEqual((await store.read(source.path))?.bytes, bytes);
+    assert.deepEqual(await store.read(review.path), pair);
+  }
+  await store.write(review.path, retained.bytes);
+  assert.deepEqual(await readSavedApprovalEvidence(review), { error: 'Saved approval evidence does not match this review.' });
 });
 
 test('D652 lists the read-only tool only for a retained approval bound to the turn snapshots', async () => {

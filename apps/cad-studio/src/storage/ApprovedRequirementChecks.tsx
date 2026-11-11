@@ -6,19 +6,21 @@ import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { approvedRequirementComparison, compareApprovedRequirements } from '@barocss/cad-model/versions/approvedRequirements';
 import type { ApprovalCheck } from '@barocss/cad-model/versions/approvalEvidenceReport';
-import { readVersion, type Version, type VersionLog } from '@barocss/cad-model/versions/log';
+import type { Version, VersionLog } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
-import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
-import { bindSavedApproval, readSavedApprovalEvidence, saveApprovalEvidence, type SavedApprovalPair } from './savedApprovalEvidence';
+import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
+  saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair } from './savedApprovalEvidence';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
 type BoundReview = ReturnType<typeof bindSavedApproval>;
+type BoundFollowUp = NonNullable<ReturnType<typeof bindSavedFollowUp>>;
 export type AttachApprovalEvidence = (review: BoundReview) => Promise<boolean>;
 type SavedSuccessor = { log: VersionLog; version: Version };
 type FollowUpResult = Awaited<ReturnType<typeof requirementFollowUp>>;
+type FollowUpRead = FollowUpResult | { error: string };
 const unitText = (unit?: string) => unit === 'mm3' ? 'mm³' : unit === 'mm2' ? 'mm²' : unit;
 const FOLLOW_UP_STATUS = {
   regressed: 'Regressed',
@@ -28,40 +30,71 @@ const FOLLOW_UP_STATUS = {
   unresolved: 'Unresolved',
 };
 
-function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }: {
-  pin: SavedSuccessor; comparison: Comparison; part: string; approval: ApprovalCheck; evaluate: Evaluate;
+function useEvidenceSave() {
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const save = (write: () => Promise<void>) => {
+    setState('saving');
+    void write().then(() => setState('saved'), () => setState('failed'));
+  };
+  return { state, save };
+}
+
+function KeepFollowUpEvidence({ source, approval, report, stored }: {
+  source: BoundFollowUp; approval: ApprovalCheck; report: Extract<FollowUpResult, { status: 'checked' }>; stored: boolean;
+}) {
+  const { state, save } = useEvidenceSave();
+  if (stored || state === 'saved') return <div role="status">Follow-up evidence saved</div>;
+  return <div className="mt-1">
+    <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveFollowUpEvidence(source, approval, report))}>
+      {state === 'saving' ? 'Saving follow-up evidence…' : 'Save follow-up evidence'}
+    </Button>
+    {state === 'failed' && <div role="status">Could not save follow-up evidence.</div>}
+  </div>;
+}
+
+function SavedRequirementFollowUp({ source, name, approval, evaluate }: {
+  source: BoundFollowUp; name: string; approval: ApprovalCheck; evaluate: Evaluate;
 }) {
   const [selected, setSelected] = useState(false);
-  const request = useMemo(() => selected ? { pin, comparison, part, approval, evaluate } : null,
-    [selected, pin, comparison, part, approval, evaluate]);
-  const [settled, setSettled] = useState<{ request: NonNullable<typeof request>; report: FollowUpResult }>();
+  const request = useMemo(() => selected ? { source, approval, evaluate } : null, [selected, source, approval, evaluate]);
+  const [settled, setSettled] = useState<{ request: NonNullable<typeof request>; report: FollowUpRead; stored: boolean }>();
   useEffect(() => {
     if (!request) return;
-    const operation = request.comparison.nested?.ops[0];
-    if (!operation) return;
+    const { review, doc, version, operation } = request.source;
     let current = true;
     const recovered = request.approval.recoveries.map(row => row.id);
+    const complete = (report: FollowUpRead, stored = false) => { if (current) setSettled({ request, report, stored }); };
     const check = async () => {
-      const later = readVersion(request.pin.log, request.pin.version.id);
-      return requirementFollowUp(request.comparison.after, later, operation, request.part, recovered,
-        request.approval.after, requirementEvidenceRevision(later), input => current ? request.evaluate(input) : Promise.resolve(null));
+      const saved = await readSavedFollowUpEvidence(request.source);
+      if (!current) return;
+      if (saved) {
+        if ('error' in saved) complete(saved);
+        else if (canonical(saved.approval) === canonical(request.approval)) complete(saved.followUp, true);
+        else complete({ error: 'Saved follow-up evidence does not match this review.' });
+        return;
+      }
+      const report = await requirementFollowUp(review.after, doc, operation, review.context.part, recovered,
+        request.approval.after, version.evidenceRevision, input => current ? request.evaluate(input) : Promise.resolve(null));
+      complete(report);
     };
-    const complete = (report: FollowUpResult) => { if (current) setSettled({ request, report }); };
-    void check().then(complete, () => complete({ status: 'unresolved', reason: 'Could not check the saved follow-up.',
+    void check().catch(() => complete({ status: 'unresolved', reason: 'Could not check the saved follow-up.',
       findings: recovered.map(id => ({ id, status: 'unresolved' })) }));
     return () => { current = false; };
   }, [request]);
-  const report = settled && settled.request === request ? settled.report : undefined;
+  const current = settled?.request === request ? settled : undefined;
+  const result = current?.report;
+  const report = result && !('error' in result) ? result : undefined;
   const evidence = report?.status === 'checked' ? report.evidence : null;
   return <div className="mt-1">
     <label className="block">Follow-up version
-      <NativeSelect aria-label="Follow-up version" value={selected ? pin.version.id : ''} onChange={event => setSelected(event.currentTarget.value === pin.version.id)}>
+      <NativeSelect aria-label="Follow-up version" value={selected ? source.version.id : ''} onChange={event => setSelected(event.currentTarget.value === source.version.id)}>
         <option value="">None</option>
-        <option value={pin.version.id}>{pin.version.name ?? pin.version.id}</option>
+        <option value={source.version.id}>{name}</option>
       </NativeSelect>
     </label>
     {selected && <div role="region" aria-label="Saved follow-up checks" aria-live="polite">
-      {!report && <div role="status">Checking follow-up…</div>}
+      {!result && <div role="status">Checking follow-up…</div>}
+      {result && 'error' in result && <div role="status">{result.error}</div>}
       {report?.status === 'unresolved' && <div>{report.reason}</div>}
       {report?.findings.map(({ id, status }) => {
         const row = status === 'regressed' || status === 'passing' ? evidence?.evidence.find(item => item.requirement?.id === id) : undefined;
@@ -70,6 +103,7 @@ function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }:
           {row?.result.number != null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{row.result.number}{unit ? ' ' + unit : ''}</span>}
         </div>;
       })}
+      {report?.status === 'checked' && <KeepFollowUpEvidence source={source} approval={approval} report={report} stored={!!current?.stored} />}
     </div>}
   </div>;
 }
@@ -77,7 +111,7 @@ function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }:
 function KeepApprovalEvidence({ review, report, stored, onAttach }: {
   review: BoundReview; report: ApprovalCheck; stored: boolean; onAttach?: AttachApprovalEvidence;
 }) {
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const { state, save } = useEvidenceSave();
   const [attaching, setAttaching] = useState(false), [attachFailed, setAttachFailed] = useState(false);
   if (stored || state === 'saved') return <div>
     <div role="status">Approval evidence saved</div>
@@ -89,10 +123,9 @@ function KeepApprovalEvidence({ review, report, stored, onAttach }: {
     {attachFailed && <div role="status">Could not attach approval evidence.</div>}
   </div>;
   return <div className="mt-1">
-    <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => {
-      setState('saving');
-      void saveApprovalEvidence(review, report).then(() => setState('saved'), () => setState('failed'));
-    }}>{state === 'saving' ? 'Saving approval evidence…' : 'Save approval evidence'}</Button>
+    <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveApprovalEvidence(review, report))}>
+      {state === 'saving' ? 'Saving approval evidence…' : 'Save approval evidence'}
+    </Button>
     {state === 'failed' && <div role="status">Could not save approval evidence.</div>}
   </div>;
 }
@@ -101,17 +134,23 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
   comparison: Comparison; part: string; evaluate: Evaluate; followUp?: SavedSuccessor; savedPair?: SavedApprovalPair; onAttach?: AttachApprovalEvidence;
 }) {
   const review = useMemo(() => savedPair ? bindSavedApproval(savedPair, comparison, part) : null, [savedPair, comparison, part]);
+  const operation = comparison.nested?.ops[0];
+  const source = useMemo(() => review && followUp && operation ? bindSavedFollowUp(review, followUp.log, followUp.version, operation) : null,
+    [review, followUp, operation]);
   const [settled, setSettled] = useState<{ comparison: Comparison; part: string; evaluate: Evaluate; review: BoundReview | null;
-    report: CheckResult; stored: boolean }>();
+    source: BoundFollowUp | null; report: CheckResult; stored: boolean }>();
   useEffect(() => {
     let current = true;
     const complete = (report: CheckResult, stored = false) => {
-      if (current) setSettled({ comparison, part, evaluate, review, report, stored });
+      if (current) setSettled({ comparison, part, evaluate, review, source, report, stored });
     };
     const load = async () => {
       const saved = review ? await readSavedApprovalEvidence(review) : null;
       if (!current) return;
       if (saved) { complete(saved, true); return; }
+      const retainedFollowUp = source ? await readSavedFollowUpEvidence(source) : null;
+      if (!current) return;
+      if (retainedFollowUp && !('error' in retainedFollowUp)) { complete(retainedFollowUp.approval); return; }
       const report = await compareApprovedRequirements(comparison, part, input => current ? evaluate(input) : Promise.resolve(null));
       complete(report);
     };
@@ -119,8 +158,8 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
       () => complete({ error: 'Could not check both saved revisions.' }),
     );
     return () => { current = false; };
-  }, [comparison, part, evaluate, review]);
-  const current = settled?.comparison === comparison && settled.part === part && settled.evaluate === evaluate && settled.review === review
+  }, [comparison, part, evaluate, review, source]);
+  const current = settled?.comparison === comparison && settled.part === part && settled.evaluate === evaluate && settled.review === review && settled.source === source
     ? settled : undefined;
   const result = current?.report;
   if (!result) return <div role="status">Checking both revisions…</div>;
@@ -141,8 +180,8 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
       {criterion && <div>New criterion · {criterion}</div>}
     </div>)}
     {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach} />}
-    {followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={followUp.version.id}
-      pin={followUp} comparison={comparison} part={part} approval={result} evaluate={evaluate} />}
+    {source && followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={source.version.id}
+      source={source} name={followUp.version.name ?? followUp.version.id} approval={result} evaluate={evaluate} />}
   </>;
 }
 
