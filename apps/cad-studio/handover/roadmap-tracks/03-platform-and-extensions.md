@@ -83,3 +83,11 @@ Keep controlled adapters separate from paid live model/service proof. No paid li
 Use SMALL for a bounded private repair, FEATURE for new behavior/integration and FULL for changed public/geometry authority. Name requirement owners, consumed producer/consumer inputs and affected checks before execution. Add High geometry review when Boolean/B-rep/tolerance judgment is needed. Actual desktop Studio is required for a claimed Studio workflow; independent numeric/file authority is required for numeric/exchange claims. Do not repeat full suites solely because handover prose changed.
 
 Keep implementation, controlled checks, compiled consumer, native physics, actual product, docs, remote publication and release as separate status fields. Preserve first failures and explicit NOT_RUN/UNKNOWN. Competitor feature lists are declared claims only; root owns their source comparison and the finite B01..B10 baseline, initially NOT_ADJUDICATED. No percentage or parity claim follows.
+
+## Desktop Studio usability audit follow-up
+
+A separate Chrome/WebGPU audit on `a3b3f256c` observed these P4 gaps. Route sketch and document loss through [P0 reliability](01-reliability.md).
+
+- Drawing toolbar, rows 02 and 21. The collapsed chat rail covered nine drawing tools at 1440×900, leaving 7 of 34 px visible per button. Check full button visibility at 1440×900 and 1280×720. Place one linear dimension by pointer and keyboard and verify Fit sheet.
+- More tools keyboard, row 21. At 1280×720 and 1024×768, Enter opened the menu, focus stayed on its container and Escape did not restore trigger focus. Check first enabled item, arrows, Enter and Escape. Open Export STEP and Insert part with the keyboard.
+- Context and focus, row 21 and [#2287](https://github.com/barocss/barocss/issues/2287). Check model framing against the visible work area, tool group collapse, view cube keyboard access, Ortho/AO pressed state and Browser focus after Space or Escape. The audit observed duplicate chat startup instructions. Review each item with its own product acceptance.

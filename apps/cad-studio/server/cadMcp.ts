@@ -20,7 +20,7 @@ import { captureOp, type TurnOp } from '@barocss/cad-model/chat/merge';
 import { readSelectedNativeCheck, selectedNativeCheckTool, SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
 import { isTaskRunFindingSelection, type TaskRunFindingSelection } from '../src/chat/taskRunOffer';
 import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
-import type { ApprovalEvidenceFile } from '@barocss/cad-model/versions/savedApprovalEvidence';
+import type { ApprovalAttachmentPayload } from '../src/storage/faceRepairEvidence';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { faceDiagnosisMatchesDocument, isFaceDiagnosisSelection, type FaceDiagnosisSelection } from '../src/chat/faceDiagnosis';
 import { SELECTED_FACE_DIAGNOSIS, readSelectedFaceDiagnosis, selectedFaceDiagnosisTool } from './selectedFaceDiagnosis';
@@ -31,7 +31,7 @@ import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedAppr
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
 export interface StateFile { taskFinding?: TaskRunFindingSelection; rowFiles?: RowFileInput[]; rowConversation?: string; doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[];
   /** CG6 (DA-9): the project's version log as the turn carries it (versions/log.ts turnLog: the index, the documents it needs); `versionsChanged` when a call moved it, `versionsWanted` the versions whose documents a call asked for. */
-  versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[]; selectedApproval?: ApprovalEvidenceFile; selectedFaceDiagnosis?: FaceDiagnosisSelection }
+  versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[]; selectedApproval?: ApprovalAttachmentPayload; selectedFaceDiagnosis?: FaceDiagnosisSelection }
 
 /** The tools as MCP lists them (A5.1): title, annotations and, for read actions, the output schema (v2, the only list, O105). */
 export const TOOLS_LISTED = TOOLSET.tools.map(listed);
@@ -47,7 +47,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalEvidenceFile; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
+  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalAttachmentPayload; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[]; versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }, why: 'change' | 'select' | 'versions'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */

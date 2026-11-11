@@ -8,12 +8,14 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === undefined || ['--diagnosis-baseline', '--diagnosis-chat', '--face-repair-baseline', '--face-repair', '--face-lineage-baseline', '--face-lineage'].includes(mode));
+assert.ok(mode === undefined || ['--diagnosis-baseline', '--diagnosis-chat', '--face-repair-baseline', '--face-repair', '--face-lineage-baseline', '--face-lineage', '--face-attachment-baseline', '--face-attachment'].includes(mode));
 const diagnosisBaseline = mode === '--diagnosis-baseline', diagnosisChat = mode === '--diagnosis-chat';
-const lineageBaseline = mode === '--face-lineage-baseline', faceLineage = mode === '--face-lineage', lineageFlow = lineageBaseline || faceLineage;
+const attachmentBaseline = mode === '--face-attachment-baseline', faceAttachment = mode === '--face-attachment';
+const attachmentFlow = attachmentBaseline || faceAttachment;
+const lineageBaseline = mode === '--face-lineage-baseline', faceLineage = mode === '--face-lineage' || attachmentFlow, lineageFlow = lineageBaseline || faceLineage;
 const repairBaseline = mode === '--face-repair-baseline', faceRepair = mode === '--face-repair' || lineageFlow, repairFlow = repairBaseline || faceRepair;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
-if (diagnosisChat) {
+if (diagnosisChat || faceAttachment) {
   const reserved = createServer().listen(0, '127.0.0.1');
   await once(reserved, 'listening');
   process.env.CAD_STUDIO_CHAT_PORT = String(reserved.address().port);
@@ -29,6 +31,9 @@ const pins = [
     'apps/cad-studio/src/chat/useFaceDiagnosisAttachment.ts', 'apps/cad-studio/src/chat/useStudioChat.ts'] : []),
   ...(faceRepair ? ['apps/cad-studio/src/storage/SavedFaceReferenceRepair.tsx',
     'packages/barocss-cad-model/src/chat/nestedFaceRepair.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts'] : []),
+  ...(faceAttachment ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts',
+    'apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/storage/faceRepairEvidence.ts',
+    'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts', 'apps/cad-studio/src/chat/useStudioChat.ts'] : []),
   ...(faceLineage ? ['apps/cad-studio/src/storage/SavedFaceRepairLineage.tsx',
     'apps/cad-studio/src/storage/checkSavedFaceRepair.ts', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts'] : []),
 ];
@@ -125,9 +130,10 @@ assert saved['recoveries'] == [{'id':'WIDTH','from':14,'to':12,'unit':'mm'}]
 assert saved['after']['evidence'][0]['result']['verdict'] == 'pass'
 print(json.dumps({'status':'PASS','lostFace':'n1.side3','volumesMm3':[192,384],'historicalRecoveryMm':[14,12]}))
 `;
-const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: lineageFlow ? 'D661_SOURCE_FROZEN' : repairFlow ? 'D660_SOURCE_FROZEN' : mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
+const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: attachmentFlow ? 'D662_SOURCE_FROZEN' : lineageFlow ? 'D661_SOURCE_FROZEN' : repairFlow ? 'D660_SOURCE_FROZEN' : mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
   initialFiles: pins, requiredFrozen: pins,
-  qualification: lineageFlow ? 'Saved lineage for one explicitly repaired face reference'
+  qualification: attachmentFlow ? 'Read the exact saved face repair evidence in one selected Studio chat turn'
+    : lineageFlow ? 'Saved lineage for one explicitly repaired face reference'
     : repairFlow ? 'One selected tag-only face reference repair with retained approval evidence'
     : mode ? 'One selected current face diagnosis in Studio chat' : 'Lost face on one exact nested occurrence with retained approval evidence',
   limits: ['The triangle arrives through the saved native project file, as an external design revision. Studio handles acceptance, Save, Open and diagnostics.'],
@@ -226,7 +232,7 @@ async function compare() {
   await savedChecks().getByText('14 mm → 12 mm', { exact: true }).waitFor();
 }
 
-async function verifyRenamedRepair(renamed, prior, saved, evidenceName) {
+async function verifyRenamedRepair(origin, renamed, prior, saved, evidenceName) {
   const proposal = id => f.page.getByRole('listitem', { name: 'Proposal ' + id, exact: true });
   const check = () => button('Check current face references');
   const choose = () => button('Propose n1.side[west2]');
@@ -348,7 +354,13 @@ async function verifyRenamedRepair(renamed, prior, saved, evidenceName) {
     await lineagePanel().getByText('Face repair evidence saved', { exact: true }).waitFor();
     assert.deepEqual(await projectFiles(evidenceName, undefined, lineageName), stored);
     await f.snapshot('05-reopened-face-repair-lineage');
+    if (attachmentBaseline) {
+      f.phase = 'baseline cannot attach the retained face repair evidence';
+      assert.equal(await button('Attach face repair evidence to chat').count(), 0);
+      f.report.observations.push({ exactSavedFaceRepairVisible: true, faceRepairAttachmentAvailable: false });
+    }
     f.report.observations.push({ savedFaceLineageAvailable: true, exactSavedSnapshots: true, firstUnresolvedRetained: true, acceptedWidthMm: 12, reopenedEvidenceUnchanged: true });
+    if (faceAttachment) await verifySavedFaceRepairChat(origin, renamed, accepted, openLineage, evidenceName, lineageName, stored);
   }
   await f.runOracle({ renameRepair: true, before: renamed, after: accepted, native, reads, lineage }, 'independent-face-repair');
   await f.snapshot('03-approved-face-reopened');
@@ -356,9 +368,8 @@ async function verifyRenamedRepair(renamed, prior, saved, evidenceName) {
     acceptedAndReopened: true, currentWidthMm: 12, originalEvidencePreserved: true });
 }
 
-async function verifyChatDiagnosis(origin, changed, approved, current, evidenceName, newer) {
-  const tool = 'read_selected_face_diagnosis', call = (args = {}) => ({ tool, args });
-  const raw = join(output, 'diagnosis-tool-results.jsonl'), cli = join(output, 'diagnosis-scripted-cli.mjs');
+async function withScriptedChat(origin, label, verify) {
+  const raw = join(output, label + '-tool-results.jsonl'), cli = join(output, label + '-scripted-cli.mjs');
   await writeFile(raw, '');
   await writeFile(cli, `#!/usr/bin/env node
 import { spawn } from 'node:child_process';
@@ -383,8 +394,6 @@ process.exitCode = code ?? 1;
   let stdout = '', stderr = '', cursor = 0;
   server.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-4000); });
   const ready = new Promise(resolve => server.stdout.on('data', chunk => { stdout += chunk; if (stdout.includes('chat server on')) resolve(true); }));
-  const chip = () => f.page.getByLabel('Face diagnosis for next message', { exact: true });
-  const attach = () => button('Attach face diagnosis to chat');
   const input = () => f.page.getByRole('textbox', { name: 'Chat message', exact: true });
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
   const toolResults = async () => {
@@ -409,15 +418,28 @@ process.exitCode = code ?? 1;
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
     return { wire: response.request().postDataJSON(), done, results: await toolResults() };
   }
+  try {
+    const up = await Promise.race([ready, closed.then(() => false), new Promise(resolve => setTimeout(() => resolve(false), 15000).unref())]);
+    assert.ok(up, stderr || 'Chat server did not start');
+    await verify({ turn, toolResults, doneOf });
+  } finally {
+    server.kill('SIGTERM');
+    await closed;
+    await writeFile(join(output, label + '-chat-stderr.txt'), stderr);
+  }
+}
+
+async function verifyChatDiagnosis(origin, changed, approved, current, evidenceName, newer) {
+  const tool = 'read_selected_face_diagnosis', call = (args = {}) => ({ tool, args });
+  const chip = () => f.page.getByLabel('Face diagnosis for next message', { exact: true });
+  const attach = () => button('Attach face diagnosis to chat');
   const send = async (body, pin, requestOrigin = origin) => {
     const response = await f.context.request.post(new URL('/api/chat/turn', origin).href, {
       headers: { origin: requestOrigin }, data: { ...body, text: 'script ' + JSON.stringify({ calls: [call()] }), selectedFaceDiagnosis: pin },
     });
     return { status: response.status(), text: await response.text() };
   };
-  try {
-    const up = await Promise.race([ready, closed.then(() => false), new Promise(resolve => setTimeout(() => resolve(false), 15000).unref())]);
-    assert.ok(up, stderr || 'Chat server did not start');
+  await withScriptedChat(origin, 'diagnosis', async ({ turn, toolResults, doneOf }) => {
     await f.page.reload();
     await f.ready();
     await openProject();
@@ -482,11 +504,76 @@ process.exitCode = code ?? 1;
     f.report.observations.push({ attachedPart: pin.part, attachedFace: pin.face, actualMcpRead: true, unsupportedRepair: true,
       noToolWithoutAttachment: true, staleHttp: stale.status, wrongFaceHttp: wrongFace.status, foreignHttp: foreign.status, passingSiblingRefused: true,
       siblingSelectionRetired: true, revisionRestoreRetired: true, savedEvidencePreserved: true });
-  } finally {
-    server.kill('SIGTERM');
-    await closed;
-    await writeFile(join(output, 'diagnosis-chat-stderr.txt'), stderr);
-  }
+  });
+}
+
+async function verifySavedFaceRepairChat(origin, renamed, accepted, openLineage, evidenceName, lineageName, stored) {
+  const tool = 'read_selected_approval_evidence', call = (args = {}) => ({ tool, args });
+  const attach = () => button('Attach face repair evidence to chat');
+  const chip = () => f.page.getByLabel('Approval evidence for next message', { exact: true });
+  const file = JSON.parse(stored.lineage), original = JSON.parse(stored.evidence);
+  await withScriptedChat(origin, 'face-attachment', async ({ turn, toolResults }) => {
+    f.phase = 'attach saved repair while the working model still has the unresolved reference';
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(accepted);
+    await panel().getByRole('button', { name: 'Restore Renamed west face', exact: true }).click();
+    await f.same(renamed);
+    await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side[west]"');
+    await compare();
+    await openLineage();
+    await attach().click();
+    await chip().getByText('Saved face repair · p1/p1').waitFor();
+    await f.snapshot('06-attached-saved-face-repair');
+    const selected = await turn([call(), call({ part: paths[1] }), { tool: 'propose_selected_follow_up_repair', args: {} }]);
+    assert.deepEqual(selected.wire.selectedApproval, { kind: 'face-repair', approval: original, file });
+    assert.deepEqual(selected.wire.doc, renamed);
+    assert.deepEqual(Object.keys(selected.wire.versions.snapshots).sort(), stored.log.versions.map(v => v.snapshot).sort());
+    assert.deepEqual(selected.results.map(row => row.error), [false, true, true]);
+    assert.deepEqual(selected.results[0].body, { file });
+    assert.match(selected.results[1].body.error, /takes no arguments/);
+    assert.match(selected.results[2].body.error, /Unknown tool/);
+    const report = JSON.parse(selected.results[0].body.file.text);
+    assert.deepEqual([report.context.approval.part, report.context.repair.requirement, report.context.repair.criterion],
+      [paths[0], 'WIDTH', sha256(canonicalJSON(requirement))]);
+    assert.deepEqual([report.before.evidence[0].result.status, report.before.evidence[0].result.number,
+      report.after.evidence[0].result.verdict, report.after.evidence[0].result.number], ['unsupported', null, 'pass', 12]);
+    await chip().waitFor({ state: 'detached' });
+    const plain = await turn([call()]);
+    assert.equal(plain.wire.selectedApproval, undefined);
+    assert.match(plain.results[0].body.error, /Unknown tool/);
+
+    f.phase = 'refuse a wrong retained criterion and a missing saved snapshot';
+    const post = async data => {
+      const response = await f.context.request.post(new URL('/api/chat/turn', origin).href, { headers: { origin }, data });
+      assert.equal(response.status(), 400);
+      assert.match(await response.text(), /does not match the saved versions/);
+    };
+    const wrong = structuredClone(report);
+    wrong.context.repair.criterion = '0'.repeat(64);
+    const text = JSON.stringify(wrong);
+    await post({ ...selected.wire, selectedApproval: { ...selected.wire.selectedApproval,
+      file: { ...file, text, bytes: Buffer.byteLength(text), sha256: sha256(text) } } });
+    const missing = structuredClone(selected.wire);
+    delete missing.versions.snapshots[report.context.base.snapshot];
+    await post(missing);
+    assert.deepEqual(await toolResults(), []);
+    await f.same(renamed);
+    assert.deepEqual(await projectFiles(evidenceName, undefined, lineageName), stored);
+
+    f.phase = 'retire the attachment when the project closes';
+    await attach().click();
+    await chip().waitFor();
+    await panel().getByRole('button', { name: 'Close project', exact: true }).click();
+    await chip().waitFor({ state: 'detached' });
+    await f.same(renamed);
+    await f.snapshot('07-attachment-retired-on-project-close');
+    f.report.observations.push({ exactSavedFileThroughMcp: true, allFourSnapshots: true, workingStillUnresolved: true,
+      oldVerdict: 'unsupported', savedWidthMm: 12, overrideRefused: true, noRepairTool: true, noToolWithoutAttachment: true,
+      wrongCriterionHttp: 400, missingSnapshotHttp: 400, projectCloseRetired: true, retainedFilesUnchanged: true });
+  });
 }
 
 function canonicalJSON(value) {
@@ -567,7 +654,7 @@ await f.run(async () => {
       f.report.observations.push({ sameShape: true, uniqueRename: true, repairActionAvailable: false });
       return;
     }
-    await verifyRenamedRepair(renamed, prior, saved, evidenceName);
+    await verifyRenamedRepair(origin, renamed, prior, saved, evidenceName);
     return;
   }
 

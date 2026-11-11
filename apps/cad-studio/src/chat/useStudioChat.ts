@@ -206,7 +206,7 @@ export function useStudioChat(props: ChatPanelProps) {
     const ended = new Promise<string[]>(resolve => { end = resolve; });
     turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null,
       attachmentIsCurrent, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
-      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.file } : {}), selectedFaceDiagnosis: faceDiagnosis?.selection } };
+      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.payload } : {}), selectedFaceDiagnosis: faceDiagnosis?.selection } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');
     try {

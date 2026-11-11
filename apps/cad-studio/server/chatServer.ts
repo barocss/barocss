@@ -372,7 +372,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (v !== undefined && (!v || v.format !== 'barocss-versions' || !Array.isArray(v.versions) || !Array.isArray(v.branches) || !v.snapshots || typeof v.snapshots !== 'object')) return sendJson(res, 400, { error: 'versions: not a version log.' });
     const selected = await readSelectedApprovalForTurn(body.selectedApproval, v as StateFile['versions']);
     if (body.selectedApproval !== undefined && !selected) return sendJson(res, 400, { error: 'Selected approval evidence does not match the saved versions.' });
-    const selectedApproval = selected?.file;
+    const selectedApproval = selected?.payload;
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), selectedFaceDiagnosis, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
@@ -380,7 +380,9 @@ export function createChatServer(options: ChatServerOptions) {
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, ...(taskFinding ? { CAD_CHAT_TASK_RUN_ROOT: taskRunDir } : {}), CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const findingNote = taskFinding ? '\n\n[The person selected one local native check. Use read_selected_native_check to read it for this turn.]' : '';
-    const approvalNote = selectedApproval ? '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]' : '';
+    const approvalNote = !selectedApproval ? '' : 'kind' in selectedApproval
+      ? '\n\n[The person attached a saved face repair review. Use read_selected_approval_evidence. The unresolved face and the approved replacement describe the pinned saved versions.]'
+      : '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]';
     const repairNote = selected?.repair ? '\n\n[For a requested repair, read requirements.evidence for the selected occurrence. Pass its current revision as working_revision to propose_selected_follow_up_repair. A saved failure alone is not a current result.]' : '';
     const faceNote = selectedFaceDiagnosis ? '\n\n[The person attached a current face diagnosis. Use read_selected_face_diagnosis. Report an unresolved reference or unsupported repair as such.]' : '';
     const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}${faceNote}`;

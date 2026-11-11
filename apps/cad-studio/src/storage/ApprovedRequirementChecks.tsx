@@ -36,7 +36,7 @@ const FOLLOW_UP_STATUS = {
 };
 
 function AttachEvidenceButton({ source, onAttach, kind }: {
-  source: SavedApprovalSource; onAttach: AttachApprovalEvidence; kind: 'approval' | 'follow-up';
+  source: SavedApprovalSource; onAttach: AttachApprovalEvidence; kind: 'approval' | 'follow-up' | 'face repair';
 }) {
   const [attaching, setAttaching] = useState(false), [failed, setFailed] = useState(false);
   return <>
@@ -204,7 +204,8 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach, fac
           ...(faceRepair ? [<SavedFaceReferenceRepair key={`prepare-${id}`} review={review}
             doc={faceRepair.doc} requirement={id} prepare={faceRepair.prepare} />] : []),
           ...(followUp ? [<SavedFaceRepairLineage key={`saved-${id}`} review={review}
-            log={followUp.log} base={followUp.version} versions={followUp.newer} requirement={id} evaluate={evaluate} />] : []),
+            log={followUp.log} base={followUp.version} versions={followUp.newer} requirement={id} evaluate={evaluate}
+            attachButton={onAttach ? source => <AttachEvidenceButton source={source} onAttach={onAttach} kind="face repair" /> : undefined} />] : []),
         ];
       })}
     </KeepApprovalEvidence>}

@@ -7,6 +7,7 @@ import { approvalEvidenceFile, approvalEvidencePin, exactSavedVersion, isSavedVe
   type ApprovalCheck, type ApprovalEvidenceContext, type CheckedApprovalFollowUp } from '@barocss/cad-model/versions/approvalEvidenceReport';
 import { matchSavedApprovalEvidence, matchSavedFollowUpEvidence, parseApprovalEvidenceFile } from '@barocss/cad-model/versions/savedApprovalEvidence';
 import { isLinearSavedSequence, readVersion, type Version, type VersionLog } from '@barocss/cad-model/versions/log';
+import type { SavedFaceRepairSource } from './checkSavedFaceRepair';
 import { META } from './project';
 import { refusal, type ProjectStore } from './store';
 
@@ -14,7 +15,7 @@ type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 export type SavedApprovalPair = { store: ProjectStore; document: string; from: Version; to: Version };
 type SavedApproval = { store: ProjectStore; path: string; context: ApprovalEvidenceContext; before: StudioDoc; after: StudioDoc };
 type SavedFollowUp = { review: SavedApproval; path: string; doc: StudioDoc; version: CheckedApprovalFollowUp['version']; operation: Proposal['ops'][number] };
-export type SavedApprovalSource = SavedApproval | SavedFollowUp;
+export type SavedApprovalSource = SavedApproval | SavedFollowUp | SavedFaceRepairSource;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const invalid = { error: 'Saved approval evidence does not match this review.' };

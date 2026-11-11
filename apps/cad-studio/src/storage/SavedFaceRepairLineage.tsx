@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import type { Version, VersionLog } from '@barocss/cad-model/versions/log';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
-import { checkSavedFaceRepair } from './checkSavedFaceRepair';
+import { checkSavedFaceRepair, type SavedFaceRepairSource } from './checkSavedFaceRepair';
 import { useEvidenceSave } from './useEvidenceSave';
 
 type Review = Parameters<typeof checkSavedFaceRepair>[0];
 type Result = Awaited<ReturnType<typeof checkSavedFaceRepair>>;
 
-function KeepFaceRepair({ result }: { result: Exclude<Result, { error: string }> }) {
+function KeepFaceRepair({ result, children }: { result: Exclude<Result, { error: string }>; children?: ReactNode }) {
   const { state, save } = useEvidenceSave();
-  if (result.saved || state === 'saved') return <div role="status">Face repair evidence saved</div>;
+  if (result.saved || state === 'saved') return <><div role="status">Face repair evidence saved</div>{children}</>;
   const write = result.saveEvidence;
   return <>
     <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(write)}>
@@ -21,8 +21,9 @@ function KeepFaceRepair({ result }: { result: Exclude<Result, { error: string }>
   </>;
 }
 
-export function SavedFaceRepairLineage({ review, log, base, versions, requirement, evaluate }: {
+export function SavedFaceRepairLineage({ review, log, base, versions, requirement, evaluate, attachButton }: {
   review: Review; log: VersionLog; base: Version; versions: readonly Version[]; requirement: string; evaluate: Evaluate;
+  attachButton?(source: SavedFaceRepairSource): ReactNode;
 }) {
   const [selected, select] = useState('');
   const target = versions.find(version => version.id === selected);
@@ -54,7 +55,9 @@ export function SavedFaceRepairLineage({ review, log, base, versions, requiremen
           <strong>{result.requirement} · {result.proposal}</strong>
           <div>{result.base.name ?? result.base.id} · {result.from} · Unresolved</div>
           <div>{result.target.name ?? result.target.id} · {result.to} · Pass · {result.measured}{result.unit ? ` ${result.unit}` : ''}</div>
-          <KeepFaceRepair key={request.target.id} result={result} />
+          <KeepFaceRepair key={request.target.id} result={result}>
+            {attachButton?.({ kind: 'face-repair', review, log, baseId: base.id, targetId: request.target.id, requirement })}
+          </KeepFaceRepair>
         </>}
     </div>}
   </div>;

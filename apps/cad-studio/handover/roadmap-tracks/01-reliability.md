@@ -25,6 +25,15 @@ Work in the order below. First reproduce the selected boundary without changing 
 | R11 | Public STEP loss report; rows04/13 | Provide the existing exporter source/loss information through the facade or enforce a documented refusal policy. A caller must see declared history/appearance/assembly/PMI/name omissions. Verify independent read-back and unchanged supported geometry, with actual Studio loss-preview flow. | FULL: public API. Do not broaden formats, cone offsets or Unicode support as a side effect. [D531 bounded closeout](../notes/public-step-loss-report-2026-11-05/README.md): Model report plus explicit unsupported CAD/backend policy; native CAD report producer remains separate. |
 | R12 | Repeatable acceptance tools and test entry points; rows04/16/22/32 | Inventory package default, optional, browser, physical-oracle and manual commands. Preserve reusable drivers/configuration in versioned source; raw logs/images remain external. Re-run one changed representative category from that documented entry point. CI success must not stand for unrun runtime tests. | Documentation/SMALL as applicable. No new WebGPU CI job, download, dependency or whole-suite campaign is authorized. [D532 bounded closeout](../notes/repeatable-api-smoke-2026-11-05/README.md): current-JS22-case smoke and precise source inventory; root desktop consumer regression. |
 
+## Desktop work-loss follow-ups
+
+The separate desktop Studio usability audit used Chrome and WebGPU on `a3b3f256c`. Use the observations below as reproduction inputs. The implementing session must reproduce each case and qualify the fix.
+
+| ID | Boundary and owner | Required acceptance |
+| --- | --- | --- |
+| R13 | Live sketch mode transition, rows 09/12/16 | A rectangle with visible dimensions disappears after Model → Sketch without Finish. Check Model, Drawing and Render. Preserve draft geometry, dimensions, constraints and editing focus until Finish or explicit discard. Finish adds one sketch history entry and supports an 18 mm extrusion. D663. |
+| R14 | Unsaved document replaced by New part, rows 12/16 | The audit restored geometry with Undo but retained the Untitled name. Reproduce the transition and check document name, authored history, dirty state and recoverability as one owned state. |
+
 ## Source and retained evidence
 
 - R01/R02: [project actions](../../src/storage/useProject.ts), [version UI](../../src/storage/VersionsPanel.tsx), [App](../../src/App.tsx); existing [Open ownership tests](../../test/project-open-ownership.test.ts), [Save ownership tests](../../test/late-save-ownership.test.ts) and [snapshot tests](../../test/storage-version-snapshot.test.ts). Open/Save guards do not prove delayed version-write safety.

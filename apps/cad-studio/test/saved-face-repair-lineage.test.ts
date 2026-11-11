@@ -13,7 +13,8 @@ import { approvedRequirementComparison, compareApprovedRequirements } from '@bar
 import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion } from '@barocss/cad-model/versions/log';
 import { memoryStore } from '../src/storage/memoryStore';
 import { bindSavedApproval, readSavedApprovalArtifact, saveApprovalEvidence } from '../src/storage/savedApprovalEvidence';
-import { checkSavedFaceRepair } from '../src/storage/checkSavedFaceRepair';
+import { readSelectedApprovalForTurn } from '../server/selectedApprovalEvidence';
+import { checkSavedFaceRepair, readSavedFaceRepairAttachment } from '../src/storage/checkSavedFaceRepair';
 
 const part = 'p1/p1', requirement = 'WIDTH', oldFace = 'n1.side[west]', newFace = 'n1.side[west2]';
 const at = (minute: number) => ({ at: `2026-11-11T00:0${minute}:00Z` });
@@ -139,4 +140,45 @@ test('refuse unrelated saves, rejected proposals, and reuse of an old decision o
   }
   const wrongId = await checkSavedFaceRepair(review, fixed.log, broken.version.id, fixed.version.id, 'OTHER', never);
   assert.match(JSON.stringify(wrongId), /No matching face repair approval/);
+});
+
+test('an attached face repair needs both retained reports and all four exact saved snapshots', async () => {
+  const { store, review, broken, fixed } = await fixture();
+  const source = { kind: 'face-repair' as const, review, log: fixed.log, baseId: broken.version.id, targetId: fixed.version.id, requirement };
+  assert.equal(await readSavedFaceRepairAttachment(source), null);
+  const checked = await checkSavedFaceRepair(review, fixed.log, source.baseId, source.targetId, requirement, evaluate);
+  assert.ok(!('error' in checked) && !checked.saved);
+  await checked.saveEvidence();
+  const attached = await readSavedFaceRepairAttachment(source);
+  assert.ok(attached);
+  const { payload, pins } = attached;
+  assert.equal(attached.part, part);
+  assert.deepEqual(pins.map(pin => pin.id), fixed.log.versions.map(version => version.id));
+  assert.deepEqual(pins.map(pin => pin.snapshot), fixed.log.versions.map(version => version.snapshot));
+  assert.deepEqual(await readSelectedApprovalForTurn(payload, fixed.log), { file: payload.file, payload });
+  assert.equal(await readSelectedApprovalForTurn(payload.file, fixed.log), undefined);
+  assert.equal(await readSelectedApprovalForTurn(undefined, fixed.log), undefined);
+
+  for (const { snapshot } of fixed.log.versions) {
+    const snapshots = { ...fixed.log.snapshots };
+    delete snapshots[snapshot];
+    assert.equal(await readSelectedApprovalForTurn(payload, { ...fixed.log, snapshots }), undefined);
+  }
+  const report = JSON.parse(payload.file.text);
+  for (const alter of [
+    (r: typeof report) => { r.context.approval.part = 'p2/p1'; },
+    (r: typeof report) => { r.context.repair.criterion = 'a'.repeat(64); },
+    (r: typeof report) => { r.context.repaired.evidenceRevision = r.context.base.evidenceRevision; },
+    (r: typeof report) => { r.before.evidence[0].result.status = 'ok'; r.before.evidence[0].result.verdict = 'pass'; r.before.evidence[0].result.number = 12; },
+    (r: typeof report) => { r.after.evidence[0].result.verdict = 'fail'; },
+    (r: typeof report) => { r.note = 'Unexpected report field'; },
+  ]) {
+    const changed = structuredClone(report);
+    alter(changed);
+    const file = outputFile(payload.file.path, payload.file.mime, JSON.stringify(changed));
+    assert.equal(await readSelectedApprovalForTurn({ ...payload, file }, fixed.log), undefined);
+  }
+  assert.equal(await readSelectedApprovalForTurn({ ...payload, approval: { ...payload.approval, sha256: '0'.repeat(64) } }, fixed.log), undefined);
+  await store.remove(review.path);
+  assert.equal(await readSavedFaceRepairAttachment(source), null);
 });
