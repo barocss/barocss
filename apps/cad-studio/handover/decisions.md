@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D699 — preserve drawing sections under translation](notes/section-translation-2026-11-11/README.md).
 - [D698 — apply Hidden lines to Detail views](notes/detail-hidden-lines-2026-11-11/README.md).
 - [D697 — refuse Auto-layout when no candidate fits](notes/auto-layout-refusal-2026-11-11/README.md).
 - [D696 — keep authored tolerances when Auto-dimension runs again](notes/auto-dimension-tolerance-retention-2026-11-11/README.md).

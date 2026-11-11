@@ -333,7 +333,9 @@ D697 verifies Auto-layout refusal with two actual sources, retained Undo/Redo an
 
 D698 verifies Detail Hidden lines across the same sheet and split sheets, with native Save/Open and independent reads of six SVG/DXF pairs. [D698](../detail-hidden-lines-2026-11-11/README.md).
 
-Next MAIN is D699 / P2 B06, row 11. Reproduce section culling far from the origin. Compare near-origin and translated intersections and a true miss. [#2418](https://github.com/barocss/barocss/issues/2418).
+D699 verifies translated native caps, the actual Studio cut and miss, history and fresh Open, and late drawing-reply ownership. [D699](../section-translation-2026-11-11/README.md).
+
+Next MAIN is D700 / P2 B06, row 11. Check fully occluded axial cosmetic thread marks with Hidden lines off and on and a visible control. [#2421](https://github.com/barocss/barocss/issues/2421).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

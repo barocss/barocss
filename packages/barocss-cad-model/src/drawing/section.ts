@@ -3,7 +3,7 @@
 // drawings is the front's — Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others). The kernel's
 // split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
-import { evaluateCadPart, outputOf, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedCurve, type ProjectedEdge } from '@barocss/cad';
+import { CadNumericPolicy, evaluateCadPart, outputOf, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepFace, type BrepProjection, type CadPartFeature, type ProjectedCurve, type ProjectedEdge } from '@barocss/cad';
 import { clipProjectionOutside, clipRingsOutside, type ViewBreak } from './breaks';
 import { bodyKeyOf, toPartDocument, withBeadRetry } from '../engine/part';
 import { boughtOutputIds } from '../engine/evaluate';
@@ -30,27 +30,49 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
   try {
     // (The beads the kernel refused found first, so the cut's part leaves them out too.)
     const outputs = withBeadRetry(doc, q => evaluateCadPart(q)).outputs, part = toPartDocument(doc);
-    const cuts: CadPartFeature[] = [], keep: string[] = [], body: number[] = [];
+    const cuts: CadPartFeature[] = [];
+    const keep: { id: string; body: number; onSection: boolean; otherSide?: string }[] = [];
     outputs.forEach((o, n) => {
       if (skip?.has(o.id)) return;
+      // Classify the native tessellation in binary64. The kernel decides whether it can split a crossing.
       const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positions;
-      let lo = Infinity, hi = -Infinity; for (let i = 0; i < X.length; i += 3) { const v = X[i] * d[0] + X[i + 1] * d[1] + X[i + 2] * d[2]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
-      const tol = 1e-6 * Math.max(1, Math.abs(hi), Math.abs(lo));
-      if (hi <= y + tol) return; // wholly in front of the plane
-      if (lo >= y - tol) { keep.push(o.id); body.push(n); return; } // wholly behind it
+      let lo = Infinity, hi = -Infinity;
+      for (let i = 0; i < X.length; i += 3) {
+        const side = planeSide(X[i], X[i + 1], X[i + 2], d, y);
+        lo = Math.min(lo, side);
+        hi = Math.max(hi, side);
+        if (lo < 0 && hi > 0) break;
+      }
+      if (hi <= 0) return;
+      if (lo >= 0) {
+        keep.push({ id: o.id, body: n, onSection: lo === 0 });
+        return;
+      }
       // (The cut keyed by its body — `section_<body key>` — so its faces' and edges' names, and the dimensions on them, stay
       // the same when other bodies come and go before it; item 4.)
       const id = `section_${bodyKeyOf(o.id, doc.nodes).replace(/[^A-Za-z0-9_-]/g, '_')}`.slice(0, 64);
       cuts.push((axis ? { id, kind: 'split', target: o.id, axis, at } : { id, kind: 'split', target: o.id, normal: d, at: y }) as CadPartFeature);
-      keep.push(`${id}/${axis ? (principal!.sign > 0 ? 1 : 0) : 1}`); body.push(n);
+      const side = principal?.sign === -1 ? 0 : 1;
+      keep.push({ id: `${id}/${side}`, body: n, onSection: true, otherSide: `${id}/${1 - side}` });
     });
     if (!keep.length) return { ok: false, error: axis ? `Nothing of the part lies behind ${axis.toUpperCase()} = ${at}.` : `Nothing of the part lies behind the plane at ${y} along [${d.map(x => +x.toFixed(6)).join(', ')}].` };
     const cut = evaluateCadPart({ ...part, features: [...part.features, ...cuts] });
-    const breps = keep.map(id => outputOf(cut, id).brep);
+    const breps = keep.map(({ id, otherSide }) => {
+      // A near-boundary split can produce only one output. Require both sides of a crossing.
+      if (otherSide) outputOf(cut, otherSide);
+      return outputOf(cut, id).brep;
+    });
     const projection = projectBrepHiddenLines(breps, frame.view);
-    const rings: XY[][] = [], ringBodies: number[] = [];
-    breps.forEach((b, i) => { for (const r of principal ? cutRings(b, at, projection, principal.k) : planeRings(b, d, y, projection)) { rings.push(r); ringBodies.push(body[i]); } });
-    return { ok: true, projection: faceOnly ? onPlane(projection, breps, d, y) : projection, rings, ringBodies };
+    const rings: XY[][] = [], ringBodies: number[] = [], sectionBreps: Brep[] = [];
+    breps.forEach((b, i) => {
+      if (!keep[i].onSection) return;
+      sectionBreps.push(b);
+      for (const ring of planeRings(b, d, y, projection)) {
+        rings.push(ring);
+        ringBodies.push(keep[i].body);
+      }
+    });
+    return { ok: true, projection: faceOnly ? onPlane(projection, sectionBreps, d, y) : projection, rings, ringBodies };
   } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 /** O148 X1: every section of the drawing, cut. */
@@ -66,22 +88,44 @@ export function sectionsCut(doc: StudioDoc, list: readonly DrawingSection[], ori
  * along the cut go). Each kept curve is the kernel's own, so the outline is exact; the extent is the kept curves'.
  */
 export function onPlane(pr: BrepProjection, breps: readonly Brep[], d: readonly number[], y: number): BrepProjection {
-  const names = new Set<string>(), tol = 1e-6 * Math.max(1, Math.abs(y));
+  const names = new Set<string>();
   for (const b of breps) {
     const loops = new Map(b.loops.map(l => [l.id, l])), coedges = new Map(b.coedges.map(c => [c.id, c])), edges = new Map(b.edges.map(e => [e.id, e]));
     for (const face of b.faces) {
-      let g; try { g = faceGeometry(face); } catch { continue; }
-      if (g.kind !== 'plane' || Math.abs(Math.abs(g.n[0] * d[0] + g.n[1] * d[1] + g.n[2] * d[2]) - 1) > 1e-9 || Math.abs(g.o[0] * d[0] + g.o[1] * d[1] + g.o[2] * d[2] - y) > tol) continue;
+      if (!faceOnPlane(face, d, y)) continue;
       for (const lid of face.loops) for (const cid of loops.get(lid)!.coedges) { const e = edges.get(coedges.get(cid)!.edge); if (e) names.add(e.name ?? e.id); }
     }
   }
   const kept: ProjectedEdge[] = [];
-  for (const e of pr.edges) if (names.has(e.name) && (!e.ends || (onIt(e.ends[0], d, y, tol) && onIt(e.ends[1], d, y, tol))) && (!e.circle || (onIt(e.circle.center, d, y, tol) && Math.abs(Math.abs(e.circle.normal[0] * d[0] + e.circle.normal[1] * d[1] + e.circle.normal[2] * d[2]) - 1) <= 1e-9))) kept.push(e);
+  for (const e of pr.edges) {
+    if (!names.has(e.name)) continue;
+    if (e.ends && !e.ends.every(p => pointOnPlane(p, d, y))) continue;
+    if (e.circle && (!pointOnPlane(e.circle.center, d, y) || !parallel(e.circle.normal, d))) continue;
+    kept.push(e);
+  }
   const min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
   for (const e of kept) for (const p of e.pieces) curveExtent(p.curve, min, max);
   return { right: pr.right, up: pr.up, toward: pr.toward, edges: kept, min: kept.length ? min : [0, 0], max: kept.length ? max : [0, 0] };
 }
-const onIt = (p: readonly number[], d: readonly number[], y: number, tol: number) => Math.abs(p[0] * d[0] + p[1] * d[1] + p[2] * d[2] - y) <= tol;
+function planeSide(x: number, y: number, z: number, d: readonly number[], at: number, tolerance = 0): number {
+  const [dx, dy, dz] = d;
+  const a = x * dx, b = y * dy, c = z * dz;
+  const distance = a + b + c - at;
+  // A signed coordinate can be compared directly. An oblique dot product can lose precision to cancellation.
+  const axis = dx === 0 ? dy === 0 || dz === 0 : dy === 0 && dz === 0;
+  const roundoff = axis ? 0 : 4 * Number.EPSILON * (Math.abs(a) + Math.abs(b) + Math.abs(c) + Math.abs(at));
+  return Math.abs(distance) <= tolerance + roundoff ? 0 : Math.sign(distance);
+}
+const pointOnPlane = (p: readonly number[], d: readonly number[], y: number) => planeSide(p[0], p[1], p[2], d, y, CadNumericPolicy.linearTolerance) === 0;
+const parallel = (n: readonly number[], d: readonly number[]) => Math.abs(Math.abs(n[0] * d[0] + n[1] * d[1] + n[2] * d[2]) - 1) <= 1e-9;
+function faceOnPlane(face: BrepFace, d: readonly number[], y: number): boolean {
+  try {
+    const g = faceGeometry(face);
+    return g.kind === 'plane' && parallel(g.n, d) && pointOnPlane(g.o, d, y);
+  } catch {
+    return false;
+  }
+}
 const grow = (min: [number, number], max: [number, number], x: number, y: number) => { if (x < min[0]) min[0] = x; if (y < min[1]) min[1] = y; if (x > max[0]) max[0] = x; if (y > max[1]) max[1] = y; };
 const growArc = (c: Extract<ProjectedCurve, { kind: 'arc' }>, t: number, min: [number, number], max: [number, number]) => grow(min, max, c.center[0] + c.u[0] * Math.cos(t) + c.v[0] * Math.sin(t), c.center[1] + c.u[1] * Math.cos(t) + c.v[1] * Math.sin(t));
 /** A curve's exact extent added to min/max: a line's ends, a polyline's points, an arc's ends and its turning points inside its range. */
@@ -170,8 +214,7 @@ export function planeRings(brep: Brep, d: readonly number[], y: number, pr: Brep
   const P = (x: number, yy: number, z: number): XY => [x * pr.right[0] + yy * pr.right[1] + z * pr.right[2], x * pr.up[0] + yy * pr.up[1] + z * pr.up[2]];
   const rings: XY[][] = [];
   for (const face of brep.faces) {
-    let g; try { g = faceGeometry(face); } catch { continue; }
-    if (g.kind !== 'plane' || Math.abs(Math.abs(g.n[0] * d[0] + g.n[1] * d[1] + g.n[2] * d[2]) - 1) > 1e-9 || Math.abs(g.o[0] * d[0] + g.o[1] * d[1] + g.o[2] * d[2] - y) > 1e-6 * Math.max(1, Math.abs(y))) continue;
+    if (!faceOnPlane(face, d, y)) continue;
     for (const lid of face.loops) {
       const ring: XY[] = [];
       for (const cid of loops.get(lid)!.coedges) {

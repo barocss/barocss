@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D699](../notes/section-translation-2026-11-11/README.md) verifies strict native section halves and one exact cap at the origin and ±8192 mm. Desktop Studio and independent SVG preserve the matching section and a genuine miss.
+
 [D698](../notes/detail-hidden-lines-2026-11-11/README.md) applies Hidden lines to orthographic Detail views on either sheet. Studio, history, native Save/Open and independent SVG/DXF reads preserve the source-backed 8 mm dimension.
 
 [D697](../notes/auto-layout-refusal-2026-11-11/README.md) verifies two actual Auto-layout refusal paths, source and history retention, fresh Open and independent SVG. The agent proposal refuses a failed continuation sheet without staging a partial result.
