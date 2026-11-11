@@ -29,8 +29,8 @@ import { useFeatureHistory } from './state/useFeatureHistory';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
-import { MeasurementInspector, InterferenceInspector, type InterferenceResult } from './ui/MeasurementInspector';
-import { checkInterferencePairs } from './app/checkInterference';
+import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
+import { useInterferenceCheck } from './state/useInterferenceCheck';
 import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
@@ -622,9 +622,6 @@ export function App() {
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
   /** The history chip right-clicked: its menu (edit, edit sketch, roll back here, delete). */
   const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number } | null>(null);
-  const [clashes, setClashes] = useState<InterferenceResult | null>(null);
-  // (A check is of the part as it was: any change to the part closes it.)
-  useEffect(() => { setClashes(c => c === 'busy' ? c : null); }, [doc.nodes]);
   /**
    * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
    * faces lit (the kernel's split, display only — the model is not changed).
@@ -889,6 +886,24 @@ export function App() {
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
   const ctx: Ctx = { doc: commandDoc, bodies, selection, pick: pick ?? undefined, direct: directSel, bearingAssembly: { root: doc, owner: 'base' } };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
+  const interferenceGeneration = workOwnership.current.generation;
+  const interferenceSource = useMemo(() => ({
+    document: doc, input: evaluated, generation: interferenceGeneration, worker: workerSession, marker,
+  }), [doc, evaluated, interferenceGeneration, workerSession, marker]);
+  const ownsInterferenceInput = useCallback(() => docNow.current === interferenceSource.document &&
+    evaluatedRef.current === interferenceSource.input && workOwnership.current.generation === interferenceSource.generation &&
+    workerSessionNow.current === interferenceSource.worker && markerNow.current === interferenceSource.marker, [interferenceSource]);
+  const interference = useInterferenceCheck(interferenceSource, ownsInterferenceInput, engine);
+  const checkInterference = useCallback(() => {
+    if (!fresh || busy) {
+      setToast({ title: 'Interference check not started', hint: 'Wait for the current part to finish evaluating.', detail: '' });
+      return;
+    }
+    const picked = selectedBodies(selection);
+    const list = picked.length > 1 ? picked.map(index => bodies[index]).filter(Boolean) : bodies.slice();
+    setEditNode(null);
+    void interference.start(list);
+  }, [fresh, busy, selection, bodies, interference.start, setToast]);
   discardDirectCandidateRef.current = () => {
     const pending = parameterEditNow.current;
     if (pending?.kind !== 'direct') return;
@@ -1341,7 +1356,7 @@ export function App() {
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
     if (cmd.action === 'assembly-cut') { cancel(); openCut(null); return; }
-    if (cmd.action === 'interference') { void checkInterference(); return; }
+    if (cmd.action === 'interference') { checkInterference(); return; }
     if (cmd.action === 'cage') { const n = subdNodeOf(ctx); if (n !== null) { cageEd.begin(n); setSelection(emptySel); setEditNode(null); } return; }
     if (cmd.action === 'measure') {
       // Start from what is selected (one face or edge), then click what to measure to.
@@ -1369,7 +1384,7 @@ export function App() {
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, checkInterference]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1564,15 +1579,6 @@ export function App() {
       : withNode(evaluated, { kind: 'translate', parent: ref, offset: d });
     chatSelection.current = { faces: [], edges: [], bodies: [grow ? b.key : bodyKeyFor(next.nodes, next.nodes.length - 1)] };
     commit(next);
-  };
-  /**
-   * Interference: for each pair of the picked bodies (all, when fewer than two are picked) whose boxes
-   * overlap, the kernel's intersection of the two; a positive volume is a clash.
-   */
-  const checkInterference = async () => {
-    const picked = selectedBodies(selection), list = (picked.length > 1 ? picked : bodies.map((_, i) => i)).map(i => bodies[i]).filter(Boolean);
-    setClashes('busy'); setEditNode(null);
-    setClashes(await checkInterferencePairs(evaluated, list, probe => engine.volumes(probe)));
   };
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
@@ -2345,7 +2351,8 @@ export function App() {
         }} onSew={(ids, tol) => {
           if (ids.length === directSel.length && ids.every((id, i) => id === directSel[i])) start(commands.find(c => c.id === 'sew')!, { tol });
         }} onNotice={setToast} />}
-      {clashes && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={clashes} setClashes={setClashes} setSelection={setSelection} />}
+      {interference.result && fresh && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={interference.result} setClashes={interference.close}
+        setSelection={next => { if (interference.ownsResult()) setSelection(next); }} />}
       {/* (A running command's HUD takes this place at the right.) */}
       {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}

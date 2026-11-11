@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D745 — keep interference results with their current inspection](notes/interference-request-ownership-2026-11-12/README.md).
 - [D744 — preserve unchecked interference pairs](notes/interference-unchecked-pairs-2026-11-12/README.md).
 - [D743 — preserve nonzero Measure text](notes/measure-nonzero-text-2026-11-12/README.md).
 - [D742 — measure finite segment crossings at zero distance](notes/measure-finite-segment-crossing-2026-11-12/README.md).

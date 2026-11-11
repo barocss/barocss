@@ -41,6 +41,7 @@ test('only explicit empty or finite nonnegative volumes can count as checked', a
   ];
   for (const [reply, error] of cases) {
     const result = await checkInterferencePairs(doc, bodies.slice(0, 2), async () => reply);
+    assert.ok(result);
     assert.deepEqual(result.clashes, []);
     assert.equal(result.pairs, 1);
     assert.equal(result.failures[0]?.error.detail ?? null, error);
@@ -57,6 +58,7 @@ test('aggregation keeps the independently successful pair when another probe ref
     if (probes === 2) throw new Error('Second probe did not complete');
     return { ok: true, volumes: [{ key: bodyKeyFor(probe.nodes, probe.nodes.length - 1), volume: 500 }] };
   });
+  assert.ok(result);
   assert.equal(probes, 2);
   assert.equal(result.pairs, 3);
   assert.deepEqual(result.clashes, [{ a: 'b1', b: 'b3', volume: 500 }]);
@@ -75,4 +77,28 @@ test('aggregation keeps the independently successful pair when another probe ref
   assert.match(partial, /Second probe did not complete/);
   assert.doesNotMatch(partial, /No bodies overlap\./);
   assert.match(markup({ pairs: 1, clashes: [], failures: result.failures }), /Interference check failed/);
+});
+
+test('a retired inspection drops each reply shape and does not submit the next pair', async () => {
+  const { doc, bodies } = setup();
+  for (const reply of [
+    { ok: true, volumes: [{ key: 'b6', volume: 500 }] },
+    { ok: true, volumes: [], emptyIntersection: 'b6' },
+    { ok: false, error: 'stopped' },
+  ] satisfies VolumeReply[]) {
+    let current = true, probes = 0;
+    let resolve!: (reply: VolumeReply) => void;
+    const response = new Promise<VolumeReply>(done => { resolve = done; });
+    const pending = checkInterferencePairs(doc, bodies, () => {
+      probes++;
+      return response;
+    }, () => current);
+    assert.equal(probes, 1);
+    current = false;
+    resolve(reply);
+    assert.equal(await pending, null);
+    assert.equal(probes, 1);
+  }
+  const obsolete = await checkInterferencePairs(doc, bodies, async () => assert.fail('unexpected probe'), () => false);
+  assert.equal(obsolete, null);
 });

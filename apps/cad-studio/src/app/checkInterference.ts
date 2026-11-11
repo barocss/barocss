@@ -24,20 +24,24 @@ function intersectionVolume(reply: VolumeReply, key: string): number | FriendlyE
 }
 
 /** Check the selected pairs against the existing bounds and volume thresholds. */
-export async function checkInterferencePairs(doc: StudioDoc, bodies: readonly BodyResult[], volumes: (probe: StudioDoc) => Promise<VolumeReply>): Promise<InterferenceReport> {
+export async function checkInterferencePairs(doc: StudioDoc, bodies: readonly BodyResult[], volumes: (probe: StudioDoc) => Promise<VolumeReply>, current = () => true): Promise<InterferenceReport | null> {
   const report: InterferenceReport = { pairs: bodies.length * (bodies.length - 1) / 2, clashes: [], failures: [] };
   for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
+    if (!current()) return null;
     const a = bodies[i], b = bodies[j], A = a.mesh.bounds, B = b.mesh.bounds;
     if ([0, 1, 2].some(k => A.max[k] <= B.min[k] + 1e-6 || B.max[k] <= A.min[k] + 1e-6)) continue;
     const pair = { a: a.key, b: b.key };
     try {
       const probe = withNode(doc, { kind: 'intersect', left: refOf(a), right: refOf(b) });
-      const result = intersectionVolume(await volumes(probe), bodyKeyFor(probe.nodes, probe.nodes.length - 1));
+      const reply = await volumes(probe);
+      if (!current()) return null;
+      const result = intersectionVolume(reply, bodyKeyFor(probe.nodes, probe.nodes.length - 1));
       if (typeof result !== 'number') report.failures.push({ ...pair, error: result });
       else if (result > minimumVolume) report.clashes.push({ ...pair, volume: result });
     } catch (cause) {
+      if (!current()) return null;
       report.failures.push({ ...pair, error: friendlyCause(cause) });
     }
   }
-  return report;
+  return current() ? report : null;
 }
