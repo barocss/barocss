@@ -4,12 +4,13 @@ import { createServer } from 'node:http';
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { instantiateLibraryPart, loadCadLibrary } from '@barocss/cad';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { confirmDocLibrary, libraryById, libraryEntry, shareRefusal } from '@barocss/cad-model/library/libraries';
-import { checkLibraryForSharing, UNLICENSED } from '@barocss/cad-model/library/sharing';
+import { checkLibraryForSharing, sharingRefusal, UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { createChatServer } from '../server/chatServer';
 import { registerTeamLibraries } from '../server/cadMcp';
 
@@ -68,7 +69,7 @@ test('an agent writes a library as data: checked at once (builds in each variant
   let r = await runTool(s, 'add_library', { library: SPACER }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const out = parse(r.content);
-  assert.deepEqual([out.check.ok, out.check.built, out.check.fits, out.license, out.estimates, out.authored_by], [true, 2, 0, 'CC0-1.0', 1, 'agent']);
+  assert.deepEqual([out.check.ok, out.check.built, out.check.fits, out.license, out.estimates, out.authored_by], [true, 3, 0, 'CC0-1.0', 1, 'agent']);
   assert.deepEqual(s.doc.libraries!.map(l => [l.library.id, l.authoredBy, l.confirmed]), [['agent-spacers', 'agent', false]]);
   const listed = parse((await runTool(s, 'list_library', { library: 'agent-spacers' }, evaluate)).content).libraries[0];
   assert.deepEqual([listed.source, listed.authored_by, listed.confirmed], ['user', 'agent', false]);
@@ -105,7 +106,16 @@ test('an agent writes a library as data: checked at once (builds in each variant
     assert.equal(p.status, 200, JSON.stringify(p.json)); assert.equal(p.json.check.ok, true);
     assert.deepEqual(readdirSync(team).sort(), ['agent-spacers.check.json', 'agent-spacers.json']);
     const kept = JSON.parse(readFileSync(join(team, 'agent-spacers.check.json'), 'utf8'));
-    assert.deepEqual([kept.ok, kept.kernel, kept.library, kept.version, kept.built], [true, '0.0.0-experimental', 'agent-spacers', '0.1.0', 2]); assert.ok(!Number.isNaN(Date.parse(kept.at)));
+    assert.deepEqual([kept.ok, kept.kernel, kept.library, kept.version, kept.built], [true, '0.0.0-experimental', 'agent-spacers', '0.1.0', 3]); assert.ok(!Number.isNaN(Date.parse(kept.at)));
+    const before = Object.fromEntries(readdirSync(team).map(name => [name, readFileSync(join(team, name), 'utf8')]));
+    const badDefault = { ...SPACER, parts: [{ ...SPACER.parts[0], parameters: { ...SPACER.parts[0].parameters, h: { ...SPACER.parts[0].parameters.h, value: 0 } } }] };
+    for (const candidate of [badDefault, { ...badDefault, id: 'new-bad-default' }]) {
+      p = await post({ library: candidate });
+      assert.equal(p.status, 422);
+      assert.match(p.json.error, /spacer \(default\).*outside/);
+      assert.deepEqual([p.json.check.ok, p.json.check.built, p.json.check.fits], [false, 2, 0]);
+      assert.deepEqual(Object.fromEntries(readdirSync(team).map(name => [name, readFileSync(join(team, name), 'utf8')])), before);
+    }
     const listed2 = await fetch(url, { headers: { origin: 'http://127.0.0.1:52020' } }).then(x => x.json()) as { libraries: { library: { id: string }; check: { ok: boolean } }[] };
     assert.deepEqual(listed2.libraries.map(l => [l.library.id, l.check.ok]), [['agent-spacers', true]]);
     // The agent's process reads the same folder: the team library is there for insert_part.
@@ -114,4 +124,57 @@ test('an agent writes a library as data: checked at once (builds in each variant
     assert.equal(registerTeamLibraries(team), 2); assert.equal(libraryEntry('team-spacers')!.source, 'team');
   } finally { await new Promise(done => server.close(done)); }
   assert.ok(libraryById('tslot-20'));
+});
+
+test('library sharing counts each successful default and named configuration and identifies failures', async () => {
+  const part = SPACER.parts[0], parameters = part.parameters;
+  const manifest = (id: string, change: object) => ({ ...SPACER, id, parts: [{ ...part, ...change }] });
+  const cases = [
+    [manifest('no-variants', { variants: undefined }), 1, null],
+    [manifest('empty-variants', { variants: [] }), 1, null],
+    [manifest('one-variant', { variants: [part.variants[0]] }), 2, null],
+    [manifest('two-variants', {}), 3, null],
+    [manifest('bad-default-bounds', { parameters: { ...parameters, h: { ...parameters.h, value: 0 } } }), 2, /spacer \(default\).*outside/],
+    [manifest('bad-default-expression', { parameters: { ...parameters, h: { ...parameters.h, value: 0, min: 0 }, derived: { value: { expr: '1 / h' } } } }), 2, /spacer \(default\).*derived.*(division|zero|finite)/],
+    [manifest('bad-default-feasible', { parameters: { ...parameters, h: { ...parameters.h, value: 2 } }, checks: [{ id: 'space', level: 'feasible', expr: 'h >= 8', message: 'needs clearance' }] }), 2, /spacer \(default\).*needs clearance/],
+    [manifest('bad-default-geometry', { parameters: { ...parameters, h: { ...parameters.h, value: 0, min: 0 } } }), 2, /spacer \(default\).*height/],
+    [manifest('bad-named-bounds', { variants: [part.variants[0], { id: 'default', values: { h: 0 } }] }), 2, /spacer \(variant default\).*outside/],
+    [manifest('unknown-context', { context: { wall: { unit: 'mm' } }, checks: [{ id: 'wall', level: 'feasible', expr: 'wall >= 4', message: 'wall too thin' }] }), 3, null],
+  ] as const;
+  for (const [json, built, problem] of cases) {
+    const result = checkLibraryForSharing(json);
+    assert.deepEqual([result.ok, result.built, result.fits], [problem === null, built, 0], JSON.stringify(result));
+    if (problem) {
+      assert.equal(result.problems.length, 1);
+      assert.match(result.problems[0], problem);
+      assert.match(sharingRefusal(loadCadLibrary(json), {}, result)!, problem);
+    } else assert.deepEqual(result.problems, []);
+  }
+  const unknown = instantiateLibraryPart(loadCadLibrary(cases.at(-1)![0]), 'spacer');
+  assert.equal(unknown.checks[0].pass, null);
+  assert.ok(unknown.warnings.some(warning => /wall.*unknown/.test(warning)));
+  assert.ok(unknown.warnings.some(warning => /estimate/.test(warning)));
+  const builtin = libraryById('tslot-20')!.manifest;
+  const builtInCheck = checkLibraryForSharing(builtin);
+  assert.deepEqual([builtInCheck.ok, builtInCheck.built, builtInCheck.fits], [true, 6, 4], JSON.stringify(builtInCheck));
+
+  const bad = cases[4][0];
+  const multiple = { ...bad, parts: [{ ...part, id: 'good-spacer' }, ...bad.parts] };
+  const multiCheck = checkLibraryForSharing(multiple);
+  assert.deepEqual([multiCheck.ok, multiCheck.built, multiCheck.problems.length], [false, 5, 1]);
+  assert.match(multiCheck.problems[0], /spacer \(default\)/);
+  const doc = { ...emptyDoc(), libraries: [{ library: loadCadLibrary(bad).manifest, authoredBy: 'person' as const, confirmed: true }] };
+  const initial = await stateOf(doc);
+  const refused = await dispatchTool(initial, 'insert_part', { library: bad.id, part: 'spacer' }, evaluate);
+  assert.ok(refused.isError);
+  assert.match(parse(refused.content).error, /h.*0.*1/);
+  assert.deepEqual(refused.state, initial);
+  for (const [variant, height] of [['h8', 8], ['h12', 12]] as const) {
+    const result = await dispatchTool(initial, 'insert_part', { library: bad.id, part: 'spacer', variant }, evaluate);
+    assert.equal(result.isError, false, result.content);
+    assert.equal(result.state.doc.instances?.[0].doc.nodes[0].kind, 'library');
+    const node = result.state.doc.instances?.[0].doc.nodes[0];
+    assert.ok(node?.kind === 'library');
+    assert.deepEqual([node.library.variant, node.library.values.h], [variant, height]);
+  }
 });
