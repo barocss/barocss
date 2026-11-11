@@ -73,6 +73,9 @@ points.
 | `SURFACE_OF_REVOLUTION` | The curve turned about the axis over the face's angles; of a line, a cylinder or a cone |
 | `TESSELLATED_SOLID`, `TESSELLATED_SHELL` (AP242) | Facet bodies from `TRIANGULATED_FACE`s and their `COORDINATES_LIST`, beside any B-rep solids |
 
+B-spline curves and surfaces require explicit knots. The reader reports unsupported implicit Bézier, uniform and
+quasi-uniform forms by name. A reached complex spline with missing or conflicting knot-form components is invalid.
+
 Vertices and edges are read once per instance number, so an edge two faces name is one edge with two coedges. The
 first and last control points of each edge's curve are set to its vertices' points. That closes any small gap between
 the curve's ends and the vertices.

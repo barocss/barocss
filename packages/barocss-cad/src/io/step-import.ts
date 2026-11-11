@@ -418,7 +418,29 @@ export function importStep(source: string, options: { readonly id?: string } = {
   let trackOffsets = false; for (const entity of data.values()) if (entity.type === 'OFFSET_SURFACE') { trackOffsets = true; break; }
   const get = (v: Value | undefined): Entity => { if (!v || typeof v !== 'object' || !('ref' in v)) refuse('expected a reference'); const e = data.get((v as { ref: number }).ref); if (!e) refuse(`#${(v as { ref: number }).ref} is missing`); return e!; };
   const refNo = (v: Value) => (v as { ref: number }).ref, num = (v: Value) => v as number, list = (v: Value) => v as Value[], flag = (v: Value) => (v as { enum: string }).enum === 'T';
-  const part = (e: Entity, type: string) => e.parts?.find(p => p.type === type);
+  const splineParts = (e: Entity, kind: 'CURVE' | 'SURFACE') => {
+    if (!e.parts) return null;
+    const baseType = `B_SPLINE_${kind}`, explicitType = `${baseType}_WITH_KNOTS`, rationalType = `RATIONAL_${baseType}`;
+    const base = e.parts.filter(p => p.type === baseType);
+    const knots = e.parts.filter(p => p.type === explicitType || p.type === `QUASI_UNIFORM_${kind}`
+      || p.type === `UNIFORM_${kind}` || p.type === `BEZIER_${kind}`);
+    const rational = e.parts.filter(p => p.type === rationalType);
+    if (!base.length && !knots.length && !rational.length) return null;
+    const subject = () => {
+      for (const [number, entity] of data) if (entity === e) return `complex B-spline ${kind.toLowerCase()} #${number}`;
+      return `complex B-spline ${kind.toLowerCase()}`;
+    };
+    if (!base.length) refuse(`${subject()} is missing its ${baseType} component`);
+    if (base.length > 1 || rational.length > 1) refuse(`${subject()} has duplicate B-spline components`);
+    if (!knots.length) refuse(`${subject()} is missing a knot-form component`);
+    if (knots.length > 1) refuse(`${subject()} has conflicting or duplicate knot-form components`);
+    const form = knots[0];
+    if (form.type !== explicitType) {
+      if (form.args.length) refuse(`${subject()} has malformed ${form.type} component attributes`);
+      refuse(`${subject()} knot form ${form.type} is not supported yet`);
+    }
+    return { base: base[0].args, knots: form.args, weights: rational[0] };
+  };
   const pointOf = (v: Value): Point => { const e = get(v); if (e.type !== 'CARTESIAN_POINT') refuse(`expected a point, found ${e.type}`); return list(e.args[1]).map(num) as Point; };
   const dirOf = (v: Value): Point => unit(list(get(v).args[1]).map(num) as Point);
   const frameOf = (v: Value): Frame => { const a = get(v).args; const z = a[2] === null ? [0, 0, 1] as Point : dirOf(a[2]); let x = a[3] === null || a[3] === undefined ? (Math.abs(z[0]) < 0.9 ? [1, 0, 0] as Point : [0, 1, 0] as Point) : dirOf(a[3]); x = unit(sub(x, scale(z, dot(x, z)))); return { o: pointOf(a[1]), x, y: cross(z, x), z }; };
@@ -485,9 +507,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
   function bsplineOf(e: Entity): Curve | null {
     let c: Curve | null = null;
     if (e.type === 'B_SPLINE_CURVE_WITH_KNOTS') { const g = e.args; c = { kind: 'curve', id: 'c', degree: num(g[1]), controlPoints: list(g[2]).map(pointOf), knots: expand(list(g[7]).map(num), list(g[6]).map(num)), weights: list(g[2]).map(() => 1) }; }
-    else if (e.type === 'COMPLEX' && part(e, 'B_SPLINE_CURVE')) {
-      const bc = part(e, 'B_SPLINE_CURVE')!.args, kn = part(e, 'B_SPLINE_CURVE_WITH_KNOTS')!.args, w = part(e, 'RATIONAL_B_SPLINE_CURVE');
-      c = { kind: 'curve', id: 'c', degree: num(bc[0]), controlPoints: list(bc[1]).map(pointOf), knots: expand(list(kn[1]).map(num), list(kn[0]).map(num)), weights: w ? list(w.args[0]).map(num) : list(bc[1]).map(() => 1) };
+    else {
+      const parts = splineParts(e, 'CURVE');
+      if (parts) {
+        const { base: bc, knots: kn, weights: w } = parts;
+        c = { kind: 'curve', id: 'c', degree: num(bc[0]), controlPoints: list(bc[1]).map(pointOf), knots: expand(list(kn[1]).map(num), list(kn[0]).map(num)), weights: w ? list(w.args[0]).map(num) : list(bc[1]).map(() => 1) };
+      }
     }
     return c;
   }
@@ -586,8 +611,9 @@ export function importStep(source: string, options: { readonly id?: string } = {
       const g = e.args, rows = list(g[3]).map(r => list(r).map(pointOf));
       return { kind: 'bspline', s: { kind: 'surface', id: 's', degreeU: num(g[1]), degreeV: num(g[2]), controlPoints: rows, knotsU: expand(list(g[10]).map(num), list(g[8]).map(num)), knotsV: expand(list(g[11]).map(num), list(g[9]).map(num)), weights: rows.map(r => r.map(() => 1)) } };
     }
-    if (e.type === 'COMPLEX' && part(e, 'B_SPLINE_SURFACE')) {
-      const bs = part(e, 'B_SPLINE_SURFACE')!.args, kn = part(e, 'B_SPLINE_SURFACE_WITH_KNOTS')!.args, w = part(e, 'RATIONAL_B_SPLINE_SURFACE'), rows = list(bs[2]).map(r => list(r).map(pointOf));
+    const spline = splineParts(e, 'SURFACE');
+    if (spline) {
+      const { base: bs, knots: kn, weights: w } = spline, rows = list(bs[2]).map(r => list(r).map(pointOf));
       return { kind: 'bspline', s: { kind: 'surface', id: 's', degreeU: num(bs[0]), degreeV: num(bs[1]), controlPoints: rows, knotsU: expand(list(kn[2]).map(num), list(kn[0]).map(num)), knotsV: expand(list(kn[3]).map(num), list(kn[1]).map(num)), weights: w ? list(w.args[0]).map(r => list(r).map(num)) : rows.map(r => r.map(() => 1)) } };
     }
     if (e.type === 'SURFACE_OF_LINEAR_EXTRUSION') {
