@@ -1,5 +1,5 @@
 ---
-work_id: D636
+work_id: D637
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -209,7 +209,9 @@ D635 shows the exact native gate and finding on the task card. Desktop fresh Ope
 
 D636 lets a user attach one failed native check to the next chat turn. The real Studio/MCP path returns exact evidence and refuses a different model revision. [D636](../studio-agent-native-check-2026-11-11/README.md).
 
-Next MAIN is D637 / P0 automation, B09 follow-up, rows 04, 10 and 16. Use the selected shared-hole finding to prepare an existing CAD proposal that repairs the indicated hole. Verify Studio review and explicit approval, retain every stated requirement and sibling, and recheck the shared interface on the saved native result. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D637 uses a selected shared-hole finding to propose an exact p2 hole edit. Studio accepts the proposal explicitly, saves and reopens the model, and starts two held height candidates on the repaired native bytes. [D637](../studio-shared-hole-repair-2026-11-11/README.md).
+
+Next MAIN is D638 / P0 automation, B09 follow-up, rows 04, 10, 12 and 16. Complete both held height edits from the repaired H1 assembly. Retire the obsolete sibling attempt, verify the exact terminal publication chain, and check both dimensions and H1 after Studio project Save and fresh Open. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

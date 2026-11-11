@@ -1,0 +1,170 @@
+{
+  "decision": "D637",
+  "tier": "FEATURE qualification of existing workflow",
+  "baseCommit": "5c2ca25824bc0a895c9c1df6e7ac54982c5772da",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d637-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio selected finding, proposal, explicit approval, project reopen and native recheck",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D637_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --shared-hole-repair",
+      "receiptSHA256": "3718a65fa47e8a82b7e6cf9080a4d9aec5ae24db105f5f799574645b05ad22d2",
+      "pinnedSources": 815,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "selectedFinding": "HOLE_OFF_PATTERN",
+        "checkedRevision": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+        "repairedRevision": "b1f5f2776e50ad440049efa0fdd07266678fb1ffeadd80ee6584659364623811",
+        "originalSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "repairedSHA256": "e3cc247bcce7039ae36633a0cde4e5ed812b1fdbacd6672a4d3a8231a01f51fd",
+        "holeRadiusMm": [
+          1.5,
+          2
+        ],
+        "previewVolume": "\u221216.49 mm\u00b3",
+        "hardHeightVerdicts": [
+          "fail",
+          "fail"
+        ],
+        "freshProjectOpen": true,
+        "priorRunsUnchanged": true,
+        "heldHeightTasks": [
+          "p1",
+          "p2"
+        ],
+        "taskPublications": 0
+      }
+    },
+    {
+      "label": "Desktop Studio selected native evidence regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D636_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-agent-evidence\" --agent-finding",
+      "receiptSHA256": "a1fc3ac088a49d8aa00e9b6eb739648767ba3d6690e25cdf0ddc63d200a5d028",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Native assembly, placed bodies, trims and scoped requirement readback",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "commands": [
+        "node \"$EVIDENCE/bundle-repair-inspector.mjs\" \"$EVIDENCE\"",
+        "node \"$EVIDENCE/repair-inspector.mjs\" \"$EVIDENCE/desktop-final/shared-incompatible-source.bcad\" \"$EVIDENCE/desktop-final/shared-hole-repaired-source.bcad\" > \"$EVIDENCE/native-readback.json\""
+      ],
+      "sourceSHA256": "c9133f5d0508f03a63f7223909d4199dc87e3c6d2c8cae80a44405ea231fc7f1",
+      "bundleSHA256": "9d5231fba642ff7b2e81ffe7bdf37bccd86b8082c90d0dad031bf4198e8c63b2",
+      "readbackSHA256": "b20f21de207b1175f0be860500d106b44c39f5376481f3776a9c43904d71f19d"
+    },
+    {
+      "label": "Independent analytic volume, centroid, axis and rational trim oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/repair-oracle.py\" \"$EVIDENCE/desktop-final/shared-incompatible-source.bcad\" \"$EVIDENCE/desktop-final/shared-hole-repaired-source.bcad\" \"$EVIDENCE/native-readback.json\"",
+      "scriptSHA256": "39ad24d49a62f39c3d8bddce17aad8687a2971a72be762853a674289b065f6cb",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "sourceSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "approvedSHA256": "e3cc247bcce7039ae36633a0cde4e5ed812b1fdbacd6672a4d3a8231a01f51fd",
+        "holeDiameterMm": [
+          3,
+          4
+        ],
+        "nativeVolumesMm3": [
+          [
+            937.1681469282044,
+            266.79424958826894
+          ],
+          [
+            937.1681469282044,
+            250.3008881569227
+          ]
+        ],
+        "volumeDeltaMm3": -16.493361431346244,
+        "expectedVolumeDeltaMm3": -16.493361431346415,
+        "measurementTolerance": 1e-08,
+        "authoredHeightsStillFailing": 2,
+        "checkedRationalTrimPlanes": 8,
+        "interfaceVerdicts": [
+          "fail",
+          "pass"
+        ]
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 180,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First desktop flow",
+      "receiptSHA256": "37660ba6ca703788ccb5245894a46251cca939c6c8d01e03c8725156fc37ff9e",
+      "reason": "The driver toggled an already expanded finding closed. The corrected driver expands only when needed."
+    },
+    {
+      "result": "FAIL",
+      "check": "Second desktop flow",
+      "receiptSHA256": "f12fd3bbfc626ad823565aa739aba42363224df4f24e20039bf2297b465ef2ee",
+      "reason": "The L2 proposal refusal appeared before the expected assembly-policy message. The final flow uses L4 to exercise the assembly approval gate."
+    },
+    {
+      "result": "FAIL",
+      "check": "First independent reader check",
+      "reason": "The oracle treated all evidence rows as hard requirements. The corrected oracle selects the authored requirement result by kind."
+    }
+  ],
+  "notRun": [
+    "Live model behavior",
+    "Terminal publication of the two new held height candidates",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

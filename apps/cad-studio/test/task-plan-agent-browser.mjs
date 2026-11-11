@@ -19,7 +19,8 @@ import { taskRunStatusFlow } from './task-run-status-flow.mjs';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), reviewMode = mode === '--review';
-const agentFindingMode = mode === '--agent-finding';
+const sharedHoleRepairMode = mode === '--shared-hole-repair';
+const agentFindingMode = sharedHoleRepairMode || mode === '--agent-finding';
 const findingMode = agentFindingMode || mode === '--native-finding';
 const interfaceMode = findingMode || mode === '--shared-interface';
 const provenanceMode = mode === '--provenance';
@@ -60,13 +61,23 @@ const pins = [
   'apps/cad-studio/src/storage/CandidateReviewSection.tsx', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
   'apps/cad-studio/src/layout/DockSection.tsx',
   ...['host', 'store', 'thread', 'workerEntry', 'start', 'localService', 'localServiceEntry', 'nativeEvidence'].map(name => `apps/cad-studio/server/taskRun/${name}.ts`),
+  ...(sharedHoleRepairMode ? [
+    'apps/cad-studio/test/task-run-shared-hole-repair-flow.mjs',
+    'apps/cad-studio/src/state/useProposalPreview.ts', 'apps/cad-studio/src/ui/ProposalBrowser.tsx',
+    'apps/cad-studio/src/storage/useProject.ts', 'apps/cad-studio/src/chat/useStudioChat.ts',
+    ...['app/editFields', 'chat/part/proposals', 'chat/part/features', 'chat/requirementEvidence', 'team/parts'].map(name => `packages/barocss-cad-model/src/${name}.ts`),
+  ] : []),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
-import { digestOf } from '@barocss/cad-model/util/digest';
+import { digestOf, requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { fixtureDoc, sharedHoleDoc, singleRepairDoc, threeOccurrenceDoc } from './test/task-run-fixture';
-if (process.argv[3]) console.log(JSON.stringify(digestOf(JSON.parse(readFileSync(process.argv[2], 'utf8')))));
+if (process.argv[3]) {
+  const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+  const revision = JSON.parse(process.argv[3]) === 'requirement-evidence' ? requirementEvidenceRevision(doc) : digestOf(doc);
+  console.log(JSON.stringify(revision));
+}
 else {
   const doc = ${interfaceMode} ? sharedHoleDoc() : ${repairMode} ? singleRepairDoc() : ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
@@ -94,10 +105,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -175,7 +186,7 @@ process.exitCode = code ?? 1;
   const expectedConsole = [];
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
 
-  async function turn(label, calls) {
+  async function turn(label, calls, { proposal = false, requirementEvidence = false } = {}) {
     const input = f.page.getByRole('textbox', { name: 'Chat message', exact: true });
     if (!(await input.isVisible())) await button('Chat').first().click();
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
@@ -185,18 +196,25 @@ process.exitCode = code ?? 1;
     const wire = (await request).postDataJSON(), reply = await response;
     assert.ok(reply.ok());
     const events = (await reply.text()).split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
-    assert.equal(events.some(event => event.type === 'state'), false);
     const done = events.at(-1);
     assert.equal(done.end, 'done', JSON.stringify(done));
-    for (const field of ['doc', 'versions', 'ops', 'selection']) assert.equal(done[field], undefined, field);
+    for (const field of ['versions', 'selection']) assert.equal(done[field], undefined, field);
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
     const all = (await readFile(rawPath, 'utf8')).trim().split('\n').map(line => JSON.parse(line))
       .filter(line => line.type === 'user').flatMap(line => line.message.content);
     const results = all.slice(cursor).map(result => ({ error: result.is_error, body: JSON.parse(result.content[0].text) }));
     cursor = all.length;
-    const revision = await f.inspect(label + '-revision', wire.doc, true);
-    for (const result of results) assert.equal(result.body.revision, revision);
-    return { results, revision, taskFinding: wire.taskFinding, events: events.filter(event => event.type === 'tool') };
+    assert.equal(results.length, calls.length, JSON.stringify(results));
+    const revision = await f.inspect(label + '-revision', wire.doc, requirementEvidence ? 'requirement-evidence' : true);
+    if (proposal) {
+      assert.ok(done.doc, JSON.stringify(results));
+      assert.deepEqual(events.flatMap(event => event.ops ?? []).map(op => op.tool), ['propose']);
+    } else {
+      assert.equal(events.some(event => event.type === 'state'), false);
+      for (const field of ['doc', 'ops']) assert.equal(done[field], undefined, field);
+      for (const result of results) assert.equal(result.body.revision, revision);
+    }
+    return { results, revision, doc: done.doc, taskFinding: wire.taskFinding, events: events.filter(event => event.type === 'tool') };
   }
 
   try {
@@ -353,7 +371,7 @@ process.exitCode = code ?? 1;
         assert.deepEqual(await readFile(runJson), initial);
         assert.deepEqual(await readdir(runRoot), [relative(runRoot, studioRun)]);
         if (interfaceMode) {
-          await taskRunSharedInterfaceFlow({ f, row, source, launch: firstLaunch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode });
+          await taskRunSharedInterfaceFlow({ f, row, source, launch: firstLaunch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode, sharedHoleRepairMode });
           assert.deepEqual(f.report.downloads, []);
           return;
         }

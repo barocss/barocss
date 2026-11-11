@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sha256 } from './flow-helper.mjs';
+import { taskRunSharedHoleRepairFlow } from './task-run-shared-hole-repair-flow.mjs';
 import { taskRunTerminal } from './task-run-status-flow.mjs';
 
 const pathFor = action => '/api/chat/task-runs/' + action;
@@ -18,10 +19,11 @@ const choose = async (f, action, click) => {
 const snapshotRun = async directory => ({
   json: await readFile(join(directory, 'run.json')),
   entries: (await readdir(directory)).sort(),
-  native: (await readdir(join(directory, 'native'))).sort(),
+  native: await Promise.all((await readdir(join(directory, 'native'))).sort().map(async name =>
+    [name, sha256(await readFile(join(directory, 'native', name)))])),
 });
 
-export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode }) {
+export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode, sharedHoleRepairMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const oldReceipt = join(f.output, 'shared-lid-old.bcad-candidate');
   const save = async (name, doc) => {
@@ -179,6 +181,18 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
       await f.same(incompatible);
       await f.snapshot('31-agent-read-selected-native-check');
       await writeFile(join(f.output, 'selected-native-check.json'), JSON.stringify(evidence.results[0].body));
+
+      if (sharedHoleRepairMode) {
+        const verifyPriorRuns = async () => {
+          assert.deepEqual(await snapshotRun(run), durable);
+          assert.deepEqual(await snapshotRun(conflict.directory), conflictState);
+          assert.deepEqual(await readFile(join(f.output, 'shared-incompatible-source.bcad')), baseline);
+          assert.deepEqual(await readFile(join(f.output, 'shared-incompatible-run.bcad-task')), attemptedBytes);
+        };
+        await taskRunSharedHoleRepairFlow({ f, openFile, turn, call, readySummary, choose, incompatible, baseline,
+          conflict, attemptedBytes, selected, selection, verifyPriorRuns });
+        return;
+      }
 
       f.phase = 'refuse the selected check after an edit and retire the attachment after sending';
       await attach();
