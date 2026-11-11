@@ -1,5 +1,8 @@
 import { featureLabel, type ModelNode } from '@barocss/cad-model/engine/doc';
 import { featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+
+export type FeatureFailure = FriendlyError & { failedFeature?: string };
 
 /** Resolve a reported feature in the evaluated input and the command's accepted history. */
 export function failedFeatureText(id: string | undefined, evaluated: readonly ModelNode[], history: readonly ModelNode[]): string | undefined {

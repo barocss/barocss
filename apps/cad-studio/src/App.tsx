@@ -193,6 +193,7 @@ import { confirmDimension, liveDrafts } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
+import { failedFeatureText } from './app/failedFeature';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { resolveShopRows } from '@barocss/cad-model/engine/shopRows';
 import { elsewhereOf, openAccepted, beginInPlace, editInPlaceRefusal, finishInPlace, inPlaceBlock, sessionChanged, stacksAfter, type InPlaceSession } from './app/editInPlace';
@@ -2365,13 +2366,19 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onApply={nodes => {
+        })()} onApply={(nodes, ownsDraft) => {
           if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           const candidate = preparePatternNodeCandidate(doc, next, editNode);
           if (candidate) { stageCurveCandidate(candidate); return; }
-          engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
+          const request = revision.current++;
+          return engine.evaluate(next, request).then(reply => {
+            if (!reply || !ownsDraft() || docNow.current !== doc || bearingEditScope.current !== scope) return;
+            if (reply.ok) { commit(next); return; }
+            const failedFeature = reply.revision === request ? failedFeatureText(reply.error.feature, next.nodes, doc.nodes) : undefined;
+            return { ...reply.error, failedFeature };
+          });
         }} onDelete={() => deleteNode(editNode)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
       </SelectionInspector>}
       </div></Profiler>

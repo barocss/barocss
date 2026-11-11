@@ -1,5 +1,5 @@
 import type { Command, Ctx, Field, Values } from '@barocss/cad-model/app/commands';
-import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import type { FeatureFailure } from './failedFeature';
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
 export function missingCommandField(fields: readonly Field[], values: Values): Field | undefined {
   for (const field of fields) {
@@ -11,7 +11,7 @@ export function missingCommandField(fields: readonly Field[], values: Values): F
   return undefined;
 }
 
-export interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError & { failedFeature?: string }; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode } }
+export interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FeatureFailure; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode } }
 /** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
 const objectIds = new WeakMap<object, number>();
 let nextObjectId = 0;
