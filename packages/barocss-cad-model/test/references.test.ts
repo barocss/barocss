@@ -6,7 +6,7 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
-import { captureSignatures, refreshSignatures, verifyReferences, type Sig } from '../src/engine/references';
+import { captureSignatures, referencesOf, refreshSignatures, verifyReferences, type Sig } from '../src/engine/references';
 
 // Stored references with their signatures (A1.3b): written with the reference, refreshed only by an accepted
 // edit, verified on open by the one matcher.
@@ -31,6 +31,34 @@ test('signatures: written with a reference from the bodies it was picked on; a r
   assert.ok(!r.isError, r.content);
   const fillet = r.state.doc.nodes.at(-1) as { edges: string[]; sigs?: Record<string, { k: string }> };
   assert.equal(fillet.sigs?.[fillet.edges[0]]?.k, 'line');
+});
+
+test('pitch-circle reference setters leave the source drawing intact', () => {
+  const ring = [
+    { edge: 'hole-a', near: [5, 4, 0] as [number, number, number] },
+    { edge: 'hole-b', near: [2, 7, 0] as [number, number, number] },
+    { edge: 'hole-c', near: [-1, 4, 0] as [number, number, number] },
+  ];
+  const centre = { ...ring[0], at: 'pcd' as const, ring };
+  const source: StudioDoc = { ...rectanglePart(10, 10, 5), drawing: {
+    sheet: 'A4', projection: 'third', hidden: true, dimensions: [
+      { id: 'pitch', view: 'top', kind: 'pcd', ring, place: [10, 10] },
+      { id: 'centre', view: 'top', kind: 'linear', a: centre, b: centre, orient: 'horizontal', place: [8, 8] },
+    ],
+  } };
+  const before = structuredClone(source);
+  const { doc, refs } = referencesOf(source);
+  const signature: Sig = { k: 'curve', p: [5, 4, 0], s: 0 };
+  assert.equal(refs.length, 9);
+  refs.forEach((ref, index) => {
+    ref.setSig(signature);
+    ref.rename(`new-${index}`, true);
+  });
+  assert.deepEqual(source, before);
+  const updated = referencesOf(doc, true).refs;
+  assert.deepEqual(updated.map(ref => ref.name), Array.from({ length: 9 }, (_, index) => `new-${index}`));
+  assert.deepEqual(updated.map(ref => ref.was), [...ring, ...ring, ...ring].map(member => member.edge));
+  assert.ok(updated.every(ref => ref.sig === signature));
 });
 
 // The A1.3b conformance cases (conformance/a1, those with "verify").

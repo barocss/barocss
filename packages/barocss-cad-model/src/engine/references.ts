@@ -20,6 +20,7 @@
 //   the feature holding it is held (suppressed, with the reason) so the rest builds, and the user picks.
 import { frameFace, type FaceTable, type MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
+import type { DimPoint } from '../drawing/types';
 import { bodyKeyFor } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
@@ -74,6 +75,11 @@ function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
 const bandGroups = (node: ModelNode) => node.kind === 'band-surface' ? [{ parent: node.a.parent, list: node.a.edges }, { parent: node.b.parent, list: node.b.edges }] : null;
 /** Where a reference's candidates are looked up: its feature and that feature's parent body (a band has two). */
 const parentKey = (node: number, parent: { node: number; side: string }) => `${node}|${parent.node}|${parent.side}`;
+function writableDimPoint(point: DimPoint): DimPoint {
+  return point.at === 'pcd' && point.ring
+    ? { ...point, ring: point.ring.map(member => ({ ...member })) }
+    : { ...point };
+}
 /**
  * The document with a copy of every object the references' setters change — a referencing feature and its list,
  * mate sides, dimension points, body looks — and the rest shared (PERF3 A6: a deep copy of the whole document,
@@ -82,7 +88,15 @@ const parentKey = (node: number, parent: { node: number; side: string }) => `${n
 function writable(d: StudioDoc): StudioDoc {
   const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { if (n.kind === 'band-surface') return { ...n, a: { ...n.a, edges: [...n.a.edges] }, b: { ...n.b, edges: [...n.b.edges] } }; const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
   if (d.mates) out.mates = d.mates.map(m => ({ ...m, a: { ...m.a }, b: { ...m.b } }));
-  if (d.drawing?.dimensions) out.drawing = { ...d.drawing, dimensions: d.drawing.dimensions.map(x => 'a' in x ? { ...x, a: { ...x.a }, b: { ...x.b } } as typeof x : { ...x }) };
+  if (d.drawing?.dimensions) out.drawing = {
+    ...d.drawing,
+    dimensions: d.drawing.dimensions.map(dimension => {
+      if (dimension.kind === 'pcd') return { ...dimension, ring: dimension.ring.map(member => ({ ...member })) };
+      if (dimension.kind === 'linear') return { ...dimension, a: writableDimPoint(dimension.a), b: writableDimPoint(dimension.b) };
+      if (dimension.kind === 'angle') return { ...dimension, a: { ...dimension.a }, b: { ...dimension.b } };
+      return { ...dimension };
+    }),
+  };
   if (d.drawing?.datumTargets) out.drawing = { ...(out.drawing ?? d.drawing), datumTargets: d.drawing.datumTargets.map(t => !t.point ? { ...t } : ({ ...t, point: { ...t.point, near: [...t.point.near] as Vec3, ...(t.point.sig ? { sig: { ...t.point.sig, p: [...t.point.sig.p] as Vec3, ...(t.point.sig.d ? { d: [...t.point.sig.d] as Vec3 } : {}) } } : {}) } }) as typeof t) };
   if (d.bodies) { const bodies: NonNullable<StudioDoc['bodies']> = {}; for (const [k, look] of Object.entries(d.bodies)) bodies[k] = { ...look }; out.bodies = bodies; }
   return out;

@@ -287,7 +287,9 @@ D674 qualifies current-sheet SVG output for one Top-view leader moving between t
 
 D675 verifies the depth-edited counterbore callout in four actual current-sheet SVG exports. [D675](../two-sheet-counterbore-svg-2026-11-11/README.md).
 
-Next MAIN is D676 / P2 B06, rows 11–13 and 16. Use D477 to identify the existing Hole suppression and recovery case. Check that the actual SVG omits the lost diameter after suppression and restores it after the first Undo.
+D676 prevents pitch-circle member signatures from changing the prior Undo document. Three real SVGs verify active, suppressed and restored states. [D676](../lost-diameter-svg-2026-11-11/README.md).
+
+Next MAIN is D677 / P2 B07, rows 13 and 16. Compare D407 and D531, then hold a real STEP preparation reply across a Studio document switch. Verify that the old preview stays closed and the new document can prepare its own preview.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

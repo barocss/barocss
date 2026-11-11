@@ -40,7 +40,9 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 [D674](../notes/two-sheet-leader-svg-2026-11-11/README.md) verifies one view-attached leader in four real A4 SVG exports. The note follows Top between the 5:1 and 2:1 sheets. The first Undo and Redo restore ownership in Studio.
 
-[D675](../notes/two-sheet-counterbore-svg-2026-11-11/README.md) verifies that the updated counterbore callout appears only on the Top sheet in actual SVG. D676 addresses the D477 missing-reference case in exported SVG.
+[D675](../notes/two-sheet-counterbore-svg-2026-11-11/README.md) verifies that the updated counterbore callout appears only on the Top sheet in actual SVG. [D676](../notes/lost-diameter-svg-2026-11-11/README.md) fixes shared pitch-circle reference state and verifies that actual SVG omits a lost diameter and restores it after Undo.
+
+The next unheld B07 case is a real STEP preparation reply delivered after a document switch. Compare [D407](../step-export-preview-2026-11-01/README.md) and [D531](../public-step-loss-report-2026-11-05/README.md) before selecting the exact scenario.
 
 Rows [01](../roadmap-rows/01.md), [02](../roadmap-rows/02.md), [04](../roadmap-rows/04.md), [11](../roadmap-rows/11.md), [13](../roadmap-rows/13.md). Drawings/Model own source linkage and annotations; CAD/Interop own supported exchange profiles; Studio owns the actual file and page workflow. P0 currentness and the existing source-revision contract are prerequisites.
 
