@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D752 — keep dimension ownership when turning a drawing set](notes/drawing-sheet-orientation-2026-11-12/README.md).
 - [D751 — verify native Undo and Redo in command search](notes/palette-text-history-2026-11-12/README.md).
 - [D750 — keep Feature Editor Apply with its submitted draft](notes/failed-feature-editor-2026-11-12/README.md).
 - [D749 — identify the native feature that refused a preview](notes/failed-feature-preview-2026-11-12/README.md).

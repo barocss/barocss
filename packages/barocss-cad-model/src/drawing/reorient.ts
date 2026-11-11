@@ -75,6 +75,11 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
     const all: ViewId[] = ['front', 'top', 'right', 'iso'];
     if (all.every(v => shown.has(v))) delete turned.views; else turned.views = all.filter(v => shown.has(v));
   }
+  // The same physical view and its annotations stay on their sheet when its view name changes.
+  if (settings.sheets?.length) turned.sheets = settings.sheets.map(sheet => ({
+    ...sheet,
+    views: sheet.views.map(ref => isViewId(ref) ? map.get(ref)?.view ?? ref : ref),
+  }));
   const mapPlace = (view: ViewId, p: XY): [ViewId, XY] => { const m = map.get(view); return m ? [m.view, m.point(p)] : [view, p]; };
   // (DR-1: a detail turns with its parent — on a view, to the view showing the same axes, its circle's centre carried
   // through the model; on a section, as that section's view turns — and its dimensions with it.)

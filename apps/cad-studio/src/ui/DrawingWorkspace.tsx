@@ -693,9 +693,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}), made: drawsMadeOnly(settings) });
     if (currentModel.current !== model) return;
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
-    const t = reorient(views, r.views, settings, o);
+    const t = reorient(views, r.views, wholeSettings, o);
     if (!t.ok) { onToast({ title: 'The drawing was not turned', hint: t.message, detail: t.code === 'ORIENTATION_REMAP_FAILED' ? t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('\n') : '' }); return; }
-    if (!onChange(t.settings)) return;
+    if (!commitWhole(t.settings)) return;
     if (t.moved.length) onToast({ title: `Front now seen from ${SIDE_NAMES[o]}`, hint: `Annotations moved with their axes: ${t.moved.map(m => `${m.from} → ${m.to}`).join(', ')}.`, detail: '' });
   };
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');

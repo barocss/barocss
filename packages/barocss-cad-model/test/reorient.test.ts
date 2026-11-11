@@ -10,6 +10,7 @@ import { resolveDimension } from '../src/drawing/dimensions';
 import { issueContext, drawingIssues } from '../src/drawing/issues';
 import { autoLayout, frontByInformation } from '../src/drawing/layout';
 import { reorient } from '../src/drawing/reorient';
+import { forSheet } from '../src/drawing/sheets';
 import { sectionOf } from '../src/drawing/section';
 import { VIEWS, layoutSheet, viewsFor, type Orientation } from '../src/drawing/views';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
@@ -138,3 +139,63 @@ for (const name of existsSync(root) ? readdirSync(root).filter(n => n.startsWith
   });
 }
 test('the orientation cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)', () => { for (const n of Object.keys(CASES)) assert.ok(existsSync(resolve(root, n, 'case.json')), n); });
+
+const retained = (name: string) => JSON.parse(readFileSync(resolve(root, name, 'case.json'), 'utf8')).input as { document: StudioDoc; drawing: DrawingSettings };
+
+test('D752: a global turn keeps the same physical views and exact dimensions on both sheets', () => {
+  const { document, drawing } = retained('orient-plate-x-plus');
+  const right = retained('layout-hand-in-right').drawing.dimensions[0];
+  const full: DrawingSettings = {
+    ...drawing,
+    views: ['front', 'top', 'right', 'iso'],
+    dimensions: [...drawing.dimensions, right],
+    sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', scale: 1, views: ['right'] }],
+  };
+  const from = viewsOf(document), to = viewsOf(document, 'x+');
+  const turned = reorient(from, to, full, 'x+');
+  assert.ok(turned.ok);
+  assert.deepEqual(turned.settings.sheets, [{ ...full.sheets![0], views: ['front'] }]);
+  assert.deepEqual(forSheet(turned.settings, 0).views, ['top', 'right', 'iso']);
+  assert.deepEqual(forSheet(turned.settings, 1).views, ['front']);
+  assert.deepEqual(read(to, forSheet(turned.settings, 0)), ['right 64', 'right 8', 'top 16', 'top 32', 'top 32', 'top Ø8']);
+  assert.deepEqual(read(to, forSheet(turned.settings, 1)), ['front 32']);
+  assert.deepEqual(full.sheets?.[0].views, ['right']);
+  const back = reorient(to, from, turned.settings, 'y-');
+  assert.ok(back.ok);
+  assert.deepEqual(back.settings.sheets, full.sheets);
+  for (let sheet = 0; sheet < 2; sheet++) {
+    assert.deepEqual(read(from, forSheet(back.settings, sheet)), read(from, forSheet(full, sheet)));
+  }
+});
+
+test('D752: omitted right view, continuation detail and note retain sheet identity', () => {
+  const { document, drawing } = retained('orient-plate-x-plus');
+  const set: DrawingSettings = {
+    ...drawing,
+    sheets: [{ id: 'S2', name: 'Continuation', views: ['front', 'detail:C'] }],
+    details: [{ id: 'C', view: 'front', center: [16, 4], radius: 3 }],
+    notes: [{ id: 'n1', text: 'Carry with front', at: [80, 50], leader: { view: 'front', at: [16, 4] } }],
+  };
+  const from = viewsOf(document), to = viewsOf(document, 'x+');
+  const turned = reorient(from, to, set, 'x+');
+  assert.ok(turned.ok);
+  assert.deepEqual(turned.settings.sheets?.[0].views, ['right', 'detail:C']);
+  const later = forSheet(turned.settings, 1);
+  assert.deepEqual(later.views, ['right']);
+  assert.equal(later.details?.[0].view, 'right');
+  assert.equal(later.notes?.[0].leader?.view, 'right');
+  assert.deepEqual(read(to, later), ['right 64', 'right 8']);
+});
+
+test('D752: local set_drawing uses the same global sheet permutation', async () => {
+  const { document, drawing } = retained('orient-plate-x-plus');
+  const doc = { ...document, drawing: { ...drawing, sheets: [{ id: 'S2', size: 'A3' as const, views: ['front'] }] } };
+  const evaluated = await evaluatePart(doc, 1);
+  assert.ok(evaluated.ok);
+  const turn = await dispatchTool({ doc, bodies: evaluated.bodies }, 'set_drawing', { front: 'x+' }, async candidate => evaluatePart(candidate, 1));
+  assert.equal(turn.isError, false, turn.content);
+  const result = readDrawing(turn.state.doc.drawing);
+  assert.equal(result.orientation, 'x+');
+  assert.deepEqual(result.sheets?.[0].views, ['right']);
+  assert.deepEqual(forSheet(result, 1).dimensions.map(dim => dim.id), ['d5', 'd6']);
+});
