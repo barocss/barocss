@@ -331,7 +331,9 @@ D696 retains authored drawing tolerances through Auto rerun, first Undo/Redo, fr
 
 D697 verifies Auto-layout refusal with two actual sources, retained Undo/Redo and output, and the agent proposal boundary for a failed continuation sheet. [D697](../auto-layout-refusal-2026-11-11/README.md).
 
-Next MAIN is D698 / P2 B06, row 11. Check the parent Hidden lines setting in Detail, Studio and actual SVG/DXF. [#2408](https://github.com/barocss/barocss/issues/2408).
+D698 verifies Detail Hidden lines across the same sheet and split sheets, with native Save/Open and independent reads of six SVG/DXF pairs. [D698](../detail-hidden-lines-2026-11-11/README.md).
+
+Next MAIN is D699 / P2 B06, row 11. Reproduce section culling far from the origin. Compare near-origin and translated intersections and a true miss. [#2418](https://github.com/barocss/barocss/issues/2418).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

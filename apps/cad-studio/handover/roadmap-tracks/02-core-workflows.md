@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D698](../notes/detail-hidden-lines-2026-11-11/README.md) applies Hidden lines to orthographic Detail views on either sheet. Studio, history, native Save/Open and independent SVG/DXF reads preserve the source-backed 8 mm dimension.
+
 [D697](../notes/auto-layout-refusal-2026-11-11/README.md) verifies two actual Auto-layout refusal paths, source and history retention, fresh Open and independent SVG. The agent proposal refuses a failed continuation sheet without staging a partial result.
 
 [D696](../notes/auto-dimension-tolerance-retention-2026-11-11/README.md) preserves authored controls across Auto-dimension regeneration. Desktop Studio verifies the same width through first Undo/Redo, Save/Open and a 40→48 mm source edit. Independent readers verify the 40 ±0.05 SVG and DXF.

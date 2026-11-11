@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D698 — apply Hidden lines to Detail views](notes/detail-hidden-lines-2026-11-11/README.md).
 - [D697 — refuse Auto-layout when no candidate fits](notes/auto-layout-refusal-2026-11-11/README.md).
 - [D696 — keep authored tolerances when Auto-dimension runs again](notes/auto-dimension-tolerance-retention-2026-11-11/README.md).
 - [D695 — verify late 3MF compression and accept the selected B07 cases](notes/b07-neutral-file-acceptance-2026-11-11/README.md).

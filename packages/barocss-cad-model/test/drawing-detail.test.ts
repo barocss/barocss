@@ -4,12 +4,13 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import type { ProjectedCurve } from '@barocss/cad';
+import type { ProjectedCurve, ProjectedEdge } from '@barocss/cad';
 import { brepsFor } from '../src/engine/evaluate';
 import { starterDoc, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { layoutSheet, toSheet } from '../src/drawing/views';
 import { buildSheet, type Mark, type Sheet } from '../src/drawing/sheet';
+import { buildSheets } from '../src/drawing/sheetSet';
 import { arcCrossings, clipCurveToDisk, clipProjectionToDisk, clipRingsToDisk, detailScale, segmentInDisk } from '../src/drawing/detail';
 import { applyFix, drawingIssues, issueContext } from '../src/drawing/issues';
 import { reorient } from '../src/drawing/reorient';
@@ -179,6 +180,8 @@ test('a detail of a section: the cut faces clipped and hatched; its parent remov
   assert.ok(near(Math.abs(area) / 2, 256 / 2 * 9 * Math.sin(2 * Math.PI / 512), 1e-9));
   // (Sections show no hidden lines: none in the detail of one.)
   assert.ok(!g.marks.some(m => 'pen' in m && m.pen === 'hidden'));
+  const hiddenOff = buildSheet(v, layout, { ...settings, hidden: false }, META, [section]);
+  assert.deepEqual(detailGroup(hiddenOff, 'B').marks, g.marks, 'section detail keeps the same hatch and geometry');
   // Without the section, the detail has no parent: DETAIL_PARENT_MISSING, fixed by removing it and its dimension.
   const orphan: DrawingSettings = { ...settings, section: undefined, dimensions: [{ id: 'd1', view: 'detail:B', kind: 'radius', edge: 'x', near: [0, 0, 0], place: [0, 0] }] };
   delete orphan.section;
@@ -270,4 +273,73 @@ test('written: the detail in the SVG and the PDF; the DXF read back by ezdxf —
   const line = flat.find(e => e.type === 'LINE' && ((nearXY(e.a as number[], [310, H - 80], 1e-6) && nearXY(e.b as number[], [350, H - 80], 1e-6)) || (nearXY(e.b as number[], [310, H - 80], 1e-6) && nearXY(e.a as number[], [350, H - 80], 1e-6))));
   assert.ok(line, 'the top edge from X 32 to 40 at 5:1');
   assert.ok(all.includes('"DETAIL B (5:1)"') && all.includes('Ø8'), 'the name and the dimension’s text');
+});
+
+test('Detail uses drawing-wide hidden lines on the same sheet and in either split-sheet order', () => {
+  const views = viewsOf(starterDoc()), before = structuredClone(views);
+  const point = (z: number) => ({ edge: 'n2.side0#1|n2.side0#2#2~sil', at: 'end' as const, near: [36, 16, z] as [number, number, number] });
+  const settings: DrawingSettings = {
+    ...defaultDrawing(), sheet: 'A3', scale: 1, views: ['front', 'top'],
+    details: [{ id: 'B', view: 'front', center: [36, 8], radius: 4, scale: 5, at: [330, 80] }],
+    dimensions: [{ id: 'hole-side', view: 'detail:B', kind: 'linear', a: point(0), b: point(8), orient: 'vertical', place: [43, 4] }],
+  };
+  const sheetOrders: { sheets?: DrawingSettings['sheets']; breaks?: DrawingSettings['breaks']; detailAt: number; parentAt: number }[] = [
+    { detailAt: 0, parentAt: 0 },
+    { breaks: [{ axis: 'x', from: 12, to: 20 }], detailAt: 0, parentAt: 0 },
+    { sheets: [{ id: 'S2', views: ['detail:B'] }], detailAt: 1, parentAt: 0 },
+    { sheets: [{ id: 'S2', views: ['detail:B'] }, { id: 'S3', views: ['front'] }], detailAt: 1, parentAt: 2 },
+  ];
+  const dash = (m: Mark) => 'pen' in m && m.pen === 'hidden';
+  const text = (sheet: Sheet) => sheet.groups.flatMap(g => g.marks.flatMap(m => m.kind === 'text' ? [m.text] : []));
+  for (const { sheets, breaks, detailAt, parentAt } of sheetOrders) {
+    const build = (hidden: boolean) => buildSheets(views, { ...settings, sheets, breaks, hidden }, META);
+    const on = build(true), off = build(false), restored = build(true);
+    if (breaks) assert.equal(off[parentAt].layout.views.front.breaks?.length, 1);
+    assert.deepEqual(restored, on, 'second enable is identical');
+    const onDetail = on[detailAt].sheet, offDetail = off[detailAt].sheet;
+    const onMarks = detailGroup(onDetail, 'B').marks, offMarks = detailGroup(offDetail, 'B').marks;
+    assert.deepEqual(onMarks.filter(dash), [{ kind: 'line', a: [330, 100], b: [330, 80], pen: 'hidden' }]);
+    assert.deepEqual(offMarks, onMarks.filter(m => !dash(m)));
+    assert.deepEqual(offDetail.details, onDetail.details, 'projection and placement stay exact');
+    assert.equal(offDetail.details?.[0].projection.edges.flatMap(e => e.pieces).filter(p => !p.visible).length, 1);
+    assert.deepEqual(offDetail.dimensions, onDetail.dimensions, 'hidden source remains measurable');
+    const [dimension] = offDetail.dimensions;
+    assert.ok(dimension.ok && dimension.value === 8);
+    assert.deepEqual(dimension.dim, settings.dimensions[0]);
+    assert.equal(off[parentAt].sheet.groups.find(g => g.role === 'view' && g.view === 'front')?.marks.some(dash), false);
+    assert.equal(on[parentAt].sheet.groups.find(g => g.role === 'view' && g.view === 'front')?.marks.filter(dash).length, 2);
+    if (detailAt !== parentAt) {
+      assert.ok(text(offDetail).includes(`FROM SHEET ${parentAt + 1}`));
+      assert.ok(text(off[parentAt].sheet).includes(`SEE SHEET ${detailAt + 1}`));
+      assert.equal(off[parentAt].sheet.details, undefined);
+      assert.ok(!offDetail.groups.some(g => g.role === 'view' && g.view === 'front'));
+    }
+  }
+  assert.deepEqual(views, before);
+});
+
+test('Detail hidden filtering leaves clipped source pieces, tangent ink and the boundary intact', () => {
+  const views = viewsOf(starterDoc());
+  const arc = (x: number): ProjectedCurve => ({ kind: 'arc', center: [x, 8], u: [2, 0], v: [0, 2], t0: 0, t1: Math.PI / 2 });
+  const edges: ProjectedEdge[] = [
+    { name: 'across', kind: 'line', ends: null, circle: null, pieces: [{ visible: true, curve: { kind: 'line', a: [30, 8], b: [42, 8] } }] },
+    { name: 'side', kind: 'line', ends: null, circle: null, pieces: [{ visible: false, curve: { kind: 'line', a: [36, 0], b: [36, 8] } }] },
+    { name: 'inside', kind: 'curve', ends: null, circle: null, pieces: [{ visible: false, curve: arc(36) }] },
+    { name: 'outside', kind: 'curve', ends: null, circle: null, pieces: [{ visible: false, curve: arc(50) }] },
+    { name: 'tangent', kind: 'curve', ends: null, circle: null, tangent: true, pieces: [{ visible: true, curve: arc(35) }] },
+    { name: 'touch', kind: 'line', ends: null, circle: null, pieces: [{ visible: false, curve: { kind: 'line', a: [40, 4], b: [40, 12] } }] },
+  ];
+  for (const view of ['front', 'top', 'right'] as const) {
+    const projected = { ...views, [view]: { ...views[view], edges } };
+    const before = structuredClone(projected);
+    const settings: DrawingSettings = { ...defaultDrawing(), sheet: 'A3', details: [{ id: 'B', view, center: [36, 8], radius: 4, scale: 5, at: [330, 80] }] };
+    const on = sheetOf(settings, projected).sheet, off = sheetOf({ ...settings, hidden: false }, projected).sheet;
+    const shown = detailGroup(on, 'B').marks, concealed = detailGroup(off, 'B').marks;
+    const dashed = (m: Mark) => 'pen' in m && m.pen === 'hidden';
+    assert.deepEqual(shown.filter(dashed).map(m => m.kind), ['line', 'arc']);
+    assert.deepEqual(concealed, shown.filter(m => !dashed(m)));
+    assert.equal(concealed.filter(m => m.kind === 'arc' && m.pen === 'thin').length, 2);
+    assert.deepEqual(on.details, off.details);
+    assert.deepEqual(projected, before);
+  }
 });

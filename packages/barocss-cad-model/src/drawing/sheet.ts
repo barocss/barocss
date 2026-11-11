@@ -581,8 +581,9 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     if (!at) { missing.push({ id: d.id, why: 'room' }); continue; }
     const placement: ViewPlacement = { id: 'detail', scale: k, origin: [at[0] - k * d.center[0], at[1] + k * d.center[1]], box: [at[0] - half, at[1] - half, at[0] + half, at[1] + half] };
     const marks: Mark[] = [];
+    const showHidden = settings.hidden && !isSectionRef(d.view);
     for (const visible of [false, true]) for (const e of projection.edges) for (const p of e.pieces) {
-      if (p.visible !== visible || (!visible && !parent.hidden)) continue;
+      if (p.visible !== visible || (!visible && !showHidden)) continue;
       marks.push(curveMark(placement, p.curve, !visible ? 'hidden' : e.tangent ? 'thin' : 'visible'));
     }
     const bodies = parent.ringBodies ? cut.kept.map(i => parent.ringBodies![i]) : undefined;
@@ -609,19 +610,19 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
   return { groups, details, missing, resolved };
 }
 /** A detail's parent as the sheet has it: a shown orthographic view, or a section placed (its rings and bodies), or null. */
-function detailParent(layout: SheetLayout, views: DrawingViews, placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], d: DrawingDetail): { placement: ViewPlacement; projection: BrepProjection; rings: XY[][]; ringBodies?: number[]; hidden: boolean } | null {
+function detailParent(layout: SheetLayout, views: DrawingViews, placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], d: DrawingDetail): { placement: ViewPlacement; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | null {
   if (isSectionRef(d.view)) {
     const id = sectionLetter(d.view), p = placedSections.find(x => x.id === id), sec = sections.find(x => x.id === id);
-    return p && sec ? { placement: p.placement, projection: p.projection, rings: sec.rings, ...(sec.ringBodies ? { ringBodies: sec.ringBodies } : {}), hidden: false } : null;
+    return p && sec ? { placement: p.placement, projection: p.projection, rings: sec.rings, ...(sec.ringBodies ? { ringBodies: sec.ringBodies } : {}) } : null;
   }
   const v = layout.views[d.view];
-  return v.hidden ? null : { placement: v, projection: views[d.view], rings: [], hidden: true };
+  return v.hidden ? null : { placement: v, projection: views[d.view], rings: [] };
 }
 /** A detail's parent when it is on another sheet: its projection (and a section's rings), no placement here. */
-function foreignParent(views: DrawingViews, sections: readonly SheetSection[], d: DrawingDetail): { placement: ViewPlacement; projection: BrepProjection; rings: XY[][]; ringBodies?: number[]; hidden: boolean } | null {
+function foreignParent(views: DrawingViews, sections: readonly SheetSection[], d: DrawingDetail): { placement: ViewPlacement; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | null {
   const none = { id: 'detail', scale: 1, origin: [0, 0], box: [0, 0, 0, 0] } as ViewPlacement;
-  if (isSectionRef(d.view)) { const id = sectionLetter(d.view), sec = sections.find(x => x.id === id); return sec ? { placement: none, projection: sec.projection, rings: sec.rings, ...(sec.ringBodies ? { ringBodies: sec.ringBodies } : {}), hidden: false } : null; }
-  return { placement: none, projection: views[d.view], rings: [], hidden: true };
+  if (isSectionRef(d.view)) { const id = sectionLetter(d.view), sec = sections.find(x => x.id === id); return sec ? { placement: none, projection: sec.projection, rings: sec.rings, ...(sec.ringBodies ? { ringBodies: sec.ringBodies } : {}) } : null; }
+  return { placement: none, projection: views[d.view], rings: [] };
 }
 /** The first top-left corner for a w × h box clear of `taken` (with a gap), from the frame's top right, down then left in 5 mm steps; null when none is. */
 function detailRoom(layout: SheetLayout, taken: readonly Rect[], w: number, h: number): XY | null {
