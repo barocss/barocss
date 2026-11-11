@@ -11,6 +11,8 @@ import { snapPoints } from '../src/drawing/dimensions';
 import { applyFix, drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, chooseViews, rightAddsNothing } from '../src/drawing/layout';
 import { layoutSheet } from '../src/drawing/views';
+import { forSheet, mergeSheet } from '../src/drawing/sheets';
+import { autoLayoutSheets } from '../src/drawing/sheetSet';
 import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 
 // R14.3 (O4): views chosen and laid out for their dimensions. Conformance cases packages/barocss-cad/conformance/r14/
@@ -176,4 +178,48 @@ test('Auto layout returns a fitting candidate with existing annotation issues', 
   assert.ok(result.report.left.some(issue => issue.code === 'DIMENSION_LOST'));
   assert.ok(issueContext({ ...input, settings: result.settings }).layout.fits);
   assert.deepEqual(result.settings.dimensions.find(d => d.id === lost.id), lost);
+});
+
+test('D754: sequential automatic layouts reserve dimension IDs on other sheets in either order', () => {
+  const initial = inputsOf(CASES['layout-cross-hole'].doc(), {
+    ...defaultDrawing(),
+    sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', views: ['right'] }],
+  });
+  const sortedIds = (s: DrawingSettings) => s.dimensions.map(d => d.id).sort();
+  const check = (settings: DrawingSettings, firstSheetIds: string[], secondSheetIds: string[]) => {
+    const first = forSheet(settings, 0), second = forSheet(settings, 1);
+    assert.deepEqual(sortedIds(first), firstSheetIds);
+    assert.deepEqual(sortedIds(second), secondSheetIds);
+    assert.deepEqual(read(initial, first).map(dim => dim.text).sort(), ['30', '30', '60']);
+    assert.deepEqual(read(initial, second).map(dim => dim.text).sort(), ['15', '15', 'Ø8 THRU']);
+    assert.equal(settings.sheetContext, undefined);
+    assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(settings))).dimensions, settings.dimensions);
+  };
+  const lower = ['d1', 'd2', 'd3'], upper = ['d4', 'd5', 'd6'];
+  check(autoLayoutSheets(initial).settings, lower, upper);
+  for (const order of [[0, 1], [1, 0]]) {
+    let whole = initial.settings;
+    for (const sheet of order) {
+      const local = forSheet(whole, sheet);
+      whole = mergeSheet(whole, sheet, autoLayout({ ...initial, settings: local }).settings);
+    }
+    check(whole, order[0] === 0 ? lower : upper, order[0] === 0 ? upper : lower);
+  }
+});
+
+test('D754: Auto-dimension reserves an existing sibling dimension and preserves its exact authored control', () => {
+  const initial = inputsOf(CASES['layout-cross-hole'].doc(), {
+    ...defaultDrawing(),
+    sheets: [{ id: 'S2', views: ['right'] }],
+  });
+  const right = autoLayout({ ...initial, settings: forSheet(initial.settings, 1) }).settings.dimensions.find(d => d.kind === 'diameter');
+  assert.ok(right);
+  const manual: DrawingDimension = { ...right, id: 'd1', auto: undefined, tol: { kind: 'symmetric', value: 0.05 } };
+  const whole = { ...initial.settings, dimensions: [manual] };
+  const local = forSheet(whole, 0);
+  assert.deepEqual(local.sheetContext?.dimensionIdsOnOtherSheets, ['d1']);
+  const result = mergeSheet(whole, 0, autoLayout({ ...initial, settings: local }).settings);
+  assert.deepEqual(forSheet(result, 0).dimensions.map(d => d.id).sort(), ['d2', 'd3', 'd4']);
+  assert.deepEqual(forSheet(result, 1).dimensions, [manual]);
+  assert.equal(result.sheetContext, undefined);
 });

@@ -327,7 +327,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     }
   }
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
-  const out: DrawingDimension[] = [...retained], used = new Set(retained.map(d => d.id));
+  const out: DrawingDimension[] = [...retained], used = new Set([...(settings.sheetContext?.dimensionIdsOnOtherSheets ?? []), ...retained.map(d => d.id)]);
   const retainedSpans = new Map<string, DrawingDimension[]>();
   for (const m of retained) { const key = spanKey(dimViews, m, base); if (key) { const bucket = retainedSpans.get(key) ?? []; bucket.push(m); retainedSpans.set(key, bucket); } }
   const nextId = () => { const id = nextFreeId('d', used); used.add(id); return id; };
