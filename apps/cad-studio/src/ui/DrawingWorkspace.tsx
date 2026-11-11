@@ -25,7 +25,7 @@ import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheet
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
 
 import { pdfMissing, sheetsPdf } from '@barocss/cad-model/io/pdf';
-import { forSheet, mergeSheet, sheetCount, sheetName } from '@barocss/cad-model/drawing/sheets';
+import { forSheet, mergeSheet, moveToSheet, sheetCount, sheetName } from '@barocss/cad-model/drawing/sheets';
 import { buildSheets, setIssuesOn } from '@barocss/cad-model/drawing/sheetSet';
 import { SheetTabs, SheetsMenu, newSheetId } from './drawing/SheetSet';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
@@ -42,7 +42,7 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { DETAIL_PARENTS, type DetailParent } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
 import { BreaksList } from './drawing/BreaksList';
-import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
@@ -430,13 +430,26 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       const into = placementAt(pending.view), at = into ? fromSheet(into, h.q) : h.at, radius = Math.round(Math.hypot(at[0] - pending.center[0], at[1] - pending.center[1]) * 100) / 100;
       if (!(radius > 0)) { setMessage('Click away from the centre: that is how far the circle reaches.'); return; }
       // (A stays the front section's, by its checkbox, as added sections leave it.)
-      const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionsOf(settings)], (settings.details ?? []).map(d => d.id));
+      const used = [...(wholeSettings.details ?? []).map(d => d.id), ...reservedDetailLetters(wholeSettings)];
+      const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionsOf(wholeSettings)], used);
       onChange({ ...settings, details: [...(settings.details ?? []), { id, view: pending.view, center: pending.center, radius }] });
       setPending(null); return;
     }
     if (!(DETAIL_PARENTS as readonly string[]).includes(h.view) && !isSectionRef(h.view)) { setMessage('A detail enlarges part of the front, top or right view, or of a section.'); return; }
     const c = h.snap?.at ?? h.at;
     setPending({ kind: 'detail', view: h.view as DetailParent, center: [Math.round(c[0] * 100) / 100, Math.round(c[1] * 100) / 100] });
+  };
+
+  const removeDetail = (id: string) => {
+    if (annotatedDetailLetters(wholeSettings).has(id)) {
+      setMessage(`Detail ${id} has dimensions or geometric controls. Remove those annotations first.`);
+      return;
+    }
+    const details = (wholeSettings.details ?? []).filter(d => d.id !== id), next = { ...wholeSettings };
+    delete next.details;
+    if (details.length) next.details = details;
+    if (next.sheets) next.sheets = moveToSheet(wholeSettings, `detail:${id}`, 0);
+    if (commitWhole(next)) setMessage(null);
   };
 
   /** A new note at a sheet point (with a leader to a view point), selected with its text ready to type. */
@@ -823,7 +836,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <SheetsMenu whole={wholeSettings} current={current} onChange={(next, then) => { commitWhole(next); if (then !== undefined) setSheetNo(then); }} />
 
-        <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} />
+        <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} onRemove={removeDetail} />
 
         <BreaksList settings={settings} views={views} onChange={onChange} onRefused={why => onToast({ title: 'Break unchanged', hint: why, detail: '' })} />
 

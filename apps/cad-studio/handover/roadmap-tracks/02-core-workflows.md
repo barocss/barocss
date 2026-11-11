@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D701](../notes/detail-annotation-ownership-2026-11-11/README.md) keeps a Detail with referenced dimensions or frames and reserves the letters of unresolved records. Desktop Studio and eight independent SVG reads verify current ownership and safe reuse.
+
 [D700](../notes/axial-thread-visibility-2026-11-11/README.md) applies Hidden lines to fully occluded axial cosmetic threads. Studio and eight independent SVG/DXF pairs verify omitted, hidden and visible marks through history, reopen and a source edit.
 
 [D699](../notes/section-translation-2026-11-11/README.md) verifies strict native section halves and one exact cap at the origin and ±8192 mm. Desktop Studio and independent SVG preserve the matching section and a genuine miss.

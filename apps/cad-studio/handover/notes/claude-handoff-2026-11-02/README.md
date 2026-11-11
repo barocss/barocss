@@ -337,7 +337,9 @@ D699 verifies translated native caps, the actual Studio cut and miss, history an
 
 D700 applies Hidden lines to fully occluded axial cosmetic threads. Studio and eight independent SVG/DXF pairs cover history, fresh Open and a source edit. [D700](../axial-thread-visibility-2026-11-11/README.md).
 
-Next MAIN is D701 / P2 B06, row 11. Check whether a new Detail inherits a deleted Detail's dimensions when its letter is reused. [#2366](https://github.com/barocss/barocss/issues/2366).
+D701 preserves detail dimensions and frames through deletion refusal, safe reuse, native Save/Open and eight SVG reads. [D701](../detail-annotation-ownership-2026-11-11/README.md).
+
+Next MAIN is D702 / P2 B06, row 11. Freeze the B06 v1 acceptance checklist and check whether an accepted general tolerance note keeps its units on an inch drawing. [#2368](https://github.com/barocss/barocss/issues/2368).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

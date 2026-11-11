@@ -237,6 +237,18 @@ export function nextSectionId(list: readonly DrawingSection[], also: Iterable<st
   const used = new Set([...list.map(x => x.id), ...also]);
   for (let k = 0; ; k++) { const id = k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(64 + Math.floor(k / 26)) + String.fromCharCode(65 + k % 26); if (!used.has(id)) return id; }
 }
+/** Detail letters owned by dimensions or standalone frames, including unresolved ones from a saved drawing. */
+export function annotatedDetailLetters(s: Pick<DrawingSettings, 'dimensions' | 'frames'>): Set<string> {
+  const views = [...s.dimensions.map(d => d.view), ...(s.frames ?? []).map(f => f.view)];
+  return new Set(views.filter(v => v !== undefined && isDetailRef(v)).map(detailLetter));
+}
+
+/** An absent detail's annotation or sheet assignment still reserves its letter. */
+export function reservedDetailLetters(s: Pick<DrawingSettings, 'dimensions' | 'frames' | 'sheets'>): Set<string> {
+  const letters = annotatedDetailLetters(s);
+  for (const sheet of s.sheets ?? []) for (const view of sheet.views) if (isDetailRef(view)) letters.add(detailLetter(view));
+  return letters;
+}
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
 export type ViewRoom = Partial<Record<ViewId, Partial<Record<RoomSide, number>>>>;
 export const ROOM_SIDES: readonly RoomSide[] = ['above', 'below', 'left', 'right'];
