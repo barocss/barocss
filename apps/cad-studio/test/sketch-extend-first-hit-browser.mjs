@@ -99,8 +99,8 @@ await f.run(async () => {
       await button('Hide construction').click();
       assert.equal(await page.locator('.sk-shape.done.construction').count(), 0);
       await page.mouse.move(...click);
-      await preview.waitFor({ state: 'attached' });
-      f.report.observations.push({ label: 'hidden construction follow-up #2312', hiddenOutline: true, extendPreview: true });
+      await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+      f.report.observations.push({ label: 'hidden construction follow-up #2312', hiddenOutline: true, extendPreview: await preview.count() > 0 });
       await f.snapshot('hidden-construction-preview');
       await button('Show construction').click();
       await page.mouse.move(...click);

@@ -27,10 +27,11 @@ export function nextIdOf(shapes: readonly SketchShape[]): number {
  * The shapes, each with an id a side (and a polygon's attached circles one each): the ids they have kept, new
  * ones (in order, after the highest) where a shape has none or not as many as its sides.
  */
-export function withIds(shapes: readonly SketchShape[], from = 1): SketchShape[] {
+export function withIds(shapes: readonly SketchShape[], from = 1, protectedShapes?: ReadonlySet<SketchShape>): SketchShape[] {
   let k = Math.max(from, nextIdOf(shapes));
   const fresh = (n: number) => Array.from({ length: n }, () => `e${k++}`);
   return shapes.map(s => {
+    if (protectedShapes?.has(s)) return s;
     let out = s;
     // (As many as its sides: kept, an empty one — a side an edit made — given one; else all new.)
     if (s.ids?.length !== sidesOf(s)) out = { ...out, ids: fresh(sidesOf(s)) };
@@ -132,17 +133,19 @@ export function cornersOf(s: SketchShape): [number, number][] | null {
  * ids of old shapes' corners at the same place (a segment's id is its start point's), each at most once; the rest
  * new ones (withIds).
  */
-export function inheritIds(old: readonly SketchShape[], next: readonly SketchShape[]): SketchShape[] {
+export function inheritIds(old: readonly SketchShape[], next: readonly SketchShape[], protectedShapes?: ReadonlySet<SketchShape>): SketchShape[] {
   const key = (p: readonly number[]) => `${p[0].toFixed(6)},${p[1].toFixed(6)}`, pool = new Map<string, string[]>();
-  for (const s of withIds(old)) { const C = cornersOf(s); if (C) C.forEach((p, i) => { const k = key(p); pool.set(k, [...(pool.get(k) ?? []), s.ids![i]]); }); }
+  const from = nextIdOf(old);
+  const editable = protectedShapes ? withIds(old.filter(s => !protectedShapes.has(s)), from) : withIds(old);
+  for (const s of editable) { const C = cornersOf(s); if (C) C.forEach((p, i) => { const k = key(p); pool.set(k, [...(pool.get(k) ?? []), s.ids![i]]); }); }
   const used = new Set<string>();
   const taken = next.map(s => {
-    if (s.kind !== 'polygon' || (s.ids?.length === s.points.length)) return s;
+    if (protectedShapes?.has(s) || s.kind !== 'polygon' || (s.ids?.length === s.points.length)) return s;
     const ids = s.points.map(p => { const id = (pool.get(key(p)) ?? []).find(x => !used.has(x)); if (id) used.add(id); return id ?? ''; });
     return ids.some(Boolean) ? { ...s, ids } : s;
   });
   // (Points with no old id: new ones, after the highest — the old shapes' ids counted too, gone or not.)
-  return withIds(taken, nextIdOf(old));
+  return withIds(taken, from, protectedShapes);
 }
 /** The node's sides' tags as the shapes that make it give them (null when one has none: the node stays positional). */
 export function sideTagsFor(node: SketchNode, main: SketchShape, regions: readonly SketchShape[], holes: readonly SketchShape[], loopOf: (n: SketchNode) => LoopSegment[]): SideTags | null {

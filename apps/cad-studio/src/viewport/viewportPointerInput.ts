@@ -15,6 +15,7 @@ import { respline, splineEditError, splineOutline, type SplineDef } from '@baroc
 import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { pickCage, type CageHit } from '@barocss/cad-model/subd/cageEdit';
+import { sketchCutInputs } from '../app/sketchControls';
 import { bodyEntirelyBehindEye } from './boxSelectionDepth';
 import type { OrbitCamera } from './camera';
 import { ellipseClick, type EllipseDraft } from './ellipseDraft';
@@ -232,7 +233,6 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
-  const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
   const cancelGizmo = (reason: GizmoCancelReason, pointerId?: number) => {
     const d = drag.current;
     if (d.mode !== 'gizmo' || (pointerId !== undefined && d.pointerId !== pointerId)) return;
@@ -558,9 +558,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         }
       }
       else if (cutting(sk)) {
-        const all = sketchShapesOf(sk), q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
-        const points = !q ? null : kind === 'trim' ? trimPreview(all, q, tol) : kind === 'extend' ? extendPreview(all, q, tol) : (pt => pt ? [pt] : null)(splitPreview(all, q, tol));
-        sketchDraft.current.trim = points ? { kind, points } : null;
+        const { shapes, protectedShapes } = sketchCutInputs(sk);
+        const q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
+        const points = !q ? null : kind === 'trim' ? trimPreview(shapes, q, tol, protectedShapes)
+          : kind === 'extend' ? extendPreview(shapes, q, tol, protectedShapes) : (pt => pt ? [pt] : null)(splitPreview(shapes, q, tol, protectedShapes));
+        sketchDraft.current.trim = points ? { kind, points, owner: sk } : null;
       }
       else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });

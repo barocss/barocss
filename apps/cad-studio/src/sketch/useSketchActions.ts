@@ -1,5 +1,5 @@
 import { emptyDirect } from '../app/directGeometry';
-import { SKETCH_INSETS, sketchRegion, detachSketchLink } from '../app/sketchControls';
+import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
 import { useCallback } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -9,7 +9,7 @@ import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
-import { rebindDims, reopenedOrder, sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { rebindDims, sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { bandMake } from '../app/bandControls';
 import { bandSketchNode } from '@barocss/cad-model/sketch/band';
 import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
@@ -109,8 +109,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
-    const shapes = sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
-    const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
+    const { shapes, protectedShapes } = sketchCutInputs(sketch);
+    const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
+    const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
@@ -163,8 +164,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
     // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
-    const authored = sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
-    const shapes = withIds(joinOpen(authored.map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x)));
+    const { shapes: authored, protectedShapes } = sketchCutInputs(sketch);
+    const joined = joinOpen(authored.map(x => x.kind === 'polygon' && !x.closed && !protectedShapes?.has(x) ? { ...x, pending: false } : x), undefined, protectedShapes);
+    const shapes = withIds(joined, undefined, protectedShapes);
     // A band sketch holds the band and its construction sources only (the model refuses anything else, and a band that cannot be made).
     const banded = sketch.band ? bandSketchNode(shapes, sketch.band) : null;
     if (banded && 'error' in banded) { setToast({ title: 'Cannot finish the band', hint: banded.error, detail: '' }); return; }

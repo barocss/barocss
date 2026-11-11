@@ -80,10 +80,13 @@ const pt = (s: Piece, t: number): P2 => { const q = at(s, t); return [r6(q[0]), 
 
 /** The piece nearest `p` (within `tol` mm) and the part of it a trim there removes: t from lo to hi. */
 interface Target { shape: number; piece: number; s: Piece; full: boolean; lo: number; hi: number; gone: boolean }
-function target(shapes: SketchShape[], p: P2, tol: number): Target | null {
+function target(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): Target | null {
   let best: { shape: number; piece: number; d: number } | null = null;
   const pieces = shapes.map(piecesOf);
-  pieces.forEach((ps, si) => ps.forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; }));
+  pieces.forEach((ps, si) => {
+    if (protectedShapes?.has(shapes[si])) return;
+    ps.forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; });
+  });
   if (!best) return null;
   const { shape: si, piece: pi } = best as { shape: number; piece: number }, s = pieces[si][pi];
   const full = s.kind === 'arc' && Math.abs(s.sw) >= TAU - 1e-12, tp = paramOf(s, p);
@@ -99,8 +102,8 @@ function target(shapes: SketchShape[], p: P2, tol: number): Target | null {
 }
 
 /** The part a trim at `p` would remove, sampled (for the hover highlight), or null off the sketch. */
-export function trimPreview(shapes: SketchShape[], p: P2, tol: number): P2[] | null {
-  const t = target(shapes, p, tol); if (!t) return null;
+export function trimPreview(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): P2[] | null {
+  const t = target(shapes, p, tol, protectedShapes); if (!t) return null;
   const n = t.s.kind === 'line' ? 1 : Math.max(2, Math.ceil(Math.abs(t.s.sw) * (t.hi - t.lo) / (Math.PI / 24)));
   return Array.from({ length: n + 1 }, (_, k) => pt(t.s, t.lo + (t.hi - t.lo) * k / n));
 }
@@ -109,8 +112,8 @@ export function trimPreview(shapes: SketchShape[], p: P2, tol: number): P2[] | n
  * The sketch's shapes with the piece nearest `p` (within `tol` mm) trimmed back to its nearest crossings
  * on either side, and open outlines meeting end to end joined; or why not.
  */
-export function trimAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
-  const T = target(shapes, p, tol);
+export function trimAt(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): { shapes: SketchShape[] } | { error: string } {
+  const T = target(shapes, p, tol, protectedShapes);
   if (!T) return { error: 'Click on a line, arc or circle of the sketch to trim it.' };
   const { shape: si, piece: pi, s, full, lo, hi } = T, shape = shapes[si];
   const rest = shapes.filter((_, k) => k !== si);
@@ -142,14 +145,15 @@ export function trimAt(shapes: SketchShape[], p: P2, tol: number): { shapes: Ske
     }
   }
   // (The pieces left keep their sides' ids by where they start, R10a.)
-  return { shapes: inheritIds(shapes, joinOpen([...rest.slice(0, si), ...made, ...rest.slice(si), ...loose])) };
+  const joined = joinOpen([...rest.slice(0, si), ...made, ...rest.slice(si), ...loose], undefined, protectedShapes);
+  return { shapes: inheritIds(shapes, joined, protectedShapes) };
 }
 
 /** Open outlines (of one kind, drawn or construction) meeting end to end joined; closed up when they meet themselves. */
-export function joinOpen(shapes: SketchShape[], tol = 1e-4): SketchShape[] {
+export function joinOpen(shapes: SketchShape[], tol = 1e-4, protectedShapes?: ReadonlySet<SketchShape>): SketchShape[] {
   const same = (a: P2, b: P2) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= tol;
   type Open = Extract<SketchShape, { kind: 'polygon' }>;
-  const isOpen = (s: SketchShape): s is Open => s.kind === 'polygon' && !s.closed && !s.pending && s.points.length >= 2;
+  const isOpen = (s: SketchShape): s is Open => !protectedShapes?.has(s) && s.kind === 'polygon' && !s.closed && !s.pending && s.points.length >= 2;
   const reversed = (s: Open): Open => { const n = s.points.length, b = s.bulges ?? s.points.map(() => 0); return { ...s, points: [...s.points].reverse(), bulges: [...Array.from({ length: n - 1 }, (_, k) => -(b[n - 2 - k] ?? 0)), 0] }; };
   const out = [...shapes];
   for (let changed = true; changed;) {
@@ -292,11 +296,11 @@ function lineReach(pieces: Piece[][], shape: number, atEnd: boolean, s: LinePiec
   return { kind: 'line', shape, atEnd, from, end };
 }
 
-function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: string } {
+function reach(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): Reach | { error: string } {
   const pieces = shapes.map(piecesOf);
   let best: { shape: number; atEnd: boolean; d: number } | null = null;
   shapes.forEach((sh, si) => {
-    if (sh.kind !== 'polygon' || sh.closed || sh.points.length < 2) return;
+    if (protectedShapes?.has(sh) || sh.kind !== 'polygon' || sh.closed || sh.points.length < 2) return;
     const ps = pieces[si];
     for (const [atEnd, piece] of [[false, ps[0]], [true, ps[ps.length - 1]]] as const) {
       const d = distance(piece, p); if (!Number.isFinite(d) || d > tol) continue;
@@ -321,14 +325,14 @@ function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: stri
   const t = Math.min(...ts);
   return { kind: 'arc', shape: si, atEnd, s, ext, t, end: pt(ext, t) };
 }
-export function extendPreview(shapes: SketchShape[], p: P2, tol: number): P2[] | null {
-  const r = reach(shapes, p, tol); if ('error' in r) return null;
+export function extendPreview(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): P2[] | null {
+  const r = reach(shapes, p, tol, protectedShapes); if ('error' in r) return null;
   if (r.kind === 'line') return [[...r.from], r.end];
   const n = Math.max(2, Math.ceil(Math.abs(r.ext.sw) * r.t / (Math.PI / 24)));
   return Array.from({ length: n + 1 }, (_, k) => pt(r.ext, r.t * k / n));
 }
-export function extendAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
-  const r = reach(shapes, p, tol); if ('error' in r) return r;
+export function extendAt(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): { shapes: SketchShape[] } | { error: string } {
+  const r = reach(shapes, p, tol, protectedShapes); if ('error' in r) return r;
   const sh = shapes[r.shape] as Extract<SketchShape, { kind: 'polygon' }>, n = sh.points.length, end = r.end;
   const bulges = sh.points.map((_, i) => sh.bulges?.[i] ?? 0);
   // A line's end moves along it (its bulge stays 0); an arc's end moves round its circle (its bulge grows).
@@ -338,25 +342,29 @@ export function extendAt(shapes: SketchShape[], p: P2, tol: number): { shapes: S
   else { points = [end, ...points.slice(1)]; if (r.kind === 'arc') bulges[0] = arcBulge(r.s, Math.abs(r.ext.sw) * r.t); }
   // (Kept edge lengths and the like no longer hold.)
   const next: SketchShape = { kind: 'polygon', points, bulges, closed: false, ...(sh.construction ? { construction: true as const } : {}) };
-  return { shapes: inheritIds(shapes, joinOpen(shapes.map((x, i) => i === r.shape ? next : x))) };
+  const joined = joinOpen(shapes.map((x, i) => i === r.shape ? next : x), undefined, protectedShapes);
+  return { shapes: inheritIds(shapes, joined, protectedShapes) };
 }
 
 /** Splitting: the piece nearest `p` (within `tol`) gets a point there — two pieces where it was one. */
-function splitTarget(shapes: SketchShape[], p: P2, tol: number) {
+function splitTarget(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>) {
   let best: { shape: number; piece: number; d: number } | null = null;
-  shapes.map(piecesOf).forEach((ps, si) => ps.forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; }));
+  shapes.forEach((shape, si) => {
+    if (protectedShapes?.has(shape)) return;
+    piecesOf(shape).forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; });
+  });
   if (!best) return null;
   const b = best as { shape: number; piece: number }, s = piecesOf(shapes[b.shape])[b.piece], t = Math.max(0, Math.min(1, paramOf(s, p)));
   return { ...b, s, t };
 }
-export function splitPreview(shapes: SketchShape[], p: P2, tol: number): P2 | null {
-  const t = splitTarget(shapes, p, tol); return t ? pt(t.s, t.t) : null;
+export function splitPreview(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): P2 | null {
+  const t = splitTarget(shapes, p, tol, protectedShapes); return t ? pt(t.s, t.t) : null;
 }
-export function splitAt(input: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
-  // (Every side with its id first: the split keeps them, R10a.)
-  const shapes = withIds(input);
-  const T = splitTarget(shapes, p, tol);
+export function splitAt(input: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): { shapes: SketchShape[] } | { error: string } {
+  const T = splitTarget(input, p, tol, protectedShapes);
   if (!T) return { error: 'Click on a line, arc or circle of the sketch to split it there.' };
+  // (Every side with its id first: the split keeps them, R10a.)
+  const shapes = withIds(input, undefined, protectedShapes);
   const { shape: si, piece: pi, s, t } = T, shape = shapes[si], flag = shape.construction ? { construction: true as const } : {}, fresh = `e${nextIdOf(shapes)}`;
   const at2 = pt(s, t);
   if (shape.kind === 'circle') {

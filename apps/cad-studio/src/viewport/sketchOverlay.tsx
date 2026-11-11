@@ -20,7 +20,7 @@ export interface SketchOverlayDraft {
   hover?: SketchPick | null;
   bandHover?: number | null;
   snap?: SnapPoint | null;
-  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[] } | null;
+  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[]; owner: SketchState } | null;
 }
 
 export interface CentreArcDraft {
@@ -222,7 +222,7 @@ export function drawSketchOverlay({
       if (Math.abs(ca.sweep) > 1e-3) items.push(label(E[0] + 30, E[1] - 14, (Math.round(Math.abs(ca.sweep) * 1800 / Math.PI) / 10) + '°', 'live-carc-a'));
     }
   }
-  const trim = cutting && draft.trim?.kind === sk.tool ? draft.trim : null;
+  const trim = cutting && draft.trim?.owner === sk ? draft.trim : null;
   if (trim?.kind === 'split') { const p = P(trim.points[0][0], trim.points[0][1]); items.push(<circle key="split" cx={p[0]} cy={p[1]} r={5} className="sk-split" />); }
   else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);
   const cur = picking ? null : draft.cursor;
