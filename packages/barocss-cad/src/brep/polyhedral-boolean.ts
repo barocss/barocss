@@ -16,7 +16,7 @@
 // keeps its input face's persistent name (numbered `#k` when a name is split), and edges are named by
 // their two faces, as for prismatic solids.
 import { buildBrep, checkBrep, lineCurve, BrepError, type Brep } from './brep-core.js';
-import { arrangementRegions, exactPoint2, exactToXY, type ExactPoint2 } from './planar-arrangement.js';
+import { arrangementRegions, exactOrient2, exactPoint2, exactToXY, type ExactPoint2 } from './planar-arrangement.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { nameEdges } from '../features/prismatic-solid.js';
 import { binary64Dyadic } from '../core/dyadic.js';
@@ -74,10 +74,13 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
   const vertices = new Map(brep.vertices.map(v => [v.id, v.point]));
   return brep.faces.map(f => {
     const outer = f.loops.find(l => loops.get(l)!.kind === 'outer')!, ordered = [outer, ...f.loops.filter(l => l !== outer)];
+    const points: Point[] = [];
     const rings = ordered.map(lid => loops.get(lid)!.coedges.map(cid => {
       const c = coedges.get(cid)!, e = edges.get(c.edge)!;
       if (!(e.curve.degree === 1 && e.curve.controlPoints.length === 2)) throw new BrepError('GEOMETRY', `polyhedral Boolean: edge ${e.id} is not straight`);
-      const p = vertices.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!; return p.map(qf) as V;
+      const p = vertices.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!;
+      points.push(p);
+      return p.map(qf) as V;
     }));
     // Exact Newell normal of the outer loop: points out of the solid (loops run counter-clockwise about it).
     const ring = rings[0], normal = newellNormal(rings);
@@ -85,7 +88,7 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
     if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`, undefined, 'NOT_PLANAR_WITHIN_FLOAT');
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
-    const flat = rings.flat().map(vnum), min: Point = [minAt(flat, 0), minAt(flat, 1), minAt(flat, 2)], max: Point = [maxAt(flat, 0), maxAt(flat, 1), maxAt(flat, 2)];
+    const min: Point = [minAt(points, 0), minAt(points, 1), minAt(points, 2)], max: Point = [maxAt(points, 0), maxAt(points, 1), maxAt(points, 2)];
     const offset = vdot(normal, ring[0]);
     return { solid, rings, normal, offset, axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }), ...floatPlane(normal, offset, min, max) };
   });
@@ -176,17 +179,26 @@ type Where = 'in' | 'out' | 'same' | 'opposite';
  * a ray skips the exact test of faces it clearly misses (its binary64 crossing point clearly outside the
  * face's box, or clearly behind the point); what remains is decided as before, in exact rationals.
  */
-function classify(p: V, normal: V, others: PFace[]): Where {
+function classify(p: V, normal: V, others: PFace[], exactOnly = false): Where {
   const pf = vnum(p), px = pf[0], py = pf[1], pz = pf[2], pr = Math.max(Math.abs(px), Math.abs(py), Math.abs(pz), 1);
   for (const g of others) {
-    if (g.nf && Math.abs(g.nf[0] * px + g.nf[1] * py + g.nf[2] * pz - g.of!) > slack(g, pr)) continue;
+    if (!exactOnly && g.nf && Math.abs(g.nf[0] * px + g.nf[1] * py + g.nf[2] * pz - g.of!) > slack(g, pr)) continue;
     if (cmp(vdot(g.normal, p), g.offset) === 0 && pointInFace(g, p) > 0) return sgn(vdot(g.normal, normal)) > 0 ? 'same' : 'opposite';
   }
-  for (let k = 0; k < RAYS.length; k++) {
-    const r = RAYS[k], rf = RAYS_F[k];
+  // A ray grazing a polygon edge or lying in a face plane is in one of finitely many planes
+  // through the query point. Each plane can exclude at most two directions (1, t, t²).
+  const badPlanes = exactOnly ? others.reduce((n, face) => n + 1 + face.rings.reduce((m, ring) => m + ring.length, 0), 0) : 0;
+  const attempts = RAYS.length + (exactOnly ? 2 * badPlanes + 1 : 0);
+  for (let k = 0; k < attempts; k++) {
+    let r = RAYS[k];
+    if (k >= RAYS.length) {
+      const t = BigInt(k - RAYS.length);
+      r = [q(1n), q(t), q(t * t)];
+    }
+    const rf = RAYS_F[k];
     let crossings = 0, degenerate = false;
     for (const g of others) {
-      const clear = g.nf ? crossing(g, px, py, pz, pr, rf) : 0;
+      const clear = !exactOnly && g.nf ? crossing(g, px, py, pz, pr, rf) : 0;
       if (clear < 0) continue;
       if (clear > 0) { crossings++; continue; }
       const denom = vdot(g.normal, r), dist = sub(g.offset, vdot(g.normal, p));
@@ -200,6 +212,81 @@ function classify(p: V, normal: V, others: PFace[]): Where {
   }
   throw new BrepError('GEOMETRY', 'polyhedral Boolean: every classification ray was degenerate');
 }
+
+interface PlanarShell {
+  faces: PFace[];
+  edges: PlanarShellEdge[];
+  min: Point;
+  max: Point;
+}
+type PlanarShellEdge = { a: V; b: V; min: Point; max: Point };
+
+/** Prepare a checked closed shell of nominal planes and straight edges for exact spatial comparison. */
+export function preparePlanarShell(brep: Brep): PlanarShell | null {
+  if (brep.edges.some(edge => edge.curve.degree !== 1 || edge.curve.controlPoints.length !== 2)) return null;
+  let faces: PFace[];
+  try { faces = facesOf(brep, 0); }
+  catch (cause) {
+    if (cause instanceof BrepError && cause.reason === 'NOT_PLANAR_WITHIN_FLOAT') return null;
+    throw cause;
+  }
+  const points = brep.vertices.map(vertex => vertex.point);
+  const vertices = new Map(brep.vertices.map(vertex => [vertex.id, { point: vertex.point, exact: vertex.point.map(qf) as V }]));
+  return {
+    faces,
+    edges: brep.edges.map(edge => {
+      const a = vertices.get(edge.vertices[0])!, b = vertices.get(edge.vertices[1])!;
+      return {
+        a: a.exact, b: b.exact,
+        min: a.point.map((value, k) => Math.min(value, b.point[k])) as Point,
+        max: a.point.map((value, k) => Math.max(value, b.point[k])) as Point,
+      };
+    }),
+    min: [minAt(points, 0), minAt(points, 1), minAt(points, 2)],
+    max: [maxAt(points, 0), maxAt(points, 1), maxAt(points, 2)],
+  };
+}
+
+function projectedSegmentsMeet(f: PFace, a: V, b: V, c: V, d: V): boolean {
+  for (const k of [f.i, f.j]) {
+    const [aMin, aMax] = cmp(a[k], b[k]) <= 0 ? [a[k], b[k]] : [b[k], a[k]];
+    const [bMin, bMax] = cmp(c[k], d[k]) <= 0 ? [c[k], d[k]] : [d[k], c[k]];
+    if (cmp(aMax, bMin) < 0 || cmp(bMax, aMin) < 0) return false;
+  }
+  const [p, q, r, s] = [a, b, c, d].map(point => to2(f, point));
+  return exactOrient2(p, q, r) * exactOrient2(p, q, s) <= 0 && exactOrient2(r, s, p) * exactOrient2(r, s, q) <= 0;
+}
+
+function boundsSeparate(a: { min: Point; max: Point }, b: { min: Point; max: Point }): boolean {
+  return a.min.some((value, axis) => value > b.max[axis] || b.min[axis] > a.max[axis]);
+}
+
+function edgeMeetsFace(edge: PlanarShellEdge, face: PFace): boolean {
+  if (boundsSeparate(edge, face)) return false;
+  const { a, b } = edge;
+  const da = sub(vdot(face.normal, a), face.offset), db = sub(vdot(face.normal, b), face.offset);
+  const sa = sgn(da), sb = sgn(db);
+  if (sa === 0 && sb === 0) {
+    return pointInFace(face, a) >= 0 || pointInFace(face, b) >= 0 || face.rings.some(ring =>
+      ring.some((c, i) => projectedSegmentsMeet(face, a, b, c, ring[(i + 1) % ring.length])));
+  }
+  if (sa === sb) return false;
+  if (sa === 0) return pointInFace(face, a) >= 0;
+  if (sb === 0) return pointInFace(face, b) >= 0;
+  const contact = vadd(a, vscale(vsub(b, a), div(da, sub(da, db))));
+  return pointInFace(face, contact) >= 0;
+}
+
+/** A boundary vertex represents its entire connected shell once the two boundaries are disjoint. */
+export function planarShellRelation(a: PlanarShell, b: PlanarShell): 'separate' | 'contact' | 'a-inside-b' | 'b-inside-a' {
+  if (boundsSeparate(a, b)) return 'separate';
+  if (a.edges.some(edge => b.faces.some(face => edgeMeetsFace(edge, face))) ||
+      b.edges.some(edge => a.faces.some(face => edgeMeetsFace(edge, face)))) return 'contact';
+  if (classify(a.edges[0].a, a.faces[0].normal, b.faces, true) === 'in') return 'a-inside-b';
+  if (classify(b.edges[0].a, b.faces[0].normal, a.faces, true) === 'in') return 'b-inside-a';
+  return 'separate';
+}
+
 /**
  * Whether the ray p + t·r (t > 0) clearly misses face g (−1: crossing its plane clearly behind p, or clearly
  * outside the face) or clearly crosses it (1: the crossing point clearly inside, away from every edge), or

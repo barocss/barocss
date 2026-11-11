@@ -27,7 +27,7 @@ import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
 import { checkOffsetBoundary, checkOffsetSourceEndpoints, checkSphereOffsetPatch, type OffsetSupport } from './step-offset-internal.js';
-import { verifyStepShellOrientation } from './step-cavity-internal.js';
+import { verifyStepCavityShells } from './step-cavity-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
 const DERIVED = Object.freeze({ derived: true } as const);
@@ -928,8 +928,11 @@ export function importStep(source: string, options: { readonly id?: string } = {
   }
   assertBoundaryBindings(brep); // Refuse proved invalid binding before names, merging or caller commit.
   const cavityShells = new Map(brep.bodies.flatMap((body, i) => body.shells.length > 1
-    ? body.shells.map((shell, j) => [shell, bodies[i].shells[j]] as const) : []));
-  verifyStepShellOrientation(brep, cavityShells);
+    ? body.shells.map((shell, j) => {
+      const { ref, voidShell, faces } = bodies[i].shells[j];
+      return [shell, { ref, voidShell, planar: faces.every(face => face.sd.kind === 'plane') }] as const;
+    }) : []));
+  verifyStepCavityShells(brep, cavityShells);
   // Unnamed edges are named by their two faces (as edges of any body), numbered where that repeats.
   const faceName = new Map(brep.faces.map(f => [f.id, f.name ?? f.id])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const byEdge = new Map<string, string[]>(); for (const c of brep.coedges) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);

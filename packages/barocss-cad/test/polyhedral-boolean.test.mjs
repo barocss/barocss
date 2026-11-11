@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildBrep, lineCurve, checkBrep, assertValidBrep, extrudeProfileWithHoles, booleanPolyhedra, tessellateBrep, BrepError } from '../dist/index.js';
+import { planarShellRelation, preparePlanarShell } from '../dist/brep/polyhedral-boolean.js';
 const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
 const box = (x0, y0, z0, x1, y1, z1, id = 'b') => extrudeProfileWithHoles({ id, outer: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p })), height: z1 - z0, from: z0 });
@@ -121,4 +122,20 @@ test('the general path reproduces the special-purpose families: orthogonal-cell 
     const special = measure(load('pair-' + op)).vol, general = measure(booleanPolyhedra(load('pair-a'), load('pair-b'), op)).vol;
     assert.ok(Math.abs(special - general) < 1e-9, `${op}: ${special} vs ${general}`);
   }
+});
+
+test('exact shell relation finds a clean ray when all five ordinary directions hit outer vertices', () => {
+  const directions = [[0.5773,0.3419,0.7413], [-0.2183,0.8817,0.4127], [0.6631,-0.5279,0.3011], [-0.4421,-0.3137,0.8401], [0.1931,0.7349,-0.6503]];
+  const points = [...directions, ...directions.map(direction => direction.map(coord => -coord))];
+  const faces = [[0,1,3],[0,4,1],[0,2,8],[0,9,2],[0,3,9],[0,8,4],[1,7,3],[1,4,7],[2,6,8],[2,9,6],[3,7,5],[3,5,9],[4,5,7],[4,8,5],[5,8,6],[5,6,9]];
+  const hull = polyhedron(points, faces, 'ray-hull');
+  assert.equal(checkBrep(hull, { strict: true }).valid, true);
+  const cube = box(0, 0, 0, 0.01, 0.01, 0.01, 'ray-cavity');
+  const zero = cube.vertices.find(vertex => vertex.point.every(coord => coord === 0));
+  const first = cube.edges.find(edge => edge.vertices[0] === zero.id);
+  assert.ok(first);
+  const cavity = preparePlanarShell({ ...cube, edges: [first, ...cube.edges.filter(edge => edge !== first)] });
+  const outer = preparePlanarShell(hull);
+  assert.equal(planarShellRelation(cavity, outer), 'a-inside-b');
+  assert.equal(planarShellRelation(outer, cavity), 'b-inside-a');
 });

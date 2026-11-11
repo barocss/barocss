@@ -52,32 +52,38 @@ export function inspectPlanarCavity(text) {
       const [, origin, axis] = record(placement, 'AXIS2_PLACEMENT_3D');
       const [, axisDirection] = record(axis, 'DIRECTION');
       const normal = flag(same) === reverse ? negate(axisDirection) : axisDirection;
-      assert.equal(bounds.length, 1, 'planar box face has exactly one outer loop');
-      const [, loop, orientation] = record(bounds[0], 'FACE_OUTER_BOUND');
-      const [, edgeUses] = record(loop, 'EDGE_LOOP');
-      let polygon = edgeUses.map(use => {
-        const [, start, end, edge, forward] = record(use, 'ORIENTED_EDGE');
-        assert.deepEqual([start, end], ['*', '*']);
-        const [, a, b] = record(edge, 'EDGE_CURVE');
-        return flag(forward) ? { a, b, edge, direction: 1 } : { a: b, b: a, edge, direction: -1 };
-      });
-      if (flag(orientation) === reverse) polygon = polygon.toReversed().map(({ a, b, edge, direction }) => ({ a: b, b: a, edge, direction: -direction }));
-      assert.ok(polygon.every((use, i) => use.b === polygon[(i + 1) % polygon.length].a), 'discontinuous loop on ' + name);
-      const points = polygon.map(({ a, edge, direction }) => {
-        uses.set(edge, [...(uses.get(edge) ?? []), direction]);
-        const p = point(a);
-        assert.ok(Math.abs(dot(sub(p, originOf(origin)), normal)) < 1e-10, 'loop vertex off plane');
-        return p;
-      });
-      const areaVector = points.reduce((sum, p, i) => add(sum, cross(sub(p, points[0]), sub(points[(i + 1) % points.length], points[0]))), [0, 0, 0]);
-      assert.ok(dot(areaVector, normal) > 0, 'face/loop orientation disagrees on ' + name);
-      faces.push({ name, normal, areaVector });
-      for (let i = 1; i + 1 < points.length; i++) {
-        const [a, b, c] = [points[0], points[i], points[i + 1]];
-        const v = dot(a, cross(b, c)) / 6;
-        volume += v;
-        moment = add(moment, add(add(a, b), c).map(coord => coord * v / 4));
+      assert.equal(bounds.filter(bound => entries.get(bound)?.type === 'FACE_OUTER_BOUND').length, 1);
+      let areaVector = [0, 0, 0];
+      for (const bound of bounds) {
+        const type = entries.get(bound)?.type;
+        assert.ok(type === 'FACE_OUTER_BOUND' || type === 'FACE_BOUND');
+        const [, loop, orientation] = record(bound, type);
+        const [, edgeUses] = record(loop, 'EDGE_LOOP');
+        let polygon = edgeUses.map(use => {
+          const [, start, end, edge, forward] = record(use, 'ORIENTED_EDGE');
+          assert.deepEqual([start, end], ['*', '*']);
+          const [, a, b] = record(edge, 'EDGE_CURVE');
+          return flag(forward) ? { a, b, edge, direction: 1 } : { a: b, b: a, edge, direction: -1 };
+        });
+        if (flag(orientation) === reverse) polygon = polygon.toReversed().map(({ a, b, edge, direction }) => ({ a: b, b: a, edge, direction: -direction }));
+        assert.ok(polygon.every((use, i) => use.b === polygon[(i + 1) % polygon.length].a), 'discontinuous loop on ' + name);
+        const points = polygon.map(({ a, edge, direction }) => {
+          uses.set(edge, [...(uses.get(edge) ?? []), direction]);
+          const p = point(a);
+          assert.ok(Math.abs(dot(sub(p, originOf(origin)), normal)) < 1e-10, 'loop vertex off plane');
+          return p;
+        });
+        const ringArea = points.reduce((sum, p, i) => add(sum, cross(sub(p, points[0]), sub(points[(i + 1) % points.length], points[0]))), [0, 0, 0]);
+        assert.ok(dot(ringArea, normal) * (type === 'FACE_OUTER_BOUND' ? 1 : -1) > 0, 'face/loop orientation disagrees on ' + name);
+        areaVector = add(areaVector, ringArea);
+        for (let i = 1; i + 1 < points.length; i++) {
+          const [a, b, c] = [points[0], points[i], points[i + 1]];
+          const v = dot(a, cross(b, c)) / 6;
+          volume += v;
+          moment = add(moment, add(add(a, b), c).map(coord => coord * v / 4));
+        }
       }
+      faces.push({ name, normal, areaVector });
     }
     for (const [edge, directions] of uses) {
       assert.equal(directions.length, 2, edge);

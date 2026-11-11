@@ -121,3 +121,60 @@ test('curved native cavity keeps its material volume after outward STEP shell se
   near(winding(mesh, [0,0,5]), 0);
   near(winding(mesh, [0,0,0.5]), 1);
 });
+
+test('STEP rejects spatially invalid planar voids even with correct individual shell orientation', () => {
+  const cases = [
+    { voids: [[[2,2,2],[8,8,8]], [[4,4,4],[6,6,6]]], sum: 776, material: 784, reason: /void shells.*nested/ },
+    { voids: [[[1,4,4],[9,6,6]], [[4,1,3],[6,9,7]]], sum: 904, material: 912, reason: /void shells.*touch or intersect/ },
+    { voids: [[[2,2,2],[4,4,4]], [[4,2,2],[6,4,4]]], sum: 984, material: 984, reason: /void shells.*touch or intersect/ },
+    { voids: [[[2,2,2],[4,4,4]], [[4,4,4],[6,6,6]]], sum: 984, material: 984, reason: /void shells.*touch or intersect/ },
+    { voids: [[[11,4,4],[13,6,6]]], sum: 992, material: 1000, reason: /void shell.*not strictly inside outer shell/ },
+    { voids: [[[8,4,4],[12,6,6]]], sum: 984, material: 992, reason: /void shell.*not strictly inside outer shell/ },
+    { voids: [[[0,4,4],[2,6,6]]], sum: 992, material: 992, reason: /void shell.*not strictly inside outer shell/ },
+  ];
+  for (const fixture of cases) for (const voids of [fixture.voids, fixture.voids.toReversed()]) {
+    const { text } = stepCavityFixture(voids);
+    const [oracle] = inspectPlanarCavity(text);
+    near(oracle.volume, fixture.sum);
+    assert.ok(fixture.sum <= fixture.material);
+    assert.ok(oracle.voids.every(item => item.base.volume > 0 && item.effective.volume < 0));
+    reject(text, fixture.reason);
+  }
+});
+
+test('STEP spatial checks preserve face holes and do not treat nested boxes as nested boundaries', () => {
+  const tube = [[2,2,2],[8,8,8], [[4,4],[6,6]]], center = [[4.5,4.5,4.5],[5.5,5.5,5.5]];
+  for (const voids of [[tube, center], [center, tube]]) {
+    const { text } = stepCavityFixture(voids);
+    const [oracle] = inspectPlanarCavity(text);
+    near(oracle.volume, 807);
+    const brep = importStep(text);
+    assert.equal(checkBrep(brep, { strict: true }).valid, true);
+    const mass = brepMassProperties(brep, 1);
+    near(mass.volume, 807);
+    mass.centroid.forEach(value => near(value, 5));
+    const mesh = tessellateBrep(brep);
+    for (const point of [[1,1,1], [5,5,3]]) near(winding(mesh, point), 1);
+    for (const point of [[3,5,5], [5,5,5]]) near(winding(mesh, point), 0);
+    const [exported] = inspectPlanarCavity(exportStep(brep));
+    near(exported.volume, 807);
+  }
+  for (const [z0, z1] of [[1, 9], [2, 8]]) {
+    const throughOpening = [[4.5,4.5,z0],[5.5,5.5,z1]];
+    const { text } = stepCavityFixture([tube, throughOpening]);
+    const [oracle] = inspectPlanarCavity(text);
+    near(oracle.volume, 808 - (z1 - z0));
+    const brep = importStep(text);
+    near(brepMassProperties(brep, 1).volume, 808 - (z1 - z0));
+    near(winding(tessellateBrep(brep), [4.2,5,3]), 1);
+  }
+
+  const through = [[4,4],[6,6]];
+  const valid = stepCavityFixture([[[1,1,4],[2,2,5]]], through).text;
+  near(brepMassProperties(importStep(valid), 1).volume, 959);
+  const outside = stepCavityFixture([[[4.5,4.5,4],[5.5,5.5,5]]], through).text;
+  reject(outside, /void shell.*not strictly inside outer shell/);
+
+  const separated = stepCavityFixture([[[2,2,2],[4,4,4]], [[4 + 2 ** -48,2,2],[6,4,4]]]).text;
+  near(brepMassProperties(importStep(separated), 1).volume, 984);
+});
