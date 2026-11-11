@@ -69,6 +69,29 @@ export function nestedFaceRepairOp(repair: NestedFaceRepair): Op {
   return { tool: 'set_requirements', args: { faceRepair: repair } };
 }
 
+function repairCriterion(scope: Scope, repair: NestedFaceRepair) {
+  const reqs = scope.leaf.doc.requirements ?? [];
+  const rows = reqs.filter(req => req.id === repair.requirement);
+  const [requirement] = rows;
+  if (rows.length !== 1 || digestOf(requirement) !== repair.criterion) return null;
+  const query = requirement.check.query, { from, to } = repair;
+  if (query.fn !== 'distance_between' || (query.a === from) === (query.b === from) || query.a === to || query.b === to) return null;
+  const selected = { ...query, [query.a === from ? 'a' : 'b']: to };
+  const changed = { ...requirement, check: { ...requirement.check, query: selected } };
+  return { requirement, leaf: { ...scope.leaf.doc, requirements: reqs.map(req => req === requirement ? changed : req) } };
+}
+
+/** Match a saved acceptance to exactly the same authored edit used by proposal replay. */
+export function isNestedFaceRepairEdit(before: StudioDoc, after: StudioDoc, repair: NestedFaceRepair): boolean {
+  if (!valid(repair) || requirementEvidenceRevision(before) !== repair.revision) return false;
+  const scope = nestedRequirementScope(before, repair.part);
+  if ('error' in scope || nestedDefinitionEditProblem(before, scope)) return false;
+  const criterion = repairCriterion(scope, repair);
+  if (!criterion) return false;
+  const next = editNestedDefinition(before, scope, criterion.leaf);
+  return !('error' in next) && requirementEvidenceRevision(next.doc) === requirementEvidenceRevision(after);
+}
+
 /** Replay only in the Studio-authored proposal flow, on the exact working revision. */
 export const replayNestedFaceRepair: PartRun = async (state, tool, args, evaluate): Promise<ToolOutcome> => {
   const repair = isObj(args) ? args.faceRepair : undefined;
@@ -76,10 +99,9 @@ export const replayNestedFaceRepair: PartRun = async (state, tool, args, evaluat
     return fail(state, refusal);
   const { part, from, to } = repair, scope = nestedRequirementScope(state.doc, part);
   if ('error' in scope || nestedDefinitionEditProblem(state.doc, scope)) return fail(state, refusal);
-  const leaf = scope.leaf.doc, p = prism(leaf), reqs = leaf.requirements ?? [], rows = reqs.filter(req => req.id === repair.requirement);
-  if (!p || rows.length !== 1 || digestOf(rows[0]) !== repair.criterion) return fail(state, refusal);
-  const requirement = rows[0], query = requirement.check.query;
-  if (query.fn !== 'distance_between' || (query.a === from) === (query.b === from) || query.a === to || query.b === to) return fail(state, refusal);
+  const leaf = scope.leaf.doc, p = prism(leaf), criterion = repairCriterion(scope, repair);
+  if (!p || !criterion) return fail(state, refusal);
+  const { requirement } = criterion;
   const oldTag = tagged.exec(from)![1], newTag = tagged.exec(to)![1];
   if (from !== `${p.id}.side[${oldTag}]` || to !== `${p.id}.side[${newTag}]` || p.tags.includes(oldTag) || !p.tags.includes(newTag))
     return fail(state, refusal);
@@ -99,9 +121,7 @@ export const replayNestedFaceRepair: PartRun = async (state, tool, args, evaluat
     change.why !== 'renamed' || change.candidates.length !== 1 || change.candidates[0] !== to || oldSig?.k !== 'plane' || oldSig.n)
     return fail(state, refusal);
 
-  const selected = { ...query, [query.a === from ? 'a' : 'b']: to };
-  const changed = { ...requirement, check: { ...requirement.check, query: selected } };
-  const next = editNestedDefinition(state.doc, scope, { ...leaf, requirements: reqs.map(req => req === requirement ? changed : req) });
+  const next = editNestedDefinition(state.doc, scope, criterion.leaf);
   if ('error' in next) return fail(state, next.error);
   const evidence = await requirementEvidenceOf(next.doc, part, evaluate);
   if ('error' in evidence) return fail(state, refusal);

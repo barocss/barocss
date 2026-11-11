@@ -38,8 +38,8 @@ function nestedComparison(before: StudioDoc, after: StudioDoc, revisions: Accept
 // Occurrence IDs can be reused after deletion. Scripts can also change membership indirectly.
 const mayReplaceOccurrence = new Set(['delete_part', 'edit_pattern', 'delete_pattern', 'run_script']);
 
-/** Exact, unambiguous Studio approval spanning the saved and working snapshots. */
-export function approvedRequirementComparison(before: StudioDoc, after: StudioDoc): Comparison | null {
+/** Find the one user acceptance that binds both authored revisions. */
+export function exactRequirementApproval(before: StudioDoc, after: StudioDoc): { proposal: Proposal; revisions: AcceptanceEvidence } | null {
   if (!Array.isArray(after.history) || !Array.isArray(after.proposals)) return null;
   const accepts = after.history.filter(entry => entry?.kind === 'accept' && entry.by?.agent === 'user' && entry.evidence_revisions);
   if (!accepts.length) return null;
@@ -55,8 +55,16 @@ export function approvedRequirementComparison(before: StudioDoc, after: StudioDo
       entry.proposed_by?.agent !== proposal.by?.agent || entry.proposed_by?.model !== proposal.by?.model || !samePair(decision.evidence_revisions, revisions)) return null;
 
   if (!Array.isArray(proposal.ops) || proposal.ops.some(op => !op || typeof op.tool !== 'string')) return null;
+  return { proposal, revisions };
+}
+
+/** Exact, unambiguous Studio approval spanning the saved and working snapshots. */
+export function approvedRequirementComparison(before: StudioDoc, after: StudioDoc): Comparison | null {
+  const acceptance = exactRequirementApproval(before, after);
+  if (!acceptance) return null;
+  const { proposal, revisions } = acceptance;
   const nested = nestedParameterOps(proposal.ops);
-  if (nested !== undefined) return decision.model_hash === modelHash(after)
+  if (nested !== undefined) return proposal.decided?.model_hash === modelHash(after)
     ? nestedComparison(before, after, revisions, proposal, nested) : null;
 
   const scopes: Scope[] = [];

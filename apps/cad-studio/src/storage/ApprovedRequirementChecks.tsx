@@ -13,6 +13,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { SavedRepairChecks } from './SavedRepairChecks';
 import { SavedFaceReferenceRepair, type PrepareFaceRepair } from './SavedFaceReferenceRepair';
+import { SavedFaceRepairLineage } from './SavedFaceRepairLineage';
 import { useEvidenceSave } from './useEvidenceSave';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
   saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair, type SavedApprovalSource } from './savedApprovalEvidence';
@@ -195,11 +196,16 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach, fac
       {criterion && <div>New criterion · {criterion}</div>}
     </div>)}
     {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach}>
-      {faceRepair && result.after?.evidence.flatMap(row => {
+      {result.after?.evidence.flatMap(row => {
         const id = row.requirement?.id;
         if (!id || row.requirement?.check.query.fn !== 'distance_between' || row.result.verdict !== 'pass' ||
           !Object.keys(row.result.fingerprint.faces ?? {}).some(name => /^n\d+\.side\[/.test(name))) return [];
-        return [<SavedFaceReferenceRepair key={id} review={review} doc={faceRepair.doc} requirement={id} prepare={faceRepair.prepare} />];
+        return [
+          ...(faceRepair ? [<SavedFaceReferenceRepair key={`prepare-${id}`} review={review}
+            doc={faceRepair.doc} requirement={id} prepare={faceRepair.prepare} />] : []),
+          ...(followUp ? [<SavedFaceRepairLineage key={`saved-${id}`} review={review}
+            log={followUp.log} base={followUp.version} versions={followUp.newer} requirement={id} evaluate={evaluate} />] : []),
+        ];
       })}
     </KeepApprovalEvidence>}
     {source && followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={source.version.id}

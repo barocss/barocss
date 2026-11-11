@@ -8,9 +8,10 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === undefined || ['--diagnosis-baseline', '--diagnosis-chat', '--face-repair-baseline', '--face-repair'].includes(mode));
+assert.ok(mode === undefined || ['--diagnosis-baseline', '--diagnosis-chat', '--face-repair-baseline', '--face-repair', '--face-lineage-baseline', '--face-lineage'].includes(mode));
 const diagnosisBaseline = mode === '--diagnosis-baseline', diagnosisChat = mode === '--diagnosis-chat';
-const repairBaseline = mode === '--face-repair-baseline', faceRepair = mode === '--face-repair', repairFlow = repairBaseline || faceRepair;
+const lineageBaseline = mode === '--face-lineage-baseline', faceLineage = mode === '--face-lineage', lineageFlow = lineageBaseline || faceLineage;
+const repairBaseline = mode === '--face-repair-baseline', faceRepair = mode === '--face-repair' || lineageFlow, repairFlow = repairBaseline || faceRepair;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (diagnosisChat) {
   const reserved = createServer().listen(0, '127.0.0.1');
@@ -28,6 +29,8 @@ const pins = [
     'apps/cad-studio/src/chat/useFaceDiagnosisAttachment.ts', 'apps/cad-studio/src/chat/useStudioChat.ts'] : []),
   ...(faceRepair ? ['apps/cad-studio/src/storage/SavedFaceReferenceRepair.tsx',
     'packages/barocss-cad-model/src/chat/nestedFaceRepair.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts'] : []),
+  ...(faceLineage ? ['apps/cad-studio/src/storage/SavedFaceRepairLineage.tsx',
+    'apps/cad-studio/src/storage/checkSavedFaceRepair.ts', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts'] : []),
 ];
 const inspectorSource = `
 import assert from 'node:assert/strict';
@@ -71,7 +74,29 @@ if 'renameRepair' in d:
     assert d['native'][0]['freshness']['unresolved'][0]['candidates'] == ['n1.side[west2]']
     assert d['reads'][0]['evidence'][0]['result']['number'] == 12 and d['reads'][0]['evidence'][0]['result']['verdict'] == 'pass'
     assert d['reads'][1]['evidence'][0]['result']['number'] == 12 and d['reads'][1]['evidence'][0]['result']['verdict'] == 'pass'
-    print(json.dumps({'status':'PASS','nativeVolumeMm3':[384,384],'faceAreaMm2':32,'widthMm':12}))
+    checked = {'status':'PASS','nativeVolumeMm3':[384,384],'faceAreaMm2':32,'widthMm':12}
+    if d.get('lineage'):
+        file, original, versions = d['lineage']
+        assert hashlib.sha256(file['text'].encode()).hexdigest() == file['sha256']
+        assert hashlib.sha256(original['text'].encode()).hexdigest() == original['sha256']
+        report, prior = json.loads(file['text']), json.loads(original['text'])
+        assert report['format'] == 'barocss-saved-face-repair-evidence'
+        context = report['context']
+        assert context['approvalSHA256'] == original['sha256']
+        assert all(context['approval'][pin] == prior[pin] for pin in ('from','to','part','proposal'))
+        for pin, v in zip([context['approval']['to'],context['base'],context['repaired']], versions[1:], strict=True):
+            assert all(pin[key] == v[key] for key in ('id','snapshot','revision'))
+        assert context['repair']['from'] == q0['a'] and context['repair']['to'] == q1['a']
+        assert context['repair']['criterion'] == hashlib.sha256(json.dumps(l['requirements'][0], sort_keys=True, separators=(',',':')).encode()).hexdigest()
+        old, new = report['before']['evidence'][0], report['after']['evidence'][0]
+        assert old['requirement'] == l['requirements'][0] and new['requirement'] == r['requirements'][0]
+        assert (old['result']['status'],old['result']['number'],old['result'].get('verdict')) == ('unsupported',None,None)
+        assert old['result']['why'] == 'no face or edge named "n1.side[west]"'
+        assert old['result']['run'] == context['base']['evidenceRevision']
+        assert new['result']['run'] == context['repaired']['evidenceRevision']
+        assert report['after'] == d['reads'][0]
+        checked['savedLineage'] = ['unsupported','pass']
+    print(json.dumps(checked))
     sys.exit(0)
 assert d['approved']['instances'][0]['doc']['instances'][0]['doc'] == d['approved']['instances'][1]['doc']['instances'][0]['doc']
 assert d['approved']['instances'][1] == d['changed']['instances'][1]
@@ -100,9 +125,10 @@ assert saved['recoveries'] == [{'id':'WIDTH','from':14,'to':12,'unit':'mm'}]
 assert saved['after']['evidence'][0]['result']['verdict'] == 'pass'
 print(json.dumps({'status':'PASS','lostFace':'n1.side3','volumesMm3':[192,384],'historicalRecoveryMm':[14,12]}))
 `;
-const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: repairFlow ? 'D660_SOURCE_FROZEN' : mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
+const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: lineageFlow ? 'D661_SOURCE_FROZEN' : repairFlow ? 'D660_SOURCE_FROZEN' : mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
   initialFiles: pins, requiredFrozen: pins,
-  qualification: repairFlow ? 'One selected tag-only face reference repair with retained approval evidence'
+  qualification: lineageFlow ? 'Saved lineage for one explicitly repaired face reference'
+    : repairFlow ? 'One selected tag-only face reference repair with retained approval evidence'
     : mode ? 'One selected current face diagnosis in Studio chat' : 'Lost face on one exact nested occurrence with retained approval evidence',
   limits: ['The triangle arrives through the saved native project file, as an external design revision. Studio handles acceptance, Save, Open and diagnostics.'],
 });
@@ -178,7 +204,7 @@ async function makeVersion(name) {
   await panel().getByRole('listitem', { name: 'Version ' + name, exact: true }).waitFor();
 }
 
-const projectFiles = (evidenceName, replacement) => f.page.evaluate(async ({ project, filename, evidenceName, replacement }) => {
+const projectFiles = (evidenceName, replacement, lineageName) => f.page.evaluate(async ({ project, filename, evidenceName, replacement, lineageName }) => {
   const root = await navigator.storage.getDirectory();
   const folder = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(project);
   const meta = await folder.getDirectoryHandle('.barocss');
@@ -190,8 +216,9 @@ const projectFiles = (evidenceName, replacement) => f.page.evaluate(async ({ pro
   const log = JSON.parse(await read(await meta.getDirectoryHandle('versions'), filename + '.json'));
   const snapshots = await meta.getDirectoryHandle('snapshots');
   const evidence = evidenceName ? await read(await meta.getDirectoryHandle('approval-evidence'), evidenceName) : null;
-  return { log, snapshots: await Promise.all(log.versions.map(v => read(snapshots, v.snapshot + '.bcad'))), evidence };
-}, { project, filename, evidenceName, replacement });
+  const lineage = lineageName ? await read(await meta.getDirectoryHandle('approval-evidence'), lineageName) : null;
+  return { log, snapshots: await Promise.all(log.versions.map(v => read(snapshots, v.snapshot + '.bcad'))), evidence, ...(lineageName ? { lineage } : {}) };
+}, { project, filename, evidenceName, replacement, lineageName });
 
 async function compare() {
   await panel().getByRole('button', { name: 'Compare Original width failure', exact: true }).click();
@@ -283,8 +310,47 @@ async function verifyRenamedRepair(renamed, prior, saved, evidenceName) {
   await compare();
   await savedChecks().getByText('Approval evidence saved', { exact: true }).waitFor();
   assert.deepEqual(await projectFiles(evidenceName), savedNow);
+  if (lineageBaseline) {
+    f.phase = 'baseline cannot connect the original unresolved result to the accepted replacement in Versions';
+    assert.equal(await savedChecks().getByLabel('Face repair version', { exact: true }).count(), 0);
+    await f.snapshot('04-baseline-no-saved-lineage');
+    f.report.observations.push({ repairSaved: true, repairReopened: true, savedFaceLineageAvailable: false });
+  }
   const native = await f.inspect('approved-replacement', accepted, prior.map(report => report.evidence[0].result));
-  await f.runOracle({ renameRepair: true, before: renamed, after: accepted, native, reads }, 'independent-face-repair');
+  let lineage;
+  if (faceLineage) {
+    f.phase = 'read the exact saved unresolved face and accepted replacement';
+    const lineagePanel = () => savedChecks().getByRole('region', { name: 'Saved face repair checks', exact: true });
+    const openLineage = async () => {
+      await savedChecks().getByLabel('Face repair version', { exact: true }).selectOption({ label: 'Face reference approved' });
+      await lineagePanel().getByText('Renamed west face · n1.side[west] · Unresolved', { exact: true }).waitFor();
+      await lineagePanel().getByText('Face reference approved · n1.side[west2] · Pass · 12 mm', { exact: true }).waitFor();
+      await lineagePanel().getByText('WIDTH · P3', { exact: true }).waitFor();
+    };
+    await openLineage();
+    await lineagePanel().getByRole('button', { name: 'Save face repair evidence', exact: true }).click();
+    await lineagePanel().getByText('Face repair evidence saved', { exact: true }).waitFor();
+    const id = savedNow.log.versions.at(-1).id;
+    const lineageName = evidenceName.replace(/\.json$/, '-face-' + id + '-' + sha256(JSON.stringify('WIDTH')) + '.json');
+    const stored = await projectFiles(evidenceName, undefined, lineageName);
+    assert.deepEqual({ ...stored, lineage: undefined }, { ...savedNow, lineage: undefined });
+    lineage = [JSON.parse(stored.lineage), JSON.parse(stored.evidence), stored.log.versions];
+    await f.snapshot('04-saved-face-repair-lineage');
+    f.phase = 'reopen both proofs and keep the first unresolved result unchanged';
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(accepted);
+    await compare();
+    await savedChecks().getByText('Approval evidence saved', { exact: true }).waitFor();
+    await openLineage();
+    await lineagePanel().getByText('Face repair evidence saved', { exact: true }).waitFor();
+    assert.deepEqual(await projectFiles(evidenceName, undefined, lineageName), stored);
+    await f.snapshot('05-reopened-face-repair-lineage');
+    f.report.observations.push({ savedFaceLineageAvailable: true, exactSavedSnapshots: true, firstUnresolvedRetained: true, acceptedWidthMm: 12, reopenedEvidenceUnchanged: true });
+  }
+  await f.runOracle({ renameRepair: true, before: renamed, after: accepted, native, reads, lineage }, 'independent-face-repair');
   await f.snapshot('03-approved-face-reopened');
   f.report.observations.push({ lostFaceRefused: true, exactUserSelection: true, zeroVolumeChange: true, rejectionPreservedModel: true,
     acceptedAndReopened: true, currentWidthMm: 12, originalEvidencePreserved: true });
