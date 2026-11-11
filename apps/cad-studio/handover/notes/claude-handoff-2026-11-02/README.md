@@ -341,7 +341,9 @@ D701 preserves detail dimensions and frames through deletion refusal, safe reuse
 
 D702 preserves explicit units on general tolerance notes in Studio, SVG and DXF. B06 v1 has five of seven groups qualified, with a current H12 rerun and PDF pending. [D702](../general-tolerance-note-units-2026-11-11/README.md).
 
-Next MAIN is D703 / P0 R17, rows 16 and 21. Verify the separate usability review finding that Delete or Undo can reach the Model while Keyboard and mouse help is open. Resume the B06 H12 current-source check after this document-safety item.
+D703 keeps Delete, Backspace and Undo from changing the Model while shortcut help owns focus. Root verified the original loss, the modal repair and the D684 controls. [D703](../studio-shortcut-help-ownership-2026-11-11/README.md).
+
+Next MAIN is D704 / P2 B06-01, row 11. Requalify the original H12 Section A, Detail B and Auto-dimension flow on current producers. Use the same native and actual SVG limits. [B06 v1 checklist](../../roadmap-tracks/14-b06-evidence-ledger.md).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at five of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

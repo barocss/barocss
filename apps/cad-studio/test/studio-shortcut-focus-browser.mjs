@@ -5,13 +5,16 @@ import { createFlow } from './flow-helper.mjs';
 const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === '--baseline' || mode === '--fixed');
+assert.ok(['--baseline', '--fixed', '--modal-baseline', '--modal-fixed'].includes(mode));
+const modalMode = mode.startsWith('--modal-');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/Palette.tsx', 'apps/cad-studio/test/studio-shortcut-focus-browser.mjs'];
+if (modalMode) pins.push('apps/cad-studio/src/ui/ShortcutHelp.tsx', 'apps/cad-studio/src/state/useFeatureHistory.ts');
 const f = await createFlow({
-  name: 'studio-shortcut-focus', envFrozen: 'D684_SOURCE_FROZEN', output,
+  name: 'studio-shortcut-focus', envFrozen: modalMode ? 'D703_SOURCE_FROZEN' : 'D684_SOURCE_FROZEN', output,
   initialFiles: pins, requiredFrozen: pins,
-  qualification: `D684 desktop keyboard ownership ${mode}`,
-  limits: ['Trusted browser keystrokes for native text Undo/Redo, toolbar Space and the workspace shortcuts.'],
+  qualification: modalMode ? `D703 desktop shortcut help keyboard ownership ${mode}` : `D684 desktop keyboard ownership ${mode}`,
+  limits: [modalMode ? 'Trusted Delete, Backspace and Undo with shortcut help open, and workspace controls after closing help.'
+    : 'Trusted browser keystrokes for native text Undo/Redo, toolbar Space and the workspace shortcuts.'],
 });
 
 const button = name => f.page.getByRole('button', { name, exact: true });
@@ -74,6 +77,12 @@ await f.run(async () => {
   const modifier = await f.page.evaluate(() => navigator.platform.startsWith('Mac') ? 'Meta' : 'Control');
   const undo = modifier + '+z';
   const redo = modifier + '+Shift+z';
+  if (modalMode) {
+    await checkHelpModal(box, empty, undo, redo);
+    assert.deepEqual(f.report.downloads, []);
+    f.phase = 'complete';
+    return;
+  }
   await f.page.evaluate(() => {
     window.__d684Keys = [];
     const focusAtDispatch = new WeakMap();
@@ -160,3 +169,86 @@ await f.run(async () => {
   f.report.observations.push({ modifier, undoKey, spaceKey });
   f.phase = 'complete';
 });
+
+async function checkHelpModal(box, empty, undo, redo) {
+  const baseline = mode === '--modal-baseline';
+  const row = f.page.locator('.outliner .ol-row button.ol').filter({ hasText: /^Box$/ });
+  const dialog = f.page.locator('[role="dialog"][aria-label="Keyboard and mouse"]');
+  const close = dialog.getByRole('button', { name: 'Close', exact: true });
+  const helpKey = 'Shift+Slash';
+  const observations = [];
+  await f.page.evaluate(() => {
+    window.__shortcutHelpKeys = [];
+    const dispatch = new WeakMap();
+    window.addEventListener('keydown', event => {
+      if (!['Delete', 'Backspace'].includes(event.key) && !((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z')) return;
+      dispatch.set(event, {
+        key: event.key.toLowerCase(),
+        trusted: event.isTrusted,
+        focused: event.target === document.activeElement,
+        inHelp: event.target instanceof Element && !!event.target.closest('[role="dialog"][aria-label="Keyboard and mouse"]'),
+      });
+    }, true);
+    window.addEventListener('keydown', event => {
+      const started = dispatch.get(event);
+      if (started) window.__shortcutHelpKeys.push({ ...started, prevented: event.defaultPrevented });
+    });
+  });
+
+  for (const { label, key, eventKey, dismissKey } of [
+    { label: 'delete', key: 'Delete', eventKey: 'delete', dismissKey: 'Escape' },
+    { label: 'backspace', key: 'Backspace', eventKey: 'backspace', dismissKey: 'Escape' },
+    { label: 'undo', key: undo, eventKey: 'z', dismissKey: helpKey },
+  ]) {
+    f.phase = `Press ${label} while shortcut help has focus`;
+    await row.click();
+    await f.page.waitForFunction(() => window.__studioSelection.selection.bodies.includes(0));
+    await f.page.keyboard.press(helpKey);
+    await dialog.waitFor();
+    await f.page.waitForFunction(() => document.activeElement?.closest('[role="dialog"][aria-label="Keyboard and mouse"]'));
+    assert.ok(await focused(close));
+    const before = await snapshot(`help-${label}-before`);
+    assert.deepEqual(before.doc, box);
+    assert.deepEqual(before.selection.selection.bodies, [0]);
+
+    await f.page.keyboard.press(key);
+    const event = await f.page.evaluate(() => window.__shortcutHelpKeys.at(-1));
+    assert.deepEqual(event, { key: eventKey, trusted: true, focused: true, inHelp: true, prevented: baseline });
+    if (baseline) await f.changed(box);
+    const after = await snapshot(`help-${label}-after`);
+    assert.ok(await focused(close));
+    if (baseline) {
+      assert.equal(after.bodies.bodies.length, 0);
+      assert.notDeepEqual(after.history, before.history);
+      if (label === 'undo') assert.equal(after.redoDisabled, false);
+    } else {
+      assertCadRetained(before, after);
+    }
+    observations.push({ event, outcome: baseline ? 'MODEL_CHANGED_WITH_HELP_OPEN' : 'MODEL_RETAINED' });
+
+    f.phase = `Dismiss shortcut help after ${label}`;
+    await f.page.keyboard.press(dismissKey);
+    await dialog.waitFor({ state: 'detached' });
+    if (baseline) await button(label === 'undo' ? 'Redo' : 'Undo').click();
+    await f.same(box);
+  }
+
+  if (!baseline) {
+    f.phase = 'Keep workspace Delete and Undo after closing shortcut help';
+    await row.click();
+    await f.page.waitForFunction(() => window.__studioSelection.selection.bodies.includes(0));
+    await f.page.keyboard.press('Delete');
+    await f.changed(box);
+    const deleted = await snapshot('workspace-delete');
+    assert.equal(deleted.bodies.bodies.length, 0);
+    await f.page.keyboard.press(undo);
+    await f.same(box);
+    await f.page.keyboard.press(undo);
+    await f.same(empty);
+    await f.page.keyboard.press(redo);
+    await f.same(box);
+    await snapshot('workspace-redo');
+  }
+  f.report.observations.push({ modifier: undo.split('+')[0], help: observations, workspaceDeleteUndoRedo: !baseline });
+  if (baseline) assert.fail('Trusted Delete, Backspace and Undo changed the Model while shortcut help owned focus');
+}

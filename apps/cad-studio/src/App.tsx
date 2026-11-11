@@ -1785,7 +1785,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.isComposing || workspaceModeExit.pending) return;
+      if (e.defaultPrevented || e.isComposing || help || workspaceModeExit.pending) return;
       const target = e.target;
       const typing = target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement
         || (target instanceof HTMLElement && target.isContentEditable);
