@@ -48,6 +48,8 @@ export function renameParameter(doc: StudioDoc, from: string, to: string): Studi
   checkKnown(doc, [from]); checkName(to);
   if (to === from) return doc;
   if (Object.hasOwn(doc.parameters, to)) throw refusal('PARAMETER_EXISTS', `there is a parameter ${to} already`);
+  const collision = Object.entries(doc.configurations ?? {}).find(([, values]) => Object.hasOwn(values, to));
+  if (collision) throw refusal('PARAMETER_EXISTS', `configuration ${JSON.stringify(collision[0])} already contains parameter ${to}`);
   const parameters = Object.fromEntries(Object.entries(doc.parameters).map(([k, v]) => [k === from ? to : k, v]));
   const configurations = doc.configurations && Object.fromEntries(Object.entries(doc.configurations).map(([c, vs]) => [c, Object.fromEntries(Object.entries(vs).map(([k, v]) => [k === from ? to : k, v]))]));
   return { ...doc, parameters, nodes: referencesRenamed(doc.nodes, from, to), ...(configurations ? { configurations } : {}) };

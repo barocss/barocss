@@ -28,11 +28,16 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
     if (v !== params[name]) set({ parameters: withParameters(doc, { [name]: v }).parameters });
   };
   const rename = (from: string, to: string) => {
-    to = to.trim(); if (to === from) return;
-    if (!NAME.test(to)) { onError('A parameter name starts with a letter and has letters, digits and _ (up to 32).'); return; }
-    if (to in params) { onError(`There is a parameter ${to} already.`); return; }
-    const next = renamedDoc(doc, from, to);
-    set({ parameters: next.parameters, nodes: next.nodes, configurations: next.configurations });
+    to = to.trim();
+    if (to === from) return false;
+    try {
+      const next = renamedDoc(doc, from, to);
+      set({ parameters: next.parameters, nodes: next.nodes, configurations: next.configurations });
+      return true;
+    } catch (error) {
+      onError(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error));
+      return false;
+    }
   };
   const remove = (name: string) => {
     try {
@@ -54,7 +59,9 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
     <div className="card-title">PARAMETERS <button className="tool tiny" aria-label="Close parameters" onClick={onClose}><Icon name="close" small /></button></div>
     {!Object.keys(params).length && <div className="empty">Name the sizes the part depends on (H1, Width …): bind a feature’s value to one in its editor (ƒ), then change it here.</div>}
     {Object.entries(params).map(([name, value]) => <div key={name} className={row}>
-      <Input className="min-w-0 flex-1 mono" aria-label={`Name of ${name}`} defaultValue={name} key={'n' + name} onBlur={e => rename(name, e.currentTarget.value)} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
+      <Input className="min-w-0 flex-1 mono" aria-label={`Name of ${name}`} defaultValue={name} key={'n' + name}
+        onBlur={e => { if (!rename(name, e.currentTarget.value)) e.currentTarget.value = name; }}
+        onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
       <Input type="number" step="any" className="w-20 text-right" aria-label={`Value of ${name}`} value={draft[name] ?? String(value)} onChange={e => setDraft(d => ({ ...d, [name]: e.target.value }))}
         onBlur={() => { if (draft[name] !== undefined) { setValue(name, draft[name]); setDraft(d => without(d, name)); } }} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
       <span className="muted small w-6 shrink-0 text-right" title="Features using it">{parameterUses(doc.nodes, name)}×</span>
