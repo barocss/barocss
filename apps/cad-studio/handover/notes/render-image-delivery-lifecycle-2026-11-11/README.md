@@ -4,9 +4,9 @@ P0, rows 06 and 16. SMALL qualification. Parent `db812d47e89bafea55cebfc40fb0b6e
 
 ## Selection, decode and workspace
 
-Exercise both Texture and Environment in actual desktop Studio. Three local inputs have distinct independently decoded RGBA digests. After selecting A and B, deliver B first and A second. The accepted B remains exact. An older failed decode stays silent when the later input succeeds. When the latest file fails, only that error appears, and the previously accepted image remains exact after the earlier valid decode arrives. With three files selected, deliver C, B and A. Only C becomes an edit. Each accepted input has one Undo/Redo step. The same file name can be selected again with different image bytes.
+Exercise both Texture and Environment in actual desktop Studio. Three local inputs have distinct independently decoded RGBA digests. After selecting A and B, deliver B first and A second. The accepted B remains exact. An older failed decode stays silent when the later input succeeds. When the latest file fails, only that error appears, and the previously accepted image remains exact after the earlier valid decode arrives. With three files selected, deliver C, B and A. Only C becomes an edit. Each accepted input has one Undo/Redo step. The same file name can be selected again with different image bytes. Both inputs also accept a 32 × 16 JPEG at its original size with matching decoded pixels.
 
-Switch from Render to Drawing with a successful input and a failed input held. Confirm the old panel is detached, return to Render and select a fresh image. Deliver both old results, then deliver the fresh one. The document, bodies, selection, notices, history and dirty state stay exact through the old deliveries. The new panel accepts its own image. Exercise both input kinds. A Grid change while an input is pending keeps its exact new setting and the prior image when the obsolete input completes. Undo restores the original setting.
+Switch from Render to Drawing with a successful input and a failed input held. Confirm the old panel is detached. Deliver one old result in Drawing and the other after Render remount and fresh selection. Exchange which outcome is delivered in Drawing in the second case. The document, bodies, selection, notices, history and dirty state stay exact through both old deliveries. The new panel accepts its own image and a subsequent exit to Drawing retains it. A Grid change while an input is pending keeps its exact new setting and the prior image when the obsolete input completes. Undo restores the original setting.
 
 ## Accepted modeling work
 
@@ -16,7 +16,7 @@ In a fresh context, begin the same deletion and choose each image while the main
 
 ## Qualification
 
-- **PASS** — 36 snapshots across six desktop Chrome WebGPU contexts, 325 frozen inputs through cleanup, no downloads or page or console errors. The driver forwards original browser and Worker results. Scoped Studio tests 67/67, Model and Studio TypeScript, affected lint, driver syntax and Studio production build pass.
+- **PASS** — 44 snapshots across six desktop Chrome WebGPU contexts, 325 frozen inputs through cleanup, no downloads or page or console errors. The driver forwards original browser and Worker results. Scoped Studio tests 67/67, Model and Studio TypeScript, affected lint, driver syntax and Studio production build pass.
 - **FAIL** — No failure in D711. The original D577 and D709 defects and their fixes remain in the linked records.
 - **NOT_RUN** — Full renderer resource/performance qualification, full suites, mobile and live model execution.
 

@@ -106,9 +106,9 @@ async function open(doc = fixture) {
 async function tab(kind) {
   await panel().getByRole('tab', { name: kind === 'texture' ? 'Appearance' : 'Scene', exact: true }).click();
 }
-async function load(kind, name, bytes, ok = true) {
+async function load(kind, name, bytes, ok = true, mimeType = 'image/png') {
   await tab(kind);
-  await panel().getByLabel(imageInput[kind], { exact: true }).setInputFiles({ name, mimeType: 'image/png', buffer: bytes });
+  await panel().getByLabel(imageInput[kind], { exact: true }).setInputFiles({ name, mimeType, buffer: bytes });
   await f.page.waitForFunction(([name, ok]) => window.__renderDecodeHold.read(name) === ok, [name, ok]);
 }
 async function deliver(name, ok = true) {
@@ -185,9 +185,24 @@ async function order(kind) {
   const firstRepeat = await accepted(kind, newest, aPixels);
   await load(kind, repeated, imageB);
   await deliver(repeated);
-  await accepted(kind, firstRepeat, bPixels);
+  const secondRepeat = await accepted(kind, firstRepeat, bPixels);
   assert.equal((await closed()).filter(name => name === repeated).length, 2);
-  f.report.observations.push({ kind, cases: ['reverse', 'older-error', 'latest-error-with-original', 'three-files', 'same-name'], aPixels, bPixels, cPixels, closed: await closed() });
+
+  const jpeg = Buffer.from(await f.page.evaluate(async () => {
+    const canvas = new OffscreenCanvas(32, 16), ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 32, 16);
+    return [...new Uint8Array(await (await canvas.convertToBlob({ type: 'image/jpeg' })).arrayBuffer())];
+  }));
+  const jpegName = 'D711-small.jpg';
+  const jpegPixels = await imagePixels(f.page, 'data:image/jpeg;base64,' + jpeg.toString('base64'));
+  assert.deepEqual([jpegPixels.width, jpegPixels.height, jpegPixels.transparent], [32, 16, false]);
+  await load(kind, jpegName, jpeg, true, 'image/jpeg');
+  await deliver(jpegName);
+  const small = await accepted(kind, secondRepeat, jpegPixels);
+  assert.match(imageOf(small, kind), /^data:image\/jpeg;base64,/);
+  await f.snapshot(kind + '-small-jpeg-accepted');
+  f.report.observations.push({ kind, cases: ['reverse', 'older-error', 'latest-error-with-original', 'three-files', 'same-name', 'small-jpeg'], aPixels, bPixels, cPixels, jpegPixels, closed: await closed() });
 }
 
 async function drawingExit(kind) {
@@ -201,13 +216,16 @@ async function drawingExit(kind) {
   await mode('Drawing').click();
   await panel().waitFor({ state: 'detached' });
   assert.equal(await f.page.evaluate(element => element.isConnected, previousPanel), false);
+  const releaseSuccessInDrawing = kind === 'texture';
+  const inDrawing = await f.snapshot(kind + '-drawing-before-old-delivery');
+  await deliver(releaseSuccessInDrawing ? good : bad, releaseSuccessInDrawing);
+  await unchanged(inDrawing, kind + '-drawing-old-outcome-ignored');
   await mode('Render').click();
   await panel().waitFor();
   await load(kind, fresh, imageB);
   const before = await f.snapshot(kind + '-remount-with-old-outcomes');
-  await deliver(good);
-  await deliver(bad, false);
-  await unchanged(before, kind + '-remount-old-outcomes-ignored');
+  await deliver(releaseSuccessInDrawing ? bad : good, !releaseSuccessInDrawing);
+  await unchanged(before, kind + '-remount-old-outcome-ignored');
   await deliver(fresh);
   const acceptedImage = await accepted(kind, fixture, await imagePixels(f.page, png(imageB)));
   await f.snapshot(kind + '-remount-fresh-accepted');
@@ -227,8 +245,12 @@ async function drawingExit(kind) {
   await unchanged(changed, kind + '-render-edit-kept');
   await button('Undo').click();
   await f.same(acceptedImage);
+  await mode('Drawing').click();
+  await panel().waitFor({ state: 'detached' });
+  await f.same(acceptedImage);
+  await f.snapshot(kind + '-drawing-keeps-accepted-image');
   assert.deepEqual(await closed(), [good, fresh, pending]);
-  f.report.observations.push({ kind, cases: ['Drawing-exit-and-remount', 'render-setting-edit'], closed: await closed() });
+  f.report.observations.push({ kind, cases: ['Drawing-exit-and-remount', 'render-setting-edit'], releaseSuccessInDrawing, closed: await closed() });
 }
 
 async function startDeletion() {
