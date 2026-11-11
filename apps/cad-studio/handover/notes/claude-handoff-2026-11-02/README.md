@@ -1,5 +1,5 @@
 ---
-work_id: D649
+work_id: D650
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -235,7 +235,9 @@ D648 converts the explicit inch bore and tolerance for native approval and prese
 
 D649 qualifies three path-free CLI diagnostics, the existing step limit, and the next successful turn in Studio. [D649](../studio-chat-cli-diagnostics-2026-11-11/README.md).
 
-Next MAIN is D650 / P0 automation evidence, rows 04, 12 and 16. Extend the existing Studio saved-approval comparison to show one direct saved successor for the same nested occurrence. Reuse D610 lineage and check logic. Verify original failure, approved pass and later saved regression after fresh Open. [#2279](https://github.com/barocss/barocss/issues/2279).
+D650 adds the D610 saved regression to the read-only Studio Versions comparison. Fresh Open, exact stored bytes, the restored passing working model and the retired late check are verified. [D650](../studio-saved-requirement-follow-up-2026-11-11/README.md).
+
+Next MAIN is D651 / P0 automation evidence, rows 04, 12 and 16. Persist one exact saved approval review using the existing v1 evidence format and project storage. Verify that fresh Open reads the original failure and approval pins from the artifact, and refuses mismatched pins. Keep the native document schema. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

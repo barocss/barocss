@@ -1,0 +1,124 @@
+{
+  "decision": "D650",
+  "tier": "FEATURE qualification",
+  "baseCommit": "173a8c85e4b7e1f2e181ac806a98e56368136aff",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d650-2026-11-11",
+  "priorFixture": "$HOME/.cache/barocss-cad-evidence/d607-2026-11-11/desktop",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "First baseline driver",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D650_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/baseline\" \"$PRIOR\" --follow-up-baseline",
+      "receiptSHA256": "4254602c3bc75faae0586672b708ad537d52e3c0bb206c6b92756cde1c0af9ec",
+      "firstFailure": "The restore cleared the selected comparison. The first driver did not reselect it."
+    },
+    {
+      "label": "Original product follow-up availability",
+      "result": "FAIL",
+      "cwd": "apps/cad-studio",
+      "command": "D650_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/baseline-verified\" \"$PRIOR\" --follow-up-baseline",
+      "receiptSHA256": "e2106f03495c0c4239247c411b073888a62c2173e2fe701038607ff65f127f6b",
+      "receiptMeaning": "The baseline driver passed its assertion that the original product offers no follow-up control.",
+      "pinnedSources": 312
+    },
+    {
+      "label": "Actual desktop Studio saved successor",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D650_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/desktop\" \"$PRIOR\" --follow-up",
+      "receiptSHA256": "29054300375aec8abf62378c92c4d0b53b552ebc3c8337dc7fb0fd81101cde98",
+      "pinnedSources": 312,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "part": "p1/p1",
+        "requirement": "HEIGHT",
+        "limitMm": 5,
+        "initial": {
+          "id": "ve0343ef6e557245d",
+          "measuredMm": 6,
+          "verdict": "fail"
+        },
+        "approved": {
+          "id": "vf148824bdec6ef5c",
+          "measuredMm": 4,
+          "verdict": "pass"
+        },
+        "followUp": {
+          "id": "vf43027c5958e00ac",
+          "measuredMm": 8,
+          "verdict": "regressed"
+        },
+        "skipped": {
+          "id": "vedb24a3306d906f8",
+          "measuredMm": 3
+        },
+        "restoredWorkingMm": 4,
+        "snapshotsPreserved": 4,
+        "heldReadsRetired": 1
+      }
+    },
+    {
+      "label": "Independent source height and observed result check",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/desktop/nested-approved-comparison-oracle.py\" < \"$EVIDENCE/desktop/saved-follow-up-heights-oracle-input.json\"",
+      "scriptSHA256": "6e4462f97a34f251f517f3608a98606c92a29ae8fc0896b242fc4ba2bf51efe7",
+      "resultSHA256": "2833044d28658a014e850509b26f21751b73a82326ca1820c890cb2a1d0b621e",
+      "localHeightChecks": 6,
+      "productImports": 0
+    },
+    {
+      "label": "Desktop D608 saved approval comparison regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D608_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d608\" \"$PRIOR\"",
+      "receiptSHA256": "5a9e02b736b27c491cba916d3722c72fb87b182c6fe69f130306da72cf1367f0",
+      "pinnedSources": 311
+    },
+    {
+      "label": "Desktop D610 Studio agent and MCP regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D610_SOURCE_FROZEN=1 node test/nested-approved-comparison-browser.mjs \"$EVIDENCE/regression-d610\" \"$PRIOR\" --lifecycle",
+      "receiptSHA256": "50c3b18af5e669c209ee27c4fb57250053358f644e7207202aa597f361712e19",
+      "pinnedSources": 321
+    },
+    {
+      "label": "Focused Model",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test approved-version-evidence nested-parameter-proposal requirement-evidence team-freshness proposals.test versions toolset tool-contract",
+      "passCount": 73,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Focused Studio",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test approved-requirement-compare version-tools-mcp project-open-ownership project-version-ownership late-save-ownership storage-version-snapshot edit-in-place chat toolset-mcp tool-contract-mcp",
+      "passCount": 130,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio typecheck, lint, driver syntax and build",
+      "result": "PASS",
+      "commands": [
+        "pnpm --dir apps/cad-studio exec tsc --noEmit",
+        "pnpm exec eslint apps/cad-studio/src/storage/VersionsPanel.tsx apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx",
+        "node --check apps/cad-studio/test/nested-approved-comparison-browser.mjs",
+        "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\"",
+        "git diff --check"
+      ]
+    },
+    {
+      "label": "Live provider, mobile and whole CAD suites",
+      "result": "NOT_RUN"
+    }
+  ]
+}

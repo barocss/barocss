@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { changesOf, type DocChanges } from '@barocss/cad-model/versions/compare';
-import { versionsOf, headOf, readVersion } from '@barocss/cad-model/versions/log';
+import { headOf, isLinearSavedSequence, readVersion, snapshotKeyOf, versionsOf } from '@barocss/cad-model/versions/log';
 import type { Conflict, Resolutions, Side } from '@barocss/cad-model/versions/merge';
 import { canKeepInBrowser, canPickFolder } from './access';
 import type { ProjectActions } from './useProject';
@@ -83,6 +83,15 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   const comparedTo = target ? (targetVersion ? target.doc : null) : doc;
   const compared = useMemo(() => comparedFrom && comparedTo ? changesOf(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
   const approval = useMemo(() => comparedFrom && comparedTo ? approvedRequirementComparison(comparedFrom, comparedTo) : null, [comparedFrom, comparedTo]);
+  const followUp = useMemo(() => {
+    if (!log || !version || !targetVersion || !approval?.nested) return;
+    // The current branch is listed newest first. Only the next saved child can qualify.
+    const successor = list[list.indexOf(targetVersion) - 1];
+    if (!successor || !isLinearSavedSequence(log, version, targetVersion, successor)) return;
+    if ([version, targetVersion, successor].some(pin => log.versions.some(item => item.name === pin.id && item.id !== pin.id))) return;
+    if (snapshotKeyOf(approval.before) !== version.snapshot || snapshotKeyOf(approval.after) !== targetVersion.snapshot) return;
+    return { log, version: successor };
+  }, [log, list, version, targetVersion, approval]);
   const others = log ? log.branches.filter(b => b.name !== log.current) : [];
   const linkedCount = useMemo(() => new Set((doc.instances ?? []).flatMap(i => linkedPath(i.part?.source) !== null ? [i.part!.id] : [])).size, [doc.instances]);
 
@@ -167,7 +176,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
       <ul className="m-0 list-disc pl-4">{changeLines(compared).map((l, k) => <li key={k}>{l}</li>)}</ul>
     </div>}
     {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.before}:${approval.revisions.after}`}
-      comparison={approval} evaluate={evaluate} historical={!!targetVersion} />}
+      comparison={approval} evaluate={evaluate} historical={!!targetVersion} followUp={followUp} />}
 
     {log && <>
       <div className="card-title" style={{ marginTop: 8 }}>BRANCHES · {log.branches.length}</div>

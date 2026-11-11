@@ -9,6 +9,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
+const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (agent) {
   const reserved = createServer().listen(0, '127.0.0.1');
@@ -25,6 +26,7 @@ const pins = [
     'packages/barocss-cad-model/src/versions/tools.ts', 'packages/barocss-cad-model/src/chat/tools.ts', 'packages/barocss-cad-model/src/chat/tools-v2.json'] : []),
   ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
     'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
+  ...(followUp ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts'] : []),
 ];
 const oracleSource = String.raw`
 import json, sys
@@ -39,12 +41,16 @@ for stage, heights in [('first', [6, 7]), ('approved', [4, 7]), ('working', [8, 
         assert next(r['check']['value'] for r in part['requirements'] if r['id'] == 'HEIGHT') == 5
 assert d['historical'] == '6 mm → 4 mm'
 assert d['current'] == '8 mm (want <= 5 mm)'
+if 'followUp' in d:
+    regressed, = d['followUp']
+    assert regressed == {'id':'HEIGHT','status':'Regressed','number':'8 mm'}
+    assert d['workingRestored'] == d['approved']
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+  qualification: followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
@@ -107,14 +113,14 @@ async function replaceProjectHead(bytes, expected) {
   await f.same(expected);
 }
 
-async function inspectWorkingFailure() {
+async function inspectWorkingHeight(height = 8, verdict = 'Fail') {
   const leaf = f.page.locator('.ol.instance.nested[data-path="p1/p1"]');
   if (!(await leaf.isVisible())) await button('Show the parts of Left module').click();
   await leaf.click();
   const row = f.page.getByRole('group', { name: 'Local requirement HEIGHT', exact: true });
-  const measurement = row.getByText('8 mm (want <= 5 mm)', { exact: true });
+  const measurement = row.getByText(height + ' mm (want <= 5 mm)', { exact: true });
   await measurement.waitFor();
-  assert.match(await row.innerText(), /HEIGHT · Fail/);
+  assert.ok((await row.innerText()).includes('HEIGHT · ' + verdict));
   return measurement.innerText();
 }
 
@@ -140,6 +146,65 @@ async function installHold() {
       release() { const deliver = held; held = undefined; deliver(); },
     };
   });
+}
+
+async function inspectSavedFollowUp(saved, approved, historical) {
+  const select = () => history().getByLabel('Follow-up version', { exact: true });
+  const result = () => history().getByRole('region', { name: 'Saved follow-up checks', exact: true });
+  const [firstVersion, approvedVersion, laterVersion, skippedVersion] = JSON.parse(saved.log).versions;
+  assert.deepEqual(laterVersion.parents, [approvedVersion.id]);
+  assert.deepEqual(skippedVersion.parents, [laterVersion.id]);
+  await versions().getByRole('button', { name: 'Restore Approved nested repair', exact: true }).click();
+  await f.same(approved);
+  const workingPass = await inspectWorkingHeight(4, 'Pass');
+  await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+  await selectTarget().selectOption(approvedVersion.id);
+  await history().getByText(historical, { exact: true }).waitFor();
+  if (followUpBaseline) {
+    assert.equal(await select().count(), 0);
+    assert.equal(await result().count(), 0);
+    await f.snapshot('00-no-saved-successor-control');
+    f.report.observations.push({ pairVisible: true, directSuccessorExists: true, followUpAvailable: false, workingRestored: true });
+    return null;
+  }
+
+  f.phase = 'open the direct saved successor while the working part passes';
+  const choices = await select().locator('option').evaluateAll(options => options.map(option => option.value));
+  assert.deepEqual(choices, ['', laterVersion.id]);
+  await select().selectOption(laterVersion.id);
+  const id = result().getByText('HEIGHT', { exact: true });
+  const status = result().getByText('Regressed', { exact: true });
+  const number = result().getByText('8 mm', { exact: true });
+  await status.waitFor();
+  const findings = [{ id: await id.innerText(), status: await status.innerText(), number: await number.innerText() }];
+  await f.same(approved);
+  assert.deepEqual(await projectBytes(), saved);
+  await f.snapshot('04-saved-regression-working-restored');
+
+  f.phase = 'retire the successor check when the saved comparison changes';
+  await select().selectOption('');
+  assert.equal(await result().count(), 0);
+  await installHold();
+  await f.page.evaluate(() => window.__d608Hold.arm());
+  await select().selectOption(laterVersion.id);
+  await f.page.waitForFunction(() => window.__d608Hold.held());
+  await result().getByText('Checking follow-up…', { exact: true }).waitFor();
+  await selectTarget().selectOption('');
+  await workingChecks().getByText(historical, { exact: true }).waitFor();
+  await f.page.evaluate(() => window.__d608Hold.release());
+  await f.page.waitForFunction(() => window.__d608Hold.completed() === 1);
+  assert.equal(await f.page.getByLabel('Follow-up version', { exact: true }).count(), 0);
+  assert.equal(await f.page.getByRole('region', { name: 'Saved follow-up checks', exact: true }).count(), 0);
+  await selectTarget().selectOption(approvedVersion.id);
+  await history().getByText(historical, { exact: true }).waitFor();
+  assert.equal(await select().inputValue(), '');
+  assert.deepEqual(await projectBytes(), saved);
+  const workingRestored = await f.doc();
+  assert.deepEqual(workingRestored, approved);
+  f.report.observations.push({ firstVersion: firstVersion.id, approvedVersion: approvedVersion.id,
+    directSuccessor: laterVersion.id, skippedVersion: skippedVersion.id, findings, workingPass, exactFilesPreserved: true, heldReadRetired: true });
+  await f.snapshot('05-late-follow-up-retired');
+  return { followUp: findings, workingRestored };
 }
 
 async function agentEvidence(origin, saved, working, pair) {
@@ -344,19 +409,30 @@ await f.run(async () => {
   await makeVersion('Approved nested repair');
   await replaceProjectHead(workingBytes, working);
   await makeVersion('Later working failure');
+  const skipped = structuredClone(working);
+  if (followUp) {
+    skipped.instances[0].part.rev = 'D';
+    skipped.instances[0].doc.instances[0].doc.parameters.H = 3;
+    await replaceProjectHead(Buffer.from(JSON.stringify(skipped)), skipped);
+    await makeVersion('Skipped later version');
+  }
   const saved = await projectBytes();
-  assert.deepEqual(saved.snapshots.map(bytes => JSON.parse(bytes)), [first, approved, working]);
+  assert.deepEqual(saved.snapshots.map(bytes => JSON.parse(bytes)), followUp ? [first, approved, working, skipped] : [first, approved, working]);
   assert.deepEqual(saved.snapshots.slice(0, 2), [firstBytes.toString('utf8'), approvedBytes.toString('utf8')]);
   assert.equal(saved.snapshots[0], original.snapshots[0]);
-  assert.deepEqual(JSON.parse(saved.doc), working);
+  assert.deepEqual(JSON.parse(saved.doc), followUp ? skipped : working);
 
   f.phase = 'project reload and compare the saved pair';
   await f.page.reload();
   await f.ready();
   await openProject();
   await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
-  await f.same(working);
-  const current = await inspectWorkingFailure();
+  await f.same(followUp ? skipped : working);
+  if (followUp) {
+    await versions().getByRole('button', { name: 'Restore Later working failure', exact: true }).click();
+    await f.same(working);
+  }
+  const current = await inspectWorkingHeight();
   await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
   await summary().getByText('From the version to the working document', { exact: true }).waitFor();
   assert.equal(await workingChecks().count(), 0);
@@ -374,9 +450,15 @@ await f.run(async () => {
   const choices = await history().getByLabel('Requirement occurrence', { exact: true }).locator('option').evaluateAll(options => options.map(option => option.value));
   assert.deepEqual(choices, ['p1/p1']);
   const historical = await recovery.innerText();
-  assert.equal(await inspectWorkingFailure(), current);
+  assert.equal(await inspectWorkingHeight(), current);
   const compared = await f.snapshot('01-saved-repair-and-working-failure');
   assert.equal(compared.overlay, null);
+  if (followUp) {
+    const observation = await inspectSavedFollowUp(saved, approved, historical);
+    if (observation) await f.runOracle({ first, approved, working, historical, current, ...observation }, 'saved-follow-up-heights');
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'retire a held comparison when the target changes';
   await selectTarget().selectOption({ label: 'Later working failure' });

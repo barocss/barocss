@@ -1,17 +1,77 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import { expectedOf } from '@barocss/cad-model/chat/spec';
 import { NativeSelect } from '@/components/ui/native-select';
 import { approvedRequirementComparison, compareApprovedRequirements } from '@barocss/cad-model/versions/approvedRequirements';
+import { readVersion, type Version, type VersionLog } from '@barocss/cad-model/versions/log';
+import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
+import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
+type SavedSuccessor = { log: VersionLog; version: Version };
+type FollowUpResult = Awaited<ReturnType<typeof requirementFollowUp>>;
 const unitText = (unit?: string) => unit === 'mm3' ? 'mm³' : unit === 'mm2' ? 'mm²' : unit;
+const FOLLOW_UP_STATUS = {
+  regressed: 'Regressed',
+  passing: 'Pass',
+  'requirement-changed': 'Requirement changed',
+  'requirement-withdrawn': 'Requirement withdrawn',
+  unresolved: 'Unresolved',
+};
 
-function Checks({ comparison, part, evaluate }: { comparison: Comparison; part: string; evaluate: Evaluate }) {
+function SavedRequirementFollowUp({ pin, comparison, part, approval, evaluate }: {
+  pin: SavedSuccessor; comparison: Comparison; part: string; approval: Exclude<CheckResult, { error: string }>; evaluate: Evaluate;
+}) {
+  const [selected, setSelected] = useState(false);
+  const request = useMemo(() => selected ? { pin, comparison, part, approval, evaluate } : null,
+    [selected, pin, comparison, part, approval, evaluate]);
+  const [settled, setSettled] = useState<{ request: NonNullable<typeof request>; report: FollowUpResult }>();
+  useEffect(() => {
+    if (!request) return;
+    const operation = request.comparison.nested?.ops[0];
+    if (!operation) return;
+    let current = true;
+    const recovered = request.approval.recoveries.map(row => row.id);
+    const check = async () => {
+      const later = readVersion(request.pin.log, request.pin.version.id);
+      return requirementFollowUp(request.comparison.after, later, operation, request.part, recovered,
+        request.approval.after, requirementEvidenceRevision(later), input => current ? request.evaluate(input) : Promise.resolve(null));
+    };
+    const complete = (report: FollowUpResult) => { if (current) setSettled({ request, report }); };
+    void check().then(complete, () => complete({ status: 'unresolved', reason: 'Could not check the saved follow-up.',
+      findings: recovered.map(id => ({ id, status: 'unresolved' })) }));
+    return () => { current = false; };
+  }, [request]);
+  const report = settled && settled.request === request ? settled.report : undefined;
+  const evidence = report?.status === 'checked' ? report.evidence : null;
+  return <div className="mt-1">
+    <label className="block">Follow-up version
+      <NativeSelect aria-label="Follow-up version" value={selected ? pin.version.id : ''} onChange={event => setSelected(event.currentTarget.value === pin.version.id)}>
+        <option value="">None</option>
+        <option value={pin.version.id}>{pin.version.name ?? pin.version.id}</option>
+      </NativeSelect>
+    </label>
+    {selected && <div role="region" aria-label="Saved follow-up checks" aria-live="polite">
+      {!report && <div role="status">Checking follow-up…</div>}
+      {report?.status === 'unresolved' && <div>{report.reason}</div>}
+      {report?.findings.map(({ id, status }) => {
+        const row = status === 'regressed' || status === 'passing' ? evidence?.evidence.find(item => item.requirement?.id === id) : undefined;
+        const unit = unitText(row?.requirement?.check.unit);
+        return <div key={id}><strong>{id}</strong> · <span>{FOLLOW_UP_STATUS[status]}</span>
+          {row?.result.number != null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{row.result.number}{unit ? ' ' + unit : ''}</span>}
+        </div>;
+      })}
+    </div>}
+  </div>;
+}
+
+function Checks({ comparison, part, evaluate, followUp }: {
+  comparison: Comparison; part: string; evaluate: Evaluate; followUp?: SavedSuccessor;
+}) {
   const [settled, setSettled] = useState<{ comparison: Comparison; part: string; evaluate: Evaluate; report: CheckResult }>();
   useEffect(() => {
     let current = true;
@@ -40,10 +100,14 @@ function Checks({ comparison, part, evaluate }: { comparison: Comparison; part: 
         : `${priorFailure.measured}${priorFailure.unit ? ' ' + unitText(priorFailure.unit) : ''} (want ${priorFailure.expected})`}</div>}
       {criterion && <div>New criterion · {criterion}</div>}
     </div>)}
+    {followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={followUp.version.id}
+      pin={followUp} comparison={comparison} part={part} approval={result} evaluate={evaluate} />}
   </>;
 }
 
-export function ApprovedRequirementChecks({ comparison, evaluate, historical }: { comparison: Comparison; evaluate: Evaluate; historical: boolean }) {
+export function ApprovedRequirementChecks({ comparison, evaluate, historical, followUp }: {
+  comparison: Comparison; evaluate: Evaluate; historical: boolean; followUp?: SavedSuccessor;
+}) {
   const [part, setPart] = useState(comparison.scopes[0].id);
   const label = historical ? 'Saved approval checks' : 'Approved requirement checks';
   return <section className="mt-2" aria-label={label}>
@@ -51,7 +115,7 @@ export function ApprovedRequirementChecks({ comparison, evaluate, historical }: 
     <NativeSelect aria-label="Requirement occurrence" value={part} onChange={event => setPart(event.currentTarget.value)}>
       {comparison.scopes.map(scope => <option key={scope.id} value={scope.id}>{scope.label}{scope.id !== 'base' ? ` (${scope.id})` : ''}</option>)}
     </NativeSelect>
-    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} />
+    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} followUp={followUp} />
   </section>;
 }
 
