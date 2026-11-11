@@ -1774,12 +1774,18 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
-      if (e.isComposing || sketchModeExit.pending) return;
+      if (e.defaultPrevented || e.isComposing || sketchModeExit.pending) return;
+      const target = e.target;
+      const typing = target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement
+        || (target instanceof HTMLElement && target.isContentEditable);
+      const undoKey = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z';
+      // Leave text history and focused control activation to the browser.
+      if (undoKey && typing) return;
+      if (e.key === ' ' && target instanceof Element && target.closest('button, summary')) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
-      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      if (undoKey) {
         e.preventDefault();
         // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
         const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
@@ -2131,11 +2137,7 @@ export function App() {
     ? <ReferenceDecisions doc={doc} referenceLabels={referenceLabels} refMarks={refMarks} refProblems={refProblems} refChoices={refChoices}
       previewReference={previewReference} settleRef={settleRef} showRefChoices={showRefChoices} /> : null;
   const browserPanel = (
-      <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser"
-        onKeyDown={e => {
-          // Let Space click the focused Browser button instead of opening the workspace palette.
-          if (e.key === ' ' && e.target instanceof HTMLButtonElement) e.stopPropagation();
-        }}>
+      <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>Base part · {fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
