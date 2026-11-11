@@ -62,7 +62,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   onInsert(path: string): void;
   evaluate: Evaluate;
   checkpointReview?: CheckpointReview | null;
-  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void };
+  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; approve?(): Promise<void> };
   onCollapse?(): void;
 }) {
   const { view } = project, log = view.log;
@@ -93,7 +93,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   };
 
   const checkpoint = checkpointReview ? <CheckpointApprovalChecks review={checkpointReview} /> : null;
-  const candidateSection = candidate ? <CandidateReviewSection {...candidate} /> : null;
+  const candidateSection = candidate ? <CandidateReviewSection key={candidate.review.attemptId + ':' + candidate.review.candidateDigest} {...candidate} /> : null;
   if (!view.store) return <aside className="card props" aria-label="Versions panel"><DockSection id="versions" title="Project & versions" summary="no project" onCollapse={onCollapse} expandOn={candidate?.review.localRun ?? checkpointReview?.localRun}>
     {candidateSection}
     {checkpoint}

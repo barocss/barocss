@@ -11,7 +11,7 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, isTaskRunStopRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunApproveRequest, taskRunApprovalId, isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, isTaskRunStopRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { planWorkingTaskReplacement } from '../../src/files/workingTaskReplacement';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
@@ -28,7 +28,7 @@ type AdmissionNotice = (run: TaskRunLaunch) => void;
 type BindRunControl = (run: TaskRunLaunch, stop: () => void) => (() => void) | void;
 
 type HandoffAction = 'start' | 'reopen';
-type LocalRunAction = HandoffAction | 'rebuild' | 'stop';
+type LocalRunAction = HandoffAction | 'rebuild' | 'stop' | 'approve';
 
 function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
   // Only the process that admitted Start can stop its live workers.
@@ -108,7 +108,13 @@ export function createLocalTaskRuns(root: string) {
     if (status.phase === 'stopped') return status;
     throw new LocalRunRequestError(409, 'The local run has finished starting. Reopen it before stopping.');
   };
-  return { run, stop };
+  const approve = async (request: unknown): Promise<TaskRunStatus> => {
+    if (!isTaskRunApproveRequest(request))
+      throw new LocalRunRequestError(400, 'Expected the exact worker candidate review.');
+    await run(Buffer.from(JSON.stringify(request)), 'approve');
+    return readLocalTaskRunStatus(root, { runKey: request.runKey, runId: request.runId });
+  };
+  return { run, stop, approve };
 }
 
 function privateDirectory(path: string) {
@@ -319,6 +325,46 @@ export async function runLocalTaskStop(root: string, request: unknown): Promise<
   } finally { host?.close(); }
 }
 
+export async function runLocalTaskApproval(root: string, request: unknown): Promise<LocalRunReply> {
+  if (!isTaskRunApproveRequest(request)) return { status: 400, error: 'Expected the exact worker candidate review.' };
+  let host: TaskRunHost | undefined;
+  try {
+    const directory = privateDirectory(join(privateDirectory(resolve(root)), request.runKey));
+    const operationId = taskRunApprovalId(request);
+    const result = (record: RunRecord): LocalRunReply => ({
+      result: { ...taskRunStatus(request.runKey, record), directory, reused: true },
+    });
+    const current = readOwnedTaskRun(root, request);
+    if (current.commits.some(commit => commit.operationId === operationId && commit.taskId === request.taskId
+      && commit.kind !== 'spec' && commit.candidateDigest === request.candidateDigest)) return result(current);
+    const guard = (record: RunRecord) => {
+      const receipt = candidateReviewFor(record, request.taskId);
+      if (record.runId !== request.runId || record.state.controlRevision !== request.controlRevision
+        || record.accepted.modelDigest !== request.baselineDigest || receipt.attemptId !== request.attemptId
+        || receipt.candidateDigest !== request.candidateDigest || request.reviewRevision > receipt.revision
+        || digestOf({ ...receipt, revision: request.reviewRevision }) !== request.receiptDigest)
+        throw new LocalRunRequestError(409, 'The reviewed candidate changed. Review it again before approving.');
+    };
+    guard(current);
+    let revision = 0;
+    host = await TaskRunHost.open(directory, async doc => evaluatePart(doc, ++revision), undefined, guard);
+    const { runId, epoch, state } = host.snapshot;
+    const outcome = await host.decide({ operationId, runId, epoch, taskId: request.taskId, attemptId: request.attemptId,
+      specRevision: state.specRevision, candidateDigest: request.candidateDigest, approved: true }, userToken(new Date().toISOString()));
+    if (outcome.code !== 'RUN_ACCEPTED')
+      throw new LocalRunRequestError(409, `Could not approve the worker candidate (${outcome.code ?? outcome.phase}).`);
+    return result(host.snapshot);
+  } catch (error) {
+    if (error instanceof LocalRunRequestError) return { status: error.status, error: error.message };
+    if (error instanceof RunStoreError) {
+      if (error.code === 'RUN_BUSY') return { status: 409, error: 'Another process owns this local task run.' };
+      if (error.code === 'RUN_STALE') return { status: 409, error: 'The reviewed candidate is no longer awaiting approval.' };
+    }
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 404, error: 'The local task run could not be found.' };
+    return { status: 409, error: 'Could not approve the worker candidate.' };
+  } finally { host?.close(); }
+}
+
 function toCheckpointPin({ taskId, operationId, accepted }: TaskCheckpoint): TaskRunCheckpointPin {
   return { taskId, operationId, acceptedSHA256: accepted.sha256 };
 }
@@ -393,7 +439,7 @@ export function readLocalTaskBaseline(root: string, request: unknown) {
 }
 
 /** The service owns the root. A browser supplies only the identifiers from its launched run and current document. */
-export function readLocalTaskCandidate(root: string, request: unknown): string {
+export function readLocalTaskReview(root: string, request: unknown) {
   const selection = readReviewRequest(request);
   const { taskId, attemptId, candidateDigest, baselineDigest } = selection;
   const record = readOwnedTaskRun(root, selection);
@@ -403,13 +449,17 @@ export function readLocalTaskCandidate(root: string, request: unknown): string {
     const receipt = candidateReviewFor(record, taskId);
     if (receipt.attemptId !== attemptId || receipt.candidateDigest !== candidateDigest)
       throw new LocalRunRequestError(409, 'The worker candidate changed. Refresh the local run status.');
-    return encodeCandidateReview(receipt);
+    return { review: encodeCandidateReview(receipt), controlRevision: record.state.controlRevision };
   } catch (error) {
     if (error instanceof LocalRunRequestError) throw error;
     if (error instanceof RunStoreError && error.code === 'RUN_STALE')
       throw new LocalRunRequestError(409, 'This candidate is no longer awaiting review. Refresh the local run.');
     throw new LocalRunRequestError(409, 'Could not read the current worker candidate.');
   }
+}
+
+export function readLocalTaskCandidate(root: string, request: unknown): string {
+  return readLocalTaskReview(root, request).review;
 }
 
 export function readLocalTaskApproval(root: string, request: unknown): Uint8Array {

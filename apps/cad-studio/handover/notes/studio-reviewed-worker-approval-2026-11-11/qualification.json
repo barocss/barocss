@@ -1,0 +1,141 @@
+{
+  "decision": "D643",
+  "tier": "FEATURE qualification",
+  "baseCommit": "8ebf5639f9963abbc42b3fd287627824cb837ba5",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d643-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio approve verified candidate and open checkpoint",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D643_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --studio-approval",
+      "receiptSHA256": "e0d2b6fcae3c7c777afcd2cf464de183966d8635de795546be2fef904c283dea",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "receiptMismatchStatus": 409,
+        "controlMismatchStatus": 409,
+        "retiredReviewStatus": 409,
+        "duplicateChangedRecord": false,
+        "publications": 1,
+        "approvalRevision": 9,
+        "finalHeightsMm": [
+          6,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Independent request, approved commit and checkpoint byte reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/studio-approval-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "180112a5744059495547773dc572038d4347ad7a0b4cdc1cc20ff56ffaa8e8de",
+      "resultSHA256": "1f54cd5b2c264122c132dca4881f8da7c7474e6d1b70f8783c721908df98ee98",
+      "productImports": 0,
+      "originalSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+      "approvedSHA256": "ba22bec41f99e0376166d51863d024fa27d2437355ec47cb17a94354c42bfe06",
+      "recordSHA256": "a5691463a88e1ba5099a6794c196d354377378fc144cb882dd37e504c8cd546e",
+      "derivedRectangleVolumesMm3": [
+        1200,
+        288
+      ]
+    },
+    {
+      "label": "Desktop Studio candidate review and terminal refusal regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D620_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-review\" --review",
+      "receiptSHA256": "3b329974a85462870d876e4ca0a7b9803c138fedc1fd12866c1c54ad0fbe6d4c",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio reopened Stop regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D642_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-reopened-stop\" --reopened-stop",
+      "receiptSHA256": "2d87f2de162f2356200c0ec2189b3a36b5e495f146d87f6e20c1769c5d81d7aa",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 1,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio offline review and terminal decision regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D614_SOURCE_FROZEN=1 node test/task-candidate-review-browser.mjs \"$EVIDENCE/final-terminal-decision\" --decision",
+      "receiptSHA256": "d53c96c6e9cec78cc13a93866556b0f115f25e7dc2fbe8b1411b4b7e11f23ef1",
+      "pinnedSources": 972,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent task-candidate task-checkpoint proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "existingWarnings": 2,
+      "errors": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First Studio candidate review regression",
+      "receiptSHA256": "e42153170b9446552702a993d247f0afa5ff26399b78a19acf3d1cf67f751269",
+      "reason": "Approval metadata validation ran before malformed receipt validation. Keep the receipt error and validate the approval fields after decoding."
+    }
+  ],
+  "notRun": [
+    "Two-task delivery through Studio approval and native project Save/Open",
+    "Live provider execution",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

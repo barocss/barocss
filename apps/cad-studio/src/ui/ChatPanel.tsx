@@ -53,6 +53,7 @@ export interface ChatPanelProps {
   onOutboxSent?(id: number): void;
   taskRun?: {
     reopened?: TaskRunLaunch;
+    approved?: TaskRunStatus;
     sourceKey(): string | undefined;
     export(plan: SavedTaskRunPlan): Promise<void>;
     start(plan: SavedTaskRunPlan, onAdmitted?: (run: TaskRunLaunch) => void): Promise<TaskRunLaunch | undefined>;
@@ -112,6 +113,9 @@ export function ChatPanel(props: ChatPanelProps) {
   };
   const statuses: RunStatuses = { current: runStatuses, remember: rememberRunStatus,
     selectFinding: status?.enabled && isLocalTaskRunHost(window.location.hostname) ? setTaskFinding : undefined };
+  const receiveApproval = useEffectEvent((approved: TaskRunStatus) => rememberRunStatus(approved));
+  const approval = props.taskRun?.approved;
+  useEffect(() => { if (approval) receiveApproval(approval); }, [approval]);
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);
   const imageDraftGeneration = useRef(0);

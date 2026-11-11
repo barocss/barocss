@@ -7,7 +7,7 @@ import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { PlacedProposalPreview } from '../viewport/instanceEvaluation';
-import type { TaskRunReviewRequest } from '../chat/taskRunOffer';
+import type { TaskRunApproveRequest, TaskRunReviewRequest } from '../chat/taskRunOffer';
 import type { NativeRef } from './taskCheckpoint';
 
 export interface CandidateReviewReceipt {
@@ -21,7 +21,7 @@ export interface CandidateReviewReceipt {
   candidateDigest: string;
 }
 export interface CandidateReview {
-  localRun?: { request: TaskRunReviewRequest; revision: number };
+  localRun?: { request: TaskRunReviewRequest; revision: number; approval: TaskRunApproveRequest };
   taskId: string;
   attemptId: string;
   candidateDigest: string;

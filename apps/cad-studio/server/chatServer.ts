@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
 import { isLocalTaskRunHost, isTaskRunFindingSelection, readTaskRunOffer, type TaskRunLaunch, type TaskRunOffer } from '../src/chat/taskRunOffer';
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
-import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
+import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskReview, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
@@ -217,7 +217,7 @@ export function createChatServer(options: ChatServerOptions) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/stop' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/stop' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/approve' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
       const action = path.slice('/task-runs/'.length), handoff = action === 'start' || action === 'reopen';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
@@ -246,6 +246,7 @@ export function createChatServer(options: ChatServerOptions) {
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }
+        if (action === 'approve') return sendJson(res, 200, await localRuns.approve(request));
         if (action === 'stop') return sendJson(res, 200, await localRuns.stop(request));
         if (action === 'baseline' || action === 'checkpoint' || action === 'history') {
           let model: Uint8Array;
@@ -262,7 +263,7 @@ export function createChatServer(options: ChatServerOptions) {
           return res.end(model);
         }
         if (action === 'status') return sendJson(res, 200, readLocalTaskRunStatus(taskRunDir, request));
-        return sendJson(res, 200, { review: readLocalTaskCandidate(taskRunDir, request) });
+        return sendJson(res, 200, readLocalTaskReview(taskRunDir, request));
       } catch (error) {
         if (res.destroyed || res.writableEnded) return;
         const problem = error instanceof LocalRunRequestError ? error

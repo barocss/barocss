@@ -1,4 +1,5 @@
 import type { TaskNativeFinding } from '@barocss/cad-model/team/taskExecution';
+import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
@@ -61,6 +62,14 @@ export interface TaskRunReviewRequest extends TaskRunBaselineRequest, TaskRunCan
   taskId: string;
 }
 
+export interface TaskRunApproveRequest extends TaskRunReviewRequest {
+  reviewRevision: number;
+  controlRevision: number;
+  receiptDigest: string;
+}
+
+export const taskRunApprovalId = (request: TaskRunApproveRequest) => 'studio:approve:' + digestOf(request);
+
 const TASK_PHASES = ['ready', 'running', 'validating', 'awaiting-decision', 'committing', 'completed', 'failed', 'cancelled', 'stale'] as const;
 export type TaskRunTaskPhase = typeof TASK_PHASES[number];
 const taskPhases = new Set<unknown>(TASK_PHASES);
@@ -114,6 +123,14 @@ export function isTaskRunBaselineRequest(value: unknown): value is TaskRunBaseli
 export function isTaskRunStopRequest(value: unknown): value is TaskRunStopRequest {
   return isObj(value) && Object.keys(value).length === 4 && isTaskRunLocator(value) && hash(value.baselineDigest)
     && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0;
+}
+
+export function isTaskRunApproveRequest(value: unknown): value is TaskRunApproveRequest {
+  return isObj(value) && Object.keys(value).length === 9 && isTaskRunLocator(value)
+    && hash(value.baselineDigest) && label(value.taskId) && label(value.attemptId)
+    && hash(value.candidateDigest) && hash(value.receiptDigest)
+    && typeof value.reviewRevision === 'number' && Number.isSafeInteger(value.reviewRevision) && value.reviewRevision > 0
+    && typeof value.controlRevision === 'number' && Number.isSafeInteger(value.controlRevision) && value.controlRevision >= 0;
 }
 
 export function isTaskRunRebuildRequest(value: unknown): value is TaskRunRebuildRequest {
