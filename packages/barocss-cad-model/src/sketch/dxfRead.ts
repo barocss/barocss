@@ -48,6 +48,21 @@ const UNITS: Record<number, [string, number]> = { 1: ['inches', MM_PER_INCH], 2:
 // (TEXT and MTEXT are shown in the underlay, O68; the rest of the annotation is left out and listed.)
 const ANNOTATION = new Set(['DIMENSION', 'HATCH', 'POINT', 'LEADER', 'MLEADER', 'ATTDEF', 'ATTRIB', 'VIEWPORT', 'SOLID', 'WIPEOUT', 'IMAGE']);
 const GEOMETRY = new Set(['LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE']);
+const PROFILE_PLANE_TOLERANCE = 1e-9;
+const DXF_REAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
+
+function requireProfilePlane(type: string, groups: readonly [number, string][]): void {
+  const additionalZ = type === 'LINE' ? 31 : type === 'LWPOLYLINE' ? 38 : null;
+  for (const [group, raw] of groups) {
+    if (group !== 30 && group !== 230 && group !== additionalZ) continue;
+    const value = DXF_REAL.test(raw) ? Number(raw) : NaN;
+    if (!Number.isFinite(value)) throw refusal('DXF_MALFORMED', `${type} group ${group} needs a finite DXF real value`);
+    const expected = group === 230 ? 1 : 0;
+    if (Math.abs(value - expected) > PROFILE_PLANE_TOLERANCE) {
+      throw refusal('DXF_UNSUPPORTED', `a ${type} off the XY plane (group ${group} is ${value}, expected ${expected})`);
+    }
+  }
+}
 
 /** The file as (code, value) pairs. */
 export function pairsOf(text: string): [number, string][] {
@@ -95,7 +110,7 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
     if (!GEOMETRY.has(type)) throw refusal('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE as the profile, and SPLINE, ELLIPSE, INSERT, TEXT and MTEXT as an underlay to trace over`);
     if (visibility.entity(type, body) === null) continue;
     const g = (code: number, d?: number) => { const v = body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw refusal('DXF_MALFORMED', `a ${type} without its group ${code}`); } return num(v[1], `${type} group ${code}`); };
-    if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw refusal('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
+    requireProfilePlane(type, body);
     if (type === 'LINE') edges.push({ a: [g(10) * k, g(20) * k], b: [g(11) * k, g(21) * k] });
     else if (type === 'CIRCLE') circles.push({ c: [g(10) * k, g(20) * k], r: g(40) * k });
     else if (type === 'ARC') { const c: P = [g(10) * k, g(20) * k], r = g(40) * k; edges.push({ a: arcPoint(c, r, g(50)), b: arcPoint(c, r, g(51)), c, r, ccw: true }); }
