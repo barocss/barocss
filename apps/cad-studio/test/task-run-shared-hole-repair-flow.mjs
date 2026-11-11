@@ -3,7 +3,6 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sha256 } from './flow-helper.mjs';
 
-const project = 'D637 shared hole repair';
 const sourceName = 'worker-baseline.bcad';
 const repairName = 'shared-hole-repair.bcad';
 const parts = ['p1', 'p2'];
@@ -15,7 +14,8 @@ const snapshotExtra = () => ({
 });
 
 export async function taskRunSharedHoleRepairFlow({ f, openFile, turn, call, readySummary, choose, incompatible, baseline,
-  conflict, attemptedBytes, selected, selection, verifyPriorRuns }) {
+  conflict, attemptedBytes, selected, selection, verifyPriorRuns, sharedHoleDeliveryMode }) {
+  const project = sharedHoleDeliveryMode ? 'D638 shared hole delivery' : 'D637 shared hole repair';
   const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   const files = () => versions().getByRole('list', { name: 'Project documents', exact: true });
   const openProject = async () => {
@@ -35,12 +35,12 @@ export async function taskRunSharedHoleRepairFlow({ f, openFile, turn, call, rea
     return [...new Uint8Array(await (await (await folder.getFileHandle(name)).getFile()).arrayBuffer())];
   }, { project, name }));
 
-  const readHeights = async (stage, doc) => {
+  const readHeights = async (stage, doc, heights = [5, 3], verdict = 'fail') => {
     const name = 'shared-hole-height-' + stage;
     const { revision, results } = await turn(name, parts.map(part => ({ tool: 'requirements', args: { action: 'evidence', part } })),
       { requirementEvidence: true });
     const reports = await Promise.all(results.map(async ({ error, body }, index) => {
-      const part = parts[index], height = [5, 3][index];
+      const part = parts[index], height = heights[index];
       assert.equal(error, false, JSON.stringify(body));
       const [file] = body.files;
       assert.deepEqual([file.path, file.bytes, file.sha256], ['requirement-evidence.json', Buffer.byteLength(file.text), sha256(file.text)]);
@@ -49,7 +49,7 @@ export async function taskRunSharedHoleRepairFlow({ f, openFile, turn, call, rea
       const [row] = report.evidence.filter(row => row.result.kind === 'requirement');
       assert.deepEqual(row.requirement, doc.instances[index].doc.requirements[0]);
       assert.deepEqual([row.requirement.hard, row.result.part, row.result.run, row.result.subject, row.result.status,
-        row.result.verdict, row.freshness.state], [true, part, revision, row.requirement.id, 'ok', 'fail', 'current']);
+        row.result.verdict, row.freshness.state], [true, part, revision, row.requirement.id, 'ok', verdict, 'current']);
       assert.ok(Math.abs(row.result.number - height) < 1e-8, JSON.stringify(row.result));
       await writeFile(join(f.output, name + '-' + part + '.json'), file.text);
       return report;
@@ -196,4 +196,15 @@ export async function taskRunSharedHoleRepairFlow({ f, openFile, turn, call, rea
     repairedRevision: recheck.baselineDigest, originalSHA256: sha256(originalSaved), repairedSHA256: sha256(repaired),
     holeRadiusMm: [1.5, 2], previewVolume: preview.volume, hardHeightVerdicts: ['fail', 'fail'],
     freshProjectOpen: true, priorRunsUnchanged: true, heldHeightTasks: parts, taskPublications: 0 });
+  if (sharedHoleDeliveryMode) {
+    const { taskRunSharedHoleDeliveryFlow } = await import('./task-run-shared-hole-delivery-flow.mjs');
+    const verifyPreserved = async () => {
+      assert.deepEqual(await readSaved(sourceName), originalSaved);
+      assert.deepEqual(await readSaved(repairName), repaired);
+      assert.deepEqual(await readFile(join(f.output, 'shared-hole-repaired-source.bcad')), repaired);
+      await verifyPriorRuns();
+    };
+    await taskRunSharedHoleDeliveryFlow({ f, row, recheck, repaired, accepted, after, baselineView, openProject, files,
+      save, readSaved, readHeights, choose, verifyPreserved });
+  }
 }

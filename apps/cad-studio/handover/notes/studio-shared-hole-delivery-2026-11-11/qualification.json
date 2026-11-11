@@ -1,0 +1,227 @@
+{
+  "decision": "D638",
+  "tier": "FEATURE qualification of existing workflow",
+  "baseCommit": "56cd6d124917276b1d9b95eab34fc84957b50021",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d638-2026-11-11",
+  "runDirectory": "$EVIDENCE/desktop-final",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio shared-hole delivery through both terminal approvals and fresh project Open",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D638_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --shared-hole-delivery",
+      "receiptSHA256": "28102ba38947f1fa4ec2d6e4c9e26e43c8cbd903ab650a22c957d974ca487883",
+      "pinnedSources": 816,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "runId": "local-height:51631c77-073e-4f3f-aaa4-07cae58aec89",
+        "initialP2Attempt": "1:2:p2",
+        "rebuiltP2Attempt": "3:3:p2",
+        "retiredTerminalReceiptsRefused": 2,
+        "retiredStudioReviewRefused": true,
+        "studioRebuilds": 1,
+        "terminalApprovals": [
+          "p1",
+          "p2"
+        ],
+        "finalNativeSHA256": "467598d8da3772f98fc2a651b56bd2789fdde87c9835c471caa58441daad0df7",
+        "finalEvidenceRevision": "c85992711f3df104a703f74048c63c8fa2230d14594c05a331acd260c6d9967e",
+        "currentHardHeightVerdicts": [
+          "pass",
+          "pass"
+        ],
+        "finalHeightsMm": [
+          6,
+          4
+        ],
+        "p2PreviewVolume": "Volume change \u00b7 +83.434 mm\u00b3",
+        "freshProjectOpen": true,
+        "priorRunsAndProjectFilesUnchanged": true
+      }
+    },
+    {
+      "label": "Desktop Studio shared-hole repair regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D637_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-repair-regression\" --shared-hole-repair",
+      "receiptSHA256": "584cac9e354fc1fb7b05f8d1980687f98b75688c09b360526fc25fd1942be448",
+      "pinnedSources": 815,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Native assembly, trims and scoped hard requirements across all three checkpoints",
+      "result": "PASS",
+      "commands": [
+        "node \"$EVIDENCE/bundle-repair-inspector.mjs\" \"$EVIDENCE\" from apps/cad-studio",
+        "python3 -I \"$EVIDENCE/extract-delivery-native.py\" \"$EVIDENCE\" \"$RUN/shared-hole-p1-approved.bcad-run\" \"$RUN/shared-hole-both-approved.bcad-run\"",
+        "node \"$EVIDENCE/repair-inspector.mjs\" \"$RUN/shared-hole-repaired-source.bcad\" \"$EVIDENCE/first-checkpoint-native.bcad\" \"$EVIDENCE/final-checkpoint-native.bcad\" > \"$EVIDENCE/native-readback-final.json\""
+      ],
+      "sourceSHA256": "c9133f5d0508f03a63f7223909d4199dc87e3c6d2c8cae80a44405ea231fc7f1",
+      "bundleSHA256": "9d5231fba642ff7b2e81ffe7bdf37bccd86b8082c90d0dad031bf4198e8c63b2",
+      "readbackSHA256": "c07ca608a87a9aa81cefc89e1f866f6d1ef535cf5659aec96a5a41e5efb25304"
+    },
+    {
+      "label": "Independent byte chain and analytic geometry oracle",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/delivery-oracle.py\" \"$RUN/shared-hole-repaired-source.bcad\" \"$RUN/shared-hole-p1-approved.bcad-run\" \"$RUN/shared-hole-both-approved.bcad-run\" \"$RUN/shared-hole-delivered.bcad\" \"$RUN/shared-hole-fresh-open.bcad\" \"$RUN/shared-hole-recheck-run.json\" \"$RUN/shared-hole-delivery-run.json\" \"$EVIDENCE/native-readback-final.json\"",
+      "scriptSHA256": "17b90b65a1e66417cdb8e5f3518b04f224850f6b4660759f2889b1ccdd915f71",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "stageSHA256": [
+          "253ffc89c4ccd7d81426870db2f8db80aa50275b339127b11aa8c8351a50574d",
+          "addff28920137040c835fbf4efcb3a445f06a5f00989decdabb47e61b699ed46",
+          "467598d8da3772f98fc2a651b56bd2789fdde87c9835c471caa58441daad0df7"
+        ],
+        "stageHeightsMm": [
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "stageVolumesMm3": [
+          [
+            937.1681469282044,
+            250.3008881569227
+          ],
+          [
+            1124.6017763138452,
+            250.3008881569227
+          ],
+          [
+            1124.6017763138452,
+            333.7345175425636
+          ]
+        ],
+        "stageHardVerdicts": [
+          [
+            "fail",
+            "fail"
+          ],
+          [
+            "pass",
+            "fail"
+          ],
+          [
+            "pass",
+            "pass"
+          ]
+        ],
+        "sharedHoleVerdicts": [
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "terminalPublications": 2,
+        "measuredRationalTrimPlanes": 12,
+        "rebuiltUsage": 0,
+        "requirementToleranceMm": 0.001,
+        "geometryAbsoluteTolerance": 1e-08
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 180,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    },
+    {
+      "label": "Distinct earlier and delivery terminal evidence",
+      "result": "PASS",
+      "originalReceiptSHA256": "611c86096e76ae98a7629e1cf0767e52f4f938df1161c82b94c3e06082438dfe",
+      "deliveryReceiptSHA256": "f8acc988a7823ac52144e15465e361b402682e508702e8b1bae3dfc786b8729e"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "Initial terminal evidence custody",
+      "receiptSHA256": "cd368a2d6f16fc03da2bc0aab46f14777be43d4021dba1f846e15935fb20af26",
+      "reason": "The initial workflow passed but reused the p1 receipt file names from the earlier run. The final rerun uses a dedicated terminal evidence directory and retains both receipts."
+    }
+  ],
+  "nextBoundary": {
+    "decision": "D639",
+    "receiptSHA256": "e0d2f9cfb7b8a269ca096d9ebe8d7dc61c06f2c284c2061b254a1fd633692ced",
+    "commands": [
+      "node scripts/cad-cli.mjs task-run status \"$COPIED_RUN\"",
+      "python3 -I test/fixtures/task-run-terminal.py \"stop $SPEC_PREFIX\" \"{}\" node scripts/cad-cli.mjs task-run stop \"$COPIED_RUN\" d639-reproduce-stop",
+      "node scripts/cad-cli.mjs task-run status \"$COPIED_RUN\""
+    ],
+    "observations": {
+      "status": "FAIL",
+      "boundary": "D639 Stop on failed run",
+      "beforeExit": 0,
+      "stopExit": 0,
+      "afterExit": 1,
+      "beforeTaskPhases": [
+        "failed",
+        "failed"
+      ],
+      "afterTaskPhases": [
+        "cancelled",
+        "cancelled"
+      ],
+      "acceptedSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+      "detail": "cad-cli task-run: The native finding does not match its task attempt."
+    }
+  },
+  "notRun": [
+    "Full viewport framing on fresh Open",
+    "Live model behavior",
+    "Downstream exchange",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

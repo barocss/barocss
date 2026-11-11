@@ -23,7 +23,8 @@ const snapshotRun = async directory => ({
     [name, sha256(await readFile(join(directory, 'native', name)))])),
 });
 
-export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode, sharedHoleRepairMode }) {
+export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary,
+  findingMode, agentFindingMode, sharedHoleRepairMode, sharedHoleDeliveryMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const oldReceipt = join(f.output, 'shared-lid-old.bcad-candidate');
   const save = async (name, doc) => {
@@ -190,7 +191,7 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
           assert.deepEqual(await readFile(join(f.output, 'shared-incompatible-run.bcad-task')), attemptedBytes);
         };
         await taskRunSharedHoleRepairFlow({ f, openFile, turn, call, readySummary, choose, incompatible, baseline,
-          conflict, attemptedBytes, selected, selection, verifyPriorRuns });
+          conflict, attemptedBytes, selected, selection, verifyPriorRuns, sharedHoleDeliveryMode });
         return;
       }
 
