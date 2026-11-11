@@ -14,6 +14,7 @@ type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 export type SavedApprovalPair = { store: ProjectStore; document: string; from: Version; to: Version };
 type SavedApproval = { store: ProjectStore; path: string; context: ApprovalEvidenceContext; before: StudioDoc; after: StudioDoc };
 type SavedFollowUp = { review: SavedApproval; path: string; doc: StudioDoc; version: CheckedApprovalFollowUp['version']; operation: Proposal['ops'][number] };
+export type SavedApprovalSource = SavedApproval | SavedFollowUp;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const invalid = { error: 'Saved approval evidence does not match this review.' };
@@ -58,7 +59,8 @@ function decodeFollowUp(bytes: Uint8Array, source: SavedFollowUp) {
   try {
     const payload = parseApprovalEvidenceFile(JSON.parse(decoder.decode(bytes)));
     const { context, before, after } = source.review;
-    return (payload && matchSavedFollowUpEvidence(payload.report, context, before, after, source)) || invalidFollowUp;
+    const evidence = payload && matchSavedFollowUpEvidence(payload.report, context, before, after, source);
+    return payload && evidence ? { file: payload.file, evidence } : invalidFollowUp;
   } catch {
     return invalidFollowUp;
   }
@@ -75,9 +77,14 @@ export async function readSavedApprovalEvidence(review: SavedApproval) {
   return saved && 'evidence' in saved ? saved.evidence : saved;
 }
 
-export async function readSavedFollowUpEvidence(source: SavedFollowUp) {
+export async function readSavedFollowUpArtifact(source: SavedFollowUp) {
   const file = await source.review.store.read(source.path);
   return file?.bytes.length ? decodeFollowUp(file.bytes, source) : null;
+}
+
+export async function readSavedFollowUpEvidence(source: SavedFollowUp) {
+  const saved = await readSavedFollowUpArtifact(source);
+  return saved && 'evidence' in saved ? saved.evidence : saved;
 }
 
 export async function saveApprovalEvidence(review: SavedApproval, evidence: ApprovalCheck): Promise<void> {

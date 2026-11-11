@@ -223,7 +223,7 @@ export function ChatPanel(props: ChatPanelProps) {
         </span>
       </div>}
       {props.approvalAttachment && <div className="chat-chips" aria-label="Approval evidence for next message">
-        <span className="chat-chip">Saved approval · {props.approvalAttachment.part}
+        <span className="chat-chip">Saved {props.approvalAttachment.kind} · {props.approvalAttachment.part}
           <button type="button" aria-label="Remove approval evidence" onClick={() => {
             if (props.approvalAttachment) props.onClearApprovalAttachment?.(props.approvalAttachment);
           }}>×</button>

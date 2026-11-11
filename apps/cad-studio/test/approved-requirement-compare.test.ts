@@ -11,7 +11,7 @@ import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { nestedRequirementScope } from '@barocss/cad-model/team/requirementScope';
 import { approvedRequirementComparison, compareApprovedRequirements as evidenceOf } from '@barocss/cad-model/versions/approvedRequirements';
-import { approvalEvidenceFile } from '@barocss/cad-model/versions/approvalEvidenceReport';
+import { approvalEvidenceFile, approvalEvidencePin } from '@barocss/cad-model/versions/approvalEvidenceReport';
 import { makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence, saveApprovalEvidence,
@@ -155,7 +155,7 @@ test('D651 keeps an exact saved approval once and refuses altered evidence witho
   assert.deepEqual((await store.read(review.path))?.bytes, kept.bytes);
 });
 
-test('D653 retains a direct saved regression and refuses substituted pins and verdicts', async () => {
+test('D653 and D654 retain a direct saved regression and admit only its exact attachment', async () => {
   const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
   const comparison = approvedRequirementComparison(pending, accepted);
   assert.ok(comparison?.nested);
@@ -169,7 +169,9 @@ test('D653 retains a direct saved regression and refuses substituted pins and ve
   const first = makeVersions(pending, { at: '2026-11-11T00:00:00Z' });
   const approved = makeVersion(first, accepted, { at: '2026-11-11T00:01:00Z' });
   const later = makeVersion(approved.log, changed.doc, { at: '2026-11-11T00:02:00Z' });
-  const skipped = makeVersion(later.log, { ...changed.doc, parameters: { extra: 1 } }, { at: '2026-11-11T00:03:00Z' });
+  const repaired = editNestedDefinition(accepted, leaf, { ...leaf.leaf.doc, parameters: { ...leaf.leaf.doc.parameters, H: 9 } });
+  assert.ok(!('error' in repaired));
+  const skipped = makeVersion(later.log, repaired.doc, { at: '2026-11-11T00:03:00Z' });
   const store = memoryStore();
   const review = bindSavedApproval({ store, document: 'assembly.bcad', from: first.versions[0], to: approved.version }, comparison, part);
   const source = bindSavedFollowUp(review, later.log, later.version, operation);
@@ -185,11 +187,25 @@ test('D653 retains a direct saved regression and refuses substituted pins and ve
   const retained = await store.read(source.path);
   assert.ok(retained);
   assert.deepEqual(await readSavedFollowUpEvidence(source), JSON.parse(JSON.stringify({ approval, followUp: { version: source.version, ...followUp } })));
+  const attachment = JSON.parse(new TextDecoder().decode(retained.bytes));
+  assert.deepEqual(await selectedApprovalForTurn(attachment, later.log), attachment);
+  assert.equal(await selectedApprovalForTurn(attachment, approved.log), undefined);
+  assert.equal(await selectedApprovalForTurn(attachment, { ...later.log, snapshots: approved.log.snapshots }), undefined);
+  const skippedPin = approvalEvidencePin(skipped.version, requirementEvidenceRevision(repaired.doc));
+  const apparentRecovery = await requirementFollowUp(accepted, repaired.doc, operation, part, ['H-CAP'], approval.after,
+    skippedPin.evidenceRevision, evaluate);
+  assert.ok(apparentRecovery.status === 'checked');
+  assert.deepEqual(apparentRecovery.findings, [{ id: 'H-CAP', status: 'passing' }]);
+  const nonconsecutive = approvalEvidenceFile(review.context, approval, { version: skippedPin, ...apparentRecovery });
+  assert.equal(await selectedApprovalForTurn(nonconsecutive, skipped.log), undefined);
   for (const invalid of [
     { ...followUp, version: { ...source.version, id: skipped.version.id } },
+    { ...followUp, version: { ...source.version, snapshot: approved.version.snapshot } },
     { ...followUp, version: source.version, findings: [{ id: 'H-CAP', status: 'passing' as const }] },
+    { ...followUp, version: source.version, status: 'unresolved' as const, reason: 'The check did not complete.' },
   ]) {
     const artifact = approvalEvidenceFile(review.context, approval, invalid);
+    assert.equal(await selectedApprovalForTurn(artifact, skipped.log), undefined);
     const bytes = new TextEncoder().encode(JSON.stringify(artifact));
     await store.write(source.path, bytes);
     assert.deepEqual(await readSavedFollowUpEvidence(source), { error: 'Saved follow-up evidence does not match this review.' });

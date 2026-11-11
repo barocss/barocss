@@ -1,5 +1,5 @@
 ---
-work_id: D653
+work_id: D654
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -243,7 +243,9 @@ D652 lets the person attach a retained approval review to a Studio agent turn. T
 
 D653 retains one direct saved successor with the original failure and approval. Studio reads the three checked results after fresh Open and refuses a mismatched later pin. [D653](../studio-persisted-follow-up-evidence-2026-11-11/README.md).
 
-Next MAIN is D654 / P0 automation evidence, rows 04, 12 and 16. Attach the retained direct follow-up to one explicit Studio agent turn. Return the exact three-version file through the selected evidence tool, and verify direct lineage, pin and document ownership controls. Preserve the saved pair attachment path. [#2279](https://github.com/barocss/barocss/issues/2279).
+D654 returns the exact retained follow-up through the selected Studio agent tool. The three saved pins, direct lineage and document ownership are verified. [D654](../studio-agent-retained-follow-up-2026-11-11/README.md).
+
+Next MAIN is D655 / P0 automation evidence, rows 04, 12 and 16. Use one retained regression to prepare a nested parameter repair for the same occurrence. Check the current working revision before offering the repair. Reuse the existing proposal, preview and user approval flow. Verify that a moved or already passing working revision cannot use the historical failure as current evidence. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

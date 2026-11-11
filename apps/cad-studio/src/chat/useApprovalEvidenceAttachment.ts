@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ApprovalEvidenceFile } from '@barocss/cad-model/versions/savedApprovalEvidence';
-import { readSavedApprovalArtifact, type bindSavedApproval } from '../storage/savedApprovalEvidence';
+import { readSavedApprovalArtifact, readSavedFollowUpArtifact, type SavedApprovalSource } from '../storage/savedApprovalEvidence';
 
 export type ApprovalEvidenceAttachment = {
-  file: ApprovalEvidenceFile; part: string; versionIds: readonly string[]; snapshots: readonly string[];
+  file: ApprovalEvidenceFile; part: string; kind: 'approval' | 'follow-up'; versionIds: readonly string[]; snapshots: readonly string[];
   documentIsCurrent(): boolean;
   isCurrent(): boolean;
 };
@@ -18,14 +18,17 @@ export function useApprovalEvidenceAttachment(enabled: boolean, ownerKey: () => 
     setPending(prior => prior?.isCurrent() ? prior : undefined);
   }, [owner]);
 
-  async function attach(review: ReturnType<typeof bindSavedApproval>) {
+  async function attach(source: SavedApprovalSource) {
     const current = () => scope.current.enabled && !!owner && scope.current.ownerKey() === owner;
     if (!current()) return false;
     const ticket = ++generation.current;
-    const read = await readSavedApprovalArtifact(review);
+    const followUp = 'review' in source;
+    const read = followUp ? await readSavedFollowUpArtifact(source) : await readSavedApprovalArtifact(source);
     if (!read || 'error' in read || !current() || generation.current !== ticket) return false;
-    const { from, to, part } = review.context;
-    setPending({ file: read.file, part, versionIds: [from.id, to.id], snapshots: [from.snapshot, to.snapshot], documentIsCurrent: current,
+    const { from, to, part } = (followUp ? source.review : source).context;
+    const pins = followUp ? [from, to, source.version] : [from, to];
+    setPending({ file: read.file, part, kind: followUp ? 'follow-up' : 'approval',
+      versionIds: pins.map(pin => pin.id), snapshots: pins.map(pin => pin.snapshot), documentIsCurrent: current,
       isCurrent: () => current() && generation.current === ticket });
     return true;
   }

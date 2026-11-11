@@ -11,13 +11,13 @@ import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFoll
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
-  saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair } from './savedApprovalEvidence';
+  saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair, type SavedApprovalSource } from './savedApprovalEvidence';
 
 type Comparison = NonNullable<ReturnType<typeof approvedRequirementComparison>>;
 type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
 type BoundReview = ReturnType<typeof bindSavedApproval>;
 type BoundFollowUp = NonNullable<ReturnType<typeof bindSavedFollowUp>>;
-export type AttachApprovalEvidence = (review: BoundReview) => Promise<boolean>;
+export type AttachApprovalEvidence = (source: SavedApprovalSource) => Promise<boolean>;
 type SavedSuccessor = { log: VersionLog; version: Version };
 type FollowUpResult = Awaited<ReturnType<typeof requirementFollowUp>>;
 type FollowUpRead = FollowUpResult | { error: string };
@@ -39,11 +39,29 @@ function useEvidenceSave() {
   return { state, save };
 }
 
-function KeepFollowUpEvidence({ source, approval, report, stored }: {
-  source: BoundFollowUp; approval: ApprovalCheck; report: Extract<FollowUpResult, { status: 'checked' }>; stored: boolean;
+function AttachEvidenceButton({ source, onAttach, kind }: {
+  source: SavedApprovalSource; onAttach: AttachApprovalEvidence; kind: 'approval' | 'follow-up';
+}) {
+  const [attaching, setAttaching] = useState(false), [failed, setFailed] = useState(false);
+  return <>
+    <Button variant="ghost" size="xs" disabled={attaching} onClick={() => {
+      setAttaching(true);
+      setFailed(false);
+      void onAttach(source).then(ok => setFailed(!ok), () => setFailed(true)).finally(() => setAttaching(false));
+    }}>Attach {kind} evidence to chat</Button>
+    {failed && <div role="status">Could not attach {kind} evidence.</div>}
+  </>;
+}
+
+function KeepFollowUpEvidence({ source, approval, report, stored, onAttach }: {
+  source: BoundFollowUp; approval: ApprovalCheck; report: Extract<FollowUpResult, { status: 'checked' }>;
+  stored: boolean; onAttach?: AttachApprovalEvidence;
 }) {
   const { state, save } = useEvidenceSave();
-  if (stored || state === 'saved') return <div role="status">Follow-up evidence saved</div>;
+  if (stored || state === 'saved') return <div>
+    <div role="status">Follow-up evidence saved</div>
+    {onAttach && <AttachEvidenceButton source={source} onAttach={onAttach} kind="follow-up" />}
+  </div>;
   return <div className="mt-1">
     <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveFollowUpEvidence(source, approval, report))}>
       {state === 'saving' ? 'Saving follow-up evidence…' : 'Save follow-up evidence'}
@@ -52,8 +70,8 @@ function KeepFollowUpEvidence({ source, approval, report, stored }: {
   </div>;
 }
 
-function SavedRequirementFollowUp({ source, name, approval, evaluate }: {
-  source: BoundFollowUp; name: string; approval: ApprovalCheck; evaluate: Evaluate;
+function SavedRequirementFollowUp({ source, name, approval, evaluate, onAttach }: {
+  source: BoundFollowUp; name: string; approval: ApprovalCheck; evaluate: Evaluate; onAttach?: AttachApprovalEvidence;
 }) {
   const [selected, setSelected] = useState(false);
   const request = useMemo(() => selected ? { source, approval, evaluate } : null, [selected, source, approval, evaluate]);
@@ -103,7 +121,7 @@ function SavedRequirementFollowUp({ source, name, approval, evaluate }: {
           {row?.result.number != null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{row.result.number}{unit ? ' ' + unit : ''}</span>}
         </div>;
       })}
-      {report?.status === 'checked' && <KeepFollowUpEvidence source={source} approval={approval} report={report} stored={!!current?.stored} />}
+      {report?.status === 'checked' && <KeepFollowUpEvidence source={source} approval={approval} report={report} stored={!!current?.stored} onAttach={onAttach} />}
     </div>}
   </div>;
 }
@@ -112,15 +130,9 @@ function KeepApprovalEvidence({ review, report, stored, onAttach }: {
   review: BoundReview; report: ApprovalCheck; stored: boolean; onAttach?: AttachApprovalEvidence;
 }) {
   const { state, save } = useEvidenceSave();
-  const [attaching, setAttaching] = useState(false), [attachFailed, setAttachFailed] = useState(false);
   if (stored || state === 'saved') return <div>
     <div role="status">Approval evidence saved</div>
-    {onAttach && <Button variant="ghost" size="xs" disabled={attaching} onClick={() => {
-      setAttaching(true);
-      setAttachFailed(false);
-      void onAttach(review).then(ok => setAttachFailed(!ok), () => setAttachFailed(true)).finally(() => setAttaching(false));
-    }}>Attach approval evidence to chat</Button>}
-    {attachFailed && <div role="status">Could not attach approval evidence.</div>}
+    {onAttach && <AttachEvidenceButton source={review} onAttach={onAttach} kind="approval" />}
   </div>;
   return <div className="mt-1">
     <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveApprovalEvidence(review, report))}>
@@ -181,7 +193,7 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
     </div>)}
     {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach} />}
     {source && followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={source.version.id}
-      source={source} name={followUp.version.name ?? followUp.version.id} approval={result} evaluate={evaluate} />}
+      source={source} name={followUp.version.name ?? followUp.version.id} approval={result} evaluate={evaluate} onAttach={onAttach} />}
   </>;
 }
 

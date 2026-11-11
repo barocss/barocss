@@ -10,12 +10,14 @@ const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const persistFollowUpBaseline = mode === '--save-follow-up-baseline';
-const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline;
+const attachFollowUpBaseline = mode === '--attach-follow-up-baseline', attachFollowUp = mode === '--attach-follow-up';
+const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline || attachFollowUpBaseline || attachFollowUp;
 const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline || persistFollowUp;
 const attachBaseline = mode === '--attach-review-baseline', attachReview = mode === '--attach-review';
+const attachedAgent = attachReview || attachFollowUp;
 const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline || attachBaseline || attachReview;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
-if (agent || attachReview) {
+if (agent || attachedAgent) {
   const reserved = createServer().listen(0, '127.0.0.1');
   await once(reserved, 'listening');
   process.env.CAD_STUDIO_CHAT_PORT = String(reserved.address().port);
@@ -26,13 +28,13 @@ const pins = [
   'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts',
   'packages/barocss-cad-model/src/chat/nestedParameterProposal.ts', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
   'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/versions/log.ts',
-  ...((agent || attachReview) ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
+  ...((agent || attachedAgent) ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
     'packages/barocss-cad-model/src/versions/tools.ts', 'packages/barocss-cad-model/src/chat/tools.ts', 'packages/barocss-cad-model/src/chat/tools-v2.json'] : []),
   ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
     'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
   ...(followUp ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts'] : []),
   ...(persistFollowUp ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
-  ...(attachReview ? ['apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts',
+  ...(attachedAgent ? ['apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts',
     'apps/cad-studio/src/chat/useStudioChat.ts', 'apps/cad-studio/src/chat/client.ts', 'apps/cad-studio/src/ui/ChatPanel.tsx'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
     'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
@@ -84,7 +86,7 @@ if 'artifact' in d:
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
   qualification: saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
@@ -400,6 +402,16 @@ async function verifyPersistedFollowUp({ saved, first, approved, working, skippe
   assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
   assert.equal(await approvalEvidenceFile(laterFile), bytes);
   await f.snapshot('07-follow-up-evidence-reopened');
+  if (attachFollowUpBaseline) {
+    assert.equal(await section().getByRole('button', { name: 'Attach follow-up evidence to chat', exact: true }).count(), 0);
+    f.report.observations.push({ savedFollowUpVisible: true, attachActionAvailable: false });
+    return;
+  }
+  if (attachFollowUp) {
+    await verifyAttachedApproval(saved, skipped, artifact, laterFile, bytes, pins);
+    assert.equal(await approvalEvidenceFile(pairFile), null);
+    return;
+  }
 
   // Keep the original pair through the independent action, then verify it stays readable through the refused later record.
   await history().getByRole('button', { name: 'Save approval evidence', exact: true }).click();
@@ -496,17 +508,17 @@ process.exitCode = code ?? 1;
 async function verifyAttachedApproval(saved, working, artifact, file, bytes, pins) {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const tool = 'read_selected_approval_evidence', call = (args = {}) => ({ tool, args });
-  const attach = () => history().getByRole('button', { name: 'Attach approval evidence to chat', exact: true });
+  const kind = pins.later ? 'follow-up' : 'approval';
+  const attach = () => history().getByRole('button', { name: `Attach ${kind} evidence to chat`, exact: true });
   const chip = () => f.page.getByLabel('Approval evidence for next message', { exact: true });
   await withScriptedAgent(origin, async turn => {
     f.phase = 'read the exact saved report through the explicitly attached agent tool';
     await attach().click();
-    await chip().getByText('Saved approval · p1/p1').waitFor();
+    await chip().getByText(`Saved ${kind} · p1/p1`).waitFor();
     const attached = await turn([call({ part: 'p2/p1' }), call()]);
     assert.deepEqual(attached.wire.selectedApproval, artifact);
     assert.deepEqual(attached.wire.doc, working);
-    assert.ok(Object.hasOwn(attached.wire.versions.snapshots, pins.from.snapshot));
-    assert.ok(Object.hasOwn(attached.wire.versions.snapshots, pins.to.snapshot));
+    for (const pin of Object.values(pins)) assert.ok(Object.hasOwn(attached.wire.versions.snapshots, pin.snapshot));
     assert.deepEqual(attached.results.map(r => r.error), [true, false]);
     assert.match(attached.results[0].body.error, /takes no arguments/);
     assert.deepEqual(attached.results[1].body.file, artifact);
@@ -525,8 +537,13 @@ async function verifyAttachedApproval(saved, working, artifact, file, bytes, pin
     const wrongReport = JSON.stringify({ ...JSON.parse(artifact.text), part: 'p2/p1' }) + '\n';
     await refuse({ ...attached.wire, selectedApproval: { ...artifact, text: wrongReport, bytes: Buffer.byteLength(wrongReport), sha256: sha256(wrongReport) } });
     const incomplete = structuredClone(attached.wire);
-    delete incomplete.versions.snapshots[pins.from.snapshot];
+    delete incomplete.versions.snapshots[(pins.later ?? pins.from).snapshot];
     await refuse(incomplete);
+    if (pins.later) {
+      const report = JSON.parse(artifact.text), skipped = JSON.parse(saved.log).versions.at(-1);
+      const wrongLater = JSON.stringify({ ...report, followUp: { ...report.followUp, version: { ...pins.later, id: skipped.id } } }) + '\n';
+      await refuse({ ...attached.wire, selectedApproval: { ...artifact, text: wrongLater, bytes: Buffer.byteLength(wrongLater), sha256: sha256(wrongLater) } });
+    }
 
     f.phase = 'consume the attachment and retire the attached session when the project closes';
     const plain = await turn([call()]);
@@ -551,6 +568,7 @@ async function verifyAttachedApproval(saved, working, artifact, file, bytes, pin
     f.phase = 'retire an unsent attachment when another document opens';
     await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
     await selectTarget().selectOption(pins.to.id);
+    if (pins.later) await history().getByLabel('Follow-up version', { exact: true }).selectOption(pins.later.id);
     await attach().click();
     await chip().waitFor();
     const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -563,7 +581,7 @@ async function verifyAttachedApproval(saved, working, artifact, file, bytes, pin
     assert.equal(await approvalEvidenceFile(file), bytes);
     assert.deepEqual(await projectBytes(), saved);
     await f.snapshot('09-attachment-retired');
-    f.report.observations.push({ pins, payloadSHA256: artifact.sha256, exactAgentArtifact: true, refusedHttp: 2, argumentRefused: true,
+    f.report.observations.push({ pins, payloadSHA256: artifact.sha256, exactAgentArtifact: true, refusedHttp: pins.later ? 3 : 2, argumentRefused: true,
       nextTurnUnattached: true, projectCloseRetired: true, anotherDocumentRetired: true, oldSessionRetired: true, filesUnchanged: true });
   });
 }
