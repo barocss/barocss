@@ -81,3 +81,35 @@ test('the change tools through dispatch (what a proposal replays): layout off, f
   const fixed = await dispatchTool(big.state, 'fix_drawing', { codes: ['VIEWS_DONT_FIT'] }, evaluate), fo = parse(fixed.content);
   assert.deepEqual(fo.applied, ['scale']); assert.equal(readDrawing(fixed.state.doc.drawing).scale, undefined);
 });
+
+test('a no-fit drawing proposal keeps the source and does not stage earlier sheet results', async () => {
+  const drawing = readDrawing({
+    sheet: 'A4', views: ['front', 'top', 'right'], notes: [{ id: 'existing', text: 'Keep this', at: [20, 20] }],
+    sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', scale: 0.005, views: ['right'] }],
+  });
+  const state = await stateOf({ ...rectanglePart(40, 20, 6), drawing });
+  const before = structuredClone(state.doc);
+  const input = { title: 'Refused drawing layout', plan: 'Lay out both sheets.', ops: [{ tool: 'auto_dimension', args: {} }] };
+  const gate = await runTool(state, 'auto_dimension', {}, evaluate);
+  assert.ok(gate.isError, gate.content);
+  assert.match(gate.content, /VIEWS_DONT_FIT/);
+  const dispatch = await dispatchTool(state, 'auto_dimension', {}, evaluate);
+  assert.equal(dispatch.isError, true);
+  assert.equal(dispatch.changed, false);
+  assert.match(dispatch.content, /VIEWS_DONT_FIT.*Sheet 2 \(Continuation\).*1:200/);
+  const proposal = await runTool(state, 'propose', input, evaluate);
+  assert.equal(proposal.isError, true, proposal.content);
+  assert.equal(proposal.changed, false);
+  assert.match(proposal.content, /VIEWS_DONT_FIT.*Sheet 2 \(Continuation\)/);
+  assert.equal(proposal.state.doc, state.doc);
+  assert.deepEqual(proposal.state.doc.proposals, state.doc.proposals);
+  assert.deepEqual(state.doc, before);
+  const recovered = { ...state, doc: { ...state.doc, drawing: { ...drawing, sheets: [{ ...drawing.sheets![0], scale: undefined }] } } };
+  const allowedLayout = await runTool(recovered, 'auto_dimension', {}, evaluate);
+  assert.ok(allowedLayout.isError && parse(allowedLayout.content).code === 'needs_approval', allowedLayout.content);
+  const possible = await runTool(recovered, 'propose', input, evaluate);
+  assert.equal(possible.isError, false, possible.content);
+  assert.deepEqual(possible.state.doc.drawing, recovered.doc.drawing);
+  assert.equal(possible.state.doc.proposals?.length, 1);
+  assert.deepEqual(parse(possible.content).risk.approval, ['drawing']);
+});

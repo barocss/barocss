@@ -1,5 +1,6 @@
 // 11 ④: a drawing set built sheet by sheet — each sheet's settings (sheets.ts `forSheet`), laid out and built as a
 // drawing of its own, its issues named by sheet; Auto layout run on each sheet in turn.
+import { isRefusal, refusal } from '../engine/refusal';
 import { autoLayout, type AutoLayoutReport } from './layout';
 import { coverage, drawingIssues, duplicates, issueContext, type DrawingIssue, type IssueContext, type SheetInputs } from './issues';
 import { buildSheet, sectionExtents, type Sheet, type SheetSection } from './sheet';
@@ -50,8 +51,15 @@ export function autoLayoutSheets(i: SheetInputs): { settings: DrawingSettings; r
   let settings = i.settings;
   const reports: AutoLayoutReport[] = [];
   for (let k = 0; k < sheetCount(i.settings); k++) {
-    const r = autoLayout({ ...i, settings: forSheet(settings, k) });
-    settings = mergeSheet(settings, k, r.settings); reports.push(r.report);
+    try {
+      const r = autoLayout({ ...i, settings: forSheet(settings, k) });
+      settings = mergeSheet(settings, k, r.settings); reports.push(r.report);
+    } catch (error) {
+      if (!isRefusal(error, 'VIEWS_DONT_FIT')) throw error;
+      const number = k + 1, name = sheetName(i.settings, k);
+      const label = name === `Sheet ${number}` ? name : `Sheet ${number} (${name})`;
+      throw refusal('VIEWS_DONT_FIT', `${label}. ${error.message.replace(/^\[VIEWS_DONT_FIT\] /, '')}`, { ...error.details, sheetNumber: number, sheetName: name });
+    }
   }
   return { settings, reports };
 }

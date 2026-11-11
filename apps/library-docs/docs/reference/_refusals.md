@@ -557,6 +557,7 @@
 | `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
 | `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |
 | `[VERSION_UNKNOWN]` | `versions` | there is no version “…” |
+| `[VIEWS_DONT_FIT]` | `drawing` | No automatic layout fits the selected views. Search: …. |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
 | `[WELD_NO_JOINTS]` | `chat/part` | the part has no weld joints: frame members meeting at a corner, a butt or a face. |

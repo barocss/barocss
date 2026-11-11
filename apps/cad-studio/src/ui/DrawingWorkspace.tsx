@@ -30,6 +30,7 @@ import { buildSheets, setIssuesOn } from '@barocss/cad-model/drawing/sheetSet';
 import { SheetTabs, SheetsMenu, newSheetId } from './drawing/SheetSet';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
 import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, type DrawingFix, type DrawingIssue, type FixRoundStep, type FixRounds, type SheetInputs } from '@barocss/cad-model/drawing/issues';
 import { acceptAll, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
@@ -656,7 +657,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, locationOwner, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
+    let result: ReturnType<typeof autoLayout>;
+    try {
+      result = autoLayout({ views: base.views, settings: base.settings, elements, callout, locationOwner, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
+    } catch (error) {
+      if (!isRefusal(error, 'VIEWS_DONT_FIT')) throw error;
+      onToast({ title: 'Could not lay out the drawing', hint: error.message.replace(/^\[VIEWS_DONT_FIT\] /, ''), detail: '' });
+      return;
+    }
+    const { settings: next, report } = result;
     if (!onChange(next)) return;
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';

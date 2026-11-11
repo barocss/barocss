@@ -141,7 +141,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       const settings = mode ? withMode(i.settings, mode) : i.settings, list = toleranceSuggestions(issueContext({ ...i, settings }));
       return { doc, content: { mode: settings.tolerancing ?? 'plus-minus', suggestions: list.map(x => ({ id: x.id, kind: x.kind, message: x.message, basis: x.basis, estimate: x.estimate })) }, changed: false, summary: `${list.length} suggestion${list.length === 1 ? '' : 's'}` };
     }
-    case 'auto_dimension': {
+    case 'auto_dimension': try {
       if (drawingScopeOf(i.settings).kind === 'assembly') return { error: '[DRAWING_SCOPE_AUTO] automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained' };
       // (11 ④: a drawing with sheets is laid out and dimensioned sheet by sheet, each as a drawing of its own.)
       if (i.settings.sheets?.length) {
@@ -173,6 +173,9 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       }
       const r = autoLayout(base);
       return set(r.settings, `drawing laid out on ${r.report.sheet} at ${scaleLabel(r.report.scale)} and dimensioned`, { added: r.report.dimensions.added, kept: r.report.dimensions.kept, skipped: r.report.dimensions.skipped, dropped_views: r.report.dropped, readable: r.report.readable, ...(front ? { front } : {}) }, base);
+    } catch (error) {
+      if (isRefusal(error, 'VIEWS_DONT_FIT')) return { error: error.message };
+      throw error;
     }
     case 'fix_drawing': {
       const assembly = drawingScopeOf(i.settings).kind === 'assembly';

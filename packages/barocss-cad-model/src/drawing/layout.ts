@@ -9,13 +9,14 @@
 // - Scale and sheet: first the scales at which the smallest hole is at least MIN_HOLE_ON_PAPER_MM across on paper,
 //   largest first (or the one set), on the sheet set then A3 for an A4 sheet: the first giving nothing crowded and no
 //   error on the issue list. Only if none: the largest clean scale below them. Else the attempt with the fewest errors.
+import { refusal } from '../engine/refusal';
 import { elementNotes, withElementNotes } from './elementCallouts';
 import { autoDimensions, holesOf, levels, retainedDimensions, type AutoDimensionReport } from './auto';
 import { roundIn, type Resolved } from './dimensions';
 import { drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, SegmentGrid, textBox, type DrawingIssue, type IssueContext, type Quad, type SheetInputs } from './issues';
 import { presetFor } from './standard';
 import { basicBox, dimensionMarks, frameMarks, placementOf, sectionExtents, type Mark } from './sheet';
-import { ORIENTATIONS, SCALES, layoutSheet, viewsFor, type Orientation } from './views';
+import { ORIENTATIONS, SCALES, layoutSheet, scaleLabel, viewsFor, type Orientation } from './views';
 import { ROOM_SIDES, VIEW_IDS, type DimView, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom, type XY } from './types';
 
 export const AUTO_LAYOUT_VERSION = 'cad-studio-auto-layout-v1';
@@ -193,7 +194,7 @@ export function placeDimensionLabels(initial: IssueContext): { settings: Drawing
   return { settings: ctx.settings, left };
 }
 
-/** Auto layout: the settings with the views, room, scale and sheet chosen and Auto-dimension's dimensions; what it did. */
+/** Auto layout with dimensions. Refuses with VIEWS_DONT_FIT if no candidate fits the projected views. */
 export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report: AutoLayoutReport } {
   const { views: shown, dropped } = chooseViews(i.views, i.settings);
   const retained = retainedDimensions(i.settings);
@@ -201,19 +202,22 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
   type Attempt = { settings: DrawingSettings; dims: AutoDimensionReport; left: DrawingIssue[]; errors: number };
   let best: Attempt | null = null, clean: Attempt | null = null, tried = 0;
   const smallest = Math.min(Infinity, ...holesOf(i.views, i.callout).map(h => 2 * h.radius));
-  // Pass one: scales at which the smallest hole reads (on A4, then A3). Pass two, only if none was clean: the largest
-  // clean scale below that.
-  for (const readable of [true, false]) for (const sheet of sheets) {
+  const candidates = sheets.map(sheet => {
     const base: DrawingSettings = { ...i.settings, sheet, views: shown, dimensions: retained };
     delete base.room; delete base.scale;
-    // Scales: the one set (on its own sheet) or the largest that fits the views alone, then the smaller ones.
-    const first = sheet === i.settings.sheet && i.settings.scale !== undefined ? i.settings.scale : layoutSheet(i.views, base, sectionExtents(base, i.sections)).scale;
-    for (const scale of SCALES.filter(s => s <= first + 1e-12 && (smallest * s >= MIN_HOLE_ON_PAPER_MM - SAME) === readable)) {
+    const extents = sectionExtents(base, i.sections);
+    const ceiling = sheet === i.settings.sheet && i.settings.scale !== undefined ? i.settings.scale : layoutSheet(i.views, base, extents).scale;
+    return { base, extents, ceiling, scales: SCALES.filter(scale => scale <= ceiling + 1e-12) };
+  });
+  // Try the scales that make the smallest hole readable first. If none is clean, try the smaller scales.
+  for (const readable of [true, false]) for (const { base, extents, scales } of candidates) {
+    for (const scale of scales) {
+      if ((smallest * scale >= MIN_HOLE_ON_PAPER_MM - SAME) !== readable) continue;
       let room: ViewRoom = {};
       for (let round = 0; round < ROUNDS; round++) {
         tried++;
         const s: DrawingSettings = { ...base, scale, ...(Object.keys(room).length ? { room } : {}) };
-        const layout = issueContext({ ...i, settings: s }).layout;
+        const layout = layoutSheet(i.views, s, extents);
         if (!layout.fits) break;
         const auto = autoDimensions(i.views, layout, s, i.callout, i.elements, i.sections, i.locationOwner), placed: DrawingSettings = withElementNotes({ ...s, dimensions: auto.dimensions }, i.elements ? elementNotes(i.views, layout, i.elements) : []);
         // Once every side has room: the issue list's moves for what still overlaps (a short dimension's text, a callout
@@ -235,7 +239,16 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
     }
     if (clean) break;
   }
-  const take = clean ?? best!;
+  const take = clean ?? best;
+  if (!take) {
+    const sheets = candidates.map(({ base, ceiling, scales }) => ({ sheet: base.sheet, ceiling, scales }));
+    const range = sheets.map(({ sheet, ceiling, scales }) => {
+      if (scales.length === 0) return `${sheet} (no supported scale at or below ${scaleLabel(ceiling)})`;
+      const from = scaleLabel(scales[0]), to = scaleLabel(scales[scales.length - 1]);
+      return `${sheet} at ${from === to ? from : `${from} to ${to}`}`;
+    }).join('; ');
+    throw refusal('VIEWS_DONT_FIT', `No automatic layout fits the selected views. Search: ${range}.`, { sheets, tried });
+  }
   return finish(i, take.settings, take.dims, take.left, shown, dropped, tried, false);
 }
 

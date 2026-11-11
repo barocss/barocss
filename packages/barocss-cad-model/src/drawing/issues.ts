@@ -350,7 +350,12 @@ function seenAt(pr: BrepProjection, p: readonly number[]): boolean {
 export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   const { layout, settings, sheet } = ctx, out: DrawingIssue[] = [];
   if (!layout.fits) {
-    const next = settings.scale !== undefined ? { kind: 'scale' as const } : settings.sheet === 'A4' ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
+    const fitsOn = (size: DrawingSettings['sheet']) => {
+      const candidate = { ...settings, sheet: size, scale: undefined };
+      return layoutSheet(ctx.views, candidate, sectionExtents(candidate, ctx.sections)).fits;
+    };
+    const next = settings.scale !== undefined && fitsOn(settings.sheet) ? { kind: 'scale' as const }
+      : settings.sheet === 'A4' && fitsOn('A3') ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
     out.push({ code: 'VIEWS_DONT_FIT', severity: 'error', message: `The views do not fit the ${settings.sheet} sheet at the scale${settings.scale !== undefined ? ' set' : ''}.`, ...(next ? { fix: next } : {}) });
   }
   // (11 ④: what the file lists on its sheets that the drawing does not have, on the first sheet's list.)

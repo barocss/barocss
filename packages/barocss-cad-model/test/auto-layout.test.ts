@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { brepsFor } from '../src/engine/evaluate';
+import { isRefusal } from '../src/engine/refusal';
 import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
@@ -126,4 +127,53 @@ test('Auto-layout and the issue fix retain a tolerance through reruns and source
   assert.equal(regenerated.report.dimensions.kept, 1);
   assert.equal(regenerated.settings.dimensions.some(d => d.id === 'old-auto-width'), false);
   assert.equal(regenerated.settings.dimensions.length, first.dimensions.length);
+});
+
+test('Auto layout reports every searched sheet and leaves input intact when no projected view fits', () => {
+  for (const sheet of ['A4', 'A3'] as const) {
+    for (const withHole of [false, true]) {
+      const doc = withHole ? starterDoc() : rectanglePart(40, 20, 6);
+      const normal = inputsOf(doc, defaultDrawing()), control = autoLayout(normal);
+      const settings = { ...control.settings, sheet, scale: 1, notes: [{ id: 'keep', text: 'Existing note', at: [20, 30] as [number, number] }] };
+      // Isolate the layout boundary with a projected span. The native model itself is within its length limit.
+      const front = { ...normal.views.front, max: [normal.views.front.min[0] + 50000, normal.views.front.max[1]] as [number, number] };
+      const input = { ...normal, settings, views: { ...normal.views, front } };
+      const before = structuredClone(settings);
+      const attemptedSheets = sheet === 'A4' ? ['A4', 'A3'] : ['A3'];
+      const standardScales = [1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
+      const expectedAttempts = [{ sheet, ceiling: 1, scales: standardScales }, ...(sheet === 'A4' ? [{ sheet: 'A3', ceiling: 0.01, scales: [0.01] }] : [])];
+      assert.ok(50000 * 0.01 > 420);
+      assert.equal(layoutSheet(input.views, { ...settings, sheet: 'A3', scale: 0.01 }).fits, false);
+      for (let k = 0; k < 2; k++) assert.throws(() => autoLayout(input), error => {
+        assert.ok(isRefusal(error, 'VIEWS_DONT_FIT'));
+        assert.match(error.message, /1:100/);
+        for (const size of attemptedSheets) assert.ok(error.message.includes(size));
+        assert.deepEqual(error.details, { sheets: expectedAttempts, tried: standardScales.length + (sheet === 'A4' ? 1 : 0) });
+        return true;
+      });
+      assert.deepEqual(input.settings, before);
+      assert.equal(drawingIssues(issueContext(input)).find(issue => issue.code === 'VIEWS_DONT_FIT')?.fix, undefined);
+      assert.ok(autoLayout(normal).report.dimensions.added.overall > 0);
+    }
+  }
+});
+
+test('Auto layout reports the stored scale when there are zero supported candidates', () => {
+  const input = inputsOf(rectanglePart(40, 20, 6), { ...defaultDrawing(), sheet: 'A3', scale: 0.005 });
+  assert.equal(layoutSheet(input.views, input.settings).fits, true);
+  assert.throws(() => autoLayout(input), error => {
+    assert.ok(isRefusal(error, 'VIEWS_DONT_FIT'));
+    assert.match(error.message, /A3 .*no supported scale.*1:200/);
+    assert.deepEqual(error.details, { sheets: [{ sheet: 'A3', ceiling: 0.005, scales: [] }], tried: 0 });
+    return true;
+  });
+});
+
+test('Auto layout returns a fitting candidate with existing annotation issues', () => {
+  const lost: DrawingDimension = { id: 'lost', view: 'front', kind: 'diameter', edge: 'missing', near: [0, 0, 0], place: [10, 10] };
+  const input = inputsOf(rectanglePart(40, 20, 6), { ...defaultDrawing(), dimensions: [lost] });
+  const result = autoLayout(input);
+  assert.ok(result.report.left.some(issue => issue.code === 'DIMENSION_LOST'));
+  assert.ok(issueContext({ ...input, settings: result.settings }).layout.fits);
+  assert.deepEqual(result.settings.dimensions.find(d => d.id === lost.id), lost);
 });
