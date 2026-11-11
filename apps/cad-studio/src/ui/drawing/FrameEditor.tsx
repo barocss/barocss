@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
 const SECOND_ROW: readonly string[] = ['position', 'profile-line', 'profile-surface'];
-export function FrameEditor({ dim, frameId, settings, onChange, onRefused }: { dim?: string; frameId?: string; settings: DrawingSettings; onChange(next: DrawingSettings): void; onRefused(message: string): void }) {
+export function FrameEditor({ dim, frameId, settings, onChange, onRefused }: { dim?: string; frameId?: string; settings: DrawingSettings; onChange(next: DrawingSettings): boolean; onRefused(message: string): void }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   if (!dim && !frameId) return null;
   const frames = settings.frames ?? [], frame = frames.find(f => frameId ? f.dim === undefined && f.id === frameId : f.dim !== undefined && f.dim === dim);
@@ -18,7 +18,7 @@ export function FrameEditor({ dim, frameId, settings, onChange, onRefused }: { d
     const list = frameId ? frames.map(f => f === frame ? next : f) : [...frames.filter(f => f.dim === undefined || f.dim !== dim), next], why = checkDrawingFrames({ frames: list }, frames)[0];
     // (The editor names what is wrong with this frame; the list-wide contract message is for tools and agents.)
     if (why) { const reason = frameProblem(next) ?? frameRules(next)[0] ?? 'This change would make the frames invalid.'; onRefused(committedDrafts.some(key => Object.hasOwn(draft, key)) ? `${reason} Not applied; the frame keeps its last accepted value.` : reason); return; }
-    onChange({ ...settings, frames: readFrames(list) });
+    if (!onChange({ ...settings, frames: readFrames(list) })) return;
     if (committedDrafts.length) setDraft(current => {
       const nextDraft = { ...current };
       for (const key of committedDrafts) delete nextDraft[key];
