@@ -36,8 +36,9 @@ export function threadMarks(v: ViewPlacement, pr: BrepProjection, threads: Reado
     const end = Math.abs(dot(dir, pr.toward));
     if (end > 1 - 1e-6) {
       // Seen end on: three quarters of a circle, open at the upper right.
+      if (!visible && !showHidden) continue;
       const c = toSheet(v, P(centres[0])), R = r * v.scale;
-      marks.push({ kind: 'arc', center: c, u: [R, 0], v: [0, R], t0: 0, t1: 1.5 * Math.PI, pen: 'thin' });
+      marks.push({ kind: 'arc', center: c, u: [R, 0], v: [0, R], t0: 0, t1: 1.5 * Math.PI, pen: visible ? 'thin' : 'hidden' });
       continue;
     }
     if (end > 1e-6) continue; // (an oblique view: none)
