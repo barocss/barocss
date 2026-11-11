@@ -738,9 +738,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
     const crossing = x1 < x0; const picked: number[] = [];
     const p = propsRef.current, cam = camera.current;
-    const basis = !cam.ortho && !p.printActive && !p.camActive && !p.clip && !p.render ? cam.basis() : null;
+    const ordinaryModel = !p.printActive && !p.camActive && !p.clip && !p.render;
+    const basis = ordinaryModel && !cam.ortho ? cam.basis() : null;
     p.bodies.forEach((b, i) => {
-      if (p.printActive && p.hiddenBodies?.has(i)) return;
+      if ((ordinaryModel || p.printActive) && p.hiddenBodies?.has(i)) return;
       const P = b.mesh.positions; let inside = 0, total = 0;
       if (p.printActive) {
         // G19 can retain unused original vertices; only the displayed triangles can enter this box.
