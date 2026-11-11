@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D720 — keep section planes inside thin model spans](notes/thin-section-span-2026-11-12/README.md).
 - [D719 — select bodies intersected by an orthographic crossing box](notes/orthographic-crossing-box-2026-11-12/README.md).
 - [D718 — edit an arc radius by diameter](notes/arc-diameter-input-2026-11-12/README.md).
 - [D717 — preserve authored sketch dimensions on inline confirmation](notes/inline-sketch-dimension-precision-2026-11-12/README.md).

@@ -11,6 +11,7 @@ import { refOf } from '@barocss/cad-model/app/bodyRef';
 import { posedBody } from '@barocss/cad-model/robot/preview';
 import { capHatchAxes } from '@barocss/gpu/viewer';
 import { motionOf } from './instancePose';
+import { sectionAxisMidpoint } from './sectionSpan';
 
 type Axis = 'x' | 'y' | 'z';
 /** One plane of a section (G19): what is kept is where dot(normal, p) ≥ offset (normal of unit length); along an axis, or from a face. */
@@ -39,6 +40,12 @@ export function axisPlane(axis: Axis, at: number, keep: 'negative' | 'positive')
 }
 /** A section of one axis plane. */
 export const axisSection = (s: AxisSection): Section => ({ mode: 'plane', planes: [axisPlane(s.axis, s.at, s.keep)] });
+/** An axis plane at the unrounded centre of the current model bounds. */
+export function middlePlane(axis: Axis, box: { min: readonly number[]; max: readonly number[] }): SectionPlane | null {
+  const at = sectionAxisMidpoint(box, 'xyz'.indexOf(axis));
+  return at === null ? null : axisPlane(axis, at, 'positive');
+}
+
 /** A section given either way (the hooks take the axis form too). */
 export const asSection = (s: Section | AxisSection): Section => 'planes' in s ? s : axisSection(s);
 /** An axis plane's axis (its index), the coordinate it is at and the side kept; null for any other plane. */
@@ -77,10 +84,13 @@ export const flipPlane = (p: SectionPlane): SectionPlane => ({ ...p, normal: p.n
  * Y (a quarter), and Z too (`n` 3, an octant).
  */
 export function cutoutCorner(box: { min: readonly number[]; max: readonly number[] }, eye: readonly number[] | null, n: 2 | 3 = 2): SectionPlane[] {
-  return (['x', 'y', 'z'] as const).slice(0, n).map((axis, k) => {
-    const c = Math.round(box.min[k] + box.max[k]) / 2;
-    return axisPlane(axis, c, eye && eye[k] < c ? 'positive' : 'negative');
-  });
+  const planes: SectionPlane[] = [];
+  for (const axis of (['x', 'y', 'z'] as const).slice(0, n)) {
+    const k = 'xyz'.indexOf(axis), at = sectionAxisMidpoint(box, k);
+    if (at === null) return [];
+    planes.push(axisPlane(axis, at, eye && eye[k] < at ? 'positive' : 'negative'));
+  }
+  return planes;
 }
 /** The first plane as G2's one (normal, offset), for what reads one plane. */
 export function sectionPlane(s: Section): { normal: Vec3; offset: number } { return { normal: s.planes[0].normal, offset: s.planes[0].offset }; }

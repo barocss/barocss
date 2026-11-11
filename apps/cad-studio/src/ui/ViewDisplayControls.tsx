@@ -1,13 +1,13 @@
-import { Profiler, type ComponentProps, type Dispatch, type KeyboardEvent, type RefObject, type SetStateAction } from 'react';
+import { Profiler, useState, type ComponentProps, type Dispatch, type KeyboardEvent, type RefObject, type SetStateAction } from 'react';
 import { Button } from '@/components/ui/button';
 import { fmt, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Selection } from '@barocss/cad-model/app/commands';
 import { CAD_DISPLAY_MODES, emptySel } from '../app/studioConstants';
 import { onBlockRender } from '../devRenders';
 import type { ViewportHandle } from '../viewport/Viewport';
 import { lineDisplayMode, type DisplayMode } from '../viewport/renderer';
-import { axisSection, type Section } from '../viewport/sectionView';
+import { middlePlane, type Section } from '../viewport/sectionView';
+import { SECTION_SPAN_UNAVAILABLE } from '../viewport/sectionSpan';
 import type { MapKind, ScalarMap } from '../viewport/scalarMaps';
 import type { ValueStore } from '../state/valueStore';
 import { Icon } from './atoms';
@@ -86,7 +86,7 @@ export interface ViewPickingControls {
 }
 
 export interface ViewDisplayControlsProps {
-  model: { doc: StudioDoc; bodies: BodyResult[]; instancesPlaced: readonly { bodies: BodyResult[] }[] };
+  doc: StudioDoc;
   viewport: RefObject<ViewportHandle | null>;
   cornerRight: RefObject<HTMLDivElement | null>;
   display: ViewDisplayState;
@@ -98,8 +98,7 @@ export interface ViewDisplayControlsProps {
 }
 
 /** The existing corner view/display controls; all state and viewport ownership remain in App. */
-export function ViewDisplayControls({ model, viewport, cornerRight, display, view, section: sectionState, analysis: analysisState, picking, explodeStore }: ViewDisplayControlsProps) {
-  const { doc, bodies, instancesPlaced } = model;
+export function ViewDisplayControls({ doc, viewport, cornerRight, display, view, section: sectionState, analysis: analysisState, picking, explodeStore }: ViewDisplayControlsProps) {
   const { displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason,
     displayModeReason, displayModeNotice, clearDisplayModeFailure, isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection } = display;
   const { ortho, ao, setAo, theme, setTheme, rendering, printing, viewBackend } = view;
@@ -107,6 +106,17 @@ export function ViewDisplayControls({ model, viewport, cornerRight, display, vie
   const { section, setSection, sectionHatchOn, setSectionHatchOn, sectionBox, sectionFacePick, setSectionFacePick, sketchSection, cameraEye } = sectionState;
   const { analysis, setAnalysis, mapKind, setMapKind, mapLegend, mapHover, setMapHover, mouldResult, mouldSpread, setMouldSpread } = analysisState;
   const { pickFilter, setPickFilter, snapStep, setSnapStep, setSelection } = picking;
+  const [sectionProblem, setSectionProblem] = useState<{ doc: StudioDoc; reason: string } | null>(null);
+  const reportSectionProblem = (reason: string | null) => setSectionProblem(reason ? { doc, reason } : null);
+  const toggleSection = () => {
+    reportSectionProblem(null);
+    if (section) { setSectionFacePick(null); setSection(null); return; }
+    const plane = middlePlane('y', sectionBox);
+    if (!plane) { reportSectionProblem(SECTION_SPAN_UNAVAILABLE); return; }
+    setSelection(emptySel);
+    setSectionFacePick(null);
+    setSection({ mode: 'plane', planes: [plane] });
+  };
   return <Profiler id="corner-right" onRender={onBlockRender}><div className="corner-right" ref={cornerRight}>
         {/* (What stands above the row, stacked so nothing overlaps: the maps' legends, the previews and display
             toggles, then the section bar nearest the row. None of it covers the history bar or the timeline.) */}
@@ -131,7 +141,8 @@ export function ViewDisplayControls({ model, viewport, cornerRight, display, vie
           {displayModeNotice && <span id="cad-display-mode-status" className="cad-display-status" role="status">{displayModeNotice} Shaded with edges is active.</span>}
         </div>
         </div>}
-    {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
+    {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} onProblem={reportSectionProblem} />}
+    {sectionProblem?.doc === doc && <span className="muted small" role="status">{sectionProblem.reason}</span>}
         </div>
         <div className="card views" role="group" aria-label="Views">
           <Button size="sm" variant={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'default' : 'ghost'} aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
@@ -139,7 +150,7 @@ export function ViewDisplayControls({ model, viewport, cornerRight, display, vie
           {(['iso', 'top', 'front', 'right'] as const).map(v => <Button size="sm" variant="ghost" key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</Button>)}
           <Button size="sm" variant="ghost" onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></Button>
           <Button size="sm" variant={section ? 'default' : 'ghost'} className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
-            onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSectionFacePick(null); setSection(axisSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' })); }}>
+            onClick={toggleSection}>
             <Icon name="cad-split" small /></Button>
 
           <Button size="sm" variant={ortho ? 'default' : 'ghost'} aria-pressed={ortho} className={ortho ? 'on' : ''}

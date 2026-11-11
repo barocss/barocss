@@ -16,8 +16,8 @@ export function useSectionEvaluation({ section, sectionDragFrom, sectionDebug, s
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
-    if (!section) { setSectionExact(null); return; }
-    if (sectionDragFrom) return;
+    if (!section) { sectionRun.current.next = null; setSectionExact(null); return; }
+    if (sectionDragFrom) { sectionRun.current.next = null; return; }
     const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
     const { doc, kept, from } = sectionSplits(evaluated, bodies, section);

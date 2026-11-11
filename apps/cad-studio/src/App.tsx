@@ -654,6 +654,11 @@ export function App() {
   const [fov, setFov] = useState(32);
   const { sectionDragFrom, sectionDebug, setSectionDebug, sectionLive, section, setSection, dragSection, sectionFacePick, setSectionFacePick,
     sectionFacePickRef, sectionExact, setSectionExact, sectionRef } = useSectionState(viewBackend);
+  const resetDocumentSection = useCallback(() => {
+    lanes.cancel('section');
+    setSection(null);
+    setSectionFacePick(null);
+  }, [lanes, setSection, setSectionFacePick]);
   const activeRef = useRef<Active | null>(null);
   /** The body whose browser row the pointer is on (lit in the viewport). */
   const [rowHover, setRowHover] = useState<number | null>(null);
@@ -1477,7 +1482,7 @@ export function App() {
   }, [clearBodyClipboard, currentDocumentIdentity, resetDocumentDraft]);
   const detachProject = project.detach;
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
-    if (entry.documentBoundary) cancelStlExportRef.current();
+    if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); }
     setDocState(entry.doc);
     setMarker(entry.marker);
     if (entry.documentIdentity) {
@@ -1490,7 +1495,7 @@ export function App() {
       if (!entry.documentIdentity.dirty) clearRecovery();
     }
     cancel();
-  }, [cancel, detachProject, setDirty, setDocState, setFileName]);
+  }, [cancel, detachProject, resetDocumentSection, setDirty, setDocState, setFileName]);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1586,6 +1591,7 @@ export function App() {
     try {
       if (!commit(next, false, true)) return;
       cancelStlExportRef.current();
+      resetDocumentSection();
       clearBodyClipboard();
       resetDocumentDraft();
       if (mode !== 'in-place') setCheckpointReview(null);
@@ -2498,7 +2504,7 @@ export function App() {
         <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
-      <ViewDisplayControls model={{ doc, bodies, instancesPlaced }} viewport={viewport} cornerRight={cornerRight}
+      <ViewDisplayControls doc={doc} viewport={viewport} cornerRight={cornerRight}
         display={{ displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason, displayModeReason, displayModeNotice,
           clearDisplayModeFailure: () => setDisplayModeFailure(null), isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection }}
         view={{ ortho, ao, setAo, theme, setTheme, rendering, printing: !!printing, viewBackend }}
