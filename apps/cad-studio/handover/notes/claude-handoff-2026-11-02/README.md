@@ -315,7 +315,9 @@ D688 verifies actual 3MF output from Master, Tall and restored Master with an in
 
 D689 freezes the B07 exchange cases. Automatic STL now discloses omitted visible placed parts. Actual export independently verifies the root-only mesh and Fine refuses the same assembly. [D689](../stl-assembly-loss-2026-11-11/README.md).
 
-Next MAIN is D690 / P2 B07, rows 10 and 13. Disclose editable CAD and assembly losses in the existing 3MF notice and verify it against the actual shown-variant package.
+D690 reports editable CAD and assembly losses in the existing 3MF notice. Actual Studio and independent ZIP/XML checks cover Master, Tall, restored Master and a standalone part. [D690](../three-mf-loss-disclosure-2026-11-11/README.md).
+
+Next MAIN is D691 / P2 B07, row 13. Export the D404 standalone STEP box through Studio, check the file independently and open the exact bytes in a fresh context.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

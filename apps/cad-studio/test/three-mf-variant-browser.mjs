@@ -5,7 +5,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 import { installD523PlacedReplyScheduler } from './placed-worker-reply-scheduler.mjs';
 
-const output = process.argv[2];
+const [output, mode] = process.argv.slice(2);
+assert.ok(mode === undefined || mode === '--loss-report');
+const lossReport = mode === '--loss-report';
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'), 'Use an external evidence directory');
 
@@ -20,8 +22,9 @@ function box(width, depth, height, body, parameters = {}) {
   };
 }
 
+const part = box(30, 12, { parameter: 'Height' }, { name: 'Base plate', color: '#357ac4', material: 'al6061' }, { Height: 6 });
 const master = {
-  ...box(30, 12, { parameter: 'Height' }, { name: 'Base plate', color: '#357ac4', material: 'al6061' }, { Height: 6 }),
+  ...part,
   instances: [
     {
       id: 'cap', name: 'Cap', doc: box(4, 3, 4, { name: 'Block', color: '#ffffff', material: 'pla' }),
@@ -48,6 +51,7 @@ const master = {
 const oracleSource = String.raw`
 from collections import Counter
 from itertools import product
+import hashlib
 import json
 import math
 import re
@@ -58,31 +62,45 @@ import zipfile
 d = json.load(sys.stdin)
 with zipfile.ZipFile(d['file']) as z:
     assert z.testzip() is None
-    assert {'[Content_Types].xml', '_rels/.rels', '3D/3dmodel.model'} <= set(z.namelist())
-    root = ET.fromstring(z.read('3D/3dmodel.model'))
+    assert sorted(z.namelist()) == ['3D/3dmodel.model', '[Content_Types].xml', '_rels/.rels']
+    xml = z.read('3D/3dmodel.model')
+    root = ET.fromstring(xml)
+    volatile = '{http://schemas.microsoft.com/3dmanufacturing/production/2015/06}UUID'
+    content = {
+        entry: hashlib.sha256(z.read(entry)).hexdigest()
+        for entry in ('[Content_Types].xml', '_rels/.rels')
+    }
+    content['3D/3dmodel.model'] = hashlib.sha256(ET.canonicalize(xml, exclude_attrs={volatile}).encode()).hexdigest()
 
 ns = {'c': 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'}
 assert root.tag == '{' + ns['c'] + '}model' and root.get('unit') == 'millimeter'
-source, = root.findall("c:metadata[@name='barocss:SourceRevision']", ns)
-assert re.fullmatch('[0-9a-f]{16}', source.text)
+def tag(name):
+    return '{' + ns['c'] + '}' + name
+
+assert Counter(x.tag for x in root) == {tag('metadata'): 3, tag('resources'): 1, tag('build'): 1}
+metadata = {m.get('name'): m.text for m in root.findall('c:metadata', ns)}
+assert metadata == {'Title': d['stem'], 'Application': 'BaroCSS Studio', 'barocss:SourceRevision': metadata['barocss:SourceRevision']}
+source = metadata['barocss:SourceRevision']
+assert re.fullmatch('[0-9a-f]{16}', source)
 bases = {b.get('id'): b.findall('c:base', ns) for b in root.findall('c:resources/c:basematerials', ns)}
 objects = root.findall('c:resources/c:object', ns)
 items = root.findall('c:build/c:item', ns)
-assert len(objects) == len(items) == 2
+assert len(objects) == len(items) == d['count']
+assert Counter(x.tag for x in root.find('c:resources', ns)) == {tag('basematerials'): 1, tag('object'): d['count']}
 assert Counter(i.get('objectid') for i in items) == Counter(o.get('id') for o in objects)
 assert all(item.get('transform') is None for item in items)
 
-h, z = d['height'], d['height'] + d['gap']
-expected = {
-    'Base plate': ((0, 0, 0), (30, 12, h), 'Aluminium 6061', '#357AC4'),
-    'Cap / Block': ((10, 2, z), (14, 5, z + 4), 'Steel (mild)', '#D08036'),
-}
+h = d['height']
+expected = {'Base plate': ((0, 0, 0), (30, 12, h), 'Aluminium 6061', '#357AC4')}
+if d['count'] == 2:
+    z = h + d['gap']
+    expected['Cap / Block'] = ((10, 2, z), (14, 5, z + 4), 'Steel (mild)', '#D08036')
 assert {o.get('name') for o in objects} == expected.keys()
 parts = {}
 for o in objects:
     name = o.get('name')
     lo, hi, label, color = expected[name]
-    assert o.get('type') == 'model'
+    assert o.get('type') == 'model' and [x.tag for x in o] == [tag('mesh')]
     material = bases[o.get('pid')][int(o.get('pindex'))]
     assert material.get('name') == label and material.get('displaycolor').upper() in (color, color + 'FF')
     vs = [tuple(float(v.get(a)) for a in ('x', 'y', 'z')) for v in o.findall('c:mesh/c:vertices/c:vertex', ns)]
@@ -106,12 +124,13 @@ for o in objects:
     assert math.isclose(volume, math.prod(b-a for a, b in zip(lo, hi)), rel_tol=0, abs_tol=1e-6), (name, volume)
     parts[name] = dict(min=lo, max=hi, volume=volume, vertices=len(vs), triangles=len(triangles), material=label, color=color)
 
-print(json.dumps(dict(status='PASS', unit=root.get('unit'), source=source.text, buildItems=len(items), parts=parts)))
+print(json.dumps(dict(status='PASS', unit=root.get('unit'), source=source, buildItems=len(items), parts=parts, content=content)))
 `;
 
 const f = await createFlow({
-  name: 'three-mf-shown-variant', envFrozen: 'D688_SOURCE_FROZEN', output, oracleSource,
-  qualification: 'D688 desktop 3MF from the shown assembly variant and refusal during pending placement',
+  name: 'three-mf-shown-variant', envFrozen: lossReport ? 'D690_SOURCE_FROZEN' : 'D688_SOURCE_FROZEN', output, oracleSource,
+  qualification: lossReport ? 'D690 desktop 3MF loss disclosure for the shown assembly and standalone part'
+    : 'D688 desktop 3MF from the shown assembly variant and refusal during pending placement',
   initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/placed-worker-reply-scheduler.mjs'],
   requiredFrozen: ['apps/cad-studio/src/files/useModelExports.ts'],
   extraFrozen: ['packages/barocss-cad-model/src/print/export3mf.ts', 'packages/barocss-cad-model/src/print/threemf.ts',
@@ -144,25 +163,36 @@ const button = name => f.page.getByRole('button', { name, exact: true });
 const variants = () => f.page.getByRole('complementary', { name: 'Variants panel', exact: true });
 const exportCount = () => f.page.evaluate(() => window.__d688Exports.length);
 
-async function exportShown(label, height, gap, index, authored) {
+async function exportShown(label, height, gap, index, authored, stem = 'three-mf-variant') {
   f.phase = label;
+  const count = authored.instances ? 2 : 1;
   await f.ready();
   assert.deepEqual(await f.doc(), authored);
   assert.equal(await exportCount(), index);
   await button('Export 3MF').click();
-  const notice = await f.waitToast(/3MF written: 2 bodies, 24 triangles.*As modelled.*on-screen mesh, in millimetres, with materials and colours/);
+  const notice = await f.waitToast(/3MF written|Not written yet|Could not write 3MF/);
+  const summary = count === 2 ? '2 bodies, 24 triangles' : '1 body, 12 triangles';
+  assert.match(notice, new RegExp(`3MF written: ${summary}.*As modelled.*on-screen mesh, in millimetres, with materials and colours`));
   assert.equal(await exportCount(), index + 1);
   const exported = await f.page.evaluate(i => window.__d688Exports[i], index);
-  assert.equal(exported.name, 'three-mf-variant.3mf');
+  assert.equal(exported.name, `${stem}.3mf`);
   const bytes = Buffer.from(exported.bytes);
   const file = join(output, `${label}.3mf`);
   await writeFile(file, bytes, { flag: 'wx' });
-  const result = await f.runOracle({ file, height, gap }, label);
+  const result = await f.runOracle({ file, stem, count, height, gap }, label);
   f.report.observations.push({ label, notice, bytes: bytes.length, sha256: sha256(bytes), result });
   await f.snapshot(label);
   assert.deepEqual(await f.doc(), authored);
   await f.dismissToasts();
   return result;
+}
+
+async function openFixture(doc, stem) {
+  const seed = Buffer.from(JSON.stringify(doc));
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: `${stem}.bcad`, mimeType: 'application/json', buffer: seed });
+  await f.same(doc);
+  return sha256(seed);
 }
 
 await f.run(async () => {
@@ -188,11 +218,7 @@ await f.run(async () => {
   await f.newPage();
   await f.page.setViewportSize({ width: 1440, height: 900 });
   f.phase = 'Open assembly fixture';
-  const seed = Buffer.from(JSON.stringify(master));
-  f.report.seedSHA256 = sha256(seed);
-  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: 'three-mf-variant.bcad', mimeType: 'application/json', buffer: seed });
-  await f.same(master);
+  f.report.seedSHA256 = await openFixture(master, 'three-mf-variant');
   await clickModelCommand(f.page, 'Inspect', 'Variants');
   await variants().waitFor();
 
@@ -238,6 +264,25 @@ await f.run(async () => {
   }, restoreStart);
   const restored = await exportShown('04-restored', 6, 2, 2, master);
   assert.deepEqual(restored, initial);
+  if (lossReport) {
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1440, height: 900 });
+    f.phase = 'Open standalone part in a fresh context';
+    f.report.partSeedSHA256 = await openFixture(part, 'three-mf-part');
+    const standalone = await exportShown('05-standalone-part', 6, 0, 0, part, 'three-mf-part');
+    assert.deepEqual(standalone.parts['Base plate'], initial.parts['Base plate']);
+    f.phase = 'Check 3MF loss disclosure against the independently read files';
+    const nativeLoss = /Editable features, parameters and history are omitted/;
+    const assemblyLoss = /Assembly hierarchy, mates and variant definitions are omitted/;
+    const notices = f.report.observations.filter(o => o.result);
+    assert.deepEqual(notices.map(o => [o.label, nativeLoss.test(o.notice), assemblyLoss.test(o.notice)]), [
+      ['01-master', true, true],
+      ['03-tall', true, true],
+      ['04-restored', true, true],
+      ['05-standalone-part', true, false],
+    ]);
+    assert.doesNotMatch(notice, nativeLoss);
+  }
   assert.deepEqual(f.report.downloads, []);
   f.phase = 'complete';
 });

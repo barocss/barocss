@@ -175,7 +175,17 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
       if ('error' in r) { latest.onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
       downloadBytes(r.bytes, `${owner.name}.3mf`, 'model/3mf');
       const s = r.stats, open = s.openEdges + s.repeatedEdges;
-      latest.onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(captured) ? `${draftWarning(captured)} ` : ''}${captured.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
+      const assemblyLoss = captured.instances?.length ? 'Assembly hierarchy, mates and variant definitions are omitted.' : null;
+      const hints = [
+        draftWarning(captured),
+        captured.print ? 'Turned the way it prints and set on the bed.' : 'As modelled (choose a print direction to have it turned for printing).',
+        'The on-screen mesh, in millimetres, with materials and colours.',
+        'Editable features, parameters and history are omitted.',
+        assemblyLoss,
+        !assemblyLoss && captured.variability ? 'Variant definitions are omitted.' : null,
+        open ? `${open} edges are not closed: the slicer may repair it.` : null,
+      ];
+      latest.onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: hints.filter(Boolean).join(' '), detail: '' });
     } catch (e) {
       if (current()) latest.onNotice({ title: 'Could not write 3MF', hint: e instanceof Error ? e.message : String(e), detail: '' });
     }
