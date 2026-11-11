@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { verifyDocumentFile } from '../src/files/documentFile';
+import { verifyDocumentFile, verifyStoredStepCavities } from '../src/files/documentFile';
 import { referenceOpenFixtures } from './reference-open-fixture';
 
 const evaluate = async (doc: Parameters<typeof evaluateDoc>[0]) => evaluateDoc(doc, 0);
@@ -44,4 +45,37 @@ test('superseded Open cannot return a repair after its final evaluation', async 
   const doc = referenceOpenFixtures().lost; let current = true, checked = false;
   const v = await verifyDocumentFile(doc, async d => { if (d.nodes[4]?.suppressed) { checked = true; current = false; } return evaluate(d); }, () => current);
   assert.equal(checked, true); assert.equal(v, null);
+});
+
+test('native cavity admission inspects exact unique sources in features, references and nested documents', async () => {
+  const withStep = (step: string) => withNode(emptyDoc(), { kind: 'import', name: 'step source', step });
+  const feature = "#1=BREP_WITH_VOIDS('',#2,(#3));", reference = "#4=BREP_WITH_VOIDS('',#5,(#6));", nested = "#7=BREP_WITH_VOIDS('',#8,(#9));";
+  const normal = withStep("/* #1=BREP_WITH_VOIDS('',#2,(#3)); */\n#1=PRODUCT('BREP_WITH_VOIDS', $);");
+  assert.equal(verifyStoredStepCavities(normal, async () => assert.fail('no cavity source'), () => true), undefined);
+  const position: [number, number, number] = [0, 0, 0];
+  const doc = { ...withStep(feature), references: { version: 1 as const, references: [
+    { id: 'ref1', name: 'repeated source', source: { step: feature }, at: { position, rotation: position } },
+    { id: 'ref2', name: 'reference source', source: { step: reference }, at: { position, rotation: position } },
+  ], datums: [], keepouts: [] }, pendingParts: { p1: { doc: withStep(nested), rev: 'old', name: 'part' } } };
+  const before = structuredClone(doc), sources: string[] = [];
+  await verifyStoredStepCavities(doc, async candidate => {
+    assert.equal(candidate.nodes.length, 1);
+    const [node] = candidate.nodes;
+    assert.ok(node.kind === 'import');
+    sources.push(node.step);
+    return evaluate(emptyDoc());
+  }, () => true);
+  assert.deepEqual(sources, [feature, reference, nested]);
+  assert.deepEqual(doc, before);
+});
+
+test('late native cavity verification cannot report a failure to a superseding Open', async () => {
+  const doc = withNode(emptyDoc(), { kind: 'import', name: 'cavity', step: "#1=BREP_WITH_VOIDS('',#2,(#3));" });
+  const refusal = await evaluate(doc);
+  assert.equal(refusal.ok, false);
+  const check = verifyStoredStepCavities(doc, async () => refusal, () => true);
+  assert.ok(check);
+  await assert.rejects(check, /Embedded STEP.*cavity.*unchanged/);
+  let current = true;
+  await verifyStoredStepCavities(doc, async () => { current = false; return refusal; }, () => current);
 });

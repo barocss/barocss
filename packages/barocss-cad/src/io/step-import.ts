@@ -27,9 +27,11 @@ import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
 import { checkOffsetBoundary, checkOffsetSourceEndpoints, checkSphereOffsetPatch, type OffsetSupport } from './step-offset-internal.js';
+import { verifyStepShellOrientation } from './step-cavity-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
-type Value = number | string | { ref: number } | { enum: string } | null | '*' | Value[] | { type: string; args: Value[] };
+const DERIVED = Object.freeze({ derived: true } as const);
+type Value = number | string | { ref: number } | { enum: string } | null | typeof DERIVED | Value[] | { type: string; args: Value[] };
 interface Entity { type: string; args: Value[]; parts?: { type: string; args: Value[] }[]; zeroOffsetDistance?: true }
 const refuse = (detail: string): never => { throw new BrepError('INPUT', 'STEP: ' + detail); };
 
@@ -115,10 +117,10 @@ function parseData(source: string): Map<number, Entity> {
       let t = ''; i++;
       for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return literalBackslashes(t); }
     }
-    if (c === '#') { i++; const m = sticky(REF, s, i)!; i += m[0].length; return { ref: Number(m[0]) }; }
+    if (c === '#') { i++; const m = sticky(REF, s, i); if (!m) return refuse('bad instance reference'); i += m[0].length; return { ref: Number(m[0]) }; }
     if (c === '.') { const m = sticky(ENUM, s, i); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
     if (c === '$') { i++; return null; }
-    if (c === '*') { i++; return '*'; }
+    if (c === '*') { i++; return DERIVED; }
     const num = sticky(NUM, s, i);
     if (num) { i += num[0].length; return Number(num[0]); }
     const word = sticky(WORD, s, i);
@@ -663,7 +665,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
         if (!Array.isArray(loop.args[1])) refuse('OFFSET_SURFACE exact-zero cone loop requires an oriented edge list');
       }
       if (loop.type !== 'EDGE_LOOP') refuse(`${loop.type} bounds are not supported yet`);
-      let uses = list(loop.args[1]).map(ov => { const o = get(ov); if (coneIdentity) { coneRecord(o, 'ORIENTED_EDGE', 5); coneBoolean(o.args[4]); if (o.args[1] !== '*' || o.args[2] !== '*') refuse('OFFSET_SURFACE exact-zero cone ORIENTED_EDGE endpoints must be derived'); } return { edge: edgeOf(o.args[3], offset, offset && sd.kind === 'sphere', coneIdentity).id, fwd: flag(o.args[4]) }; });
+      let uses = list(loop.args[1]).map(ov => { const o = get(ov); if (coneIdentity) { coneRecord(o, 'ORIENTED_EDGE', 5); coneBoolean(o.args[4]); if (o.args[1] !== DERIVED || o.args[2] !== DERIVED) refuse('OFFSET_SURFACE exact-zero cone ORIENTED_EDGE endpoints must be derived'); } return { edge: edgeOf(o.args[3], offset, offset && sd.kind === 'sphere', coneIdentity).id, fwd: flag(o.args[4]) }; });
       if (!flag(b.args[2])) uses = [...uses].reverse().map(u => ({ edge: u.edge, fwd: !u.fwd }));
       return { outer: b.type === 'FACE_OUTER_BOUND', uses };
     });
@@ -671,14 +673,41 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (loops.length && !loops.some(l => l.outer)) loops[0].outer = true;
     return { id: `${id}_f${k}_${refNo(v)}`, sd, same: flag(e.args[3]), loops, ...(e.args[0] ? { name: e.args[0] as string } : {}) };
   };
-  const shellFaces = (v: Value) => { const s = get(v); const shell = s.type === 'ORIENTED_CLOSED_SHELL' ? get(s.args[2]) : s; if (shell.type !== 'CLOSED_SHELL') refuse(`${shell.type} shells are not supported`); return list(shell.args[1]); };
-  const bodies: { id: string; shells: { id: string; faces: IFace[] }[] }[] = [];
+  const bodies: { id: string; shells: { id: string; ref: number; voidShell: boolean; faces: IFace[] }[] }[] = [];
   let k = 0;
   for (const [n, e] of data) {
     if (e.type !== 'MANIFOLD_SOLID_BREP' && e.type !== 'BREP_WITH_VOIDS') continue;
-    const shells = [e.args[1], ...(e.type === 'BREP_WITH_VOIDS' ? list(e.args[2]) : [])].map((sv, si) => {
+    const hasVoids = e.type === 'BREP_WITH_VOIDS';
+    const voids = e.args[2];
+    if (hasVoids && (!Array.isArray(voids) || voids.length === 0)) refuse(`BREP_WITH_VOIDS #${n} requires at least one void shell`);
+    const usedShells = new Set<number>(), usedFaces = new Set<number>();
+    const shells = [e.args[1], ...(hasVoids ? list(voids) : [])].map((sv, si) => {
+      const voidShell = si !== 0;
+      let raw = sv, shell = get(sv);
+      if (voidShell) {
+        if (shell.type !== 'ORIENTED_CLOSED_SHELL') refuse(`BREP_WITH_VOIDS #${n} requires ORIENTED_CLOSED_SHELL for each void`);
+        const orientation = shell.args[3];
+        if (shell.args.length !== 4 || shell.args[1] !== DERIVED || !orientation || typeof orientation !== 'object' || !('enum' in orientation) || orientation.enum !== 'F') {
+          refuse(`ORIENTED_CLOSED_SHELL #${refNo(sv)} void requires a derived face set and orientation .F.`);
+        }
+        raw = shell.args[2];
+        shell = get(raw);
+        if (shell.type !== 'CLOSED_SHELL') refuse(`ORIENTED_CLOSED_SHELL #${refNo(sv)} must reference a plain CLOSED_SHELL; nested wrappers are not supported`);
+      }
+      if (shell.type !== 'CLOSED_SHELL') refuse(`${shell.type} is not supported for an outer shell`);
+      const ref = refNo(raw), shellFaces = shell.args[1];
+      if (usedShells.has(ref)) refuse(`BREP_WITH_VOIDS #${n} references CLOSED_SHELL #${ref} more than once`);
+      usedShells.add(ref);
+      if (!Array.isArray(shellFaces) || shellFaces.length === 0) return refuse(`CLOSED_SHELL #${ref} requires a non-empty face set`);
       // (One at a time: a big file's faces spread into one call would overflow the stack.)
-      const fs = shellFaces(sv).map(fv => faceOf(fv, k++)); for (const f of fs) faces.push(f); return { id: `${id}_sh${n}_${si}`, faces: fs };
+      const fs = shellFaces.map(fv => {
+        const f = faceOf(fv, k++);
+        if (hasVoids && usedFaces.has(refNo(fv))) refuse(`BREP_WITH_VOIDS #${n} references face #${refNo(fv)} more than once`);
+        if (hasVoids) usedFaces.add(refNo(fv));
+        faces.push(f);
+        return f;
+      });
+      return { id: `${id}_sh${n}_${si}`, ref, voidShell, faces: fs };
     });
     bodies.push({ id: `${id}_b${n}`, shells });
   }
@@ -862,7 +891,11 @@ export function importStep(source: string, options: { readonly id?: string } = {
     edges: [...edges.values()].map(e => ({ id: e.id, curve: curves.get(e.id)!, vertices: e.v, ...(e.name ? { name: e.name } : {}) })),
     bodies: bodies.map(b => ({ id: b.id, kind: 'solid' as const, shells: b.shells.map(sh => ({ id: sh.id, closed: true, faces: sh.faces.map(f => {
       const { surface, sense } = surfaceFor(f);
-      return { id: f.id, surface, sense, loops: f.loops.map(l => ({ kind: (l.outer ? 'outer' : 'inner') as 'outer' | 'inner', uses: l.uses.map(us => ({ edge: us.edge, sense: (us.fwd ? 'forward' : 'reversed') as 'forward' | 'reversed' })) })), ...(f.name ? { name: f.name } : {}) };
+      const forward = (sense === 'forward') !== sh.voidShell;
+      return { id: f.id, surface, sense: forward ? 'forward' : 'reversed', loops: f.loops.map(l => ({
+        kind: l.outer ? 'outer' : 'inner',
+        uses: (sh.voidShell ? l.uses.slice().reverse() : l.uses).map(us => ({ edge: us.edge, sense: us.fwd !== sh.voidShell ? 'forward' : 'reversed' })),
+      })), ...(f.name ? { name: f.name } : {}) };
     }) })) })),
   });
   // New offsets alone get a bounded analytic binding preflight. Legacy import families are unchanged.
@@ -894,6 +927,9 @@ export function importStep(source: string, options: { readonly id?: string } = {
   }
   }
   assertBoundaryBindings(brep); // Refuse proved invalid binding before names, merging or caller commit.
+  const cavityShells = new Map(brep.bodies.flatMap((body, i) => body.shells.length > 1
+    ? body.shells.map((shell, j) => [shell, bodies[i].shells[j]] as const) : []));
+  verifyStepShellOrientation(brep, cavityShells);
   // Unnamed edges are named by their two faces (as edges of any body), numbered where that repeats.
   const faceName = new Map(brep.faces.map(f => [f.id, f.name ?? f.id])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const byEdge = new Map<string, string[]>(); for (const c of brep.coedges) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);

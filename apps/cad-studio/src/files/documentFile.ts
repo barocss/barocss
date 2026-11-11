@@ -1,6 +1,6 @@
 // Serialized document transport and reference reads. The App owns adoption, history and operation scopes.
 // Callers must recheck their owner after awaiting these helpers, immediately before any adoption or UI write.
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { verifyReferences } from '@barocss/cad-model/engine/references';
@@ -17,6 +17,53 @@ export async function readDocumentFile(file: File, current: () => boolean) {
   if (!current()) return null;
   const read = await readStudioFile(new Uint8Array(bytes));
   return current() ? read : null;
+}
+
+function storedStepCavities(opened: StudioDoc): { name: string; step: string }[] {
+  const checked = new Set<string>();
+  const documents = [opened];
+  const cavities: { name: string; step: string }[] = [];
+  for (const doc of documents) {
+    const sources: { name: string; step: string }[] = [];
+    for (const node of doc.nodes) {
+      if (node.kind === 'import') sources.push(node);
+      if (node.kind === 'library') for (const feature of node.features) if (feature.kind === 'import') sources.push({ name: node.name, step: feature.step });
+    }
+    for (const ref of doc.references?.references ?? []) {
+      if ('step' in ref.source) sources.push({ name: ref.name, step: ref.source.step });
+    }
+    for (const instance of doc.instances ?? []) documents.push(instance.doc);
+    for (const part of Object.values(doc.pendingParts ?? {})) documents.push(part.doc);
+
+    for (const { name, step } of sources) {
+      if (checked.has(step)) continue;
+      checked.add(step);
+      if (!step.includes('BREP_WITH_VOIDS')) continue;
+      // A quoted name or comment cannot introduce an entity.
+      const lexical = /\/\*[\s\S]*?(?:\*\/|$)|'(?:[^']|'')*(?:'|$)|\bBREP_WITH_VOIDS\b/g;
+      for (const [token] of step.matchAll(lexical)) {
+        if (token !== 'BREP_WITH_VOIDS') continue;
+        cavities.push({ name, step });
+        break;
+      }
+    }
+  }
+  return cavities;
+}
+
+async function verifyCavitySources(sources: ReturnType<typeof storedStepCavities>, readPart: (doc: StudioDoc) => Promise<EvalResult>, current: () => boolean) {
+  for (const { name, step } of sources) {
+    if (!current()) return;
+    const result = await readPart(withNode(emptyDoc(), { kind: 'import', name, step }));
+    if (!current()) return;
+    if (!result.ok) throw new Error(`Embedded STEP “${name}”: ${result.error.detail}. Your part is unchanged.`);
+  }
+}
+
+/** Check embedded STEP cavities before a native Open can replace the accepted document. */
+export function verifyStoredStepCavities(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>, current: () => boolean) {
+  const sources = storedStepCavities(opened);
+  return sources.length ? verifyCavitySources(sources, readPart, current) : undefined;
 }
 
 /** No UI or document writes occur here. The App checks its same owner before applying the returned data. */

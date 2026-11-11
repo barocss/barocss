@@ -156,10 +156,13 @@ export function exportStep(input: Brep | readonly Brep[] | { readonly id: string
     edgeId.set(e.id, add_(`EDGE_CURVE(${text(e.name ?? '')},${vertexId.get(e.vertices[0])},${vertexId.get(e.vertices[1])},${geometry},.T.)`));
   }
 
+  // A STEP void references an outward CLOSED_SHELL. Its .F. wrapper restores the native cavity direction.
+  const voidShells = new Set(brep.bodies.filter(body => body.kind === 'solid').flatMap(body => body.shells.slice(1)));
   // Faces.
   const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   const faceId = new Map<string, string>();
   for (const f of brep.faces) {
+    const voidShell = voidShells.has(f.shell);
     const S = f.surface as Surface, g = S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2 ? faceGeometry(f) : { kind: 'other' as const };
     let surface: string, sameSense: boolean;
     if (g.kind === 'plane') {
@@ -169,9 +172,9 @@ export function exportStep(input: Brep | readonly Brep[] | { readonly id: string
     const bounds = f.loops.map(lid => {
       const l = loops.get(lid)!, edges = l.coedges.map(cid => { const c = coedges.get(cid)!; return add_(`ORIENTED_EDGE('',*,*,${edgeId.get(c.edge)},${c.sense === 'forward' ? '.T.' : '.F.'})`); });
       const loop = add_(`EDGE_LOOP('',(${edges.join(',')}))`);
-      return add_(`${l.kind === 'outer' ? 'FACE_OUTER_BOUND' : 'FACE_BOUND'}('',${loop},.T.)`);
+      return add_(`${l.kind === 'outer' ? 'FACE_OUTER_BOUND' : 'FACE_BOUND'}('',${loop},${voidShell ? '.F.' : '.T.'})`);
     });
-    faceId.set(f.id, add_(`ADVANCED_FACE(${text(f.name ?? '')},(${bounds.join(',')}),${surface},${sameSense ? '.T.' : '.F.'})`));
+    faceId.set(f.id, add_(`ADVANCED_FACE(${text(f.name ?? '')},(${bounds.join(',')}),${surface},${sameSense !== voidShell ? '.T.' : '.F.'})`));
   }
 
   // Bodies: the first shell is the outer one, any further shells are cavities.

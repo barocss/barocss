@@ -29,6 +29,8 @@ export interface ProjectView {
 export interface ProjectCallbacks extends OpenIntentBridge {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
   onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | void;
+  /** Validate geometry that must be admitted before updating the active project path. */
+  validateOpen?(doc: StudioDoc, current: () => boolean): Promise<void> | undefined;
   onError(title: string, hint: string): void;
   /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
   onLinked?(linked: Linked): OpenScope | void;
@@ -159,6 +161,11 @@ export function useProject(cb: ProjectCallbacks) {
           if (!current()) return false;
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
           if (call.current.canOpen && !call.current.canOpen()) return false;
+          const check = call.current.validateOpen?.(r.doc, current);
+          if (check) {
+            await check;
+            if (!current() || (call.current.canOpen && !call.current.canOpen())) return false;
+          }
           tags.current = { part: r.tag, sourceSHA256: taskSourceSHA(r.bytes), log: null }; set({ part: path, offered: null, log: null }); owner.path = path;
           const accepted = call.current.onOpened(r.doc, path, r.notes);
           if (accepted) owner.scope = accepted;

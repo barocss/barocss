@@ -60,6 +60,7 @@ import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import type { OpenScope } from './state/openOwnership';
 import { scheduleProjectOpenFit } from './app/projectOpenFit';
+import { verifyStoredStepCavities } from './files/documentFile';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
@@ -494,6 +495,7 @@ export function App() {
     onOpenIntent: beginOpenIntent,
     currentOpenScope,
     isOpenCurrent,
+    validateOpen: (doc, current) => verifyStoredStepCavities(doc, d => engine.part(d, revision.current++, 'read'), current),
     onOpened: (d, path, notes) => {
       if (!openAccepted(inPlaceNow.current)) return openIntent.current;
       setCompareBase(null);
