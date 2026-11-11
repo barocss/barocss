@@ -180,7 +180,118 @@ export function joinOpen(shapes: SketchShape[], tol = 1e-4): SketchShape[] {
  * Extending: the open end of a line or arc nearest `p` (an end piece of an open outline, within `tol`)
  * run on — a line straight on, an arc round its circle — to the first piece of the sketch it meets.
  */
-interface Reach { shape: number; atEnd: boolean; s: Piece; ext: Piece; t: number }
+type LinePiece = Extract<Piece, { kind: 'line' }>;
+type ArcPiece = Extract<Piece, { kind: 'arc' }>;
+type Reach = { shape: number; atEnd: boolean; end: P2 } & (
+  { kind: 'line'; from: P2 } | { kind: 'arc'; s: ArcPiece; ext: ArcPiece; t: number }
+);
+
+const noForwardCrossing = 'Nothing lies ahead of that end to extend it to.';
+const unresolvedCrossing = 'The first crossing cannot be resolved at sketch precision.';
+
+/** The rounding remainder of a finite coordinate subtraction. */
+function differenceRemainder(a: number, b: number, difference: number): number {
+  const recoveredB = a - difference;
+  return (a - (difference + recoveredB)) + (recoveredB - b);
+}
+
+/** Find the first isolated crossing on the ray beyond a line end. Distances are in sketch mm. */
+function lineReach(pieces: Piece[][], shape: number, atEnd: boolean, s: LinePiece): Reach | { error: string } {
+  const from = atEnd ? s.b : s.a, other = atEnd ? s.a : s.b;
+  const dx = from[0] - other[0], dy = from[1] - other[1], length = Math.hypot(dx, dy);
+  if (length === 0) return { error: noForwardCrossing };
+  if (!Number.isFinite(length)) return { error: unresolvedCrossing };
+  const ux = dx / length, uy = dy / length;
+  const axisAligned = dx === 0 || dy === 0;
+  const project = (x: number, y: number) => ux * x + uy * y;
+  const side = (x: number, y: number) => ux * y - uy * x;
+  // Estimate cancellation using only the terms of the current calculation.
+  const roundoff = 8 * Number.EPSILON;
+  const endpointBudget = 1e-6;
+  let first = Infinity, firstError = 0, uncertain = Infinity;
+  const defer = (earliest: number) => { uncertain = Math.min(uncertain, Math.max(0, earliest)); };
+  const consider = (distance: number, error: number) => {
+    if (!Number.isFinite(distance) || !Number.isFinite(error)) { defer(0); return; }
+    if (distance + error <= 0) return;
+    if (distance <= error || error > endpointBudget) defer(distance - error);
+    else if (distance < first || (distance === first && error < firstError)) { first = distance; firstError = error; }
+  };
+
+  pieces.forEach((ps, si) => ps.forEach((target, pi) => {
+    if (si === shape && pi === (atEnd ? ps.length - 1 : 0)) return;
+    if (target.kind === 'line') {
+      const ax = target.a[0] - from[0], ay = target.a[1] - from[1];
+      const bx = target.b[0] - from[0], by = target.b[1] - from[1];
+      const a = project(ax, ay), b = project(bx, by);
+      // Use the source vector for the sign test to retain collinearity without unit-vector rounding.
+      const rawA = dx * ay - dy * ax, rawB = dx * by - dy * bx;
+      const ya = Number.isFinite(rawA) ? rawA / length : side(ax, ay);
+      const yb = Number.isFinite(rawB) ? rawB / length : side(bx, by);
+      if (![a, b, ya, yb].every(Number.isFinite) || Math.sign(ya) === Math.sign(yb)) return;
+      if (ya === 0) { if (ax !== 0 || ay !== 0) consider(a, roundoff * (Math.abs(ux * ax) + Math.abs(uy * ay))); return; }
+      if (yb === 0) { if (bx !== 0 || by !== 0) consider(b, roundoff * (Math.abs(ux * bx) + Math.abs(uy * by))); return; }
+      // Accept an exact origin contact when both endpoints share its coordinate,
+      // or when the local determinant uses only exact integer operations.
+      if ((target.a[0] === from[0] && target.b[0] === from[0]) || (target.a[1] === from[1] && target.b[1] === from[1])) return;
+      const ab = ax * by, ba = ay * bx;
+      if (ab === ba && [...from, ...target.a, ...target.b, ax, ay, bx, by, ab, ba].every(Number.isSafeInteger)) return;
+      const scale = Math.max(Math.abs(ya), Math.abs(yb)), wa = Math.abs(yb) / scale, wb = Math.abs(ya) / scale;
+      const left = a * wa / (wa + wb), right = b * wb / (wa + wb);
+      consider(left + right, roundoff * (Math.abs(left) + Math.abs(right)));
+      return;
+    }
+
+    const x = target.c[0] - from[0], y = target.c[1] - from[1];
+    const along = project(x, y), across = side(x, y), radius = target.r, sweep = Math.abs(target.sw);
+    if (![along, across, radius, target.t0, sweep].every(Number.isFinite) || radius <= 0 || sweep === 0) return;
+    const gap = radius - Math.abs(across);
+    const xError = Math.abs(differenceRemainder(target.c[0], from[0], x));
+    const yError = Math.abs(differenceRemainder(target.c[1], from[1], y));
+    const alongError = Math.abs(ux) * xError + Math.abs(uy) * yError + roundoff * (Math.abs(ux * x) + Math.abs(uy * y));
+    const sideError = Math.abs(uy) * xError + Math.abs(ux) * yError + (axisAligned ? 0 : roundoff * (Math.abs(ux * y) + Math.abs(uy * x)));
+    const span = radius + Math.abs(across);
+    const onArc = (offset: number, angleError = 0) => {
+      const angle = Math.atan2(uy * offset - ux * across, ux * offset + uy * across);
+      const signed = (angle - target.t0) * Math.sign(target.sw);
+      const turn = ((signed % TAU) + TAU) % TAU;
+      const slack = roundoff * TAU + angleError;
+      return sweep >= TAU || turn <= sweep + slack || TAU - turn <= slack;
+    };
+    if (sideError > 0 && Math.abs(gap) <= sideError) {
+      const possibleChord = Math.sqrt(Math.max(0, gap + sideError)) * Math.sqrt(span + sideError);
+      if (along + alongError + possibleChord > 0 && onArc(0, Math.atan2(possibleChord, Math.abs(across)))) defer(along - alongError - possibleChord);
+      return;
+    }
+    if (gap < 0) return;
+    const halfChord = Math.sqrt(gap) * Math.sqrt(span);
+    const chordError = gap === 0 ? 0 : span * sideError / halfChord;
+    for (const offset of halfChord === 0 ? [0] : [-halfChord, halfChord]) {
+      // Compute the angle around the center before translating the hit back to world coordinates.
+      if (!onArc(offset)) continue;
+      let distance = along + offset;
+      const error = alongError + roundoff * Math.abs(offset) + chordError;
+      if (Math.abs(distance) <= error && along * offset < 0) {
+        // Recover the small root from the product of the roots when the direct sum cancels.
+        const major = Math.max(Math.abs(x), Math.abs(y)), minor = Math.min(Math.abs(x), Math.abs(y));
+        if (minor === 0 && major === radius && xError === 0 && yError === 0) continue;
+        const centerSquared = x * x + y * y, radiusSquared = radius * radius;
+        if (centerSquared === radiusSquared && [...from, ...target.c, x, y, radius, centerSquared].every(Number.isSafeInteger)) continue;
+        const far = along - offset;
+        distance = (major - radius) * ((major + radius) / far) + minor * (minor / far);
+      }
+      consider(distance, error);
+    }
+  }));
+
+  if (uncertain < Infinity && uncertain <= first + firstError) return { error: unresolvedCrossing };
+  if (!Number.isFinite(first)) return { error: noForwardCrossing };
+  const offsetX = ux * first, offsetY = uy * first;
+  const end: P2 = [r6(from[0] + offsetX), r6(from[1] + offsetY)];
+  const movedX = end[0] - from[0], movedY = end[1] - from[1];
+  if (!(project(movedX, movedY) > 0) || !(Math.hypot(movedX - offsetX, movedY - offsetY) + firstError <= endpointBudget)) return { error: unresolvedCrossing };
+  return { kind: 'line', shape, atEnd, from, end };
+}
+
 function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: string } {
   const pieces = shapes.map(piecesOf);
   let best: { shape: number; atEnd: boolean; d: number } | null = null;
@@ -188,7 +299,7 @@ function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: stri
     if (sh.kind !== 'polygon' || sh.closed || sh.points.length < 2) return;
     const ps = pieces[si];
     for (const [atEnd, piece] of [[false, ps[0]], [true, ps[ps.length - 1]]] as const) {
-      const d = distance(piece, p); if (d > tol) continue;
+      const d = distance(piece, p); if (!Number.isFinite(d) || d > tol) continue;
       // (A one-piece line: the end nearer the click.)
       const t = paramOf(piece, p), end = ps.length === 1 ? t > 0.5 : atEnd;
       if (ps.length === 1 && end !== atEnd) continue;
@@ -197,38 +308,34 @@ function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: stri
   });
   if (!best) return { error: 'Click near the open end of a line or arc to extend it.' };
   const { shape: si, atEnd } = best as { shape: number; atEnd: boolean }, ps = pieces[si], s = atEnd ? ps[ps.length - 1] : ps[0];
+  if (s.kind === 'line') return lineReach(pieces, si, atEnd, s);
   // The run past the end, as a piece of its own from the end outwards.
-  const size = Math.max(1, ...shapes.flatMap(piecesOf).flatMap(x => x.kind === 'line' ? [...x.a, ...x.b].map(Math.abs) : [Math.abs(x.c[0]) + x.r, Math.abs(x.c[1]) + x.r]));
-  let ext: Piece;
-  if (s.kind === 'line') {
-    const from = atEnd ? s.b : s.a, d = atEnd ? [s.b[0] - s.a[0], s.b[1] - s.a[1]] : [s.a[0] - s.b[0], s.a[1] - s.b[1]], l = Math.hypot(d[0], d[1]) || 1, L = 40 * size;
-    ext = { kind: 'line', a: from, b: [from[0] + d[0] / l * L, from[1] + d[1] / l * L] };
-  } else {
-    const rest = TAU - Math.abs(s.sw) - 1e-6, sg = Math.sign(s.sw);
-    ext = atEnd ? { kind: 'arc', c: s.c, r: s.r, t0: s.t0 + s.sw, sw: sg * rest } : { kind: 'arc', c: s.c, r: s.r, t0: s.t0, sw: -sg * rest };
-  }
+  const rest = TAU - Math.abs(s.sw) - 1e-6, sg = Math.sign(s.sw);
+  const ext: ArcPiece = atEnd ? { kind: 'arc', c: s.c, r: s.r, t0: s.t0 + s.sw, sw: sg * rest } : { kind: 'arc', c: s.c, r: s.r, t0: s.t0, sw: -sg * rest };
   const ts = pieces.flatMap((qs, sj) => qs.flatMap((o, pj) => {
     // (Not the piece being extended, nor — for its own outline — the piece it leaves from.)
     if (sj === si && (pj === (atEnd ? qs.length - 1 : 0))) return [];
     return crossings(ext, o);
   })).filter(t => t > 1e-7);
-  if (!ts.length) return { error: 'Nothing lies ahead of that end to extend it to.' };
-  return { shape: si, atEnd, s, ext, t: Math.min(...ts) };
+  if (!ts.length) return { error: noForwardCrossing };
+  const t = Math.min(...ts);
+  return { kind: 'arc', shape: si, atEnd, s, ext, t, end: pt(ext, t) };
 }
 export function extendPreview(shapes: SketchShape[], p: P2, tol: number): P2[] | null {
   const r = reach(shapes, p, tol); if ('error' in r) return null;
-  const n = r.ext.kind === 'line' ? 1 : Math.max(2, Math.ceil(Math.abs(r.ext.sw) * r.t / (Math.PI / 24)));
+  if (r.kind === 'line') return [[...r.from], r.end];
+  const n = Math.max(2, Math.ceil(Math.abs(r.ext.sw) * r.t / (Math.PI / 24)));
   return Array.from({ length: n + 1 }, (_, k) => pt(r.ext, r.t * k / n));
 }
 export function extendAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
   const r = reach(shapes, p, tol); if ('error' in r) return r;
-  const sh = shapes[r.shape] as Extract<SketchShape, { kind: 'polygon' }>, n = sh.points.length, end = pt(r.ext, r.t);
+  const sh = shapes[r.shape] as Extract<SketchShape, { kind: 'polygon' }>, n = sh.points.length, end = r.end;
   const bulges = sh.points.map((_, i) => sh.bulges?.[i] ?? 0);
   // A line's end moves along it (its bulge stays 0); an arc's end moves round its circle (its bulge grows).
   const arcBulge = (s: Extract<Piece, { kind: 'arc' }>, extra: number) => Math.round(Math.tan((s.sw + Math.sign(s.sw) * extra) / 4) * 1e9) / 1e9;
   let points = [...sh.points];
-  if (r.atEnd) { points[n - 1] = end; if (r.s.kind === 'arc') bulges[n - 2] = arcBulge(r.s, Math.abs((r.ext as Extract<Piece, { kind: 'arc' }>).sw) * r.t); }
-  else { points = [end, ...points.slice(1)]; if (r.s.kind === 'arc') bulges[0] = arcBulge(r.s, Math.abs((r.ext as Extract<Piece, { kind: 'arc' }>).sw) * r.t); }
+  if (r.atEnd) { points[n - 1] = end; if (r.kind === 'arc') bulges[n - 2] = arcBulge(r.s, Math.abs(r.ext.sw) * r.t); }
+  else { points = [end, ...points.slice(1)]; if (r.kind === 'arc') bulges[0] = arcBulge(r.s, Math.abs(r.ext.sw) * r.t); }
   // (Kept edge lengths and the like no longer hold.)
   const next: SketchShape = { kind: 'polygon', points, bulges, closed: false, ...(sh.construction ? { construction: true as const } : {}) };
   return { shapes: inheritIds(shapes, joinOpen(shapes.map((x, i) => i === r.shape ? next : x))) };

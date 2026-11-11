@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D714 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D715 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D714 excludes explicitly hidden bodies from new Model box selection. Actual Studio verifies both drag directions, a visibility change during the drag, and Print. [D714](notes/hidden-body-box-selection-2026-11-11/README.md).
-- **Next MAIN:** D715 / P1 daily parts, rows 09 and 16. Reproduce and correct Sketch Extend skipping the nearest valid boundary after translation or after adding unrelated distant geometry. [#2432](https://github.com/barocss/barocss/issues/2432). [Core workflows](roadmap-tracks/02-core-workflows.md).
+- **Current position:** D715 measures straight Sketch Extend from the selected end. Studio verifies the first valid boundary, subprecision refusal and native save and reopen. [D715](notes/sketch-extend-nearest-boundary-2026-11-11/README.md).
+- **Next MAIN:** D716 / P0, rows 09 and 16. D715 observed Extend preview on hidden construction. Reproduce direct Trim, Extend and Split edits on a hidden source in Studio and protect the sketch while retaining the declared boundary behavior. [#2312](https://github.com/barocss/barocss/issues/2312). [Reliability queue](roadmap-tracks/01-reliability.md).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **5/10 accepted**; B06 **6/7 qualified groups, PDF held**; B03, B05, B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

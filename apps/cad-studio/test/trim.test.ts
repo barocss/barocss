@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { trimAt, trimPreview } from '@barocss/cad-model/sketch/trim';
+import { extendAt, extendPreview, trimAt, trimPreview } from '@barocss/cad-model/sketch/trim';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { sampleOutline } from '@barocss/cad-model/sketch/profile';
 import type { SketchShape } from '../src/viewport/Viewport';
 
 const area = (pts: [number, number][]) => Math.abs(pts.reduce((t, p, i) => { const q = pts[(i + 1) % pts.length]; return t + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
+const openLine = (a: [number, number], b: [number, number]): SketchShape =>
+  ({ kind: 'polygon', points: [a, b], bulges: [0, 0], closed: false });
 
 test('trim: a rectangle and a circle across its edge become one keyhole outline in two clicks', () => {
   const shapes: SketchShape[] = [{ kind: 'rectangle', a: [0, 0], b: [20, 10] }, { kind: 'circle', c: [20, 5], r: 4 }];
@@ -49,7 +51,7 @@ test('trim: an open line is cut back to its crossings, or split in two; a lone c
 });
 
 test('extend: a line runs on to the shape ahead of it; an arc round its circle; nothing ahead is refused', async () => {
-  const { extendAt, extendPreview, splitAt } = await import('@barocss/cad-model/sketch/trim');
+  const { splitAt } = await import('@barocss/cad-model/sketch/trim');
   const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   const rect: SketchShape = { kind: 'rectangle', a: [0, 0], b: [20, 10] };
   // A line from inside, stopping short of the right edge: its end runs on to x = 20.
@@ -83,4 +85,88 @@ test('extend: a line runs on to the shape ahead of it; an arc round its circle; 
   assert.ok('shapes' in sa && sa.shapes[0].kind === 'polygon');
   assert.equal(sa.shapes[0].points.length, 3);
   for (const i of [0, 1]) { const q = arcOf(sa.shapes[0].points[i] as [number, number], sa.shapes[0].points[i + 1] as [number, number], sa.shapes[0].bulges![i]); assert.ok(Math.abs(q.radius - 3) < 1e-5); }
+});
+
+test('D715: line Extend keeps the nearest boundary under translation, target order and distant geometry', () => {
+  for (const [x, y] of [[0, 0], [8192, -4096], [-8192, 4096], [4096, 8192], [-4096, -8192]]) {
+    const start: [number, number] = [x, y], before: [number, number] = [x + 1, y];
+    const end: [number, number] = [x + 65 / 64, y], click: [number, number] = [x + 0.75, y];
+    const near = openLine([end[0], y - 1], [end[0], y + 1]);
+    const far = openLine([x + 2, y - 1], [x + 2, y + 1]);
+    const distant = openLine([x < 0 ? 8192 : -8192, y + 3], [x < 0 ? 8193 : -8191, y + 3]);
+    for (const reversed of [false, true]) for (const targets of [[near], [near, far], [far, distant, near]]) {
+      const shape = reversed ? openLine(before, start) : openLine(start, before);
+      const shapes = [shape, ...targets], original = JSON.stringify(shapes);
+      assert.deepEqual(extendPreview(shapes, click, 1 / 32), [before, end]);
+      const applied = extendAt(shapes, click, 1 / 32);
+      assert.ok('shapes' in applied && applied.shapes[0].kind === 'polygon');
+      assert.deepEqual(applied.shapes[0].points, reversed ? [end, start] : [start, end]);
+      assert.deepEqual(applied.shapes.slice(1).map(s => s.kind === 'polygon' && s.points), targets.map(s => s.kind === 'polygon' && s.points));
+      assert.equal(JSON.stringify(shapes), original);
+    }
+  }
+});
+
+test('D715: line Extend distinguishes zero contact from a positive hit that cannot move the stored endpoint', () => {
+  const source = openLine([0, 0], [1, 0]), far = openLine([2, -1], [2, 1]);
+  const at: [number, number] = [0.75, 0], tol = 1 / 32;
+  const touching = openLine([1, -1], [1, 1]);
+  assert.deepEqual(extendPreview([source, touching, far], at, tol), [[1, 0], [2, 0]]);
+  for (const shapes of [
+    [source, touching],
+    [source, openLine([0.5, -1], [0.5, 1])],
+    [source, openLine([2, 0], [2, 0])],
+    [source, openLine([1.5, 0], [2, 0])],
+  ]) {
+    assert.equal(extendPreview(shapes, at, tol), null);
+    assert.ok('error' in extendAt(shapes, at, tol));
+  }
+  for (const gap of [2 ** -22, 2 ** -21]) {
+    const near = openLine([1 + gap, -1], [1 + gap, 1]);
+    const shapes = [source, far, near], original = JSON.stringify(shapes);
+    assert.equal(extendPreview(shapes, at, tol), null);
+    assert.deepEqual(extendAt(shapes, at, tol), { error: 'The first crossing cannot be resolved at sketch precision.' });
+    assert.equal(JSON.stringify(shapes), original);
+  }
+  const representable = openLine([1 + 2 ** -20, -1], [1 + 2 ** -20, 1]);
+  assert.deepEqual(extendPreview([source, representable, far], at, tol), [[1, 0], [1.000001, 0]]);
+  // The exact intercept is 1 + 2^-56. A local subtraction can hide that positive advance.
+  const cancelled = openLine([2, -1], [2 ** -55, 1]);
+  assert.equal(extendPreview([source, cancelled, far], at, tol), null);
+  assert.ok('error' in extendAt([source, cancelled, far], at, tol));
+});
+
+test('D715: line Extend admits only actual intersections on bounded lines, circles and arcs', () => {
+  const source = openLine([0, 0], [1, 0]), far = openLine([8, -1], [8, 1]);
+  const half: SketchShape = { kind: 'polygon', points: [[4, -2], [4, 2]], bulges: [1, 0], closed: false };
+  const reversed: SketchShape = { kind: 'polygon', points: [[4, 2], [4, -2]], bulges: [-1, 0], closed: false };
+  const cases: [SketchShape[], number][] = [
+    [[{ kind: 'circle', c: [4, 0], r: 2 }, far], 2],
+    [[half, far], 6],
+    [[reversed, far], 6],
+    [[half, openLine([5, -1], [5, 1])], 5],
+    [[{ kind: 'circle', c: [4, 2], r: 2 }, far], 4],
+    [[{ kind: 'circle', c: [4, 2 + 2 ** -34], r: 2 }, far], 8],
+    [[openLine([2, 2 ** -34], [2, 1]), far], 8],
+    [[{ kind: 'rectangle', a: [3, -1], b: [5, 1] }, far], 3],
+    [[openLine([3, -1], [3, 1]), openLine([3, -2], [3, 2])], 3],
+  ];
+  for (const [targets, x] of cases) {
+    const shapes = [source, ...targets], at: [number, number] = [0.75, 0];
+    assert.deepEqual(extendPreview(shapes, at, 1 / 32), [[1, 0], [x, 0]]);
+    const applied = extendAt(shapes, at, 1 / 32);
+    assert.ok('shapes' in applied && applied.shapes[0].kind === 'polygon');
+    assert.deepEqual(applied.shapes[0].points, [[0, 0], [x, 0]]);
+  }
+});
+
+test('D715: an oblique source and target intersect at the authored point after translation', () => {
+  for (const [x, y] of [[0, 0], [8192, -8192], [-8192, 8192]]) {
+    const gap = 1 / 64;
+    const source = openLine([x, y], [x + 1, y + 1]);
+    const near = openLine([x + gap, y + 2 + gap], [x + 2 + gap, y + gap]);
+    const far = openLine([x + 2, y + 1], [x + 2, y + 3]);
+    const end: [number, number] = [x + 1 + gap, y + 1 + gap];
+    assert.deepEqual(extendPreview([source, far, near], [x + 0.75, y + 0.75], 1 / 32), [[x + 1, y + 1], end]);
+  }
 });
