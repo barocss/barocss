@@ -6,6 +6,7 @@ import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
 import { dimensionLabel, dimensionValue, drivingDimensionValue, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { Project } from '@barocss/cad-model/sketch/select';
+import { InlineSketchDimension, type DimensionAxis } from './InlineSketchDimension';
 import './constraints.css';
 
 export interface MarkHandlers {
@@ -187,27 +188,12 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
       return c && s.points[e] ? halfway(P(footOf(e, s.hv?.h.includes(e) ? 1 : 0, c.c)), P(c.c)) : null; })() : cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
-      html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={String(v)} aria-label={dimensionLabel(s, editDim)}
-        title={`${dimensionLabel(s, editDim)}${authored !== undefined ? '' : ' · Enter adds it as a driving dimension'}${d || cd || cc ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
-        style={{ left: at[0] - 42, top: at[1] - 13 }}
-        onFocus={e => e.currentTarget.select()}
-        onKeyDown={e => {
-          e.stopPropagation();
-          // Committing blurs at once, so keys that follow reach the app even before the editor unmounts.
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const input = e.currentTarget;
-            onDimCommit?.(editDim, input.value === '' ? NaN : Number(input.value), s);
-            input.blur();
-          }
-          else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
-          // Between two points: A aligned, H horizontal, V vertical.
-          else if ((d || cd || cc) && /^[ahv]$/i.test(e.key)) {
-            e.preventDefault(); const k = e.key.toLowerCase() as 'a' | 'h' | 'v', ref = (d ?? cd ?? cc)!;
-            onDimEdit?.((cc ? { a: 'ccdist', h: 'ccdx', v: 'ccdy' } : cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' })[k] + ref[1] + '_' + ref[2]);
-          }
-        }}
-        onBlur={() => onDimEdit?.(null)} />;
+      const pair = d ?? cd ?? cc;
+      const axes = cc ? { a: 'ccdist', h: 'ccdx', v: 'ccdy' } : cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' };
+      html = <InlineSketchDimension key={editDim} at={at} value={v} label={dimensionLabel(s, editDim)}
+        driving={authored !== undefined} arc={editDim.startsWith('rad')}
+        onConfirm={value => onDimCommit?.(editDim, value, s)} onClose={() => onDimEdit?.(null)}
+        onAxis={pair ? (axis: DimensionAxis) => onDimEdit?.(axes[axis] + pair[1] + '_' + pair[2]) : undefined} />;
     }
   }
   return { under, svg, html };
