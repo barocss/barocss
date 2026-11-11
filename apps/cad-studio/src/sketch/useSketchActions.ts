@@ -1,7 +1,7 @@
 import { emptyDirect } from '../app/directGeometry';
 import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { dropStaleMade, prefixDoc, withNode, NODE_EXTRA_FIELDS, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
@@ -52,6 +52,7 @@ function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
   const { doc, bodies, selection, marker } = model;
   const { sketch, setSketch, sketchGeneration } = editor;
+  const [finishRefusal, setFinishRefusal] = useState<{ generation: number; message: string } | null>(null);
   const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
   const pendingFinish = useRef<{ doc: StudioDoc; generation: number } | null>(null);
   const { docNow, acceptanceScope } = owner;
@@ -194,6 +195,15 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
     const { shapes: authored, protectedShapes } = sketchCutInputs(sketch);
     const joined = joinOpen(authored.map(x => x.kind === 'polygon' && !x.closed && !protectedShapes?.has(x) ? { ...x, pending: false } : x), undefined, protectedShapes);
+    if (!sketch.band) {
+      for (const shape of joined) {
+        if (shape.kind !== 'polygon' || shape.construction || shape.points.length < 2 || (shape.closed && !shape.pending)) continue;
+        const start = shape.points[0].join(', '), end = shape.points[shape.points.length - 1].join(', ');
+        const action = shape.pending ? 'Place the last arc or trim' : 'Close or trim';
+        setFinishRefusal({ generation: requestedGeneration, message: `${action} the open chain from (${start}) to (${end}) mm.` });
+        return;
+      }
+    }
     const shapes = withIds(joined, undefined, protectedShapes);
     // A band sketch holds the band and its construction sources only (the model refuses anything else, and a band that cannot be made).
     const banded = sketch.band ? bandSketchNode(shapes, sketch.band) : null;
@@ -238,5 +248,6 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
-  return { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch };
+  const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
+  return { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError };
 }

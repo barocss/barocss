@@ -7,7 +7,7 @@ import { createElement, type SetStateAction } from 'react';
 import { renderToString } from 'react-dom/server.edge';
 import { part } from '@barocss/cad-model/api';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
-import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { refOf, type Ctx } from '@barocss/cad-model/app/commands';
 import { extrudeCommand } from '@barocss/cad-model/app/profileCommands';
@@ -465,4 +465,83 @@ test('D358: reopen a circle main with two rectangle regions, switch to a drawing
   assert.equal(node.profile, 'circle'); assert.equal(node.radius, 5);
   assert.deepEqual(node.regions.map(r => r[0].start), [[20, -5], [50, -5]]);
   assert.deepEqual((f.accepted[0].nodes[index] as { sideTags?: unknown }).sideTags, (stored.node as { sideTags?: unknown }).sideTags);
+});
+
+const openLine: SketchShape = { kind: 'polygon', closed: false, points: [[30, 0], [40, 0]], bulges: [0, 0], ids: ['line-a', 'line-b'] };
+const openArc: SketchShape = { kind: 'polygon', closed: false, points: [[40, 18], [35, 23]], bulges: [0.414213562, 0] };
+const rectProfile: SketchShape = { kind: 'rectangle', a: [0, 0], b: [20, 10] };
+
+for (const draft of [
+  { label: 'current line and parked arc', shape: openLine, done: [rectProfile, openArc] },
+  { label: 'parked arc', shape: null, done: [rectProfile, openArc] },
+  { label: 'open geometry only', shape: openLine, done: [] },
+  { label: 'a closing arc still being placed', shape: {
+    kind: 'polygon', closed: true, pending: true, points: [[30, 0], [40, 0], [35, 6]], bulges: [0, 0, 0.2],
+  } satisfies SketchShape, done: [rectProfile] },
+]) {
+  test(`D748: Finish refuses ${draft.label} before dispatch or document change`, () => {
+    const doc = emptyDoc(), f = actions(doc);
+    const sketch: SketchState = { plane: xyPlane(), tool: 'select', shape: draft.shape, done: draft.done };
+    const original = structuredClone(sketch);
+    f.setSketch(sketch);
+    f.render();
+    const generation = f.sketchGeneration.current;
+    f.api.finishSketch();
+    assert.equal(f.sketch, sketch);
+    assert.deepEqual(f.sketch, original);
+    assert.equal(f.sketchGeneration.current, generation);
+    assert.equal(f.docNow.current, doc);
+    assert.equal(f.accepted.length, 0);
+    assert.equal(f.evaluated.length, 0);
+    assert.equal(f.selectionWrites, 0);
+  });
+}
+
+test('D748: editing an Extrude profile with an open line leaves its accepted document and Worker untouched', () => {
+  const { doc, f } = delayedRectangle();
+  const sketch = f.sketch!;
+  f.setSketch({ ...sketch, done: [...(sketch.done ?? []), openLine] });
+  f.render();
+  const original = f.sketch, selectionWrites = f.selectionWrites;
+  f.api.finishSketch();
+  assert.equal(f.sketch, original);
+  assert.equal(f.docNow.current, doc);
+  assert.equal(f.accepted.length, 0);
+  assert.equal(f.evaluated.length, 0);
+  assert.equal(f.selectionWrites, selectionWrites);
+});
+
+test('D748: existing join tolerance closes a matching chain and rejects a larger gap', () => {
+  for (const [gap, accepted] of [[0.00005, true], [0.00011, false]] as const) {
+    const f = actions(emptyDoc());
+    const shape: SketchShape = { kind: 'polygon', closed: false, points: [[30, 0], [40, 0], [35, 10], [30, gap]] };
+    f.setSketch({ plane: xyPlane(), tool: 'polygon', shape, done: [rectProfile] });
+    f.render();
+    f.api.finishSketch();
+    if (accepted) {
+      assert.equal(f.accepted.length, 1);
+      const node = f.accepted[0].nodes[0];
+      assert.ok(node.kind === 'sketch');
+      assert.deepEqual(node.regions?.[0]?.map(segment => segment.start), [[30, 0], [40, 0], [35, 10]]);
+    } else {
+      assert.equal(f.accepted.length, 0);
+      assert.equal(f.sketch?.shape, shape);
+    }
+  }
+});
+
+test('D748: an isolated point, open construction and an authored Bézier retain their Finish policies', () => {
+  const f = actions(emptyDoc());
+  const point: SketchShape = { kind: 'polygon', closed: false, points: [[50, 15]] };
+  const construction: SketchShape = { ...openLine, construction: true };
+  const bezier: SketchShape = { kind: 'bezier', poles: [[35, 20], [37, 23], [39, 20]] };
+  f.setSketch({ plane: xyPlane(), tool: 'polygon', shape: point, done: [rectProfile, construction, bezier] });
+  f.render();
+  f.api.finishSketch();
+  const node = f.accepted[0].nodes[0];
+  assert.ok(node.kind === 'sketch' && node.profile === 'rectangle');
+  const refs = node.construction as SketchShape[] | undefined;
+  assert.deepEqual(refs?.map(shape => shape.kind), ['polygon', 'bezier']);
+  assert.equal(node.regions, undefined);
+  assert.equal(f.sketch, null);
 });

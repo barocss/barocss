@@ -1431,7 +1431,7 @@ export function App() {
 
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch } = sketchActions;
+  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError: sketchFinishError } = sketchActions;
   const sketchViewportActions = studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch });
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
@@ -2212,7 +2212,7 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+      {sketch && <SketchPanel sketch={sketch} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
