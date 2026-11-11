@@ -6,8 +6,15 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 import { installD523PlacedReplyScheduler } from './placed-worker-reply-scheduler.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(mode === undefined || mode === '--loss-report');
+assert.ok(mode === undefined || mode === '--loss-report' || mode === '--rotated-occurrence');
 const lossReport = mode === '--loss-report';
+const rotationCase = mode === '--rotated-occurrence';
+const profiles = {
+  variant: ['D688_SOURCE_FROZEN', 'D688 desktop 3MF from the shown assembly variant and refusal during pending placement'],
+  '--loss-report': ['D690_SOURCE_FROZEN', 'D690 desktop 3MF loss disclosure for the shown assembly and standalone part'],
+  '--rotated-occurrence': ['D694_SOURCE_FROZEN', 'D694 desktop 3MF of the current two-axis occurrence rotation'],
+};
+const [envFrozen, qualification] = profiles[mode ?? 'variant'];
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'), 'Use an external evidence directory');
 
@@ -90,23 +97,42 @@ assert Counter(x.tag for x in root.find('c:resources', ns)) == {tag('basemateria
 assert Counter(i.get('objectid') for i in items) == Counter(o.get('id') for o in objects)
 assert all(item.get('transform') is None for item in items)
 
+def corners_of(lo, hi):
+    return list(product(*zip(lo, hi)))
+
+def cap_corners():
+    bottom = d['height'] + d['gap']
+    turn = d.get('occurrence')
+    if turn is None:
+        return corners_of((10, 2, bottom), (14, 5, bottom + 4))
+    # The distinct local extents are 4, 3, 2 mm. Translate after the ordered turns.
+    local = corners_of((0, 0, 0), (4, 3, 2))
+    if turn == 'identity':
+        return [(10+x, 2+y, bottom+z) for x, y, z in local]
+    if turn == 'x90':
+        return [(10+x, 2-z, bottom+y) for x, y, z in local]
+    assert turn == 'x90-z30'
+    c, s = math.sqrt(3) / 2, 0.5
+    return [(10+c*x+s*z, 2+s*x-c*z, bottom+y) for x, y, z in local]
+
 h = d['height']
-expected = {'Base plate': ((0, 0, 0), (30, 12, h), 'Aluminium 6061', '#357AC4')}
+expected = {'Base plate': (corners_of((0, 0, 0), (30, 12, h)), 30*12*h, 'Aluminium 6061', '#357AC4')}
 if d['count'] == 2:
-    z = h + d['gap']
-    expected['Cap / Block'] = ((10, 2, z), (14, 5, z + 4), 'Steel (mild)', '#D08036')
+    cap_volume = 48 if d.get('occurrence') is None else 24
+    expected['Cap / Block'] = (cap_corners(), cap_volume, 'Steel (mild)', '#D08036')
 assert {o.get('name') for o in objects} == expected.keys()
 parts = {}
 for o in objects:
     name = o.get('name')
-    lo, hi, label, color = expected[name]
+    corners, expected_volume, label, color = expected[name]
     assert o.get('type') == 'model' and [x.tag for x in o] == [tag('mesh')]
     material = bases[o.get('pid')][int(o.get('pindex'))]
     assert material.get('name') == label and material.get('displaycolor').upper() in (color, color + 'FF')
     vs = [tuple(float(v.get(a)) for a in ('x', 'y', 'z')) for v in o.findall('c:mesh/c:vertices/c:vertex', ns)]
-    corners = list(product(*zip(lo, hi)))
     assert len(vs) == 8
-    assert all(math.dist(p, q) <= 1e-6 for p, q in zip(sorted(vs), corners)), (name, vs, corners)
+    assert all(sum(math.dist(p, q) <= 1e-6 for p in vs) == 1 for q in corners), (name, vs, corners)
+    lo = tuple(map(min, zip(*vs)))
+    hi = tuple(map(max, zip(*vs)))
     triangles = o.findall('c:mesh/c:triangles/c:triangle', ns)
     assert len(triangles) == 12
     edges = Counter()
@@ -121,22 +147,23 @@ for o in objects:
         terms.append(math.fsum(a*b for a, b in zip(u, cross)) / 6)
     assert len(edges) == 36 and all(n == edges[b, a] == 1 for (a, b), n in edges.items())
     volume = math.fsum(terms)
-    assert math.isclose(volume, math.prod(b-a for a, b in zip(lo, hi)), rel_tol=0, abs_tol=1e-6), (name, volume)
+    volume_tolerance = 1e-5 if d.get('occurrence') == 'x90-z30' and name == 'Cap / Block' else 1e-6
+    assert math.isclose(volume, expected_volume, rel_tol=0, abs_tol=volume_tolerance), (name, volume)
     parts[name] = dict(min=lo, max=hi, volume=volume, vertices=len(vs), triangles=len(triangles), material=label, color=color)
 
 print(json.dumps(dict(status='PASS', unit=root.get('unit'), source=source, buildItems=len(items), parts=parts, content=content)))
 `;
 
 const f = await createFlow({
-  name: 'three-mf-shown-variant', envFrozen: lossReport ? 'D690_SOURCE_FROZEN' : 'D688_SOURCE_FROZEN', output, oracleSource,
-  qualification: lossReport ? 'D690 desktop 3MF loss disclosure for the shown assembly and standalone part'
-    : 'D688 desktop 3MF from the shown assembly variant and refusal during pending placement',
+  name: rotationCase ? 'three-mf-rotated-occurrence' : 'three-mf-shown-variant', envFrozen, output, oracleSource, qualification,
   initialFiles: ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/test/placed-worker-reply-scheduler.mjs'],
   requiredFrozen: ['apps/cad-studio/src/files/useModelExports.ts'],
   extraFrozen: ['packages/barocss-cad-model/src/print/export3mf.ts', 'packages/barocss-cad-model/src/print/threemf.ts',
-    'packages/barocss-cad-model/src/assembly/variability.ts', 'packages/barocss-cad-model/src/library/builtin/materials.json'],
+    'packages/barocss-cad-model/src/assembly/variability.ts', 'packages/barocss-cad-model/src/library/builtin/materials.json',
+    ...(rotationCase ? ['packages/barocss-cad-model/src/engine/placement.ts'] : [])],
   snapshotExtra: () => ({ scheduler: window.__d523Placed.snapshot(), exportCount: window.__d688Exports.length }),
-  limits: ['Two axis-aligned prismatic meshes, one hidden occurrence, one distance mate and one named variant.',
+  limits: [rotationCase ? 'Two prismatic meshes, one two-axis occurrence rotation and one hidden occurrence.'
+    : 'Two axis-aligned prismatic meshes, one hidden occurrence, one distance mate and one named variant.',
     'Real Export captured at the local Blob boundary. Python standard library reads the resulting package. No slicer run.'],
 });
 
@@ -163,7 +190,7 @@ const button = name => f.page.getByRole('button', { name, exact: true });
 const variants = () => f.page.getByRole('complementary', { name: 'Variants panel', exact: true });
 const exportCount = () => f.page.evaluate(() => window.__d688Exports.length);
 
-async function exportShown(label, height, gap, index, authored, stem = 'three-mf-variant') {
+async function exportShown(label, height, gap, index, authored, { stem = 'three-mf-variant', occurrence } = {}) {
   f.phase = label;
   const count = authored.instances ? 2 : 1;
   await f.ready();
@@ -179,7 +206,7 @@ async function exportShown(label, height, gap, index, authored, stem = 'three-mf
   const bytes = Buffer.from(exported.bytes);
   const file = join(output, `${label}.3mf`);
   await writeFile(file, bytes, { flag: 'wx' });
-  const result = await f.runOracle({ file, stem, count, height, gap }, label);
+  const result = await f.runOracle({ file, stem, count, height, gap, occurrence }, label);
   f.report.observations.push({ label, notice, bytes: bytes.length, sha256: sha256(bytes), result });
   await f.snapshot(label);
   assert.deepEqual(await f.doc(), authored);
@@ -193,6 +220,90 @@ async function openFixture(doc, stem) {
   await chooser.setFiles({ name: `${stem}.bcad`, mimeType: 'application/json', buffer: seed });
   await f.same(doc);
   return sha256(seed);
+}
+
+async function rotateOccurrence() {
+  const stem = 'three-mf-rotation';
+  const [cap, hidden] = master.instances;
+  const initial = { ...part, instances: [{ ...cap, doc: box(4, 3, 2, cap.doc.bodies.b1) }, hidden] };
+  const at = (x, z) => ({ ...initial, instances: [{ ...initial.instances[0], rotation: [x, 0, z] }, hidden] });
+  const tilted = at(90, 0);
+  const turned = at(90, 30);
+  const eventCount = () => f.page.evaluate(() => window.__d523Placed.snapshot().events.length);
+  const waitPlacement = since => f.page.waitForFunction(from => {
+    const events = window.__d523Placed.snapshot().events.slice(from);
+    return events.some(e => e.kind === 'submit' && e.type === 'placed' && e.place.t[0] === 10
+      && events.some(reply => reply.kind === 'client-callback-reached' && reply.id === e.id && reply.key === e.key));
+  }, since);
+  const read = async (label, index, doc, occurrence) => {
+    const result = await exportShown(label, 6, 2, index, doc, { stem, occurrence });
+    const { notice } = f.report.observations.at(-1);
+    assert.match(notice, /Editable features, parameters and history are omitted.*Assembly hierarchy, mates and variant definitions are omitted/);
+    return result;
+  };
+  f.phase = 'Open the asymmetric cap assembly';
+  f.report.seedSHA256 = await openFixture(initial, stem);
+  await f.page.locator('.ol.instance').filter({ hasText: 'Cap' }).click();
+  const panel = f.page.getByRole('complementary', { name: 'Instance', exact: true });
+  await panel.waitFor();
+  await panel.getByText('24 mm³', { exact: true }).waitFor();
+  const before = await read('01-before-turn', 0, initial, 'identity');
+
+  async function editRotation(axis, value) {
+    const fields = panel.getByLabel(`Instance ${axis}`, { exact: true });
+    assert.equal(await fields.count(), 2);
+    const rotation = fields.nth(1);
+    assert.equal(Number(await rotation.inputValue()), 0);
+    await rotation.fill(String(value));
+    await rotation.press('Enter');
+  }
+
+  f.phase = 'Commit the X rotation';
+  const beforeX = await eventCount();
+  await editRotation('X', 90);
+  await f.same(tilted);
+  await waitPlacement(beforeX);
+
+  f.phase = 'Hold the real placed response after the Z rotation';
+  const beforeZ = await eventCount();
+  await f.page.evaluate(() => window.__d523Placed.arm({ onlyPlaced: true }));
+  await editRotation('Z', 30);
+  await f.same(turned);
+  await f.page.waitForFunction(() => {
+    const s = window.__d523Placed.snapshot();
+    return s.claimed && s.events.some(e => e.kind === 'native-event-held' && e.id === s.claimed.id && e.key === s.claimed.key && e.resultOK === true);
+  });
+  const held = await f.page.evaluate(() => window.__d523Placed.snapshot().claimed);
+  assert.deepEqual(held.place.t, [10, 2, 8]);
+
+  f.phase = 'Refuse a stale 3MF during the Z rotation';
+  await button('Export 3MF').click();
+  const notice = await f.waitToast(/Not written yet|3MF written|Could not write 3MF/);
+  assert.match(notice, /Not written yet.*every visible placed part must be up to date/);
+  assert.equal(await exportCount(), 1);
+  f.report.observations.push({ label: '02-pending-turn', notice, held });
+  await f.snapshot('02-pending-turn');
+  await f.dismissToasts();
+  await f.page.evaluate(() => window.__d523Placed.release());
+  await waitPlacement(beforeZ);
+  const after = await read('03-after-turn', 1, turned, 'x90-z30');
+
+  f.phase = 'Undo the Z rotation';
+  const undoStart = await eventCount();
+  await button('Undo').click();
+  await f.same(tilted);
+  await waitPlacement(undoStart);
+  const undo = await read('04-undo-turn', 2, tilted, 'x90');
+
+  f.phase = 'Redo the Z rotation';
+  const redoStart = await eventCount();
+  await button('Redo').click();
+  await f.same(turned);
+  await waitPlacement(redoStart);
+  const redo = await read('05-redo-turn', 3, turned, 'x90-z30');
+  assert.deepEqual(redo, after);
+  assert.equal(new Set([before.source, undo.source, after.source]).size, 3);
+  for (const result of [after, undo, redo]) assert.deepEqual(result.parts['Base plate'], before.parts['Base plate']);
 }
 
 await f.run(async () => {
@@ -217,6 +328,12 @@ await f.run(async () => {
 
   await f.newPage();
   await f.page.setViewportSize({ width: 1440, height: 900 });
+  if (rotationCase) {
+    await rotateOccurrence();
+    assert.deepEqual(f.report.downloads, []);
+    f.phase = 'complete';
+    return;
+  }
   f.phase = 'Open assembly fixture';
   f.report.seedSHA256 = await openFixture(master, 'three-mf-variant');
   await clickModelCommand(f.page, 'Inspect', 'Variants');
@@ -269,7 +386,7 @@ await f.run(async () => {
     await f.page.setViewportSize({ width: 1440, height: 900 });
     f.phase = 'Open standalone part in a fresh context';
     f.report.partSeedSHA256 = await openFixture(part, 'three-mf-part');
-    const standalone = await exportShown('05-standalone-part', 6, 0, 0, part, 'three-mf-part');
+    const standalone = await exportShown('05-standalone-part', 6, 0, 0, part, { stem: 'three-mf-part' });
     assert.deepEqual(standalone.parts['Base plate'], initial.parts['Base plate']);
     f.phase = 'Check 3MF loss disclosure against the independently read files';
     const nativeLoss = /Editable features, parameters and history are omitted/;
