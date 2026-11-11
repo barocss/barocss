@@ -98,8 +98,10 @@ test('legacy absence preserves exact old count arithmetic and serialization; X/Y
   assert.equal(pattern(count(old, 0)).angle, 360); assert.ok(!Object.hasOwn(pattern(count(old, 2)), 'span'));
   assert.deepEqual(await saved(old), old);
   for (const axis of ['x', 'y']) {
-    const doc = create(270, 9, axis); assert.equal(pattern(doc).count, 4); assert.equal(pattern(doc).angle, 90);
+    assert.throws(() => create(270, 9, axis), error => isRefusal(error, 'VALUE'));
+    const doc = create(270, 4, axis); assert.equal(pattern(doc).count, 4); assert.equal(pattern(doc).angle, 90);
     assert.ok(!Object.hasOwn(pattern(doc), 'span')); assert.equal(pattern(count(doc, 2)).angle, 90);
+    assert.deepEqual(await saved(doc), doc);
   }
   const separate = create(270, 4, 'z', 'separate');
   assert.equal(separate.nodes.filter(n => n.kind === 'circular-pattern').length, 0);

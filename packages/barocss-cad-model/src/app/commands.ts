@@ -877,8 +877,8 @@ const allCommands: Command[] = [
   {
     id: 'circular-pattern', label: 'Circular pattern', icon: 'cad-pattern-circular', hint: 'Copies of a body round an axis', group: 'pattern', keywords: 'polar array',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
-    fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
-      { key: 'count', label: 'Count', kind: 'count', min: 2, max: 36 },
+    fields: (_ctx, v) => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
+      { key: 'count', label: 'Count', kind: 'count', min: 2, max: v?.axis === 'x' || v?.axis === 'y' ? 4 : 36 },
       { key: 'span', label: 'Spread over', kind: 'deg', min: 1, max: 360, step: 5, when: v => v.axis === 'z' },
       { key: 'px', label: 'Axis at X', kind: 'mm', when: v => v.axis === 'z' }, { key: 'py', label: 'Axis at Y', kind: 'mm', when: v => v.axis === 'z' }, RESULT],
     defaults: () => ({ axis: 'z', count: 4, span: 360, px: 0, py: 0, result: 'one' }),
@@ -892,17 +892,21 @@ const allCommands: Command[] = [
       return out;
     },
     build: (ctx, v) => {
-      const n = Number(v.count), span = Number(v.span ?? 360), pivot: [number, number, number] = [Number(v.px ?? 0), Number(v.py ?? 0), 0];
+      const n = Number(v.count), z = v.axis === 'z';
+      if (!z && (!Number.isInteger(n) || n < 2 || n > 4)) {
+        throw refusal('VALUE', 'X/Y circular patterns use 90° steps and a Count of 2, 3 or 4, including the original.');
+      }
+      const span = Number(v.span ?? 360), pivot: [number, number, number] = [Number(v.px ?? 0), Number(v.py ?? 0), 0];
       if (v.result === 'separate') {
         // Each copy a body of its own, turned about the axis by its share of the spread.
-        const body = refOf(oneBody(ctx)!), z = v.axis === 'z', step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
+        const body = refOf(oneBody(ctx)!), step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
         let doc = ctx.doc;
-        for (let c = 1; c < (z ? n : Math.min(4, n)); c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angle: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
+        for (let c = 1; c < n; c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angle: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
         return doc;
       }
-      return withNode(ctx.doc, v.axis === 'z'
+      return withNode(ctx.doc, z
         ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, span: span >= 360 ? 360 : span, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
-        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: Math.min(4, n) });
+        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: n });
     },
   },
   {
