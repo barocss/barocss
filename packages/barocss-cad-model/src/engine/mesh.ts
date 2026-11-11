@@ -3,7 +3,7 @@
 // `x#2`: a cylinder wall in halves) shown as one face; display edges are the real B-rep edges minus
 // seams and smooth (tangent) joints, with connected pieces between the same two faces joined. Faces and
 // edges carry their persistent B-rep names, which features use to refer to them.
-import { closestPointOnSurface, faceGeometry, pointTriangleDistance2, revolutionOf, surfaceDomain, surfaceEvaluator, surfaceSeedGrid, tessellateBrep, type Brep, type BrepFace, type BrepMesh, type SurfaceSeedGrid } from '@barocss/cad';
+import { closestPointOnSurface, createCylindricalBoreCheck, faceGeometry, pointTriangleDistance2, revolutionOf, surfaceDomain, surfaceEvaluator, surfaceSeedGrid, tessellateBrep, type Brep, type BrepFace, type BrepMesh, type SurfaceSeedGrid } from '@barocss/cad';
 export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
 
@@ -17,6 +17,8 @@ export interface NativeDisplayFace { name: string; kind: 'plane' | 'curved'; nor
 export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
+  /** Diameter in millimetres, verified on the current group of native B-rep faces. */
+  nativeBoreDiameter?: number;
   /** A curved face of constant curvature along its circles — a cylinder, sphere, cone or torus (A6.3: the edge-sag bound holds, O55). */
   analytic?: true;
   /** A freeform curved face (a NURBS or SubD patch, its curvature varying inside a triangle; O59): its B-rep faces, measured on request. */
@@ -93,6 +95,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
   // Native member signatures must not depend on viewport quality.
   let native: Map<string, NativeDisplayFace> | undefined;
+  let checkBore: ReturnType<typeof createCylindricalBoreCheck> | undefined;
   const nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
   const P = mesh.positions, N = mesh.normals;
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
@@ -147,13 +150,23 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     }
     if (rootKind !== 'planar' && rootKind !== 'facet') {
       // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).
-      const face = faceById.get(root)!;
+      const face = faceById.get(root)!, df = b.faces[b.faces.length - 1];
       let radius: number | undefined;
-      try { const g = faceGeometry(face); if (g.kind === 'cylinder') { radius = g.r; b.faces[b.faces.length - 1].exact = { kind: 'cylinder', c: [g.c[0], g.c[1], g.c[2]], a: [g.a[0], g.a[1], g.a[2]], r: g.r }; } } catch { /* a general surface */ }
+      try {
+        const g = faceGeometry(face);
+        if (g.kind === 'cylinder') {
+          radius = g.r;
+          df.exact = { kind: 'cylinder', c: [...g.c], a: [...g.a], r: g.r };
+          if (g.out === -1) {
+            checkBore ??= createCylindricalBoreCheck(brep);
+            const diameter = checkBore(members.map(id => faceById.get(id)!));
+            if (diameter !== undefined) df.nativeBoreDiameter = diameter;
+          }
+        }
+      } catch { /* A general or unresolved native surface has no verified bore. */ }
       if (radius === undefined && face.surface.kind === 'surface') { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
-      if (radius !== undefined) b.faces[b.faces.length - 1].radius = radius;
+      if (radius !== undefined) df.radius = radius;
       // (O59: the edge-sag bound is exact only at constant curvature along circles; a freeform face is measured instead.)
-      const df = b.faces[b.faces.length - 1];
       // (Measured only on request, measureChords: twenty times the tessellation's own time.)
       if (members.every(id => analyticFace(faceById.get(id)!))) df.analytic = true; else df.freeform = [...members];
     }

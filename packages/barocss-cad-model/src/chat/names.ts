@@ -3,17 +3,19 @@
 import type { Selection } from '../app/commands';
 import type { BodyResult } from '../engine/evaluate';
 import type { ModelNode } from '../engine/doc';
+import type { DisplayFace } from '../engine/mesh';
 import { featureId, nodeIndexOf } from '../engine/ids';
 import { isObj, isVec3 } from '../util/guards';
 
 export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
 export const missingNamedEntityMessage = (name: string) => `no face or edge named "${name}"`;
+export const matchesFaceName = (face: DisplayFace, name: string): boolean => face.name.split('+').includes(name) || face.id === name;
 
 /** Faces, edges and bodies by name → mesh indices; unknown names are returned. */
 export function resolveNames(bodies: BodyResult[], names: Partial<NameSelection>): { selection: Selection; unknown: string[] } {
   const selection: Selection = { faces: [], edges: [], bodies: [] }, unknown: string[] = [];
   for (const name of names.faces ?? []) {
-    const hit = bodies.flatMap((b, bi) => b.mesh.faces.flatMap(f => f.name.split('+').includes(name) || f.id === name ? [{ body: bi, face: f.index }] : []))[0];
+    const hit = bodies.flatMap((b, bi) => b.mesh.faces.flatMap(f => matchesFaceName(f, name) ? [{ body: bi, face: f.index }] : []))[0];
     if (hit) { if (!selection.faces.some(f => f.body === hit.body && f.face === hit.face)) selection.faces.push(hit); } else unknown.push(name);
   }
   for (const name of names.edges ?? []) {

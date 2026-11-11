@@ -9,7 +9,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { boundsOf } from '../engine/bounds';
 import { nodeIndexOf } from '../engine/ids';
 import { measureBetween, type MeasurePick } from '../app/measure';
-import { missingNamedEntityMessage, resolveEdge, resolveFace, resolveNames } from './names';
+import { matchesFaceName, missingNamedEntityMessage, resolveEdge, resolveFace, resolveNames } from './names';
 import { factsOf, physicalTotalsOf } from './observe';
 import { draftAnalysis, interference, materialFact, wallThickness } from '../analysis/analysis';
 import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } from '@barocss/cad';
@@ -24,6 +24,7 @@ import { unconfirmed, unitAssumptions } from './drafts';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 import { canonical, canonicalOf } from '../util/revision';
 import { MM_PER_INCH } from '../util/units';
+import { isObj } from '../util/guards';
 import type { Query, Predicate, Failure, Report, Outcome, Evaluate, Validation, Policy } from '../engine/schema/spec';
 
 
@@ -155,11 +156,25 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       const m = measureBetween(bodies[a.pick.body].mesh, a.pick, bodies[b.pick.body].mesh, b.pick);
       return { x: m.normalDistance ?? m.distance, entities: [a.name, b.name], hint: m.normalDistance !== undefined ? 'the normal distance between parallel faces' : 'the shortest distance' };
     }
-    case 'radius': case 'hole_diameter': {
+    case 'radius': {
       const a = pickOf(doc, bodies, q.face); if (typeof a === 'string') return { unknown: a };
       const f = a.pick.face !== undefined ? bodies[a.pick.body].mesh.faces[a.pick.face] : undefined;
       if (!f?.radius) return { unknown: `${a.name} is not a round face` };
-      return { x: q.fn === 'radius' ? f.radius : 2 * f.radius, entities: [a.name] };
+      return { x: f.radius, entities: [a.name] };
+    }
+    case 'hole_diameter': {
+      const names = resolveFace(doc.nodes, bodies, q.face);
+      if (typeof names === 'string') return { unknown: names };
+      if (names.length !== 1) return { unknown: `The hole check needs one face. The selector matched ${names.length}.` };
+      const [name] = names;
+      const on = isObj(q.face) && typeof q.face.on === 'string' ? q.face.on : undefined;
+      const faces = bodiesOf(bodies, on).flatMap(body => body.mesh.faces.filter(face => matchesFaceName(face, name)));
+      if (!faces.length) return { unknown: `No face named "${name}".` };
+      if (faces.length !== 1) return { unknown: `Face "${name}" is ambiguous. Select one face on a specific body.` };
+      const diameter = faces[0].nativeBoreDiameter;
+      if (diameter === undefined || !Number.isFinite(diameter) || diameter <= 0)
+        return { unknown: `Face "${name}" has no verified cylindrical bore wall in a closed solid.` };
+      return { x: diameter, entities: [name] };
     }
     case 'min_wall': {
       const walls = bodiesOf(bodies, q.body).map(b => wallThickness(b)) as { thinnest: number | null; face?: string }[];
@@ -268,7 +283,8 @@ function gearPair(doc: StudioDoc, bodies: readonly BodyResult[], q: Extract<Quer
 
 /** One predicate against the part as it stands. */
 export async function runCheck(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, p: Predicate): Promise<Outcome> {
-  if (!bodies.length && p.query.fn !== 'count_solids') return { status: 'fail', measured: 'no body', hint: 'the part has no body yet' };
+  if (!bodies.length && p.query.fn !== 'count_solids' && p.query.fn !== 'hole_diameter')
+    return { status: 'fail', measured: 'no body', hint: 'the part has no body yet' };
   const m = await measure(doc, bodies, evaluate, p.query);
   if ('unknown' in m) return { status: 'unknown', why: m.unknown };
   // (A value good to a chord tolerance, A6.3: decided only when it holds, or fails, anywhere within it; else undecided.)

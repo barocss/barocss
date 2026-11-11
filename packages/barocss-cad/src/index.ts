@@ -460,6 +460,7 @@ export type { StepExportOptions } from './io/step.js';
 export type { DraftedExtrusionInput } from './features/drafted-extrusion.js';
 export type { EdgeFinishKind } from './blend/edge-finish.js';
 export { faceGeometry } from './brep/analytic-boolean.js';
+export { createCylindricalBoreCheck } from './brep/cylindrical-bore.js';
 export { splitFaceAlongCurve, splitFaceAlongIsocline } from './brep/analytic-boolean.js';
 export type { FaceSplit, FaceSplitPiece, FaceSplitOptions } from './brep/analytic-boolean.js';
 export { surfaceIsoclines } from './nurbs/surfaces/surface-isocline.js';

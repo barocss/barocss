@@ -2,10 +2,13 @@ import { runCheck, validateSuite } from '../src/chat/spec';
 import { checkKeepouts } from '../src/chat/references';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { buildBrep, checkBrep } from '@barocss/cad';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart, partBreps, type BodyResult } from '../src/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { encodeStudioFile, readStudioFile } from '../src/engine/container';
+import { bodyMesh } from '../src/engine/mesh';
 import type { Predicate, Query, Requirement } from '../src/engine/schema/spec';
 import { runTool, type ChatState, type Evaluate } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -44,6 +47,126 @@ test('D648: inch hole checks use the raw diameter before rounding the evidence',
   assert.equal(Math.abs(legacy.delta ?? NaN), 0);
   for (const invalid of [{ ...check, unit: 'inch' }, { ...check, tol: 1e308 }, { ...check, op: '>=' as const }])
     assert.equal((await runCheck(outside.doc, outside.bodies, evaluate, invalid)).status, 'unknown');
+});
+
+test('D712: hole diameter requires one current native bore wall, while radius also measures shafts and spheres', async () => {
+  const plate = rectanglePart(20, 10, 5);
+  const bore = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [5, 5], radius: 4 });
+  const circle = withNode(bore, { kind: 'sketch', profile: 'circle', center: [30, 5], radius: 4 });
+  const twoBodies = withNode(circle, { kind: 'extrude', sketch: 3, height: 5 });
+  const current = await stateOf(twoBodies);
+  const hole = (face: unknown, value = 8): Predicate => ({ op: '==', query: { fn: 'hole_diameter', face }, value, tol: 0.001, unit: 'mm' });
+  const radius = (face: string): Predicate => ({ op: '==', query: { fn: 'radius', face }, value: 4, tol: 0.001, unit: 'mm' });
+  const check = (state: ChatState, predicate: Predicate) => runCheck(state.doc, state.bodies, evaluate, predicate);
+  const correct = await check(current, hole('n2.side0'));
+  assert.deepEqual([correct.status, correct.measured, Math.abs(correct.delta ?? NaN), correct.entities], ['pass', 8, 0, ['n2.side0']]);
+  const sizeMismatch = await check(current, hole('n2.side0', 10));
+  assert.deepEqual([sizeMismatch.status, sizeMismatch.measured, sizeMismatch.delta], ['fail', 8, -2]);
+  assert.equal((await check(current, radius('n4.side0'))).status, 'pass');
+  const shaft = await check(current, hole('n4.side0'));
+  assert.equal(shaft.status, 'unknown');
+  assert.match(shaft.why ?? '', /no verified cylindrical bore wall/);
+
+  const [inside, outside] = current.bodies;
+  assert.equal(inside.ref?.node, 2);
+  assert.equal(outside.ref?.node, 4);
+  const selector = { feature: 2, role: 'side0' };
+  assert.equal((await check(current, hole({ ...selector, on: inside.key }))).status, 'pass');
+  assert.equal((await check(current, hole({ ...selector, on: outside.key }))).status, 'unknown');
+  // Duplicate a display name across bodies to exercise both scoped lookup and ambiguity.
+  const sameName = { ...outside, mesh: { ...outside.mesh, faces: outside.mesh.faces.map(face =>
+    face.name === 'n4.side0' ? { ...face, name: 'n2.side0' } : face) } };
+  const aliases = { ...current, bodies: [sameName, inside] };
+  assert.match((await check(aliases, hole('n2.side0'))).why ?? '', /ambiguous/);
+  assert.match((await check(aliases, hole(selector))).why ?? '', /ambiguous/);
+  assert.equal((await check(aliases, hole({ ...selector, on: inside.key }))).status, 'pass');
+  assert.equal((await check(aliases, hole({ ...selector, on: outside.key }))).status, 'unknown');
+
+  const rotated = withNode(twoBodies, { kind: 'rotate', parent: { node: 2, side: 'solid' }, axis: 'y', angle: 37 });
+  const translated = withNode(rotated, { kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [19, -11, 22] });
+  const opened = await readStudioFile(encodeStudioFile(translated));
+  assert.ok(!('error' in opened), JSON.stringify(opened));
+  assert.equal((await check(await stateOf(opened.doc), hole('n2.side0'))).status, 'pass');
+  const suppressed = { ...bore, nodes: bore.nodes.map((node, i) => i === 2 ? { ...node, suppressed: true as const } : node) };
+  for (const doc of [emptyDoc(), plate, suppressed]) {
+    const result = await check(await stateOf(doc), hole('n2.side0'));
+    assert.equal(result.status, 'unknown');
+    assert.match(result.why ?? '', /No face named/);
+  }
+
+  const sphere = await runTool({ doc: emptyDoc(), bodies: [] }, 'features', {
+    action: 'command', command: 'sphere', values: { r: 4, x: 0, y: 0, z: 0 },
+  }, evaluate);
+  assert.equal(sphere.isError, false, sphere.content);
+  assert.equal((await check(sphere.state, radius('n1.side0'))).status, 'pass');
+  assert.equal((await check(sphere.state, hole('n1.side0'))).status, 'unknown');
+});
+
+test('D712: an inward wall needs complete rims and a solid shell', async () => {
+  const plate = rectanglePart(20, 10, 5);
+  const drill = (x: number, depth?: number) => withNode(plate,
+    { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [x, 5], radius: 4, ...(depth === undefined ? {} : { depth }) });
+  const predicate: Predicate = { op: '==', query: { fn: 'hole_diameter', face: 'n2.side0' }, value: 8, unit: 'mm' };
+  const check = (state: ChatState) => runCheck(state.doc, state.bodies, evaluate, predicate);
+  assert.equal((await check(await stateOf(drill(5, 2)))).status, 'pass');
+  const channel = await stateOf(drill(0));
+  assert.equal((await check(channel)).status, 'unknown');
+  assert.ok(Math.abs((channel.bodies[0].volume ?? NaN) - (1000 - 40 * Math.PI)) < 1e-8);
+
+  const through = await stateOf(drill(5));
+  const [{ brep }] = partBreps(through.doc);
+  const loops = new Map(brep.loops.map(loop => [loop.id, loop]));
+  const coedges = new Map(brep.coedges.map(use => [use.id, use]));
+  const walls = brep.faces.filter(f => f.name?.replace(/#\d+$/, '') === 'n2.side0').map(face => ({
+    ...face,
+    loops: face.loops.map(id => {
+      const loop = loops.get(id)!;
+      return { kind: loop.kind, uses: loop.coedges.map(id => coedges.get(id)!) };
+    }),
+  }));
+  const edgeIds = new Set(walls.flatMap(face => face.loops.flatMap(loop => loop.uses.map(use => use.edge))));
+  const edges = brep.edges.filter(edge => edgeIds.has(edge.id));
+  const vertices = new Set(edges.flatMap(edge => edge.vertices));
+  const sheet = buildBrep({ source: brep.source, edges, vertices: brep.vertices.filter(v => vertices.has(v.id)),
+    bodies: [{ id: 'body', kind: 'sheet', shells: [{ id: 'shell', closed: false, faces: walls }] }] });
+  assert.ok(checkBrep(sheet).valid);
+  const mesh = bodyMesh(sheet, 1);
+  const [wall] = mesh.faces;
+  assert.deepEqual([mesh.faces.length, wall.name, wall.exact?.kind, Math.round(wall.radius ?? NaN)], [1, 'n2.side0', 'cylinder', 4]);
+  assert.equal((await check({ ...through, bodies: [{ ...through.bodies[0], mesh }] })).status, 'unknown');
+
+  // Legacy or display-only input may carry a numeric radius without native bore proof.
+  const legacyMesh = { ...through.bodies[0].mesh, faces: through.bodies[0].mesh.faces.map(face => ({ ...face, nativeBoreDiameter: undefined })) };
+  assert.equal((await check({ ...through, bodies: [{ ...through.bodies[0], mesh: legacyMesh }] })).status, 'unknown');
+});
+
+test('D712: faceted imports and other analytic round surfaces cannot supply a bore diameter', async () => {
+  const positions: number[] = [], indices: number[] = [];
+  const count = 16;
+  for (let i = 0; i < count; i++) {
+    const angle = 2 * Math.PI * i / count, x = 4 * Math.cos(angle), y = 4 * Math.sin(angle);
+    positions.push(x, y, 0, x, y, 5);
+    const a = 2 * i, b = 2 * ((i + 1) % count);
+    indices.push(a, b, b + 1, a, b + 1, a + 1);
+    if (i > 0 && i < count - 1) indices.push(0, b, a, 1, a + 1, b + 1);
+  }
+  const facets = await stateOf(withNode(emptyDoc(),
+    { kind: 'mesh', name: 'Faceted cylinder', unit: 'mm', representation: 'facets', positions, indices }));
+  const surfaces = [facets];
+  for (const [command, values] of [
+    ['cone', { r: 4, rt: 2, h: 5, x: 0, y: 0, z: 0 }],
+    ['torus', { R: 10, r: 4, x: 0, y: 0, z: 0 }],
+  ] as const) {
+    const made = await runTool({ doc: emptyDoc(), bodies: [] }, 'features', { action: 'command', command, values }, evaluate);
+    assert.equal(made.isError, false, made.content);
+    surfaces.push(made.state);
+  }
+  for (const { doc, bodies } of surfaces) {
+    const face = bodies[0].mesh.faces.find(f => f.kind === 'curved' || (f.facet && Math.abs(f.normal[2]) < 0.5));
+    assert.ok(face);
+    const check: Predicate = { op: '==', query: { fn: 'hole_diameter', face: face.id }, value: 8, unit: 'mm' };
+    assert.match((await runCheck(doc, bodies, evaluate, check)).why ?? '', /no verified cylindrical bore wall/);
+  }
 });
 
 const keepoutQuery = { fn: 'keepout', keepout: 'K1' } as const;
