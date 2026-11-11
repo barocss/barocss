@@ -1,5 +1,5 @@
 ---
-work_id: D664
+work_id: D665
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -265,7 +265,9 @@ D663 protects a live sketch when switching to Model, Drawing or Render. Keeping 
 
 D664 restores the title, authored model, history and dirty flag when Undo or Redo crosses New part. The desktop run reopens the corrected recovery copy and preserves both saved project files. [D664](../studio-new-part-history-identity-2026-11-11/README.md).
 
-Next MAIN is D665 / P4, rows 02 and 21. Reproduce the Drawing toolbar obstruction with the chat rail collapsed. Verify the full tool buttons at 1440 × 900 and 1280 × 720, then place a linear dimension with pointer and keyboard and check Fit sheet.
+D665 keeps all nine Drawing toolbar controls clear of the collapsed chat rail at both desktop sizes. Pointer and keyboard activation, 64 mm dimension placement and Fit sheet passed. [D665](../studio-drawing-toolbar-inset-2026-11-11/README.md).
+
+Next MAIN is D666 / P4, row 21. Reproduce the More tools keyboard gap at 1280 × 720 and 1024 × 768. Verify the first enabled item, arrow navigation, Enter activation and Escape focus return. Open Export STEP and Insert part with the keyboard.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

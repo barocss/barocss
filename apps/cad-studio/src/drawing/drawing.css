@@ -1,7 +1,7 @@
 /* (In the studio's legacy layer, below Tailwind's: styles.css orders the layers.) */
 @layer legacy {
-/* The Drawing workspace: the sheet as paper over the viewport, its tools and its panel. */
-.dw { position: absolute; inset: 36px 0 0 0; z-index: 3; background: var(--bg); }
+/* The collapsed chat rail overlays the stage. Start the drawing and its tools after it. */
+.dw { position: absolute; inset: 36px 0 0 var(--strip-w, 0px); z-index: 3; background: var(--bg); }
 .dw-canvas { position: absolute; left: 68px; right: 272px; top: 14px; bottom: 44px; display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 0; }
 .dw-paper { position: relative; flex: 1 1 0; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
 .dw-paper svg { width: 100%; height: 100%; display: block; touch-action: none; }

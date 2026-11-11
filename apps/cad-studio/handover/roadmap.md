@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D664 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-11 · Priority authority: D520 · Latest delivery: D665 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D664 restores the title, authored model, history and dirty flag when Undo or Redo crosses New part. The desktop run reopens the corrected recovery copy and preserves both saved project files. [D664](notes/studio-new-part-history-identity-2026-11-11/README.md).
-- **Next MAIN:** D665 / P4, rows 02 and 21. Reproduce the Drawing toolbar obstruction with the chat rail collapsed. Verify the full tool buttons at 1440 × 900 and 1280 × 720, then place a linear dimension with pointer and keyboard and check Fit sheet. [Platform and extensions](roadmap-tracks/03-platform-and-extensions.md).
+- **Current position:** D665 keeps all nine Drawing toolbar controls clear of the collapsed chat rail at both desktop sizes. Pointer and keyboard activation, 64 mm dimension placement and Fit sheet passed. [D665](notes/studio-drawing-toolbar-inset-2026-11-11/README.md).
+- **Next MAIN:** D666 / P4, row 21. Reproduce the More tools keyboard gap at 1280 × 720 and 1024 × 768. Verify the first enabled item, arrow navigation, Enter activation and Escape focus return. Open Export STEP and Insert part with the keyboard. [Platform and extensions](roadmap-tracks/03-platform-and-extensions.md).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B09 v1 **9/9 accepted groups**; initial scenarios **4/10 accepted**; B03, B05–B08 and B10 **NOT_ADJUDICATED**, with no aggregate baseline percentage. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
