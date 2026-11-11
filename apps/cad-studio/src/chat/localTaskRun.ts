@@ -3,11 +3,12 @@ import { isObj } from '@barocss/cad-model/util/guards';
 import { MAX_TASK_CHECKPOINT_BYTES } from '../files/taskCheckpoint';
 import { isLocalTaskRunHost, type TaskRunBaselineRequest, type TaskRunCheckpointRequest } from './taskRunOffer';
 
-async function postLocalTaskRun(action: string, body: Blob | string) {
+async function postLocalTaskRun(action: string, body: Blob | string, progress = false) {
   if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to use a local task run.');
   const res = await fetch('/api/chat/task-runs/' + action, {
     method: 'POST', redirect: 'error',
-    headers: { 'content-type': typeof body === 'string' ? 'application/json' : 'application/octet-stream', 'x-barocss-task-run': action },
+    headers: { 'content-type': typeof body === 'string' ? 'application/json' : 'application/octet-stream', 'x-barocss-task-run': action,
+      ...(progress ? { 'x-barocss-task-run-progress': '1' } : {}) },
     body,
   });
   if (!res.ok) {
@@ -17,10 +18,25 @@ async function postLocalTaskRun(action: string, body: Blob | string) {
   return res;
 }
 
-export async function localTaskRunJSON(action: 'start' | 'reopen' | 'rebuild' | 'review' | 'status', body: Blob | string) {
-  const res = await postLocalTaskRun(action, body);
+export async function localTaskRunJSON(action: 'start' | 'reopen' | 'rebuild' | 'review' | 'status', body: Blob | string,
+  onAdmitted?: (value: unknown) => void) {
+  const progress = action === 'start' && onAdmitted !== undefined;
+  const res = await postLocalTaskRun(action, body, progress);
+  const admission = progress ? res.headers.get('x-barocss-task-run-admitted') : null;
+  if (admission !== null && onAdmitted) {
+    try {
+      let value: unknown;
+      try { value = JSON.parse(decodeURIComponent(admission)); }
+      catch { throw new Error('The local task run service returned an invalid admission.'); }
+      onAdmitted(value);
+    } catch (error) {
+      void res.body?.cancel().catch(() => undefined);
+      throw error;
+    }
+  }
   const value: unknown = await res.json().catch(() => null);
   if (!isObj(value)) throw new Error('The local task run service returned an invalid result.');
+  if (action === 'start' && typeof value.error === 'string') throw new Error(value.error);
   return value;
 }
 

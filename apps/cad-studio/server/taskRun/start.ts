@@ -65,13 +65,14 @@ export async function dispatchInitialTasks<Task, Outcome>(
   return outcomes;
 }
 
-export async function startLocalTaskRun(directory: string, { doc, config, tasks, replaces }: LocalTaskRun, replacement?: TaskRunReplacementProvenance) {
+export async function startLocalTaskRun(directory: string, { doc, config, tasks, replaces }: LocalTaskRun, replacement?: TaskRunReplacementProvenance, onAdmitted?: () => void) {
   if (replaces && !replacement) throw new Error('Start this replacement from the original local Studio run.');
   let revision = 0;
   const evaluate = async (model: StudioDoc) => evaluatePart(model, ++revision);
   const worker = new URL('./taskRunWorker.mjs', import.meta.url);
   const host = await TaskRunHost.create(directory, config.name, doc, config.plan, config.limits, config.budget, evaluate, undefined, replacement);
   try {
+    onAdmitted?.();
     const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), field + '-mm:' + valueMm);
     const outcomes = await dispatchInitialTasks(tasks, config.limits.concurrent, run);
     return { ...localRunStatus(host.snapshot), outcomes };

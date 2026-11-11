@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createInterface } from 'node:readline';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
@@ -22,48 +23,63 @@ export class LocalRunRequestError extends Error {
 }
 
 type LocalRunReply = { result: TaskRunLaunch } | { status: number; error: string };
+type AdmissionNotice = (run: TaskRunLaunch) => void;
 
 type HandoffAction = 'start' | 'reopen';
 type LocalRunAction = HandoffAction | 'rebuild';
 
-function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction): Promise<TaskRunLaunch> {
-  return new Promise((resolve, reject) => {
+function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
+  let notifyAdmission!: (value: TaskRunLaunch | undefined) => void;
+  const admission = new Promise<TaskRunLaunch | undefined>(resolve => { notifyAdmission = resolve; });
+  const result = new Promise<TaskRunLaunch>((resolve, reject) => {
     // The local runner has a separate PID and a fresh native blob store for each admission.
     const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root, action], {
       stdio: ['pipe', 'pipe', 'inherit'],
     });
-    const failed = () => reject(new LocalRunRequestError(500, 'The local task run process did not return a result.'));
-    let output = '';
-    child.stdout.setEncoding('utf8');
-    child.stdout.on('data', text => { output += text; });
-    let processError = false;
+    let reply: LocalRunReply | undefined, processError = false;
     const markFailed = () => { processError = true; };
+    createInterface({ input: child.stdout }).on('line', line => {
+      try {
+        const frame = JSON.parse(line) as LocalRunReply | { admitted: TaskRunLaunch };
+        if ('admitted' in frame) notifyAdmission(frame.admitted);
+        else reply = frame;
+      } catch { markFailed(); }
+    });
     child.stdin.on('error', markFailed);
     child.once('error', markFailed);
     child.once('close', code => {
-      if (code !== 0 || processError) return failed();
-      let reply: LocalRunReply;
-      try { reply = JSON.parse(output); }
-      catch { return failed(); }
+      notifyAdmission(undefined);
+      if (code !== 0 || processError || !reply)
+        return reject(new LocalRunRequestError(500, 'The local task run process did not return a result.'));
       if ('result' in reply) resolve(reply.result);
       else reject(new LocalRunRequestError(reply.status, reply.error));
     });
     child.stdin.end(bytes);
   });
+  return { admission, result };
 }
 
 export function createLocalTaskRuns(root: string) {
-  let active: { action: LocalRunAction; bytesHash: string; result: Promise<TaskRunLaunch> } | undefined;
-  return async (bytes: Uint8Array, action: LocalRunAction): Promise<TaskRunLaunch> => {
+  type Run = ReturnType<typeof runInProcess> & { action: LocalRunAction; bytesHash: string };
+  let active: Run | undefined;
+  const follow = async (run: Run, reused: boolean, onAdmitted?: AdmissionNotice) => {
+    const notify = onAdmitted && run.admission.then(value => {
+      if (value) onAdmitted(reused ? { ...value, reused: true } : value);
+    });
+    const [result] = await Promise.all([run.result, notify]);
+    return reused ? { ...result, reused: true } : result;
+  };
+  return async (bytes: Uint8Array, action: LocalRunAction, onAdmitted?: AdmissionNotice): Promise<TaskRunLaunch> => {
     const bytesHash = sha256Hex(bytes);
     if (active) {
-      if (active.action === action && active.bytesHash === bytesHash) return { ...await active.result, reused: true };
+      if (active.action === action && active.bytesHash === bytesHash) return follow(active, true, onAdmitted);
       throw new LocalRunRequestError(409, 'Another local task action is in progress. Try again when it finishes.');
     }
-    const result = runInProcess(root, bytes, action);
-    active = { action, bytesHash, result };
-    try { return await result; }
-    finally { active = undefined; }
+    const run = { ...runInProcess(root, bytes, action), action, bytesHash };
+    active = run;
+    const release = () => { if (active === run) active = undefined; };
+    void run.result.then(release, release);
+    return follow(run, false, onAdmitted);
   };
 }
 
@@ -132,7 +148,7 @@ async function verifyReplacement(root: string, { replaces, doc, offer }: Prepare
   return { previous: replaces, acceptedSHA256: record.accepted.sha256, inputDigest: task.attempt.inputDigest };
 }
 
-async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Promise<TaskRunLaunch> {
+async function launchLocalTaskRun(root: string, prepared: PreparedHandoff, onAdmitted?: AdmissionNotice): Promise<TaskRunLaunch> {
   const key = handoffRunKey(prepared);
   root = resolve(root);
   const created = mkdirSync(root, { recursive: true, mode: 0o700 });
@@ -156,7 +172,7 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Prom
   privateDirectory(directory);
   syncDirectory(privateRoot);
   try {
-    await startLocalTaskRun(directory, prepared, replacement);
+    await startLocalTaskRun(directory, prepared, replacement, onAdmitted && (() => onAdmitted(inspect(false))));
     return inspect(false);
   }
   catch (error) {
@@ -167,12 +183,12 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Prom
   }
 }
 
-export async function runLocalTaskHandoff(root: string, bytes: Uint8Array, action: HandoffAction = 'start'): Promise<LocalRunReply> {
+export async function runLocalTaskHandoff(root: string, bytes: Uint8Array, action: HandoffAction = 'start', onAdmitted?: AdmissionNotice): Promise<LocalRunReply> {
   try {
     const prepared = await prepareTaskRunHandoff(bytes).catch((error: unknown) => {
       throw new LocalRunRequestError(400, error instanceof Error ? error.message : 'Invalid task run handoff.');
     });
-    return { result: action === 'reopen' ? reopenLocalTaskRun(root, prepared) : await launchLocalTaskRun(root, prepared) };
+    return { result: action === 'reopen' ? reopenLocalTaskRun(root, prepared) : await launchLocalTaskRun(root, prepared, onAdmitted) };
   }
   catch (error) {
     return error instanceof LocalRunRequestError ? { status: error.status, error: error.message }

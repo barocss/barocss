@@ -1,0 +1,143 @@
+{
+  "decision": "D640",
+  "tier": "FEATURE qualification",
+  "baseCommit": "67c4de0b170e6984fb0fdc195c8aedba5049b09d",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d640-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 d640-final-type-compatible followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio live admission, idempotent Start and explicit approval",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D640_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-live-start\" --live-start",
+      "receiptSHA256": "4e7abfcdc0972e17336d90519acb4a1018f14ea9554925ab2ba372d5f9b7261c",
+      "pinnedSources": 811,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "earlyResponseMs": 274.26,
+        "admittedRevision": 0,
+        "runningRevision": 2,
+        "awaitingDecisionRevision": 6,
+        "approvedRevision": 9,
+        "nativeWorkerThreads": 2,
+        "nativeWorkerProcesses": 1,
+        "matchingStarts": 2,
+        "runDirectories": 1,
+        "publicationsWhileRunning": 0,
+        "terminalApprovals": 1,
+        "finalHeightsMm": [
+          6,
+          3
+        ],
+        "localPathInChat": false
+      }
+    },
+    {
+      "label": "Desktop Studio stopped run and path-free chat regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D639_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-stopped-finding\" --stopped-finding",
+      "receiptSHA256": "255fbc171a6fd27476978c27e3d0d95526030400041d471e1f01c65f4bab36e0",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio durable replacement provenance regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D633_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-provenance\" --provenance",
+      "receiptSHA256": "bcdf2966e5c838dcfe919ca88708d19d86e5592f9a3830807cc8244ef960c24f",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Independent admission, worker and native byte check",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/live-start-oracle.py\" \"$EVIDENCE/final-live-start\"",
+      "scriptSHA256": "af55b35cd3c000d364ceecd516b1b59110d2b821e7539cc85beb7357453f6377",
+      "resultSHA256": "be1017d5c25195b37a71f1e6f9ceb23cb50d5321cfe642d490e012ee5f26610a",
+      "sourceSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+      "approvedSHA256": "6a56efaa9cfb2cf03239b5c592ecca7e79a75e2aba0e24380c311bf06fa726fa",
+      "productImports": 0
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "existingWarnings": 2,
+      "errors": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-final\""
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First live admission through the Studio proxy",
+      "receiptSHA256": "37676e5b16a9330dcd46d1d09532011f8149ac26402a5ee9e1c94ec1d5646a30",
+      "reason": "The proxy did not forward response headers before the body. Send a JSON whitespace chunk with admission."
+    },
+    {
+      "result": "FAIL",
+      "check": "First Studio type check",
+      "logSHA256": "6bb55fc321e394b58e297bcb5ce543157c28f52dc00f6080d8b6d146a45ad04f",
+      "reason": "The configured TypeScript library does not expose Promise.withResolvers. Use a promise with a typed resolver."
+    }
+  ],
+  "notRun": [
+    "Stop while initial workers are active",
+    "Forced runner exit after admission",
+    "Live provider execution",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

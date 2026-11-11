@@ -23,7 +23,7 @@ import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
 import { MAX_CONVERSATION_IMAGE_TRACES } from '../src/chat/imageLimits';
-import { isLocalTaskRunHost, isTaskRunFindingSelection, readTaskRunOffer, type TaskRunOffer } from '../src/chat/taskRunOffer';
+import { isLocalTaskRunHost, isTaskRunFindingSelection, readTaskRunOffer, type TaskRunLaunch, type TaskRunOffer } from '../src/chat/taskRunOffer';
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
 import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
@@ -229,7 +229,20 @@ export function createChatServer(options: ChatServerOptions) {
       res.setHeader('cache-control', 'no-store');
       try {
         const bytes = await readTaskRunBody(req, handoff ? MAX_TASK_RUN_HANDOFF_BYTES : action === 'review' ? 4096 : 1024);
-        if (handoff || action === 'rebuild') return sendJson(res, 200, await handleTaskRun(bytes, action));
+        if (handoff || action === 'rebuild') {
+          const showProgress = action === 'start' && req.headers['x-barocss-task-run-progress'] === '1';
+          const onAdmitted = showProgress ? (run: TaskRunLaunch) => {
+            if (res.destroyed || res.writableEnded) return;
+            res.statusCode = 200;
+            res.setHeader('content-type', 'application/json');
+            res.setHeader('x-barocss-task-run-admitted', encodeURIComponent(JSON.stringify(run)));
+            // The proxy forwards the headers with the first body chunk. JSON permits leading whitespace.
+            res.write('\n');
+          } : undefined;
+          const run = await handleTaskRun(bytes, action, onAdmitted);
+          if (res.destroyed || res.writableEnded) return;
+          return res.headersSent ? res.end(JSON.stringify(run)) : sendJson(res, 200, run);
+        }
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }
@@ -250,11 +263,12 @@ export function createChatServer(options: ChatServerOptions) {
         if (action === 'status') return sendJson(res, 200, readLocalTaskRunStatus(taskRunDir, request));
         return sendJson(res, 200, { review: readLocalTaskCandidate(taskRunDir, request) });
       } catch (error) {
-        if (error instanceof LocalRunRequestError) {
-          if (error.status === 413) res.setHeader('connection', 'close');
-          return sendJson(res, error.status, { error: error.message });
-        }
-        return sendJson(res, 500, { error: 'Could not read the request or access the local task run directory.' });
+        if (res.destroyed || res.writableEnded) return;
+        const problem = error instanceof LocalRunRequestError ? error
+          : new LocalRunRequestError(500, 'Could not read the request or access the local task run directory.');
+        if (res.headersSent) return res.end(JSON.stringify({ error: problem.message }));
+        if (problem.status === 413) res.setHeader('connection', 'close');
+        return sendJson(res, problem.status, { error: problem.message });
       }
     }
     if (req.method === 'GET' && path === '/status') {

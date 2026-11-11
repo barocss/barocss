@@ -8,6 +8,7 @@ const body = Buffer.concat(chunks);
 function parseJSON(bytes: Buffer): unknown {
   try { return JSON.parse(bytes.toString('utf8')); } catch { return null; }
 }
+const writeFrame = (frame: unknown) => process.stdout.write(JSON.stringify(frame) + '\n');
 const reply = action === 'rebuild' ? await runLocalTaskRebuild(process.argv[2], parseJSON(body))
-  : await runLocalTaskHandoff(process.argv[2], body, action);
-process.stdout.write(JSON.stringify(reply));
+  : await runLocalTaskHandoff(process.argv[2], body, action, action === 'start' ? admitted => writeFrame({ admitted }) : undefined);
+writeFrame(reply);

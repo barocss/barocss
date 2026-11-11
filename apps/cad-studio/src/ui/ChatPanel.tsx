@@ -2,7 +2,7 @@
 // preview. Turns run on the chat server (the claude CLI with the studio's tools); the part changes here
 // only through `onCommit`, once per turn, so one undo takes a turn back. O17: the messages are the AI SDK's (useChat,
 // chat/useStudioChat), each part drawn by the chat's components (components/ai).
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult, EvalResult } from '@barocss/cad-model/engine/evaluate';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
@@ -55,7 +55,7 @@ export interface ChatPanelProps {
     reopened?: TaskRunLaunch;
     sourceKey(): string | undefined;
     export(plan: SavedTaskRunPlan): Promise<void>;
-    start(plan: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined>;
+    start(plan: SavedTaskRunPlan, onAdmitted?: (run: TaskRunLaunch) => void): Promise<TaskRunLaunch | undefined>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
@@ -102,8 +102,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const rememberRunStatus = (snapshot: TaskRunStatus) => {
     const prior = runStatusesNow.current.get(snapshot.runId);
     if (prior && (prior.runKey !== snapshot.runKey || prior.revision >= snapshot.revision)) return;
-    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks } = snapshot;
-    const status = { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks };
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement } = snapshot;
+    const status = { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement };
     const next = new Map(runStatusesNow.current).set(runId, status);
     runStatusesNow.current = next;
     setRunStatuses(next);
@@ -277,41 +277,65 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   onPrepared(plan: SavedTaskRunPlan, version: object): void;
 }) {
   const busy = useRef(false);
-  const [working, setWorking] = useState<'start' | 'status' | 'checkpoint' | 'baseline' | { taskId: string; action: 'review' | 'rebuild' | 'replan' }>();
-  const disabled = blocked || working !== undefined;
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const [working, setWorking] = useState<'start' | 'checkpoint' | 'baseline' | { taskId: string; action: 'review' | 'rebuild' | 'replan' }>();
+  const refreshing = useRef(false);
+  const [refreshPending, setRefreshPending] = useState(false);
+  const [admitted, setAdmitted] = useState(false);
+  const disabled = blocked || working !== undefined || refreshPending;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const base = launch ?? initialRun;
   const latest = base && statuses.current.get(base.runId);
   const result = base && latest?.runKey === base.runKey && latest.revision >= base.revision ? { ...base, ...latest } : base;
   const [error, setError] = useState('');
   async function start() {
-    if (busy.current || blocked || startBlocked || !plan) return;
+    if (busy.current || refreshing.current || blocked || startBlocked || !plan) return;
     busy.current = true;
     setWorking('start');
+    setAdmitted(false);
     setError('');
+    const showRun = (run: TaskRunLaunch) => {
+      statuses.remember(run);
+      setLaunch(run);
+    };
     try {
-      const launched = await actions.start(plan);
-      if (launched) {
-        statuses.remember(launched);
-        setLaunch(launched);
-      } else setError('The saved source is no longer current. Save and inspect it again.');
+      const launched = await actions.start(plan, run => {
+        if (!mounted.current) return;
+        showRun(run);
+        setAdmitted(true);
+      });
+      if (!mounted.current) return;
+      if (launched) showRun(launched);
+      else setError('The saved source is no longer current. Save and inspect it again.');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not start the local task run.');
+      if (mounted.current) setError(error instanceof Error ? error.message : 'Could not start the local task run.');
     } finally { busy.current = false; setWorking(undefined); }
   }
-  async function refresh() {
-    if (busy.current || !result) return;
-    busy.current = true;
-    setWorking('status');
-    setError('');
+  const refreshDisabled = blocked || refreshPending || (working !== undefined && !(working === 'start' && admitted));
+  async function refresh(manual: boolean) {
+    if (refreshDisabled || refreshing.current || !result) return;
+    refreshing.current = true;
+    setRefreshPending(true);
+    if (manual) setError('');
     try {
-      statuses.remember(await actions.refresh(result));
+      const snapshot = await actions.refresh(result);
+      if (mounted.current) statuses.remember(snapshot);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not refresh the local task run.');
-    } finally { busy.current = false; setWorking(undefined); }
+      if (manual && mounted.current) setError(prior => prior || (error instanceof Error ? error.message : 'Could not refresh the local task run.'));
+    } finally {
+      refreshing.current = false;
+      if (mounted.current) setRefreshPending(false);
+    }
   }
+  const poll = useEffectEvent(() => { if (busy.current && working === 'start') void refresh(false); });
+  useEffect(() => {
+    if (working !== 'start' || !admitted) return;
+    const timer = window.setInterval(() => poll(), 1000);
+    return () => window.clearInterval(timer);
+  }, [working, admitted]);
   async function openRunFile(kind: 'checkpoint' | 'baseline') {
-    if (busy.current || !result || (kind === 'checkpoint' && !result.checkpoint)) return;
+    if (busy.current || refreshing.current || !result || (kind === 'checkpoint' && !result.checkpoint)) return;
     busy.current = true;
     setWorking(kind);
     setError('');
@@ -320,7 +344,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     finally { busy.current = false; setWorking(undefined); }
   }
   async function review(task: TaskRunLaunch['tasks'][number]) {
-    if (busy.current || !result || !task.review) return;
+    if (busy.current || refreshing.current || !result || !task.review) return;
     busy.current = true;
     setWorking({ taskId: task.id, action: 'review' });
     setError('');
@@ -332,7 +356,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     } finally { busy.current = false; setWorking(undefined); }
   }
   async function rebuild(task: TaskRunLaunch['tasks'][number]) {
-    if (busy.current || !result || !task.rebuild) return;
+    if (busy.current || refreshing.current || !result || !task.rebuild) return;
     busy.current = true;
     setWorking({ taskId: task.id, action: 'rebuild' });
     setError('');
@@ -341,7 +365,7 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     finally { busy.current = false; setWorking(undefined); }
   }
   async function replan(task: TaskRunLaunch['tasks'][number]) {
-    if (busy.current || !result || !task.replan) return;
+    if (busy.current || refreshing.current || !result || !task.replan) return;
     const { runKey, runId, baselineDigest, revision } = result, version = actions.workingVersion;
     busy.current = true;
     setWorking({ taskId: task.id, action: 'replan' });
@@ -364,8 +388,8 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
     {error && <div role="status">{error}</div>}
     {result && <div role="status">
       <span>{(initialRun ? 'Reopened local run' : result.reused ? 'Existing local run' : 'Local run started') + ' · ' + result.phase}</span>
-      <button className="ghost" type="button" aria-label="Refresh local run status" disabled={disabled} onClick={() => void refresh()}>
-        {working === 'status' ? 'Refreshing…' : 'Refresh status'}
+      <button className="ghost" type="button" aria-label="Refresh local run status" disabled={refreshDisabled} onClick={() => void refresh(true)}>
+        {refreshPending ? 'Refreshing…' : 'Refresh status'}
       </button>
       {initialRun && <button className="ghost" type="button" aria-label="Open run baseline"
         disabled={disabled || actions.modelViewBlocked} onClick={() => void openRunFile('baseline')}>

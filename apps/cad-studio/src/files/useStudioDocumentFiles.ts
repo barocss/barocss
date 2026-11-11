@@ -9,6 +9,7 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
+import { isObj } from '@barocss/cad-model/util/guards';
 import { readRender } from '@barocss/cad-model/engine/render';
 import { clearRecovery } from '../app/recovery';
 import type { EngineClient } from '../engine/client';
@@ -114,7 +115,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
 
   const withTaskRunHandoff = async <T>(offer: TaskRunOffer, sourceKey: string, action: string,
-    use: (handoff: Uint8Array, file: string) => T, replaces?: TaskRunReplanSelection) => {
+    use: (handoff: Uint8Array, file: string, current: () => boolean) => T, replaces?: TaskRunReplanSelection) => {
     if (sessionBlocked(action)) return;
     const scope = currentOpenScope(), sourceDoc = docNow.current, token = saveDocumentToken.current, name = fileNameNow.current;
     const current = () => isOpenCurrent(scope) && saveDocumentToken.current === token && docNow.current === sourceDoc && fileNameNow.current === name;
@@ -127,7 +128,8 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       const handoff = await encodeTaskRunHandoff(offer, source.bytes, replaces);
       if (!current() || !source.current()) return;
       await source.verify();
-      if (current() && source.current()) return use(handoff, name + TASK_RUN_HANDOFF_EXT);
+      const ownsHandoff = () => current() && source.current();
+      if (ownsHandoff()) return use(handoff, name + TASK_RUN_HANDOFF_EXT, ownsHandoff);
     } catch (error) {
       if (current()) throw error;
     }
@@ -142,16 +144,38 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
-  const startTaskRun = async ({ offer, sourceKey, replaces }: SavedTaskRunPlan): Promise<TaskRunLaunch | undefined> => {
+  const startTaskRun = async ({ offer, sourceKey, replaces }: SavedTaskRunPlan,
+    onAdmitted?: (run: TaskRunLaunch) => void): Promise<TaskRunLaunch | undefined> => {
     if (!isLocalTaskRunHost(window.location.hostname)) throw new Error('Open Studio on this computer to start a local task run.');
-    return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async handoff => {
-      const value = await localTaskRunJSON('start', new Blob([handoff as BlobPart]));
+    const checkedLaunch = (value: unknown): TaskRunLaunch => {
+      if (!isObj(value)) throw new Error('The local task run service returned an invalid result.');
       const { directory, reused } = value;
       if (typeof directory !== 'string' || typeof reused !== 'boolean' || !isTaskRunStatus(value))
         throw new Error('The local task run service returned an invalid result.');
       if (digestOf(value.replacement?.previous ?? null) !== digestOf(replaces ?? null))
         throw new Error('The local task run returned different replacement provenance.');
       return { ...value, directory, reused };
+    };
+    return withTaskRunHandoff(offer, sourceKey, 'starting a task run', async (handoff, _file, current) => {
+      let admitted: TaskRunLaunch | undefined, visible = false;
+      try {
+        const value = await localTaskRunJSON('start', new Blob([handoff as BlobPart]), onAdmitted && (value => {
+          admitted = checkedLaunch(value);
+          if (admitted.baselineDigest !== offer.revision) throw new Error('The admitted run does not match the saved model.');
+          if (current()) {
+            onAdmitted(admitted);
+            visible = true;
+          }
+        }));
+        const launched = checkedLaunch(value);
+        if (admitted && (launched.runKey !== admitted.runKey || launched.runId !== admitted.runId || launched.revision < admitted.revision))
+          throw new Error('The local task run service returned a different or older run result.');
+        if (admitted && digestOf(launched.replacement ?? null) !== digestOf(admitted.replacement ?? null))
+          throw new Error('The local task run returned different replacement provenance.');
+        if (current() || visible) return launched;
+      } catch (error) {
+        if (current() || visible) throw error;
+      }
     }, replaces);
   };
 

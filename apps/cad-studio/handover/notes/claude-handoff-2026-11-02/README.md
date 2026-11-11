@@ -1,5 +1,5 @@
 ---
-work_id: D639
+work_id: D640
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -215,7 +215,9 @@ D638 completes the repaired shared-hole pilot with two terminal approvals and ex
 
 D639 makes stopped native runs readable across CLI status and fresh Studio Open, with historical findings retained and no active evidence controls. Chat no longer renders the local folder path. [D639](../studio-stopped-native-run-2026-11-11/README.md).
 
-Next MAIN is D640 / P0 automation, B09 follow-up, rows 04, 12 and 16. Make the owned local run visible in Studio after its exact saved baseline is admitted, while native workers are still running. Verify live task status, idempotent Start and the existing explicit approval boundary. [#2402](https://github.com/barocss/barocss/issues/2402).
+D640 displays the run after the saved baseline is recorded. Desktop Studio shows both workers running and a matching concurrent Start reuses the same run. The chat card omits the local path. One explicit terminal approval still controls publication. [D640](../studio-live-local-run-2026-11-11/README.md).
+
+Next MAIN is D641 / P0 automation, B09 follow-up, rows 04, 12 and 16. Add explicit Stop from Studio while native workers are active. Route it through the current run writer. Verify late results cannot publish and Studio can reopen the same stopped run and its accepted baseline. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
