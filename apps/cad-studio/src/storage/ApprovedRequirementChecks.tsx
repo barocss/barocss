@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { isCurrentRequirement, type RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import { expectedOf } from '@barocss/cad-model/chat/spec';
@@ -10,6 +10,7 @@ import type { Version, VersionLog } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
+import { SavedRepairChecks } from './SavedRepairChecks';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
   saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair, type SavedApprovalSource } from './savedApprovalEvidence';
 
@@ -18,7 +19,7 @@ type CheckResult = Awaited<ReturnType<typeof compareApprovedRequirements>>;
 type BoundReview = ReturnType<typeof bindSavedApproval>;
 type BoundFollowUp = NonNullable<ReturnType<typeof bindSavedFollowUp>>;
 export type AttachApprovalEvidence = (source: SavedApprovalSource) => Promise<boolean>;
-type SavedSuccessor = { log: VersionLog; version: Version };
+type SavedSuccessor = { log: VersionLog; version: Version; newer: readonly Version[] };
 type FollowUpResult = Awaited<ReturnType<typeof requirementFollowUp>>;
 type FollowUpRead = FollowUpResult | { error: string };
 const unitText = (unit?: string) => unit === 'mm3' ? 'mm³' : unit === 'mm2' ? 'mm²' : unit;
@@ -53,14 +54,15 @@ function AttachEvidenceButton({ source, onAttach, kind }: {
   </>;
 }
 
-function KeepFollowUpEvidence({ source, approval, report, stored, onAttach }: {
+function KeepFollowUpEvidence({ source, approval, report, stored, onAttach, children }: {
   source: BoundFollowUp; approval: ApprovalCheck; report: Extract<FollowUpResult, { status: 'checked' }>;
-  stored: boolean; onAttach?: AttachApprovalEvidence;
+  stored: boolean; onAttach?: AttachApprovalEvidence; children?: ReactNode;
 }) {
   const { state, save } = useEvidenceSave();
   if (stored || state === 'saved') return <div>
     <div role="status">Follow-up evidence saved</div>
     {onAttach && <AttachEvidenceButton source={source} onAttach={onAttach} kind="follow-up" />}
+    {children}
   </div>;
   return <div className="mt-1">
     <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveFollowUpEvidence(source, approval, report))}>
@@ -70,8 +72,8 @@ function KeepFollowUpEvidence({ source, approval, report, stored, onAttach }: {
   </div>;
 }
 
-function SavedRequirementFollowUp({ source, name, approval, evaluate, onAttach }: {
-  source: BoundFollowUp; name: string; approval: ApprovalCheck; evaluate: Evaluate; onAttach?: AttachApprovalEvidence;
+function SavedRequirementFollowUp({ source, followUp, approval, evaluate, onAttach }: {
+  source: BoundFollowUp; followUp: SavedSuccessor; approval: ApprovalCheck; evaluate: Evaluate; onAttach?: AttachApprovalEvidence;
 }) {
   const [selected, setSelected] = useState(false);
   const request = useMemo(() => selected ? { source, approval, evaluate } : null, [selected, source, approval, evaluate]);
@@ -107,7 +109,7 @@ function SavedRequirementFollowUp({ source, name, approval, evaluate, onAttach }
     <label className="block">Follow-up version
       <NativeSelect aria-label="Follow-up version" value={selected ? source.version.id : ''} onChange={event => setSelected(event.currentTarget.value === source.version.id)}>
         <option value="">None</option>
-        <option value={source.version.id}>{name}</option>
+        <option value={source.version.id}>{followUp.version.name ?? followUp.version.id}</option>
       </NativeSelect>
     </label>
     {selected && <div role="region" aria-label="Saved follow-up checks" aria-live="polite">
@@ -121,7 +123,10 @@ function SavedRequirementFollowUp({ source, name, approval, evaluate, onAttach }
           {row?.result.number != null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{row.result.number}{unit ? ' ' + unit : ''}</span>}
         </div>;
       })}
-      {report?.status === 'checked' && <KeepFollowUpEvidence source={source} approval={approval} report={report} stored={!!current?.stored} onAttach={onAttach} />}
+      {report?.status === 'checked' && <KeepFollowUpEvidence source={source} approval={approval} report={report} stored={!!current?.stored} onAttach={onAttach}>
+        {followUp.newer.length > 0 && report.findings.some(row => row.status === 'regressed') &&
+          <SavedRepairChecks source={source} log={followUp.log} versions={followUp.newer} evaluate={evaluate} />}
+      </KeepFollowUpEvidence>}
     </div>}
   </div>;
 }
@@ -193,7 +198,7 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
     </div>)}
     {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach} />}
     {source && followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={source.version.id}
-      source={source} name={followUp.version.name ?? followUp.version.id} approval={result} evaluate={evaluate} onAttach={onAttach} />}
+      source={source} followUp={followUp} approval={result} evaluate={evaluate} onAttach={onAttach} />}
   </>;
 }
 

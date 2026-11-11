@@ -98,7 +98,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     const successor = list[list.indexOf(to) - 1];
     if (!successor || !isLinearSavedSequence(log, from, to, successor)) return;
     if (log.versions.some(item => item.name === successor.id && item.id !== successor.id)) return;
-    return { log, version: successor };
+    return { log, version: successor, newer: list.slice(0, list.indexOf(successor)) };
   }, [log, list, savedPair]);
   const others = log ? log.branches.filter(b => b.name !== log.current) : [];
   const linkedCount = useMemo(() => new Set((doc.instances ?? []).flatMap(i => linkedPath(i.part?.source) !== null ? [i.part!.id] : [])).size, [doc.instances]);

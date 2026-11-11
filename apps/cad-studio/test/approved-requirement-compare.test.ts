@@ -12,7 +12,7 @@ import { requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { nestedRequirementScope } from '@barocss/cad-model/team/requirementScope';
 import { approvedRequirementComparison, compareApprovedRequirements as evidenceOf } from '@barocss/cad-model/versions/approvedRequirements';
 import { approvalEvidenceFile, approvalEvidencePin } from '@barocss/cad-model/versions/approvalEvidenceReport';
-import { makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
+import { applyBranch, makeBranch, makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence, saveApprovalEvidence,
   saveFollowUpEvidence } from '../src/storage/savedApprovalEvidence';
@@ -21,6 +21,7 @@ import { serveMcp } from '../server/cadMcp';
 import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn, selectedApprovalEvidenceTool,
   selectedApprovalForTurn } from '../server/selectedApprovalEvidence';
 import { prepareSelectedFollowUpRepair } from '../server/selectedFollowUpRepair';
+import { checkSavedFollowUpRepair } from '../src/storage/savedFollowUpRepair';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
   check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 10, unit: 'mm' } };
@@ -246,6 +247,65 @@ test('D653 and D654 retain a direct saved regression and admit only its exact at
   }
   await store.write(review.path, retained.bytes);
   assert.deepEqual(await readSavedApprovalEvidence(review), { error: 'Saved approval evidence does not match this review.' });
+});
+
+test('D656 proves a later saved user repair on the same lineage, occurrence and authored criterion', async () => {
+  const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
+  const comparison = approvedRequirementComparison(pending, accepted), part = 'p1/p1';
+  assert.ok(comparison?.nested);
+  const operation = comparison.nested.ops[0], approval = await evidenceOf(comparison, part, evaluate);
+  assert.ok(!('error' in approval));
+  const scope = nestedRequirementScope(accepted, part);
+  assert.ok(!('error' in scope));
+  const at = (minute: number) => ({ at: `2026-11-11T00:0${minute}:00Z` });
+  const edit = (H: number, criterion = requirement) => {
+    const out = editNestedDefinition(accepted, scope, { ...scope.leaf.doc, parameters: { H }, requirements: [criterion] });
+    assert.ok(!('error' in out));
+    return out.doc;
+  };
+  const first = makeVersions(pending, at(0)), fixed = makeVersion(first, accepted, at(1));
+  const failed = edit(12), savedFailure = makeVersion(fixed.log, failed, at(2)), store = memoryStore();
+  const review = bindSavedApproval({ store, document: 'assembly.bcad', from: first.versions[0], to: fixed.version }, comparison, part);
+  const source = bindSavedFollowUp(review, savedFailure.log, savedFailure.version, operation);
+  assert.ok(source);
+  const followUp = await requirementFollowUp(accepted, failed, operation, part, ['H-CAP'], approval.after, source.version.evidenceRevision, evaluate);
+  assert.ok(followUp.status === 'checked');
+  await saveFollowUpEvidence(source, approval, followUp);
+  const original = await store.read(source.path);
+  assert.ok(original);
+  const artifact = JSON.parse(new TextDecoder().decode(original.bytes));
+  const metadata = { evidence_sha256: artifact.sha256, part, version: savedFailure.version.id, requirements: ['H-CAP'] };
+  const acceptLinked = async (base: StudioDoc, target = part, H = 10, follow_up_repair = metadata) => {
+    const built = await evaluate(base);
+    assert.ok(built.ok);
+    const draft = await runTool({ doc: base, bodies: built.bodies }, 'propose',
+      { title: 'Repair', ops: [{ tool: 'set_parameters', args: { part: target, set: { H } } }] }, evaluate);
+    assert.ok(!draft.isError, draft.content);
+    const proposal = draft.state.doc.proposals!.at(-1)!;
+    const doc = { ...draft.state.doc, proposals: [...draft.state.doc.proposals!.slice(0, -1), { ...proposal, follow_up_repair }] };
+    const result = await acceptProposal({ ...draft.state, doc }, proposal.id, evaluate);
+    assert.ok('state' in result, JSON.stringify(result));
+    return result.state.doc;
+  };
+  const newerFailure = edit(13), savedBase = makeVersion(savedFailure.log, newerFailure, at(3));
+  const repaired = await acceptLinked(newerFailure), saved = makeVersion(savedBase.log, repaired, at(4));
+  const verified = await checkSavedFollowUpRepair(source, saved.log, saved.version.id, evaluate);
+  assert.deepEqual(verified, { version: saved.version, proposal: 'P2', recoveries: [{ id: 'H-CAP', from: 13, to: 10, unit: 'mm' }] });
+  const resultWithoutBase = makeVersion(savedFailure.log, repaired, at(4));
+  const other = applyBranch(makeBranch(savedBase.log, 'separate', { from: fixed.version.id }), 'separate', newerFailure).log;
+  const unrelated = makeVersion(other, repaired, at(4));
+  const sibling = makeVersion(savedBase.log, await acceptLinked(newerFailure, 'p2/p1'), at(4));
+  const wrongValue = makeVersion(savedBase.log, await acceptLinked(newerFailure, part, 9), at(4));
+  const wrongFile = makeVersion(savedBase.log, await acceptLinked(newerFailure, part, 10, { ...metadata, evidence_sha256: 'f'.repeat(64) }), at(4));
+  const revised = edit(13, { ...requirement, check: { ...requirement.check, value: 11 } });
+  const revisedBase = makeVersion(savedFailure.log, revised, at(3));
+  const revisedRepair = makeVersion(revisedBase.log, await acceptLinked(revised), at(4));
+  for (const refusal of [resultWithoutBase, unrelated, sibling, wrongValue, wrongFile, revisedRepair]) {
+    const result = await checkSavedFollowUpRepair(source, refusal.log, refusal.version.id, evaluate);
+    assert.ok('error' in result, refusal.version.id);
+  }
+  assert.ok('error' in await checkSavedFollowUpRepair(source, saved.log, saved.version.id, async () => null));
+  assert.deepEqual(await store.read(source.path), original);
 });
 
 test('D652 lists the read-only tool only for a retained approval bound to the turn snapshots', async () => {

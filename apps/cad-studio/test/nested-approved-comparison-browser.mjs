@@ -11,7 +11,9 @@ assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(rep
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const persistFollowUpBaseline = mode === '--save-follow-up-baseline';
 const attachFollowUpBaseline = mode === '--attach-follow-up-baseline', attachFollowUp = mode === '--attach-follow-up';
-const repairBaseline = mode === '--repair-follow-up-baseline', repairFollowUp = mode === '--repair-follow-up';
+const resolutionBaseline = mode === '--saved-repair-baseline', resolution = mode === '--saved-repair';
+const repairBaseline = mode === '--repair-follow-up-baseline';
+const repairFollowUp = mode === '--repair-follow-up' || resolutionBaseline || resolution;
 const repairReview = repairBaseline || repairFollowUp;
 const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline || attachFollowUpBaseline || attachFollowUp || repairReview;
 const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline || persistFollowUp;
@@ -41,6 +43,7 @@ const pins = [
   ...(repairFollowUp ? ['apps/cad-studio/server/selectedFollowUpRepair.ts', 'apps/cad-studio/src/ui/ProposalBrowser.tsx',
     'packages/barocss-cad-model/src/chat/merge.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts',
     'packages/barocss-cad-model/src/engine/schema/proposals.ts'] : []),
+  ...(resolution ? ['apps/cad-studio/src/storage/savedFollowUpRepair.ts', 'apps/cad-studio/src/storage/SavedRepairChecks.tsx'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
     'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
 ];
@@ -104,14 +107,28 @@ if 'repaired' in d:
     assert (width, depth, old_h, new_h) == (20, 10, 8, 4)
     assert (old_h > 5 and new_h <= 5) and width * depth * (new_h - old_h) == -800
     assert d['previewVolume'] == '−800 mm³'
-    print(json.dumps({'status':'PASS','volumeDeltaMm3':-800,'siblingPreserved':True}))
+    report = {'status':'PASS','volumeDeltaMm3':-800,'siblingPreserved':True}
+    if 'resolution' in d:
+        proof = d['resolution']
+        later = d['pins']['later']
+        repair = proof['repairedVersion']
+        assert proof['versions'][-1] == repair
+        assert proof['versions'][-2]['parents'] == [later['id']]
+        assert repair['parents'] == [proof['versions'][-2]['id']]
+        assert proof['original'] == f'{old_h} mm' and proof['measurement'] == f'{old_h} mm → {new_h} mm'
+        proposal = d['repaired']['proposals'][-1]
+        assert proposal['id'] == 'P2' and proposal['decided']['by'] == 'user'
+        assert proposal['follow_up_repair'] == {'evidence_sha256': a['sha256'], 'version': later['id'], 'part': 'p1/p1', 'requirements': ['HEIGHT']}
+        assert proposal['decided']['evidence_revisions']['before'] == later['evidenceRevision']
+        report.update({'savedLineage':True, 'savedRecoveryMm':[old_h,new_h]})
+    print(json.dumps(report))
 else:
     print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: repairReview ? 'D655_SOURCE_FROZEN' : attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: resolutionBaseline || resolution ? 'D656_SOURCE_FROZEN' : repairReview ? 'D655_SOURCE_FROZEN' : attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: repairReview ? 'Prepare a repair from a selected saved regression after a fresh check' : saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+  qualification: resolutionBaseline || resolution ? 'Link a retained saved failure to a newer user-approved repair' : repairReview ? 'Prepare a repair from a selected saved regression after a fresh check' : saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
@@ -590,7 +607,65 @@ async function verifySelectedRepair({ saved, skipped, working, first, approved, 
     f.report.observations.push({ evidence: artifact.sha256, currentBefore: failed, currentAfter: nowPassing, previewVolume,
       proposal: record.id, missingAttachmentRefused: true, staleRefused: true, passingRefused: true, lateDiscarded: true,
       agentAcceptanceRefused: true, userApproved: true, savedAndReopened: true, originalEvidencePreserved: true });
+    if (resolutionBaseline || resolution)
+      await verifySavedResolution({ retained, repaired, working, first, approved, historical, current, artifact, pins, laterFile, bytes, previewVolume });
   });
+}
+
+async function verifySavedResolution({ retained, repaired, working, first, approved, historical, current, artifact, pins, laterFile, bytes, previewVolume }) {
+  const followUp = () => history().getByRole('region', { name: 'Saved follow-up checks', exact: true });
+  const select = () => followUp().getByLabel('Repair version', { exact: true });
+  const result = () => followUp().getByRole('region', { name: 'Saved repair checks', exact: true });
+  const versionsAtSave = JSON.parse(retained.log).versions;
+  const repairedVersion = versionsAtSave.at(-1);
+  const chooseFollowUp = async () => {
+    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+    await selectTarget().selectOption(pins.to.id);
+    await history().getByLabel('Follow-up version', { exact: true }).selectOption(pins.later.id);
+    await followUp().getByText('Follow-up evidence saved', { exact: true }).waitFor();
+    await followUp().getByText('Regressed', { exact: true }).waitFor();
+    await followUp().getByText('8 mm', { exact: true }).waitFor();
+  };
+  f.phase = 'show the retained failure after reopening the saved repair';
+  await chooseFollowUp();
+  if (resolutionBaseline) {
+    assert.equal(await select().count(), 0);
+    await f.same(repaired);
+    await f.snapshot('12-baseline-no-repair-review');
+    f.report.observations.push({ retainedFailureVisible: true, savedUserRepairExists: true, repairReviewAvailable: false });
+    return;
+  }
+  f.phase = 'refuse a passing saved snapshot without the linked approval';
+  await select().selectOption({ label: 'Skipped later version' });
+  await result().getByText('No matching user-approved repair for this saved regression.', { exact: true }).waitFor();
+  assert.equal(await result().getByText('Fail → Pass', { exact: true }).count(), 0);
+  await f.same(repaired);
+  await f.snapshot('12-unrelated-pass-refused');
+
+  f.phase = 'show the linked failure and later passing result while the working model fails';
+  await versions().getByRole('button', { name: 'Restore Later working failure', exact: true }).click();
+  await f.same(working);
+  await inspectWorkingHeight();
+  await chooseFollowUp();
+  await select().selectOption(repairedVersion.id);
+  await result().getByText('P2 · Selected regression repaired', { exact: true }).waitFor();
+  const verdict = result().getByText('Fail → Pass', { exact: true });
+  const measured = result().getByText('8 mm → 4 mm', { exact: true });
+  await verdict.waitFor();
+  await measured.waitFor();
+  await followUp().getByText('Regressed', { exact: true }).waitFor();
+  await f.same(working);
+  assert.deepEqual(await projectBytes(), retained);
+  assert.equal(await approvalEvidenceFile(laterFile), bytes);
+  await f.runOracle({ first, approved, working, historical, current, artifact, pins, repaired, previewVolume,
+    resolution: { measurement: await measured.innerText(), original: '8 mm', repairedVersion, versions: versionsAtSave } }, 'saved-repair');
+  await measured.scrollIntoViewIfNeeded();
+  await f.snapshot('13-saved-repair-while-working-fails');
+  await select().selectOption({ label: 'None' });
+  await result().waitFor({ state: 'detached' });
+  await followUp().getByText('Regressed', { exact: true }).waitFor();
+  f.report.observations.push({ independentPassingVersionRefused: true, savedRepairShown: true, currentWorkingStillFails: true,
+    savedFilesUnchanged: true, originalFailureVisible: true });
 }
 
 async function withScriptedAgent(origin, check) {
