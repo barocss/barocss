@@ -250,6 +250,8 @@
 | `[STAGNATION]` | `core/error-codes.ts (declared)` | — |
 | `[STALE]` | `core/error-codes.ts (declared)` | — |
 | `[STATIONS]` | `core/error-codes.ts (declared)` | — |
+| `[STL_FLOAT32_COLLAPSE]` | `core/error-codes.ts (declared)` | — |
+| `[STL_FLOAT32_RANGE]` | `core/error-codes.ts (declared)` | — |
 | `[STRETCH_RANGE]` | `core/error-codes.ts (declared)` | — |
 | `[STRUCTURE]` | `core/error-codes.ts (declared)` | — |
 | `[SUPPORT]` | `core/error-codes.ts (declared)` | — |

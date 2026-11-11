@@ -445,16 +445,21 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
       if (o.step) { const step = stepOrError(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
       if (o.stl) {
         if (!s.bodies.length) return failed('STL: there is no body to write');
+        const prepared: { path: string; bytes: Uint8Array }[] = [];
         for (const b of s.bodies) {
           const path = s.bodies.length === 1 ? o.stl : o.stl.replace(/\.stl$/i, `-${b.key}.stl`);
           // (O8: a body whose pieces only touch along an edge or a point, one STL a piece: <name>-lump1.stl, …)
           const lumps = b.lumpTouch?.length ? lumpStls(b.mesh, b.key) : null;
-          if (lumps) { for (const f of lumps) { const at = path.replace(/\.stl$/i, `-lump${f.lump + 1}.stl`); writeAtomic(at, f.bytes); wrote.push(at); } continue; }
-          writeAtomic(path, stlFor(s.doc, b.key) ?? meshToStl(b.mesh, b.key)); wrote.push(path);
+          if (lumps) {
+            for (const f of lumps) prepared.push({ path: path.replace(/\.stl$/i, `-lump${f.lump + 1}.stl`), bytes: f.bytes });
+            continue;
+          }
+          prepared.push({ path, bytes: stlFor(s.doc, b.key) ?? meshToStl(b.mesh, b.key) });
         }
         // (O9: an STL's header cannot carry its source; the record beside it does, for every STL this run wrote.)
-        const stls = wrote.filter(w => /\.stl$/i.test(w)), at = sourceName(o.stl);
-        writeAtomic(at, sourceBytes(sourceRecord(s.doc, stls.map(w => w.replace(/^.*[\\/]/, ''))))); wrote.push(at);
+        const names = prepared.map(file => file.path.replace(/^.*[\\/]/, ''));
+        prepared.push({ path: sourceName(o.stl), bytes: sourceBytes(sourceRecord(s.doc, names)) });
+        for (const file of prepared) { writeAtomic(file.path, file.bytes); wrote.push(file.path); }
       }
     } catch (e) { return failed(`writing: ${e instanceof Error ? e.message : String(e)}`); }
   }

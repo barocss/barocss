@@ -4,7 +4,7 @@ import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
-import { massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { BarocssError, massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, withoutNativeFaces, type DisplayEdge, type DisplayMesh } from './mesh';
 import { lumpTouches } from './lumps';
 import { friendlyCause, type FriendlyError } from './errors';
@@ -558,12 +558,16 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
   return omitted.length ? { text, source, omitted } : { text, source };
 }
 
+/** Return null for unavailable tessellation. A Float32 serialization refusal must stop export instead of triggering a fallback. */
 export function stlFor(doc: StudioDoc, key: string, options: NonNullable<Parameters<typeof exportStl>[1]> = {}): Uint8Array | null {
   try {
     if (options.segmentsPerQuarter !== undefined && !Number.isFinite(options.segmentsPerQuarter)) return null;
     const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id, doc.nodes) === key);
     return output ? exportStl(output, options) : null;
-  } catch { return null; }
+  } catch (error) {
+    if (error instanceof BarocssError && (error.code === 'STL_FLOAT32_COLLAPSE' || error.code === 'STL_FLOAT32_RANGE')) throw error;
+    return null;
+  }
 }
 
 /**

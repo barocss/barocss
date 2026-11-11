@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D681 — refuse STL triangles that collapse in Float32](notes/stl-float32-collapse-2026-11-11/README.md).
 - [D680 — reopen the STL generated from an unsaved variant](notes/stl-variant-roundtrip-2026-11-11/README.md).
 - [D679 — bind the STL source record to the shown geometry](notes/stl-variant-source-2026-11-11/README.md).
 - [D678 — preserve the master while preparing STEP for a variant](notes/step-shown-variant-2026-11-11/README.md).

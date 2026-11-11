@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { lumpTouches, lumpTriangles } from '../src/engine/lumps';
+import { compactLump, lumpTouches, lumpTriangles } from '../src/engine/lumps';
 import { lumpStls, meshToStl } from '../src/engine/stl';
 import { threeMfModelOf } from '../src/print/export3mf';
 import { write3mf } from '../src/print/threemf';
@@ -39,6 +39,26 @@ function boxCylinder(flip: boolean): StudioDoc {
   return withNode(d, { kind: 'union', left: { node: flip ? 5 : 2, side: 'solid' }, right: { node: flip ? 2 : 5, side: 'solid' } });
 }
 const bodyOf = (doc: StudioDoc): BodyResult => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail); assert.equal(r.bodies.length, 1); return r.bodies[0]; };
+
+test('split STL checks source precision before compaction and retains normal bytes for valid lumps', () => {
+  const body = bodyOf(boxCylinder(false));
+  const old = lumpTriangles(body.mesh)!.map((triangles, k) => {
+    const compact = compactLump(body.mesh, triangles);
+    return meshToStl({ ...body.mesh, ...compact }, `${body.key} lump ${k + 1}`);
+  });
+  assert.deepEqual(lumpStls(body.mesh, body.key)?.map(file => file.bytes), old);
+
+  const x = 2 ** 24;
+  const mesh = {
+    ...body.mesh,
+    positions: new Float64Array([0, 0, 0, 1, 0, 0, 0, 1, 0, x, 0, 0, x + 1, 0, 0, x, 1, 0]),
+    indices: new Uint32Array([0, 1, 2, 3, 4, 5]),
+    faceOfVertex: new Float32Array([0, 0, 0, 1, 1, 1]),
+    faces: [{ ...body.mesh.faces[0], lump: 0 }, { ...body.mesh.faces[1], lump: 1 }],
+  };
+  assert.throws(() => meshToStl(mesh, 'fallback'), { code: 'STL_FLOAT32_COLLAPSE' });
+  assert.throws(() => lumpStls(mesh, 'split'), { code: 'STL_FLOAT32_COLLAPSE' });
+});
 
 test('O8: lumps touching along an edge, at a point, a corner on an edge, a cylinder tangent (either way round) — found; apart, face to face — not', () => {
   for (const [label, doc] of [['edge', cubes(10, 10, 0)], ['point', cubes(10, 10, 10)], ['corner on an edge', cubes(10, 10, 5)], ['box ∪ cylinder, turned 30°', boxCylinder(false)], ['cylinder ∪ box, turned 30°', boxCylinder(true)]] as const) {

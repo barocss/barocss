@@ -209,6 +209,22 @@ test('cad-cli run: a script to .bcad, STEP and STL; check; refusals write nothin
   assert.equal((await cli(['help'])).code, 0);
 });
 
+test('cad-cli STL precision refusal leaves existing outputs and writes no partial set', async () => {
+  const d = dir(), input = join(d, 'precision.bcad'), output = join(d, 'precision.stl');
+  const existing = join(d, 'precision-b1.stl');
+  writeFileSync(existing, 'existing output');
+  const first = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2] });
+  const ordinary = withNode(first, { kind: 'extrude', sketch: 0, height: 1, from: -4 });
+  const second = withNode(ordinary, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2] });
+  const witness = withNode(second, { kind: 'extrude', sketch: 2, height: 1 / 4096, from: 9999 });
+  writeFileSync(input, encodeStudioFile(witness));
+  const result = await cli(['run', '-', '--doc', input, '--stl', output], 'box({w: 2, d: 2, h: 1, x: 20})');
+  assert.equal(result.code, 1);
+  assert.match(result.err, /STL_FLOAT32_COLLAPSE/);
+  assert.deepEqual(readdirSync(d).sort(), ['precision-b1.stl', 'precision.bcad']);
+  assert.equal(readFileSync(existing, 'utf8'), 'existing output');
+});
+
 test('cad-cli spawned: the real script runs a file and writes the part', async () => {
   const d = dir(), script = join(d, 'p.cad.js'); writeFileSync(script, PLATE);
   const child = spawn(process.execPath, [join(root, 'scripts/cad-cli.mjs'), 'run', script, '-o', join(d, 'p.bcad')], { stdio: ['ignore', 'pipe', 'pipe'] });

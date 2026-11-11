@@ -146,15 +146,16 @@ function firstRootStl(doc: StudioDoc, revision: number): Uint8Array | null {
 
 Supply `revision` as the caller's numeric evaluation tag; it is not the saved source-record revision.
 A successful evaluation can still produce `null` from `stlFor`, so check the helper's result before writing a file.
-A missing root body, a non-finite `segmentsPerQuarter`, or a caught evaluation/export failure returns `null`;
-this result does not identify which cause occurred. The studio's [display-mesh fallback](/studio/files#exports)
-is a separate UI policy; this helper does not provide it or create a `.source.json` record.
+A missing root body, a non-finite `segmentsPerQuarter`, or an unavailable tessellation returns `null`.
+The helper throws a `BarocssError` with code `STL_FLOAT32_COLLAPSE` if a valid triangle becomes degenerate in Float32,
+or `STL_FLOAT32_RANGE` if a coordinate cannot be written as a finite Float32. Surface these errors before writing files.
+The studio's [display-mesh fallback](/studio/files#exports) is a separate UI policy.
 
 ### STL and its source record
 
 To keep an STL with its source information, create both from the same document and pass the STL's exact filename
 to `sourceRecord`. The following helper returns two named files in memory; it does not write or download them.
-It returns `null` if evaluation fails, there is no root body, or `stlFor` cannot produce the STL.
+It returns `null` when evaluation fails, there is no root body, or tessellation is unavailable. It propagates the Float32 errors from `stlFor`.
 
 ```ts
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';

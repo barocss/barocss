@@ -2,7 +2,7 @@
 // STL writer refuses a body family.
 import { encodeBinaryStl } from '@barocss/cad';
 import type { DisplayMesh } from './mesh';
-import { compactLump, lumpTriangles } from './lumps';
+import { lumpMesh, lumpTriangles } from './lumps';
 
 /** Binary STL from the display mesh, used when the kernel's own STL writer refuses a body family. */
 export const meshToStl = (mesh: DisplayMesh, name: string): Uint8Array => encodeBinaryStl(mesh.positions, mesh.indices, `barocss studio mesh ${name}`);
@@ -13,5 +13,8 @@ export const meshToStl = (mesh: DisplayMesh, name: string): Uint8Array => encode
  */
 export function lumpStls(mesh: DisplayMesh, name: string): { lump: number; bytes: Uint8Array }[] | null {
   const lumps = lumpTriangles(mesh); if (!lumps) return null;
-  return lumps.map((t, k) => { const m = compactLump(mesh, t); return { lump: k, bytes: encodeBinaryStl(m.positions, m.indices, `barocss studio mesh ${name} lump ${k + 1}`) }; });
+  return lumps.map((t, k) => {
+    const m = lumpMesh(mesh, t);
+    return { lump: k, bytes: encodeBinaryStl(m.positions, m.indices, `barocss studio mesh ${name} lump ${k + 1}`, { normalsFromEncodedVertices: true }) };
+  });
 }

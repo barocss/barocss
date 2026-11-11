@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part } from '../src/api';
 import { evaluatePart, stlFor } from '../src/engine/evaluate';
+import { emptyDoc, withNode } from '../src/engine/doc';
 
 const fixture = () => part('export-quality').box({ w: 10, d: 10, h: 2 })
   .hole(b => b.faces().facing('+z'), { d: 1, x: 5, y: 5 });
@@ -10,6 +11,19 @@ const radius = 0.5, coordinateToleranceMM = 1e-9;
 // Float32 rounding at coordinates within 0..10 mm; separate from the inherited coordinate tolerance.
 const float32XYRoundingMM = Math.SQRT2 * 2 ** -21;
 const pointKey = (p: Point) => p.join(',');
+
+test('native STL precision refusal reaches the Model boundary in Automatic and Fine', () => {
+  const sketch = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2] });
+  const doc = withNode(sketch, { kind: 'extrude', sketch: 0, height: 1 / 4096, from: 9999 });
+  const evaluated = evaluatePart(doc, 1);
+  assert.ok(evaluated.ok);
+  const [body] = evaluated.bodies;
+  assert.equal(body.volume, 1 / 1024);
+  for (const options of [{}, { segmentsPerQuarter: 32 }]) {
+    assert.throws(() => stlFor(doc, body.key, options), { code: 'STL_FLOAT32_COLLAPSE' });
+  }
+  assert.equal(stlFor(doc, 'missing'), null);
+});
 
 function readTriangles(bytes: Uint8Array): { count: number; points: Point[] } {
   assert.ok(bytes.length >= 84);
