@@ -24,7 +24,7 @@ const snapshotRun = async directory => ({
 });
 
 export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary,
-  findingMode, agentFindingMode, sharedHoleRepairMode, sharedHoleDeliveryMode }) {
+  findingMode, agentFindingMode, sharedHoleRepairMode, sharedHoleDeliveryMode, stoppedFindingMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const oldReceipt = join(f.output, 'shared-lid-old.bcad-candidate');
   const save = async (name, doc) => {
@@ -113,6 +113,7 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
     ];
     const verifyFindings = async (status, card) => {
       assert.equal(status.runId, conflict.runId);
+      if (stoppedFindingMode) assert.equal(status.phase, 'active');
       assert.equal(status.baselineDigest, record.accepted.modelDigest);
       for (const [id, gate, code, message] of expected) {
         const task = record.state.tasks.find(task => task.id === id);
@@ -147,6 +148,12 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
     assert.deepEqual(await snapshotRun(conflict.directory), conflictState);
     f.report.observations.push({ checkedModelRevision: record.accepted.modelDigest, findings: expected,
       freshReopen: true, preservedApprovedWorkingModel: true });
+    if (stoppedFindingMode) {
+      await taskRunStoppedFindingFlow({ f, open, openFile, refresh, conflict, conflictState, record,
+        baseline, attemptedBytes, approved, incompatible });
+      assert.deepEqual(await snapshotRun(run), durable);
+      assert.deepEqual((await readdir(runRoot)).sort(), [...names, conflict.runKey].sort());
+    }
     if (agentFindingMode) {
       f.phase = 'refuse to pass failed-run evidence for the unrelated approved model';
       const attach = () => button(card, 'Use failed check for p2 in chat').click();
@@ -218,4 +225,91 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
   f.report.observations.push({ interfaceId: 'H1', diameterMm: 4, conflictingDiameterMm: 3,
     retiredReviewRefused: true, changedContractRefused: true, incompatibleNativeTasks: 2,
     commits: [1, 0], finalHeightsMm: [6, 3], conflictUsage: record.state.budget });
+}
+
+async function taskRunStoppedFindingFlow({ f, open, openFile, refresh, conflict, conflictState, record,
+  baseline, attemptedBytes, approved, incompatible }) {
+  const { directory, runId, runKey, baselineDigest } = conflict;
+  const { callCli } = taskRunTerminal(f, directory);
+  const specRevision = record.state.specRevision;
+  const expected = [['p1', 'cancelled', 'RUN_STOPPED'], ['p2', 'cancelled', 'RUN_STOPPED']];
+  const assertStopped = status => {
+    assert.equal(status.phase, 'stopped');
+    assert.equal(status.runId, runId);
+    assert.deepEqual(status.tasks.map(task => [task.id, task.phase, task.reason]), expected);
+    for (const task of status.tasks) {
+      for (const key of ['nativeFailure', 'review', 'rebuild', 'replan']) assert.equal(task[key], undefined);
+    }
+    assert.equal(status.checkpoint, undefined);
+  };
+
+  f.phase = 'stop the failed run through the terminal and read its status';
+  const stop = spawnSync('python3', ['-I', join(f.app, 'test/fixtures/task-run-terminal.py'),
+    'stop ' + specRevision.slice(0, 12), '{}', process.execPath, join(f.app, 'scripts/cad-cli.mjs'),
+    'task-run', 'stop', directory, 'd639-stop-native-findings'], { cwd: f.app, encoding: 'utf8', timeout: 90000 });
+  await writeFile(join(f.output, 'd639-stop-native-findings.json'), stop.stdout ?? '');
+  await writeFile(join(f.output, 'd639-stop-native-findings.stderr.txt'), stop.stderr ?? '');
+  assert.equal(stop.status, 0, stop.error?.message ?? stop.stderr);
+  assert.equal(JSON.parse(stop.stdout).outcome.phase, 'completed');
+  const stopped = await snapshotRun(directory);
+  const stoppedRecord = JSON.parse(stopped.json).record;
+  assert.equal(stoppedRecord.epoch, record.epoch + 1);
+  assert.deepEqual(stopped.entries, [...conflictState.entries,
+    'writer-' + stoppedRecord.epoch + '.json', 'released-' + stoppedRecord.epoch + '.json'].sort());
+  assert.deepEqual(stopped.native, conflictState.native);
+  await writeFile(join(f.output, 'd639-before-stop-run.json'), conflictState.json);
+  await writeFile(join(f.output, 'd639-after-stop-run.json'), stopped.json);
+  assert.deepEqual(stoppedRecord.accepted, record.accepted);
+  assert.deepEqual(stoppedRecord.commits, record.commits);
+  assert.deepEqual(stoppedRecord.state.budget, record.state.budget);
+  assert.equal(stoppedRecord.pending, undefined);
+  for (const [index, task] of stoppedRecord.state.tasks.entries()) {
+    const prior = record.state.tasks[index];
+    assert.equal(task.id, prior.id);
+    assert.deepEqual(task.attempt, prior.attempt);
+    assert.deepEqual(task.nativeFailure, prior.nativeFailure);
+  }
+  const cliStatus = await callCli('d639-stopped-status', 'status', directory);
+  assertStopped(cliStatus);
+  assert.deepEqual(cliStatus.accepted, record.accepted);
+  assert.deepEqual(await snapshotRun(directory), stopped);
+
+  f.phase = 'reopen the stopped handoff with a different working model';
+  await f.newPage();
+  await open('accepted-assembly.bcad', approved);
+  const reopened = await (await choose(f, 'reopen', () => openFile('shared-incompatible-run.bcad-task', attemptedBytes))).json();
+  assertStopped(reopened);
+  assert.deepEqual([reopened.runKey, reopened.baselineDigest, reopened.directory, reopened.reused],
+    [runKey, baselineDigest, directory, true]);
+  const card = f.page.getByRole('region', { name: 'Reopened task run', exact: true });
+  await card.getByText('Reopened local run · stopped', { exact: true }).waitFor();
+  assert.ok(!(await card.innerText()).includes(directory));
+  assert.equal(await card.getByText(directory, { exact: true }).count(), 0);
+  for (const [id, phase, reason] of expected) {
+    await card.getByText(id + ' · ' + phase + ' · ' + reason, { exact: true }).waitFor();
+    for (const name of ['Review candidate ', 'Rebuild candidate ', 'Prepare replacement for '])
+      assert.equal(await button(card, name + id).count(), 0);
+    assert.equal(await button(card, 'Use failed check for ' + id + ' in chat').count(), 0);
+  }
+  assert.equal(await card.getByText(/^(Failed|Unresolved) native check · /).count(), 0);
+  assert.equal(await button(card, 'Open approved checkpoint').count(), 0);
+  const refreshed = await refresh(card);
+  assertStopped(refreshed);
+  assert.deepEqual({ ...refreshed, directory, reused: true }, reopened);
+  await f.same(approved);
+  assert.deepEqual(await snapshotRun(directory), stopped);
+  await f.snapshot('31-reopened-stopped-native-run');
+
+  f.phase = 'open the exact stopped run baseline explicitly';
+  const opened = await choose(f, 'baseline', () => button(card, 'Open run baseline').click());
+  assert.deepEqual(opened.request().postDataJSON(), { runKey, runId, baselineDigest });
+  assert.equal(opened.headers()['x-barocss-native-sha256'], record.accepted.sha256);
+  assert.deepEqual(await opened.body(), baseline);
+  await f.same(incompatible);
+  const notice = await f.waitToast(/The exact local run model is open\./);
+  assert.doesNotMatch(notice, /candidate review/);
+  assert.deepEqual(await snapshotRun(directory), stopped);
+  await f.snapshot('32-opened-stopped-run-baseline');
+  f.report.observations.push({ stoppedTasks: expected, historicalFindings: stoppedRecord.state.tasks.map(task => task.nativeFailure),
+    stoppedRunBaselineSHA256: sha256(baseline), stoppedReadsPreservedRun: true });
 }

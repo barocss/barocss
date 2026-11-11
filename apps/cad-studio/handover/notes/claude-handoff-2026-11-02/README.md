@@ -1,5 +1,5 @@
 ---
-work_id: D638
+work_id: D639
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -213,7 +213,9 @@ D637 uses a selected shared-hole finding to propose an exact p2 hole edit. Studi
 
 D638 completes the repaired shared-hole pilot with two terminal approvals and exact fresh Studio project Open. Both height checks and H1 pass. A separate copied-run check reproduces unreadable status after Stop on a failed run. [D638](../studio-shared-hole-delivery-2026-11-11/README.md).
 
-Next MAIN is D639 / P0 automation, B09 follow-up, rows 04, 12 and 16. Fix the reproduced Stop failure on a run with native findings. Preserve the accepted native model and historical finding, refuse obsolete active evidence, and verify status and baseline Open in fresh Studio. [#2279](https://github.com/barocss/barocss/issues/2279) · [#2402](https://github.com/barocss/barocss/issues/2402).
+D639 makes stopped native runs readable across CLI status and fresh Studio Open, with historical findings retained and no active evidence controls. Chat no longer renders the local folder path. [D639](../studio-stopped-native-run-2026-11-11/README.md).
+
+Next MAIN is D640 / P0 automation, B09 follow-up, rows 04, 12 and 16. Make the owned local run visible in Studio after its exact saved baseline is admitted, while native workers are still running. Verify live task status, idempotent Start and the existing explicit approval boundary. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

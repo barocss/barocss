@@ -375,8 +375,11 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       if (latest.baselineDigest !== baselineDigest || (seen && seen.revision >= latest.revision && seen.baselineDigest !== baselineDigest))
         throw new Error('The run baseline changed during Open. Refresh the local run status.');
       requireView();
-      if (adoptExactWorkerDocument(baseline, 'worker-baseline'))
-        setToast({ title: 'Worker baseline opened', hint: 'The exact local run model is ready for candidate review.', detail: '' });
+      if (adoptExactWorkerDocument(baseline, 'worker-baseline')) {
+        const phase = seen && seen.revision >= latest.revision ? seen.phase : latest.phase;
+        const hint = phase === 'active' ? 'The exact local run model is ready for candidate review.' : 'The exact local run model is open.';
+        setToast({ title: 'Worker baseline opened', hint, detail: '' });
+      }
     });
   };
 

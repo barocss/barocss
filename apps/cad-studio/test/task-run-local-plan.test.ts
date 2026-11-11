@@ -94,6 +94,14 @@ test('D629 reopens an exact started handoff without creating or advancing a writ
     assert.equal('status' in refused && refused.status, 409);
     assert.deepEqual(readFileSync(file), mismatched);
     assert.deepEqual(readdirSync(directory).sort(), files);
+
+    const unreadable = '{';
+    writeFileSync(file, unreadable);
+    assert.deepEqual(await runLocalTaskHandoff(root, handoff), {
+      status: 409, error: 'Could not read the existing local task run.',
+    });
+    assert.equal(readFileSync(file, 'utf8'), unreadable);
+    assert.deepEqual(readdirSync(directory).sort(), files);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

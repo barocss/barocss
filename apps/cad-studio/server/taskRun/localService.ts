@@ -148,7 +148,7 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Prom
   catch (error) {
     if (error instanceof LocalRunRequestError) throw error;
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
-      throw new LocalRunRequestError(409, `Could not read the existing local run. Check ${directory}.`);
+      throw new LocalRunRequestError(409, 'Could not read the existing local task run.');
   }
   const replacement = await verifyReplacement(privateRoot, prepared);
   try { mkdirSync(directory, { mode: 0o700 }); }
@@ -163,7 +163,7 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff): Prom
     if (error instanceof RunStoreError && error.code === 'RUN_BUSY')
       throw new LocalRunRequestError(409, 'Another process owns this local task run. Try again when it finishes.');
     if (error instanceof RunStoreError && error.code === 'RUN_EXISTS') return inspect();
-    throw new LocalRunRequestError(500, `Could not finish starting the local run. Check ${directory}.`);
+    throw new LocalRunRequestError(500, 'Could not finish starting the local task run.');
   }
 }
 
@@ -189,7 +189,8 @@ function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
     tasks: record.state.tasks.map(task => ({
       id: task.id, phase: task.phase, reason: task.reason, review: reviewPin(record, task.id), rebuild: rebuildPin(record, task),
       replan: replanPin(record, task),
-      nativeFailure: task.nativeFailure?.baselineDigest === record.accepted.modelDigest &&
+      nativeFailure: record.state.phase !== 'stopped' && task.phase === 'failed' &&
+        task.nativeFailure?.baselineDigest === record.accepted.modelDigest &&
         task.attempt?.specRevision === record.state.specRevision ? task.nativeFailure : undefined,
     })) };
 }

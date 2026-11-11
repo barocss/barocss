@@ -410,7 +410,6 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
         workingVersion={actions.workingVersion} checkWorking={actions.checkWorkingApproval}
         prepareRepair={isLocalTaskRunHost(window.location.hostname) ? actions.prepareWorkingRepair : undefined}
         repairBlocked={blocked} onPrepared={onPrepared} />}
-      <code title={result.directory}>{result.directory}</code>
     </div>}
   </>;
 }

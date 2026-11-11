@@ -167,7 +167,7 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   const { checkpoint, approvals, tasks, replacement } = value;
   return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
-    && (task.nativeFailure === undefined || (task.phase === 'failed' && task.reason === 'TASK_NATIVE_GATE'
+    && (task.nativeFailure === undefined || (value.phase !== 'stopped' && task.phase === 'failed' && task.reason === 'TASK_NATIVE_GATE'
       && isTaskRunNativeFailure(task.nativeFailure) && task.nativeFailure.baselineDigest === value.baselineDigest))
     && (task.replan === undefined || (value.phase === 'active' && task.phase === 'stale' && isTaskRunReplanPin(task.replan)))
     && (task.rebuild === undefined || (value.phase === 'active' && task.phase === 'stale' && label(task.rebuild)))

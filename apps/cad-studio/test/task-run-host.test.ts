@@ -14,7 +14,7 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { fixtureDoc, fixturePlan, fixtureLimits, sharedHoleDoc, threeOccurrenceDoc } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
-import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus, runLocalTaskRebuild } from '../server/taskRun/localService';
+import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus, runLocalTaskRebuild } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
 import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
@@ -23,6 +23,7 @@ import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
 import { serveMcp } from '../server/cadMcp';
 import { validate } from '@barocss/cad-model/chat/contract';
 import { readSelectedNativeCheck, selectedNativeCheckTool } from '../server/taskRun/nativeEvidence';
+import { TaskRunStore } from '../server/taskRun/store';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -664,6 +665,46 @@ if (!(await serveTaskThread(evaluate))) {
       assert.equal(accepted.tasks[1].nativeFailure, undefined);
       assert.match(readSelectedNativeCheck(root, selected, source).error ?? '', /no longer current/);
       assert.deepEqual(host.snapshot.state.tasks[1].nativeFailure, finding);
+    } finally { host.close(); rmSync(root, { recursive: true, force: true }); }
+  });
+
+  test('D639 Stop keeps an approved baseline and retires the remaining native failure', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-stopped-finding-')), runKey = 'a'.repeat(64), directory = join(root, runKey);
+    const source = sharedHoleDoc();
+    source.interfaces!.envelopes = [{ id: 'lid-height', part: 'p2', min: [0, 0, 20], max: [12, 8, 23.5] }];
+    const host = await TaskRunHost.create(directory, 'housing', source, fixturePlan, fixtureLimits, 8, evaluate);
+    try {
+      assert.equal((await host.dispatch('base-compatible', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
+      assert.equal((await host.decide(decision(host, 'base', 'approve-base'), trusted())).code, 'RUN_ACCEPTED');
+      assert.equal((await host.dispatch('lid-over-envelope', 'lid', async ticket => reply(ticket, 4))).code, 'TASK_NATIVE_GATE');
+      const locator = { runKey, runId: host.snapshot.runId }, current = readLocalTaskRunStatus(root, locator);
+      const finding = current.tasks[1].nativeFailure;
+      assert.ok(finding);
+      const native = host.acceptedBytes, approved = await readStudioFile(native);
+      assert.ok(!('error' in approved));
+      const selected = { ...locator, taskId: 'lid', attemptId: finding.attemptId, baselineDigest: current.baselineDigest };
+      assert.equal(readSelectedNativeCheck(root, selected, approved.doc).finding?.code, 'OUT_OF_ENVELOPE');
+      assert.equal(host.control('stop-after-native-failure', 'stop', trusted()).phase, 'completed');
+      host.close();
+
+      const record = TaskRunStore.inspect(directory), status = readLocalTaskRunStatus(root, locator);
+      assert.equal(status.phase, 'stopped');
+      assert.deepEqual(status.tasks.map(task => [task.phase, task.reason, task.nativeFailure]), [
+        ['completed', undefined, undefined], ['cancelled', 'RUN_STOPPED', undefined],
+      ]);
+      assert.ok(isTaskRunStatus(status));
+      assert.ok(!isTaskRunStatus({ ...current, phase: 'stopped' }));
+      assert.deepEqual(status.checkpoint, current.checkpoint);
+      assert.deepEqual(status.approvals, current.approvals);
+      assert.deepEqual(record.state.tasks[1].nativeFailure, finding);
+      assert.deepEqual(readLocalTaskBaseline(root, { ...locator, baselineDigest: status.baselineDigest }).bytes, native);
+      assert.match(readSelectedNativeCheck(root, selected, approved.doc).error ?? '', /no longer current/);
+
+      const mismatched = structuredClone(record);
+      const operation = mismatched.state.operations.find(operation => operation.id === 'lid-over-envelope')!;
+      operation.code = 'RUN_WORKER_FAILED';
+      writeFileSync(join(directory, 'run.json'), JSON.stringify({ record: mismatched, digest: digestOf(mismatched) }));
+      assert.throws(() => TaskRunStore.inspect(directory), /native finding does not match its task attempt/);
     } finally { host.close(); rmSync(root, { recursive: true, force: true }); }
   });
 

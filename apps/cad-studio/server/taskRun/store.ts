@@ -177,9 +177,13 @@ function recordAt(directory: string): RunRecord {
   for (const task of record.state.tasks) {
     const failure = task?.nativeFailure;
     if (failure === undefined) continue;
-    const scope = record.state.plan.tasks.find(bound => bound.id === task.id);
-    if (!isTaskRunNativeFailure(failure) || task.phase !== 'failed' || task.reason !== 'TASK_NATIVE_GATE'
-      || task.attempt?.id !== failure.attemptId || task.attempt.base.modelDigest !== failure.baselineDigest
+    const scope = record.state.plan.tasks.find(bound => bound.id === task.id), attempt = task.attempt;
+    const current = record.state.phase !== 'stopped' && task.phase === 'failed' && task.reason === 'TASK_NATIVE_GATE';
+    const historical = record.state.phase === 'stopped' && task.phase === 'cancelled' && task.reason === 'RUN_STOPPED'
+      && !!attempt && record.state.operations.some(operation => operation?.id === attempt.operationId
+        && operation.epoch === attempt.epoch && operation.phase === 'failed' && operation.code === 'TASK_NATIVE_GATE');
+    if (!isTaskRunNativeFailure(failure) || (!current && !historical)
+      || attempt?.id !== failure.attemptId || attempt.base.modelDigest !== failure.baselineDigest
       || scope?.occurrence !== failure.occurrence || scope.feature !== failure.feature)
       return issue('RUN_CORRUPT', 'The native finding does not match its task attempt.');
   }

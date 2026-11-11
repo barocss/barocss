@@ -1,0 +1,180 @@
+{
+  "decision": "D639",
+  "tier": "FEATURE qualification",
+  "baseCommit": "6900f4878baa4c18b002b9516eb75e7e9cf7d864",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d639-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio stopped run, baseline Open and path-free chat",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D639_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-chat-path\" --stopped-finding",
+      "receiptSHA256": "09a5b9eb3d95471de8a368e7fc5cbf90bd414758c7cb652db282ade962645cd2",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "stoppedTasks": [
+          [
+            "p1",
+            "cancelled",
+            "RUN_STOPPED"
+          ],
+          [
+            "p2",
+            "cancelled",
+            "RUN_STOPPED"
+          ]
+        ],
+        "historicalFindings": [
+          {
+            "gate": "assembly",
+            "verdict": "fail",
+            "code": "PATTERN_MISALIGNED",
+            "message": "p2 is off H1 at (5, 5, 0)",
+            "attemptId": "1:1:p1",
+            "baselineDigest": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+            "occurrence": "p1",
+            "feature": "n1"
+          },
+          {
+            "gate": "contract",
+            "verdict": "fail",
+            "code": "HOLE_OFF_PATTERN",
+            "message": "p2 has no \u00d84 hole on H1 at (5, 5, 0)",
+            "attemptId": "1:2:p2",
+            "baselineDigest": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+            "occurrence": "p2",
+            "feature": "n1"
+          }
+        ],
+        "stoppedRunBaselineSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "stoppedReadsPreservedRun": true
+      }
+    },
+    {
+      "label": "Desktop Studio active baseline and path-free chat regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D630_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-active-chat-path\" --baseline",
+      "receiptSHA256": "dc100daef26ff28fb747eba13a9f6488ca651ed921adcb53a165cfd5958b0c4a",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Desktop H1 delivery regression after the stopped-record fix",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D638_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-delivery-regression\" --shared-hole-delivery",
+      "receiptSHA256": "ae737d34423a7ef784d55ce55b5193e937a5bce048cea15eb5198d621d7bdae0",
+      "pinnedSources": 816,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Read the existing stopped v1 record without rewriting it",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "node scripts/cad-cli.mjs task-run status \"$D638_EVIDENCE/next-stop-failed-run\"",
+      "originalRecordSHA256": "49224a355187cba17e9d4e11e7b3af4b290af2402a47175c96af74ae1b88f075",
+      "statusSHA256": "7ebf446bb6649bb9eabf04ea966bb762044d3edd8a6cd601834eaed48bf03d62"
+    },
+    {
+      "label": "Independent historical finding and native byte reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/stopped-oracle.py\" \"$EVIDENCE/desktop-chat-path\"",
+      "scriptSHA256": "15d2c7ce2cf1037fdb3b8a36d41233e4d270b92acc84f10ce01e933810f362bf",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "storedFindings": [
+          "PATTERN_MISALIGNED",
+          "HOLE_OFF_PATTERN"
+        ],
+        "acceptedSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "previousPhase": "active",
+        "stoppedPhase": "stopped",
+        "terminalStops": 1,
+        "acceptedPublications": 0
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build-chat-path\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "D638 boundary reproduction",
+      "receiptSHA256": "e0d2f9cfb7b8a269ca096d9ebe8d7dc61c06f2c284c2061b254a1fd633692ced",
+      "reason": "Before the fix, Stop succeeded but the next status read rejected its historical finding."
+    },
+    {
+      "result": "FAIL",
+      "check": "First repaired baseline Open visual check",
+      "receiptSHA256": "b744375ff05340affc0e0bdb19c3ebf167f50b687f8ab5056615fad9fcc6d0c6",
+      "reason": "The stopped baseline notice still advertised candidate review. The final Studio run asserts the phase-correct notice."
+    }
+  ],
+  "notRun": [
+    "Live model behavior",
+    "Stop while an initial worker is active in Studio",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D639 — reopen a stopped CAD run with historical native findings](notes/studio-stopped-native-run-2026-11-11/README.md).
 - [D638 — deliver both height edits on the repaired H1 assembly](notes/studio-shared-hole-delivery-2026-11-11/README.md).
 - [D637 — repair a shared hole from a native check in Studio](notes/studio-shared-hole-repair-2026-11-11/README.md).
 - [D636 — read a selected native failure in Studio chat](notes/studio-agent-native-check-2026-11-11/README.md).
