@@ -3,13 +3,15 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { markedReferences, referencesOf, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import type { DrawingReferenceLabel } from './DrawingWorkspace';
 
+export interface ReferencePreviewOptions { edge?: string; candidateNumber?: number; inModel?: boolean }
+
 interface ReferenceDecisionsProps {
   doc: StudioDoc;
   referenceLabels: readonly DrawingReferenceLabel[];
   refMarks: ReturnType<typeof markedReferences>;
   refProblems: RefProblem[];
   refChoices: { index: number; names: string[] } | null;
-  previewReference(where: string, edge?: string, inModel?: boolean): void;
+  previewReference(where: string, options?: ReferencePreviewOptions): void;
   settleRef(index: number, to?: string): Promise<void>;
   showRefChoices(index: number): Promise<void>;
 }
@@ -36,13 +38,13 @@ export function ReferenceDecisions({ doc, referenceLabels, refMarks, refProblems
       <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(m.where)}<br /><span className="muted">{affectedDimensions(m.now)} affected dimension(s) · Matched again</span></p>
       <div style={referenceActionsStyle}>
       {referenceDimension(m.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where)}>Show dimension</button>}
-      {m.edge && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, m.now, true)}>Preview in model</button>}
+      {m.edge && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, { edge: m.now, inModel: true })}>Preview in model</button>}
       <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index)}>Confirm reference</button>
       <button className="ghost small" style={referenceButtonStyle} onClick={() => void showRefChoices(m.index)}>Show alternatives</button>
       </div>
       {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n} style={referenceActionsStyle}>
         <span>Candidate {i + 1} </span>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, n)}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, { edge: n, candidateNumber: i + 1 })}>Preview candidate {i + 1}</button>
         <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index, n)}>Use candidate {i + 1}</button>
       </div>)}
       <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
@@ -54,8 +56,8 @@ export function ReferenceDecisions({ doc, referenceLabels, refMarks, refProblems
       </div>
       {p.candidates.map((n, i) => <div key={n} style={referenceActionsStyle}>
         <span>Candidate {i + 1} </span>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n)}>Preview candidate {i + 1}</button>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n, true)}>Preview in model</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, { edge: n, candidateNumber: i + 1 })}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, { edge: n, inModel: true })}>Preview in model</button>
         <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(p.index, n)}>Use candidate {i + 1}</button>
       </div>)}
       <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{p.where}: {p.name}{p.candidates.map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>

@@ -56,6 +56,7 @@ import { DatumsEditor } from './drawing/DatumsEditor';
 import { DatumTargetsEditor, DEFAULT_TARGET_DRAFT, type DatumTargetDraft } from './drawing/DatumTargetsEditor';
 import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DatumTargetPoint, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import { FrameEditor } from './drawing/FrameEditor';
+import { referenceCandidate } from './drawing/referenceCandidate';
 import { committedSettings, committedSheetSettings } from './drawing/commitSettings';
 import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
 import { checkDrawingFrames, readFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
@@ -90,18 +91,24 @@ type Pending =
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
-export interface DrawingReferencePreview { dimensionId: string; edge?: string }
+const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
+
+export interface DrawingReferencePreview { dimensionId: string; edge?: string; candidateNumber?: number }
 export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
 
-export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, fileName, onChange: sourceOnChange, onToast, referencePreview, onClearReferencePreview, onReferenceLabels }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): boolean; onToast(e: FriendlyError): void;
-  referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
+  referencePreview?: DrawingReferencePreview | null; onClearReferencePreview(): void; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
   // 11 ④: a drawing of several sheets shows one at a time, as a drawing of its own (its views and what belongs to them); what is
   // edited on it is merged back into the whole drawing's settings. With one sheet `settings` is `wholeSettings`, untouched.
   const [sheetNo, setSheetNo] = useState(0);
   const sheetTotal = sheetCount(wholeSettings), current = Math.min(sheetNo, sheetTotal - 1);
+  const selectSheet = (next: number) => {
+    if (next !== current) onClearReferencePreview();
+    setSheetNo(next);
+  };
   const drawingSetWantsBom = !!wholeSettings.balloons || !!wholeSettings.tables?.some(table => table.from === 'bom');
   const settings = useMemo(() => {
     const local = forSheet(wholeSettings, current);
@@ -198,22 +205,30 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const referenceInspection = useMemo(() => {
     if (!referencePreview) return null;
     const unavailable = (reason: string, dimensionId: string | null = null) => ({ dimensionId, markup: '', message: `Reference preview unavailable: ${reason}` });
-    const dimensions = settings.dimensions.filter(d => d.id === referencePreview.dimensionId);
-    if (dimensions.length !== 1) return unavailable(dimensions.length ? 'the dimension ID is not unique.' : 'the dimension is not in this drawing.');
-    const dimension = dimensions[0];
+    const matches = wholeSettings.dimensions.filter(d => d.id === referencePreview.dimensionId);
+    if (matches.length > 1) return unavailable('the dimension ID is not unique.');
+    const dimension = settings.dimensions.find(d => d.id === referencePreview.dimensionId);
+    if (!dimension) return unavailable('the dimension is not on this sheet.');
     if (busy || !views || !layout || !sheet) return unavailable('the current sheet is not ready.');
     const placement = placementOf(layout, sheet, dimension.view), projection = projectionOf(views, sheet, dimension.view);
     if (!placement || placement.hidden || !projection) return unavailable('the dimension view is not shown.');
     const resolved = sheet.dimensions.filter(r => r.dim.id === dimension.id);
-    if (resolved.length !== 1 || !resolved[0].ok) return unavailable('the dimension has no resolved display on this sheet.');
-    const label = `${dimension.view}: ${resolved[0].text}`;
-    if (referencePreview.edge === undefined) return { dimensionId: dimension.id, markup: '', message: `${label}. Dimension highlighted; no reference changed.` };
-    const edges = projection.edges.filter(e => e.name === referencePreview.edge);
-    if (edges.length !== 1) return unavailable(edges.length ? 'the candidate has more than one projected edge in this view.' : 'the candidate is not in this view.', dimension.id);
-    const pieces = edges[0].pieces.filter(p => p.visible);
-    if (!pieces.length) return unavailable('the candidate has no visible segments in this view.', dimension.id);
-    return { dimensionId: dimension.id, markup: marksSvg(pieces.map(p => curveMark(placement, p.curve, 'visible'))), message: `${label}. Candidate highlighted for inspection only; no reference changed.` };
-  }, [referencePreview, settings.dimensions, busy, views, layout, sheet]);
+    if (resolved.length !== 1) return unavailable('the dimension has no display on this sheet.');
+    const result = resolved[0];
+    if (referencePreview.edge === undefined) {
+      if (!result.ok) return unavailable('the dimension has no resolved display on this sheet.');
+      return { dimensionId: dimension.id, markup: '', message: dimension.view + ': ' + result.text + '. Dimension highlighted for inspection.' };
+    }
+    const preview = referenceCandidate(placement, projection, referencePreview.edge);
+    if ('reason' in preview) return unavailable(preview.reason, dimension.id);
+    const candidate = referencePreview.candidateNumber === undefined ? 'Candidate' : 'Candidate ' + referencePreview.candidateNumber;
+    const description = result.ok ? result.text : 'Dimension unresolved. ' + result.reason;
+    return {
+      dimensionId: dimension.id,
+      markup: preview.markup,
+      message: candidate + ' highlighted in the ' + viewLabel(dimension.view) + '. ' + description,
+    };
+  }, [referencePreview, wholeSettings.dimensions, settings.dimensions, busy, views, layout, sheet]);
   const referenceDimensionId = referenceInspection?.dimensionId ?? null;
   useEffect(() => {
     if (!referencePreview) return;
@@ -246,7 +261,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])), ...Object.fromEntries((sheet?.details ?? []).map(x => [`detail:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections, sheet?.details]);
   const placementAt = (v: DimView) => layout ? placementOf(layout, sheet ?? undefined, v) : undefined;
   const projectionAt = (v: DimView) => views ? projectionOf(views, sheet ?? undefined, v) : undefined;
-  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 
   const hoverAt = useCallback((clientX: number, clientY: number): Hover | null => {
     const q = sheetPoint(clientX, clientY); if (!q || !layout || !views || !snaps) return null;
@@ -594,7 +608,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
-      if (e.key === 'Escape') { if (pending || targetChoices.length || reselectTarget) cancel(); else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); } return; }
+      if (e.key === 'Escape') { onClearReferencePreview(); if (pending || targetChoices.length || reselectTarget) cancel(); else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); } return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrame) {
         e.preventDefault();
         const frames = (settings.frames ?? []).filter(frame => frame.dim === undefined && frame.id === selectedFrame);
@@ -830,7 +844,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           {busy && !views && <div className="dw-busy">Projecting views…</div>}
           {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
         </div>
-        <SheetTabs whole={wholeSettings} current={current} onSelect={setSheetNo} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); setSheetNo(sheetTotal); }} />
+        <SheetTabs whole={wholeSettings} current={current} onSelect={selectSheet} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); selectSheet(sheetTotal); }} />
         <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
           <span>{bomError ?? hint}</span>
           {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
@@ -843,7 +857,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
           onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); }} turnTo={turnTo} later={current > 0} />
 
-        <SheetsMenu whole={wholeSettings} current={current} onChange={(next, then) => { commitWhole(next); if (then !== undefined) setSheetNo(then); }} />
+        <SheetsMenu whole={wholeSettings} current={current} onChange={(next, then) => { commitWhole(next); if (then !== undefined) selectSheet(then); }} />
 
         <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} onRemove={removeDetail} />
 

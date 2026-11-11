@@ -36,7 +36,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
-import { ReferenceDecisions } from './ui/ReferenceDecisions';
+import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
@@ -469,9 +469,11 @@ export function App() {
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
-  const [referencePreview, setReferencePreview] = useState<DrawingReferencePreview | null>(null);
+  const [referencePreview, setReferencePreview] = useState<(DrawingReferencePreview & { owner: StudioDoc }) | null>(null);
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
-  useEffect(() => { setReferencePreview(null); }, [doc]);
+  const clearReferencePreview = useCallback(() => setReferencePreview(null), []);
+  useEffect(clearReferencePreview, [doc, clearReferencePreview]);
+  useEffect(() => { if (!drawing) clearReferencePreview(); }, [drawing, clearReferencePreview]);
   const [fileName, setFileNameRaw] = useState('Bracket-01');
   const noticeSource = notice?.documentSource;
   const noticeExpired = !!noticeSource && (noticeSource.doc !== doc || (noticeSource.name !== undefined && noticeSource.name !== fileName));
@@ -1750,11 +1752,17 @@ export function App() {
     if (!sketch) workspaceModeExit.switchWhenReady(() => startRef.current(commands.find(c => c.id === 'sketch')!),
       { event, destinationFocus: sketchModeButton.current });
   };
-  const previewReference = (where: string, edge?: string, inModel = false) => {
+  const previewReference = (where: string, { edge, candidateNumber, inModel = false }: ReferencePreviewOptions = {}) => {
     const dimension = referenceDimension(where);
     if (dimension && !inModel) {
+      if (!fresh || busy) {
+        clearReferencePreview();
+        setToast({ title: 'Preview unavailable', hint: 'Wait for the current model before inspecting a drawing reference.', detail: '' });
+        return;
+      }
       workspaceModeExit.switchWhenReady(() => {
-        setReferencePreview({ dimensionId: dimension.id, ...(edge ? { edge } : {}) });
+        if (docNow.current !== doc) return;
+        setReferencePreview({ owner: doc, dimensionId: dimension.id, edge, candidateNumber });
         showWorkspace('Drawing');
         setBrowserOpen(true);
       });
@@ -2177,7 +2185,10 @@ export function App() {
   const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>Base part · {fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
-          <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
+          <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => {
+            if (browserOpen) clearReferencePreview();
+            setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; });
+          }}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
         <BodyBrowserRows model={{ doc, evaluated, namesDoc, bodies, fresh, busy }} selection={selection}
           rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setEditNode, setRowHover }} changes={{ commit, setSelection, setDirectSel, setInstanceSel }} meshBadges={meshBadges} />
@@ -2476,7 +2487,7 @@ export function App() {
 
       {browserPlacement === 'left' && browserPanel}
 
-      {drawing && <Suspense fallback={null}><DrawingWorkspace key={docGeneration} engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace key={docGeneration} engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview?.owner === doc && fresh && !busy ? referencePreview : null} onClearReferencePreview={clearReferencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
 
       {!dockDocked && hud}
 
