@@ -11,7 +11,7 @@ import { friendlyCause, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
 import { placedBase, placedDoc, type PartInstance, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
 import { placementOf } from './placement';
-import { bodyKeyFor, bodyNodeOf } from './ids';
+import { bodyKeyFor, bodyNodeOf, featureId } from './ids';
 import { registerPartBox, type PartBox } from './assemblyCut';
 import { boundsOf } from './bounds';
 import { evaluationKey } from './evalMemo';
@@ -337,12 +337,19 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
     return failed(revision, cause, t0);
   }
 }
+export type VolumeEvaluation = { ok: true; volumes: { key: string; volume: number | null }[]; emptyIntersection?: string }
+  | { ok: false; error: FriendlyError };
 /** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
-export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volume: number | null }[] } | { ok: false; error: FriendlyError } {
+export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe', intersection?: number): VolumeEvaluation {
   try {
     doc = skeletonsNow(doc);
     const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
-    return { ok: true, volumes: snapshot.outputs.map(o => {
+    const terminal = doc.nodes.length - 1;
+    const expected = intersection === terminal && doc.nodes[terminal]?.kind === 'intersect' ? featureId(doc.nodes, terminal) : null;
+    // Empty solids are omitted from outputs. Confirm the requested terminal feature ran before reporting empty.
+    const emptyIntersection = expected && snapshot.features.some(feature => feature.id === expected && feature.kind === 'intersect') &&
+      !snapshot.outputs.some(output => output.feature === expected) ? bodyKeyFor(doc.nodes, terminal) : undefined;
+    return { ok: true, ...(emptyIntersection ? { emptyIntersection } : {}), volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
       if (m === undefined) { try { m = massPropertiesOf(o, ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
       return { key: bodyKeyOf(o.id, doc.nodes), volume: m ? m.volume : null };

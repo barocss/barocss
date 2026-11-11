@@ -1,5 +1,5 @@
 import { rememberFaceTable } from '@barocss/cad-model/assembly/faces';
-import type { EvalResult, PartSlot } from '@barocss/cad-model/engine/evaluate';
+import type { EvalResult, PartSlot, VolumeEvaluation } from '@barocss/cad-model/engine/evaluate';
 import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWire';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 /** A proposal's diff as the viewport overlays it (G12). */
@@ -21,6 +21,7 @@ import { Lanes, type LaneReply } from './lanes';
 import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
+export type VolumeReply = VolumeEvaluation | { ok: false; error: 'stopped' };
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
 function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTable) rememberFaceTable(doc, r.faceTable); }
@@ -260,11 +261,11 @@ export class EngineClient {
   }
 
   /** A part's bodies' volumes only, no meshes (a clash probe's intersection). */
-  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volume: number | null }[] } | { ok: false; error: unknown }> {
+  volumes(doc: StudioDoc): Promise<VolumeReply> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volume: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
-      this.post(id, () => ({ type: 'volumes', id, doc: this.wire!.pack(doc) }));
+      this.pending.set(id, data => resolve((data as { volumes?: VolumeEvaluation }).volumes ?? { ok: false, error: 'stopped' }));
+      this.post(id, () => ({ type: 'volumes', id, doc: this.wire!.pack(doc), intersection: doc.nodes.length - 1 }));
     });
   }
 

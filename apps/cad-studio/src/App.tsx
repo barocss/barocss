@@ -29,7 +29,8 @@ import { useFeatureHistory } from './state/useFeatureHistory';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
-import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
+import { MeasurementInspector, InterferenceInspector, type InterferenceResult } from './ui/MeasurementInspector';
+import { checkInterferencePairs } from './app/checkInterference';
 import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
@@ -621,8 +622,7 @@ export function App() {
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
   /** The history chip right-clicked: its menu (edit, edit sketch, roll back here, delete). */
   const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number } | null>(null);
-  /** The last interference check: each overlapping pair of bodies (by key) and its overlap, or 'busy'. */
-  const [clashes, setClashes] = useState<{ a: string; b: string; volume: number }[] | 'busy' | null>(null);
+  const [clashes, setClashes] = useState<InterferenceResult | null>(null);
   // (A check is of the part as it was: any change to the part closes it.)
   useEffect(() => { setClashes(c => c === 'busy' ? c : null); }, [doc.nodes]);
   /**
@@ -1572,17 +1572,7 @@ export function App() {
   const checkInterference = async () => {
     const picked = selectedBodies(selection), list = (picked.length > 1 ? picked : bodies.map((_, i) => i)).map(i => bodies[i]).filter(Boolean);
     setClashes('busy'); setEditNode(null);
-    const found: { a: string; b: string; volume: number }[] = [];
-    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
-      const A = list[i].mesh.bounds, B = list[j].mesh.bounds;
-      if ([0, 1, 2].some(k => A.max[k] <= B.min[k] + 1e-6 || B.max[k] <= A.min[k] + 1e-6)) continue;
-      const probe = withNode(evaluated, { kind: 'intersect', left: refOf(list[i]), right: refOf(list[j]) });
-      // (Only the intersection's volume: no mesh made or sent.)
-      const r = await engine.volumes(probe);
-      const v = r.ok ? r.volumes.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volume ?? 0 : 0;
-      if (v > 1e-6) found.push({ a: list[i].key, b: list[j].key, volume: v });
-    }
-    setClashes(found);
+    setClashes(await checkInterferencePairs(evaluated, list, probe => engine.volumes(probe)));
   };
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).

@@ -21,7 +21,7 @@ export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: WireDoc; revision: number; nativeSource: NativeMassSource }
   | { type: 'part'; id: number; doc: WireDoc; revision: number; slot?: PartSlot; nativeSource: NativeMassSource }
   /** A part's bodies' volumes, no meshes (a clash probe, PERF3 B12). */
-  | { type: 'volumes'; id: number; doc: WireDoc }
+  | { type: 'volumes'; id: number; doc: WireDoc; intersection: number }
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
@@ -133,7 +133,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, wallTime: 0, bodies });
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volume : null, removed: d.removed ? d.removed.volume : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
   } else if (request.type === 'volumes') {
-    (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
+    (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc, 'probe', request.intersection) });
   } else if (request.type === 'drawing') {
     // (O174: a part's drawing without its bought elements, the chat's drawingInputs alike.)
     const made = !!request.options?.made, r = brepsFor(request.doc, { made });
