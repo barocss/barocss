@@ -477,22 +477,31 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const sourceCurves = new Map<string, Entity>();
   const sourceSenses = new Map<string, boolean>();
   const generatedEdges = new Set<string>();
-  const curveEntity = (e: Entity): Entity => {
-    if (e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE') return curveEntity(get(e.args[1]));
-    if (e.type === 'TRIMMED_CURVE') return curveEntity(get(e.args[1]));
+  const isCurveWrapper = (e: Entity): boolean =>
+    e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE' || e.type === 'TRIMMED_CURVE';
+  const curveEntity = (source: Value): Entity => {
+    let ref = source, e = get(ref);
+    let seen: Set<Entity> | undefined;
+    while (isCurveWrapper(e)) {
+      seen ??= new Set();
+      if (seen.has(e)) refuse(`cyclic curve wrapper #${refNo(ref)} (${e.type})`);
+      seen.add(e);
+      ref = e.args[1];
+      e = get(ref);
+    }
     return e;
   };
   const offsetCurveEntity = (raw: Entity, coneIdentity = false): Entity => {
     const seen = new Set<Entity>(); let e = raw;
-    while (e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE' || e.type === 'TRIMMED_CURVE') {
+    while (isCurveWrapper(e)) {
       if (seen.has(e) || seen.size >= 32) refuse('OFFSET_SURFACE boundary wrapper cycle or depth is not supported yet');
       if (coneIdentity) coneWrapper(e);
       seen.add(e); e = get(e.args[1]);
     }
     return e;
   };
-  const geoOf = (raw: Entity, a: Point, b: Point, same: boolean): Geo => {
-    const e = trackOffsets ? offsetCurveEntity(raw) : curveEntity(raw);
+  const geoOf = (source: Value, a: Point, b: Point, same: boolean): Geo => {
+    const e = trackOffsets ? offsetCurveEntity(get(source)) : curveEntity(source);
     if (e.type === 'LINE') return { kind: 'line', p: a, q: b };
     if (e.type === 'CIRCLE' || e.type === 'ELLIPSE') {
       const f = frameOf(e.args[1]), ra = num(e.args[2]), rb = e.type === 'ELLIPSE' ? num(e.args[3]) : ra;
@@ -519,8 +528,8 @@ export function importStep(source: string, options: { readonly id?: string } = {
     return c;
   }
   /** A swept curve; a line gives an analytic surface instead (a plane, cylinder or cone), or null. */
-  const sweptOf = (raw: Entity): Swept | { line: Point; dir: Point } => {
-    const e = curveEntity(raw);
+  const sweptOf = (source: Value): Swept | { line: Point; dir: Point } => {
+    const e = curveEntity(source);
     if (e.type === 'LINE') return { line: pointOf(e.args[1]), dir: dirOf(get(e.args[2]).args[1]) };
     if (e.type === 'CIRCLE' || e.type === 'ELLIPSE') { const ra = num(e.args[2]); return { kind: 'conic', f: frameOf(e.args[1]), a: ra, b: e.type === 'ELLIPSE' ? num(e.args[3]) : ra }; }
     const c = bsplineOf(e);
@@ -554,7 +563,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (offset) offsetPrimitive(e, sphere, coneIdentity);
     if (x) return x;
     const a = vertexOf(e.args[1]), b = vertexOf(e.args[2]);
-    x = { id: eid, geo: geoOf(get(e.args[3]), points.get(a)!, points.get(b)!, flag(e.args[4])), v: [a, b], ...(e.args[0] ? { name: e.args[0] as string } : {}) };
+    x = { id: eid, geo: geoOf(e.args[3], points.get(a)!, points.get(b)!, flag(e.args[4])), v: [a, b], ...(e.args[0] ? { name: e.args[0] as string } : {}) };
     if (trackOffsets) { sourceCurves.set(eid, offsetCurveEntity(get(e.args[3]))); sourceSenses.set(eid, flag(e.args[4])); }
     edges.set(eid, x); return x;
   };
@@ -619,13 +628,13 @@ export function importStep(source: string, options: { readonly id?: string } = {
       return { kind: 'bspline', s: { kind: 'surface', id: 's', degreeU: num(bs[0]), degreeV: num(bs[1]), controlPoints: rows, knotsU: expand(list(kn[2]).map(num), list(kn[0]).map(num)), knotsV: expand(list(kn[3]).map(num), list(kn[1]).map(num)), weights: w ? list(w.args[0]).map(r => list(r).map(num)) : rows.map(r => r.map(() => 1)) } };
     }
     if (e.type === 'SURFACE_OF_LINEAR_EXTRUSION') {
-      const vec = get(e.args[2]), d = scale(dirOf(vec.args[1]), 1), w = sweptOf(get(e.args[1]));
+      const vec = get(e.args[2]), d = scale(dirOf(vec.args[1]), 1), w = sweptOf(e.args[1]);
       // σ = C(u) + v·V with V the vector (its magnitude scales v only: the patch spans the face).
       if ('line' in w) { const x = unit(w.dir), z = unit(cross(x, d)); if (!(len(cross(x, d)) > 1e-9)) refuse('an extrusion of a line along itself'); return { kind: 'plane', f: { o: w.line, x, y: cross(z, x), z } }; }
       return { kind: 'extrusion', swept: w, d };
     }
     if (e.type === 'SURFACE_OF_REVOLUTION') {
-      const ax = get(e.args[2]), o = pointOf(ax.args[1]), z = ax.args[2] === null ? [0, 0, 1] as Point : dirOf(ax.args[2]), w = sweptOf(get(e.args[1]));
+      const ax = get(e.args[2]), o = pointOf(ax.args[1]), z = ax.args[2] === null ? [0, 0, 1] as Point : dirOf(ax.args[2]), w = sweptOf(e.args[1]);
       // The meridian the curve lies in: from its points off the axis.
       const probe: Point[] = 'line' in w ? [w.line, add(w.line, w.dir)] : w.kind === 'curve' ? w.c.controlPoints as Point[] : [0, 1, 2, 3].map(k => sweptAt(w, k * Math.PI / 2));
       const radial = (p: Point) => { const q = sub(p, o); return sub(q, scale(z, dot(q, z))); };

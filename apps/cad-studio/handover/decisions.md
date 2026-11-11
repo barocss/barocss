@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D741 — refuse cyclic STEP curve wrappers](notes/step-cyclic-curve-wrappers-2026-11-12/README.md).
 - [D740 — refuse unsupported X/Y circular pattern counts](notes/xy-circular-pattern-count-2026-11-12/README.md).
 - [D739 — preserve sketch plane origins and offsets](notes/sketch-plane-origin-precision-2026-11-12/README.md).
 - [D738 — refuse parameter Rename collisions in stored configurations](notes/parameter-rename-configuration-collision-2026-11-12/README.md).
