@@ -77,7 +77,7 @@ Finite closeout is one source-linked two-sheet drawing and one declared exchange
 
 [D706](../notes/bom-project-csv-readback-2026-11-11/README.md) verifies native project reload, current BOM actions and independent readback of the generated CSV files for ordinary shafts.
 
-D707 / P0 B05, rows 10 and 16. Check current BOM actions when two ordinary assemblies reuse the same nested occurrence and feature IDs. [#2356](https://github.com/barocss/barocss/issues/2356).
+[D707](../notes/bom-nested-currentness-2026-11-11/README.md) verifies current BOM actions when three ordinary assemblies reuse a nested occurrence and feature ID. A genuine evaluation failure blocks both actions, and its notice expires when Studio opens the healthy source. [#2356](https://github.com/barocss/barocss/issues/2356).
 
 Row [10](../roadmap-rows/10.md), with file/reference dependencies in rows 12/16. Model/assembly owns occurrence identity, placements and mates; Studio owns selection and linked revision acceptance; drawing/BOM consumers own their current source binding. Motion and Physics activation are not part of static assembly.
 

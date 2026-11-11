@@ -444,7 +444,11 @@ export function App() {
   const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
   // (`action`: one button on the toast, e.g. Undo after the agent applied a change directly, D41.)
   const [workerFailure, setWorkerFailure] = useState<FriendlyError | null>(null);
-  const [notice, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void }; bodyCopy?: true }) | null>(null);
+  const [notice, setToast] = useState<(FriendlyError & {
+    action?: { label: string; run(): void };
+    bodyCopy?: true;
+    bomSource?: { doc: StudioDoc; name: string };
+  }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
     clipboard.current = null;
     setToast(current => current?.bodyCopy ? null : current);
@@ -456,6 +460,11 @@ export function App() {
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
   useEffect(() => { setReferencePreview(null); }, [doc]);
   const [fileName, setFileNameRaw] = useState('Bracket-01');
+  const bomSource = notice?.bomSource;
+  const bomNoticeExpired = !!bomSource && (bomSource.doc !== doc || bomSource.name !== fileName);
+  useEffect(() => {
+    if (bomNoticeExpired) setToast(current => current === notice ? null : current);
+  }, [bomNoticeExpired, notice]);
   const fileNameNow = useRef(fileName); fileNameNow.current = fileName;
   const setFileName = useCallback((next: string) => { fileNameNow.current = next; setFileNameRaw(next); }, []);
   // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
@@ -1448,7 +1457,8 @@ export function App() {
     beginOpenIntent(); invalidateDocumentWork();
     if (restartDocumentWorker()) { setToast(null); setImportWorkerRecovery(value => value + 1); }
   };
-  const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : notice;
+  const activeNotice = bomNoticeExpired ? null : notice;
+  const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : activeNotice;
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
     setCheckpointReview(null);
@@ -2186,7 +2196,7 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
-      {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
+      {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', bomSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {

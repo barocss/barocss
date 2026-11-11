@@ -349,7 +349,9 @@ D705 qualifies exact occurrence discovery and read-only planning in Studio Chat 
 
 D706 verifies current BOM after project reopen and independently reads the local CSV bytes. [D706](../bom-project-csv-readback-2026-11-11/README.md).
 
-Next MAIN is D707 / P0 B05, rows 10 and 16. Check current BOM actions when two ordinary assemblies reuse the same nested occurrence and feature IDs. [#2356](https://github.com/barocss/barocss/issues/2356).
+D707 verifies same-path nested BOM replacement and clears the error notice when its source changes. [D707](../bom-nested-currentness-2026-11-11/README.md).
+
+Next MAIN is D708 / P0, rows 04, 12 and 16. Reproduce and address an external MCP session overwriting a newer saved native document. [#2426](https://github.com/barocss/barocss/issues/2426).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at six of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

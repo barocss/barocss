@@ -234,3 +234,36 @@ for (const outcome of ['success', 'failure'] as const) {
     } finally { f.cleanup(); }
   });
 }
+
+for (const outcome of ['success', 'failure'] as const) {
+  test(`D707: an ordinary B ${outcome} cannot publish after a same-name C replaces it`, async () => {
+    const f = fixture(false);
+    try {
+      const previous = await seed(f);
+      const oldCsv = find(previous, 'Export purchase list').props.onClick;
+      const oldChoose = choose(previous, 'previous-result');
+      f.props.doc = { ...f.props.doc, parameters: { size: 11 } };
+      blocked(f.render()); f.start();
+      const obsolete = f.jobs[1];
+      f.props.doc = { ...f.props.doc, parameters: { size: 12 } };
+      blocked(f.render()); f.start();
+      const current = f.jobs[2];
+      assert.notEqual(current.doc, obsolete.doc);
+      assert.equal(current.name, obsolete.name);
+      if (outcome === 'success') {
+        await f.resolve(obsolete, data('obsolete'));
+        blocked(f.render());
+      }
+      await f.resolve(current, data('current-C'));
+      if (outcome === 'failure') await f.reject(obsolete, 'obsolete B failure');
+      const tree = f.render();
+      assert.match(text(find(tree, 'BOM lines')), /current-C/);
+      assert.deepEqual(f.errors, []);
+      oldCsv(); oldChoose(choice('made'));
+      assert.deepEqual([f.downloads.length, f.commits.length], [0, 0]);
+      find(tree, 'Export purchase list').props.onClick();
+      assert.equal(f.downloads.length, 1);
+      assert.equal(new TextDecoder().decode(f.downloads[0][0]), 'current-C:false');
+    } finally { f.cleanup(); }
+  });
+}
