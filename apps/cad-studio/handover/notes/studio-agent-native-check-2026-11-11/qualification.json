@@ -1,0 +1,127 @@
+{
+  "decision": "D636",
+  "tier": "FULL interface",
+  "baseCommit": "6e43183692ef639978621ef807afcad2110d5029",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d636-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio selected native evidence and stale refusal",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D636_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --agent-finding",
+      "receiptSHA256": "20672d2ead67fcbd947602bb2429cecba14dfb2a09c5a036e81ca4ea96147543",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "selectedTask": "p2",
+        "checkedRevision": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+        "refusedRevisions": [
+          "af46e7258e03f230c008ad3203e43876c86eaf38f558d046992b5683ae5821fd",
+          "e3d3cf0403abaa53b966b0bb3295ff83fb181cca8faeb9feb02081650cf35178"
+        ],
+        "selectedFinding": "HOLE_OFF_PATTERN",
+        "attachmentRetired": true,
+        "readOnly": true
+      }
+    },
+    {
+      "label": "Desktop Studio replacement provenance regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D633_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-provenance\" --provenance",
+      "receiptSHA256": "2327eb1eab2ef2c445ba24d50e98635aae6012d3f64bfd61b09305a7ccd0e377",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent selected evidence and native model reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/agent-native-evidence-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "c4931e1bdb7219ccb406424262ab19cd1447932b31e562a2b4c95358c4f7434e",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "selectedFinding": "HOLE_OFF_PATTERN",
+        "checkedRevision": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+        "nativeSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "structuredReportSHA256": "05ddcbcf54f8abbf31d67eceef229991d366e08cce8f9e81d4bd726abd3949af",
+        "distinctWorkingRevisions": 2,
+        "nativePublications": 0
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 180,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First desktop check",
+      "receiptSHA256": "080aa2b428821aa31e585cf42635d8d852c17ba547bb424417f902f8aeb560d9",
+      "reason": "The chip locator expected exact text without accounting for the remove button. The final check asserts the visible chip label."
+    },
+    {
+      "result": "FAIL",
+      "check": "First Studio type check",
+      "reason": "The new MCP test parsed an iterator result before proving it contained a value. The corrected assertions narrow both responses."
+    }
+  ],
+  "notRun": [
+    "Live model tool selection",
+    "Repair proposals",
+    "Dependent tasks",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

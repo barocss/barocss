@@ -12,7 +12,7 @@ import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { AUTONOMY_TIPS, useStudioChat } from '../chat/useStudioChat';
 import type { StudioMessage } from '../chat/transport';
-import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunLaunch, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, type SavedTaskRunPlan, type TaskRunChatOutput, type TaskRunCheckpointRequest, type TaskRunFindingSelection, type TaskRunLaunch, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 import { TaskRunApprovalHistory } from './TaskRunApprovalHistory';
 import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvidence';
 import type { WorkingApprovalChecks } from '../files/workingApprovalChecks';
@@ -89,12 +89,14 @@ const brief = (input: unknown) => {
 interface RunStatuses {
   current: ReadonlyMap<string, TaskRunStatus>;
   remember(status: TaskRunStatus): void;
+  selectFinding?: (selection: TaskRunFindingSelection) => void;
 }
 
 export function ChatPanel(props: ChatPanelProps) {
   const chat = useStudioChat(props), { status, autonomy, messages, running } = chat;
   useEffect(() => { props.onRunning?.(running); return () => props.onRunning?.(false); }, [running]);
   const [text, setText] = useState('');
+  const [taskFinding, setTaskFinding] = useState<TaskRunFindingSelection>();
   const [runStatuses, setRunStatuses] = useState<ReadonlyMap<string, TaskRunStatus>>(() => new Map());
   const runStatusesNow = useRef(runStatuses);
   const rememberRunStatus = (snapshot: TaskRunStatus) => {
@@ -107,6 +109,8 @@ export function ChatPanel(props: ChatPanelProps) {
     setRunStatuses(next);
     props.taskRun?.observe(status);
   };
+  const statuses: RunStatuses = { current: runStatuses, remember: rememberRunStatus,
+    selectFinding: status?.enabled && isLocalTaskRunHost(window.location.hostname) ? setTaskFinding : undefined };
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);
   const imageDraftGeneration = useRef(0);
@@ -154,13 +158,16 @@ export function ChatPanel(props: ChatPanelProps) {
     if (limit) { chat.notice(limit); return; }
     const typed = text, attached = images, rows = rowFiles;
     setText(''); setImages([]); setRowFiles([]);
-    void chat.send(typed, attached, rows, chips);
+    void chat.send(typed, attached, rows, chips, taskFinding).then(sent => {
+      if (sent && taskFinding) setTaskFinding(current => current === taskFinding ? undefined : current);
+    });
   };
 
   const newConversation = () => {
     imageDraftGeneration.current++;
     setImages([]);
     setRowFiles([]);
+    setTaskFinding(undefined);
     chat.reset();
   };
 
@@ -186,19 +193,24 @@ export function ChatPanel(props: ChatPanelProps) {
         {enabled && !messages.length && !props.taskRun?.reopened && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
         {props.taskRun?.reopened && <section className="chat-tool" aria-label="Reopened task run">
           <TaskRunCards key={props.taskRun.reopened.runId} initialRun={props.taskRun.reopened} actions={props.taskRun}
-            blocked={running || !!props.blocked} statuses={{ current: runStatuses, remember: rememberRunStatus }} />
+            blocked={running || !!props.blocked} statuses={statuses} />
         </section>}
         {messages.map(m => m.role === 'user'
           ? <Message key={m.id} from="user">
               {m.parts.some(p => p.type === 'file') && <div className="chat-thumbs">{m.parts.map((p, k) => p.type === 'file' ? <img key={k} src={p.url} alt={p.filename ?? 'image'} title={p.filename} /> : null)}</div>}
               {m.parts.map(p => p.type === 'text' ? p.text : '').join('')}</Message>
-          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} runStatuses={{ current: runStatuses, remember: rememberRunStatus }} />)}</Fragment>)}
+          : <Fragment key={m.id}>{m.parts.map((p, k) => <ChatPart key={k} part={p} {...props} taskRunBlocked={running || !!props.blocked} runStatuses={statuses} />)}</Fragment>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
       {!!rowFiles.length && <div className="chat-thumbs pending" aria-label="Attached row files">{rowFiles.map((file, index) => <span key={index}>{file.name}<button type="button" className="tool tiny" aria-label={`Remove row file ${index + 1}`} onClick={() => setRowFiles(list => list.filter((_, k) => k !== index))}>×</button></span>)}</div>}
       {!!images.length && <div className="chat-thumbs pending" aria-label="Attached images">{images.map((img, k) => <span key={k} className="chat-thumb">
         <img src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />
         <button type="button" aria-label={`Remove ${img.name}`} onClick={() => setImages(list => list.filter((_, j) => j !== k))}><Icon name="close" small /></button></span>)}</div>}
+      {taskFinding && <div className="chat-chips" aria-label="Task evidence for next message">
+        <span className="chat-chip">Failed check · {taskFinding.taskId}
+          <button type="button" aria-label="Remove task evidence" onClick={() => setTaskFinding(undefined)}>×</button>
+        </span>
+      </div>}
       {!!chips.length && <div className="chat-chips" aria-label="Selection sent as context">{chips.map(c => <span key={c.name} className="chat-chip" title={`The ${c.kind} selected in the viewport, sent with the next message`}>{c.name}
         <button type="button" aria-label={`Leave out ${c.name}`} onClick={() => setDropped(d => [...d, c.name])}><Icon name="close" small /></button></span>)}</div>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); send(); }}>
@@ -381,6 +393,9 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
           <div>{task.nativeFailure.message}</div>
           <div>{task.nativeFailure.occurrence} / {task.nativeFailure.feature} · {task.nativeFailure.gate} · Attempt {task.nativeFailure.attemptId}</div>
           <div>Checked model revision <code>{task.nativeFailure.baselineDigest}</code></div>
+          {statuses.selectFinding && <button className="ghost" type="button" disabled={disabled} aria-label={'Use failed check for ' + task.id + ' in chat'}
+            onClick={() => statuses.selectFinding?.({ runKey: result.runKey, runId: result.runId, taskId: task.id,
+              attemptId: task.nativeFailure!.attemptId, baselineDigest: task.nativeFailure!.baselineDigest })}>Use in chat</button>}
         </details>}
       </li>)}</ul>
       {result.replacement && <details>

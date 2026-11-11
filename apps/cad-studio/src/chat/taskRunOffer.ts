@@ -76,6 +76,11 @@ export interface TaskRunNativeFailure extends TaskNativeFinding {
   feature: string;
 }
 
+export interface TaskRunFindingSelection extends TaskRunBaselineRequest {
+  taskId: string;
+  attemptId: string;
+}
+
 export interface TaskRunStatus extends TaskRunLocator {
   phase: 'active' | 'paused' | 'stopped';
   revision: number;
@@ -138,6 +143,11 @@ export function matchesTaskRunReplan(status: TaskRunStatus, selection: TaskRunRe
   const pin = status.tasks.find(task => task.id === selection.taskId)?.replan;
   return !!pin && pin.attemptId === selection.pin.attemptId && pin.occurrence === selection.pin.occurrence
     && pin.feature === selection.pin.feature && pin.field === selection.pin.field;
+}
+
+export function isTaskRunFindingSelection(value: unknown): value is TaskRunFindingSelection {
+  return isObj(value) && Object.keys(value).length === 5 && isTaskRunLocator(value)
+    && hash(value.baselineDigest) && label(value.taskId) && label(value.attemptId);
 }
 
 export function isTaskRunNativeFailure(value: unknown): value is TaskRunNativeFailure {

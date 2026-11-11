@@ -21,7 +21,7 @@ const snapshotRun = async directory => ({
   native: (await readdir(join(directory, 'native'))).sort(),
 });
 
-export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode }) {
+export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode, agentFindingMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const oldReceipt = join(f.output, 'shared-lid-old.bcad-candidate');
   const save = async (name, doc) => {
@@ -144,6 +144,61 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
     assert.deepEqual(await snapshotRun(conflict.directory), conflictState);
     f.report.observations.push({ checkedModelRevision: record.accepted.modelDigest, findings: expected,
       freshReopen: true, preservedApprovedWorkingModel: true });
+    if (agentFindingMode) {
+      f.phase = 'refuse to pass failed-run evidence for the unrelated approved model';
+      const attach = () => button(card, 'Use failed check for p2 in chat').click();
+      const read = [{ tool: 'read_selected_native_check', args: {} }];
+      const { runKey, runId, baselineDigest } = conflict;
+      const selected = conflict.tasks.find(task => task.id === 'p2').nativeFailure;
+      const selection = { runKey, runId, baselineDigest, taskId: 'p2', attemptId: selected.attemptId };
+      await attach();
+      const chip = f.page.getByLabel('Task evidence for next message', { exact: true });
+      await chip.waitFor();
+      assert.match(await chip.innerText(), /Failed check · p2/);
+      const wrongModel = await turn('selected-finding-wrong-model', read);
+      assert.deepEqual(wrongModel.taskFinding, selection);
+      assert.equal(wrongModel.results[0].error, true);
+      assert.match(wrongModel.results[0].body.error, /different model revision/);
+      assert.equal(wrongModel.results[0].body.finding, undefined);
+      await chip.waitFor({ state: 'hidden' });
+      await f.same(approved);
+
+      f.phase = 'read the exact selected check from the failed run baseline';
+      const opened = await choose(f, 'baseline', () => button(card, 'Open run baseline').click());
+      assert.deepEqual(Buffer.from(await opened.body()), baseline);
+      await f.same(incompatible);
+      await attach();
+      const evidence = await turn('selected-finding-current', read);
+      assert.deepEqual(evidence.taskFinding, selection);
+      assert.equal(evidence.results[0].error, false);
+      assert.deepEqual(evidence.results[0].body, {
+        revision: baselineDigest, runId, runRevision: conflict.revision, taskId: 'p2', finding: selected,
+      });
+      assert.equal(evidence.events[0].summary, 'HOLE_OFF_PATTERN');
+      await chip.waitFor({ state: 'hidden' });
+      await f.same(incompatible);
+      await f.snapshot('31-agent-read-selected-native-check');
+      await writeFile(join(f.output, 'selected-native-check.json'), JSON.stringify(evidence.results[0].body));
+
+      f.phase = 'refuse the selected check after an edit and retire the attachment after sending';
+      await attach();
+      await f.addParameter('findingModelChange', 7, '32-edit-after-native-check-selection');
+      const edited = await f.doc();
+      const stale = await turn('selected-finding-after-edit', read);
+      assert.deepEqual(stale.taskFinding, selection);
+      assert.equal(stale.results[0].error, true);
+      assert.match(stale.results[0].body.error, /different model revision/);
+      assert.equal(stale.results[0].body.finding, undefined);
+      await chip.waitFor({ state: 'hidden' });
+      const ordinary = await turn('selected-finding-not-carried', [call()]);
+      assert.equal(ordinary.taskFinding, undefined);
+      await f.same(edited);
+      await f.snapshot('33-agent-refuses-stale-native-check');
+      assert.deepEqual(await snapshotRun(run), durable);
+      assert.deepEqual(await snapshotRun(conflict.directory), conflictState);
+      f.report.observations.push({ selectedTask: 'p2', checkedRevision: baselineDigest, refusedRevisions: [wrongModel.revision, stale.revision],
+        selectedFinding: selected.code, attachmentRetired: true, readOnly: true });
+    }
   }
   f.report.observations.push({ interfaceId: 'H1', diameterMm: 4, conflictingDiameterMm: 3,
     retiredReviewRefused: true, changedContractRefused: true, incompatibleNativeTasks: 2,

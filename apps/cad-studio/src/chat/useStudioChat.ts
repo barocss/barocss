@@ -22,6 +22,7 @@ import { MAX_CONVERSATION_IMAGE_TRACES } from './imageLimits';
 import { StudioTransport, type StudioMessage, type TurnDone, type TurnInputs } from './transport';
 import { scriptedChat, scriptedTransport, withTurnEnd } from './scripted';
 import { turnMoved, versionsToMerge } from '../app/editInPlace';
+import type { TaskRunFindingSelection } from './taskRunOffer';
 import type { ChatPanelProps } from '../ui/ChatPanel';
 
 /** What each autonomy level lets the agent do (D41). */
@@ -152,7 +153,7 @@ export function useStudioChat(props: ChatPanelProps) {
     : null;
 
   /** One turn: what was typed (or the studio's message), the attachments and the selection as context. */
-  const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[]): Promise<boolean> => {
+  const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[], taskFinding?: TaskRunFindingSelection): Promise<boolean> => {
     if (running || turn.current || !statusRef.current?.enabled || latest.current.blocked) return false;
     if (!said0.trim() && !attached.length && !rowFiles.length) return false;
     const n = said.current.length + 1;
@@ -179,7 +180,7 @@ export function useStudioChat(props: ChatPanelProps) {
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
     turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
-      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}) } };
+      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');
     try {

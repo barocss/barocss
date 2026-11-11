@@ -6,7 +6,7 @@ import type { VersionLog } from '@barocss/cad-model/versions/log';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
-import type { TaskRunOffer } from './taskRunOffer';
+import type { TaskRunFindingSelection, TaskRunOffer } from './taskRunOffer';
 
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
 export type TurnEvent =
@@ -51,10 +51,10 @@ export interface ChatBlobs { session: string; sent: Set<string> }
 export const newChatBlobs = (): ChatBlobs => ({ session: Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join(''), sent: new Set() });
 
 /** One turn; resolves with its `done` event (an aborted or broken stream ends as one too). */
-export async function runServerTurn(o: { text: string; doc: StudioDoc; /** The user's own messages this conversation, this one last (A6.2). */ turns?: readonly string[]; rowFiles?: readonly RowFileInput[]; rowConversation?: string; session?: string; autonomy?: number; images?: { media_type: string; data: string }[]; traces?: unknown[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string; blobs?: ChatBlobs; /** CG6: the project's version log as the turn carries it (versions/log.ts turnLog). */ versions?: VersionLog }): Promise<Extract<TurnEvent, { type: 'done' }>> {
+export async function runServerTurn(o: { text: string; doc: StudioDoc; /** The user's own messages this conversation, this one last (A6.2). */ turns?: readonly string[]; rowFiles?: readonly RowFileInput[]; rowConversation?: string; session?: string; autonomy?: number; images?: { media_type: string; data: string }[]; traces?: unknown[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string; blobs?: ChatBlobs; /** CG6: the project's version log as the turn carries it (versions/log.ts turnLog). */ versions?: VersionLog; taskFinding?: TaskRunFindingSelection }): Promise<Extract<TurnEvent, { type: 'done' }>> {
   let done: Extract<TurnEvent, { type: 'done' }> | null = null;
   const refs = [...blobRefs(o.doc)], blobs = o.blobs ?? newChatBlobs();
-  const body = (send: readonly string[]) => JSON.stringify({ text: o.text, doc: o.doc, ...(o.rowFiles?.length ? { rowFiles: o.rowFiles, rowConversation: o.rowConversation } : {}), ...(o.turns ? { turns: o.turns } : {}), ...(refs.length ? { blobSession: blobs.session, blobRefs: refs, ...(send.length ? { blobs: blobsAsBase64(o.doc, send) } : {}) } : {}), ...(o.autonomy ? { autonomy: o.autonomy } : {}), ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}), ...(o.versions ? { versions: o.versions } : {}) });
+  const body = (send: readonly string[]) => JSON.stringify({ text: o.text, doc: o.doc, ...(o.rowFiles?.length ? { rowFiles: o.rowFiles, rowConversation: o.rowConversation } : {}), ...(o.turns ? { turns: o.turns } : {}), ...(refs.length ? { blobSession: blobs.session, blobRefs: refs, ...(send.length ? { blobs: blobsAsBase64(o.doc, send) } : {}) } : {}), ...(o.autonomy ? { autonomy: o.autonomy } : {}), ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}), ...(o.versions ? { versions: o.versions } : {}), ...(o.taskFinding ? { taskFinding: o.taskFinding } : {}) });
   try {
     const post = (send: readonly string[]) => fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: body(send), signal: o.signal });
     let res = await post(refs.filter(h => !blobs.sent.has(h)));

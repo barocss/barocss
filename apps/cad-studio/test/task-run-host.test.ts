@@ -3,6 +3,8 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileS
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { PassThrough } from 'node:stream';
+import { createInterface } from 'node:readline';
 import { askBatch } from '@barocss/cad-model/chat/questions';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
@@ -18,6 +20,9 @@ import { readTaskCheckpoint } from '../src/files/taskCheckpoint';
 import { decodeCandidateReview } from '../src/files/taskCandidateReview';
 import { dispatchInitialTasks } from '../server/taskRun/start';
 import { deriveLocalRunPlan } from '../server/taskRun/localPlan';
+import { serveMcp } from '../server/cadMcp';
+import { validate } from '@barocss/cad-model/chat/contract';
+import { readSelectedNativeCheck, selectedNativeCheckTool } from '../server/taskRun/nativeEvidence';
 import { TaskRunHost, type AnswerRequest, type DecisionRequest, type TaskWorker, type WorkerTicket } from '../server/taskRun/host';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -622,11 +627,42 @@ if (!(await serveTaskThread(evaluate))) {
       assert.equal(finding.baselineDigest, failed.baselineDigest);
       assert.ok(isTaskRunStatus(failed));
       assert.ok(!isTaskRunStatus({ ...failed, baselineDigest: 'b'.repeat(64) }));
+      const selected = { ...locator, taskId: 'lid', attemptId: finding.attemptId, baselineDigest: failed.baselineDigest };
+      assert.deepEqual(readSelectedNativeCheck(root, selected, source), {
+        revision: failed.baselineDigest, runId: failed.runId, runRevision: failed.revision, taskId: 'lid', finding,
+      });
+      const input = new PassThrough(), output = new PassThrough(), lines = createInterface({ input: output });
+      const responses = lines[Symbol.asyncIterator]();
+      const served = serveMcp({
+        open: async () => ({ doc: source, taskFinding: selected, changed: false, version: 0 }),
+        save: () => assert.fail('Reading a native finding cannot write a document'),
+      }, input, output, root);
+      try {
+        input.write(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) + '\n');
+        const listReply = await responses.next();
+        assert.ok(!listReply.done);
+        const listed = JSON.parse(listReply.value).result.tools;
+        assert.deepEqual(listed.at(-1), selectedNativeCheckTool);
+        input.write(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: {
+          name: 'read_selected_native_check', arguments: {},
+        } }) + '\n');
+        const readReply = await responses.next();
+        assert.ok(!readReply.done);
+        const result = JSON.parse(readReply.value).result;
+        assert.equal(result.isError, false);
+        assert.deepEqual(result.structuredContent, JSON.parse(result.content[0].text));
+        assert.deepEqual(validate(selectedNativeCheckTool.outputSchema, result.structuredContent), []);
+        assert.deepEqual(result.structuredContent.finding, finding);
+      } finally { input.end(); await served; output.end(); lines.close(); }
+      for (const wrong of [{ attemptId: 'older-attempt' }, { runId: 'unrelated-run' }, { taskId: 'base' }])
+        assert.match(readSelectedNativeCheck(root, { ...selected, ...wrong }, source).error ?? '', /no longer current/);
+      assert.match(readSelectedNativeCheck(root, selected, source, { taskId: 'base' }).error ?? '', /takes no arguments/);
       assert.equal((await host.dispatch('base-compatible', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
       assert.equal((await host.decide(decision(host, 'base', 'approve-compatible-base'), trusted())).code, 'RUN_ACCEPTED');
       const accepted = readLocalTaskRunStatus(root, locator);
       assert.notEqual(accepted.baselineDigest, failed.baselineDigest);
       assert.equal(accepted.tasks[1].nativeFailure, undefined);
+      assert.match(readSelectedNativeCheck(root, selected, source).error ?? '', /no longer current/);
       assert.deepEqual(host.snapshot.state.tasks[1].nativeFailure, finding);
     } finally { host.close(); rmSync(root, { recursive: true, force: true }); }
   });

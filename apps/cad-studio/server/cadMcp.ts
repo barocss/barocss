@@ -17,11 +17,13 @@ import { GROUPS, v1Call, v2Result } from '@barocss/cad-model/chat/groups';
 import { listed, TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 import { captureOp, type TurnOp } from '@barocss/cad-model/chat/merge';
+import { readSelectedNativeCheck, selectedNativeCheckTool, SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
+import { isTaskRunFindingSelection, type TaskRunFindingSelection } from '../src/chat/taskRunOffer';
 import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
-export interface StateFile { rowFiles?: RowFileInput[]; rowConversation?: string; doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[];
+export interface StateFile { taskFinding?: TaskRunFindingSelection; rowFiles?: RowFileInput[]; rowConversation?: string; doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[];
   /** CG6 (DA-9): the project's version log as the turn carries it (versions/log.ts turnLog: the index, the documents it needs); `versionsChanged` when a call moved it, `versionsWanted` the versions whose documents a call asked for. */
   versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }
 
@@ -39,7 +41,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog }>;
+  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[]; versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }, why: 'change' | 'select' | 'versions'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
@@ -49,20 +51,22 @@ export function stateFileStore(statePath: string): McpStore {
       const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
       const rowFiles = saved.rowFiles ? receivePersonRowFiles(saved.rowConversation ?? '', saved.rowFiles, saved.turns?.length ?? 0) : undefined;
-      return { doc: saved.doc, ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
+      return { doc: saved.doc, ...(saved.taskFinding ? { taskFinding: saved.taskFinding } : {}), ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
     },
     save(s) {
       const previous = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       const tmp = `${statePath}.tmp`;
-      writeFileSync(tmp, JSON.stringify({ ...(previous.rowFiles ? { rowFiles: previous.rowFiles, rowConversation: previous.rowConversation } : {}), ...(previous.turns ? { turns: previous.turns } : {}), doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}), ...(s.versions ? { versions: s.versions } : {}), ...(s.versionsChanged ? { versionsChanged: true } : {}), ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } satisfies StateFile));
+      writeFileSync(tmp, JSON.stringify({ ...(previous.taskFinding ? { taskFinding: previous.taskFinding } : {}), ...(previous.rowFiles ? { rowFiles: previous.rowFiles, rowConversation: previous.rowConversation } : {}), ...(previous.turns ? { turns: previous.turns } : {}), doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}), ...(s.versions ? { versions: s.versions } : {}), ...(s.versionsChanged ? { versionsChanged: true } : {}), ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } satisfies StateFile));
       renameSync(tmp, statePath);
       return null;
     },
   };
 }
 
-export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout) {
+export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, taskRunRoot?: string) {
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
+  const selection = taskRunRoot && isTaskRunFindingSelection(saved.taskFinding) ? saved.taskFinding : undefined;
+  const tools = [...TOOLS_LISTED, ...(robotL3() ? [robotCheckListed()] : []), ...(selection ? [selectedNativeCheckTool] : [])];
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.rowFiles ? { rowFiles: saved.rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}) };
   let changed = saved.changed, version = saved.version, versionsChanged = false;
@@ -81,11 +85,16 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
       case 'initialize': return reply(msg.id, { protocolVersion: msg.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'barocss-cad', title: 'BaroCSS CAD', version: TOOLSET.version } });
       case 'ping': return reply(msg.id, {});
       // (O15: robot_check only in RD10's L3 run, CAD_ROBOT_L3=1.)
-      case 'tools/list': return reply(msg.id, { tools: robotL3() ? [...TOOLS_LISTED, robotCheckListed()] : TOOLS_LISTED });
+      case 'tools/list': return reply(msg.id, { tools });
       case 'tools/call': {
         // (Only the listed tools: a handler's own name (`run_command`) is not one, O105. Ops inside a batch or a proposal
         // name tools as before; saved proposals replay.)
         if (robotL3() && msg.params?.name === ROBOT_CHECK) { const r = await robotCheckCall(state.doc, state.bodies, evaluate, msg.params?.arguments ?? {}); return reply(msg.id, { content: [{ type: 'text', text: r.text }], ...(r.isError ? { isError: true } : {}) }); }
+        if (selection && taskRunRoot && msg.params?.name === SELECTED_NATIVE_CHECK) {
+          const result = readSelectedNativeCheck(taskRunRoot, selection, state.doc, msg.params.arguments);
+          return reply(msg.id, { content: [{ type: 'text', text: JSON.stringify(result) }],
+            ...('error' in result ? { isError: true } : { isError: false, structuredContent: result }) });
+        }
         if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
         const before = state.doc, name = String(msg.params?.name), args = msg.params?.arguments;
         const handler = v1Name(name, args), out = await runTool(state, name, args ?? {}, evaluate);
@@ -123,4 +132,4 @@ export function registerTeamLibraries(dir: string | undefined): number {
   try { for (const name of readdirSync(dir).filter(x => x.endsWith('.json') && !x.endsWith('.check.json'))) { try { registerLibrary(JSON.parse(readFileSync(join(dir, name), 'utf8')), 'team'); n++; } catch { /* skipped */ } } } catch { /* no folder */ }
   return n;
 }
-if (process.env.CAD_CHAT_STATE) { registerTeamLibraries(process.env.CAD_TEAM_LIBRARIES); void serveMcp(process.env.CAD_CHAT_STATE); }
+if (process.env.CAD_CHAT_STATE) { registerTeamLibraries(process.env.CAD_TEAM_LIBRARIES); void serveMcp(process.env.CAD_CHAT_STATE, process.stdin, process.stdout, process.env.CAD_CHAT_TASK_RUN_ROOT); }

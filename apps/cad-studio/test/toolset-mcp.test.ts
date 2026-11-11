@@ -52,6 +52,9 @@ test('the chat server lists the v2 tools it serves, with their prompt', () => {
   const args = claudeArgs({ mcpConfig: '{}', model: 'm' }), allowed = args[args.indexOf('--allowedTools') + 1].split(','), prompt = args[args.indexOf('--system-prompt') + 1];
   assert.deepEqual(allowed, TOOLSET.tools.map(t => `mcp__cad__${t.name}`));
   assert.equal(prompt, SYSTEM_PROMPT_V2);
+  const selected = claudeArgs({ mcpConfig: '{}', model: 'm', selectedNativeCheck: true });
+  assert.deepEqual(selected[selected.indexOf('--allowedTools') + 1].split(','),
+    [...allowed, 'mcp__cad__read_selected_native_check']);
 });
 
 test('O105b through MCP: refusals and hints name v2 tools — no requirements, no snapshot, L2\'s proposal; a stored call in a result read as its v2 call', async () => {
