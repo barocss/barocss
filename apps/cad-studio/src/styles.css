@@ -81,7 +81,10 @@ button { font: inherit; color: inherit; }
 .vp-overlay.pmi .pmi-text { fill: #2185db; font: 12px var(--mono, ui-monospace, monospace); paint-order: stroke; stroke: var(--bg, #fff); stroke-width: 3px; }
 .vp-overlay.pmi .pmi-text.sel { fill: #ff941f; }
 /* The view cube: top right of the viewport, left of the properties column. */
-.view-cube { position: absolute; right: calc(16px + var(--dock-strip-w, 0px)); top: 46px; z-index: 2; cursor: pointer; overflow: visible; touch-action: none; }
+.view-cube { position: absolute; right: calc(16px + var(--dock-strip-w, 0px)); top: 46px; z-index: 2; }
+.view-cube .vc-orbit { display: block; cursor: pointer; overflow: visible; touch-action: none; }
+.view-cube .vc-directions { position: absolute; right: 100%; bottom: 0; }
+.view-cube .vc-directions-menu { display: grid; grid-template-columns: repeat(3, max-content); column-gap: 4px; }
 .view-cube .vc-part { fill: color-mix(in srgb, #c9ccd2 calc(var(--shade) * 100%), #1b1c1f); stroke: #1b1c1f; stroke-width: 0.8; stroke-linejoin: round; opacity: 0.92; }
 .view-cube .vc-part:not(.face) { fill: color-mix(in srgb, #a9adb5 calc(var(--shade) * 100%), #1b1c1f); }
 .view-cube .vc-part.hot { fill: var(--accent); }

@@ -277,7 +277,9 @@ D669 enforces a recognized approval requirement on the current Studio chat turn.
 
 D670 carries the current approval requirement into state-backed CAD MCP. Direct edit and agent acceptance refused. Desktop Studio opened, reviewed and approved the pending proposal and restored it on Undo. [D670](../state-backed-turn-approval-2026-11-11/README.md).
 
-Next MAIN is D671 / P4, row 21. Resume ViewCube keyboard access from the confirmed desktop baseline. Verify keyboard directions, pointer selection and drag orbit.
+D671 exposes all ViewCube directions to keyboard users. Desktop Studio verified keyboard focus and direction changes, pointer selection and drag orbit at two sizes. [D671](../studio-view-cube-keyboard-2026-11-11/README.md).
+
+Next MAIN is D672 / P4, row 21. Verify and expose the Ortho and AO toggle states. Check keyboard activation and the resulting viewport state.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

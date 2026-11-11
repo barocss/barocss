@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D671 — make ViewCube directions keyboard accessible](notes/studio-view-cube-keyboard-2026-11-11/README.md).
 - [D670 — enforce approval on state-backed CAD MCP turns](notes/state-backed-turn-approval-2026-11-11/README.md).
 - [D669 — enforce explicit approval requests for a Studio chat turn](notes/studio-turn-approval-2026-11-11/README.md).
 - [D668 — fit the model to the visible Studio work area](notes/studio-model-work-area-fit-2026-11-11/README.md).
