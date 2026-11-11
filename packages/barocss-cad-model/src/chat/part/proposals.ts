@@ -16,6 +16,7 @@ import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type Par
 import { isObj } from '../../util/guards';
 import { requirementEvidenceRevision } from '../../util/digest';
 import { nestedParameterChecks, nestedParameterOps } from '../nestedParameterProposal';
+import { hasNestedFaceRepair, nestedFaceRepairOp, replayNestedFaceRepair, type NestedFaceRepair } from '../nestedFaceRepair';
 
 /**
  * How far an agent may go on its own (D41), set per turn by the studio (`CAD_AUTONOMY`):
@@ -103,11 +104,14 @@ export function agentMayNotAccept(p: Proposal, level: number): string | null {
  */
 export async function proposalOfWith(dispatch: PartRun, state: ChatState, ops: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun & { checks?: ChecksDelta; risk: Risk; summary: string }> {
   const nested = nestedParameterOps(ops);
+  const faceRepair = hasNestedFaceRepair(ops);
+  if (faceRepair && (dispatch !== replayNestedFaceRepair || !Array.isArray(ops) || ops.length !== 1 || state.partOf))
+    return { fail: fail(state, 'Select the replacement face in Studio.') };
   if (nested !== undefined && (!Array.isArray(ops) || ops.length !== 1 || state.partOf))
     return { fail: fail(state, 'Use a root proposal with one nested parameter operation.') };
   const run = await runOps(dispatch, { ...state, policy: undefined }, ops, evaluate);
   if ('fail' in run) return run;
-  if (nested !== undefined && run.ops.length !== 1) return { fail: fail(state, 'The nested operation was already applied.') };
+  if ((nested !== undefined || faceRepair) && run.ops.length !== 1) return { fail: fail(state, 'The nested operation was already applied.') };
   const { cur, diff, broken } = run;
   let checks: ChecksDelta | undefined;
   const hardChanged = new Set<string>();
@@ -121,8 +125,8 @@ export async function proposalOfWith(dispatch: PartRun, state: ChatState, ops: u
   }
   const local = nested === undefined ? undefined : await nestedParameterChecks(state.doc, cur.doc, nested, evaluate);
   const risk = riskOf(state.doc, cur.doc, diff, broken.length, [...hardChanged, ...(local?.hardChanged ?? [])]);
-  if (local?.needsReview) risk.level = 'high';
-  const changes = nested !== undefined ? String(run.results[0]?.did ?? nested) : diffLine(diff) || (risk.approval.length ? `${risk.approval.join(', ')} change` : '');
+  if (local?.needsReview || faceRepair) risk.level = 'high';
+  const changes = nested !== undefined || faceRepair ? String(run.results[0]?.did ?? nested) : diffLine(diff) || (risk.approval.length ? `${risk.approval.join(', ')} change` : '');
   const checkLabel = nested !== undefined ? 'root checks' : 'checks';
   const rootChecks = checks && `${checkLabel} ${checks.before.pass}/${checks.before.fail}/${checks.before.unknown} → ${checks.after.pass}/${checks.after.fail}/${checks.after.unknown}`;
   const summary = [changes, rootChecks, local?.summary].filter(Boolean).join(', ') || 'no change';
@@ -142,13 +146,16 @@ export async function acceptProposalWith(dispatch: PartRun, state: ChatState, id
   const p = state.doc.proposals?.find(q => q.id === id), by = o.by ?? { agent: 'user' };
   if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
   const nested = nestedParameterOps(p.ops);
+  const faceRepair = hasNestedFaceRepair(p.ops);
+  if (faceRepair && (by.agent !== 'user' || p.by.agent !== 'user' || p.ops.length !== 1 || state.partOf))
+    return { error: 'A nested face repair needs selection and approval by the user in Studio.' };
   if (nested !== undefined && by.agent !== 'user') return { error: 'A nested parameter proposal always needs the user’s approval in Studio.' };
   if (nested !== undefined && (p.ops.length !== 1 || state.partOf)) return { error: 'Use a root proposal with one nested parameter operation.' };
   const before = requirementEvidenceRevision(state.doc);
-  if (proposalIsStale(p, before)) return { error: nested !== undefined ? staleNested(p) : `${id} has no current proposal revision: rebase it and look at the result before accepting.`, stale: true };
-  const run = await runOps(dispatch, { ...state, policy: undefined }, p.ops, evaluate);
+  if (proposalIsStale(p, before)) return { error: nested !== undefined || faceRepair ? staleNested(p) : `${id} has no current proposal revision: rebase it and look at the result before accepting.`, stale: true };
+  const run = await runOps(faceRepair ? replayNestedFaceRepair : dispatch, { ...state, policy: undefined }, p.ops, evaluate);
   if ('fail' in run) return { error: errorOf(run.fail) };
-  if (nested !== undefined && run.ops.length !== 1) return { error: 'The nested operation was already applied.' };
+  if ((nested !== undefined || faceRepair) && run.ops.length !== 1) return { error: 'The nested operation was already applied.' };
   let cur = run.cur, leftOut: string[] = [];
   if (o.leaveOut?.length) {
     const parts = proposalParts(state.doc, cur.doc), wrong = o.leaveOut.filter(x => !parts.some(q => q.id === x && q.kind !== 'deleted'));
@@ -179,7 +186,7 @@ export async function rebaseProposalWith(dispatch: PartRun, state: ChatState, id
   if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
   const revision = requirementEvidenceRevision(state.doc);
   if (!proposalIsStale(p, revision)) return { error: `${id} was made on the part as it is: nothing to rebase.` };
-  if (nestedParameterOps(p.ops) !== undefined) return { error: staleNested(p) };
+  if (nestedParameterOps(p.ops) !== undefined || hasNestedFaceRepair(p.ops)) return { error: staleNested(p) };
   const now = modelHash(state.doc);
   // (O133: its ops' feature indices and the ids it made itself moved to the part as it is, when it says what they named.)
   let ops = p.ops;
@@ -256,18 +263,22 @@ export async function previewProposalWith(dispatch: PartRun, state: ChatState, i
   const p = state.doc.proposals?.find(q => q.id === id);
   if (!p) return { error: `No proposal ${id}.` };
   const nested = nestedParameterOps(p.ops);
+  const faceRepair = hasNestedFaceRepair(p.ops);
+  if (faceRepair && (p.by.agent !== 'user' || p.ops.length !== 1 || state.partOf || p.status !== 'open' || proposalIsStale(p, requirementEvidenceRevision(state.doc))))
+    return { error: staleNested(p) };
   if (nested !== undefined) {
     if (p.ops.length !== 1 || state.partOf) return { error: 'Use a root proposal with one nested parameter operation.' };
     if (p.status !== 'open' || proposalIsStale(p, requirementEvidenceRevision(state.doc))) return { error: staleNested(p) };
   }
-  const run = await runOps(dispatch, { ...state, policy: undefined }, p.ops, evaluate);
+  const run = await runOps(faceRepair ? replayNestedFaceRepair : dispatch, { ...state, policy: undefined }, p.ops, evaluate);
   if ('fail' in run) { let why = run.fail.content; try { why = JSON.parse(why).error; } catch { /* plain text */ } return { error: why }; }
-  if (nested !== undefined && run.ops.length !== 1) return { error: 'The nested operation was already applied.' };
+  if ((nested !== undefined || faceRepair) && run.ops.length !== 1) return { error: 'The nested operation was already applied.' };
   return { doc: run.cur.doc, bodies: run.cur.bodies };
 }
 
 export async function proposeWith(dispatch: PartRun, state: ChatState, args: Record<string, unknown>, evaluate: Evaluate,
-  repair?: { source: FollowUpRepairSource; check(candidate: StudioDoc, risk: Risk, checks?: ChecksDelta): Promise<string | undefined> }): Promise<ToolOutcome> {
+  repair?: { source: FollowUpRepairSource; check(candidate: StudioDoc, risk: Risk, checks?: ChecksDelta): Promise<string | undefined> },
+  author?: Decider): Promise<ToolOutcome> {
   // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
   const title = typeof args.title === 'string' ? args.title.trim() : '';
   if (!title) return fail(state, 'A proposal takes a title.');
@@ -278,12 +289,20 @@ export async function proposeWith(dispatch: PartRun, state: ChatState, args: Rec
   const refusal = repair && await repair.check(made.cur.doc, made.risk, made.checks);
   if (refusal) return fail(state, refusal);
   const env = typeof process !== 'undefined' ? process.env : undefined;
-  const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
+  const by = author ?? { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
   const plan = typeof args.plan === 'string' ? args.plan : undefined;
   const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
     ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), base_evidence_revision: requirementEvidenceRevision(state.doc), ...(repair ? { follow_up_repair: repair.source } : {}), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
   const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
   return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', ...(nestedParameterOps(made.ops) !== undefined ? { summary: made.summary } : {}), diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
+}
+
+export function proposeNestedFaceReferenceRepair(state: ChatState, repair: NestedFaceRepair, evaluate: Evaluate) {
+  return proposeWith(replayNestedFaceRepair, state, {
+    title: `Repair ${repair.part} ${repair.requirement} face reference`,
+    plan: `Replace ${repair.from} with ${repair.to} from the saved approval ${repair.source.version}.`,
+    ops: [nestedFaceRepairOp(repair)],
+  }, evaluate, undefined, { agent: 'user' });
 }
 const proposeTool: PartHandler = (state, args, evaluate, _options, dispatch) => proposeWith(dispatch, state, args, evaluate);
 async function acceptProposalTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, _options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
@@ -291,6 +310,7 @@ async function acceptProposalTool(state: ChatState, args: Record<string, unknown
   const id = String(args.id ?? ''), p = state.doc.proposals?.find(q => q.id === id);
   if (!p || p.status !== 'open') return fail(state, p ? `${id} is ${p.status} already.` : `No proposal "${id}"; open: ${(state.doc.proposals ?? []).filter(q => q.status === 'open').map(q => q.id).join(', ') || 'none'}.`);
   if (nestedParameterOps(p.ops) !== undefined) return fail(state, 'A nested parameter proposal always needs the user’s approval in Studio.');
+  if (hasNestedFaceRepair(p.ops)) return fail(state, 'A nested face repair needs selection and approval by the user in Studio.');
   const env = typeof process !== 'undefined' ? process.env : undefined, by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
   const level = autonomy();
   const early = level < 3 || p.risk.approval.length ? agentMayNotAccept(p, level) : null;

@@ -8,8 +8,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === undefined || mode === '--diagnosis-baseline' || mode === '--diagnosis-chat');
+assert.ok(mode === undefined || ['--diagnosis-baseline', '--diagnosis-chat', '--face-repair-baseline', '--face-repair'].includes(mode));
 const diagnosisBaseline = mode === '--diagnosis-baseline', diagnosisChat = mode === '--diagnosis-chat';
+const repairBaseline = mode === '--face-repair-baseline', faceRepair = mode === '--face-repair', repairFlow = repairBaseline || faceRepair;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (diagnosisChat) {
   const reserved = createServer().listen(0, '127.0.0.1');
@@ -25,6 +26,8 @@ const pins = [
   ...(diagnosisChat ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts',
     'apps/cad-studio/server/selectedFaceDiagnosis.ts', 'apps/cad-studio/src/chat/faceDiagnosis.ts',
     'apps/cad-studio/src/chat/useFaceDiagnosisAttachment.ts', 'apps/cad-studio/src/chat/useStudioChat.ts'] : []),
+  ...(faceRepair ? ['apps/cad-studio/src/storage/SavedFaceReferenceRepair.tsx',
+    'packages/barocss-cad-model/src/chat/nestedFaceRepair.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts'] : []),
 ];
 const inspectorSource = `
 import assert from 'node:assert/strict';
@@ -44,13 +47,32 @@ const reads = await Promise.all(rows.map(async saved => {
   assert.ok(body.ok && body.bodies.length === 1);
   const freshness = await freshnessOf(saved, doc, evaluate);
   return { part, freshness, oldPassNow: passes(saved, freshness), volume: body.bodies[0].volume,
-    faces: body.bodies[0].mesh.faces.flatMap(face => face.name.split('+')) };
+    faces: body.bodies[0].mesh.faces.flatMap(face => face.name.split('+')),
+    taggedFace: body.bodies[0].mesh.faces.filter(face => face.name === 'n1.side[west2]').map(({ centroid, normal, area }) => ({ centroid, normal, area })) };
 }));
 console.log(JSON.stringify(reads));
 `;
 const oracleSource = `
 import hashlib, json, math, sys
 d = json.load(sys.stdin)
+if 'renameRepair' in d:
+    before, after = d['before'], d['after']
+    assert before['instances'][1] == after['instances'][1]
+    l = before['instances'][0]['doc']['instances'][0]['doc']
+    r = after['instances'][0]['doc']['instances'][0]['doc']
+    assert {k:v for k,v in l.items() if k != 'requirements'} == {k:v for k,v in r.items() if k != 'requirements'}
+    q0 = l['requirements'][0]['check']['query']
+    q1 = r['requirements'][0]['check']['query']
+    assert q0 == {'fn':'distance_between','a':'n1.side[west]','b':'n1.side[east]'}
+    assert q1 == {**q0,'a':'n1.side[west2]'}
+    assert l['requirements'][0]['check']['value'] == r['requirements'][0]['check']['value'] == 12
+    assert [x['volume'] for x in d['native']] == [384,384]
+    assert d['native'][0]['taggedFace'] == [{'centroid':[0,4,2],'normal':[-1,0,0],'area':32}]
+    assert d['native'][0]['freshness']['unresolved'][0]['candidates'] == ['n1.side[west2]']
+    assert d['reads'][0]['evidence'][0]['result']['number'] == 12 and d['reads'][0]['evidence'][0]['result']['verdict'] == 'pass'
+    assert d['reads'][1]['evidence'][0]['result']['number'] == 12 and d['reads'][1]['evidence'][0]['result']['verdict'] == 'pass'
+    print(json.dumps({'status':'PASS','nativeVolumeMm3':[384,384],'faceAreaMm2':32,'widthMm':12}))
+    sys.exit(0)
 assert d['approved']['instances'][0]['doc']['instances'][0]['doc'] == d['approved']['instances'][1]['doc']['instances'][0]['doc']
 assert d['approved']['instances'][1] == d['changed']['instances'][1]
 for index, (path, side_count, area) in enumerate([('p1/p1', 3, 48), ('p2/p1', 4, 96)]):
@@ -78,15 +100,19 @@ assert saved['recoveries'] == [{'id':'WIDTH','from':14,'to':12,'unit':'mm'}]
 assert saved['after']['evidence'][0]['result']['verdict'] == 'pass'
 print(json.dumps({'status':'PASS','lostFace':'n1.side3','volumesMm3':[192,384],'historicalRecoveryMm':[14,12]}))
 `;
-const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
-  initialFiles: pins, requiredFrozen: pins, qualification: mode ? 'One selected current face diagnosis in Studio chat' : 'Lost face on one exact nested occurrence with retained approval evidence',
+const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: repairFlow ? 'D660_SOURCE_FROZEN' : mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
+  initialFiles: pins, requiredFrozen: pins,
+  qualification: repairFlow ? 'One selected tag-only face reference repair with retained approval evidence'
+    : mode ? 'One selected current face diagnosis in Studio chat' : 'Lost face on one exact nested occurrence with retained approval evidence',
   limits: ['The triangle arrives through the saved native project file, as an external design revision. Studio handles acceptance, Save, Open and diagnostics.'],
 });
 const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 };
+const west = repairFlow ? 'n1.side[west]' : 'n1.side3', east = repairFlow ? 'n1.side[east]' : 'n1.side1';
 const requirement = { id: 'WIDTH', source: '12 mm between the named side faces', basis: 'stated', hard: true,
-  check: { query: { fn: 'distance_between', a: 'n1.side3', b: 'n1.side1' }, op: '==', value: 12, unit: 'mm' } };
+  check: { query: { fn: 'distance_between', a: west, b: east }, op: '==', value: 12, unit: 'mm' } };
 const part = width => ({ ...empty, parameters: { W: width }, nextId: 2,
-  nodes: [{ id: 'n0', kind: 'sketch', profile: 'polygon', points: [[0, 0], [{ parameter: 'W' }, 0], [{ parameter: 'W' }, 8], [0, 8]] },
+  nodes: [{ id: 'n0', kind: 'sketch', profile: 'polygon', points: [[0, 0], [{ parameter: 'W' }, 0], [{ parameter: 'W' }, 8], [0, 8]],
+    ...(repairFlow ? { sideTags: { outer: ['south', 'east', 'north', 'west'] } } : {}) },
     { id: 'n1', kind: 'extrude', sketch: 0, height: 4 }], outputs: { b1: { node: 1, side: 'solid' } }, requirements: [requirement] });
 const instance = (id, name, doc, position) => ({ id, name, doc, position, rotation: [0, 0, 0] });
 const host = width => ({ ...empty, instances: [instance('p1', 'Leaf plate', part(width), [0, 0, 0])] });
@@ -171,6 +197,97 @@ async function compare() {
   await panel().getByRole('button', { name: 'Compare Original width failure', exact: true }).click();
   await panel().getByLabel('Compare to', { exact: true }).selectOption({ label: 'Approved face check' });
   await savedChecks().getByText('14 mm → 12 mm', { exact: true }).waitFor();
+}
+
+async function verifyRenamedRepair(renamed, prior, saved, evidenceName) {
+  const proposal = id => f.page.getByRole('listitem', { name: 'Proposal ' + id, exact: true });
+  const check = () => button('Check current face references');
+  const choose = () => button('Propose n1.side[west2]');
+  const authored = doc => ({ ...doc, proposals: undefined, history: undefined });
+  const select = async id => {
+    if (!await savedChecks().isVisible()) await compare();
+    await check().click();
+    await choose().click();
+    await proposal(id).waitFor();
+    await proposal(id).getByText(/n1\.side\[west\] → n1\.side\[west2\].*12 mm Pass/).waitFor();
+    const pending = await f.doc(), p = pending.proposals.at(-1);
+    assert.equal(p.by.agent, 'user');
+    assert.deepEqual([p.ops[0].args.faceRepair.from, p.ops[0].args.faceRepair.to, p.ops[0].args.faceRepair.source.sha256],
+      ['n1.side[west]', 'n1.side[west2]', JSON.parse(saved.evidence).sha256]);
+    assert.deepEqual(authored(pending), authored(renamed));
+    await proposal(id).getByRole('button', { name: 'Preview', exact: true }).click();
+    await proposal(id).getByRole('button', { name: 'Hide', exact: true }).waitFor();
+    const delta = await proposal(id).getByLabel('Volume change').innerText();
+    assert.match(delta, /^\+0 mm³/);
+    await f.same(pending);
+    await f.snapshot('preview-' + id);
+  };
+
+  f.phase = 'a gone face has no replacement and cannot produce a proposal';
+  const lost = structuredClone(renamed), sketch = lost.instances[0].doc.instances[0].doc.nodes[0];
+  sketch.points.pop();
+  sketch.sideTags.outer = ['south', 'east', 'diagonal'];
+  await panel().getByRole('button', { name: 'Close project', exact: true }).click();
+  await projectFiles(evidenceName, JSON.stringify(lost));
+  await openProject();
+  await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+  await f.same(lost);
+  await compare();
+  await check().click();
+  await savedChecks().getByText('No verified replacement for the saved face.', { exact: true }).waitFor();
+  assert.equal(await choose().count(), 0);
+  await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side[west]"');
+  await f.same(lost);
+  await f.snapshot('02-lost-face-refused');
+
+  f.phase = 'select the exact replacement, preview it and reject without changing the model';
+  await panel().getByRole('button', { name: 'Restore Renamed west face', exact: true }).click();
+  await f.same(renamed);
+  await select('P2');
+  await proposal('P2').getByRole('button', { name: 'Reject', exact: true }).click();
+  await f.page.waitForFunction(() => window.__studioDoc?.proposals?.at(-1)?.status === 'rejected');
+  const rejected = await f.doc();
+  assert.deepEqual(authored(rejected), authored(renamed));
+  assert.equal(rejected.history.at(-1).kind, 'reject');
+  await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side[west]"');
+
+  f.phase = 'approve the reselected replacement and reopen the exact updated requirement';
+  await select('P3');
+  await proposal('P3').getByRole('button', { name: 'Accept', exact: true }).click();
+  await f.page.waitForFunction(() => window.__studioDoc?.proposals?.at(-1)?.status === 'accepted');
+  await f.ready();
+  const accepted = await f.doc();
+  const expected = structuredClone(renamed);
+  expected.instances[0].doc.instances[0].doc.requirements[0].check.query.a = 'n1.side[west2]';
+  assert.deepEqual(authored(accepted), authored(expected));
+  assert.equal(accepted.proposals.at(-1).decided.by, 'user');
+  await inspectOccurrence(0, 'Pass', '12 mm (want 12 ± 0 mm)');
+  await inspectOccurrence(1, 'Pass', '12 mm (want 12 ± 0 mm)');
+  await makeVersion('Face reference approved');
+  const savedNow = await projectFiles(evidenceName);
+  assert.equal(savedNow.evidence, saved.evidence);
+  assert.deepEqual(savedNow.snapshots.slice(0, 2), saved.snapshots);
+  assert.deepEqual(JSON.parse(savedNow.snapshots.at(-1)), accepted);
+  const file = join(output, 'approved-reference.bcad');
+  await writeFile(file, savedNow.snapshots.at(-1));
+  const reads = (await mcp(file, 'approved-reference', paths.map(path => evidence(path)))).map(reply => {
+    assert.equal(reply.error, false, JSON.stringify(reply.body));
+    return JSON.parse(reply.body.files[0].text);
+  });
+  await f.page.reload();
+  await f.ready();
+  await openProject();
+  await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+  await f.same(accepted);
+  await inspectOccurrence(0, 'Pass', '12 mm (want 12 ± 0 mm)');
+  await compare();
+  await savedChecks().getByText('Approval evidence saved', { exact: true }).waitFor();
+  assert.deepEqual(await projectFiles(evidenceName), savedNow);
+  const native = await f.inspect('approved-replacement', accepted, prior.map(report => report.evidence[0].result));
+  await f.runOracle({ renameRepair: true, before: renamed, after: accepted, native, reads }, 'independent-face-repair');
+  await f.snapshot('03-approved-face-reopened');
+  f.report.observations.push({ lostFaceRefused: true, exactUserSelection: true, zeroVolumeChange: true, rejectionPreservedModel: true,
+    acceptedAndReopened: true, currentWidthMm: 12, originalEvidencePreserved: true });
 }
 
 async function verifyChatDiagnosis(origin, changed, approved, current, evidenceName, newer) {
@@ -359,6 +476,34 @@ await f.run(async () => {
   assert.notEqual(prior[0].evidence[0].result.id, prior[1].evidence[0].result.id);
   assert.deepEqual(prior.map(report => [report.evidence[0].result.number, report.evidence[0].result.verdict]), [[12, 'pass'], [12, 'pass']]);
   await f.snapshot('01-retained-named-face-approval');
+
+  if (repairFlow) {
+    f.phase = 'open a renamed face on the same prism and review the saved approval';
+    const renamed = structuredClone(approved);
+    renamed.instances[0].doc.instances[0].doc.nodes[0].sideTags.outer[3] = 'west2';
+    await panel().getByRole('button', { name: 'Close project', exact: true }).click();
+    await projectFiles(evidenceName, JSON.stringify(renamed));
+    await openProject();
+    await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(renamed);
+    await makeVersion('Renamed west face');
+    await compare();
+    await savedChecks().getByText('Approval evidence saved', { exact: true }).waitFor();
+    await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side[west]"');
+    const freshness = await f.inspect('named-rename', renamed, prior.map(report => report.evidence[0].result));
+    assert.deepEqual(freshness[0].freshness.unresolved.map(({ face, why, candidates }) => [face, why, candidates]),
+      [[west, 'renamed', ['n1.side[west2]']]]);
+    assert.deepEqual(freshness.map(read => read.volume), [384, 384]);
+    if (repairBaseline) {
+      f.phase = 'baseline has no proposal action for the uniquely renamed face';
+      assert.equal(await button('Check current face references').count(), 0);
+      await f.snapshot('02-baseline-renamed-face');
+      f.report.observations.push({ sameShape: true, uniqueRename: true, repairActionAvailable: false });
+      return;
+    }
+    await verifyRenamedRepair(renamed, prior, saved, evidenceName);
+    return;
+  }
 
   f.phase = 'open a valid external revision with only the left named face gone';
   const changed = structuredClone(approved);

@@ -1,5 +1,5 @@
 ---
-work_id: D659
+work_id: D660
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -255,7 +255,9 @@ D658 qualifies a lost named face on one nested occurrence. Studio and MCP report
 
 D659 attaches one current missing-face diagnosis to Studio chat. MCP rechecks the exact occurrence, authored criterion and working revision, and reports the unresolved reference. [D659](../studio-selected-face-diagnosis-2026-11-11/README.md).
 
-Next MAIN is D660 / P0 automation evidence, rows 04, 12 and 16. Check a uniquely renamed face that still represents the original geometry. Use the existing signature matcher and proposal flow to test an explicit user-selected replacement. Verify exact preview, rejection and fresh checks. Keep the lost-face case unresolved. [#2279](https://github.com/barocss/barocss/issues/2279).
+D660 verifies explicit replacement of one renamed planar face on the same nested occurrence. Studio preview leaves the geometry unchanged, rejection preserves the model, and fresh Open measures 12 mm after acceptance. A lost face offers no replacement. [D660](../studio-renamed-face-reference-repair-2026-11-11/README.md).
+
+Next MAIN is D661 / P0 automation evidence, rows 04, 12 and 16. Link the original unresolved face and the explicit replacement approval to the exact saved revisions. Verify fresh Open and keep the original approval and first unresolved result. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -50,6 +50,14 @@ export function editNestedDefinition(root: StudioDoc, scope: Exclude<ReturnType<
   return { doc };
 }
 
+export function nestedDefinitionEditProblem(root: StudioDoc, scope: Exclude<ReturnType<typeof nestedRequirementScope>, { error: string }>) {
+  const chain = [...scope.ancestors, scope.leaf], parents = [root, ...scope.ancestors.map(inst => inst.doc)];
+  for (const [index, inst] of chain.entries()) {
+    const dependency = dependencyOf(parents[index], inst);
+    if (dependency) return `${inst.id} is governed by ${dependency}`;
+  }
+}
+
 /** Replay a single value edit on a private root, then validate the rebuilt placed definition. */
 export async function nestedParameterEdit(state: ChatState, part: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const scope = nestedRequirementScope(state.doc, part);
@@ -62,11 +70,8 @@ export async function nestedParameterEdit(state: ChatState, part: string, args: 
   const [[name, value]] = values;
   if (typeof value !== 'number' || !Number.isFinite(value)) return fail(state, `Parameter ${name} needs a finite number.`);
 
-  const chain = [...scope.ancestors, scope.leaf], parents = [state.doc, ...scope.ancestors.map(inst => inst.doc)];
-  for (const [index, inst] of chain.entries()) {
-    const dependency = dependencyOf(parents[index], inst);
-    if (dependency) return fail(state, `Cannot edit ${part}: ${inst.id} is governed by ${dependency}.`);
-  }
+  const problem = nestedDefinitionEditProblem(state.doc, scope);
+  if (problem) return fail(state, `Cannot edit ${part}: ${problem}.`);
   if (reconcileRowSources(state.doc, state.doc, state.rowFiles) !== state.doc)
     return fail(state, 'Review the assembly row provenance before proposing a nested parameter edit.');
 

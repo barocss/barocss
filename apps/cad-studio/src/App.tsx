@@ -2129,6 +2129,15 @@ export function App() {
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+        onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {
+          const scope = openIntent.current;
+          if (docNow.current !== working || project.opening()) return false;
+          const tools = await import('@barocss/cad-model/chat/tools');
+          const out = await tools.proposeNestedFaceReferenceRepair({ doc: working, bodies }, repair, evaluateVersion);
+          if (docNow.current !== working || openIntent.current !== scope || project.opening() || out.isError || !commit(out.state.doc)) return false;
+          setChat(true);
+          return true;
+        } : undefined}
         onAttachApprovalEvidence={approvalAttachmentsEnabled ? async review => {
           const attached = await approvalAttachments.attach(review);
           if (attached) setChat(true);

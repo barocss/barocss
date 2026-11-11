@@ -9,8 +9,10 @@ import type { ApprovalCheck } from '@barocss/cad-model/versions/approvalEvidence
 import type { Version, VersionLog } from '@barocss/cad-model/versions/log';
 import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFollowUp';
 import { canonical } from '@barocss/cad-model/util/revision';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { SavedRepairChecks } from './SavedRepairChecks';
+import { SavedFaceReferenceRepair, type PrepareFaceRepair } from './SavedFaceReferenceRepair';
 import { useEvidenceSave } from './useEvidenceSave';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
   saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair, type SavedApprovalSource } from './savedApprovalEvidence';
@@ -123,13 +125,14 @@ function SavedRequirementFollowUp({ source, followUp, approval, evaluate, onAtta
   </div>;
 }
 
-function KeepApprovalEvidence({ review, report, stored, onAttach }: {
-  review: BoundReview; report: ApprovalCheck; stored: boolean; onAttach?: AttachApprovalEvidence;
+function KeepApprovalEvidence({ review, report, stored, onAttach, children }: {
+  review: BoundReview; report: ApprovalCheck; stored: boolean; onAttach?: AttachApprovalEvidence; children?: ReactNode;
 }) {
   const { state, save } = useEvidenceSave();
   if (stored || state === 'saved') return <div>
     <div role="status">Approval evidence saved</div>
     {onAttach && <AttachEvidenceButton source={review} onAttach={onAttach} kind="approval" />}
+    {children}
   </div>;
   return <div className="mt-1">
     <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(() => saveApprovalEvidence(review, report))}>
@@ -139,8 +142,11 @@ function KeepApprovalEvidence({ review, report, stored, onAttach }: {
   </div>;
 }
 
-function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
+type WorkingFaceRepair = { doc: StudioDoc; prepare: PrepareFaceRepair };
+
+function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach, faceRepair }: {
   comparison: Comparison; part: string; evaluate: Evaluate; followUp?: SavedSuccessor; savedPair?: SavedApprovalPair; onAttach?: AttachApprovalEvidence;
+  faceRepair?: WorkingFaceRepair;
 }) {
   const review = useMemo(() => savedPair ? bindSavedApproval(savedPair, comparison, part) : null, [savedPair, comparison, part]);
   const operation = comparison.nested?.ops[0];
@@ -188,14 +194,22 @@ function Checks({ comparison, part, evaluate, followUp, savedPair, onAttach }: {
         : `${priorFailure.measured}${priorFailure.unit ? ' ' + unitText(priorFailure.unit) : ''} (want ${priorFailure.expected})`}</div>}
       {criterion && <div>New criterion · {criterion}</div>}
     </div>)}
-    {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach} />}
+    {review && result.recoveries.length > 0 && <KeepApprovalEvidence review={review} report={result} stored={!!current?.stored} onAttach={onAttach}>
+      {faceRepair && result.after?.evidence.flatMap(row => {
+        const id = row.requirement?.id;
+        if (!id || row.requirement?.check.query.fn !== 'distance_between' || row.result.verdict !== 'pass' ||
+          !Object.keys(row.result.fingerprint.faces ?? {}).some(name => /^n\d+\.side\[/.test(name))) return [];
+        return [<SavedFaceReferenceRepair key={id} review={review} doc={faceRepair.doc} requirement={id} prepare={faceRepair.prepare} />];
+      })}
+    </KeepApprovalEvidence>}
     {source && followUp && result.recoveries.length > 0 && <SavedRequirementFollowUp key={source.version.id}
       source={source} followUp={followUp} approval={result} evaluate={evaluate} onAttach={onAttach} />}
   </>;
 }
 
-export function ApprovedRequirementChecks({ comparison, evaluate, historical, followUp, savedPair, onAttach }: {
+export function ApprovedRequirementChecks({ comparison, evaluate, historical, followUp, savedPair, onAttach, faceRepair }: {
   comparison: Comparison; evaluate: Evaluate; historical: boolean; followUp?: SavedSuccessor; savedPair?: SavedApprovalPair; onAttach?: AttachApprovalEvidence;
+  faceRepair?: WorkingFaceRepair;
 }) {
   const [part, setPart] = useState(comparison.scopes[0].id);
   const label = historical ? 'Saved approval checks' : 'Approved requirement checks';
@@ -204,7 +218,7 @@ export function ApprovedRequirementChecks({ comparison, evaluate, historical, fo
     <NativeSelect aria-label="Requirement occurrence" value={part} onChange={event => setPart(event.currentTarget.value)}>
       {comparison.scopes.map(scope => <option key={scope.id} value={scope.id}>{scope.label}{scope.id !== 'base' ? ` (${scope.id})` : ''}</option>)}
     </NativeSelect>
-    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} followUp={followUp} savedPair={savedPair} onAttach={onAttach} />
+    <Checks key={part} comparison={comparison} part={part} evaluate={evaluate} followUp={followUp} savedPair={savedPair} onAttach={onAttach} faceRepair={faceRepair} />
   </section>;
 }
 

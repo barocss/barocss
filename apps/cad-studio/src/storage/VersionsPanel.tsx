@@ -22,6 +22,7 @@ import type { CandidateReview } from '../files/taskCandidateReview';
 import type { TaskRunDecision } from '../chat/taskRunOffer';
 import { CandidateReviewSection } from './CandidateReviewSection';
 import { approvedRequirementComparison } from '@barocss/cad-model/versions/approvedRequirements';
+import type { PrepareFaceRepair } from './SavedFaceReferenceRepair';
 
 type ComparedVersion = { id: string; doc: StudioDoc; snapshot: string };
 export type VersionComparison = ComparedVersion & {
@@ -52,7 +53,7 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence }: {
+export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence, onPrepareFaceRepair }: {
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
@@ -66,6 +67,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; decide?(decision: TaskRunDecision): Promise<void> };
   onCollapse?(): void;
   onAttachApprovalEvidence?: AttachApprovalEvidence;
+  onPrepareFaceRepair?: PrepareFaceRepair;
 }) {
   const { view } = project, log = view.log;
   const [browserName, setBrowserName] = useState('My project');
@@ -184,7 +186,8 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
       <ul className="m-0 list-disc pl-4">{changeLines(compared).map((l, k) => <li key={k}>{l}</li>)}</ul>
     </div>}
     {approval && <ApprovedRequirementChecks key={`${version?.id}:${targetVersion?.id ?? 'working'}:${approval.proposal}:${approval.revisions.before}:${approval.revisions.after}`}
-      comparison={approval} evaluate={evaluate} historical={!!targetVersion} followUp={followUp} savedPair={savedPair} onAttach={onAttachApprovalEvidence} />}
+      comparison={approval} evaluate={evaluate} historical={!!targetVersion} followUp={followUp} savedPair={savedPair} onAttach={onAttachApprovalEvidence}
+      faceRepair={onPrepareFaceRepair ? { doc, prepare: onPrepareFaceRepair } : undefined} />}
 
     {log && <>
       <div className="card-title" style={{ marginTop: 8 }}>BRANCHES · {log.branches.length}</div>

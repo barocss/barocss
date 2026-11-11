@@ -23,6 +23,7 @@ import { validateBallOptions, validateFastenedOptions, validateUniversalOptions,
 import { resolveNames, type NameSelection } from './names';
 import { approvalOf } from './proposals';
 import { nestedParameterEdit, nestedParameterPart } from './nestedParameterProposal';
+export { proposeNestedFaceReferenceRepair } from './part/proposals';
 import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
 import { checkPartEdit, refreshFollowed } from '../frames/skeleton';
