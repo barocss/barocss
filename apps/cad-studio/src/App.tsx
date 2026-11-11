@@ -1082,7 +1082,7 @@ export function App() {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
   }, [doc, engine]);
-  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc: setDocState, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc: setDocState, commit: commitAssembly, variantPreview: variants.showing !== null, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
   const robotExports = useRobotExports({ model: { doc, bodies, instanceBodies, instanceSources, fresh, busy, massReady }, assembly, fileName, onNotice: setToast });
   const { jointTree, robotReady, reportMotionError } = robotExports;
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.

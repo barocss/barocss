@@ -42,7 +42,7 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 [D675](../notes/two-sheet-counterbore-svg-2026-11-11/README.md) verifies that the updated counterbore callout appears only on the Top sheet in actual SVG. [D676](../notes/lost-diameter-svg-2026-11-11/README.md) fixes shared pitch-circle reference state and verifies that actual SVG omits a lost diameter and restores it after Undo.
 
-[D677](../notes/step-preview-late-reply-2026-11-11/README.md) verifies real late STEP replies across Open with the new preview closed or pending. D678 checks STEP preparation against the shown variant and restored master.
+[D677](../notes/step-preview-late-reply-2026-11-11/README.md) verifies real late STEP replies across Open with the new preview closed or pending. [D678](../notes/step-shown-variant-2026-11-11/README.md) verifies actual STEP preparation across a variant switch and fixes master placement ownership. D679 checks the STL source record against the geometry generated for an unsaved Variant input.
 
 Rows [01](../roadmap-rows/01.md), [02](../roadmap-rows/02.md), [04](../roadmap-rows/04.md), [11](../roadmap-rows/11.md), [13](../roadmap-rows/13.md). Drawings/Model own source linkage and annotations; CAD/Interop own supported exchange profiles; Studio owns the actual file and page workflow. P0 currentness and the existing source-revision contract are prerequisites.
 

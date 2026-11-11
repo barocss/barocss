@@ -165,6 +165,35 @@ test('leaving linked mode hides old linked tables until fresh legacy tables arri
   } finally { f.cleanup(); }
 });
 
+test('automatic mate solving stays off during a variant preview and resumes with current master faces', async () => {
+  const f = fixture();
+  try {
+    f.args.readFaces = undefined;
+    const master = f.args.evaluated;
+    f.render(); await f.flush();
+    for (const job of f.legacy) job.resolve(table('master'));
+    await ticks(); f.render(); await f.flush();
+    const before = f.solves.length;
+    assert.ok(before > 0);
+
+    f.args.variantPreview = true;
+    f.args.evaluated = { ...master, parameters: { Height: 9 } };
+    f.render(); await f.flush();
+    for (const job of f.legacy.slice(3)) job.resolve(table('preview'));
+    await ticks(); f.render(); await f.flush();
+    assert.equal(f.solves.length, before);
+
+    f.args.variantPreview = false;
+    f.args.evaluated = master;
+    f.render(); await f.flush();
+    assert.equal(f.solves.length, before);
+    for (const job of f.legacy.slice(6)) job.resolve(table('restored-master'));
+    await ticks(); f.render(); await f.flush();
+    assert.equal(f.solves.length, before + 1);
+    assert.equal(f.solves.at(-1).observed.get('base').marker, 'restored-master');
+  } finally { f.cleanup(); }
+});
+
 
 test('O24 b: current linked picks keep connector options through the undoable assembly commit', async () => {
   const f = fixture();

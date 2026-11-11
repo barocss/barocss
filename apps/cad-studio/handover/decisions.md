@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D678 — preserve the master while preparing STEP for a variant](notes/step-shown-variant-2026-11-11/README.md).
 - [D677 — keep STEP preparation with the current document](notes/step-preview-late-reply-2026-11-11/README.md).
 - [D676 — preserve the drawing through Hole suppression and Undo](notes/lost-diameter-svg-2026-11-11/README.md).
 - [D675 — export the current counterbore callout on its own sheet](notes/two-sheet-counterbore-svg-2026-11-11/README.md).

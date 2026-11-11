@@ -57,9 +57,10 @@ function patternMateRefusal(doc: StudioDoc, mate: Mate, mates: Mate[], instances
   return unsettledRefusal(out.problems, mate.id, doc, hostOf(mate.a.part), hostOf(mate.b.part))?.message ?? null;
 }
 
-export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit, readFaces }: {
+export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit, readFaces, variantPreview = false }: {
   doc: StudioDoc; evaluated: StudioDoc; bodies: BodyResult[];
   instanceBodies: Map<string, { bodies: BodyResult[] }>;
+  variantPreview?: boolean;
   setDoc: Dispatch<SetStateAction<StudioDoc>>;
   /** Current-root linked evaluations, with exact immediate owner and local input; no flattening here. */
   readFaces?(owner: string, input: StudioDoc): Promise<FaceTable | null>;
@@ -128,7 +129,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   // same state, solved), so undo skips it.
   const lastSolved = useRef<readonly PartInstance[] | undefined>(undefined);
   useEffect(() => {
-    if (facesPending()) { setProblems(EMPTY_PROBLEMS); setFreedom(EMPTY_FREEDOM); return; }
+    // Variant geometry has its own solved placements. Use only current master faces for authored writeback.
+    if (variantPreview || !currentTables || facesPending()) { setProblems(EMPTY_PROBLEMS); setFreedom(EMPTY_FREEDOM); return; }
     if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
     // (One settled solve through the patterns: written back only when it differs, never when a pattern does not settle —
     // that is shown as a problem — so the placements it writes are its own fixed point and the effect stops.)
@@ -137,7 +139,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     lastSolved.current = out.instances ?? instances;
     setProblems(out.problems); setFreedom(out.last.freedom);
     if (out.instances) setDoc(d => d.instances === doc.instances ? { ...d, instances: out.instances! } : d);
-  }, [solve, instances, mates, facesPending]);
+  }, [solve, instances, mates, facesPending, variantPreview, currentTables]);
 
   const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === hostOf(part))?.grounded, [instances]);
   const faceOf = (ref: MateRef) => tableFor(ref.part)?.[ref.face];
