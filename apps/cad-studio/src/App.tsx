@@ -447,7 +447,7 @@ export function App() {
   const [notice, setToast] = useState<(FriendlyError & {
     action?: { label: string; run(): void };
     bodyCopy?: true;
-    bomSource?: { doc: StudioDoc; name: string };
+    documentSource?: { doc: StudioDoc; name?: string };
   }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
     clipboard.current = null;
@@ -460,11 +460,11 @@ export function App() {
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
   useEffect(() => { setReferencePreview(null); }, [doc]);
   const [fileName, setFileNameRaw] = useState('Bracket-01');
-  const bomSource = notice?.bomSource;
-  const bomNoticeExpired = !!bomSource && (bomSource.doc !== doc || bomSource.name !== fileName);
+  const noticeSource = notice?.documentSource;
+  const noticeExpired = !!noticeSource && (noticeSource.doc !== doc || (noticeSource.name !== undefined && noticeSource.name !== fileName));
   useEffect(() => {
-    if (bomNoticeExpired) setToast(current => current === notice ? null : current);
-  }, [bomNoticeExpired, notice]);
+    if (noticeExpired) setToast(current => current === notice ? null : current);
+  }, [noticeExpired, notice]);
   const fileNameNow = useRef(fileName); fileNameNow.current = fileName;
   const setFileName = useCallback((next: string) => { fileNameNow.current = next; setFileNameRaw(next); }, []);
   // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
@@ -1457,7 +1457,7 @@ export function App() {
     beginOpenIntent(); invalidateDocumentWork();
     if (restartDocumentWorker()) { setToast(null); setImportWorkerRecovery(value => value + 1); }
   };
-  const activeNotice = bomNoticeExpired ? null : notice;
+  const activeNotice = noticeExpired ? null : notice;
   const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : activeNotice;
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
@@ -2196,7 +2196,7 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
-      {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', bomSource: { doc, name: fileName } })} />}
+      {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {
@@ -2247,7 +2247,9 @@ export function App() {
           if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
           setParameterEdit({ request, base: doc, baseInput: evaluated, input: prefixDoc(r.doc, r.doc.nodes.length), next: r.doc, accept: next => commit(next, false) });
         }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
-      {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} lookDisabled={renderKeysOf(instanceSel).mode === 'disabled' && !selectedBodies(selection).length} note={renderKeysOf(instanceSel).nested ? 'A part inside a sub-assembly is styled through its sub-assembly: select the sub-assembly.' : undefined} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
+      {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} lookDisabled={renderKeysOf(instanceSel).mode === 'disabled' && !selectedBodies(selection).length} note={renderKeysOf(instanceSel).nested ? 'A part inside a sub-assembly is styled through its sub-assembly: select the sub-assembly.' : undefined} onError={m => {
+        if (docNow.current === doc) setToast({ title: 'Could not use that image', hint: m, detail: '', documentSource: { doc } });
+      }} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...renderKeysOf(instanceSel).keys]}
         onChange={commitRender} onExport={exportImage} fov={fov} onPickFocus={done => viewport.current?.pickRenderFocus(done)}
         onCreatePathTrace={() => viewport.current?.createRenderPathTrace() ?? Promise.reject(new Error('The viewport is not ready.'))} imageName={`${fileName}.png`}

@@ -1,4 +1,4 @@
-// D577 / #2419. Run under the heavy gate from apps/cad-studio.
+// D577 and D709 / #2419. Run under the heavy gate.
 // D577_SOURCE_FROZEN=1 node test/render-image-ownership-browser.mjs EXTERNAL_OUTPUT --expect=repro|fixed
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -8,8 +8,8 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(['--expect=repro', '--expect=fixed'].includes(mode));
-const repro = mode === '--expect=repro';
+assert.ok(['--expect=repro', '--expect=fixed', '--expect=document-boundary'].includes(mode));
+const repro = mode === '--expect=repro', documentBoundary = mode === '--expect=document-boundary';
 const paths = ['checker.png', 'holes.png'].map(name => 'apps/cad-studio/test/fixtures/' + name);
 const [imageA, imageB] = await Promise.all(paths.map(path => readFile(resolve(repo, path))));
 const fixture = {
@@ -25,7 +25,8 @@ const asPng = buffer => 'data:image/png;base64,' + buffer.toString('base64');
 const pins = ['apps/cad-studio/test/render-image-ownership-browser.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/ui/RenderPanel.tsx', ...paths];
 const f = await createFlow({
-  name: 'render-image-ownership', envFrozen: 'D577_SOURCE_FROZEN', output, qualification: 'D577 #2419 desktop',
+  name: 'render-image-ownership', envFrozen: documentBoundary ? 'D709_SOURCE_FROZEN' : 'D577_SOURCE_FROZEN', output,
+  qualification: documentBoundary ? 'D709 #2419 document boundary' : 'D577 #2419 desktop',
   initialFiles: pins, requiredFrozen: pins,
   limits: ['Existing local PNG fixtures. Hold real browser bitmap outcomes without replacing them. Compare decoded RGBA and authored documents.'],
   snapshotExtra: () => ({
@@ -74,13 +75,19 @@ function installDecodeHold() {
   };
 }
 
-async function open(kind) {
+async function openNative(name, doc) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: 'D577-box.bcad', mimeType: 'application/json', buffer: nativeBytes });
-  await f.same(fixture);
-  await modeButton('Render').click();
-  if (kind === 'environment') await f.page.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+  await f.same(doc);
+}
+async function showInput(kind) {
+  await f.page.getByRole('tab', { name: kind === 'texture' ? 'Appearance' : 'Scene', exact: true }).click();
   await input(kind).waitFor({ state: 'attached' });
+}
+async function open(kind) {
+  await openNative('D577-box.bcad', fixture);
+  await modeButton('Render').click();
+  await showInput(kind);
 }
 async function load(kind, name, buffer, ok = true) {
   await input(kind).setInputFiles({ name, mimeType: 'image/png', buffer });
@@ -99,6 +106,94 @@ const pixels = url => f.page.evaluate(async url => {
   } finally { bitmap.close(); }
 }, url);
 const keptFields = ['doc', 'dirty', 'history', 'historyControls', 'selection', 'notices'];
+
+async function verifyDocumentBoundaries() {
+  const replacements = { ...fixture, nodes: [fixture.nodes[0], { ...fixture.nodes[1], height: 9 }] };
+  for (const [index, boundary] of ['Undo', 'Redo', 'Open', 'New part'].entries()) {
+    f.phase = 'Settle pending render imports after ' + boundary;
+    await f.newPage();
+    await open('texture');
+    let edited;
+    if (boundary === 'Undo' || boundary === 'Redo') {
+      await load('texture', 'D577-authored.png', imageB);
+      await release('D577-authored.png');
+      await f.changed(fixture);
+      await f.ready();
+      edited = await f.doc();
+      assert.deepEqual(await pixels(imageOf(edited, 'texture')), await pixels(asPng(imageB)));
+      if (boundary === 'Redo') {
+        await button('Undo').click();
+        await f.same(fixture);
+      }
+    }
+    // Keep an already delivered error visible in the source document for the replacement cases.
+    if (boundary === 'Open' || boundary === 'New part') {
+      await load('texture', 'D577-source-error.png', Buffer.from('invalid PNG'), false);
+      await release('D577-source-error.png');
+      await f.waitToast(/Could not use that image/);
+    }
+
+    const successfulKind = index % 2 === 0 ? 'texture' : 'environment';
+    const failedKind = successfulKind === 'texture' ? 'environment' : 'texture';
+    const good = 'D577-pending-success.png', bad = 'D577-pending-error.png';
+    await showInput(successfulKind);
+    await load(successfulKind, good, imageA);
+    await showInput(failedKind);
+    await load(failedKind, bad, Buffer.from('invalid PNG'), false);
+    const acceptedBefore = await f.doc();
+    const oldPanel = await f.page.locator('.render-panel').elementHandle();
+    if (boundary === 'Open') await openNative('D709-new-source.bcad', replacements);
+    else {
+      await button(boundary).click();
+      if (boundary === 'Undo') await f.same(fixture);
+      else if (boundary === 'Redo') await f.same(edited);
+      else {
+        await f.page.waitForFunction(() => window.__studioDoc?.nodes.length === 0);
+        await f.ready();
+        const empty = await f.doc();
+        assert.deepEqual(empty.outputs, {});
+        assert.equal(empty.render, undefined);
+      }
+    }
+    assert.notDeepEqual(await f.doc(), acceptedBefore);
+    const before = await f.snapshot(boundary.replaceAll(' ', '-') + '-before-delivery');
+    assert.ok(!before.notices.some(notice => notice.includes('Could not use that image')), boundary + ' must retire the previous document’s import error');
+    await release(bad);
+    await release(good);
+    await f.page.waitForFunction(name => window.__d577Hold.closed().includes(name), good);
+    const after = await f.snapshot(boundary.replaceAll(' ', '-') + '-after-delivery');
+    for (const field of keptFields) assert.deepEqual(after[field], before[field], boundary + ' ' + field);
+    assert.deepEqual(after.bodies, before.bodies);
+    const mounted = await f.page.evaluate(node => document.querySelector('.render-panel') === node, oldPanel);
+    assert.equal(mounted, true, boundary + ' must exercise the mounted panel');
+    const retired = await closed();
+    assert.equal(retired.filter(name => name === good).length, 1);
+    f.report.observations.push({ boundary, successfulKind, failedKind, mounted, closed: retired });
+    if (boundary === 'Open') {
+      const fresh = 'D577-after-open.png';
+      await showInput('texture');
+      await load('texture', fresh, imageB);
+      await release(fresh);
+      await f.changed(replacements);
+      await f.ready();
+      const accepted = await f.snapshot('Open-fresh-image-accepted');
+      assert.deepEqual(accepted.doc.nodes, replacements.nodes);
+      assert.deepEqual(await pixels(imageOf(accepted.doc, 'texture')), await pixels(asPng(imageB)));
+      await button('Undo').click();
+      await f.same(replacements);
+      const restored = await f.snapshot('Open-fresh-image-undone');
+      assert.deepEqual(restored.notices, []);
+    }
+    if (boundary === 'New part') {
+      await button('Undo').click();
+      await f.same(fixture);
+      const restored = await f.snapshot('New-part-Undo-does-not-restore-error');
+      assert.deepEqual(restored.notices, []);
+      await button('Redo').click();
+      await f.same(before.doc);
+    }
+  }
+}
 
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
@@ -121,6 +216,13 @@ await f.run(async () => {
       throw error;
     }
   };
+
+  if (documentBoundary) {
+    await verifyDocumentBoundaries();
+    f.report.productResult = 'PASS';
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   for (const kind of ['texture', 'environment']) {
     f.phase = kind + ' two selections before either decode resolves';

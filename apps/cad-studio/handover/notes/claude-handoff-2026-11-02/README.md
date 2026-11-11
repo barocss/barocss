@@ -353,7 +353,9 @@ D707 verifies same-path nested BOM replacement and clears the error notice when 
 
 D708 protects a newer Studio-saved file from a stale external MCP session. [D708](../external-mcp-stale-save-2026-11-11/README.md).
 
-Next MAIN is D709 / P0, rows 06 and 16. Verify pending Render image imports across accepted document replacement and Undo, using the remaining D577 cases. [#2419](https://github.com/barocss/barocss/issues/2419).
+D709 verifies pending Render imports across Undo, Redo, Open and New part, and binds the import error notice to its document. [D709](../render-import-document-ownership-2026-11-11/README.md).
+
+Next MAIN is D710 / P0, rows 06 and 16. Verify per-body Render image ownership and native project Save/Open for the accepted images. [#2419](https://github.com/barocss/barocss/issues/2419).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at six of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
