@@ -3,17 +3,19 @@
 // D734_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=transitions
 // D735_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=refusal
 // D736_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=associations
+// D737_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=replacements
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
-assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions', '--expect=refusal', '--expect=associations'].includes(mode));
+assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions', '--expect=refusal', '--expect=associations', '--expect=replacements'].includes(mode));
 const repro = mode === '--expect=repro';
 const transitions = mode === '--expect=transitions';
 const refusal = mode === '--expect=refusal';
 const associations = mode === '--expect=associations';
+const replacements = mode === '--expect=replacements';
 const fixture = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
@@ -33,6 +35,13 @@ const drilledInput = payload('D735-drilled.bcad', Buffer.from(JSON.stringify(dri
 const oracleSource = String.raw`
 import json, math, sys
 d = json.load(sys.stdin)
+if 'solids' in d:
+    volumes = sorted(b['volume'] for b in d['bodies'])
+    expected = sorted(w*h*z for w,h,z in d['solids'])
+    assert len(volumes) == len(expected)
+    assert all(math.isclose(v,e,abs_tol=1e-9,rel_tol=0) for v,e in zip(volumes, expected))
+    print(json.dumps({'status': 'PASS', 'volumes': volumes, 'absoluteTolerance': 1e-9}))
+    sys.exit(0)
 w = d['width']
 s = d['doc']['nodes'][0]
 if s['profile'] == 'rectangle':
@@ -91,10 +100,12 @@ const pins = [
   ...(transitions ? ['apps/cad-studio/src/ui/useWorkspaceModeExit.tsx'] : []),
   ...(associations ? ['apps/cad-studio/src/ui/SketchPanel.tsx', 'packages/barocss-cad-model/src/engine/part.ts'] : []),
 ];
-const expectation = associations ? ['D736', 'linked and detached sketch Finish']
-  : refusal ? ['D735', 'actual refused Finish responses']
-  : transitions ? ['D734', 'workspace transitions and reversed replies']
-  : ['D574', 'desktop'];
+const expectation = {
+  '--expect=associations': ['D736', 'linked and detached sketch Finish'],
+  '--expect=refusal': ['D735', 'actual refused Finish responses'],
+  '--expect=transitions': ['D734', 'workspace transitions and reversed replies'],
+  '--expect=replacements': ['D737', 'replacement document and sketch Finish'],
+}[mode] ?? ['D574', 'desktop'];
 const f = await createFlow({
   name: 'sketch-finish-ownership', envFrozen: expectation[0] + '_SOURCE_FROZEN', output,
   qualification: expectation[0] + ' #2364 ' + expectation[1],
@@ -195,6 +206,7 @@ function installSequenceHold() {
       if (remaining || requests.length) throw new Error('The sequence can be armed only once');
       remaining = count;
     },
+    disarm() { remaining = 0; },
     read: () => requests.map(({ id, revision, reply }) => ({ id, revision, reply })),
     async release(index) {
       const request = requests[index];
@@ -212,11 +224,11 @@ async function open(file, expected) {
   await chooser.setFiles(file);
   await f.same(expected);
 }
-async function reopen() {
-  await f.openFeatureEditor(1);
+async function reopen(index = 1, width = 40) {
+  await f.openFeatureEditor(index);
   await f.editor().getByRole('button', { name: 'Edit sketch', exact: true }).click();
   await widthInput().waitFor();
-  assert.equal(await widthInput().inputValue(), '40');
+  assert.equal(await widthInput().inputValue(), String(width));
 }
 async function setWidth(width) {
   await widthInput().fill(String(width));
@@ -509,6 +521,99 @@ async function verifyAssociationFinish() {
   f.report.observations.push({ linkedCancelled, linkedCurrent, detachedCancelled, detachedCurrent, edge });
 }
 
+async function verifyReplacementFinish() {
+  const replacement = {
+    ...fixture, parameters: { Replacement: 1 },
+    nodes: [{ ...fixture.nodes[0], max: [32, 24] }, { ...fixture.nodes[1], height: 8 }],
+  };
+  const replacementInput = payload('D737-replacement.bcad', Buffer.from(JSON.stringify(replacement)));
+  const both = {
+    ...fixture, nodes: [...fixture.nodes,
+      { kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [90, 10], id: 'n2' },
+      { kind: 'extrude', sketch: 2, height: 6, id: 'n3' }],
+    outputs: { ...fixture.outputs, b3: { node: 3, side: 'solid' } }, nextId: 4,
+  };
+  const bothInput = payload('D737-two-sketches.bcad', Buffer.from(JSON.stringify(both)));
+  const verifySolids = (label, snapshot, solids) => f.runOracle({ doc: snapshot.doc, bodies: snapshot.bodies.bodies, solids }, label);
+  for (const ok of [true, false]) {
+    const label = ok ? 'replace-before-success' : 'replace-before-error';
+    f.phase = label;
+    await f.newPage();
+    await open(ok ? input : drilledInput, ok ? fixture : drilled);
+    await reopen();
+    await setWidth(ok ? 50 : 30);
+    await arm(1);
+    await finish();
+    const [request] = await held(1, ok);
+    if (!ok) assert.equal(request.reply.error.feature, 'n2');
+    await open(replacementInput, replacement);
+    await f.sketchPanel().waitFor({ state: 'hidden' });
+    const before = await f.snapshot(label + '-before-reply');
+    await release(0);
+    await f.same(replacement);
+    const after = await f.snapshot(label + '-after-reply');
+    sameState(after, before);
+    await verifySolids(label, after, [[32, 24, 8]]);
+    f.report.observations.push({ label, request, replacementSha256: sha256(replacementInput.buffer) });
+  }
+
+  f.phase = 'Replace the edit with another sketch in the same document';
+  await f.newPage();
+  await open(bothInput, both);
+  await reopen();
+  await setWidth(50);
+  await arm(1);
+  await finish();
+  const [priorSketch] = await held(1);
+  await f.page.keyboard.press('Escape');
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await reopen(3, 30);
+  await setWidth(35);
+  const before = await f.snapshot('different-sketch-before-reply');
+  await release(0);
+  await f.same(both);
+  sameState(await f.snapshot('different-sketch-after-reply'), before);
+  assert.equal(await widthInput().inputValue(), '35');
+  await finish();
+  await f.changed(both);
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  const accepted = await f.snapshot('different-sketch-current');
+  assert.deepEqual(accepted.doc.nodes.slice(0, 2), both.nodes.slice(0, 2));
+  assert.equal(accepted.doc.nodes[2].id, 'n2');
+  assert.deepEqual(accepted.doc.outputs, both.outputs);
+  await verifySolids('different-sketch-current', accepted, [[40, 20, 10], [35, 10, 6]]);
+  await f.undo();
+  await f.same(both);
+  await f.redo();
+  await f.same(accepted.doc);
+  f.report.observations.push({ label: 'different-sketch', priorSketch, twoSketchesSha256: sha256(bothInput.buffer) });
+
+  f.phase = 'Two Finish requests from one unchanged draft';
+  await f.newPage();
+  await open(input, fixture);
+  await reopen();
+  await setWidth(50);
+  await arm(2);
+  await finish();
+  await held(1);
+  await finish();
+  const requests = await f.page.evaluate(() => {
+    window.__d734Hold.disarm();
+    return window.__d734Hold.read();
+  });
+  assert.equal(requests.length, 1, 'one pending evaluation per unchanged edit');
+  await release(0);
+  await f.changed(fixture);
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  const committed = await f.snapshot('duplicate-finish-current');
+  await physical('duplicate-finish', committed.doc, 50);
+  await f.undo();
+  await f.same(fixture);
+  await f.redo();
+  await f.same(committed.doc);
+  f.report.observations.push({ label: 'duplicate-finish', requests });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   f.report.runtimeOwnership = { nodePID: process.pid, serverURL: origin };
@@ -517,7 +622,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     try {
-      await context.addInitScript(transitions || refusal || associations ? installSequenceHold : installReplyHold);
+      await context.addInitScript(transitions || refusal || associations || replacements ? installSequenceHold : installReplyHold);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -531,8 +636,9 @@ await f.run(async () => {
     }
   };
 
-  if (transitions || refusal || associations) {
-    if (associations) await verifyAssociationFinish();
+  if (transitions || refusal || associations || replacements) {
+    if (replacements) await verifyReplacementFinish();
+    else if (associations) await verifyAssociationFinish();
     else if (refusal) await verifyRefusedFinish();
     else await verifyPendingTransitions();
     f.report.productResult = 'PASS';

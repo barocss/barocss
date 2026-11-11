@@ -7,7 +7,7 @@ import { createElement, type SetStateAction } from 'react';
 import { renderToString } from 'react-dom/server.edge';
 import { part } from '@barocss/cad-model/api';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
-import { withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { refOf, type Ctx } from '@barocss/cad-model/app/commands';
 import { extrudeCommand } from '@barocss/cad-model/app/profileCommands';
@@ -123,6 +123,8 @@ test('D574: current Finish failure preserves the draft, and a successful retry c
   resize(60);
   const draft = f.sketch, generation = f.sketchGeneration.current, selectionWrites = f.selectionWrites;
   f.api.finishSketch();
+  f.api.finishSketch();
+  assert.equal(f.evaluated.length, 1, 'the same edit sends one pending evaluation');
   await reply(false);
   assert.equal(f.docNow.current, doc);
   assert.equal(rectangleWidth(doc), 40);
@@ -143,6 +145,55 @@ test('D574: current Finish failure preserves the draft, and a successful retry c
   assert.equal(f.selectionWrites, selectionWrites);
   assert.deepEqual(f.notices, [delayedError]);
 });
+
+for (const detached of [false, true]) {
+  test(`D737: a ${detached ? 'detached' : 'linked'} reopen shows a current refusal and ignores a cancelled refusal`, async () => {
+    const body = { node: 1, side: 'solid' } as const;
+    const doc = withNode(rectanglePart(40, 20, 10), {
+      kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20],
+      holes: [[{ kind: 'line', start: [2, 2] }, { kind: 'line', start: [38, 2] },
+        { kind: 'line', start: [38, 18] }, { kind: 'line', start: [2, 18] }]],
+      on: body, plane: { origin: [0, 0, 10], normal: [0, 0, 1], xAxis: [1, 0, 0] },
+      association: { kind: 'planar-face-outline-inset', version: 1, source: body, sourceFeature: 'n1', face: 'n1.top', insetMM: 2 },
+    });
+    const original = structuredClone(doc), pending: (() => void)[] = [];
+    const f = actions(doc, revision => new Promise(resolve => pending.push(() => resolve({
+      ok: false, revision, error: delayedError, wallTime: 0,
+    }))));
+    f.api.editSketch(2);
+    const reopened = f.sketch;
+    assert.ok(reopened?.association && reopened.shape);
+    f.setSketch({ ...reopened, shape: { ...reopened.shape }, ...(detached ? { association: undefined, associationDetached: true } : {}) });
+    f.render();
+    const editing = f.sketch;
+    const settle = async () => {
+      const deliver = pending.shift();
+      assert.ok(deliver);
+      deliver();
+      await setImmediate();
+    };
+    f.api.finishSketch();
+    f.api.finishSketch();
+    assert.equal(f.evaluated.length, 1);
+    const candidate = f.evaluated[0].nodes[2];
+    assert.equal(candidate.kind, 'sketch');
+    assert.equal(!!candidate.association, !detached);
+    assert.deepEqual(candidate.on, body);
+    await settle();
+    assert.equal(f.sketch, editing);
+    assert.deepEqual(f.notices, [delayedError]);
+
+    f.api.finishSketch();
+    assert.equal(f.evaluated.length, 2);
+    f.setSketch(null);
+    await settle();
+    assert.equal(f.sketch, null);
+    assert.equal(f.docNow.current, doc);
+    assert.equal(f.accepted.length, 0);
+    assert.deepEqual(doc, original);
+    assert.deepEqual(f.notices, [delayedError]);
+  });
+}
 
 function d348Fixture(): StudioDoc {
   return JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/d348.bcad'), 'utf8')) as StudioDoc;

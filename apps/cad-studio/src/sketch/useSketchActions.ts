@@ -53,6 +53,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const { doc, bodies, selection, marker } = model;
   const { sketch, setSketch, sketchGeneration } = editor;
   const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
+  const pendingFinish = useRef<{ doc: StudioDoc; generation: number } | null>(null);
   const { docNow, acceptanceScope } = owner;
   const { engine, nextRevision } = worker;
   const { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies } = changes;
@@ -173,8 +174,21 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       return;
     }
     const requestedGeneration = sketchGeneration.current;
+    const pending = pendingFinish.current;
+    if (pending?.doc === doc && pending.generation === requestedGeneration) return;
     const linked = !!(sketch.association || sketch.associationDetached);
     const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
+    const evaluateFinish = (candidate: StudioDoc, apply: () => void) => {
+      const request = { doc, generation: requestedGeneration };
+      const result = engine.evaluate(candidate, nextRevision());
+      pendingFinish.current = request;
+      result.then(reply => {
+        if (pendingFinish.current === request) pendingFinish.current = null;
+        if (!reply || !requestCurrent()) return;
+        if (!reply.ok) { setToast(reply.error); return; }
+        apply();
+      });
+    };
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
     // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
@@ -202,9 +216,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
       const candidate = linked ? next : prefixDoc(next, marker ?? next.nodes.length);
-      engine.evaluate(candidate, nextRevision()).then(r => {
-        if (!r || !requestCurrent()) return;
-        if (!r.ok) { setToast(r.error); return; }
+      evaluateFinish(candidate, () => {
         if (!commit(next)) return;
         setSketch(null);
         if (rebound.dropped.length) setToast(droppedBindingsToast(rebound.dropped));
@@ -215,7 +227,11 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // for Extrude, Revolve, Pipe or Loft.
     const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
     if (sketch.association) {
-      engine.evaluate(next, nextRevision()).then(r => { if (!r || !requestCurrent()) return; if (r.ok) { if (!commit(next)) return; setSketch(null); setSelection({ ...emptySel, sketches: [next.nodes.length - 1] }); } else setToast(r.error); });
+      evaluateFinish(next, () => {
+        if (!commit(next)) return;
+        setSketch(null);
+        setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
+      });
       return;
     }
     if (!commit(next)) return; setSketch(null);
