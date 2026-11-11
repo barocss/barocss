@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D669 — enforce explicit approval requests for a Studio chat turn](notes/studio-turn-approval-2026-11-11/README.md).
 - [D668 — fit the model to the visible Studio work area](notes/studio-model-work-area-fit-2026-11-11/README.md).
 - [D667 — keep Browser Space and palette Escape local](notes/studio-browser-keyboard-2026-11-11/README.md).
 - [D666 — enable keyboard navigation in More tools](notes/studio-more-tools-keyboard-2026-11-11/README.md).

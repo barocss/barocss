@@ -273,7 +273,9 @@ D667 restores Space activation to focused Browser buttons. Desktop Studio verifi
 
 D668 fits model bounds to the visible work area. Desktop Studio verified both chat states, keyboard F, the right dock sheet and automatic native-file fit. [D668](../studio-model-work-area-fit-2026-11-11/README.md).
 
-Next MAIN is D669 / P4, row 21. Check keyboard access to ViewCube directions and verify that pointer selection and orbit still work.
+D669 enforces a recognized approval requirement on the current Studio chat turn. Desktop Studio verified refusal of the direct L2 edit, user review and acceptance, exact Undo and the ordinary L2 controls. [D669](../studio-turn-approval-2026-11-11/README.md).
+
+Next MAIN is D670 / P0 R16, row 16. Reproduce and enforce the explicit approval requirement when the state-backed CAD MCP starts without the Studio Chat server. Keep ordinary MCP authoring available. Then resume ViewCube keyboard access.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

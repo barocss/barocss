@@ -31,6 +31,7 @@ import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedAppr
 import { faceDiagnosisMatchesDocument, isFaceDiagnosisSelection } from '../src/chat/faceDiagnosis';
 import { SELECTED_FACE_DIAGNOSIS } from './selectedFaceDiagnosis';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
+import { turnAutonomy } from './turnAutonomy';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
@@ -376,8 +377,10 @@ export function createChatServer(options: ChatServerOptions) {
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), selectedFaceDiagnosis, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
-    // (How far the agent may go on its own, D41: 1–4, else the default 2.)
-    const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
+    // The current user's instruction can tighten this turn's authority. Use the authored text before the
+    // browser appended selection and attachment context. The MCP process enforces the same level as the prompt.
+    const authoredText = (body.turns as string[] | undefined)?.at(-1) ?? body.text;
+    const { level, approvalRequested } = turnAutonomy(body.autonomy, authoredText);
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, ...(taskFinding ? { CAD_CHAT_TASK_RUN_ROOT: taskRunDir } : {}), CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const findingNote = taskFinding ? '\n\n[The person selected one local native check. Use read_selected_native_check to read it for this turn.]' : '';
     const approvalNote = !selectedApproval ? '' : 'kind' in selectedApproval
@@ -385,7 +388,8 @@ export function createChatServer(options: ChatServerOptions) {
       : '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]';
     const repairNote = selected?.repair ? '\n\n[For a requested repair, read requirements.evidence for the selected occurrence. Pass its current revision as working_revision to propose_selected_follow_up_repair. A saved failure alone is not a current result.]' : '';
     const faceNote = selectedFaceDiagnosis ? '\n\n[The person attached a current face diagnosis. Use read_selected_face_diagnosis. Report an unresolved reference or unsupported repair as such.]' : '';
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}${faceNote}`;
+    const approvalPolicyNote = approvalRequested ? '\n[The person requires approval before applying model changes in this turn.]' : '';
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}${approvalPolicyNote}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}${faceNote}`;
     const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, selectedFollowUpRepair: !!selected?.repair, selectedFaceDiagnosis: !!selectedFaceDiagnosis, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');

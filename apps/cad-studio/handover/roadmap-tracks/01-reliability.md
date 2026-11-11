@@ -33,6 +33,8 @@ The separate desktop Studio usability audit used Chrome and WebGPU on `a3b3f256c
 | --- | --- | --- |
 | R13 | Live sketch mode transition, rows 09/12/16 | A rectangle with visible dimensions disappears after Model → Sketch without Finish. Check Model, Drawing and Render. Preserve draft geometry, dimensions, constraints and editing focus until Finish or explicit discard. Finish adds one sketch history entry and supports an 18 mm extrusion. [D663 PASS](../notes/studio-live-sketch-mode-exit-2026-11-11/README.md). |
 | R14 | Unsaved document replaced by New part, rows 12/16 | The audit restored geometry with Undo but retained the Untitled name. Reproduce the transition and check document name, authored history, dirty state and recoverability as one owned state. [D664 PASS](../notes/studio-new-part-history-identity-2026-11-11/README.md). |
+| R15 | Explicit approval requirement for a Studio chat turn, row 16 | The agent must propose the recognized approval-required edit. Verify direct edit refusal, Preview/Reject, user Accept and Undo. Keep ordinary L1/L2 controls. [D669 PASS](../notes/studio-turn-approval-2026-11-11/README.md). |
+| R16 | Explicit approval requirement on direct state-backed CAD MCP, row 16 | The separate audit reproduced the same edit through a raw L2 tool call without Studio Chat. D670 must reproduce it locally and qualify the shared turn gate, including the ordinary L2 edit and direct document controls. [D669 boundary](../notes/studio-turn-approval-2026-11-11/README.md). |
 
 ## Source and retained evidence
 
