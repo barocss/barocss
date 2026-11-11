@@ -58,6 +58,7 @@ export function useStudioChat(props: ChatPanelProps) {
   const replaceRowFiles = (next?: PersonRowFiles) => { revokePersonRowFiles(rowAuthority.current); rowAuthority.current = next; latest.current.onRowFiles?.(next); };
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
+  const approvalSessionDocument = useRef<(() => boolean) | undefined>(undefined);
   // (What the user typed this conversation, as typed: the tools check a quote said to be theirs against it, A6.2.)
   const said = useRef<string[]>([]);
   /** The traces of every image attached in this conversation (image 1 first). */
@@ -153,9 +154,18 @@ export function useStudioChat(props: ChatPanelProps) {
     : null;
 
   /** One turn: what was typed (or the studio's message), the attachments and the selection as context. */
-  const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[], taskFinding?: TaskRunFindingSelection): Promise<boolean> => {
+  const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[],
+    { taskFinding, approval, onAdmitted }: {
+      taskFinding?: TaskRunFindingSelection; approval?: ChatPanelProps['approvalAttachment']; onAdmitted?(): void;
+    } = {}): Promise<boolean> => {
     if (running || turn.current || !statusRef.current?.enabled || latest.current.blocked) return false;
     if (!said0.trim() && !attached.length && !rowFiles.length) return false;
+    if (approval && !approval.isCurrent()) return false;
+    const versions = latest.current.versions?.turn(approval?.versionIds), versionLog = versions?.log;
+    if (approval && (!versionLog || approval.snapshots.some(snapshot => !Object.hasOwn(versionLog.snapshots, snapshot)))) {
+      notice('The selected approval snapshots do not fit this chat turn.');
+      return false;
+    }
     const n = said.current.length + 1;
     const incoming = rowFiles.map(file => ({ ...file, turn: n }));
     const pasted = pastedRowFile(said0, n);
@@ -175,15 +185,21 @@ export function useStudioChat(props: ChatPanelProps) {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
     said.current = [...said.current, recorded || (incoming.length ? 'Use the attached row files.' : 'Model what the image shows.')];
     // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
-    const release = holdSweeps(), base = latest.current.base(), versions = latest.current.versions?.turn(), versionLog = versions?.log;
+    const release = holdSweeps(), base = latest.current.base();
+    if (approvalSessionDocument.current && !approvalSessionDocument.current()) {
+      session.current = undefined;
+      approvalSessionDocument.current = undefined;
+    }
+    if (approval) approvalSessionDocument.current = approval.documentIsCurrent;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
     turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
-      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}) } };
+      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.file } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');
     try {
+      onAdmitted?.();
       await chat.sendMessage({ role: 'user', parts: [
         ...(shown ? [{ type: 'text' as const, text: shown }] : []),
         ...attached.map(img => ({ type: 'file' as const, mediaType: img.media_type, filename: img.name, url: imageUrl(img) })),
@@ -199,6 +215,6 @@ export function useStudioChat(props: ChatPanelProps) {
   };
 
   /** A new conversation: a new CLI session, its quotes, rows, traces and blobs forgotten. */
-  const reset = () => { session.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); traces.current = []; chatBlobs.current = newChatBlobs(); chat.setMessages([]); };
+  const reset = () => { session.current = undefined; approvalSessionDocument.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); traces.current = []; chatBlobs.current = newChatBlobs(); chat.setMessages([]); };
   return { status, autonomy, setAutonomy, messages: chat.messages, running, send, stop: () => void chat.stop(), reset, notice, imageLimitNotice };
 }

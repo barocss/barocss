@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { PassThrough } from 'node:stream';
+import { validate } from '@barocss/cad-model/chat/contract';
 import { acceptProposal, runTool } from '@barocss/cad-model/chat/tools';
 import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
@@ -11,6 +13,8 @@ import { approvalEvidenceFile } from '@barocss/cad-model/versions/approvalEviden
 import { makeVersion, makeVersions } from '@barocss/cad-model/versions/log';
 import { bindSavedApproval, readSavedApprovalEvidence, saveApprovalEvidence } from '../src/storage/savedApprovalEvidence';
 import { memoryStore } from '../src/storage/memoryStore';
+import { serveMcp } from '../server/cadMcp';
+import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalEvidenceTool, selectedApprovalForTurn } from '../server/selectedApprovalEvidence';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
   check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 10, unit: 'mm' } };
@@ -145,6 +149,44 @@ test('D651 keeps an exact saved approval once and refuses altered evidence witho
   assert.equal(await readSavedApprovalEvidence(review), null);
   await saveApprovalEvidence(review, evidence);
   assert.deepEqual((await store.read(review.path))?.bytes, kept.bytes);
+});
+
+test('D652 lists the read-only tool only for a retained approval bound to the turn snapshots', async () => {
+  const { pending, accepted } = await approve(nestedTwins, [nestedOp()]);
+  const comparison = approvedRequirementComparison(pending, accepted);
+  assert.ok(comparison?.nested);
+  const evidence = await evidenceOf(comparison, 'p1/p1', evaluate);
+  assert.ok(!('error' in evidence));
+  const first = makeVersions(pending, { at: '2026-11-11T00:00:00Z' });
+  const { log, version: to } = makeVersion(first, accepted, { at: '2026-11-11T00:01:00Z' });
+  const review = bindSavedApproval({ store: memoryStore(), document: 'assembly.bcad', from: first.versions[0], to }, comparison, 'p1/p1');
+  const file = approvalEvidenceFile(review.context, evidence);
+  const selectedApproval = await selectedApprovalForTurn(file, log);
+  assert.deepEqual(selectedApproval, file);
+  assert.ok(selectedApproval);
+  const mcp = async (versions: typeof log) => {
+    const input = new PassThrough(), output = new PassThrough();
+    let wire = '';
+    output.setEncoding('utf8').on('data', chunk => { wire += chunk; });
+    const served = serveMcp({
+      open: async () => ({ doc: pending, versions, selectedApproval, changed: false, version: 0 }),
+      save: () => assert.fail('The approval tool must not write the model or versions'),
+    }, input, output);
+    input.end([
+      { id: 1, method: 'tools/list' },
+      { id: 2, method: 'tools/call', params: { name: SELECTED_APPROVAL_EVIDENCE, arguments: {} } },
+    ].map(message => JSON.stringify({ jsonrpc: '2.0', ...message })).join('\n') + '\n');
+    await served;
+    return wire.trim().split('\n').map(line => JSON.parse(line));
+  };
+  const [listed, read] = await mcp(log);
+  assert.deepEqual(listed.result.tools.at(-1), selectedApprovalEvidenceTool);
+  assert.deepEqual(read.result.structuredContent, { file });
+  assert.deepEqual(read.result.structuredContent, JSON.parse(read.result.content[0].text));
+  assert.deepEqual(validate(selectedApprovalEvidenceTool.outputSchema, read.result.structuredContent), []);
+  const [unlisted, refused] = await mcp({ ...log, snapshots: {} });
+  assert.ok(unlisted.result.tools.every((entry: { name: string }) => entry.name !== SELECTED_APPROVAL_EVIDENCE));
+  assert.equal(refused.error.code, -32602);
 });
 
 test('historical nested approval replays only its recorded path and retains the original failure', async () => {

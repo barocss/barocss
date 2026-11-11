@@ -295,11 +295,11 @@ export function useProject(cb: ProjectCallbacks) {
       },
       /** The agent's side (DA-9): the log a turn carries, and the log a turn brings back. */
       chat: {
-        turn() {
+        turn(selectedVersions: readonly string[] = []) {
           const owner = versionOwner(), log = live.current.log;
           const requested = wanted.current && currentVersion(wanted.current.owner) ? wanted.current.ids : undefined;
           return {
-            log: log ? turnLog(log, { wanted: requested }).log : null,
+            log: log ? turnLog(log, { wanted: [...selectedVersions, ...(requested ?? [])] }).log : null,
             back(log: VersionLog | undefined, asked: readonly string[]) {
               if (!currentVersion(owner)) return;
               wanted.current = { owner, ids: [...asked] };

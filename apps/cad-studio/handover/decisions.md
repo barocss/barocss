@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D652 — attach a retained approval review to a Studio agent turn](notes/studio-agent-saved-approval-attachment-2026-11-11/README.md).
 - [D651 — preserve a saved approval review in the Studio project](notes/studio-persisted-approval-evidence-2026-11-11/README.md).
 - [D650 — show a saved requirement regression in Studio Versions](notes/studio-saved-requirement-follow-up-2026-11-11/README.md).
 - [D649 — keep local CLI paths out of Studio chat diagnostics](notes/studio-chat-cli-diagnostics-2026-11-11/README.md).

@@ -28,6 +28,8 @@ import './chat.css';
 const toolLabel = (name: string, input: unknown) => { const a = input && typeof input === 'object' ? (input as { action?: unknown }).action : undefined; return typeof a === 'string' ? `${name}.${a}` : name; };
 
 export interface ChatPanelProps {
+  approvalAttachment?: import('../chat/useApprovalEvidenceAttachment').ApprovalEvidenceAttachment;
+  onClearApprovalAttachment?(attachment: NonNullable<ChatPanelProps['approvalAttachment']>): void;
   /** The part a new turn starts from (the evaluated document). */
   base(): StudioDoc;
   /** The bodies of a document the turn has built so far (for the preview), or null. */
@@ -162,9 +164,12 @@ export function ChatPanel(props: ChatPanelProps) {
     const limit = chat.imageLimitNotice(images.length);
     if (limit) { chat.notice(limit); return; }
     const typed = text, attached = images, rows = rowFiles;
-    setText(''); setImages([]); setRowFiles([]);
-    void chat.send(typed, attached, rows, chips, taskFinding).then(sent => {
+    const approval = props.approvalAttachment;
+    void chat.send(typed, attached, rows, chips, { taskFinding, approval, onAdmitted: () => {
+      setText(''); setImages([]); setRowFiles([]);
+    } }).then(sent => {
       if (sent && taskFinding) setTaskFinding(current => current === taskFinding ? undefined : current);
+      if (sent && approval) props.onClearApprovalAttachment?.(approval);
     });
   };
 
@@ -173,6 +178,7 @@ export function ChatPanel(props: ChatPanelProps) {
     setImages([]);
     setRowFiles([]);
     setTaskFinding(undefined);
+    if (props.approvalAttachment) props.onClearApprovalAttachment?.(props.approvalAttachment);
     chat.reset();
   };
 
@@ -214,6 +220,13 @@ export function ChatPanel(props: ChatPanelProps) {
       {taskFinding && <div className="chat-chips" aria-label="Task evidence for next message">
         <span className="chat-chip">Failed check · {taskFinding.taskId}
           <button type="button" aria-label="Remove task evidence" onClick={() => setTaskFinding(undefined)}>×</button>
+        </span>
+      </div>}
+      {props.approvalAttachment && <div className="chat-chips" aria-label="Approval evidence for next message">
+        <span className="chat-chip">Saved approval · {props.approvalAttachment.part}
+          <button type="button" aria-label="Remove approval evidence" onClick={() => {
+            if (props.approvalAttachment) props.onClearApprovalAttachment?.(props.approvalAttachment);
+          }}>×</button>
         </span>
       </div>}
       {!!chips.length && <div className="chat-chips" aria-label="Selection sent as context">{chips.map(c => <span key={c.name} className="chat-chip" title={`The ${c.kind} selected in the viewport, sent with the next message`}>{c.name}

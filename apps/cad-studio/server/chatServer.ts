@@ -27,6 +27,7 @@ import { isLocalTaskRunHost, isTaskRunFindingSelection, readTaskRunOffer, type T
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
 import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskReview, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
+import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalForTurn } from './selectedApprovalEvidence';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -87,12 +88,13 @@ export type ChatServerEvent =
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
 /** The CLI arguments for one turn (the message itself goes in on stdin, see `userMessage`). */
-export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean }): string[] {
+export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean; selectedApproval?: boolean }): string[] {
   return [
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
-    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : []), ...(o.selectedNativeCheck ? [`mcp__cad__${SELECTED_NATIVE_CHECK}`] : [])].join(','),
+    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : []),
+      ...(o.selectedNativeCheck ? [`mcp__cad__${SELECTED_NATIVE_CHECK}`] : []), ...(o.selectedApproval ? [`mcp__cad__${SELECTED_APPROVAL_EVIDENCE}`] : [])].join(','),
     // (O15: the L3 run's own spending cap, the CLI's.)
     ...(process.env.CAD_MAX_BUDGET_USD ? ['--max-budget-usd', process.env.CAD_MAX_BUDGET_USD] : []),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
@@ -132,6 +134,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   try { j = JSON.parse(text); } catch { return text.slice(0, 160); }
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === SELECTED_NATIVE_CHECK) return String(j.finding?.code ?? 'Selected native check');
+  if (name === SELECTED_APPROVAL_EVIDENCE) return 'Selected approval evidence';
   if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
     const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'diameter');
     const dimension = hasDimension || j.issues.some(issue => issue?.code === 'SHARED_HOLE_PATTERN') ? 'dimension' : 'height';
@@ -309,16 +312,16 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown; taskFinding?: unknown };
+    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown; taskFinding?: unknown; selectedApproval?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const taskFinding = body.taskFinding;
-    if (taskFinding !== undefined) {
+    if (taskFinding !== undefined || body.selectedApproval !== undefined) {
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host)
-        return sendJson(res, 403, { error: 'Select the failed check from local Studio.' });
-      if (!isTaskRunFindingSelection(taskFinding)) return sendJson(res, 400, { error: 'Invalid selected native check.' });
+        return sendJson(res, 403, { error: body.selectedApproval === undefined ? 'Select the failed check from local Studio.' : 'Select approval evidence from local Studio.' });
     }
+    if (taskFinding !== undefined && !isTaskRunFindingSelection(taskFinding)) return sendJson(res, 400, { error: 'Invalid selected native check.' });
     const imageError = checkImages(body.images);
     if (imageError) return sendJson(res, 400, { error: imageError });
     const images = (body.images ?? []) as TurnImage[];
@@ -355,15 +358,18 @@ export function createChatServer(options: ChatServerOptions) {
     // (CG6: a version log as a turn carries it — the index, some documents; the tools check what they read.)
     const v = body.versions as { format?: unknown; versions?: unknown; branches?: unknown; snapshots?: unknown } | undefined;
     if (v !== undefined && (!v || v.format !== 'barocss-versions' || !Array.isArray(v.versions) || !Array.isArray(v.branches) || !v.snapshots || typeof v.snapshots !== 'object')) return sendJson(res, 400, { error: 'versions: not a version log.' });
+    const selectedApproval = await selectedApprovalForTurn(body.selectedApproval, v as StateFile['versions']);
+    if (body.selectedApproval !== undefined && !selectedApproval) return sendJson(res, 400, { error: 'Selected approval evidence does not match the saved versions.' });
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, ...(taskFinding ? { CAD_CHAT_TASK_RUN_ROOT: taskRunDir } : {}), CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const findingNote = taskFinding ? '\n\n[The person selected one local native check. Use read_selected_native_check to read it for this turn.]' : '';
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}`;
-    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
+    const approvalNote = selectedApproval ? '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]' : '';
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}`;
+    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
     const emit = (e: ChatServerEvent) => { if (!res.writableEnded) res.write(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`); };

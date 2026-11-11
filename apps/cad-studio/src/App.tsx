@@ -119,7 +119,8 @@ import { VariantsPanel } from './ui/VariantsPanel';
 import { useProject } from './storage/useProject';
 import { VersionsPanel, currentComparisonVersion, type VersionComparison } from './storage/VersionsPanel';
 import type { CheckpointReview } from './files/taskCheckpoint';
-import { retiresTaskRunReview, type TaskRunLaunch, type TaskRunStatus } from './chat/taskRunOffer';
+import { isLocalTaskRunHost, retiresTaskRunReview, type TaskRunLaunch, type TaskRunStatus } from './chat/taskRunOffer';
+import { useApprovalEvidenceAttachment } from './chat/useApprovalEvidenceAttachment';
 import type { CandidateReview } from './files/taskCandidateReview';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
@@ -489,6 +490,9 @@ export function App() {
   const [decidedTaskRun, setDecidedTaskRun] = useState<TaskRunStatus>();
   const [checkpointReview, setCheckpointReview] = useState<CheckpointReview | null>(null);
   const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
+  const approvalAttachmentsEnabled = !inPlace && isLocalTaskRunHost(window.location.hostname);
+  const approvalAttachments = useApprovalEvidenceAttachment(approvalAttachmentsEnabled,
+    () => project.opening() ? undefined : project.taskSourceKey());
   const [versionDiff, setVersionDiff] = useState<{ source: VersionComparison; doc: StudioDoc; overlay: ProposalOverlay } | null>(null);
   const workingComparison = useMemo(() => compareBase && !compareBase.target && currentComparisonVersion(project.view, compareBase) ? compareBase : null,
     [compareBase, project.view]);
@@ -2121,6 +2125,11 @@ export function App() {
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+        onAttachApprovalEvidence={approvalAttachmentsEnabled ? async review => {
+          const attached = await approvalAttachments.attach(review);
+          if (attached) setChat(true);
+          return attached;
+        } : undefined}
         onCollapse={() => { cancelLocalCandidateReview(); hideCandidatePreview(); }}
         candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, toggle: toggleCandidatePreview,
           decide: candidateReview.review.localRun ? decision => decideTaskRunCandidate(candidateReview.review, decision) : undefined } : undefined}
@@ -2451,6 +2460,7 @@ export function App() {
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
+        approvalAttachment={approvalAttachments.selected} onClearApprovalAttachment={approvalAttachments.clear}
         taskRun={inPlace ? undefined : { reopened: reopenedTaskRun, decided: decidedTaskRun, sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, stop: stopTaskRun, refresh: refreshTaskRun, rebuild: rebuildTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, openBaseline: openTaskRunBaseline, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {

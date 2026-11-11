@@ -10,9 +10,10 @@ const [output, prior, mode] = process.argv.slice(2), repo = resolve(import.meta.
 assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(repo, path).startsWith('../')));
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline;
-const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline;
+const attachBaseline = mode === '--attach-review-baseline', attachReview = mode === '--attach-review';
+const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline || attachBaseline || attachReview;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
-if (agent) {
+if (agent || attachReview) {
   const reserved = createServer().listen(0, '127.0.0.1');
   await once(reserved, 'listening');
   process.env.CAD_STUDIO_CHAT_PORT = String(reserved.address().port);
@@ -23,13 +24,15 @@ const pins = [
   'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'packages/barocss-cad-model/src/versions/approvedRequirements.ts',
   'packages/barocss-cad-model/src/chat/nestedParameterProposal.ts', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
   'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/versions/log.ts',
-  ...(agent ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
+  ...((agent || attachReview) ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts', 'apps/cad-studio/server/cadMcp.ts',
     'packages/barocss-cad-model/src/versions/tools.ts', 'packages/barocss-cad-model/src/chat/tools.ts', 'packages/barocss-cad-model/src/chat/tools-v2.json'] : []),
   ...(lifecycle ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts',
     'packages/barocss-cad-model/src/chat/groups.ts', 'packages/barocss-cad-model/src/chat/toolDefinitions.ts'] : []),
   ...(followUp ? ['packages/barocss-cad-model/src/versions/requirementFollowUp.ts'] : []),
+  ...(attachReview ? ['apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts',
+    'apps/cad-studio/src/chat/useStudioChat.ts', 'apps/cad-studio/src/chat/client.ts', 'apps/cad-studio/src/ui/ChatPanel.tsx'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
-    'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts'] : []),
+    'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
 ];
 const oracleSource = String.raw`
 import hashlib, json, sys
@@ -68,7 +71,7 @@ if 'artifact' in d:
 print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
   qualification: saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
@@ -307,7 +310,16 @@ async function verifyPersistentReview({ saved, pair, first, approved, working, h
   assert.equal(await f.page.evaluate(() => window.__d651ReadAttempts), 0);
   assert.equal(await approvalEvidenceFile(file), bytes);
   await f.snapshot('07-approval-evidence-reopened');
+  if (attachBaseline) {
+    assert.equal(await history().getByRole('button', { name: 'Attach approval evidence to chat', exact: true }).count(), 0);
+    f.report.observations.push({ savedEvidenceVisible: true, attachActionAvailable: false });
+    return;
+  }
 
+  if (attachReview) {
+    await verifyAttachedApproval(saved, working, artifact, file, bytes, pins);
+    return;
+  }
   f.phase = 'refuse a mismatched approval pin even when the payload checksum is valid';
   const wrongReport = JSON.stringify({ ...report, to: { ...report.to, id: laterVersion.id } }) + '\n';
   const wrongBytes = JSON.stringify({ ...artifact, text: wrongReport, bytes: Buffer.byteLength(wrongReport), sha256: sha256(wrongReport) });
@@ -325,7 +337,7 @@ async function verifyPersistentReview({ saved, pair, first, approved, working, h
     reopenedWithoutCheckEvaluation: true, mismatchedPinRefused: true, storedVersionsUnchanged: true });
 }
 
-async function agentEvidence(origin, saved, working, pair) {
+async function withScriptedAgent(origin, check) {
   const rawPath = join(output, 'scripted-tool-results.jsonl'), wrapper = join(output, 'record-scripted-claude.mjs');
   const wrapperSource = `#!/usr/bin/env node
 import { spawn } from 'node:child_process';
@@ -351,10 +363,6 @@ process.exitCode = code ?? 1;
   let stdout = '', stderr = '', cursor = 0;
   chat.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-4000); });
   const ready = new Promise(resolve => chat.stdout.on('data', chunk => { stdout += chunk; if (stdout.includes('chat server on')) resolve(true); }));
-  const [initial, approved, later] = JSON.parse(saved.log).versions;
-  const args = { action: 'approval_evidence', from: initial.id, to: approved.id, part: 'p1/p1' };
-  const call = (extra = {}) => ({ tool: 'history', args: { ...args, ...extra } });
-  const current = { tool: 'requirements', args: { action: 'evidence', part: 'p1/p1' } };
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
 
   async function turn(calls, afterSend) {
@@ -386,6 +394,96 @@ process.exitCode = code ?? 1;
   try {
     const startup = await Promise.race([ready, closed.then(() => false), new Promise(resolve => setTimeout(() => resolve(false), 15000).unref())]);
     assert.ok(startup, stderr || 'Chat server did not start');
+    await check(turn);
+  } finally {
+    chat.kill('SIGTERM');
+    await closed;
+    await writeFile(join(output, 'chat-stderr.txt'), stderr);
+    f.report.cleanup.push('CHAT_CLOSED');
+  }
+}
+
+async function verifyAttachedApproval(saved, working, artifact, file, bytes, pins) {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const tool = 'read_selected_approval_evidence', call = (args = {}) => ({ tool, args });
+  const attach = () => history().getByRole('button', { name: 'Attach approval evidence to chat', exact: true });
+  const chip = () => f.page.getByLabel('Approval evidence for next message', { exact: true });
+  await withScriptedAgent(origin, async turn => {
+    f.phase = 'read the exact saved report through the explicitly attached agent tool';
+    await attach().click();
+    await chip().getByText('Saved approval · p1/p1').waitFor();
+    const attached = await turn([call({ part: 'p2/p1' }), call()]);
+    assert.deepEqual(attached.wire.selectedApproval, artifact);
+    assert.deepEqual(attached.wire.doc, working);
+    assert.ok(Object.hasOwn(attached.wire.versions.snapshots, pins.from.snapshot));
+    assert.ok(Object.hasOwn(attached.wire.versions.snapshots, pins.to.snapshot));
+    assert.deepEqual(attached.results.map(r => r.error), [true, false]);
+    assert.match(attached.results[0].body.error, /takes no arguments/);
+    assert.deepEqual(attached.results[1].body.file, artifact);
+    assert.equal(attached.done.versionsWanted, undefined);
+    await chip().waitFor({ state: 'detached' });
+    await f.same(working);
+    await f.snapshot('08-attached-approval-agent-read');
+
+    f.phase = 'refuse a different occurrence and a missing snapshot before a chat turn';
+    const refuse = async wire => {
+      const response = await fetch(origin + '/api/chat/turn', { method: 'POST',
+        headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(wire) });
+      assert.equal(response.status, 400);
+      assert.deepEqual(await response.json(), { error: 'Selected approval evidence does not match the saved versions.' });
+    };
+    const wrongReport = JSON.stringify({ ...JSON.parse(artifact.text), part: 'p2/p1' }) + '\n';
+    await refuse({ ...attached.wire, selectedApproval: { ...artifact, text: wrongReport, bytes: Buffer.byteLength(wrongReport), sha256: sha256(wrongReport) } });
+    const incomplete = structuredClone(attached.wire);
+    delete incomplete.versions.snapshots[pins.from.snapshot];
+    await refuse(incomplete);
+
+    f.phase = 'consume the attachment and retire the attached session when the project closes';
+    const plain = await turn([call()]);
+    assert.equal(plain.wire.selectedApproval, undefined);
+    assert.equal(plain.wire.session, attached.done.session);
+    assert.equal(plain.results[0].error, true);
+    assert.match(plain.results[0].body.error, /Unknown tool/);
+    await attach().click();
+    await chip().waitFor();
+    await versions().getByRole('button', { name: 'Close project', exact: true }).click();
+    await chip().waitFor({ state: 'detached' });
+    await openProject();
+    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(working);
+    const reopened = await turn([call()]);
+    assert.equal(reopened.wire.selectedApproval, undefined);
+    assert.equal(reopened.wire.session, undefined);
+    assert.equal(reopened.results[0].error, true);
+    assert.equal(await approvalEvidenceFile(file), bytes);
+    assert.deepEqual(await projectBytes(), saved);
+
+    f.phase = 'retire an unsent attachment when another document opens';
+    await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+    await selectTarget().selectOption(pins.to.id);
+    await attach().click();
+    await chip().waitFor();
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'Another part.bcad', mimeType: 'application/json', buffer: Buffer.from(saved.doc) });
+    await chip().waitFor({ state: 'detached' });
+    await f.same(working);
+    const other = await turn([call()]);
+    assert.equal(other.wire.selectedApproval, undefined);
+    assert.equal(other.results[0].error, true);
+    assert.equal(await approvalEvidenceFile(file), bytes);
+    assert.deepEqual(await projectBytes(), saved);
+    await f.snapshot('09-attachment-retired');
+    f.report.observations.push({ pins, payloadSHA256: artifact.sha256, exactAgentArtifact: true, refusedHttp: 2, argumentRefused: true,
+      nextTurnUnattached: true, projectCloseRetired: true, anotherDocumentRetired: true, oldSessionRetired: true, filesUnchanged: true });
+  });
+}
+
+async function agentEvidence(origin, saved, working, pair) {
+  const [initial, approved, later] = JSON.parse(saved.log).versions;
+  const args = { action: 'approval_evidence', from: initial.id, to: approved.id, part: 'p1/p1' };
+  const call = (extra = {}) => ({ tool: 'history', args: { ...args, ...extra } });
+  const current = { tool: 'requirements', args: { action: 'evidence', part: 'p1/p1' } };
+  await withScriptedAgent(origin, async turn => {
     f.phase = 'first real chat turn asks for both older snapshots without a project write';
     const first = await turn([call()]);
     assert.deepEqual(Object.keys(first.wire.versions.snapshots), [later.snapshot]);
@@ -486,12 +584,7 @@ process.exitCode = code ?? 1;
       f.report.observations.push({ lifecycleReportSHA256: reportFile.sha256, savedAndWorking, followUp: followUp.version,
         requested: requested.done.versionsWanted, storedBytesUnchanged: true });
     }
-  } finally {
-    chat.kill('SIGTERM');
-    await closed;
-    await writeFile(join(output, 'chat-stderr.txt'), stderr);
-    f.report.cleanup.push('CHAT_CLOSED');
-  }
+  });
 }
 
 await f.run(async () => {

@@ -1,6 +1,6 @@
 import { outputFile } from '../chat/outputFile';
 import type { compareApprovedRequirements } from './approvedRequirements';
-import type { Version } from './log';
+import type { Version, VersionLog } from './log';
 import type { requirementFollowUp } from './requirementFollowUp';
 
 export const APPROVAL_EVIDENCE_NAME = 'approved-requirement-evidence.json';
@@ -18,4 +18,11 @@ type FollowUp = Awaited<ReturnType<typeof requirementFollowUp>> & { version: Evi
 export function approvalEvidenceFile(context: ApprovalEvidenceContext, evidence: ApprovalCheck, followUp?: FollowUp) {
   const report = { format: APPROVAL_EVIDENCE_FORMAT, version: 1, ...context, ...evidence, ...(followUp ? { followUp } : {}) };
   return outputFile(APPROVAL_EVIDENCE_NAME, 'application/json', JSON.stringify(report, null, 1) + '\n');
+}
+
+/** Saved IDs reject aliases and collisions with user-assigned version names. */
+export const isSavedVersionId = (value: unknown): value is string => typeof value === 'string' && /^v[0-9a-f]{16}$/.test(value);
+export function exactSavedVersion(log: VersionLog, id: string): Version | undefined {
+  const matches = log.versions.filter(version => version?.id === id || version?.name === id);
+  return matches.length === 1 && matches[0].id === id ? matches[0] : undefined;
 }

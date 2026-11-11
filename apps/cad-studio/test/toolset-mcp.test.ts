@@ -55,6 +55,9 @@ test('the chat server lists the v2 tools it serves, with their prompt', () => {
   const selected = claudeArgs({ mcpConfig: '{}', model: 'm', selectedNativeCheck: true });
   assert.deepEqual(selected[selected.indexOf('--allowedTools') + 1].split(','),
     [...allowed, 'mcp__cad__read_selected_native_check']);
+  const approval = claudeArgs({ mcpConfig: '{}', model: 'm', selectedApproval: true });
+  assert.deepEqual(approval[approval.indexOf('--allowedTools') + 1].split(','),
+    [...allowed, 'mcp__cad__read_selected_approval_evidence']);
 });
 
 test('O105b through MCP: refusals and hints name v2 tools — no requirements, no snapshot, L2\'s proposal; a stored call in a result read as its v2 call', async () => {

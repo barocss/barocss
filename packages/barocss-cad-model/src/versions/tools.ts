@@ -9,7 +9,7 @@ import { accept, fail, json, type ChatState, type PartHandler, type CallOptions,
 import { BarocssError } from '@barocss/cad/api';
 import { changesOf } from './compare';
 import { requirementEvidenceRevision } from '../util/digest';
-import { approvalEvidenceFile, approvalEvidencePin } from './approvalEvidenceReport';
+import { approvalEvidenceFile, approvalEvidencePin, exactSavedVersion, isSavedVersionId } from './approvalEvidenceReport';
 import { applyBranch, headOf, isLinearSavedSequence, makeBranch, makeVersion, makeVersions, readVersion, versionNamed, versionsOf, type Version, type VersionLog } from './log';
 import { applyMerge, type Conflict, type Side } from './merge';
 
@@ -63,28 +63,21 @@ async function compareTool(state: ChatState, args: Record<string, unknown>): Pro
     return { state, content: json({ from, to, ...c }), isError: false, changed: false, summary: `compare ${String(from)} → ${String(to)}` };
   } catch (e) { return refused(state, e); }
 }
-/** Exact saved IDs avoid working-document aliases and version-name collisions. */
-function exactVersion(log: VersionLog, id: string): Version | undefined {
-  const matches = log.versions.filter(version => version?.id === id || version?.name === id);
-  return matches.length === 1 && matches[0].id === id ? matches[0] : undefined;
-}
-const savedId = (value: unknown): value is string => typeof value === 'string' && /^v[0-9a-f]{16}$/.test(value);
-
 async function approvalEvidenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Parameters<PartHandler>[2]): Promise<ToolOutcome> {
   const { from, to, part, later } = args, log = state.versions;
-  if (!savedId(from) || !savedId(to) || from === to || typeof part !== 'string')
+  if (!isSavedVersionId(from) || !isSavedVersionId(to) || from === to || typeof part !== 'string')
     return fail(state, 'Supply two distinct saved version IDs and an exact nested leaf path.');
   const { host, path } = splitPart(part);
   if (!host || host === 'base' || !path.length || path.some(id => !id))
     return fail(state, 'Supply an exact nested leaf path.');
-  if (later !== undefined && (!savedId(later) || later === from || later === to))
+  if (later !== undefined && (!isSavedVersionId(later) || later === from || later === to))
     return fail(state, 'Supply a distinct saved version ID for the follow-up.');
   if (!log) return fail(state, NO_LOG);
   if (!Array.isArray(log.versions) || !log.snapshots || typeof log.snapshots !== 'object' || Array.isArray(log.snapshots))
     return fail(state, 'The saved version log is invalid.', { code: 'VERSION_LOG' });
-  const a = exactVersion(log, from), b = exactVersion(log, to);
+  const a = exactSavedVersion(log, from), b = exactSavedVersion(log, to);
   if (!a || !b) return fail(state, 'Both saved version IDs must identify unique versions in this log.', { code: 'VERSION_UNKNOWN' });
-  const c = savedId(later) ? exactVersion(log, later) : undefined;
+  const c = isSavedVersionId(later) ? exactSavedVersion(log, later) : undefined;
   if (later !== undefined && !c) return fail(state, 'The follow-up ID must identify a unique saved version in this log.', { code: 'VERSION_UNKNOWN' });
   if (c && !isLinearSavedSequence(log, a, b, c))
     return fail(state, 'A follow-up needs three consecutive versions on one branch without a merge.', { code: 'VERSION_LINEAGE' });
