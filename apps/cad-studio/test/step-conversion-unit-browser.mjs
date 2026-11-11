@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { withLengthConversion } from './step-length-fixture.mjs';
 
 const [output, mode] = process.argv.slice(2);
 const baseline = mode === '--baseline';
 const pins = [
   'apps/cad-studio/test/step-conversion-unit-browser.mjs',
+  'apps/cad-studio/test/step-length-fixture.mjs',
   'apps/cad-studio/src/files/importedFile.ts',
   'apps/cad-studio/src/state/useSpecificationActions.ts',
   'packages/barocss-cad-model/src/engine/stepUnits.ts',
@@ -41,21 +43,6 @@ if (source) {
 `,
 });
 
-function withLengthConversion(text, name) {
-  const mm = /^(#\d+)=\(LENGTH_UNIT\(\)NAMED_UNIT\(\*\)SI_UNIT\(\.MILLI\.,\.METRE\.\)\);$/m.exec(text)[1];
-  const next = Math.max(...[...text.matchAll(/^#(\d+)=/gm)].map(match => Number(match[1]))) + 1;
-  const [dimensions, measure, unit] = [next, next + 1, next + 2].map(id => '#' + id);
-  const context = 'GLOBAL_UNIT_ASSIGNED_CONTEXT((';
-  assert.ok(text.includes(context + mm + ','));
-  const conversion = [
-    `${dimensions}=DIMENSIONAL_EXPONENTS(1.,0.,0.,0.,0.,0.,0.);`,
-    `${measure}=LENGTH_MEASURE_WITH_UNIT(LENGTH_MEASURE(25.4),${mm});`,
-    `${unit}=(CONVERSION_BASED_UNIT('${name}',${measure}) LENGTH_UNIT() NAMED_UNIT(${dimensions}));`,
-  ].join('\n');
-  const source = text.replace(context + mm + ',', context + unit + ',').replace(/\nENDSEC;\s*END-ISO-10303-21;/, `\n${conversion}\nENDSEC;\nEND-ISO-10303-21;`);
-  assert.ok(source.includes(context + unit + ',') && source.includes(conversion));
-  return { source, mm, unit, measure, sha256: sha256(source) };
-}
 
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;

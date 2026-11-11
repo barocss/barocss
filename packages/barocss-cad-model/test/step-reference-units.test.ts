@@ -78,5 +78,44 @@ test('unsupported STEP length conversion preserves an accepted reference and blo
   const recovered = await dispatchTool(state, 'add_reference', { name: 'mm box', step }, evaluateRead);
   assert.equal(recovered.isError, false);
   assert.deepEqual(recovered.state.doc.references?.references.map(item => item.source), [{ step: inch }, { step }]);
+  const accepted = await dispatchTool(state, 'add_reference', { name: 'another inch box', step: inch }, evaluateRead);
+  assert.equal(accepted.isError, false, accepted.content);
+  assert.deepEqual(accepted.state.doc.references?.references.map(item => [item.source, item.solids]), [[{ step: inch }, undefined], [{ step: inch }, undefined]]);
   assert.deepEqual(state, before);
+});
+
+test('a scaled STEP reference counts the actual solids before adding any scale nodes', async () => {
+  const main = block();
+  let multi = main;
+  multi = withNode(withNode(multi, { kind: 'sketch', profile: 'rectangle', min: [10, 0], max: [13, 2] }), { kind: 'extrude', sketch: 2, height: 2 });
+  multi = withNode(withNode(multi, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [21, 4] }), { kind: 'extrude', sketch: 4, height: 2 });
+  const original = exportStudioStep(multi, { name: 'three disjoint boxes' }).text;
+  const step = original.replace('SI_UNIT(.MILLI.,.METRE.)', 'SI_UNIT(.CENTI.,.METRE.)');
+  assert.notEqual(step, original);
+  const part = evaluatePart(main, 1);
+  assert.ok(part.ok);
+  const state: ChatState = { doc: main, bodies: part.bodies };
+  const calls: { doc: typeof main; volumes: (number | null)[] }[] = [];
+  const result = await dispatchTool(state, 'add_reference', { name: 'cm boxes', step }, async doc => {
+    const evaluated = await evaluate(doc);
+    assert.ok(evaluated.ok);
+    calls.push({ doc, volumes: evaluated.bodies.map(body => body.volume) });
+    return evaluated;
+  });
+  assert.equal(result.isError, false, result.content);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0].doc.nodes.map(node => node.kind), ['import']);
+  assert.deepEqual(calls[0].volumes.map(volume => Math.round(volume ?? 0)), [24, 12, 8]);
+  assert.deepEqual(calls[1].doc.nodes.slice(1).map(node => node.kind === 'scale' && [node.parent.side, node.factor]), [['part0', 10], ['part1', 10], ['part2', 10]]);
+  assert.deepEqual(calls[1].volumes.map(volume => Math.round(volume ?? 0)), [24000, 12000, 8000]);
+  const accepted = result.state.doc.references?.references[0];
+  assert.ok(accepted);
+  assert.equal(accepted.solids, 3);
+  assert.deepEqual(accepted.source, { step });
+  assert.deepEqual(result.state.doc.nodes, main.nodes);
+  const opened = await readStudioFile(encodeStudioFile(result.state.doc));
+  assert.ok('doc' in opened);
+  assert.deepEqual(opened.doc.references, result.state.doc.references);
+  const local = await referenceLocal(accepted, evaluate);
+  assert.deepEqual(local.map(body => body.key), ['ref1_part0', 'ref1_part1', 'ref1_part2']);
 });

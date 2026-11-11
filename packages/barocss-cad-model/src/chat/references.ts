@@ -38,18 +38,27 @@ const nextId = (prefix: string, taken: readonly { id: string }[]) => nextFreeId(
 // ——— evaluation
 /** The reference as a document of its own: one import (scaled to mm when the file says another unit) or one mesh node. */
 export function referenceDoc(ref: Reference): StudioDoc {
-  if ('step' in ref.source) {
-    let d: StudioDoc = { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'import', name: ref.name, step: ref.source.step, ...(ref.solids && ref.solids > 1 ? { solids: ref.solids } : {}) } as ModelNode] };
-    const unit = stepLengthUnit(ref.source.step), n = ref.solids ?? 1;
-    if (unit.to !== 1) for (let k = 0; k < n; k++) d = withNode(d, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as const : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
-    return d;
-  }
+  if ('step' in ref.source) return stepReferenceDoc(ref, ref.source.step, stepLengthUnit(ref.source.step).to);
   return { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'mesh', name: ref.name, unit: 'mm', positions: ref.source.mesh.positions, indices: ref.source.mesh.indices, representation: 'facets' } as ModelNode] };
 }
+
+function stepReferenceDoc(ref: Reference, step: string, factor: number): StudioDoc {
+  const count = ref.solids ?? 1;
+  let doc: StudioDoc = { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'import', name: ref.name, step, ...(count > 1 ? { solids: count } : {}) }] };
+  if (factor !== 1) for (let i = 0; i < count; i++) {
+    doc = withNode(doc, { kind: 'scale', parent: { node: 0, side: count > 1 ? `part${i}` : 'solid' }, factor, pivot: [0, 0, 0] });
+  }
+  return doc;
+}
+
 const matrixOf = (at: Placement) => rotationMatrix(at.rotation) as unknown as number[];
 /** A reference's bodies in its own coordinates (unplaced), keyed by its id. */
 export async function referenceLocal(ref: Reference, evaluate: Evaluate): Promise<BodyResult[]> {
-  const r = await evaluate(referenceDoc(ref));
+  return readReference(ref, referenceDoc(ref), evaluate);
+}
+
+async function readReference(ref: Reference, doc: StudioDoc, evaluate: Evaluate): Promise<BodyResult[]> {
+  const r = await evaluate(doc);
   if (!r?.ok) throw refusal('NOT_READ', `${ref.name} could not be read: ${r ? r.error.detail : 'no result'}`);
   return r.bodies.map((b, j) => ({ ...b, key: r.bodies.length > 1 ? `${ref.id}_part${j}` : ref.id }));
 }
@@ -395,9 +404,15 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
       const at = (args.at ?? { position: [0, 0, 0], rotation: [0, 0, 0] }) as Placement;
       if (!isV3(at.position) || !isV3(at.rotation)) return { error: '[BAD_REFERENCE] "at" is {position: [x, y, z] mm, rotation: [x, y, z] degrees}.' };
       const ref: Reference = { id: newReferenceId(set), name: args.name.trim(), source: hasStep ? { step: args.step as string } : { mesh: { positions: mesh!.positions as number[], indices: mesh!.indices as number[] } }, at };
-      let local = await referenceLocal(ref, evaluate);
-      // (A STEP file of several solids: read solid by solid, as the studio opens one.)
-      if ('step' in ref.source) { const n = (await referenceLocal({ ...ref, solids: 2 }, evaluate)).length; if (n > 1) { ref.solids = n; local = await referenceLocal(ref, evaluate); } }
+      let local: BodyResult[];
+      if ('step' in ref.source) {
+        const { step } = ref.source;
+        const factor = stepLengthUnit(step).to;
+        // Select the kernel's per-solid import mode before adding scale nodes for the returned bodies.
+        const unscaled = await readReference(ref, stepReferenceDoc({ ...ref, solids: 2 }, step, 1), evaluate);
+        if (unscaled.length > 1) ref.solids = unscaled.length;
+        local = await readReference(ref, stepReferenceDoc(ref, step, factor), evaluate);
+      } else local = await referenceLocal(ref, evaluate);
       return { doc: put({ ...set, references: [...set.references, ref] }), content: { ok: true, id: ref.id, bodies: local.length, faces: local.reduce((s, b) => s + b.mesh.faces.length, 0) }, changed: true, summary: `reference ${ref.id} (${ref.name})` };
     }
     if (name === 'add_datum') {

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D724 — count STEP reference solids before scaling](notes/scaled-step-reference-admission-2026-11-12/README.md).
 - [D723 — refuse unsupported STEP conversion length units](notes/step-conversion-length-admission-2026-11-12/README.md).
 - [D722 — diagnose STEP complex spline knot forms](notes/step-complex-spline-knots-2026-11-12/README.md).
 - [D721 — refuse reflected planar DXF TEXT underlays](notes/reflected-dxf-text-2026-11-12/README.md).
