@@ -2,7 +2,7 @@
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, datumTargetSizeText, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
-import { characteristicMarks, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
+import { ambiguousFrameDimensions, characteristicMarks, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
@@ -113,6 +113,8 @@ const GAP = 1, OVER = 2;
 export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
   const p = presetFor(settings);
   const groups: MarkGroup[] = [];
+  const ambiguous = ambiguousFrameDimensions(settings);
+  const attachedFrames = (settings.frames ?? []).filter(frame => frame.dim !== undefined && !ambiguous.has(frame.dim));
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
   groups.push({ role: 'title', marks: titleBlock(layout, settings, meta, p) });
@@ -148,8 +150,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const marks = datumTargetMarks(layout, views, d, p);
     if (marks) groups.push({ role: 'datum', datumTarget: true, id: d.id, view: d.view, marks });
   }
-  for (const f of settings.frames ?? []) {
-    if (f.dim === undefined) continue;
+  for (const f of attachedFrames) {
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
     if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f, p) });
   }
@@ -207,8 +208,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   const drawn = detailGroups(layout, views, settings, groups, onSheet, sections ?? [], p, meta.callout);
   groups.push(...drawn.groups);
   for (const [id, r] of drawn.resolved) inSections.set(id, r);
-  for (const f of settings.frames ?? []) {
-    if (f.dim === undefined) continue;
+  for (const f of attachedFrames) {
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim && x.view && !isViewId(x.view)), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
     if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f, p) });
   }

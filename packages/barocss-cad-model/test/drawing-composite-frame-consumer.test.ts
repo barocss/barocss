@@ -5,8 +5,9 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { drawingInputs, runDrawingTool } from '../src/chat/drawing';
 import { defaultDrawing, readDrawing, type DrawingFrame, type DrawingSettings } from '../src/drawing/types';
 import { frameMarks, type Mark } from '../src/drawing/sheet';
-import { issueContext } from '../src/drawing/issues';
+import { drawingIssues, issueContext, type DrawingIssue } from '../src/drawing/issues';
 import { modelAnnotations } from '../src/drawing/annotations3d';
+import { forSheet } from '../src/drawing/sheets';
 import { sheetGroupsSvg, sheetSvg } from '../src/io/svg';
 
 const upper = { characteristic: 'position' as const, value: 0.25, datums: ['A', 'B'], diameter: false, material: 'maximum' as const, datumModifiers: { A: 'least' as const } };
@@ -89,4 +90,44 @@ test('attached and standalone composite frames keep both rows through the file c
     assert.ok(lifted.left.some(i => i.id === 'standalone' && i.why === 'a standalone frame has no attached model geometry'));
   }
   assert.deepEqual(source, before);
+});
+
+test('an attached frame with an ambiguous dimension is omitted from sheet and PMI while the saved frame is retained', async () => {
+  const doc = starterDoc(), input = drawingInputs(doc);
+  if (typeof input === 'string') assert.fail(input);
+  const edge = input.views.front.edges.find(e => e.kind === 'line' && e.ends?.some(p => p[0] === 0 && p[1] === 0 && p[2] === 0) && e.ends.some(p => p[0] === 64 && p[1] === 0 && p[2] === 0));
+  assert.ok(edge);
+  const front = { id: 'd1', kind: 'linear', view: 'front', a: { edge: edge.name, at: 'end', near: [0, 0, 0] }, b: { edge: edge.name, at: 'end', near: [64, 0, 0] }, orient: 'horizontal', place: [0, -10] } satisfies DrawingSettings['dimensions'][number];
+  const top = { ...front, view: 'top' as const };
+  const settings: DrawingSettings = { ...defaultDrawing(), dimensions: [front, top], frames: [attached, standalone] };
+  const source = { ...doc, drawing: settings };
+  const opened = await readStudioFile(encodeStudioFile(source));
+  assert.ok('doc' in opened);
+  assert.deepEqual(opened.doc.drawing?.dimensions, [front, top]);
+  assert.deepEqual(opened.doc.drawing?.frames, [attached, standalone]);
+
+  const across: DrawingSettings = { ...settings, sheets: [{ id: 'S2', views: ['top'] }] };
+  const shown = (current: DrawingSettings) => {
+    const ctx = issueContext({ ...input, settings: current });
+    return { ...ctx, pmi: modelAnnotations(ctx), issues: drawingIssues(ctx) };
+  };
+  for (const current of [settings, forSheet(across, 1)]) {
+    const ctx = shown(current);
+    assert.ok(ctx.sheet.dimensions.every(dim => dim.ok));
+    assert.ok(!ctx.sheet.groups.some(group => group.id === attached.id));
+    assert.doesNotMatch(sheetSvg(ctx.sheet, 'Legacy frame'), /data-dim="attached"/);
+    assert.ok(!ctx.pmi.items.some(item => item.id === attached.id));
+    const issue: DrawingIssue | undefined = ctx.issues.find(item => item.code === 'FRAME_LOST' && item.frames?.includes(attached.id));
+    assert.ok(issue);
+    assert.match(issue.message, /the ID is shared/);
+    assert.equal(issue.fix, undefined);
+    assert.ok(ctx.pmi.left.some(item => item.id === attached.id && item.why === issue.message));
+  }
+  const first = shown(forSheet(across, 0));
+  assert.ok(first.sheet.groups.some(group => group.standaloneFrame && group.id === standalone.id));
+  assert.ok(!first.sheet.groups.some(group => group.id === attached.id));
+  const resolved = shown({ ...settings, dimensions: [front] });
+  assert.ok(resolved.sheet.groups.some(group => group.role === 'control' && group.id === attached.id && group.view === 'front'));
+  assert.ok(resolved.pmi.items.some(item => item.id === attached.id && item.from === 'front'));
+  assert.deepEqual(settings.frames, [attached, standalone]);
 });

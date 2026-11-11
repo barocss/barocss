@@ -2,7 +2,7 @@
 import { problem, type Problem } from '../engine/refusal';
 import type { Mark } from './sheet';
 import { STANDARDS, type DrawingStandard } from './standard';
-import { isDimView, type DimView, type XY } from './types';
+import { isDimView, type DimView, type DrawingSettings, type XY } from './types';
 
 export const CHARACTERISTICS = ['position', 'straightness', 'flatness', 'circularity', 'cylindricity', 'profile-line', 'profile-surface', 'parallelism', 'perpendicularity', 'angularity', 'concentricity', 'symmetry', 'circular-runout', 'total-runout'] as const;
 export type Characteristic = typeof CHARACTERISTICS[number];
@@ -37,6 +37,21 @@ export type DrawingFrame = DrawingFrameFields & (
   | { dim: string; view?: never; place?: never }
   | { dim?: never; view: DimView; place: XY }
 );
+/** Find local dimension IDs that do not identify one dimension in the drawing set. */
+export function ambiguousFrameDimensions(settings: Pick<DrawingSettings, 'dimensions' | 'sheetContext'>): Set<string> {
+  const seen = new Set(settings.sheetContext?.dimensionIdsOnOtherSheets);
+  const ambiguous = new Set<string>();
+  for (const { id } of settings.dimensions) {
+    if (seen.has(id)) ambiguous.add(id);
+    seen.add(id);
+  }
+  return ambiguous;
+}
+
+export function ambiguousFrameMessage(frame: Extract<DrawingFrame, { dim: string }>): string {
+  return 'The ' + frame.characteristic + ' frame on dimension ' + frame.dim + ' is hidden because the ID is shared. The saved frame is retained.';
+}
+
 /** A frame's number as authored: up to 4 decimals, trailing zeros trimmed, never the dimension rounding of 0.01. */
 export const fmtTol = (v: number): string => String(Number(v.toFixed(4)));
 /** The zone sign before a row's value: SØ for a spherical zone, Ø for a diameter zone (position's default), else none. */

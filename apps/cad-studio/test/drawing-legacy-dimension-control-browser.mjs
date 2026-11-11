@@ -1,10 +1,12 @@
-// D755: refuse a control frame that could attach to either of two legacy dimensions.
+// D755/D756: legacy controls with more than one matching dimension.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-const baseline = mode === '--baseline';
+const stored = mode === '--stored' || mode === '--stored-baseline';
+const baseline = mode === '--baseline' || mode === '--stored-baseline';
+const frameIssue = 'The position frame on dimension d1 is hidden because the ID is shared. The saved frame is retained.';
 const fixturePath = 'packages/barocss-cad/conformance/r14/orient-cross-hole-y-plus/case.json';
 const { input } = JSON.parse(await readFile(fixturePath, 'utf8'));
 const top = {
@@ -20,17 +22,22 @@ const title = 'Legacy dimension control';
 const fixture = { ...input.document, drawing: {
   sheet: 'A4', projection: 'third', hidden: true, title,
   views: ['front', 'top', 'right', 'iso'], dimensions: [top, right],
+  ...(stored ? { frames: [{ id: 'control-d1', dim: 'd1', characteristic: 'position', value: 0.1, datums: [] }] } : {}),
   sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', scale: 1, views: ['right'] }],
 } };
 const pins = [
   'apps/cad-studio/test/drawing-legacy-dimension-control-browser.mjs',
   'apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'apps/cad-studio/src/ui/drawing/FrameEditor.tsx',
   'packages/barocss-cad-model/src/drawing/sheets.ts', fixturePath,
+  ...(stored ? [
+    'packages/barocss-cad-model/src/drawing/sheet.ts', 'packages/barocss-cad-model/src/drawing/issues.ts',
+    'packages/barocss-cad-model/src/drawing/annotations3d.ts',
+  ] : []),
 ];
 const f = await createFlow({
-  name: 'drawing-legacy-dimension-control', output, envFrozen: 'D755_SOURCE_FROZEN',
+  name: 'drawing-legacy-dimension-control', output, envFrozen: stored ? 'D756_SOURCE_FROZEN' : 'D755_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Reproduce cross-sheet frame attachment' : 'Require a unique dimension before attaching a control frame',
+  qualification: stored ? 'Resolve a saved frame only when its dimension ID is unique' : baseline ? 'Reproduce cross-sheet frame attachment' : 'Require a unique dimension before attaching a control frame',
   limits: ['Two desktop sheets, one legacy duplicate and one attached position frame. Native local project storage.'],
   snapshotExtra: () => ({
     dimensions: window.__studioDrawing?.()?.dimensions ?? [],
@@ -38,15 +45,46 @@ const f = await createFlow({
       id: g.getAttribute('data-dim'), text: g.textContent,
     })),
     hint: document.querySelector('.dw-hint')?.textContent ?? null,
+    frameAnnotations: window.__studioAnnotations?.()?.items.filter(item => item.kind === 'frame') ?? [],
+    annotationOmissions: window.__studioAnnotations?.()?.left ?? [],
     historyActions: ['Undo', 'Redo'].map(label => document.querySelector('button[aria-label="' + label + '"]')?.disabled),
   }),
+  oracleSource: String.raw`
+import json, sys, xml.etree.ElementTree as ET
+report = json.load(sys.stdin)
+root = ET.fromstring(report["svg"])
+ns = {"s": "http://www.w3.org/2000/svg"}
+dims = root.findall(".//s:g[@class='dimension'][@data-dim='d1']", ns)
+assert len(dims) == 1 and "".join(dims[0].itertext()).strip() == report["dimension"], dims
+controls = root.findall(".//s:g[@class='control'][@data-dim='control-d1']", ns)
+assert len(controls) == report["count"], controls
+if controls:
+    assert "".join(controls[0].itertext()).strip() == "Ø0.1"
+print(json.dumps({"status": "PASS", "dimension": report["dimension"], "controls": len(controls)}))
+`,
 });
+
+function captureSvg() {
+  const create = URL.createObjectURL, click = HTMLAnchorElement.prototype.click, blobs = new Map();
+  URL.createObjectURL = function (blob) {
+    const url = create.call(this, blob);
+    if (blob.type === 'image/svg+xml') blobs.set(url, blob);
+    return url;
+  };
+  HTMLAnchorElement.prototype.click = function () {
+    const blob = blobs.get(this.href);
+    if (!blob || !this.download.endsWith('.svg')) return click.call(this);
+    window.__legacyControlSvg = blob.text();
+    blobs.delete(this.href);
+  };
+}
 
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    if (stored) await context.addInitScript(captureSvg);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -77,6 +115,52 @@ await f.run(async () => {
   f.report.observations.push({ sourceSHA256: sha256(bytes) });
   await modeButton('Drawing').click();
   await selectSheet('Sheet 1', '30');
+  if (stored) {
+    f.phase = 'Read the stored frame in the continuation sheet and actual SVG';
+    const original = await f.doc();
+    assert.deepEqual(original.drawing.frames, fixture.drawing.frames);
+    assert.equal(await frame.count(), 0);
+    await selectSheet('Continuation', 'Ø8 THRU');
+    if (baseline) await frame.waitFor();
+    else await page.getByText(frameIssue, { exact: true }).waitFor();
+    const continuation = await f.snapshot('stored-control-continuation');
+    assert.deepEqual(continuation.doc, original);
+    assert.deepEqual(continuation.frames, baseline ? [{ id: 'control-d1', text: 'Ø0.1' }] : []);
+    assert.deepEqual(continuation.frameAnnotations.map(item => item.id), baseline ? ['control-d1'] : []);
+    if (!baseline) assert.ok(continuation.annotationOmissions.some(item => item.id === 'control-d1' && item.why === frameIssue));
+    const checkSvg = async (label, dimension, count) => {
+      await page.evaluate(() => { window.__legacyControlSvg = null; });
+      await button('Export SVG').click();
+      await page.waitForFunction(() => window.__legacyControlSvg);
+      const svg = await page.evaluate(() => window.__legacyControlSvg);
+      f.report.files.push({ label, sha256: sha256(svg) });
+      await f.runOracle({ svg, dimension, count }, label);
+    };
+    await checkSvg('stored-continuation-svg', 'Ø8 THRU', baseline ? 1 : 0);
+    if (baseline) return;
+
+    f.phase = 'Resolve the duplicate explicitly and verify display without rewriting the frame';
+    await button('Remove dimension Ø8 THRU').click();
+    await f.changed(original);
+    const resolved = await f.doc();
+    assert.deepEqual(resolved.drawing.frames, original.drawing.frames);
+    assert.deepEqual(resolved.drawing.dimensions, [original.drawing.dimensions[0]]);
+    await selectSheet('Sheet 1', '30');
+    await frame.waitFor();
+    const restored = await f.snapshot('stored-control-on-unique-top-dimension');
+    assert.deepEqual(restored.frameAnnotations.map(item => item.id), ['control-d1']);
+    assert.deepEqual(restored.frames, [{ id: 'control-d1', text: 'Ø0.1' }]);
+    await checkSvg('unique-top-svg', '30', 1);
+    await button('Undo').click();
+    await f.same(original);
+    await selectSheet('Continuation', 'Ø8 THRU');
+    await page.getByText(frameIssue, { exact: true }).waitFor();
+    assert.equal(await frame.count(), 0);
+    await button('Redo').click();
+    await f.same(resolved);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await selectDimension('top');
   const before = await f.snapshot('legacy-top-dimension');
   assert.deepEqual(before.doc.drawing.dimensions.map(d => [d.id, d.view]), [['d1', 'top'], ['d1', 'right']]);

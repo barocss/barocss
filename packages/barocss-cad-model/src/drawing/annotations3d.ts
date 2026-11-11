@@ -8,7 +8,7 @@
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetArea, type DatumTargetFailureCode, type DatumTargetKind } from './datumTargets';
-import { zonePrefix, type Characteristic, type MaterialModifier } from './controls';
+import { ambiguousFrameDimensions, ambiguousFrameMessage, zonePrefix, type Characteristic, type MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import type { Resolved } from './dimensions';
 import { frameValue, presetFor, presetOf, type DrawingStandard, type FrameRounding, type LengthFormat, type StandardPreset } from './standard';
@@ -76,9 +76,17 @@ export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
   }
   for (const r of i.sheet.dimensions) if (!r.ok) left.push({ id: r.dim.id, why: r.reason });
   for (const n of i.settings.notes ?? []) left.push({ id: n.id, why: 'a note is placed on the paper, not on the model' });
-  for (const f of i.settings.frames ?? []) if (f.dim === undefined) left.push({ id: f.id, why: 'a standalone frame has no attached model geometry' });
+  const ambiguous = ambiguousFrameDimensions(i.settings), omittedFrames = new Set<string>();
+  for (const f of i.settings.frames ?? []) {
+    if (f.dim === undefined) left.push({ id: f.id, why: 'a standalone frame has no attached model geometry' });
+    else if (ambiguous.has(f.dim)) {
+      left.push({ id: f.id, why: ambiguousFrameMessage(f) });
+      omittedFrames.add(f.id);
+    }
+  }
   for (const g of i.sheet.groups) {
     if (!g.id || !(g.role === 'dimension' || g.role === 'datum' || g.role === 'control' || g.role === 'weld')) continue;
+    if (g.role === 'control' && omittedFrames.has(g.id)) continue;
     if (g.datumTarget && omittedTargets.has(g.id)) continue;
     const view = g.role === 'control' ? controlView(i, g) : g.view;
     if (!view) continue;

@@ -37,7 +37,7 @@ import { textCorners } from './text';
 import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from './views';
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
-import { frameNotes, frameRules } from './controls';
+import { ambiguousFrameDimensions, ambiguousFrameMessage, frameNotes, frameRules } from './controls';
 import { UNPRINTABLE_FIT_LIMITS, deviationPair, frameValue, presetFor, type DrawingUnits, type FrameRounding } from './standard';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
@@ -405,7 +405,12 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // (A datum exists when a datum feature symbol or a datum target set has its letter.)
   const known = new Set(settings.sheetContext?.datumLetters ?? [...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
+  const ambiguous = ambiguousFrameDimensions(settings);
   for (const f of settings.frames ?? []) {
+    if (f.dim !== undefined && ambiguous.has(f.dim)) {
+      out.push({ code: 'FRAME_LOST', severity: 'error', message: ambiguousFrameMessage(f), frames: [f.id] });
+      continue;
+    }
     for (const why of frameNotes(f, settings.standard)) out.push({ code: 'FRAME_RULE', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     for (const why of frameRules(f)) out.push({ code: 'FRAME_RULE', severity: 'error', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     if (f.dim === undefined) {
