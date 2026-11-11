@@ -1,0 +1,129 @@
+{
+  "decision": "D645",
+  "tier": "FEATURE qualification",
+  "baseCommit": "8ac3a1cc08e387d800e38926ad62b28144991109",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d645-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio reject p2 and approve the unchanged sibling",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D645_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-final\" --studio-rejection",
+      "receiptSHA256": "bf51b85100623ba6b37635ab7ebfc7c9438d54ff48d925be3c633c4e10b525c7",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "mismatchedRejectionStatus": 409,
+        "staleOppositeDecisionsRefused": 2,
+        "repeatedRejectionChangedRecord": false,
+        "repeatAfterSiblingApprovalStatus": 200,
+        "rejectedTask": "p2",
+        "approvedTask": "p1",
+        "publicationsAtRejection": 0,
+        "finalPublications": 1,
+        "rejectedRevision": 9,
+        "approvedRevision": 12,
+        "finalHeightsMm": [
+          6,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Independent decision IDs, publication record and native checkpoint reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/rejection-oracle.py\" \"$EVIDENCE/desktop-final\"",
+      "scriptSHA256": "f03640e645b42c93e8362ef40baa64e2da1d3a9a4d186f053af9a18c2ca1cd5c",
+      "resultSHA256": "70d4dc963a3dbfc275820a27c2e8dd01ac4f4a94f151e01992bcf2f8f21cecb0",
+      "productImports": 0,
+      "originalSHA256": "a5af5249a57bfb959722b7d273aa73e20c0a8d3979299ac4a57e437cc8fd63e2",
+      "approvedSHA256": "9be207dcec5f969b7e17a2f13b5f9a3a06e15ec1ddd32fcefc9bd02359c7eb45",
+      "rejectedRecordSHA256": "42dfcffa1dc30e5c953e59abcb4ac250f41902ab9563007ed03ec1f38aec1155",
+      "finalRecordSHA256": "1d82272650d7bcddaf033ed3ea623f5c4388cef33f28b670bc3893b924394d20"
+    },
+    {
+      "label": "Desktop Studio two-task native delivery regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D644_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-studio-delivery\" --studio-delivery",
+      "receiptSHA256": "061979972fad0217d1d8ee7054f902132ab796c6fe03796ab74e0e4376c0e5b5",
+      "pinnedSources": 812,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio review and terminal decision regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D620_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/final-review\" --review",
+      "receiptSHA256": "9022ac6fb4bfea3b09f610bd35106f84cc43bb53b3c030d5cee604dd3ba40ccb",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "expectedConsoleErrors": 2,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent task-candidate task-checkpoint proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "existingWarnings": 2,
+      "errors": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "First changed TypeScript lint",
+      "logSHA256": "09294b69b5e810cbe52b2cf25d3962d8e17c3b770fe09391db19c117453a2414",
+      "reason": "Two unused destructured fields were rejected. Return only the public status fields."
+    }
+  ],
+  "notRun": [
+    "Concurrent opposite decisions from separate Studio sessions",
+    "Live provider execution",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

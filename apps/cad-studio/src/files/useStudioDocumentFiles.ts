@@ -28,8 +28,8 @@ import type { RequirementEvidence } from '@barocss/cad-model/chat/requirementEvi
 import { planWorkingTaskReplacement } from './workingTaskReplacement';
 import { planWorkingApprovalRepair, readWorkingApprovalChecks } from './workingApprovalChecks';
 import { localTaskBaselineBytes, localTaskCheckpointBytes, localTaskRunJSON } from '../chat/localTaskRun';
-import { isLocalTaskRunHost, isTaskRunApproveRequest, isTaskRunStatus, matchesTaskRunReplan, sameTaskRunCheckpoint, retiresTaskRunReview, taskRunApprovalId, type TaskRunLaunch, type TaskRunOffer,
-  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunLocator, type SavedTaskRunPlan, type TaskRunRebuildRequest, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
+import { isLocalTaskRunHost, isTaskRunDecisionRequest, isTaskRunStatus, matchesTaskRunReplan, sameTaskRunCheckpoint, retiresTaskRunReview, taskRunDecisionId, type TaskRunLaunch, type TaskRunOffer,
+  type TaskRunBaselineRequest, type TaskRunCheckpointRequest, type TaskRunDecision, type TaskRunLocator, type SavedTaskRunPlan, type TaskRunRebuildRequest, type TaskRunReplanSelection, type TaskRunReviewRequest, type TaskRunStatus } from '../chat/taskRunOffer';
 
 interface StudioDocumentFileOptions {
   document: {
@@ -63,7 +63,7 @@ interface StudioDocumentFileOptions {
     setDirty(dirty: boolean): void;
     setRefProblems(problems: RefProblem[]): void;
     onTaskRunReopened(run: TaskRunLaunch): void;
-    onTaskRunApproved(status: TaskRunStatus): void;
+    onTaskRunDecided(status: TaskRunStatus): void;
     onCheckpointOpened(review: CheckpointReview): void;
     onCandidateOpened(review: CandidateReview): void;
     onLocalCandidateReviewIntent(): void;
@@ -479,42 +479,44 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
         || receipt.attemptId !== request.attemptId || receipt.candidateDigest !== request.candidateDigest
         || receipt.baseline.modelDigest !== request.baselineDigest)
         throw new Error('The local run returned a different worker candidate.');
-      const approval = { ...request, reviewRevision: receipt.revision, controlRevision: value.controlRevision, receiptDigest: digestOf(receipt) };
-      if (!isTaskRunApproveRequest(approval)) throw new Error('The local candidate service returned an invalid review pin.');
-      return { receipt, approval };
+      const decision = { ...request, reviewRevision: receipt.revision, controlRevision: value.controlRevision, receiptDigest: digestOf(receipt) };
+      if (!isTaskRunDecisionRequest(decision)) throw new Error('The local candidate service returned an invalid review pin.');
+      return { receipt, decision };
     };
     try {
-      const { receipt, approval } = await read();
+      const { receipt, decision } = await read();
       if (!current()) return;
       const review = await prepareCandidate(receipt, baseline, current);
       if (!review || !current()) return;
       // A terminal operator can retire the attempt while Studio evaluates the geometry.
       const latest = await read();
       if (!current()) return;
-      if (latest.approval.controlRevision !== approval.controlRevision || !matchesCurrentCandidateReview(receipt, latest.receipt))
+      if (latest.decision.controlRevision !== decision.controlRevision || !matchesCurrentCandidateReview(receipt, latest.receipt))
         throw new Error('The worker candidate changed during review.');
       requireView(review.occurrence);
       const status = intent.local.status;
       if (status && retiresTaskRunReview(status, request, latest.receipt.revision))
         throw new Error('The worker candidate changed during review.');
-      showCandidateReview({ ...review, localRun: { request, revision: latest.receipt.revision, approval: latest.approval } });
+      showCandidateReview({ ...review, localRun: { request, revision: latest.receipt.revision, decision: latest.decision } });
     } catch (error) {
       if (current()) throw error;
     }
   };
 
-  const approveTaskRunCandidate = async (review: CandidateReview) => {
+  const decideTaskRunCandidate = async (review: CandidateReview, action: TaskRunDecision) => {
     const local = review.localRun, intent = candidateIntent.current?.local;
     if (!local || !intent || local.request !== intent.request || !ownership.canReviewLocalCandidate(review.occurrence)
       || digestOf(docNow.current) !== local.request.baselineDigest
       || (intent.status && retiresTaskRunReview(intent.status, local.request, local.revision)))
-      throw new Error('The worker candidate review moved. Review it again before approving.');
-    const { approval, revision } = local;
-    const status = checkedRunStatus({ ...local.request, revision }, await localTaskRunJSON('approve', JSON.stringify(approval)));
-    if (!status.approvals?.some(pin => pin.operationId === taskRunApprovalId(approval) && pin.taskId === review.taskId))
-      throw new Error('The local run did not confirm approval of this candidate.');
+      throw new Error('The worker candidate review moved. Review it again before making a decision.');
+    const { decision, revision } = local;
+    const status = checkedRunStatus({ ...local.request, revision }, await localTaskRunJSON(action, JSON.stringify(decision)));
+    const confirmed = action === 'approve'
+      ? status.approvals?.some(pin => pin.operationId === taskRunDecisionId(decision, action) && pin.taskId === review.taskId)
+      : status.tasks.some(task => task.id === review.taskId && task.phase === 'cancelled' && task.reason === 'RUN_REJECTED');
+    if (!confirmed) throw new Error('The local run did not confirm this candidate decision.');
     observeTaskRunStatus(status);
-    changes.onTaskRunApproved(status);
+    changes.onTaskRunDecided(status);
   };
 
   const reopenTaskRun = async (file: File) => {
@@ -571,5 +573,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, approveTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair };
 }

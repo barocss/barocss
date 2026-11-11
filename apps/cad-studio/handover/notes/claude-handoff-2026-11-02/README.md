@@ -1,5 +1,5 @@
 ---
-work_id: D644
+work_id: D645
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -225,7 +225,9 @@ D643 adds explicit approval to the verified local candidate preview. The writer 
 
 D644 completes both height tasks through Studio approval and rebuild. It saves a separate native project file and reopens the exact bytes with both current requirements passing. [D644](../studio-two-task-native-delivery-2026-11-11/README.md).
 
-Next MAIN is D645 / P0 automation, B09 follow-up, rows 04, 12 and 16. Add explicit rejection of a reviewed worker candidate in Studio. Bind rejection to the exact review and keep a separate pending candidate available for approval. Verify the accepted model, run record and both decisions in Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
+D645 rejects one reviewed candidate without changing the accepted native file. The same pending sibling remains reviewable and can publish after explicit Studio approval. Fresh Studio Open reads that checkpoint and the earlier rejection. [D645](../studio-reviewed-worker-rejection-2026-11-11/README.md).
+
+Next MAIN is D646 / P0 automation, B09 follow-up, rows 04, 07 and 16. Add a local task for the diameter of one existing native through-hole with a hard diameter requirement. Bind the feature and cylindrical face, preserve mm diameter semantics and refuse edits to a shared hole pattern from this task. Verify the approved result in Studio. [#2402](https://github.com/barocss/barocss/issues/2402).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

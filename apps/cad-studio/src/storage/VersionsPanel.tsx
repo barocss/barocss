@@ -19,6 +19,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { ApprovedRequirementChecks, CheckpointApprovalChecks } from './ApprovedRequirementChecks';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import type { CandidateReview } from '../files/taskCandidateReview';
+import type { TaskRunDecision } from '../chat/taskRunOffer';
 import { CandidateReviewSection } from './CandidateReviewSection';
 import { approvedRequirementComparison } from '@barocss/cad-model/versions/approvedRequirements';
 
@@ -62,7 +63,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   onInsert(path: string): void;
   evaluate: Evaluate;
   checkpointReview?: CheckpointReview | null;
-  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; approve?(): Promise<void> };
+  candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; decide?(decision: TaskRunDecision): Promise<void> };
   onCollapse?(): void;
 }) {
   const { view } = project, log = view.log;

@@ -11,7 +11,7 @@ import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskRunApproveRequest, taskRunApprovalId, isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, isTaskRunStopRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
+import { isTaskRunDecisionRequest, taskRunDecisionId, isTaskRunBaselineRequest, isTaskRunLocator, isTaskRunRebuildRequest, isTaskRunStopRequest, matchesTaskRunReplan, sameTaskRunCheckpoint, type TaskRunCheckpointRequest, type TaskRunCheckpointPin, type TaskRunDecision, type TaskRunLaunch, type TaskRunLocator, type TaskRunRebuildRequest, type TaskRunReplanPin, type TaskRunReplacementProvenance, type TaskRunReviewRequest, type TaskRunStatus } from '../../src/chat/taskRunOffer';
 import { encodeTaskCheckpoint, MAX_TASK_CHECKPOINT_BYTES, type TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import { planWorkingTaskReplacement } from '../../src/files/workingTaskReplacement';
 import { encodeCandidateReview } from '../../src/files/taskCandidateReview';
@@ -28,7 +28,7 @@ type AdmissionNotice = (run: TaskRunLaunch) => void;
 type BindRunControl = (run: TaskRunLaunch, stop: () => void) => (() => void) | void;
 
 type HandoffAction = 'start' | 'reopen';
-type LocalRunAction = HandoffAction | 'rebuild' | 'stop' | 'approve';
+type LocalRunAction = HandoffAction | 'rebuild' | 'stop' | TaskRunDecision;
 
 function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
   // Only the process that admitted Start can stop its live workers.
@@ -108,13 +108,14 @@ export function createLocalTaskRuns(root: string) {
     if (status.phase === 'stopped') return status;
     throw new LocalRunRequestError(409, 'The local run has finished starting. Reopen it before stopping.');
   };
-  const approve = async (request: unknown): Promise<TaskRunStatus> => {
-    if (!isTaskRunApproveRequest(request))
+  const decide = async (request: unknown, decision: TaskRunDecision): Promise<TaskRunStatus> => {
+    if (!isTaskRunDecisionRequest(request))
       throw new LocalRunRequestError(400, 'Expected the exact worker candidate review.');
-    await run(Buffer.from(JSON.stringify(request)), 'approve');
-    return readLocalTaskRunStatus(root, { runKey: request.runKey, runId: request.runId });
+    const { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement } =
+      await run(Buffer.from(JSON.stringify(request)), decision);
+    return { runKey, runId, phase, revision, baselineDigest, checkpoint, approvals, tasks, replacement };
   };
-  return { run, stop, approve };
+  return { run, stop, decide };
 }
 
 function privateDirectory(path: string) {
@@ -325,43 +326,47 @@ export async function runLocalTaskStop(root: string, request: unknown): Promise<
   } finally { host?.close(); }
 }
 
-export async function runLocalTaskApproval(root: string, request: unknown): Promise<LocalRunReply> {
-  if (!isTaskRunApproveRequest(request)) return { status: 400, error: 'Expected the exact worker candidate review.' };
+export async function runLocalTaskDecision(root: string, request: unknown, decision: TaskRunDecision): Promise<LocalRunReply> {
+  if (!isTaskRunDecisionRequest(request)) return { status: 400, error: 'Expected the exact worker candidate review.' };
+  const approved = decision === 'approve', expectedCode = approved ? 'RUN_ACCEPTED' : 'RUN_REJECTED';
   let host: TaskRunHost | undefined;
   try {
     const directory = privateDirectory(join(privateDirectory(resolve(root)), request.runKey));
-    const operationId = taskRunApprovalId(request);
+    const operationId = taskRunDecisionId(request, decision);
     const result = (record: RunRecord): LocalRunReply => ({
       result: { ...taskRunStatus(request.runKey, record), directory, reused: true },
     });
     const current = readOwnedTaskRun(root, request);
-    if (current.commits.some(commit => commit.operationId === operationId && commit.taskId === request.taskId
-      && commit.kind !== 'spec' && commit.candidateDigest === request.candidateDigest)) return result(current);
+    const decided = approved
+      ? current.commits.some(commit => commit.operationId === operationId && commit.taskId === request.taskId
+        && commit.kind !== 'spec' && commit.candidateDigest === request.candidateDigest)
+      : current.state.operations.some(operation => operation.id === operationId && operation.phase === 'completed' && operation.code === expectedCode);
+    if (decided) return result(current);
     const guard = (record: RunRecord) => {
       const receipt = candidateReviewFor(record, request.taskId);
       if (record.runId !== request.runId || record.state.controlRevision !== request.controlRevision
         || record.accepted.modelDigest !== request.baselineDigest || receipt.attemptId !== request.attemptId
         || receipt.candidateDigest !== request.candidateDigest || request.reviewRevision > receipt.revision
         || digestOf({ ...receipt, revision: request.reviewRevision }) !== request.receiptDigest)
-        throw new LocalRunRequestError(409, 'The reviewed candidate changed. Review it again before approving.');
+        throw new LocalRunRequestError(409, `The reviewed candidate changed. Review it again before ${approved ? 'approving' : 'rejecting'}.`);
     };
     guard(current);
     let revision = 0;
     host = await TaskRunHost.open(directory, async doc => evaluatePart(doc, ++revision), undefined, guard);
     const { runId, epoch, state } = host.snapshot;
     const outcome = await host.decide({ operationId, runId, epoch, taskId: request.taskId, attemptId: request.attemptId,
-      specRevision: state.specRevision, candidateDigest: request.candidateDigest, approved: true }, userToken(new Date().toISOString()));
-    if (outcome.code !== 'RUN_ACCEPTED')
-      throw new LocalRunRequestError(409, `Could not approve the worker candidate (${outcome.code ?? outcome.phase}).`);
+      specRevision: state.specRevision, candidateDigest: request.candidateDigest, approved }, userToken(new Date().toISOString()));
+    if (outcome.code !== expectedCode)
+      throw new LocalRunRequestError(409, `Could not ${decision} the worker candidate (${outcome.code ?? outcome.phase}).`);
     return result(host.snapshot);
   } catch (error) {
     if (error instanceof LocalRunRequestError) return { status: error.status, error: error.message };
     if (error instanceof RunStoreError) {
       if (error.code === 'RUN_BUSY') return { status: 409, error: 'Another process owns this local task run.' };
-      if (error.code === 'RUN_STALE') return { status: 409, error: 'The reviewed candidate is no longer awaiting approval.' };
+      if (error.code === 'RUN_STALE') return { status: 409, error: approved ? 'The reviewed candidate is no longer awaiting approval.' : 'The reviewed candidate is no longer awaiting a decision.' };
     }
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 404, error: 'The local task run could not be found.' };
-    return { status: 409, error: 'Could not approve the worker candidate.' };
+    return { status: 409, error: `Could not ${decision} the worker candidate.` };
   } finally { host?.close(); }
 }
 

@@ -62,13 +62,15 @@ export interface TaskRunReviewRequest extends TaskRunBaselineRequest, TaskRunCan
   taskId: string;
 }
 
-export interface TaskRunApproveRequest extends TaskRunReviewRequest {
+export interface TaskRunDecisionRequest extends TaskRunReviewRequest {
   reviewRevision: number;
   controlRevision: number;
   receiptDigest: string;
 }
 
-export const taskRunApprovalId = (request: TaskRunApproveRequest) => 'studio:approve:' + digestOf(request);
+export type TaskRunDecision = 'approve' | 'reject';
+
+export const taskRunDecisionId = (request: TaskRunDecisionRequest, decision: TaskRunDecision) => 'studio:' + decision + ':' + digestOf(request);
 
 const TASK_PHASES = ['ready', 'running', 'validating', 'awaiting-decision', 'committing', 'completed', 'failed', 'cancelled', 'stale'] as const;
 export type TaskRunTaskPhase = typeof TASK_PHASES[number];
@@ -125,7 +127,7 @@ export function isTaskRunStopRequest(value: unknown): value is TaskRunStopReques
     && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0;
 }
 
-export function isTaskRunApproveRequest(value: unknown): value is TaskRunApproveRequest {
+export function isTaskRunDecisionRequest(value: unknown): value is TaskRunDecisionRequest {
   return isObj(value) && Object.keys(value).length === 9 && isTaskRunLocator(value)
     && hash(value.baselineDigest) && label(value.taskId) && label(value.attemptId)
     && hash(value.candidateDigest) && hash(value.receiptDigest)

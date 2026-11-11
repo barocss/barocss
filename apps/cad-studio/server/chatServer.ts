@@ -217,7 +217,7 @@ export function createChatServer(options: ChatServerOptions) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/stop' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/approve' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/stop' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/approve' || path === '/task-runs/reject' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
       const action = path.slice('/task-runs/'.length), handoff = action === 'start' || action === 'reopen';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
@@ -246,7 +246,7 @@ export function createChatServer(options: ChatServerOptions) {
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }
-        if (action === 'approve') return sendJson(res, 200, await localRuns.approve(request));
+        if (action === 'approve' || action === 'reject') return sendJson(res, 200, await localRuns.decide(request, action));
         if (action === 'stop') return sendJson(res, 200, await localRuns.stop(request));
         if (action === 'baseline' || action === 'checkpoint' || action === 'history') {
           let model: Uint8Array;

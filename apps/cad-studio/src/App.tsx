@@ -486,7 +486,7 @@ export function App() {
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [reopenedTaskRun, setReopenedTaskRun] = useState<TaskRunLaunch>();
-  const [approvedTaskRun, setApprovedTaskRun] = useState<TaskRunStatus>();
+  const [decidedTaskRun, setDecidedTaskRun] = useState<TaskRunStatus>();
   const [checkpointReview, setCheckpointReview] = useState<CheckpointReview | null>(null);
   const [compareBase, setCompareBase] = useState<VersionComparison | null>(null);
   const [versionDiff, setVersionDiff] = useState<{ source: VersionComparison; doc: StudioDoc; overlay: ProposalOverlay } | null>(null);
@@ -1592,7 +1592,7 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, approveTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair } = useStudioDocumentFiles({
+  const { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair } = useStudioDocumentFiles({
     document: { doc, docNow, fileName, fileNameNow, recoveryDoc: recovery?.doc ?? null, project },
     ownership: { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked,
       canOpenImport: () => openAccepted(inPlaceNow.current), canReviewLocalCandidate: occurrence => localCandidateView.current(occurrence) },
@@ -1600,7 +1600,7 @@ export function App() {
       stopImport: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); } },
     changes: { replaceDoc, setDocState, setFileName, setDirty,
       onTaskRunReopened: run => { setReopenedTaskRun(run); setChat(true); },
-      onTaskRunApproved: setApprovedTaskRun,
+      onTaskRunDecided: setDecidedTaskRun,
       onCheckpointOpened: review => { setCheckpointReview(review); setVersionsOpen(true); if (review.localRun) layout.setDockSheet(true); },
       onCandidateOpened: review => {
         setCandidateReview({ review, shown: !!review.localRun });
@@ -2123,7 +2123,7 @@ export function App() {
       {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onCollapse={() => { cancelLocalCandidateReview(); hideCandidatePreview(); }}
         candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, toggle: toggleCandidatePreview,
-          approve: candidateReview.review.localRun ? () => approveTaskRunCandidate(candidateReview.review) : undefined } : undefined}
+          decide: candidateReview.review.localRun ? decision => decideTaskRunCandidate(candidateReview.review, decision) : undefined } : undefined}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
         onOpen={d => { setCompareBase(null); replaceDoc(d, 'project'); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
@@ -2451,7 +2451,7 @@ export function App() {
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
-        taskRun={inPlace ? undefined : { reopened: reopenedTaskRun, approved: approvedTaskRun, sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, stop: stopTaskRun, refresh: refreshTaskRun, rebuild: rebuildTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, openBaseline: openTaskRunBaseline, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        taskRun={inPlace ? undefined : { reopened: reopenedTaskRun, decided: decidedTaskRun, sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, stop: stopTaskRun, refresh: refreshTaskRun, rebuild: rebuildTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, openBaseline: openTaskRunBaseline, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)

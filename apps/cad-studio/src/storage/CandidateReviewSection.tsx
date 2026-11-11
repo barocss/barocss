@@ -1,19 +1,21 @@
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import type { TaskRunDecision } from '../chat/taskRunOffer';
 import type { CandidateReview } from '../files/taskCandidateReview';
 
-export function CandidateReviewSection({ review, shown, available, toggle, approve }: {
-  review: CandidateReview; shown: boolean; available: boolean; toggle(): void; approve?(): Promise<void>;
+export function CandidateReviewSection({ review, shown, available, toggle, decide }: {
+  review: CandidateReview; shown: boolean; available: boolean; toggle(): void; decide?(decision: TaskRunDecision): Promise<void>;
 }) {
-  const [approving, setApproving] = useState(false);
+  const [deciding, setDeciding] = useState<TaskRunDecision>();
   const [error, setError] = useState('');
-  async function approveCandidate() {
-    if (!approve || !shown || !available || approving) return;
-    setApproving(true);
+  const canDecide = available && shown && !deciding;
+  async function decideCandidate(action: TaskRunDecision) {
+    if (!decide || !canDecide) return;
+    setDeciding(action);
     setError('');
-    try { await approve(); }
-    catch (error) { setError(error instanceof Error ? error.message : 'Could not approve the worker candidate.'); }
-    finally { setApproving(false); }
+    try { await decide(action); }
+    catch (error) { setError(error instanceof Error ? error.message : 'Could not record the candidate decision.'); }
+    finally { setDeciding(undefined); }
   }
   const volume = review.preview.volumeChange;
   const delta = volume === null ? null : Math.round(volume * 1000) / 1000;
@@ -30,12 +32,17 @@ export function CandidateReviewSection({ review, shown, available, toggle, appro
         <strong>{check.id}</strong> · {check.status === 'pass' ? 'Pass' : check.status === 'fail' ? 'Fail' : 'Unknown'} · {check.expected}
       </li>)}
     </ul>
-    <Button type="button" variant="ghost" size="xs" disabled={!available} onClick={toggle}>
+    <Button type="button" variant="ghost" size="xs" disabled={!available || !!deciding} onClick={toggle}>
       {shown ? 'Show accepted model' : 'Preview candidate'}
     </Button>
-    {approve && <Button type="button" size="xs" disabled={!available || !shown || approving} onClick={() => void approveCandidate()}>
-      {approving ? 'Approving…' : 'Approve candidate'}
-    </Button>}
+    {decide && <>
+      <Button type="button" size="xs" disabled={!canDecide} onClick={() => void decideCandidate('approve')}>
+        {deciding === 'approve' ? 'Approving…' : 'Approve candidate'}
+      </Button>
+      <Button type="button" variant="ghost" size="xs" disabled={!canDecide} onClick={() => void decideCandidate('reject')}>
+        {deciding === 'reject' ? 'Rejecting…' : 'Reject candidate'}
+      </Button>
+    </>}
     {error && <div role="status">{error}</div>}
   </section>;
 }
