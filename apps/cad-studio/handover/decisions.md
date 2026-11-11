@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D729 — recheck STL precision refusal and fallback availability](notes/stl-float32-fallback-recheck-2026-11-12/README.md).
 - [D728 — reject invalid STEP planar cavity placement](notes/step-planar-cavity-placement-2026-11-12/README.md).
 - [D727 — apply STEP cavity shell orientation exactly once](notes/step-cavity-shell-orientation-2026-11-12/README.md).
 - [D726 — validate default library configurations before sharing](notes/library-default-sharing-2026-11-12/README.md).

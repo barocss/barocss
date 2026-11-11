@@ -43,12 +43,27 @@ test('exact area fallback admits nonzero recorded area even when subtraction rou
   assert.equal((bx - ax) * (cy - ay) - (by - ay) * (cx - ax), -1n);
 });
 
+test('exact area fallback refuses collinear encoded points when binary64 subtraction reports a nonzero cross', () => {
+  const L = 2 ** 100, x = 5 * 2 ** 44, delta = 2 ** 21;
+  const points = [[L, 3 * L, 0], [0, 0, 0], [x, 3 * x + delta, 0]];
+  const encoded = points.map(point => point.map(Math.fround));
+  assert.deepEqual(encoded, [[L, 3 * L, 0], [0, 0, 0], [x, 3 * x, 0]]);
+  const [[ax, ay], [bx, by], [cx, cy]] = encoded;
+  assert.equal((bx - ax) * (cy - ay) - (by - ay) * (cx - ax), 2 ** 149);
+  const determinant = ([[a, b], [c, d], [e, f]]) => (c - a) * (f - b) - (d - b) * (e - a);
+  assert.equal(determinant(encoded.map(point => point.map(BigInt))), 0n);
+  assert.equal(determinant(points.map(point => point.map(BigInt))), -(2n ** 121n));
+  rejects(points, 'STL_FLOAT32_COLLAPSE');
+});
+
 test('legacy degenerate facets are retained and nonfinite Float32 coordinates are refused', () => {
   const points = [[0.1, 0, 0], [0.1, 0, 0], [1, 0, 0]];
   assert.deepEqual(valuesOf(bytesOf(points)).slice(0, 3), [0, 0, 0]);
   const finiteMax = Math.fround((2 - 2 ** -23) * 2 ** 127);
   assert.equal(valuesOf(bytesOf([[finiteMax, 0, 0], [finiteMax, 1, 0], [finiteMax, 0, 1]]))[3], finiteMax);
-  for (const value of [NaN, Infinity, -Infinity, 2 ** 128, -(2 ** 128)]) {
+  const overflowTie = finiteMax + 2 ** 103;
+  assert.equal(valuesOf(bytesOf([[overflowTie - 2 ** 75, 0, 0], [0, 1, 0], [0, 0, 1]]))[3], finiteMax);
+  for (const value of [NaN, Infinity, -Infinity, overflowTie, -overflowTie, 2 ** 128, -(2 ** 128)]) {
     rejects([[value, 0, 0], [0, 1, 0], [0, 0, 1]], 'STL_FLOAT32_RANGE');
   }
 });
