@@ -1,5 +1,5 @@
 ---
-work_id: D662
+work_id: D663
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -261,7 +261,9 @@ D661 links the original unresolved face and the approved replacement to the exac
 
 D662 lets the user attach one saved face repair review to a Studio agent turn. MCP returns the exact pinned unresolved and passing results. The working model can still have the unresolved face. [D662](../studio-selected-face-repair-evidence-2026-11-11/README.md).
 
-Next MAIN is D663 / P0 R13, rows 09, 12 and 16. Reproduce the loss of a live sketch when switching to Model, Drawing or Render. Keep the draft recoverable until the user completes or explicitly discards it. Verify sketch dimensions, constraints, focus and 18 mm extrusion in desktop Studio. The separate desktop usability review observed this loss on `a3b3f256c`. [#2279](https://github.com/barocss/barocss/issues/2279) stays open for broader property provenance.
+D663 protects a live sketch when switching to Model, Drawing or Render. Keeping the draft preserves dimensions, constraints and focus. The desktop flow finished one sketch and extruded it 18 mm. [D663](../studio-live-sketch-mode-exit-2026-11-11/README.md).
+
+Next MAIN is D664 / P0 R14, rows 12 and 16. Reproduce New part on a named unsaved document. Keep the document recoverable and verify its name, geometry, history and dirty state through the desktop transition and recovery.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

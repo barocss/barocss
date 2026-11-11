@@ -31,7 +31,7 @@ The separate desktop Studio usability audit used Chrome and WebGPU on `a3b3f256c
 
 | ID | Boundary and owner | Required acceptance |
 | --- | --- | --- |
-| R13 | Live sketch mode transition, rows 09/12/16 | A rectangle with visible dimensions disappears after Model → Sketch without Finish. Check Model, Drawing and Render. Preserve draft geometry, dimensions, constraints and editing focus until Finish or explicit discard. Finish adds one sketch history entry and supports an 18 mm extrusion. D663. |
+| R13 | Live sketch mode transition, rows 09/12/16 | A rectangle with visible dimensions disappears after Model → Sketch without Finish. Check Model, Drawing and Render. Preserve draft geometry, dimensions, constraints and editing focus until Finish or explicit discard. Finish adds one sketch history entry and supports an 18 mm extrusion. [D663 PASS](../notes/studio-live-sketch-mode-exit-2026-11-11/README.md). |
 | R14 | Unsaved document replaced by New part, rows 12/16 | The audit restored geometry with Undo but retained the Untitled name. Reproduce the transition and check document name, authored history, dirty state and recoverability as one owned state. |
 
 ## Source and retained evidence

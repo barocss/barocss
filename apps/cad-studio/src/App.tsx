@@ -22,6 +22,7 @@ import { ModelTools, useToolColumns } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useSketchActions } from './sketch/useSketchActions';
+import { useSketchModeExit } from './sketch/useSketchModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
 import { useFeatureHistory } from './state/useFeatureHistory';
@@ -348,6 +349,7 @@ export function App() {
   const [bodyDrag, setBodyDrag] = useState<{ matrix: Float64Array; settling: boolean } | null>(null);
   const previewFor = useRef<string | null>(null);
   const [sketch, setSketchState] = useState<SketchState | null>(null);
+  const sketchModeExit = useSketchModeExit(sketch, doc);
   // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
   const sketchGeneration = useRef(0);
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
@@ -1674,11 +1676,23 @@ export function App() {
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const referenceDimension = (where: string) => doc.drawing?.dimensions.find(d => where === `dimension ${d.id}`);
+  const showWorkspace = (mode: 'Model' | 'Drawing' | 'Render') => {
+    setSketch(null);
+    if (mode !== 'Model') { setActive(null); setMeasure(null); }
+    if (mode !== 'Render') setPlaying(false);
+    setRendering(mode === 'Render');
+    setDrawing(mode === 'Drawing');
+  };
+  const requestWorkspace = (mode: Parameters<typeof showWorkspace>[0], event: React.MouseEvent<HTMLButtonElement>) =>
+    sketchModeExit.switchWhenReady(() => showWorkspace(mode), event);
   const previewReference = (where: string, edge?: string, inModel = false) => {
     const dimension = referenceDimension(where);
     if (dimension && !inModel) {
-      setReferencePreview({ dimensionId: dimension.id, ...(edge ? { edge } : {}) });
-      setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); setBrowserOpen(true);
+      sketchModeExit.switchWhenReady(() => {
+        setReferencePreview({ dimensionId: dimension.id, ...(edge ? { edge } : {}) });
+        showWorkspace('Drawing');
+        setBrowserOpen(true);
+      });
       return;
     }
     if (!edge || !fresh || busy || section || previewBodies || sketch || mateFaces) { setToast({ title: 'Preview unavailable', hint: 'Show the current model without a section or active tool first.', detail: '' }); return; }
@@ -1730,7 +1744,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
-      if (e.isComposing) return;
+      if (e.isComposing || sketchModeExit.pending) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
@@ -1772,6 +1786,7 @@ export function App() {
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
+      if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
       if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
@@ -2297,12 +2312,17 @@ export function App() {
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         <div className="grow" />
-        <div className="mode" role="group" aria-label="Mode">
-          <Button size="sm" variant={!sketch && !rendering && !drawing ? 'default' : 'ghost'} className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</Button>
-          <Button size="sm" variant={sketch ? 'default' : 'ghost'} className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
-          <Button size="sm" variant={rendering ? 'default' : 'ghost'} className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setDrawing(false); setRendering(true); }}>Render</Button>
-          <Button size="sm" variant={drawing ? 'default' : 'ghost'} className={drawing ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); }}>Drawing</Button>
+        <div className="mode" role="group" aria-label="Mode" data-workspace-mode>
+          <Button size="sm" variant={!sketch && !rendering && !drawing ? 'default' : 'ghost'} className={!sketch && !rendering && !drawing ? 'on' : ''}
+            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Model', event)}>Model</Button>
+          <Button size="sm" variant={sketch ? 'default' : 'ghost'} className={sketch ? 'on sketching' : ''}
+            onClick={() => { if (!sketch) start(commands.find(c => c.id === 'sketch')!); }}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
+          <Button size="sm" variant={rendering ? 'default' : 'ghost'} className={rendering ? 'on' : ''}
+            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Render', event)}>Render</Button>
+          <Button size="sm" variant={drawing ? 'default' : 'ghost'} className={drawing ? 'on' : ''}
+            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Drawing', event)}>Drawing</Button>
         </div>
+        {sketchModeExit.dialog}
         <div className="grow" />
         {sketch && <Button variant="default" size="default" className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></Button>}
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}

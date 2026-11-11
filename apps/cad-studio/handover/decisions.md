@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D663 — protect the live sketch during mode changes](notes/studio-live-sketch-mode-exit-2026-11-11/README.md).
 - [D662 — attach saved face repair evidence to one Studio turn](notes/studio-selected-face-repair-evidence-2026-11-11/README.md).
 - [D661 — keep the unresolved face and approved replacement together](notes/studio-saved-face-repair-lineage-2026-11-11/README.md).
 - [D660 — replace one renamed face reference with explicit approval](notes/studio-renamed-face-reference-repair-2026-11-11/README.md).
