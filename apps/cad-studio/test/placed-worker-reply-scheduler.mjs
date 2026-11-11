@@ -7,10 +7,15 @@ export function installD523PlacedReplyScheduler() {
     prototype = Object.getPrototypeOf(prototype);
   }
   if (!onmessageDescriptor?.set) throw new Error('Native Worker onmessage setter is required');
-  let serial = 0, armed = false, claimed = null;
+  let serial = 0, armed = false, claimed = null, onlyPlaced = false;
   const log = (kind, data = {}) => events.push({ sequence: events.length, time: performance.now(), kind, ...data });
   window.__d523Placed = {
-    arm() { if (armed || claimed) throw new Error('One placed hold per fresh context'); armed = true; log('arm'); },
+    arm(options = {}) {
+      if (armed || claimed) throw new Error('One placed hold per fresh context');
+      onlyPlaced = options.onlyPlaced === true;
+      armed = true;
+      log('arm');
+    },
     release() {
       if (!claimed) return;
       const record = records.get(claimed.worker); record.holding = false;
@@ -27,7 +32,7 @@ export function installD523PlacedReplyScheduler() {
   window.Worker = class extends NativeWorker {
     constructor(url, options) {
       super(url, options);
-      const record = { key: ++serial, relevant: String(url).includes('engine.worker'), holding: false, held: [], dead: false, callback: null };
+      const record = { key: ++serial, relevant: String(url).includes('engine.worker'), holding: false, held: [], placedIds: new Set(), dead: false, callback: null };
       records.set(this, record);
       // Native Worker event-handler redispatch is not portable. Capture the actual assigned client callback,
       // install a transparent native-delivery wrapper, and forward each held original event to that callback.
@@ -48,7 +53,10 @@ export function installD523PlacedReplyScheduler() {
         const data = event.data;
         log('native-receive', { key: record.key, id: data?.id ?? null, resultOK: data?.result?.ok ?? null, bodyCount: data?.result?.bodies?.length ?? null });
         if (record.dead) { event.stopImmediatePropagation(); return; }
-        if (record.holding) {
+        // Hold all replies on the placed mesh slot in order. Leave evaluate and mass events on their native schedule.
+        const isPlaced = record.placedIds.has(data?.id);
+        if (isPlaced && data?.result) record.placedIds.delete(data.id);
+        if (record.holding && (!onlyPlaced || isPlaced)) {
           event.stopImmediatePropagation(); record.held.push(event);
           log('native-event-held', { key: record.key, id: data?.id ?? null, resultOK: data?.result?.ok ?? null });
         } else log('native-event-delivered', { key: record.key, id: data?.id ?? null });
@@ -63,6 +71,7 @@ export function installD523PlacedReplyScheduler() {
           claimed = { worker: this, key: record.key, id: message.id, revision: message.revision, place: message.place };
           log('claimed', { key: record.key, id: message.id, revision: message.revision, place: message.place });
         }
+        if (onlyPlaced && record.holding && message?.type === 'placed') record.placedIds.add(message.id);
       }
       return super.postMessage(message, ...rest);
     }

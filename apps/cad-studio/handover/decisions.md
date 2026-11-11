@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D688 — verify 3MF export from the shown assembly variant](notes/three-mf-shown-variant-2026-11-11/README.md).
 - [D687 — show primary and selection-specific Model tools](notes/studio-model-command-rail-2026-11-11/README.md).
 - [D686 — preserve feature drafts on workspace changes](notes/studio-feature-mode-exit-2026-11-11/README.md).
 - [D685 — fit the top toolbar to the rendered controls](notes/studio-top-toolbar-overflow-2026-11-11/README.md).

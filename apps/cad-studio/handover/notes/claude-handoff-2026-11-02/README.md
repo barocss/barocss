@@ -311,7 +311,9 @@ D686 protects the Box draft on workspace requests and checks focus, Apply, Undo/
 
 D687 qualifies the compact Model rail, named Sketch and Extrude, selection-aware Hole and Fillet, and access to the grouped tools and search at the two selected desktop sizes. [D687](../studio-model-command-rail-2026-11-11/README.md).
 
-Next MAIN is D688 / P2 B07, rows 10 and 13. Verify actual 3MF output from the shown assembly variant with the independent ZIP/XML reader. Use the existing [exchange acceptance](../../roadmap-tracks/02-core-workflows.md).
+D688 verifies actual 3MF output from Master, Tall and restored Master with an independent ZIP/XML reader. Studio refuses export while the placed mesh replies are pending. [D688](../three-mf-shown-variant-2026-11-11/README.md).
+
+Next MAIN is D689 / P2 B07, rows 10 and 13. Freeze the supported exchange cases and check the first uncovered loss-report requirement in Studio. Use the existing [exchange acceptance](../../roadmap-tracks/02-core-workflows.md).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
