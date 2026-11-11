@@ -7,6 +7,7 @@ import { featureId, nodeIndexOf } from '../engine/ids';
 import { isObj, isVec3 } from '../util/guards';
 
 export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
+export const missingNamedEntityMessage = (name: string) => `no face or edge named "${name}"`;
 
 /** Faces, edges and bodies by name → mesh indices; unknown names are returned. */
 export function resolveNames(bodies: BodyResult[], names: Partial<NameSelection>): { selection: Selection; unknown: string[] } {

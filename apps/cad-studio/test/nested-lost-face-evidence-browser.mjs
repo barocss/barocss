@@ -1,16 +1,30 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { readFile, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:net';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
+const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
+assert.ok(mode === undefined || mode === '--diagnosis-baseline' || mode === '--diagnosis-chat');
+const diagnosisBaseline = mode === '--diagnosis-baseline', diagnosisChat = mode === '--diagnosis-chat';
+const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
+if (diagnosisChat) {
+  const reserved = createServer().listen(0, '127.0.0.1');
+  await once(reserved, 'listening');
+  process.env.CAD_STUDIO_CHAT_PORT = String(reserved.address().port);
+  await new Promise((resolve, reject) => reserved.close(error => error ? reject(error) : resolve()));
+}
 const pins = [
   'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/src/ui/NestedRequirementReadout.tsx',
   'apps/cad-studio/src/storage/ApprovedRequirementChecks.tsx', 'apps/cad-studio/server/cadMcp.ts',
   'apps/cad-studio/scripts/cad-mcp.mjs', 'packages/barocss-cad-model/src/chat/requirementEvidence.ts',
   'packages/barocss-cad-model/src/team/requirementScope.ts', 'packages/barocss-cad-model/src/team/freshness.ts',
+  ...(diagnosisChat ? [scripted, 'apps/cad-studio/scripts/chat-server.mjs', 'apps/cad-studio/server/chatServer.ts',
+    'apps/cad-studio/server/selectedFaceDiagnosis.ts', 'apps/cad-studio/src/chat/faceDiagnosis.ts',
+    'apps/cad-studio/src/chat/useFaceDiagnosisAttachment.ts', 'apps/cad-studio/src/chat/useStudioChat.ts'] : []),
 ];
 const inspectorSource = `
 import assert from 'node:assert/strict';
@@ -64,8 +78,8 @@ assert saved['recoveries'] == [{'id':'WIDTH','from':14,'to':12,'unit':'mm'}]
 assert saved['after']['evidence'][0]['result']['verdict'] == 'pass'
 print(json.dumps({'status':'PASS','lostFace':'n1.side3','volumesMm3':[192,384],'historicalRecoveryMm':[14,12]}))
 `;
-const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
-  initialFiles: pins, requiredFrozen: pins, qualification: 'Lost face on one exact nested occurrence with retained approval evidence',
+const f = await createFlow({ name: 'nested-lost-face-evidence', envFrozen: mode ? 'D659_SOURCE_FROZEN' : 'D658_SOURCE_FROZEN', output, inspectorSource, oracleSource,
+  initialFiles: pins, requiredFrozen: pins, qualification: mode ? 'One selected current face diagnosis in Studio chat' : 'Lost face on one exact nested occurrence with retained approval evidence',
   limits: ['The triangle arrives through the saved native project file, as an external design revision. Studio handles acceptance, Save, Open and diagnostics.'],
 });
 const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 };
@@ -157,6 +171,146 @@ async function compare() {
   await panel().getByRole('button', { name: 'Compare Original width failure', exact: true }).click();
   await panel().getByLabel('Compare to', { exact: true }).selectOption({ label: 'Approved face check' });
   await savedChecks().getByText('14 mm → 12 mm', { exact: true }).waitFor();
+}
+
+async function verifyChatDiagnosis(origin, changed, approved, current, evidenceName, newer) {
+  const tool = 'read_selected_face_diagnosis', call = (args = {}) => ({ tool, args });
+  const raw = join(output, 'diagnosis-tool-results.jsonl'), cli = join(output, 'diagnosis-scripted-cli.mjs');
+  await writeFile(raw, '');
+  await writeFile(cli, `#!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { appendFileSync } from 'node:fs';
+const args = process.argv.slice(2), statusOnly = args[0] === '--version';
+const child = spawn(process.execPath, [${JSON.stringify(resolve(repo, scripted))}, ...args], { stdio: ['pipe', 'pipe', 'inherit'] });
+const closed = once(child, 'close');
+process.on('SIGTERM', () => child.kill('SIGTERM'));
+if (!statusOnly) process.stdin.pipe(child.stdin);
+for await (const chunk of child.stdout) {
+  if (!statusOnly) appendFileSync(${JSON.stringify(raw)}, chunk);
+  process.stdout.write(chunk);
+}
+const [code] = await closed;
+process.exitCode = code ?? 1;
+`, { mode: 0o700 });
+  const server = spawn(process.execPath, [join(f.app, 'scripts/chat-server.mjs')], {
+    cwd: f.app, env: { ...process.env, CAD_STUDIO_CLAUDE: cli, CAD_STUDIO_CHAT_ORIGINS: origin }, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const closed = once(server, 'close');
+  let stdout = '', stderr = '', cursor = 0;
+  server.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-4000); });
+  const ready = new Promise(resolve => server.stdout.on('data', chunk => { stdout += chunk; if (stdout.includes('chat server on')) resolve(true); }));
+  const chip = () => f.page.getByLabel('Face diagnosis for next message', { exact: true });
+  const attach = () => button('Attach face diagnosis to chat');
+  const input = () => f.page.getByRole('textbox', { name: 'Chat message', exact: true });
+  const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
+  const toolResults = async () => {
+    const all = (await readFile(raw, 'utf8')).trim().split('\n').filter(Boolean).map(line => JSON.parse(line))
+      .filter(line => line.type === 'user').flatMap(line => line.message.content);
+    const results = all.slice(cursor).map(result => ({ error: result.is_error, body: JSON.parse(result.content[0].text) }));
+    cursor = all.length;
+    return results;
+  };
+  const doneOf = text => text.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6))).at(-1);
+  async function turn(calls) {
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
+    const reply = f.page.waitForResponse(response => isTurn(response.request()));
+    await input().fill('script ' + JSON.stringify({ calls }));
+    await input().press('Enter');
+    const response = await reply;
+    assert.ok(response.ok());
+    const done = doneOf(await response.text());
+    assert.equal(done.end, 'done');
+    assert.equal(done.doc, undefined);
+    assert.equal(done.ops, undefined);
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
+    return { wire: response.request().postDataJSON(), done, results: await toolResults() };
+  }
+  const send = async (body, pin, requestOrigin = origin) => {
+    const response = await f.context.request.post(new URL('/api/chat/turn', origin).href, {
+      headers: { origin: requestOrigin }, data: { ...body, text: 'script ' + JSON.stringify({ calls: [call()] }), selectedFaceDiagnosis: pin },
+    });
+    return { status: response.status(), text: await response.text() };
+  };
+  try {
+    const up = await Promise.race([ready, closed.then(() => false), new Promise(resolve => setTimeout(() => resolve(false), 15000).unref())]);
+    assert.ok(up, stderr || 'Chat server did not start');
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await panel().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(changed);
+    await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side3"');
+
+    f.phase = 'attach the exact unresolved face and read it through the actual Studio turn';
+    await attach().click();
+    await chip().getByText('p1/p1 · WIDTH · n1.side3').waitFor();
+    await f.snapshot('04-attached-face-diagnosis');
+    const selected = await turn([call(), call({ part: 'p2/p1' })]);
+    const pin = selected.wire.selectedFaceDiagnosis;
+    assert.deepEqual(pin, { revision: current[0].revision, part: paths[0], requirement: 'WIDTH', criterion: sha256(canonicalJSON(requirement)), face: 'n1.side3' });
+    assert.deepEqual(selected.wire.doc, changed);
+    assert.deepEqual(selected.results.map(row => row.error), [false, true]);
+    assert.deepEqual(selected.results[0].body, { revision: pin.revision, definitionRevision: current[0].definitionRevision,
+      part: pin.part, requirement, face: pin.face, status: 'unresolved', reason: 'no face or edge named "n1.side3"', repair: 'unsupported' });
+    assert.match(selected.results[1].body.error, /takes no arguments/);
+    await f.page.getByText('p1/p1 · WIDTH · n1.side3 missing · repair unavailable', { exact: true }).waitFor();
+    await chip().waitFor({ state: 'detached' });
+    const plain = await turn([call()]);
+    assert.equal(plain.wire.selectedFaceDiagnosis, undefined);
+    assert.match(plain.results[0].body.error, /Unknown tool/);
+    await f.same(changed);
+
+    f.phase = 'refuse a stale revision and recheck a forged sibling pin against its own geometry';
+    const stale = await send(selected.wire, { ...pin, revision: '0'.repeat(64) });
+    assert.equal(stale.status, 422);
+    assert.match(stale.text, /does not match the current occurrence and revision/);
+    const wrongFace = await send(selected.wire, { ...pin, face: 'n1.top' });
+    assert.equal(wrongFace.status, 422);
+    const foreign = await send(selected.wire, pin, 'https://other.invalid');
+    assert.equal(foreign.status, 403);
+    assert.deepEqual(await toolResults(), []);
+    const sibling = await send(selected.wire, { ...pin, part: paths[1] });
+    assert.equal(sibling.status, 200);
+    assert.equal(doneOf(sibling.text).doc, undefined);
+    const [refusal] = await toolResults();
+    assert.equal(refusal.error, true);
+    assert.match(refusal.body.error, /missing face could not be confirmed/);
+
+    f.phase = 'retire the attachment when the selected occurrence or working revision changes';
+    await attach().click();
+    await chip().waitFor();
+    await inspectOccurrence(1, 'Pass', '12 mm (want 12 ± 0 mm)');
+    await chip().waitFor({ state: 'detached' });
+    assert.equal(await attach().count(), 0);
+    const next = await turn([call()]);
+    assert.equal(next.wire.session, undefined);
+    assert.equal(next.wire.selectedFaceDiagnosis, undefined);
+    await inspectOccurrence(0, 'Unknown', 'no face or edge named "n1.side3"');
+    await attach().click();
+    await chip().waitFor();
+    await panel().getByRole('button', { name: 'Restore Approved face check', exact: true }).click();
+    await f.same(approved);
+    await chip().waitFor({ state: 'detached' });
+    await inspectOccurrence(0, 'Pass', '12 mm (want 12 ± 0 mm)');
+    assert.equal(await attach().count(), 0);
+    assert.deepEqual(await projectFiles(evidenceName), newer);
+    await f.snapshot('05-diagnosis-retired-after-restore');
+    f.report.observations.push({ attachedPart: pin.part, attachedFace: pin.face, actualMcpRead: true, unsupportedRepair: true,
+      noToolWithoutAttachment: true, staleHttp: stale.status, wrongFaceHttp: wrongFace.status, foreignHttp: foreign.status, passingSiblingRefused: true,
+      siblingSelectionRetired: true, revisionRestoreRetired: true, savedEvidencePreserved: true });
+  } finally {
+    server.kill('SIGTERM');
+    await closed;
+    await writeFile(join(output, 'diagnosis-chat-stderr.txt'), stderr);
+  }
+}
+
+function canonicalJSON(value) {
+  if (Array.isArray(value)) return '[' + value.map(canonicalJSON).join(',') + ']';
+  if (value && typeof value === 'object') return '{' + Object.keys(value).sort()
+    .map(key => JSON.stringify(key) + ':' + canonicalJSON(value[key])).join(',') + '}';
+  return JSON.stringify(value);
 }
 
 await f.run(async () => {
@@ -254,5 +408,11 @@ await f.run(async () => {
   await f.runOracle({ approved, changed, prior, current, freshness, retained: JSON.parse(saved.evidence) }, 'independent-lost-face');
   f.report.observations.push({ paths, lostFace: 'n1.side3', oldLeft: 'unresolved', currentLeft: 'unsupported', currentRight: 'pass',
     volumesMm3: freshness.map(row => row.volume), savedEvidencePreserved: true, stalePinRefused: true });
+  if (diagnosisBaseline) {
+    f.phase = 'the existing nested diagnosis has no chat attachment action';
+    assert.equal(await button('Attach face diagnosis to chat').count(), 0);
+    f.report.observations.push({ currentDiagnosisVisible: true, attachAvailable: false });
+  }
+  if (diagnosisChat) await verifyChatDiagnosis(origin, changed, approved, current, evidenceName, newer);
   assert.deepEqual(f.report.downloads, []);
 });

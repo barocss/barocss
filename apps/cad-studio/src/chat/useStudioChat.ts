@@ -45,7 +45,7 @@ interface Turn {
   ended: Promise<string[]>; end(stopped: string[]): void;
   /** The document it ran on (ChatPanelProps.scope). */
   scope: object | null;
-  approvalDocumentIsCurrent?: () => boolean;
+  attachmentIsCurrent?: () => boolean;
   taskSourceKey?: string;
   versions?: ReturnType<NonNullable<ChatPanelProps['versions']>['turn']>;
 }
@@ -59,7 +59,7 @@ export function useStudioChat(props: ChatPanelProps) {
   const replaceRowFiles = (next?: PersonRowFiles) => { revokePersonRowFiles(rowAuthority.current); rowAuthority.current = next; latest.current.onRowFiles?.(next); };
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
-  const approvalSessionDocument = useRef<(() => boolean) | undefined>(undefined);
+  const attachmentSessionContext = useRef<(() => boolean) | undefined>(undefined);
   // (What the user typed this conversation, as typed: the tools check a quote said to be theirs against it, A6.2.)
   const said = useRef<string[]>([]);
   /** The traces of every image attached in this conversation (image 1 first). */
@@ -80,7 +80,7 @@ export function useStudioChat(props: ChatPanelProps) {
     // An aborted turn keeps what it had built when it stopped.
     let doc = done.doc ? reshareNodes(t.shared, done.doc) : done.end === 'aborted' ? t.built : null;
     // (A part edited in place started or ended meanwhile: the turn's document is not the one open now, so none of it is applied.)
-    let moved = turnMoved(t.scope, latest.current.scope) || t.approvalDocumentIsCurrent?.() === false;
+    let moved = turnMoved(t.scope, latest.current.scope) || t.attachmentIsCurrent?.() === false;
     const versions = versionsToMerge(moved, done.versions);
     const wanted = versionsToMerge(moved, done.versionsWanted);
     if (versions || wanted?.length) t.versions?.back(versions, wanted ?? []);
@@ -89,7 +89,7 @@ export function useStudioChat(props: ChatPanelProps) {
     // again while merging: merged again, twice at most; then every call waits.)
     let merged: Merged | undefined, from = base;
     const model = statusRef.current?.model;
-    if (doc && ops.length && changedDuring(base, latest.current.base())) {
+    if (doc && ops.length && !t.inputs.selectedFaceDiagnosis && changedDuring(base, latest.current.base())) {
       const patch = { id: `${session.current ?? 'turn'}#${said.current.length}`, by: { agent: 'chat', ...(model ? { model } : {}) }, base: revisionOf(base), nextId: nextSerial(base), ops };
       try {
         for (let tries = 0; ; tries++) {
@@ -106,7 +106,7 @@ export function useStudioChat(props: ChatPanelProps) {
         doc = null; merged = undefined;
       }
     }
-    if (!moved && t.approvalDocumentIsCurrent?.() === false) {
+    if (!moved && t.attachmentIsCurrent?.() === false) {
       moved = true;
       if (doc) notices.push('The document changed while the turn ran, so its changes were not applied.');
       doc = null;
@@ -142,7 +142,7 @@ export function useStudioChat(props: ChatPanelProps) {
     transport,
     // (Each state the turn has built: the previews, one evaluation at a time; its calls that changed the part, O133.)
     onData: part => {
-      const t = turn.current; if (!t || part.type !== 'data-state') return;
+      const t = turn.current; if (!t || part.type !== 'data-state' || t.attachmentIsCurrent?.() === false) return;
       const e = part.data as Extract<StudioMessage['parts'][number], { type: 'data-state' }>['data'];
       if (e.ops) t.ops.push(...e.ops);
       t.built = t.shared = reshareNodes(t.shared, e.doc); t.previews.push(t.built);
@@ -163,12 +163,12 @@ export function useStudioChat(props: ChatPanelProps) {
 
   /** One turn: what was typed (or the studio's message), the attachments and the selection as context. */
   const send = async (said0: string, attached: ChatImage[], rowFiles: readonly { name: string; text: string }[], chips: readonly { kind: 'face' | 'edge' | 'body'; name: string }[],
-    { taskFinding, approval, onAdmitted }: {
-      taskFinding?: TaskRunFindingSelection; approval?: ChatPanelProps['approvalAttachment']; onAdmitted?(): void;
+    { taskFinding, approval, faceDiagnosis, onAdmitted }: {
+      taskFinding?: TaskRunFindingSelection; approval?: ChatPanelProps['approvalAttachment']; faceDiagnosis?: ChatPanelProps['faceDiagnosis']; onAdmitted?(): void;
     } = {}): Promise<boolean> => {
     if (running || turn.current || !statusRef.current?.enabled || latest.current.blocked) return false;
     if (!said0.trim() && !attached.length && !rowFiles.length) return false;
-    if (approval && !approval.isCurrent()) return false;
+    if (approval?.isCurrent() === false || faceDiagnosis?.isCurrent() === false) return false;
     const versions = latest.current.versions?.turn(approval?.versionIds), versionLog = versions?.log;
     if (approval && (!versionLog || approval.snapshots.some(snapshot => !Object.hasOwn(versionLog.snapshots, snapshot)))) {
       notice('The selected approval snapshots do not fit this chat turn.');
@@ -193,18 +193,20 @@ export function useStudioChat(props: ChatPanelProps) {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
     said.current = [...said.current, recorded || (incoming.length ? 'Use the attached row files.' : 'Model what the image shows.')];
     // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
-    const release = holdSweeps(), base = latest.current.base();
-    if (approvalSessionDocument.current && !approvalSessionDocument.current()) {
+    const release = holdSweeps(), base = faceDiagnosis?.doc ?? latest.current.base();
+    if (attachmentSessionContext.current && !attachmentSessionContext.current()) {
       session.current = undefined;
-      approvalSessionDocument.current = undefined;
+      attachmentSessionContext.current = undefined;
     }
-    if (approval) approvalSessionDocument.current = approval.documentIsCurrent;
+    const attachmentIsCurrent = approval || faceDiagnosis ? () =>
+      approval?.documentIsCurrent() !== false && faceDiagnosis?.isCurrent() !== false : undefined;
+    if (attachmentIsCurrent) attachmentSessionContext.current = attachmentIsCurrent;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
     turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null,
-      approvalDocumentIsCurrent: approval?.documentIsCurrent, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
-      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.file } : {}) } };
+      attachmentIsCurrent, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
+      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.file } : {}), selectedFaceDiagnosis: faceDiagnosis?.selection } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');
     try {
@@ -224,6 +226,6 @@ export function useStudioChat(props: ChatPanelProps) {
   };
 
   /** A new conversation: a new CLI session, its quotes, rows, traces and blobs forgotten. */
-  const reset = () => { session.current = undefined; approvalSessionDocument.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); traces.current = []; chatBlobs.current = newChatBlobs(); chat.setMessages([]); };
+  const reset = () => { session.current = undefined; attachmentSessionContext.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); traces.current = []; chatBlobs.current = newChatBlobs(); chat.setMessages([]); };
   return { status, autonomy, setAutonomy, messages: chat.messages, running, send, stop: () => void chat.stop(), reset, notice, imageLimitNotice };
 }

@@ -31,6 +31,8 @@ const toolLabel = (name: string, input: unknown) => { const a = input && typeof 
 export interface ChatPanelProps {
   approvalAttachment?: import('../chat/useApprovalEvidenceAttachment').ApprovalEvidenceAttachment;
   onClearApprovalAttachment?(attachment: NonNullable<ChatPanelProps['approvalAttachment']>): void;
+  faceDiagnosis?: import('../chat/useFaceDiagnosisAttachment').FaceDiagnosisAttachment;
+  onClearFaceDiagnosis?(attachment: NonNullable<ChatPanelProps['faceDiagnosis']>): void;
   /** The part a new turn starts from (the evaluated document). */
   base(): StudioDoc;
   /** The bodies of a document the turn has built so far (for the preview), or null. */
@@ -165,12 +167,13 @@ export function ChatPanel(props: ChatPanelProps) {
     const limit = chat.imageLimitNotice(images.length);
     if (limit) { chat.notice(limit); return; }
     const typed = text, attached = images, rows = rowFiles;
-    const approval = props.approvalAttachment;
-    void chat.send(typed, attached, rows, chips, { taskFinding, approval, onAdmitted: () => {
+    const approval = props.approvalAttachment, faceDiagnosis = props.faceDiagnosis;
+    void chat.send(typed, attached, rows, chips, { taskFinding, approval, faceDiagnosis, onAdmitted: () => {
       setText(''); setImages([]); setRowFiles([]);
     } }).then(sent => {
       if (sent && taskFinding) setTaskFinding(current => current === taskFinding ? undefined : current);
       if (sent && approval) props.onClearApprovalAttachment?.(approval);
+      if (sent && faceDiagnosis) props.onClearFaceDiagnosis?.(faceDiagnosis);
     });
   };
 
@@ -180,6 +183,7 @@ export function ChatPanel(props: ChatPanelProps) {
     setRowFiles([]);
     setTaskFinding(undefined);
     if (props.approvalAttachment) props.onClearApprovalAttachment?.(props.approvalAttachment);
+    if (props.faceDiagnosis) props.onClearFaceDiagnosis?.(props.faceDiagnosis);
     chat.reset();
   };
 
@@ -227,6 +231,13 @@ export function ChatPanel(props: ChatPanelProps) {
         <span className="chat-chip">Saved {props.approvalAttachment.kind} · {props.approvalAttachment.part}
           <button type="button" aria-label="Remove approval evidence" onClick={() => {
             if (props.approvalAttachment) props.onClearApprovalAttachment?.(props.approvalAttachment);
+          }}>×</button>
+        </span>
+      </div>}
+      {props.faceDiagnosis && <div className="chat-chips" aria-label="Face diagnosis for next message">
+        <span className="chat-chip">{props.faceDiagnosis.selection.part} · {props.faceDiagnosis.selection.requirement} · {props.faceDiagnosis.selection.face}
+          <button type="button" aria-label="Remove face diagnosis" onClick={() => {
+            if (props.faceDiagnosis) props.onClearFaceDiagnosis?.(props.faceDiagnosis);
           }}>×</button>
         </span>
       </div>}

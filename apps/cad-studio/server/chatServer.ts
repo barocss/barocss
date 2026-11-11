@@ -28,6 +28,8 @@ import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
 import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskReview, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
 import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn } from './selectedApprovalEvidence';
+import { faceDiagnosisMatchesDocument, isFaceDiagnosisSelection } from '../src/chat/faceDiagnosis';
+import { SELECTED_FACE_DIAGNOSIS } from './selectedFaceDiagnosis';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -88,14 +90,15 @@ export type ChatServerEvent =
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
 /** The CLI arguments for one turn (the message itself goes in on stdin, see `userMessage`). */
-export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean; selectedApproval?: boolean; selectedFollowUpRepair?: boolean }): string[] {
+export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean; selectedApproval?: boolean; selectedFollowUpRepair?: boolean; selectedFaceDiagnosis?: boolean }): string[] {
   return [
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
     '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : []),
       ...(o.selectedNativeCheck ? [`mcp__cad__${SELECTED_NATIVE_CHECK}`] : []), ...(o.selectedApproval ? [`mcp__cad__${SELECTED_APPROVAL_EVIDENCE}`] : []),
-      ...(o.selectedFollowUpRepair ? [`mcp__cad__${SELECTED_FOLLOW_UP_REPAIR}`] : [])].join(','),
+      ...(o.selectedFollowUpRepair ? [`mcp__cad__${SELECTED_FOLLOW_UP_REPAIR}`] : []),
+      ...(o.selectedFaceDiagnosis ? [`mcp__cad__${SELECTED_FACE_DIAGNOSIS}`] : [])].join(','),
     // (O15: the L3 run's own spending cap, the CLI's.)
     ...(process.env.CAD_MAX_BUDGET_USD ? ['--max-budget-usd', process.env.CAD_MAX_BUDGET_USD] : []),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
@@ -136,6 +139,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === SELECTED_NATIVE_CHECK) return String(j.finding?.code ?? 'Selected native check');
   if (name === SELECTED_APPROVAL_EVIDENCE) return 'Selected approval evidence';
+  if (name === SELECTED_FACE_DIAGNOSIS) return `${j.part} · ${j.requirement?.id} · ${j.face} missing · repair unavailable`;
   if (name === SELECTED_FOLLOW_UP_REPAIR && typeof j.proposal === 'string') return `${j.proposal} ready for review`;
   if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
     const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'diameter');
@@ -314,16 +318,22 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown; taskFinding?: unknown; selectedApproval?: unknown };
+    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown; taskFinding?: unknown; selectedApproval?: unknown; selectedFaceDiagnosis?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
-    const taskFinding = body.taskFinding;
-    if (taskFinding !== undefined || body.selectedApproval !== undefined) {
+    const { taskFinding, selectedFaceDiagnosis } = body;
+    if (taskFinding !== undefined || body.selectedApproval !== undefined || selectedFaceDiagnosis !== undefined) {
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host)
-        return sendJson(res, 403, { error: body.selectedApproval === undefined ? 'Select the failed check from local Studio.' : 'Select approval evidence from local Studio.' });
+        return sendJson(res, 403, { error: selectedFaceDiagnosis !== undefined ? 'Select the face diagnosis from local Studio.'
+          : body.selectedApproval === undefined ? 'Select the failed check from local Studio.' : 'Select approval evidence from local Studio.' });
     }
     if (taskFinding !== undefined && !isTaskRunFindingSelection(taskFinding)) return sendJson(res, 400, { error: 'Invalid selected native check.' });
+    if (selectedFaceDiagnosis !== undefined) {
+      if (!isFaceDiagnosisSelection(selectedFaceDiagnosis)) return sendJson(res, 400, { error: 'Invalid selected face diagnosis.' });
+      if (!faceDiagnosisMatchesDocument(body.doc as StudioDoc, selectedFaceDiagnosis))
+        return sendJson(res, 422, { error: 'The selected face diagnosis does not match the current occurrence and revision.' });
+    }
     const imageError = checkImages(body.images);
     if (imageError) return sendJson(res, 400, { error: imageError });
     const images = (body.images ?? []) as TurnImage[];
@@ -365,15 +375,16 @@ export function createChatServer(options: ChatServerOptions) {
     const selectedApproval = selected?.file;
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), selectedFaceDiagnosis, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, ...(taskFinding ? { CAD_CHAT_TASK_RUN_ROOT: taskRunDir } : {}), CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const findingNote = taskFinding ? '\n\n[The person selected one local native check. Use read_selected_native_check to read it for this turn.]' : '';
     const approvalNote = selectedApproval ? '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]' : '';
     const repairNote = selected?.repair ? '\n\n[For a requested repair, read requirements.evidence for the selected occurrence. Pass its current revision as working_revision to propose_selected_follow_up_repair. A saved failure alone is not a current result.]' : '';
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}`;
-    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, selectedFollowUpRepair: !!selected?.repair, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
+    const faceNote = selectedFaceDiagnosis ? '\n\n[The person attached a current face diagnosis. Use read_selected_face_diagnosis. Report an unresolved reference or unsupported repair as such.]' : '';
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}${faceNote}`;
+    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, selectedFollowUpRepair: !!selected?.repair, selectedFaceDiagnosis: !!selectedFaceDiagnosis, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
     const emit = (e: ChatServerEvent) => { if (!res.writableEnded) res.write(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`); };

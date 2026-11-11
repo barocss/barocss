@@ -9,7 +9,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { boundsOf } from '../engine/bounds';
 import { nodeIndexOf } from '../engine/ids';
 import { measureBetween, type MeasurePick } from '../app/measure';
-import { resolveEdge, resolveFace, resolveNames } from './names';
+import { missingNamedEntityMessage, resolveEdge, resolveFace, resolveNames } from './names';
 import { factsOf, physicalTotalsOf } from './observe';
 import { draftAnalysis, interference, materialFact, wallThickness } from '../analysis/analysis';
 import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } from '@barocss/cad';
@@ -103,7 +103,7 @@ function pickOf(doc: StudioDoc, bodies: readonly BodyResult[], sel: unknown): { 
   const name = r[0], { selection } = resolveNames(bodies as BodyResult[], { faces: [name], edges: [name] });
   if (selection.faces[0]) return { name, pick: { body: selection.faces[0].body, face: selection.faces[0].face } };
   if (selection.edges[0]) return { name, pick: { body: selection.edges[0].body, edge: selection.edges[0].edge } };
-  return `no face or edge named "${name}"`;
+  return missingNamedEntityMessage(name);
 }
 const bodiesOf = (bodies: readonly BodyResult[], key?: string) => key ? bodies.filter(b => b.key === key) : bodies;
 

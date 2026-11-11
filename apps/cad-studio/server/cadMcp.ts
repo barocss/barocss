@@ -22,6 +22,8 @@ import { isTaskRunFindingSelection, type TaskRunFindingSelection } from '../src/
 import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
 import type { ApprovalEvidenceFile } from '@barocss/cad-model/versions/savedApprovalEvidence';
 import { isObj } from '@barocss/cad-model/util/guards';
+import { faceDiagnosisMatchesDocument, isFaceDiagnosisSelection, type FaceDiagnosisSelection } from '../src/chat/faceDiagnosis';
+import { SELECTED_FACE_DIAGNOSIS, readSelectedFaceDiagnosis, selectedFaceDiagnosisTool } from './selectedFaceDiagnosis';
 import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn,
   selectedApprovalEvidenceTool, selectedFollowUpRepairTool } from './selectedApprovalEvidence';
 
@@ -29,7 +31,7 @@ import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedAppr
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
 export interface StateFile { taskFinding?: TaskRunFindingSelection; rowFiles?: RowFileInput[]; rowConversation?: string; doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[];
   /** CG6 (DA-9): the project's version log as the turn carries it (versions/log.ts turnLog: the index, the documents it needs); `versionsChanged` when a call moved it, `versionsWanted` the versions whose documents a call asked for. */
-  versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[]; selectedApproval?: ApprovalEvidenceFile }
+  versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[]; selectedApproval?: ApprovalEvidenceFile; selectedFaceDiagnosis?: FaceDiagnosisSelection }
 
 /** The tools as MCP lists them (A5.1): title, annotations and, for read actions, the output schema (v2, the only list, O105). */
 export const TOOLS_LISTED = TOOLSET.tools.map(listed);
@@ -45,7 +47,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalEvidenceFile }>;
+  open(): Promise<{ doc: StudioDoc; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalEvidenceFile; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[]; versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }, why: 'change' | 'select' | 'versions'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
@@ -55,12 +57,12 @@ export function stateFileStore(statePath: string): McpStore {
       const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
       const rowFiles = saved.rowFiles ? receivePersonRowFiles(saved.rowConversation ?? '', saved.rowFiles, saved.turns?.length ?? 0) : undefined;
-      return { doc: saved.doc, ...(saved.taskFinding ? { taskFinding: saved.taskFinding } : {}), ...(saved.selectedApproval ? { selectedApproval: saved.selectedApproval } : {}), ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
+      return { doc: saved.doc, ...(saved.taskFinding ? { taskFinding: saved.taskFinding } : {}), ...(saved.selectedApproval ? { selectedApproval: saved.selectedApproval } : {}), selectedFaceDiagnosis: saved.selectedFaceDiagnosis, ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}), changed: saved.changed, version: saved.version ?? 0 };
     },
     save(s) {
       const previous = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       const tmp = `${statePath}.tmp`;
-      writeFileSync(tmp, JSON.stringify({ ...(previous.taskFinding ? { taskFinding: previous.taskFinding } : {}), ...(previous.selectedApproval ? { selectedApproval: previous.selectedApproval } : {}), ...(previous.rowFiles ? { rowFiles: previous.rowFiles, rowConversation: previous.rowConversation } : {}), ...(previous.turns ? { turns: previous.turns } : {}), doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}), ...(s.versions ? { versions: s.versions } : {}), ...(s.versionsChanged ? { versionsChanged: true } : {}), ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } satisfies StateFile));
+      writeFileSync(tmp, JSON.stringify({ ...(previous.taskFinding ? { taskFinding: previous.taskFinding } : {}), ...(previous.selectedApproval ? { selectedApproval: previous.selectedApproval } : {}), selectedFaceDiagnosis: previous.selectedFaceDiagnosis, ...(previous.rowFiles ? { rowFiles: previous.rowFiles, rowConversation: previous.rowConversation } : {}), ...(previous.turns ? { turns: previous.turns } : {}), doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}), ...(s.versions ? { versions: s.versions } : {}), ...(s.versionsChanged ? { versionsChanged: true } : {}), ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } satisfies StateFile));
       renameSync(tmp, statePath);
       return null;
     },
@@ -70,9 +72,12 @@ export function stateFileStore(statePath: string): McpStore {
 export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, taskRunRoot?: string) {
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const selection = taskRunRoot && isTaskRunFindingSelection(saved.taskFinding) ? saved.taskFinding : undefined;
+  const faceDiagnosis = isFaceDiagnosisSelection(saved.selectedFaceDiagnosis) && faceDiagnosisMatchesDocument(saved.doc, saved.selectedFaceDiagnosis)
+    ? saved.selectedFaceDiagnosis : undefined;
   const approval = await readSelectedApprovalForTurn(saved.selectedApproval, saved.versions);
   const tools = [...TOOLS_LISTED, ...(robotL3() ? [robotCheckListed()] : []), ...(selection ? [selectedNativeCheckTool] : []),
-    ...(approval ? [selectedApprovalEvidenceTool] : []), ...(approval?.repair ? [selectedFollowUpRepairTool] : [])];
+    ...(approval ? [selectedApprovalEvidenceTool] : []), ...(approval?.repair ? [selectedFollowUpRepairTool] : []),
+    ...(faceDiagnosis ? [selectedFaceDiagnosisTool] : [])];
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.rowFiles ? { rowFiles: saved.rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}) };
   let changed = saved.changed, version = saved.version, versionsChanged = false;
@@ -106,6 +111,11 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
           if (!isObj(args) || Object.keys(args).length) return error(msg.id, -32602, 'The selected approval evidence tool takes no arguments.');
           const result = { file: approval.file };
           return reply(msg.id, { content: [{ type: 'text', text: JSON.stringify(result) }], isError: false, structuredContent: result });
+        }
+        if (faceDiagnosis && msg.params?.name === SELECTED_FACE_DIAGNOSIS) {
+          const result = await readSelectedFaceDiagnosis(faceDiagnosis, state.doc, evaluate, msg.params.arguments);
+          return reply(msg.id, { content: [{ type: 'text', text: JSON.stringify(result) }],
+            ...('error' in result ? { isError: true } : { isError: false, structuredContent: result }) });
         }
         const before = state.doc, name = String(msg.params?.name), args = msg.params?.arguments;
         const repair = name === SELECTED_FOLLOW_UP_REPAIR ? approval?.repair : undefined;

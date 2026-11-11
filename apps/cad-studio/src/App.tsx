@@ -121,6 +121,7 @@ import { VersionsPanel, currentComparisonVersion, type VersionComparison } from 
 import type { CheckpointReview } from './files/taskCheckpoint';
 import { isLocalTaskRunHost, retiresTaskRunReview, type TaskRunLaunch, type TaskRunStatus } from './chat/taskRunOffer';
 import { useApprovalEvidenceAttachment } from './chat/useApprovalEvidenceAttachment';
+import { useFaceDiagnosisAttachment } from './chat/useFaceDiagnosisAttachment';
 import type { CandidateReview } from './files/taskCandidateReview';
 import { linkSource } from './storage/linked';
 import { partCutList } from '@barocss/cad-model/app/cutList';
@@ -1889,6 +1890,9 @@ export function App() {
   // (Roadmap 10 ②c: a nested occurrence path has no gizmo: its sub-assembly's definition places it.)
   const selectedTopId = singleTop(instanceSel), selectedInst = selectedTopId ? doc.instances?.find(i => i.id === selectedTopId) : undefined;
   const nestedSelected = singleNested(instanceSel);
+  const canAttachFaceDiagnosis = approvalAttachmentsEnabled && shownDoc === doc && marker === null && !cutDraft && !rendering && !drawing && !sketch;
+  const faceDiagnosis = useFaceDiagnosisAttachment({ enabled: canAttachFaceDiagnosis, part: nestedSelected ?? null, project: project.view.store,
+    owner: () => project.opening() ? undefined : openIntent.current });
   // (A nested path lights only the host's bodies from that part; a top-level id, the whole placed part.)
   const viewportInstanceSel = useMemo(() => viewportInstanceSelection(instanceSel, host => instanceBodies.get(host)), [instanceSel, instanceBodies]) as string[];
   const instGizmo: TransformGizmo | null = (() => {
@@ -2181,7 +2185,10 @@ export function App() {
         const inst = shownDoc.instances?.find(i => i.id === host), source = instanceSources.get(host);
         const current = entry && inst && source?.ok ? entry.sourceKey === source.key && samePlacement(entry.inst, inst) : false;
         const card = nestedCard(shownDoc, nestedSelected, entry, current);
-        return card ? <NestedPartPanel key={workerSession} card={card} doc={shownDoc} evaluate={cutDraft ? undefined : evaluateVersion} /> : null;
+        return card ? <NestedPartPanel key={workerSession} card={card} doc={shownDoc} evaluate={cutDraft ? undefined : evaluateVersion}
+          onAttachFaceDiagnosis={canAttachFaceDiagnosis && !chatRunning ? selection => {
+            if (faceDiagnosis.attach(selection, doc)) setChat(true);
+          } : undefined} /> : null;
       })()}
       {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {
         const inst = doc.instances?.find(i => i.id === instanceSel[0]);
@@ -2461,6 +2468,7 @@ export function App() {
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} placedPreviewEnabled={placedPreviewEnabled} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace}
         approvalAttachment={approvalAttachments.selected} onClearApprovalAttachment={approvalAttachments.clear}
+        faceDiagnosis={faceDiagnosis.selected} onClearFaceDiagnosis={faceDiagnosis.clear}
         taskRun={inPlace ? undefined : { reopened: reopenedTaskRun, decided: decidedTaskRun, sourceKey: project.taskSourceKey, export: exportTaskRun, start: startTaskRun, stop: stopTaskRun, refresh: refreshTaskRun, rebuild: rebuildTaskRun, observe: observeTaskRunStatus, openCheckpoint: openTaskRunCheckpoint, openBaseline: openTaskRunBaseline, readApproval: readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, workingVersion: saveAcceptanceScope, review: reviewTaskRun, modelViewBlocked: !reviewView }} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {

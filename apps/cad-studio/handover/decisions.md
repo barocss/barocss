@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D659 — attach the current nested face diagnosis to Studio chat](notes/studio-selected-face-diagnosis-2026-11-11/README.md).
 - [D658 — verify lost-face evidence on one nested occurrence](notes/studio-lost-nested-face-2026-11-11/README.md).
 - [D657 — retain the saved repair evidence](notes/studio-retained-repair-evidence-2026-11-11/README.md).
 - [D656 — verify a saved user repair against the retained regression](notes/studio-saved-follow-up-repair-2026-11-11/README.md).

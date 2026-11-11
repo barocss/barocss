@@ -1,10 +1,12 @@
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { fmt, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { NestedCard } from '../assembly/nestedSelection';
-import { NestedRequirementReadout } from './NestedRequirementReadout';
+import { NestedRequirementReadout, type AttachFaceDiagnosis } from './NestedRequirementReadout';
 
 /** A part inside a sub-assembly (roadmap 10 ②c), read only: its path, bodies, definition and placement in its sub-assembly. */
-export function NestedPartPanel({ card, doc, evaluate }: { card: NestedCard; doc: StudioDoc; evaluate?: Evaluate }) {
+export function NestedPartPanel({ card, doc, evaluate, onAttachFaceDiagnosis }: {
+  card: NestedCard; doc: StudioDoc; evaluate?: Evaluate; onAttachFaceDiagnosis?: AttachFaceDiagnosis;
+}) {
   const num = (v: readonly number[]) => v.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ');
   return (
     <aside className="card props" aria-label="Nested part">
@@ -18,7 +20,7 @@ export function NestedPartPanel({ card, doc, evaluate }: { card: NestedCard; doc
         <div className="kv">Definition <b>{card.part.id} · Rev {card.part.rev}</b></div>
         {card.part.source && <div className="kv muted small">From {card.part.source}</div>}
       </> : <div className="kv">Definition <b>its own</b></div>}
-      {card.hasRequirements && evaluate && <NestedRequirementReadout doc={doc} part={card.path} evaluate={evaluate} />}
+      {card.hasRequirements && evaluate && <NestedRequirementReadout doc={doc} part={card.path} evaluate={evaluate} onAttachFaceDiagnosis={onAttachFaceDiagnosis} />}
       <div className="card-title" style={{ marginTop: 8 }}>PLACED IN {card.placement.in.toUpperCase()}</div>
       <div className="kv">Position (mm) <b>{num(card.placement.position)}</b></div>
       <div className="kv">Rotation (°) <b>{num(card.placement.rotation)}</b></div>
