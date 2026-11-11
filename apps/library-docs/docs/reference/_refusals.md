@@ -371,7 +371,7 @@
 | `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |
 | `[DRAWING_DETAIL_LETTER]` | `drawing` | Detail … has a section's letter: letters are unique among sections and details. |
 | `[DRAWING_DETAIL_PARENT]` | `drawing` | Detail … enlarges section …, which the drawing does not have. |
-| `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first. |
+| `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions or geometric controls. Keep its view, centre and radius, or remove those annotations first. |
 | `[DRAWING_OPTIONS]` | `chat`, `drawing`, `engine` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
@@ -577,3 +577,11 @@
 | `[STORAGE_PATH]` | `storage` | a document's path ends in .bcad, outside …/ (got …) |
 | `[STORAGE_UNAVAILABLE]` | `storage` | this browser cannot write files here: export the project instead |
 | `[VALUE]` | `state` | …: a motion value must be finite |
+
+### The studio's servers
+
+| Code | Declared or raised in | For example |
+|---|---|---|
+| `[STORAGE_BUSY]` | `.` | A cad-mcp save lock is present for this file. Retry when the other save has finished. |
+| `[STORAGE_CHANGED]` | `.` | The model file changed since this session last read or saved it. Reopen the file in a new cad-mcp session. |
+| `[STORAGE_UNAVAILABLE]` | `.` | Open the model at its direct path to save it. |

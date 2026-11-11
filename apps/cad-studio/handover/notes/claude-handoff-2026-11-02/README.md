@@ -351,7 +351,9 @@ D706 verifies current BOM after project reopen and independently reads the local
 
 D707 verifies same-path nested BOM replacement and clears the error notice when its source changes. [D707](../bom-nested-currentness-2026-11-11/README.md).
 
-Next MAIN is D708 / P0, rows 04, 12 and 16. Reproduce and address an external MCP session overwriting a newer saved native document. [#2426](https://github.com/barocss/barocss/issues/2426).
+D708 protects a newer Studio-saved file from a stale external MCP session. [D708](../external-mcp-stale-save-2026-11-11/README.md).
+
+Next MAIN is D709 / P0, rows 06 and 16. Verify pending Render image imports across accepted document replacement and Undo, using the remaining D577 cases. [#2419](https://github.com/barocss/barocss/issues/2419).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, B06 v1 pending at six of seven groups, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

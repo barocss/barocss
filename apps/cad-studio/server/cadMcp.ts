@@ -50,6 +50,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
 export interface McpStore {
   open(): Promise<{ doc: StudioDoc; approvalRequired?: true; taskFinding?: TaskRunFindingSelection; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles; versions?: VersionLog; selectedApproval?: ApprovalAttachmentPayload; selectedFaceDiagnosis?: FaceDiagnosisSelection }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[]; versions?: VersionLog; versionsChanged?: boolean; versionsWanted?: string[] }, why: 'change' | 'select' | 'versions'): string | null;
+  unsavedNotice?(): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
 export function stateFileStore(statePath: string): McpStore {
@@ -141,9 +142,11 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         // (What the caller reads names v2 tools only, O105b: a handler's hint or refusal as its tool.action, a stored op as its v2 call.)
         const exactRead = handler === 'approved_requirement_evidence' || handler === 'inspect_local_task_plan';
         const text = exactRead && !out.isError ? out.content : v2Result(out.content, handler);
-        const structured = !out.isError && !unsaved && outputSchemaOf(handler) ? structuredOf(text) : undefined;
-        // (A change the store could not keep is said so, as an error: the part changed here but not on disk.)
-        return reply(msg.id, { content: [{ type: 'text', text }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
+        const pending = store.unsavedNotice?.();
+        const structured = !out.isError && !unsaved && !pending && outputSchemaOf(handler) ? structuredOf(text) : undefined;
+        // A read can inspect the session after a failed save, with its unsaved state made explicit.
+        const persistence = unsaved ? `Not saved: ${unsaved}` : pending ? `Unsaved session model: ${pending}` : null;
+        return reply(msg.id, { content: [{ type: 'text', text }, ...(persistence ? [{ type: 'text', text: persistence }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
       }
       default: return error(msg.id, -32601, `Unknown method ${msg.method}`);
     }

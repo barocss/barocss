@@ -45,6 +45,8 @@ A second desktop Chrome/WebGPU audit used an independent copy at `0c374f4e0aeb6f
 
 ## Source and retained evidence
 
+- [D708](../notes/external-mcp-stale-save-2026-11-11/README.md) protects the disk baseline of external MCP sessions, with a real two-process test and Studio Save/Open against the same file. Rows [04](../roadmap-rows/04.md), [12](../roadmap-rows/12.md) and [16](../roadmap-rows/16.md).
+
 - R01/R02: [project actions](../../src/storage/useProject.ts), [version UI](../../src/storage/VersionsPanel.tsx), [App](../../src/App.tsx); existing [Open ownership tests](../../test/project-open-ownership.test.ts), [Save ownership tests](../../test/late-save-ownership.test.ts) and [snapshot tests](../../test/storage-version-snapshot.test.ts). Open/Save guards do not prove delayed version-write safety.
 - R03: [exports](../../src/files/useModelExports.ts), [STEP freshness preparation](../../src/files/stepExportPreparation.ts), [3MF model](../../../../packages/barocss-cad-model/src/print/export3mf.ts). Existing box read-back in [browser flow](../../test/browser-flow.mjs) does not qualify stale assemblies.
 - R04/R05: [GPU renderer](../../src/viewport/gpuRenderer.ts), [viewport host](../../src/viewport/Viewport.tsx), [D514 selection](../notes/native-edge-selection-2026-11-04/README.md), [D515 cadence](../notes/slow-drag-cadence-current-2026-11-04/README.md). D514/D515 remain bounded proofs, not recovery certificates.

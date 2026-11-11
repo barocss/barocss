@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D708 — protect a newer saved file from a stale external MCP session](notes/external-mcp-stale-save-2026-11-11/README.md).
 - [D707 — keep nested BOM actions and errors with their source](notes/bom-nested-currentness-2026-11-11/README.md).
 - [D706 — verify the saved purchase list after project reopen](notes/bom-project-csv-readback-2026-11-11/README.md).
 - [D705 — preserve literal occurrence identity in assembly discovery](notes/assembly-occurrence-agent-identity-2026-11-11/README.md).

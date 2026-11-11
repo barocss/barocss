@@ -1,0 +1,26 @@
+# D708 — Protect a newer saved file from a stale external MCP session
+
+P0, rows 04, 12 and 16. FULL public persistence verification. Parent `2200aed909b1e23d1a13ea56ef96c03852a9746c`. [#2426](https://github.com/barocss/barocss/issues/2426).
+
+## Failure and contract
+
+The original external MCP process opens an 80 × 40 × 8 mm plate. A separate writer replaces the content with a 9 mm plate. Both inputs are 261 bytes and the test holds inode and modification time equal. The original process accepts a 7 mm edit and replaces the newer saved bytes. The 9 mm input has SHA-256 `10661eb2b3c542d4f631c8dae4e4a1d614cdcf35a4f25eaa19f4257e4fa3b36f`. The overwritten result has SHA-256 `39b2c7c60e1721ce74932d0db22dae061102b0c9d779ad42bd5ad5fd22b19008`.
+
+An external session records absence or the device, inode and SHA-256 from the same opened file that supplies the native model. It compares the current state after preparing the candidate and just before atomic rename. A change, disappearance, intervening creation or replacement causes `STORAGE_CHANGED`. The session keeps the unsaved candidate for inspection and refuses future disk writes until the caller reopens the file in a new session. Ordinary reads identify the unsaved candidate in their text and omit structured content in that state. A successful rename advances the expected identity to the bytes that this session published. Encode, temporary-write and rename failures leave the previous identity available for a later attempt against the same baseline.
+
+Cooperating external MCP processes serialize saves to the same resolved local pathname with a sibling lock directory. Contention returns `STORAGE_BUSY`. A process stopped inside the save can leave that empty lock directory. Remove it only after all sessions for that path have stopped. Use the direct pathname for writes. The protected sequence covers other writers' completed saves before the final check and cooperating external MCP processes during the check and rename. Simultaneous writes by programs that do not use the lock, path aliases, distributed filesystems and power-loss durability are outside the contract. CLI atomic export and Studio's existing project store retain their own write policies.
+
+## Actual Studio and protocol
+
+Desktop Studio saves the 8 mm file through the existing folder project adapter. The test directory handle connects that adapter to a disposable local directory. An external `cad-mcp --doc` process opens the exact path. Studio edits to 9 mm and saves. The old MCP edit to 7 mm returns `Not saved: [STORAGE_CHANGED]`. The subsequent read labels its unsaved state. The saved 9 mm file remains byte-identical at SHA-256 `0328dbc8d34d5a3cad027751897c426ee0535f5a802c2c78ac909d1709650bbb`. Studio closes, reloads, reopens the 9 mm file and successfully saves a new 10 mm edit. Independent Python reads and computes 25,600, 28,800 and 32,000 mm³ from the saved native dimensions. Fresh MCP reads agree. The flow uses the real Studio project controls, native worker and external stdio server. The folder-picker adapter is controlled.
+
+## Qualification
+
+- **PASS** — Studio Save/Close/reload/Open and further editing, four snapshots, independent native file and volume checks, and 788 frozen sources matched through cleanup. External MCP preserves the intervening create/remove/replace and same-size, same-mtime changes. Normal sequential edits, mesh containers and read-only byte retention pass. Encode and injected temporary-write and rename failures preserve the prior bytes. Two actual MCP processes share a barrier before the first rename. The second write is busy, then stale after the first completes. No owned temporary or lock entries remain.
+- **PASS** — Selected Studio protocol and CLI tests 22/22. Three bundle mutations are detected when they omit the digest, omit the lock or advance the expected state before rename. Model and Studio TypeScript checks, scoped ESLint, generated refusal reference check and Studio production build pass. The regenerated reference also synchronizes the existing Detail annotation refusal text.
+- **FAIL** — Original product overwrites the 9 mm file. An intermediate run failed the existing mesh container read because a Node Buffer was passed directly. Restoring the native reader's plain Uint8Array input passes the mesh control and the full selected batch.
+- **NOT_RUN** — Native operating-system folder picker, simultaneous noncooperating writers, additional path aliases, mobile, full suites and live/paid agent execution.
+
+Use Node 22.19.0 and existing Playwright and Chrome under the heavy gate. From the repository root run `D708_SOURCE_FROZEN=1 node apps/cad-studio/test/mcp-stale-save-browser.mjs "$EVIDENCE/studio"`. Focused checks use `TEST_CONCURRENCY=2 pnpm --dir apps/cad-studio test cad-external tool-contract-mcp toolset-mcp task-plan-agent`. Run both affected package type checks, the Studio Vite production build and `node apps/library-docs/scripts/refusals.mjs --check`. Raw files, logs, mutations and screenshots remain outside Git.
+
+Initial scenarios remain 5/10. Whole CAD and core readiness remain **NOT_MEASURED**. D709 checks pending Render imports across document replacement and Undo. [#2419](https://github.com/barocss/barocss/issues/2419).

@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { setTimeout as delay } from 'node:timers/promises';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { PassThrough } from 'node:stream';
-import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { meshNodeBlobs } from '@barocss/cad-model/engine/blobs';
 import { encodeStudioFile, isContainer, readStudioFile } from '@barocss/cad-model/engine/container';
@@ -23,8 +24,8 @@ const PLATE = 'const p = box({w: 80, d: 40, h: 8})\nfor (const i of range(3)) { 
 const PLATE_MM3 = 80 * 40 * 8 - 3 * Math.PI * 2.5 ** 2 * 8;
 
 /** A spawned cad-mcp: requests answered in order, then closed. */
-function client(args: string[]) {
-  const child = spawn(process.execPath, [join(root, 'scripts/cad-mcp.mjs'), ...args], { stdio: ['pipe', 'pipe', 'pipe'] });
+function client(args: string[], preload?: string) {
+  const child = spawn(process.execPath, [...(preload ? ['--import', preload] : []), join(root, 'scripts/cad-mcp.mjs'), ...args], { stdio: ['pipe', 'pipe', 'pipe'] });
   const waiting = new Map<number, { resolve: (m: Record<string, any>) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }>();
   let id = 0, stderr = '', closing = false, failure: Error | null = null, closePromise: Promise<number> | undefined;
   const fail = (e: Error) => {
@@ -54,7 +55,7 @@ function client(args: string[]) {
     waiting.set(n, { resolve, reject, timer });
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n', error => { if (error) fail(error); });
   });
-  const call = async (name: string, args: object = {}) => (await request('tools/call', { name, arguments: args })).result as { content: { text: string }[]; isError: boolean };
+  const call = async (name: string, args: object = {}) => (await request('tools/call', { name, arguments: args })).result as { content: { text: string }[]; isError: boolean; structuredContent?: unknown };
   const close = () => closePromise ??= (async () => {
     const before = failure; closing = true;
     if (!child.stdin.destroyed && !child.stdin.writableEnded) child.stdin.end();
@@ -163,6 +164,187 @@ test('a change the file cannot take is said so: the call is an error and the par
   const r = replies[0].result;
   assert.equal(r.isError, true);
   assert.match(r.content.at(-1).text, /^Not saved: .*ENOENT/);
+});
+
+const plateBytes = (height: number) => Buffer.from(encodeStudioFile(rectanglePart(80, 40, height)));
+const summary = { action: 'summary' };
+const heightEdit = (h: number) => ({ action: 'edit', index: 1, values: { h } });
+
+test('D708 external MCP rejects equal-size, equal-time changes and labels the retained unsaved model', async () => {
+  const d = dir(), part = join(d, 'part.bcad'), initial = plateBytes(8), newer = plateBytes(9);
+  const time = new Date('2026-11-11T01:02:03Z');
+  writeFileSync(part, initial); utimesSync(part, time, time);
+  const stat = statSync(part);
+  const stale = client(['--doc', part]);
+  try {
+    await stale.request('initialize', {});
+    assert.equal(facts(await stale.call('query', summary)).volume, 25600);
+    assert.deepEqual(readFileSync(part), initial);
+    writeFileSync(part, newer); utimesSync(part, time, time);
+    const after = statSync(part);
+    assert.deepEqual([after.ino, after.size, after.mtimeMs], [stat.ino, stat.size, stat.mtimeMs]);
+    const rejected = await stale.call('features', heightEdit(7));
+    assert.equal(rejected.isError, true, JSON.stringify(rejected));
+    assert.match(rejected.content.at(-1)!.text, /^Not saved: \[STORAGE_CHANGED\].*Reopen/);
+    assert.equal(rejected.structuredContent, undefined);
+    assert.deepEqual(readFileSync(part), newer);
+    const read = await stale.call('query', summary);
+    assert.equal(read.isError, false);
+    assert.equal(facts(read).volume, 22400);
+    assert.match(read.content.at(-1)!.text, /^Unsaved session model: \[STORAGE_CHANGED\]/);
+    assert.equal(read.structuredContent, undefined);
+    assert.equal((await stale.call('features', heightEdit(6))).isError, true);
+    assert.deepEqual(readFileSync(part), newer);
+    writeFileSync(part, initial);
+    assert.equal((await stale.call('features', heightEdit(5))).isError, true, 'restoring the old bytes does not reset a conflicted session');
+    assert.deepEqual(readFileSync(part), initial);
+    writeFileSync(part, newer);
+  } finally { assert.equal(await stale.close(), 0); }
+  const fresh = client(['--doc', part]);
+  try {
+    await fresh.request('initialize', {});
+    const initialRead = await fresh.call('query', summary);
+    assert.equal(facts(initialRead).volume, 28800);
+    assert.equal(initialRead.content.length, 1);
+    for (const h of [10, 11]) {
+      const edit = await fresh.call('features', heightEdit(h));
+      assert.equal(edit.isError, false, JSON.stringify(edit));
+      const disk = readFileSync(part);
+      assert.deepEqual(JSON.parse(disk.toString()), rectanglePart(80, 40, h));
+      assert.equal(facts(await fresh.call('query', summary)).volume, 80 * 40 * h);
+      assert.deepEqual(readFileSync(part), disk);
+    }
+  } finally { assert.equal(await fresh.close(), 0); }
+  assert.deepEqual(readdirSync(d), ['part.bcad']);
+});
+
+test('D708 external MCP preserves an intervening creation, removal, and byte-identical replacement', async () => {
+  for (const kind of ['create', 'remove', 'replace'] as const) {
+    const d = dir(), part = join(d, 'part.bcad'), bytes = plateBytes(8);
+    if (kind !== 'create') writeFileSync(part, bytes);
+    const stale = client(['--doc', part]);
+    try {
+      await stale.request('initialize', {});
+      if (kind === 'create') writeFileSync(part, bytes);
+      else if (kind === 'remove') unlinkSync(part);
+      else {
+        const next = join(d, 'replacement');
+        writeFileSync(next, bytes);
+        assert.notEqual(statSync(part).ino, statSync(next).ino);
+        renameSync(next, part);
+      }
+      const result = kind === 'create'
+        ? await stale.call('model', { source: 'box({w: 10, d: 10, h: 10})' })
+        : await stale.call('features', heightEdit(7));
+      assert.equal(result.isError, true, kind);
+      assert.match(result.content.at(-1)!.text, /\[STORAGE_CHANGED\]/);
+      if (kind === 'remove') assert.equal(existsSync(part), false);
+      else assert.deepEqual(readFileSync(part), bytes);
+      assert.deepEqual(readdirSync(d), kind === 'remove' ? [] : ['part.bcad']);
+    } finally { assert.equal(await stale.close(), 0); }
+  }
+});
+
+test('D708 a failed native encode retains the expected disk state', async () => {
+  const d = dir(), part = join(d, 'part.bcad'), bytes = plateBytes(8);
+  writeFileSync(part, bytes);
+  const store = docStore(part), { doc } = await store.open();
+  const state = { doc: { ...doc, instances: 'invalid' } as unknown as StudioDoc, changed: true, version: 1 };
+  assert.match(store.save(state, 'change') ?? '', /DRAWING_OPTIONS/);
+  assert.deepEqual(readFileSync(part), bytes);
+  assert.deepEqual(readdirSync(d), ['part.bcad']);
+  assert.equal(store.save({ ...state, doc: rectanglePart(80, 40, 9) }, 'change'), null);
+  assert.deepEqual(readFileSync(part), plateBytes(9));
+});
+
+function savePreload(d: string, part: string, mode: 'write' | 'rename' | 'barrier'): string {
+  const file = join(d, 'preload.mjs');
+  writeFileSync(file, `
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const part = ${JSON.stringify(part)}, mode = ${JSON.stringify(mode)};
+const ready = ${JSON.stringify(join(d, 'at-rename'))}, release = ${JSON.stringify(join(d, 'release'))};
+const { openSync, writeFileSync, renameSync } = fs;
+let temporary, injected = false;
+fs.openSync = function(path, flags, ...args) {
+  const fd = openSync(path, flags, ...args);
+  if (typeof path === 'string' && path.endsWith('.tmp') && flags === 'wx') temporary = fd;
+  return fd;
+};
+fs.writeFileSync = function(path, ...args) {
+  if (mode === 'write' && !injected && path === temporary) { injected = true; throw new Error('injected temporary write'); }
+  return writeFileSync(path, ...args);
+};
+fs.renameSync = function(from, to) {
+  if (!injected && to === part && from.endsWith('.tmp')) {
+    injected = true;
+    if (mode === 'rename') throw new Error('injected rename');
+    if (mode === 'barrier') {
+      writeFileSync(ready, '');
+      const timer = new Int32Array(new SharedArrayBuffer(4)), until = Date.now() + 15000;
+      while (!fs.existsSync(release)) {
+        if (Date.now() >= until) throw new Error('save barrier expired');
+        Atomics.wait(timer, 0, 0, 10);
+      }
+    }
+  }
+  return renameSync(from, to);
+};
+syncBuiltinESMExports();
+`);
+  return file;
+}
+
+test('D708 external MCP preserves prior bytes and retries after temporary write and rename failures', async () => {
+  for (const stage of ['write', 'rename'] as const) {
+    const d = dir(), part = join(d, 'part.bcad'), bytes = plateBytes(8);
+    writeFileSync(part, bytes);
+    const session = client(['--doc', part], savePreload(d, part, stage));
+    try {
+      await session.request('initialize', {});
+      const failed = await session.call('features', heightEdit(9));
+      assert.equal(failed.isError, true, stage);
+      assert.match(failed.content.at(-1)!.text, /Not saved: injected/);
+      assert.deepEqual(readFileSync(part), bytes);
+      assert.deepEqual(readdirSync(d).sort(), ['part.bcad', 'preload.mjs']);
+      const retry = await session.call('features', heightEdit(10));
+      assert.equal(retry.isError, false, JSON.stringify(retry));
+      assert.deepEqual(readFileSync(part), plateBytes(10));
+    } finally { assert.equal(await session.close(), 0); }
+  }
+});
+
+test('D708 two external MCP processes cannot replace the same target during one guarded save', async () => {
+  const d = dir(), part = join(d, 'part.bcad');
+  writeFileSync(part, plateBytes(8));
+  const first = client(['--doc', part], savePreload(d, part, 'barrier')), second = client(['--doc', part]);
+  const release = join(d, 'release');
+  let saving: ReturnType<typeof first.call> | undefined;
+  try {
+    await Promise.all([first.request('initialize', {}), second.request('initialize', {})]);
+    saving = first.call('features', heightEdit(9));
+    // Hold the first process after validation and before rename, while the second calls the real server.
+    const ready = join(d, 'at-rename'), until = Date.now() + 10000;
+    while (!existsSync(ready) && Date.now() < until) await delay(20);
+    assert.ok(existsSync(ready));
+    assert.deepEqual(readFileSync(part), plateBytes(8));
+    const busy = await second.call('features', heightEdit(7));
+    assert.equal(busy.isError, true, JSON.stringify(busy));
+    assert.match(busy.content.at(-1)!.text, /\[STORAGE_BUSY\]/);
+    assert.deepEqual(readFileSync(part), plateBytes(8));
+    writeFileSync(release, '');
+    assert.equal((await saving).isError, false);
+    assert.deepEqual(readFileSync(part), plateBytes(9));
+    const stale = await second.call('features', heightEdit(6));
+    assert.equal(stale.isError, true);
+    assert.match(stale.content.at(-1)!.text, /\[STORAGE_CHANGED\]/);
+    assert.deepEqual(readFileSync(part), plateBytes(9));
+    assert.deepEqual(readdirSync(d).sort(), ['at-rename', 'part.bcad', 'preload.mjs', 'release']);
+  } finally {
+    if (!existsSync(release)) writeFileSync(release, '');
+    await saving?.catch(() => {});
+    assert.deepEqual(await Promise.all([first.close(), second.close()]), [0, 0]);
+  }
 });
 
 /** cliMain with its output captured. */
