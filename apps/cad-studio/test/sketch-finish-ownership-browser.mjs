@@ -2,16 +2,18 @@
 // D574_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=repro|fixed
 // D734_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=transitions
 // D735_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=refusal
+// D736_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=associations
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
-assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions', '--expect=refusal'].includes(mode));
+assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions', '--expect=refusal', '--expect=associations'].includes(mode));
 const repro = mode === '--expect=repro';
 const transitions = mode === '--expect=transitions';
 const refusal = mode === '--expect=refusal';
+const associations = mode === '--expect=associations';
 const fixture = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
@@ -50,6 +52,36 @@ if d.get('drilled'):
     assert hole['center'] == [34, 10] and hole['radius'] == 2
     area -= math.pi * 2**2
 assert math.isclose(body['volume'], area * 10, abs_tol=1e-9, rel_tol=0), body
+if 'linked' in d:
+    ring = d['doc']['nodes'][2]
+    assert ring['id'] == 'n2' and ring['kind'] == 'sketch'
+    assert ring['on'] == {'node': 1, 'side': 'solid'}
+    assert math.isclose(ring['plane']['origin'][2], 10, abs_tol=1e-9)
+    assert ring['plane']['normal'] == [0, 0, 1]
+    def edges(points):
+        return list(zip(points, points[1:] + points[:1]))
+    def polygon_area(points):
+        return abs(sum(a[0]*b[1]-b[0]*a[1] for a,b in edges(points)))/2
+    if ring['profile'] == 'rectangle':
+        lo, hi = ring['min'], ring['max']
+        outer = [lo, [hi[0], lo[1]], hi, [lo[0], hi[1]]]
+    elif ring['profile'] == 'polygon':
+        outer = ring['points']
+    else:
+        assert ring['profile'] == 'loop' and all(s['kind']=='line' for s in ring['segments'])
+        outer = [s['start'] for s in ring['segments']]
+    assert len(ring['holes']) == 1 and all(s['kind']=='line' for s in ring['holes'][0])
+    inner = [s['start'] for s in ring['holes'][0]]
+    if d['linked']:
+        a = ring['association']
+        assert a['kind'] == 'planar-face-outline-inset' and a['sourceFeature'] == 'n1' and a['face'] == 'n1.top'
+        assert a['source'] == ring['on'] and a['insetMM'] == 2
+        assert math.isclose(polygon_area(outer), 800, abs_tol=1e-9)
+        assert math.isclose(polygon_area(inner), 576, abs_tol=1e-9)
+    else:
+        assert 'association' not in ring
+        assert polygon_area(outer) > polygon_area(inner) > 0
+        assert any(math.isclose(math.dist(a,b), d['edge'], abs_tol=1e-9) for a,b in edges(outer) + edges(inner))
 print(json.dumps({'status': 'PASS', 'width': w, 'volume': body['volume'], 'absoluteTolerance': 1e-9}))
 `;
 const pins = [
@@ -57,10 +89,15 @@ const pins = [
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'apps/cad-studio/src/engine/client.ts',
   'packages/barocss-cad-model/src/engine/wireDoc.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts',
   ...(transitions ? ['apps/cad-studio/src/ui/useWorkspaceModeExit.tsx'] : []),
+  ...(associations ? ['apps/cad-studio/src/ui/SketchPanel.tsx', 'packages/barocss-cad-model/src/engine/part.ts'] : []),
 ];
+const expectation = associations ? ['D736', 'linked and detached sketch Finish']
+  : refusal ? ['D735', 'actual refused Finish responses']
+  : transitions ? ['D734', 'workspace transitions and reversed replies']
+  : ['D574', 'desktop'];
 const f = await createFlow({
-  name: 'sketch-finish-ownership', envFrozen: refusal ? 'D735_SOURCE_FROZEN' : transitions ? 'D734_SOURCE_FROZEN' : 'D574_SOURCE_FROZEN', output,
-  qualification: refusal ? 'D735 #2364 actual refused Finish responses' : transitions ? 'D734 #2364 workspace transitions and reversed replies' : 'D574 #2364 desktop',
+  name: 'sketch-finish-ownership', envFrozen: expectation[0] + '_SOURCE_FROZEN', output,
+  qualification: expectation[0] + ' #2364 ' + expectation[1],
   initialFiles: pins, requiredFrozen: pins, oracleSource,
   limits: [refusal ? 'Ordinary reopened rectangle with an extrude and downstream hole. The test holds an actual refused reply without changing it.'
     : 'One ordinary reopened rectangle and extrusion. The test holds actual successful evaluate replies without changing them.'],
@@ -186,15 +223,15 @@ async function setWidth(width) {
   await widthInput().press('Enter');
   assert.equal(await widthInput().inputValue(), String(width));
 }
-async function physical(label, state, width, withHole = false) {
+async function physical(label, state, width, withHole = false, extra = {}) {
   await f.ready();
-  const physical = await f.runOracle({ doc: state, bodies: (await f.bodies()).bodies, width, drilled: withHole }, label);
+  const physical = await f.runOracle({ doc: state, bodies: (await f.bodies()).bodies, width, drilled: withHole, ...extra }, label);
   assert.deepEqual(state.nodes[1], fixture.nodes[1]);
   assert.equal(state.nodes[0].id, 'n0');
   assert.deepEqual(state.outputs, (withHole ? drilled : fixture).outputs);
   return physical;
 }
-async function saveThenReopen(label, doc, width, withHole = false) {
+async function saveThenReopen(label, doc, width, withHole = false, extra = {}) {
   f.phase = 'Save and fresh Open ' + label;
   const projectName = 'D574 ' + label;
   const fileName = label + '.bcad';
@@ -218,7 +255,7 @@ async function saveThenReopen(label, doc, width, withHole = false) {
   f.report.files.push({ label, sha256: sha256(bytes), byteLength: bytes.length });
   await f.newPage();
   await open(payload(fileName, bytes), doc);
-  await physical(label + '-fresh-open', await f.doc(), width, withHole);
+  await physical(label + '-fresh-open', await f.doc(), width, withHole, extra);
 }
 
 const arm = count => f.page.evaluate(count => window.__d734Hold.arm(count), count);
@@ -371,6 +408,107 @@ async function verifyRefusedFinish() {
   }
 }
 
+async function verifyAssociationFinish() {
+  const panel = () => f.sketchPanel();
+  const linkedStatus = () => panel().getByText(/Linked face outline and inset/);
+  const detachedStatus = () => panel().getByText(/Link detached by a geometry or plane edit/);
+  const newLinked = async () => {
+    await f.newPage();
+    await open(input, fixture);
+    await button('Top').click();
+    await f.frame([[0, 0], [40, 20]]);
+    const [x, y] = await f.page.evaluate(() => window.__studioScreenOf([10, 10, 10]));
+    await f.page.mouse.click(x, y);
+    await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
+    await f.page.getByRole('group', { name: 'Mode', exact: true }).getByRole('button', { name: 'Sketch', exact: true }).click();
+    await panel().getByLabel('Sketch plane', { exact: true }).selectOption('face');
+    await panel().getByLabel('Offset distance', { exact: true }).fill('2');
+    await panel().getByRole('button', { name: 'Link face outline + inset', exact: true }).click();
+    await linkedStatus().waitFor();
+  };
+  const reopenLinked = async doc => {
+    await f.newPage();
+    await open(payload('D736-linked.bcad', Buffer.from(JSON.stringify(doc))), doc);
+    await f.page.getByRole('group', { name: 'History', exact: true }).getByRole('button', { name: 'Sketch · polygon', exact: true }).click();
+    await f.editor().waitFor();
+    await f.editor().getByRole('button', { name: 'Edit sketch', exact: true }).click();
+    await linkedStatus().waitFor();
+  };
+  const finishHeld = async () => {
+    await arm(1);
+    await finish();
+    return (await held(1))[0];
+  };
+  const cancelHeld = async (label, doc) => {
+    await f.page.keyboard.press('Escape');
+    await panel().waitFor({ state: 'hidden' });
+    const before = await f.snapshot(label + '-before-reply');
+    await release(0);
+    await f.same(doc);
+    const after = await f.snapshot(label + '-after-reply');
+    sameState(after, before);
+    assert.equal(await panel().isVisible(), false);
+  };
+
+  f.phase = 'Cancel a linked inset before the original reply';
+  await newLinked();
+  const linkedCancelled = await finishHeld();
+  await cancelHeld('linked-cancelled', fixture);
+
+  f.phase = 'Apply the current linked inset';
+  await newLinked();
+  const linkedCurrent = await finishHeld();
+  await release(0);
+  await f.changed(fixture);
+  await panel().waitFor({ state: 'hidden' });
+  const linked = await f.snapshot('linked-current');
+  await physical('linked-current', linked.doc, 40, false, { linked: true });
+  await f.undo();
+  await f.same(fixture);
+  await f.redo();
+  await f.same(linked.doc);
+  await saveThenReopen('D736-linked', linked.doc, 40, false, { linked: true });
+
+  f.phase = 'Unchanged linked reopen keeps the exact source';
+  await reopenLinked(linked.doc);
+  await arm(1);
+  await finish();
+  await panel().waitFor({ state: 'hidden' });
+  await f.same(linked.doc);
+  assert.deepEqual(await f.page.evaluate(() => window.__d734Hold.read()), []);
+  await f.snapshot('linked-reopen-unchanged');
+
+  const detach = async () => {
+    await reopenLinked(linked.doc);
+    await widthInput().waitFor();
+    const next = Number(await widthInput().inputValue()) + 0.5;
+    await setWidth(next);
+    await detachedStatus().waitFor();
+    return next;
+  };
+  f.phase = 'Cancel an association-detached edit before the original reply';
+  const cancelledEdge = await detach();
+  const detachedCancelled = await finishHeld();
+  await cancelHeld('detached-cancelled', linked.doc);
+  await physical('detached-retains-link', linked.doc, 40, false, { linked: true });
+
+  f.phase = 'Apply the current association-detached edit';
+  const edge = await detach();
+  assert.equal(edge, cancelledEdge);
+  const detachedCurrent = await finishHeld();
+  await release(0);
+  await f.changed(linked.doc);
+  await panel().waitFor({ state: 'hidden' });
+  const detached = await f.snapshot('detached-current');
+  await physical('detached-current', detached.doc, 40, false, { linked: false, edge });
+  await f.undo();
+  await f.same(linked.doc);
+  await f.redo();
+  await f.same(detached.doc);
+  await saveThenReopen('D736-detached', detached.doc, 40, false, { linked: false, edge });
+  f.report.observations.push({ linkedCancelled, linkedCurrent, detachedCancelled, detachedCurrent, edge });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   f.report.runtimeOwnership = { nodePID: process.pid, serverURL: origin };
@@ -379,7 +517,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     try {
-      await context.addInitScript(transitions || refusal ? installSequenceHold : installReplyHold);
+      await context.addInitScript(transitions || refusal || associations ? installSequenceHold : installReplyHold);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -393,8 +531,9 @@ await f.run(async () => {
     }
   };
 
-  if (transitions || refusal) {
-    if (refusal) await verifyRefusedFinish();
+  if (transitions || refusal || associations) {
+    if (associations) await verifyAssociationFinish();
+    else if (refusal) await verifyRefusedFinish();
     else await verifyPendingTransitions();
     f.report.productResult = 'PASS';
     assert.deepEqual(f.report.downloads, []);

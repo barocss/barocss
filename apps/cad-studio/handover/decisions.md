@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D736 — verify linked and detached sketch Finish replies](notes/sketch-finish-association-replies-2026-11-12/README.md).
 - [D735 — verify actual refused sketch Finish responses](notes/sketch-finish-worker-refusal-2026-11-12/README.md).
 - [D734 — verify pending sketch Finish across workspace transitions](notes/sketch-finish-workspace-replies-2026-11-12/README.md).
 - [D733 — preserve the DXF XY profile boundary](notes/dxf-profile-height-2026-11-12/README.md).
