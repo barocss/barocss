@@ -301,7 +301,9 @@ D681 fixes binary STL Float32 collapse and verifies Studio refusal with no parti
 
 D682 cancels STL preparation on accepted document replacement and verifies real late replies after Cancel, same-name Open and document-boundary Redo. A genuine unavailable-family case for [#2425](https://github.com/barocss/barocss/issues/2425) stays open. [D682](../stl-late-reply-2026-11-11/README.md).
 
-Next MAIN is D683 / P2 B07, rows 13 and 16. Export the current placed assembly variant through Studio and reopen the exact STEP bytes. Independently check baked placement, geometry, units and declared losses.
+D683 exports the current Tall assembly through Studio and reopens the exact STEP bytes. Two independent readers verify AP214, units, world placement and the declared structure loss. [D683](../step-variant-roundtrip-2026-11-11/README.md).
+
+Next MAIN is D684 / P0 R17, rows 16 and 21. Verify file-name Undo and focused-button Space on the current desktop build. The next P2 case is actual 3MF output from the shown assembly variant. See the [reliability intake](../../roadmap-tracks/01-reliability.md) and [P4 toolbar and notice candidates](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

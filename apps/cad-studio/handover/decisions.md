@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D683 — export and reopen the current assembly variant as STEP](notes/step-variant-roundtrip-2026-11-11/README.md).
 - [D682 — cancel pending STL on document replacement](notes/stl-late-reply-2026-11-11/README.md).
 - [D681 — refuse STL triangles that collapse in Float32](notes/stl-float32-collapse-2026-11-11/README.md).
 - [D680 — reopen the STL generated from an unsaved variant](notes/stl-variant-roundtrip-2026-11-11/README.md).

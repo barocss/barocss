@@ -36,6 +36,13 @@ The separate desktop Studio usability audit used Chrome and WebGPU on `a3b3f256c
 | R15 | Explicit approval requirement for a Studio chat turn, row 16 | The agent must propose the recognized approval-required edit. Verify direct edit refusal, Preview/Reject, user Accept and Undo. Keep ordinary L1/L2 controls. [D669 PASS](../notes/studio-turn-approval-2026-11-11/README.md). |
 | R16 | Explicit approval requirement on direct state-backed CAD MCP, row 16 | The raw L2 edit reproduced without Studio Chat. The current turn and fallback guard refuse the edit and agent acceptance. Ordinary L2, direct document mode and actual Studio approval and Undo passed. [D670 PASS](../notes/state-backed-turn-approval-2026-11-11/README.md). |
 
+A second desktop Chrome/WebGPU audit used an independent copy at `0c374f4e0aeb6fcfb96b560c7cb7a95b5cfacc09`. It ranked keyboard ownership, top toolbar clipping and feature draft retention in that order. The [P4 queue](03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up) owns the clipping case. The observations below are historical audit FAILs. Current Studio reproduction is NOT_RUN.
+
+| ID | Boundary and owner | Required acceptance |
+| --- | --- | --- |
+| R17 | Studio shortcut focus ownership, rows 16 and 21 | With a committed Box, append a character to the filename and press the native Undo shortcut. Only the text edit must revert. CAD geometry and both history stacks must stay intact. With New part focused, Space must activate the button. Verify normal CAD Undo/Redo and Space palette from the workspace. |
+| R18 | Feature draft through workspace changes, rows 12, 16 and 21 | Enter Box width 48 mm, switch to Drawing and return to Model. Preserve the draft and its values until Apply or an explicit discard. If switching requires confirmation, preserve input focus when the user stays. Keep the existing sketch transition behavior. |
+
 ## Source and retained evidence
 
 - R01/R02: [project actions](../../src/storage/useProject.ts), [version UI](../../src/storage/VersionsPanel.tsx), [App](../../src/App.tsx); existing [Open ownership tests](../../test/project-open-ownership.test.ts), [Save ownership tests](../../test/late-save-ownership.test.ts) and [snapshot tests](../../test/storage-version-snapshot.test.ts). Open/Save guards do not prove delayed version-write safety.
