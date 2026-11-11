@@ -6,3 +6,8 @@ export function quantityText(value: number, text = fmt(value)): string {
   return Number.isFinite(value) && value !== 0 && Number(text.replace(/,/g, '')) === 0
     ? value.toExponential(2) : text;
 }
+
+export function measureQuantityText(value: number, digits: 2 | 3): string {
+  const factor = 10 ** digits;
+  return quantityText(value, fmt(Math.round(value * factor) / factor));
+}

@@ -30,6 +30,7 @@ import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
 import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
+import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
@@ -2460,7 +2461,7 @@ export function App() {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
         })() : null}
-        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null} />
+        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: measureQuantityText(measured.distance, 2) + ' mm' } : null} />
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className={'card toolbar' + (sketch ? '' : ' model-toolbar')} aria-label="Tools" hidden={rendering || drawing}>
