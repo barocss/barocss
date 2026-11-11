@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2);
+const [output, mode, probe] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 assert.ok(mode === '--baseline' || mode === '--fixed');
 const baseline = mode === '--baseline';
+assert.ok(probe === undefined || (probe === '--observe-worker' && !baseline));
+const observeWorker = probe === '--observe-worker';
 const thin = 1 / 4096;
 const box = (index, height, from) => [
   { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2], id: `n${index}` },
@@ -54,8 +56,8 @@ print(json.dumps(dict(status='PASS', meshes=rows)))
 `;
 
 const f = await createFlow({
-  name: 'stl-float32-collapse', envFrozen: 'D681_SOURCE_FROZEN', output, oracleSource,
-  qualification: `D681 desktop STL Float32 collapse ${mode}`,
+  name: 'stl-float32-collapse', envFrozen: observeWorker ? 'D693_SOURCE_FROZEN' : 'D681_SOURCE_FROZEN', output, oracleSource,
+  qualification: observeWorker ? 'D693 native STL Worker result and Studio publication' : `D681 desktop STL Float32 collapse ${mode}`,
   initialFiles: [
     'apps/cad-studio/test/stl-float32-collapse-browser.mjs', 'packages/barocss-cad/src/io/stl.ts',
     'packages/barocss-cad/src/part/part-model.ts', 'packages/barocss-cad-model/src/engine/evaluate.ts',
@@ -63,6 +65,38 @@ const f = await createFlow({
   ],
   limits: ['Two independent native boxes. Actual Studio bytes intercepted at the local download boundary.'],
 });
+
+function observeStlReplies() {
+  const descriptor = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
+  if (!descriptor?.set) throw new Error('Expected Worker onmessage setter');
+  const post = Worker.prototype.postMessage;
+  const requests = new WeakMap();
+  window.__d693StlReplies = [];
+  Worker.prototype.postMessage = function (request, ...args) {
+    if (request?.type === 'stl') {
+      if (!requests.has(this)) requests.set(this, new Map());
+      requests.get(this).set(request.id, { id: request.id, key: request.key, quality: request.options?.segmentsPerQuarter ?? null });
+    }
+    return Reflect.apply(post, this, [request, ...args]);
+  };
+  Object.defineProperty(Worker.prototype, 'onmessage', {
+    configurable: descriptor.configurable, get: descriptor.get,
+    set(callback) {
+      descriptor.set.call(this, callback && function (event) {
+        const request = requests.get(this)?.get(event.data?.id);
+        if (request) {
+          requests.get(this).delete(event.data.id);
+          window.__d693StlReplies.push({
+            ...request,
+            bytes: event.data.bytes ? Array.from(event.data.bytes) : event.data.bytes,
+            error: event.data.error ?? null,
+          });
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+}
 
 function captureExport() {
   const create = URL.createObjectURL;
@@ -106,6 +140,7 @@ const artifacts = () => f.page.evaluate(() => Promise.all(window.__d681Exports))
 async function exportStl(label, name, doc, quality, collapse) {
   f.phase = label;
   const before = await artifacts();
+  const replyStart = observeWorker ? await f.page.evaluate(() => window.__d693StlReplies.length) : 0;
   await button('Export STL').click();
   const dialog = f.page.getByRole('dialog', { name: 'STL export', exact: true });
   await dialog.getByLabel('STL export quality', { exact: true }).selectOption(quality);
@@ -133,7 +168,23 @@ async function exportStl(label, name, doc, quality, collapse) {
     ];
     await f.runOracle({ meshes }, label);
   }
-  f.report.observations.push({ label, quality, toast, artifacts: after.map(file => ({ name: file.name, sha256: sha256(Buffer.from(file.encoded, 'base64')) })) });
+  let worker;
+  if (observeWorker) {
+    const replies = await f.page.evaluate(start => window.__d693StlReplies.slice(start), replyStart);
+    assert.deepEqual(replies.map(r => r.key), ['b1', 'b3']);
+    assert.deepEqual(replies.map(r => r.quality), Array(2).fill(quality === 'automatic' ? null : Number(quality)));
+    assert.equal(replies[0].error, null);
+    assert.equal(replies[0].bytes.length, 684);
+    if (collapse) {
+      assert.equal(replies[1].bytes, null);
+      assert.match(replies[1].error, /STL_FLOAT32_COLLAPSE/);
+    } else for (const [i, reply] of replies.entries()) {
+      assert.equal(reply.error, null);
+      assert.deepEqual(Buffer.from(reply.bytes), Buffer.from(after[i].encoded, 'base64'));
+    }
+    worker = replies.map(({ bytes, ...reply }) => ({ ...reply, length: bytes?.length ?? null, sha256: bytes ? sha256(Buffer.from(bytes)) : null }));
+  }
+  f.report.observations.push({ label, quality, toast, worker, artifacts: after.map(file => ({ name: file.name, sha256: sha256(Buffer.from(file.encoded, 'base64')) })) });
   await f.same(doc);
   await f.dismissToasts();
 }
@@ -180,6 +231,7 @@ await f.run(async () => {
     const context = await createContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     try {
       await context.addInitScript(captureExport);
+      if (observeWorker) await context.addInitScript(observeStlReplies);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });

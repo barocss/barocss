@@ -321,7 +321,9 @@ D691 verifies the 80 × 50 × 10 mm standalone STEP box through actual Export, i
 
 D692 opens the exact D689 assembly-derived STL through the unit selector in a fresh Studio context. The independent reader confirms only the 160 × 60 × 4 mm plate. [D692](../stl-assembly-root-open-2026-11-11/README.md).
 
-Next MAIN is D693 / P2 B07, row 13. Check for a genuine kernel-unavailable STL fixture for #2425 and verify the real Worker and Studio fallback if eligible.
+D693 verifies real Worker Float32 refusal and zero files written in Automatic and Fine. Its 35-input scan finds no eligible genuine unavailable fixture. [D693](../stl-worker-availability-2026-11-11/README.md).
+
+Next MAIN is D694 / P2 B07, rows 10 and 13. Export a rotated asymmetric occurrence in actual Studio 3MF and independently verify its world-space coordinates.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D693 — measure STL availability and verify the real Worker refusal](notes/stl-worker-availability-2026-11-11/README.md).
 - [D692 — reopen the assembly root-only STL](notes/stl-assembly-root-open-2026-11-11/README.md).
 - [D691 — export and reopen the standalone STEP part](notes/step-standalone-roundtrip-2026-11-11/README.md).
 - [D690 — disclose editable CAD and assembly losses in 3MF export](notes/three-mf-loss-disclosure-2026-11-11/README.md).
