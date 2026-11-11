@@ -1,0 +1,126 @@
+{
+  "decision": "D635",
+  "tier": "FULL interface",
+  "baseCommit": "2bc83a52c014387e5a905b6c54dc7f2f47712874",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d635-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio native findings and fresh Open",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D635_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --native-finding",
+      "receiptSHA256": "4670d9e3c9d282241c6d9a4d36784999510c7afb7ad00c21a9bc10d5356aab71",
+      "pinnedSources": 808,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "checkedModelRevision": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+        "findings": [
+          [
+            "p1",
+            "assembly",
+            "PATTERN_MISALIGNED",
+            "p2 is off H1 at (5, 5, 0)"
+          ],
+          [
+            "p2",
+            "contract",
+            "HOLE_OFF_PATTERN",
+            "p2 has no \u00d84 hole on H1 at (5, 5, 0)"
+          ]
+        ],
+        "freshReopen": true,
+        "preservedApprovedWorkingModel": true
+      }
+    },
+    {
+      "label": "Desktop Studio replacement provenance regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D633_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-provenance\" --provenance",
+      "receiptSHA256": "d508c3ee2783a5465e9eb754b319a3027670f0ae06ca7849b07a735963ad4c76",
+      "pinnedSources": 808,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent task finding and native model reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/native-finding-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "4cb60a562ee67b5a68c4cbc21fe0a14a08979fc810206c23c6943f41a0bac1fd",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "findings": [
+          "PATTERN_MISALIGNED",
+          "HOLE_OFF_PATTERN"
+        ],
+        "checkedModelRevision": "58b056a06d3511042defb84a85423c77d295244ffda3e6062801a8f66b2435bc",
+        "checkedNativeSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "unchangedApprovedSHA256": "d21ea91ee499f1cbf95980776a447092db93911fef8af6abbc976795575cca1b",
+        "reopenedChecks": 2
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 180,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Decision-time revalidation details",
+    "Unresolved native gate in desktop",
+    "Dependent tasks",
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

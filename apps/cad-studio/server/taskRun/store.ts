@@ -9,7 +9,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { TaskCandidate, TaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
-import { isTaskRunReplacementProvenance, type TaskRunReplacementProvenance, type TaskRunTaskPhase } from '../../src/chat/taskRunOffer';
+import { isTaskRunNativeFailure, isTaskRunReplacementProvenance, type TaskRunNativeFailure, type TaskRunReplacementProvenance, type TaskRunTaskPhase } from '../../src/chat/taskRunOffer';
 import type { NativeRef, TaskCheckpoint } from '../../src/files/taskCheckpoint';
 import type { CandidateReviewReceipt } from '../../src/files/taskCandidateReview';
 
@@ -34,6 +34,7 @@ export interface RunTask {
   candidate?: TaskCandidate;
   submission?: TaskSubmission;
   reason?: string;
+  nativeFailure?: TaskRunNativeFailure;
 }
 export interface RunOperation {
   id: string;
@@ -173,6 +174,15 @@ function recordAt(directory: string): RunRecord {
       record.replacement.previous.runId === record.runId || record.state.tasks.length !== 1 ||
       record.state.tasks[0]?.id !== record.replacement.previous.pin.occurrence))
     return issue('RUN_CORRUPT', 'The replacement provenance is invalid.');
+  for (const task of record.state.tasks) {
+    const failure = task?.nativeFailure;
+    if (failure === undefined) continue;
+    const scope = record.state.plan.tasks.find(bound => bound.id === task.id);
+    if (!isTaskRunNativeFailure(failure) || task.phase !== 'failed' || task.reason !== 'TASK_NATIVE_GATE'
+      || task.attempt?.id !== failure.attemptId || task.attempt.base.modelDigest !== failure.baselineDigest
+      || scope?.occurrence !== failure.occurrence || scope.feature !== failure.feature)
+      return issue('RUN_CORRUPT', 'The native finding does not match its task attempt.');
+  }
   const seen = new Set<string>();
   let previous: NativeRef | undefined;
   for (const receipt of record.commits) {

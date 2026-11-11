@@ -1,3 +1,4 @@
+import type { TaskNativeFinding } from '@barocss/cad-model/team/taskExecution';
 import { isObj } from '@barocss/cad-model/util/guards';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
@@ -68,6 +69,13 @@ export interface TaskRunCheckpointPin {
 
 export type TaskRunCheckpointRequest = TaskRunLocator & TaskRunCheckpointPin;
 
+export interface TaskRunNativeFailure extends TaskNativeFinding {
+  attemptId: string;
+  baselineDigest: string;
+  occurrence: string;
+  feature: string;
+}
+
 export interface TaskRunStatus extends TaskRunLocator {
   phase: 'active' | 'paused' | 'stopped';
   revision: number;
@@ -75,7 +83,7 @@ export interface TaskRunStatus extends TaskRunLocator {
   checkpoint?: TaskRunCheckpointPin;
   replacement?: TaskRunReplacementProvenance;
   approvals?: TaskRunCheckpointPin[];
-  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; review?: TaskRunCandidatePin; rebuild?: string; replan?: TaskRunReplanPin }[];
+  tasks: { id: string; phase: TaskRunTaskPhase; reason?: string; nativeFailure?: TaskRunNativeFailure; review?: TaskRunCandidatePin; rebuild?: string; replan?: TaskRunReplanPin }[];
 }
 
 export interface TaskRunLaunch extends TaskRunStatus {
@@ -132,6 +140,15 @@ export function matchesTaskRunReplan(status: TaskRunStatus, selection: TaskRunRe
     && pin.feature === selection.pin.feature && pin.field === selection.pin.field;
 }
 
+export function isTaskRunNativeFailure(value: unknown): value is TaskRunNativeFailure {
+  return isObj(value) && Object.keys(value).length === 8 && label(value.attemptId) && hash(value.baselineDigest)
+    && label(value.occurrence) && label(value.feature)
+    && (value.gate === 'lease' || value.gate === 'validity' || value.gate === 'contract' || value.gate === 'assembly')
+    && (value.verdict === 'fail' || value.verdict === 'undecided')
+    && typeof value.code === 'string' && /^[A-Z_]{1,64}$/.test(value.code) && value.code !== 'NOT_REACHED'
+    && typeof value.message === 'string' && value.message.length > 0 && value.message.length <= 1024;
+}
+
 export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   if (!isObj(value) || !isTaskRunLocator(value) || !hash(value.baselineDigest)
     || typeof value.revision !== 'number' || !Number.isSafeInteger(value.revision) || value.revision < 0
@@ -140,6 +157,8 @@ export function isTaskRunStatus(value: unknown): value is TaskRunStatus {
   const { checkpoint, approvals, tasks, replacement } = value;
   return Array.from(tasks).every(task => isObj(task) && label(task.id) && taskPhases.has(task.phase)
     && (task.reason === undefined || typeof task.reason === 'string')
+    && (task.nativeFailure === undefined || (task.phase === 'failed' && task.reason === 'TASK_NATIVE_GATE'
+      && isTaskRunNativeFailure(task.nativeFailure) && task.nativeFailure.baselineDigest === value.baselineDigest))
     && (task.replan === undefined || (value.phase === 'active' && task.phase === 'stale' && isTaskRunReplanPin(task.replan)))
     && (task.rebuild === undefined || (value.phase === 'active' && task.phase === 'stale' && label(task.rebuild)))
     && (task.review === undefined || (value.phase === 'active' && task.phase === 'awaiting-decision'

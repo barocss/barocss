@@ -189,6 +189,8 @@ function taskRunStatus(runKey: string, record: RunRecord): TaskRunStatus {
     tasks: record.state.tasks.map(task => ({
       id: task.id, phase: task.phase, reason: task.reason, review: reviewPin(record, task.id), rebuild: rebuildPin(record, task),
       replan: replanPin(record, task),
+      nativeFailure: task.nativeFailure?.baselineDigest === record.accepted.modelDigest &&
+        task.attempt?.specRevision === record.state.specRevision ? task.nativeFailure : undefined,
     })) };
 }
 

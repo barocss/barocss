@@ -21,7 +21,7 @@ const snapshotRun = async directory => ({
   native: (await readdir(join(directory, 'native'))).sort(),
 });
 
-export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary }) {
+export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open, openFile, runRoot, turn, call, readySummary, findingMode }) {
   const run = launch.directory, terminal = taskRunTerminal(f, run);
   const oldReceipt = join(f.output, 'shared-lid-old.bcad-candidate');
   const save = async (name, doc) => {
@@ -101,6 +101,49 @@ export async function taskRunSharedInterfaceFlow({ f, row, source, launch, open,
   for (const id of ['p1', 'p2']) {
     await failureRow.getByText(id + ' · failed · TASK_NATIVE_GATE', { exact: true }).waitFor();
     assert.equal(await button(failureRow, 'Review candidate ' + id).count(), 0);
+  }
+  if (findingMode) {
+    f.phase = 'read both native gate findings against the exact conflicting baseline';
+    const expected = [
+      ['p1', 'assembly', 'PATTERN_MISALIGNED', 'p2 is off H1 at (5, 5, 0)'],
+      ['p2', 'contract', 'HOLE_OFF_PATTERN', 'p2 has no Ø4 hole on H1 at (5, 5, 0)'],
+    ];
+    const verifyFindings = async (status, card) => {
+      assert.equal(status.runId, conflict.runId);
+      assert.equal(status.baselineDigest, record.accepted.modelDigest);
+      for (const [id, gate, code, message] of expected) {
+        const task = record.state.tasks.find(task => task.id === id);
+        const detail = { gate, verdict: 'fail', code, message, attemptId: task.attempt.id,
+          baselineDigest: record.accepted.modelDigest, occurrence: id, feature: 'n1' };
+        assert.deepEqual(status.tasks.find(item => item.id === id).nativeFailure, detail);
+        assert.deepEqual(task.nativeFailure, detail);
+        const summary = card.getByText('Failed native check · ' + code, { exact: true });
+        await summary.click();
+        const block = summary.locator('..');
+        await block.getByText(message, { exact: true }).waitFor();
+        await block.getByText(id + ' / n1 · ' + gate + ' · Attempt ' + task.attempt.id, { exact: true }).waitFor();
+        await block.getByText(record.accepted.modelDigest, { exact: true }).waitFor();
+      }
+    };
+    await verifyFindings(conflict, failureRow);
+    await f.snapshot('29-native-findings-with-approved-model');
+    await writeFile(join(f.output, 'shared-incompatible-run.bcad-task'), attemptedBytes);
+
+    f.phase = 'reopen the failed run in a fresh Studio context';
+    await f.newPage();
+    await open('accepted-assembly.bcad', approved);
+    const reopened = await (await choose(f, 'reopen', () => openFile('shared-incompatible-run.bcad-task', attemptedBytes))).json();
+    assert.equal(reopened.reused, true);
+    const card = f.page.getByRole('region', { name: 'Reopened task run', exact: true });
+    await verifyFindings(reopened, card);
+    const refreshed = await refresh(card);
+    assert.deepEqual(refreshed.tasks, reopened.tasks);
+    await f.same(approved);
+    await f.snapshot('30-reopened-native-findings');
+    assert.deepEqual(await snapshotRun(run), durable);
+    assert.deepEqual(await snapshotRun(conflict.directory), conflictState);
+    f.report.observations.push({ checkedModelRevision: record.accepted.modelDigest, findings: expected,
+      freshReopen: true, preservedApprovedWorkingModel: true });
   }
   f.report.observations.push({ interfaceId: 'H1', diameterMm: 4, conflictingDiameterMm: 3,
     retiredReviewRefused: true, changedContractRefused: true, incompatibleNativeTasks: 2,

@@ -607,6 +607,55 @@ if (!(await serveTaskThread(evaluate))) {
     }, 8, revised);
   });
 
+  test('D635 retires a failed native check when the accepted model advances', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'barocss-native-finding-')), runKey = 'a'.repeat(64);
+    const source = sharedHoleDoc();
+    source.interfaces!.envelopes = [{ id: 'lid-height', part: 'p2', min: [0, 0, 20], max: [12, 8, 23.5] }];
+    const host = await TaskRunHost.create(join(root, runKey), 'housing', source, fixturePlan, fixtureLimits, 8, evaluate);
+    try {
+      const locator = { runKey, runId: host.snapshot.runId };
+      assert.equal((await host.dispatch('lid-over-envelope', 'lid', async ticket => reply(ticket, 4))).code, 'TASK_NATIVE_GATE');
+      const failed = readLocalTaskRunStatus(root, locator);
+      const finding = failed.tasks[1].nativeFailure;
+      assert.ok(finding);
+      assert.equal(finding.code, 'OUT_OF_ENVELOPE');
+      assert.equal(finding.baselineDigest, failed.baselineDigest);
+      assert.ok(isTaskRunStatus(failed));
+      assert.ok(!isTaskRunStatus({ ...failed, baselineDigest: 'b'.repeat(64) }));
+      assert.equal((await host.dispatch('base-compatible', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
+      assert.equal((await host.decide(decision(host, 'base', 'approve-compatible-base'), trusted())).code, 'RUN_ACCEPTED');
+      const accepted = readLocalTaskRunStatus(root, locator);
+      assert.notEqual(accepted.baselineDigest, failed.baselineDigest);
+      assert.equal(accepted.tasks[1].nativeFailure, undefined);
+      assert.deepEqual(host.snapshot.state.tasks[1].nativeFailure, finding);
+    } finally { host.close(); rmSync(root, { recursive: true, force: true }); }
+  });
+
+  test('D635 a late native failure cannot attach to a newer accepted model', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'barocss-late-native-finding-'));
+    const source = sharedHoleDoc(), entered = signal(), resume = signal();
+    source.interfaces!.envelopes = [{ id: 'lid-height', part: 'p2', min: [0, 0, 20], max: [12, 8, 23.5] }];
+    const host = await TaskRunHost.create(dir, 'housing', source, fixturePlan, fixtureLimits, 8, async doc => {
+      const extrude = doc.nodes[1];
+      if (extrude?.kind === 'extrude' && extrude.height === 4) { entered.send(); await resume.receive; }
+      return evaluate(doc);
+    });
+    try {
+      assert.equal((await host.dispatch('base-first', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
+      const waiting = host.dispatch('lid-waiting', 'lid', async ticket => reply(ticket, 4));
+      try {
+        await Promise.race([entered.receive, waiting.then(() => assert.fail('Expected the native check to wait.'))]);
+        assert.equal((await host.decide(decision(host, 'base', 'approve-while-lid-validates'), trusted())).code, 'RUN_ACCEPTED');
+        resume.send();
+        assert.equal((await waiting).code, 'RUN_SPEC_MOVED');
+        const task = host.snapshot.state.tasks[1];
+        assert.equal(task.phase, 'stale');
+        assert.equal(task.nativeFailure, undefined);
+        assert.equal(host.snapshot.commits.length, 1);
+      } finally { resume.send(); await Promise.allSettled([waiting]); }
+    } finally { host.close(); rmSync(dir, { recursive: true, force: true }); }
+  });
+
   test('D586 wall-time refusal keeps received usage when host validation does not return', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'barocss-run-time-bound-')), resume = signal();
     let entered = false;

@@ -376,6 +376,12 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
           disabled={disabled} onClick={() => void replan(task)}>
           {typeof working === 'object' && working.taskId === task.id && working.action === 'replan' ? 'Preparing…' : 'Prepare replacement'}
         </button>}
+        {task.nativeFailure && <details>
+          <summary>{task.nativeFailure.verdict === 'fail' ? 'Failed native check' : 'Unresolved native check'} · {task.nativeFailure.code}</summary>
+          <div>{task.nativeFailure.message}</div>
+          <div>{task.nativeFailure.occurrence} / {task.nativeFailure.feature} · {task.nativeFailure.gate} · Attempt {task.nativeFailure.attemptId}</div>
+          <div>Checked model revision <code>{task.nativeFailure.baselineDigest}</code></div>
+        </details>}
       </li>)}</ul>
       {result.replacement && <details>
         <summary>Replacement provenance</summary>

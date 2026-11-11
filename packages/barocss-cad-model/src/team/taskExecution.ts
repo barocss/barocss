@@ -8,7 +8,7 @@ import { digestOf } from '../util/digest';
 import { isObj } from '../util/guards';
 import { isUserToken, type UserToken } from './ecr';
 import { interfacesRevision } from './interfaces';
-import { integratePart, type Lease, type PartTrace } from './parts';
+import { integratePart, type Lease, type PartCode, type PartTrace } from './parts';
 import { isTaskPlan, taskDimensionEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
 
 type Identity = TaskPlanRequest['identity'];
@@ -61,6 +61,27 @@ export interface TaskCandidate {
   readonly geometry: Readonly<{ sizeMm: readonly [number, number, number]; volumeMm3: number; centroidMm: readonly [number, number, number] }>;
   readonly gates: readonly PartTrace['gates'][number]['gate'][];
 }
+export interface TaskNativeFinding {
+  gate: PartTrace['gates'][number]['gate'];
+  verdict: 'fail' | 'undecided';
+  code: PartCode;
+  message: string;
+}
+
+type TaskCandidateError = { error: TaskPlanError['error'] & { nativeFinding?: TaskNativeFinding } };
+
+function nativeGateError(trace: PartTrace): TaskCandidateError {
+  for (const { gate, verdict, findings } of trace.gates) {
+    if (verdict !== 'fail' && verdict !== 'undecided') continue;
+    const finding = findings.find(item => item.code !== 'NOT_REACHED');
+    if (finding && finding.code !== 'NOT_REACHED') {
+      const { code, message } = finding;
+      return { error: { code: 'TASK_NATIVE_GATE', message, nativeFinding: { gate, verdict, code, message } } };
+    }
+  }
+  return failure('TASK_NATIVE_GATE', 'the native candidate did not pass its gates');
+}
+
 interface CandidateRecord {
   plan: TaskPlan;
   task: BoundTask;
@@ -185,7 +206,7 @@ export async function verifyProtectedTaskChecks(doc: StudioDoc, protectedOccurre
 export async function buildTaskCandidate(
   plan: TaskPlan, state: ChatState, submission: TaskSubmission, context: TaskWorkerContext, evaluate: Evaluate,
   prerequisites: readonly TaskCandidate[] = [],
-): Promise<TaskCandidate | TaskPlanError> {
+): Promise<TaskCandidate | TaskCandidateError> {
   const baseline = taskBaselineProblem(plan, state.doc, context);
   if (baseline) return baseline;
   const submitted = readTaskSubmission(submission);
@@ -211,7 +232,7 @@ export async function buildTaskCandidate(
   const { args, doc: expected, local, shape, height } = edit;
   const patch = { id: task.id, by: task.holder, part: task.occurrence, contract: interfacesRevision(doc), ops: [{ tool: 'edit_feature', args }] };
   const staged = await integratePart(own, patch, context.leases, evaluate, context.sequence, { requireCompleteAssembly: true });
-  if (staged.trace.decision !== 'applied') return failure('TASK_NATIVE_GATE', staged.trace.gates.flatMap(g => g.findings).find(f => f.code !== 'NOT_REACHED')?.message ?? 'the native candidate did not pass its gates');
+  if (staged.trace.decision !== 'applied') return nativeGateError(staged.trace);
   const candidate = staged.state.doc;
   if (digestOf(candidate) !== digestOf(expected))
     return failure('TASK_SCOPE_CHANGED', 'the candidate changed something outside the owned dimension');

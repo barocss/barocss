@@ -168,7 +168,7 @@ export class TaskRunHost {
       && record.epoch === ticket.attempt.epoch && record.state.phase !== 'stopped' ? task : undefined;
   }
 
-  private conclude(ticket: WorkerTicket, op: RunOperation, update: Pick<RunTask, 'phase' | 'reason' | 'candidate' | 'submission'>, usage?: number): HostOutcome {
+  private conclude(ticket: WorkerTicket, op: RunOperation, update: Pick<RunTask, 'phase' | 'reason' | 'candidate' | 'submission' | 'nativeFailure'>, usage?: number): HostOutcome {
     const record = this.store.snapshot, task = this.owns(record, ticket);
     if (!task) return this.refusal(op, 'RUN_LATE_RESULT');
     const reservation = ticket.attempt.reservation;
@@ -267,15 +267,22 @@ export class TaskRunHost {
     const context = taskContext(plan, doc, bound, current.state.sequence, attempt.leaseUntil);
     try {
       const candidate = await until(deadline, () => buildTaskCandidate(plan, { doc, bodies: [] }, submission, { ...context, worker: bound.holder }, this.evaluate));
-      if ('error' in candidate) return this.conclude(ticket, op, { phase: 'failed', reason: candidate.error.code }, usage);
-      if (reply.nativeGateRefused === true ||
-          (reply.nativeCandidateDigest !== undefined && reply.nativeCandidateDigest !== candidate.candidateDigest))
-        return this.conclude(ticket, op, { phase: 'failed', reason: 'RUN_WORKER_EVIDENCE_MISMATCH' }, usage);
       const latest = this.store.snapshot;
       if (latest.accepted.sha256 !== record.accepted.sha256 || latest.state.specRevision !== plan.specRevision)
         return this.conclude(ticket, op, { phase: 'stale', reason: 'RUN_SPEC_MOVED', submission }, usage);
       if (latest.state.sequence > attempt.leaseUntil)
         return this.conclude(ticket, op, { phase: 'stale', reason: 'RUN_LEASE_EXPIRED' }, usage);
+      if ('error' in candidate) {
+        const { code, nativeFinding } = candidate.error;
+        const nativeFailure = nativeFinding && {
+          ...nativeFinding, message: nativeFinding.message.slice(0, 1024), attemptId: attempt.id,
+          baselineDigest: attempt.base.modelDigest, occurrence: bound.occurrence, feature: bound.feature,
+        };
+        return this.conclude(ticket, op, { phase: 'failed', reason: code, nativeFailure }, usage);
+      }
+      if (reply.nativeGateRefused === true ||
+          (reply.nativeCandidateDigest !== undefined && reply.nativeCandidateDigest !== candidate.candidateDigest))
+        return this.conclude(ticket, op, { phase: 'failed', reason: 'RUN_WORKER_EVIDENCE_MISMATCH' }, usage);
       return this.conclude(ticket, op, { phase: 'awaiting-decision', candidate, submission }, usage);
     } catch (error) {
       if (error instanceof RunStoreError) throw error;
