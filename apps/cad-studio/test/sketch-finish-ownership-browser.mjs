@@ -1,13 +1,15 @@
 // D574 / #2364. Run under the heavy gate from apps/cad-studio.
 // D574_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=repro|fixed
+// D734_SOURCE_FROZEN=1 node test/sketch-finish-ownership-browser.mjs EXTERNAL_OUTPUT --expect=transitions
 import assert from 'node:assert/strict';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 assert.ok(output && isAbsolute(output) && relative(resolve(import.meta.dirname, '../../..'), output).startsWith('../'));
-assert.ok(['--expect=repro', '--expect=fixed'].includes(mode));
+assert.ok(['--expect=repro', '--expect=fixed', '--expect=transitions'].includes(mode));
 const repro = mode === '--expect=repro';
+const transitions = mode === '--expect=transitions';
 const fixture = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
@@ -40,9 +42,11 @@ const pins = [
   'apps/cad-studio/test/sketch-finish-ownership-browser.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'apps/cad-studio/src/engine/client.ts',
   'packages/barocss-cad-model/src/engine/wireDoc.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts',
+  ...(transitions ? ['apps/cad-studio/src/ui/useWorkspaceModeExit.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-finish-ownership', envFrozen: 'D574_SOURCE_FROZEN', output, qualification: 'D574 #2364 desktop',
+  name: 'sketch-finish-ownership', envFrozen: transitions ? 'D734_SOURCE_FROZEN' : 'D574_SOURCE_FROZEN', output,
+  qualification: transitions ? 'D734 #2364 workspace transitions and reversed replies' : 'D574 #2364 desktop',
   initialFiles: pins, requiredFrozen: pins, oracleSource,
   limits: ['One ordinary reopened rectangle and extrusion. The test holds an actual successful evaluate reply without changing it.'],
   snapshotExtra: () => ({
@@ -105,6 +109,51 @@ function installReplyHold() {
   };
 }
 
+function installSequenceHold() {
+  const worker = Worker.prototype;
+  const onMessage = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  if (!onMessage?.set) throw new Error('Worker onmessage setter required');
+  const post = worker.postMessage;
+  let remaining = 0;
+  const requests = [];
+  worker.postMessage = function (request, ...args) {
+    if (remaining && request?.type === 'evaluate') {
+      remaining--;
+      requests.push({ worker: this, id: request.id, revision: request.revision });
+    }
+    return Reflect.apply(post, this, [request, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true, get: onMessage.get,
+    set(callback) {
+      onMessage.set.call(this, callback && function (event) {
+        const request = requests.find(request => request.worker === this && request.id === event.data?.id);
+        if (request && !request.reply && event.data.result) {
+          request.reply = { ok: event.data.result.ok, revision: event.data.result.revision };
+          request.deliver = () => callback.call(this, event);
+          return;
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+  window.__d734Hold = {
+    arm(count) {
+      if (remaining || requests.length) throw new Error('The sequence can be armed only once');
+      remaining = count;
+    },
+    read: () => requests.map(({ id, revision, reply }) => ({ id, revision, reply })),
+    async release(index) {
+      const request = requests[index];
+      if (!request?.deliver) throw new Error('The real Worker reply must be held');
+      const deliver = request.deliver;
+      request.deliver = null;
+      deliver();
+      await new Promise(done => setTimeout(done, 0));
+    },
+  };
+}
+
 async function open(file, expected) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles(file);
@@ -156,6 +205,106 @@ async function saveThenReopen(label, doc, width) {
   await physical(label + '-fresh-open', await f.doc(), width);
 }
 
+async function verifyPendingTransitions() {
+  const tab = name => f.page.getByRole('group', { name: 'Mode', exact: true }).getByRole('button', { name, exact: true });
+  const dialog = () => f.page.getByRole('dialog', { name: 'Discard sketch changes?', exact: true });
+  const arm = count => f.page.evaluate(count => window.__d734Hold.arm(count), count);
+  const release = index => f.page.evaluate(index => window.__d734Hold.release(index), index);
+  const held = async count => {
+    await f.page.waitForFunction(count => {
+      const requests = window.__d734Hold.read();
+      return requests.length === count && requests.every(request => request.reply);
+    }, count);
+    const requests = await f.page.evaluate(() => window.__d734Hold.read());
+    assert.ok(requests.every(({ revision, reply }) => reply.ok && revision === reply.revision));
+    return requests;
+  };
+  const sameState = (after, before) => {
+    for (const key of ['doc', 'bodies', 'selection', 'notices', 'history', 'historyControls', 'dirty', 'fileName']) {
+      assert.deepEqual(after[key], before[key], key);
+    }
+  };
+  const begin = async count => {
+    await f.newPage();
+    await open(input, fixture);
+    await reopen();
+    await setWidth(50);
+    await arm(count);
+    await finish();
+  };
+
+  for (const name of ['Model', 'Drawing', 'Render']) {
+    const label = 'discard-to-' + name.toLowerCase();
+    f.phase = label;
+    await begin(1);
+    const requests = await held(1);
+    await tab(name).click();
+    await dialog().getByRole('button', { name: 'Discard changes', exact: true }).click();
+    await dialog().waitFor({ state: 'hidden' });
+    await f.sketchPanel().waitFor({ state: 'hidden' });
+    await f.same(fixture);
+    assert.match(await tab(name).getAttribute('class'), /\bon\b/);
+    const before = await f.snapshot(label + '-before-reply');
+    await release(0);
+    await f.same(fixture);
+    const after = await f.snapshot(label + '-after-reply');
+    sameState(after, before);
+    assert.match(await tab(name).getAttribute('class'), /\bon\b/);
+    await physical(label, after.doc, 40);
+    f.report.observations.push({ mode: name, requests, volume: 8000 });
+  }
+
+  f.phase = 'Keep the current draft during a pending Drawing exit';
+  await begin(1);
+  const current = await held(1);
+  await tab('Drawing').click();
+  await dialog().getByRole('button', { name: 'Keep editing', exact: true }).click();
+  await dialog().waitFor({ state: 'hidden' });
+  assert.equal(await widthInput().inputValue(), '50');
+  await release(0);
+  await f.changed(fixture);
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  const kept = await f.snapshot('keep-editing-and-finish');
+  await physical('keep-editing-and-finish', kept.doc, 50);
+  await f.undo();
+  await f.same(fixture);
+  f.report.observations.push({ mode: 'Drawing', kept: true, requests: current, volume: 10000 });
+
+  for (const reverse of [false, true]) {
+    const label = reverse ? 'newer-then-older' : 'older-then-newer';
+    f.phase = label;
+    await begin(2);
+    await held(1);
+    await setWidth(60);
+    await finish();
+    const requests = await held(2);
+    assert.ok(requests[0].id < requests[1].id && requests[0].revision < requests[1].revision);
+    const before = await f.snapshot(label + '-both-held');
+    if (!reverse) {
+      await release(0);
+      await f.same(fixture);
+      sameState(await f.snapshot(label + '-after-older'), before);
+      assert.equal(await widthInput().inputValue(), '60');
+    }
+    await release(1);
+    await f.changed(fixture);
+    await f.sketchPanel().waitFor({ state: 'hidden' });
+    const newest = await f.snapshot(label + '-after-newer');
+    await physical(label, newest.doc, 60);
+    if (reverse) {
+      await release(0);
+      await f.same(newest.doc);
+      sameState(await f.snapshot(label + '-after-older'), newest);
+    }
+    await f.undo();
+    await f.same(fixture);
+    await f.redo();
+    await f.same(newest.doc);
+    f.report.observations.push({ order: reverse ? [1, 0] : [0, 1], requests, volume: 12000 });
+  }
+  await saveThenReopen('D734-current-60', await f.doc(), 60);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   f.report.runtimeOwnership = { nodePID: process.pid, serverURL: origin };
@@ -164,7 +313,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     try {
-      await context.addInitScript(installReplyHold);
+      await context.addInitScript(transitions ? installSequenceHold : installReplyHold);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -177,6 +326,13 @@ await f.run(async () => {
       throw error;
     }
   };
+
+  if (transitions) {
+    await verifyPendingTransitions();
+    f.report.productResult = 'PASS';
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   for (const action of ['cancel', 'edit-again']) {
     f.phase = action + ' while Finish is pending';
