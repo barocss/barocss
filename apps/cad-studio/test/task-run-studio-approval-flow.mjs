@@ -7,7 +7,7 @@ const base = '/api/chat/task-runs/';
 const matches = action => response => new URL(response.url()).pathname === base + action && response.request().method() === 'POST';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 
-export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver }) {
+export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver, siblingDiameter = false }) {
   const run = launch.directory, file = join(run, 'run.json');
   const durable = async () => ({ bytes: await readFile(file), entries: (await readdir(run)).sort() });
   const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
@@ -19,7 +19,8 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
     const [response] = await Promise.all([f.page.waitForResponse(matches('review')), button(row, 'Review candidate ' + id).click()]);
     assert.equal(response.status(), 200);
     const envelope = await response.json(), { receipt, digest } = JSON.parse(envelope.review);
-    await review.getByText('Height · ' + before + ' mm → ' + after + ' mm', { exact: true }).waitFor();
+    const dimension = siblingDiameter && id === 'p2' ? 'Diameter' : 'Height';
+    await review.getByText(dimension + ' · ' + before + ' mm → ' + after + ' mm', { exact: true }).waitFor();
     assert.equal(await button(review, 'Approve candidate').isEnabled(), true);
     assert.equal(receipt.submission.taskId, id);
     return { ...response.request().postDataJSON(), reviewRevision: receipt.revision, controlRevision: envelope.controlRevision, receiptDigest: digest };
@@ -27,7 +28,7 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
 
   f.phase = 'review both candidates without publishing a model';
   const initial = await durable();
-  const retired = await readReview('p2', 3, 4);
+  const retired = await readReview('p2', ...(siblingDiameter ? [4, 6] : [3, 4]));
   await button(review, 'Show accepted model').click();
   assert.equal(await button(review, 'Approve candidate').isDisabled(), true);
   const request = await readReview('p1', 5, 6);
@@ -70,7 +71,7 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
   assert.deepEqual(await duplicate.json(), status);
   assert.deepEqual(await durable(), approved);
 
-  if (deliver) return deliver({ firstStatus: status, firstRecord: record, readReview });
+  if (deliver) return deliver({ firstStatus: status, firstRecord: record, readReview, retired });
 
   f.phase = 'reopen and open the exact Studio-approved checkpoint';
   await f.newPage();

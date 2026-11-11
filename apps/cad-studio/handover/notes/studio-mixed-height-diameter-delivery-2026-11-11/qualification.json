@@ -1,0 +1,132 @@
+{
+  "decision": "D647",
+  "tier": "FEATURE qualification",
+  "baseCommit": "59d17d0907504e4bc06ead7a6a6d44635f8fc150",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d647-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio mixed height and through-hole diameter delivery",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D647_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --mixed-diameter",
+      "receiptSHA256": "46537168ac8adf4f0a3644b24759b371512068ffdc87d09c6f8d884aed3f9617",
+      "pinnedSources": 812,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "studioApprovals": [
+          "p1",
+          "p2"
+        ],
+        "terminalDecisions": 0,
+        "studioRebuilds": 1,
+        "originalDiameterAttempt": "2:2:p2",
+        "rebuiltDiameterAttempt": "4:3:p2",
+        "retiredApprovalStatus": 409,
+        "heightMm": [
+          5,
+          6
+        ],
+        "diameterMm": [
+          4,
+          6
+        ],
+        "finalVerdicts": [
+          "pass",
+          "pass"
+        ],
+        "runRevisions": [
+          9,
+          13,
+          16
+        ],
+        "originalEvidenceRevision": "4748ea3af57625f585a87c6f5df78072ba2ca0e49f16ca18d908dbd90a90b55d",
+        "finalEvidenceRevision": "17e9955ff1e1e39e58b9f0404a61fc8e3c648314f65396385fb9fb6530b2af45",
+        "sourcePreserved": true,
+        "freshProjectOpen": true
+      }
+    },
+    {
+      "label": "Independent checkpoint, approval ancestry, native cylinder and current evidence reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/mixed-diameter-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "131d6de0454e1ec08fdc3c19c0e413e70fe316a6186be0ad07136ffed4393f2a",
+      "resultSHA256": "99940a7562efd59617171c7fa632f7b4f30d28697d0c41d857614c5094179a00",
+      "productImports": 0,
+      "sourceSHA256": "011ca8f062234612361328c1f37351296322c0172bf7f3310131c15a7c8fdbd4",
+      "firstSHA256": "675a5a40edb55e936e32d35120b85e05e0853540bce0f5a21b4dbdbc2a32ee2e",
+      "finalSHA256": "9dd907f56f1fc937050678f995a83478fb076c3c7a897f8b147d7a7bd29d4c67",
+      "recordSHA256": "1429fea9c78b1cbaaea5798b2e0e8de2ad4ac2248334cfd886c9451eacd6de24",
+      "nativeVolumeMm3": 7030.3539967061515,
+      "centroidMm": [
+        20.193044052545098,
+        15.144783039408825,
+        3
+      ]
+    },
+    {
+      "label": "Desktop Studio two-height delivery regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D644_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-studio-delivery\" --studio-delivery",
+      "receiptSHA256": "dbc7911097613dae261b8ef0b5da522319a38f720f753dba072d5dcd08e7edd9",
+      "pinnedSources": 812,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio independent through-hole regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D646_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-hole-diameter\" --hole-diameter",
+      "receiptSHA256": "fca78bc96266c4c698df91e44da94b0f58da597b684bf4ab9f6e2b003b63306e",
+      "pinnedSources": 810,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent task-candidate task-checkpoint proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 182,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Browser syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Live provider execution",
+    "Exchange export",
+    "Production build",
+    "Whole kernel suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

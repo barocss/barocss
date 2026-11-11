@@ -7,7 +7,11 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview }) {
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false }) {
+  const prefix = siblingDiameter ? 'd647' : 'd644';
+  const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
+  const firstHeights = [6, siblingDiameter ? 6 : 3], finalHeights = [6, siblingDiameter ? 6 : 4];
+  const originalDimensions = [5, siblingBefore], finalDimensions = [6, siblingAfter];
   const directory = launch.directory, runFile = join(directory, 'run.json');
   const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   const files = () => versions().getByRole('list', { name: 'Project documents', exact: true });
@@ -42,7 +46,7 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     await writeFile(join(f.output, name + '.bcad-run'), checkpoint);
     return native;
   };
-  const checkHeights = async (label, doc, heights, verdict) => {
+  const checkDimensions = async (label, doc, dimensions, verdict) => {
     const { revision, results } = await turn(label, parts.map(part => ({ tool: 'requirements', args: { action: 'evidence', part } })),
       { requirementEvidence: true });
     for (const [index, { error, body }] of results.entries()) {
@@ -54,7 +58,7 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
       assert.deepEqual([report.part, report.revision, report.checker], [part, revision, 'checkSpec']);
       assert.deepEqual(item.requirement, doc.instances[index].doc.requirements[0]);
       assert.deepEqual([item.requirement.hard, item.result.subject, item.result.part, item.result.run, item.result.status,
-        item.result.verdict, item.result.number, item.freshness.state], [true, item.requirement.id, part, revision, 'ok', verdict, heights[index], 'current']);
+        item.result.verdict, item.result.number, item.freshness.state], [true, item.requirement.id, part, revision, 'ok', verdict, dimensions[index], 'current']);
       await writeFile(join(f.output, label + '-' + part + '.json'), artifact.text);
     }
     await f.same(doc);
@@ -62,8 +66,8 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   };
 
   f.phase = 'check the unchanged source and open the first Studio approval';
-  const originalEvidence = await checkHeights('d644-source', source, [5, 3], 'fail');
-  const first = await openCheckpoint(firstStatus, 'd644-first', saved, [6, 3]);
+  const originalEvidence = await checkDimensions(prefix + '-source', source, originalDimensions, 'fail');
+  const first = await openCheckpoint(firstStatus, prefix + '-first', saved, firstHeights);
   const firstDoc = JSON.parse(first);
   await f.snapshot('09-first-studio-checkpoint');
 
@@ -84,9 +88,10 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   await f.same(firstDoc);
 
   f.phase = 'approve the rebuilt p2 from its actual Studio preview';
-  const pinned = await readReview('p2', 3, 4);
+  const pinned = await readReview('p2', siblingBefore, siblingAfter);
   assert.deepEqual([pinned.baselineDigest, pinned.attemptId, pinned.candidateDigest], [firstStatus.baselineDigest, fresh.attemptId, fresh.candidateDigest]);
-  await bounds([6, 4]);
+  if (siblingDiameter) await review.getByText('Volume change · -94.248 mm³', { exact: true }).waitFor();
+  await bounds(finalHeights);
   await f.same(firstDoc);
   await f.snapshot('10-second-studio-candidate');
   const approval = await capture('approve', button(review, 'Approve candidate'));
@@ -105,9 +110,10 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   assert.deepEqual(record.commits[1].to, record.accepted);
   assert.ok(record.commits.every(commit => commit.operationId.startsWith('studio:approve:')));
   assert.equal(record.pending, undefined);
-  const native = await openCheckpoint(complete, 'd644-complete', first, [6, 4]), doc = JSON.parse(native);
+  const native = await openCheckpoint(complete, prefix + '-complete', first, finalHeights), doc = JSON.parse(native);
   const expected = structuredClone(firstDoc.instances);
-  expected[1].doc.nodes[1].height = 4;
+  if (siblingDiameter) expected[1].doc.nodes[2].radius = 3;
+  else expected[1].doc.nodes[1].height = siblingAfter;
   assert.deepEqual(doc.instances, expected);
   await f.snapshot('11-both-studio-approved');
 
@@ -130,19 +136,26 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   await button(versions(), 'Project in this browser').click();
   await button(files(), 'Open ' + name).click();
   await f.same(doc);
-  await bounds([6, 4]);
+  await bounds(finalHeights);
   const reopened = await f.snapshot('12-fresh-project-open');
   const reopenedBytes = Buffer.from(JSON.stringify(reopened.doc, null, 2));
   assert.deepEqual(reopenedBytes, native);
-  await writeFile(join(f.output, 'd644-reopened.bcad'), reopenedBytes);
-  const finalEvidence = await checkHeights('d644-delivered', doc, [6, 4], 'pass');
+  await writeFile(join(f.output, prefix + '-reopened.bcad'), reopenedBytes);
+  const finalEvidence = await checkDimensions(prefix + '-delivered', doc, finalDimensions, 'pass');
+  if (siblingDiameter) {
+    const actual = await f.inspect(prefix + '-reopened-bore', reopened.doc, 'sibling-hole-native-evidence');
+    assert.deepEqual([actual.face.kind, actual.face.outer, actual.face.radius], ['cylinder', false, 3]);
+    assert.ok(Math.abs(actual.volumeMm3 - (1200 - 9 * Math.PI) * 6) < 1e-8);
+  }
   assert.notEqual(finalEvidence, originalEvidence);
   assert.deepEqual(await savedBytes(), saved);
   assert.deepEqual(await savedBytes(name), native);
   assert.deepEqual(await readFile(runFile), completedBytes);
-  await writeFile(join(f.output, 'd644-run.json'), completedBytes);
-  await writeFile(join(f.output, 'd644-delivery.json'), JSON.stringify({ firstStatus, rebuilt, complete, pinned, originalEvidence, finalEvidence }));
-  f.report.observations.push({ studioApprovals: parts, studioRebuilds: 1, terminalDecisions: 0, originalHeightsMm: [5, 3],
-    finalHeightsMm: [6, 4], finalVerdicts: ['pass', 'pass'], oldAttempt, rebuiltAttempt: fresh.attemptId,
+  await writeFile(join(f.output, prefix + '-run.json'), completedBytes);
+  await writeFile(join(f.output, prefix + '-delivery.json'), JSON.stringify({ firstStatus, rebuilt, complete, pinned, retired, originalEvidence, finalEvidence }));
+  const measurements = siblingDiameter ? { heightMm: [5, 6], diameterMm: [4, 6] }
+    : { originalHeightsMm: originalDimensions, finalHeightsMm: finalDimensions };
+  f.report.observations.push({ studioApprovals: parts, studioRebuilds: 1, terminalDecisions: 0, ...measurements,
+    finalVerdicts: ['pass', 'pass'], oldAttempt, rebuiltAttempt: fresh.attemptId,
     nativeSHA256: sha256(native), sourcePreserved: true, freshProjectOpen: true, approvalRecordSHA256: sha256(completedBytes) });
 }

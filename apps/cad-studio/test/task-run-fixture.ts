@@ -39,6 +39,11 @@ export function holeDiameterDocs() {
     holePatterns: [{ id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[12, 9, 0]], parts: ['p1', 'p2'] }] };
   return { source, shared };
 }
+export function mixedDiameterDoc(): StudioDoc {
+  const doc = fixtureDoc();
+  doc.instances![1].doc = holeDiameterDocs().source.instances![0].doc;
+  return doc;
+}
 export function threeOccurrenceDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });

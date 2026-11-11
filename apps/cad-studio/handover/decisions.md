@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D647 — deliver a mixed height and through-hole diameter run in Studio](notes/studio-mixed-height-diameter-delivery-2026-11-11/README.md).
 - [D646 — approve an existing through-hole diameter in Studio](notes/studio-through-hole-diameter-task-2026-11-11/README.md).
 - [D645 — reject one reviewed candidate in Studio](notes/studio-reviewed-worker-rejection-2026-11-11/README.md).
 - [D644 — deliver a two-task assembly through Studio approval and project Save](notes/studio-two-task-native-delivery-2026-11-11/README.md).
