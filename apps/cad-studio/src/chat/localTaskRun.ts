@@ -18,7 +18,7 @@ async function postLocalTaskRun(action: string, body: Blob | string, progress = 
   return res;
 }
 
-export async function localTaskRunJSON(action: 'start' | 'reopen' | 'rebuild' | 'review' | 'status', body: Blob | string,
+export async function localTaskRunJSON(action: 'start' | 'stop' | 'reopen' | 'rebuild' | 'review' | 'status', body: Blob | string,
   onAdmitted?: (value: unknown) => void) {
   const progress = action === 'start' && onAdmitted !== undefined;
   const res = await postLocalTaskRun(action, body, progress);

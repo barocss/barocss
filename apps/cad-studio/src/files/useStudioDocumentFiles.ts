@@ -189,6 +189,12 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
   const refreshTaskRun = async (run: TaskRunLocator & { revision: number }): Promise<TaskRunStatus> =>
     checkedRunStatus(run, await localTaskRunJSON('status', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
 
+  const stopTaskRun = async (run: TaskRunStatus): Promise<TaskRunStatus> => {
+    const stopped = checkedRunStatus(run, await localTaskRunJSON('stop', JSON.stringify({ runKey: run.runKey, runId: run.runId })));
+    if (stopped.phase !== 'stopped') throw new Error('The local task run service did not confirm Stop.');
+    return stopped;
+  };
+
   const requireCurrentReplacement = async (selection: TaskRunReplanSelection) => {
     if (!matchesTaskRunReplan(await refreshTaskRun(selection), selection))
       throw new Error('The stale task changed. Refresh the local run before replanning.');
@@ -544,5 +550,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, cancelLocalCandidateReview, meshImport, editRepair };
 }

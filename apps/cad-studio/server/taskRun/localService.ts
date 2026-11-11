@@ -6,6 +6,7 @@ import { createInterface } from 'node:readline';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { userToken } from '@barocss/cad-model/team/ecr';
 import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { readTaskSubmission } from '@barocss/cad-model/team/taskExecution';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
@@ -24,28 +25,32 @@ export class LocalRunRequestError extends Error {
 
 type LocalRunReply = { result: TaskRunLaunch } | { status: number; error: string };
 type AdmissionNotice = (run: TaskRunLaunch) => void;
+type BindRunControl = (run: TaskRunLaunch, stop: () => void) => (() => void) | void;
 
 type HandoffAction = 'start' | 'reopen';
 type LocalRunAction = HandoffAction | 'rebuild';
 
 function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
+  // Only the process that admitted Start can stop its live workers.
+  const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root, action], {
+    stdio: ['pipe', 'pipe', 'inherit', ...(action === 'start' ? ['ipc' as const] : [])],
+  });
+  const stop = (run: TaskRunLocator) => {
+    if (child.connected) child.send({ action: 'stop', run }, () => { /* The final reply confirms the durable result. */ });
+  };
   let notifyAdmission!: (value: TaskRunLaunch | undefined) => void;
   const admission = new Promise<TaskRunLaunch | undefined>(resolve => { notifyAdmission = resolve; });
   const result = new Promise<TaskRunLaunch>((resolve, reject) => {
-    // The local runner has a separate PID and a fresh native blob store for each admission.
-    const child = spawn(process.execPath, [fileURLToPath(new URL('./localTaskRun.mjs', import.meta.url)), root, action], {
-      stdio: ['pipe', 'pipe', 'inherit'],
-    });
     let reply: LocalRunReply | undefined, processError = false;
     const markFailed = () => { processError = true; };
-    createInterface({ input: child.stdout }).on('line', line => {
+    createInterface({ input: child.stdout! }).on('line', line => {
       try {
         const frame = JSON.parse(line) as LocalRunReply | { admitted: TaskRunLaunch };
         if ('admitted' in frame) notifyAdmission(frame.admitted);
         else reply = frame;
       } catch { markFailed(); }
     });
-    child.stdin.on('error', markFailed);
+    child.stdin!.on('error', markFailed);
     child.once('error', markFailed);
     child.once('close', code => {
       notifyAdmission(undefined);
@@ -54,9 +59,9 @@ function runInProcess(root: string, bytes: Uint8Array, action: LocalRunAction) {
       if ('result' in reply) resolve(reply.result);
       else reject(new LocalRunRequestError(reply.status, reply.error));
     });
-    child.stdin.end(bytes);
+    child.stdin!.end(bytes);
   });
-  return { admission, result };
+  return { admission, result, stop };
 }
 
 export function createLocalTaskRuns(root: string) {
@@ -69,7 +74,7 @@ export function createLocalTaskRuns(root: string) {
     const [result] = await Promise.all([run.result, notify]);
     return reused ? { ...result, reused: true } : result;
   };
-  return async (bytes: Uint8Array, action: LocalRunAction, onAdmitted?: AdmissionNotice): Promise<TaskRunLaunch> => {
+  const run = async (bytes: Uint8Array, action: LocalRunAction, onAdmitted?: AdmissionNotice): Promise<TaskRunLaunch> => {
     const bytesHash = sha256Hex(bytes);
     if (active) {
       if (active.action === action && active.bytesHash === bytesHash) return follow(active, true, onAdmitted);
@@ -81,6 +86,21 @@ export function createLocalTaskRuns(root: string) {
     void run.result.then(release, release);
     return follow(run, false, onAdmitted);
   };
+  const stop = async (request: unknown): Promise<TaskRunStatus> => {
+    if (!isTaskRunLocator(request) || Object.keys(request).length !== 2)
+      throw new LocalRunRequestError(400, 'Invalid local task run locator.');
+    const current = active;
+    const admitted = current?.action === 'start' ? await current.admission : undefined;
+    if (current && admitted?.runKey === request.runKey && admitted.runId === request.runId) {
+      current.stop(request);
+      const final = await current.result;
+      if (final.phase === 'stopped') return readLocalTaskRunStatus(root, request);
+    }
+    const status = readLocalTaskRunStatus(root, request);
+    if (status.phase === 'stopped') return status;
+    throw new LocalRunRequestError(409, 'The local run has finished starting. Stop it from the terminal.');
+  };
+  return { run, stop };
 }
 
 function privateDirectory(path: string) {
@@ -148,7 +168,7 @@ async function verifyReplacement(root: string, { replaces, doc, offer }: Prepare
   return { previous: replaces, acceptedSHA256: record.accepted.sha256, inputDigest: task.attempt.inputDigest };
 }
 
-async function launchLocalTaskRun(root: string, prepared: PreparedHandoff, onAdmitted?: AdmissionNotice): Promise<TaskRunLaunch> {
+async function launchLocalTaskRun(root: string, prepared: PreparedHandoff, onAdmitted?: BindRunControl): Promise<TaskRunLaunch> {
   const key = handoffRunKey(prepared);
   root = resolve(root);
   const created = mkdirSync(root, { recursive: true, mode: 0o700 });
@@ -172,7 +192,9 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff, onAdm
   privateDirectory(directory);
   syncDirectory(privateRoot);
   try {
-    await startLocalTaskRun(directory, prepared, replacement, onAdmitted && (() => onAdmitted(inspect(false))));
+    await startLocalTaskRun(directory, prepared, replacement, onAdmitted && (host => onAdmitted(inspect(false), () => {
+      host.control('studio:stop', 'stop', userToken(new Date().toISOString()));
+    })));
     return inspect(false);
   }
   catch (error) {
@@ -183,7 +205,7 @@ async function launchLocalTaskRun(root: string, prepared: PreparedHandoff, onAdm
   }
 }
 
-export async function runLocalTaskHandoff(root: string, bytes: Uint8Array, action: HandoffAction = 'start', onAdmitted?: AdmissionNotice): Promise<LocalRunReply> {
+export async function runLocalTaskHandoff(root: string, bytes: Uint8Array, action: HandoffAction = 'start', onAdmitted?: BindRunControl): Promise<LocalRunReply> {
   try {
     const prepared = await prepareTaskRunHandoff(bytes).catch((error: unknown) => {
       throw new LocalRunRequestError(400, error instanceof Error ? error.message : 'Invalid task run handoff.');

@@ -1,0 +1,124 @@
+{
+  "decision": "D641",
+  "tier": "FEATURE qualification",
+  "baseCommit": "a5a5c10d7a6d5fa09b3a13e4f0b3e551a972575c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "$HOME/.cache/barocss-cad-evidence/d641-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio Stop with two workers and one queued task",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D641_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --live-stop",
+      "receiptSHA256": "5b38a82b8fd1425feebee853184703d1994f93c4509b5b8e1afca085049fe461",
+      "pinnedSources": 811,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "observations": {
+        "sameWriterEpoch": true,
+        "workersAtEntry": 2,
+        "queuedWorkerAttempts": 0,
+        "stopOperations": 1,
+        "stoppedRevision": 3,
+        "unknownUsage": 4,
+        "publications": 0,
+        "wrongIdStatus": 409,
+        "extraDirectoryFieldStatus": 400,
+        "repeatedStopChangedRecord": false,
+        "localPathInChat": false,
+        "baselineHeightsMm": [
+          5,
+          3,
+          3
+        ]
+      }
+    },
+    {
+      "label": "Independent worker, Stop record and baseline byte reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/stop-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "dd304f3141fddd1190cbc562f633e8664601073b2eaed5a11427a360bfbc217d",
+      "resultSHA256": "30c66d3eb00d76e2c9b58a5725b12a9bada4f1151f3e1380e69f1906332828a5",
+      "productImports": 0,
+      "baselineSHA256": "5495ae96f4441b7acf4c51252b4bae1d12fcb9b58f24340dfd5a35de580a2be3",
+      "stoppedRecordSHA256": "013c3ca05764982041aabba4e763563eb7b27e81e1b4a1e15a55260ed132e265"
+    },
+    {
+      "label": "Desktop Studio live Start and explicit approval regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D640_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-live-start\" --live-start",
+      "receiptSHA256": "0c82ab66e513902b4dbac7bca7cca3a57f0c3d2da01f26c1839be5ed5ef1578e",
+      "pinnedSources": 811,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Desktop Studio stopped native finding regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D639_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/regression-stopped-finding\" --stopped-finding",
+      "receiptSHA256": "eeda7c111b7abf579a3adf0d9677eacf7e0003e28d64cc2528f7e507457edab9",
+      "pinnedSources": 809,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    {
+      "label": "Focused Studio tests including late worker reply after Stop",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent proposal chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 181,
+      "fail": 0,
+      "skipped": 0,
+      "lateReplyCode": "RUN_LATE_RESULT"
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>",
+      "existingWarnings": 2,
+      "errors": 0
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser module syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [],
+  "notRun": [
+    "Stop during kernel evaluation",
+    "Stop from a reopened active card",
+    "Forced runner exit",
+    "Live provider execution",
+    "Whole CAD suites",
+    "Mobile"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2402": "OPEN"
+  }
+}

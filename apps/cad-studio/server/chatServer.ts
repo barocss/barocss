@@ -212,12 +212,12 @@ export function createChatServer(options: ChatServerOptions) {
   };
   const teamDir = options.teamLibraries ?? process.env.CAD_STUDIO_TEAM_LIBRARIES ?? null;
   const taskRunDir = options.taskRunDir ?? process.env.CAD_STUDIO_TASK_RUN_DIR ?? join(homedir(), '.barocss', 'cad-task-runs');
-  const handleTaskRun = createLocalTaskRuns(taskRunDir);
+  const localRuns = createLocalTaskRuns(taskRunDir);
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
     if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
-    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
+    if (req.method === 'POST' && (path === '/task-runs/start' || path === '/task-runs/stop' || path === '/task-runs/reopen' || path === '/task-runs/rebuild' || path === '/task-runs/review' || path === '/task-runs/status' || path === '/task-runs/checkpoint' || path === '/task-runs/baseline' || path === '/task-runs/history')) {
       const action = path.slice('/task-runs/'.length), handoff = action === 'start' || action === 'reopen';
       const origin = req.headers.origin && URL.parse(req.headers.origin);
       if (!origin || !isLocalTaskRunHost(origin.hostname) || origin.host !== req.headers.host
@@ -239,13 +239,14 @@ export function createChatServer(options: ChatServerOptions) {
             // The proxy forwards the headers with the first body chunk. JSON permits leading whitespace.
             res.write('\n');
           } : undefined;
-          const run = await handleTaskRun(bytes, action, onAdmitted);
+          const run = await localRuns.run(bytes, action, onAdmitted);
           if (res.destroyed || res.writableEnded) return;
           return res.headersSent ? res.end(JSON.stringify(run)) : sendJson(res, 200, run);
         }
         let request: unknown;
         try { request = JSON.parse(bytes.toString('utf8')); }
         catch { throw new LocalRunRequestError(400, 'The task run request is invalid JSON.'); }
+        if (action === 'stop') return sendJson(res, 200, await localRuns.stop(request));
         if (action === 'baseline' || action === 'checkpoint' || action === 'history') {
           let model: Uint8Array;
           if (action === 'baseline') {

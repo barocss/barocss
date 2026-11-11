@@ -56,6 +56,7 @@ export interface ChatPanelProps {
     sourceKey(): string | undefined;
     export(plan: SavedTaskRunPlan): Promise<void>;
     start(plan: SavedTaskRunPlan, onAdmitted?: (run: TaskRunLaunch) => void): Promise<TaskRunLaunch | undefined>;
+    stop(run: TaskRunStatus): Promise<TaskRunStatus>;
     refresh(run: TaskRunStatus): Promise<TaskRunStatus>;
     rebuild(run: TaskRunStatus, taskId: string, attemptId: string): Promise<TaskRunStatus>;
     observe(status: TaskRunStatus): void;
@@ -283,14 +284,15 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   const refreshing = useRef(false);
   const [refreshPending, setRefreshPending] = useState(false);
   const [admitted, setAdmitted] = useState(false);
-  const disabled = blocked || working !== undefined || refreshPending;
+  const [stopping, setStopping] = useState(false);
+  const disabled = blocked || working !== undefined || refreshPending || stopping;
   const [launch, setLaunch] = useState<TaskRunLaunch>();
   const base = launch ?? initialRun;
   const latest = base && statuses.current.get(base.runId);
   const result = base && latest?.runKey === base.runKey && latest.revision >= base.revision ? { ...base, ...latest } : base;
   const [error, setError] = useState('');
   async function start() {
-    if (busy.current || refreshing.current || blocked || startBlocked || !plan) return;
+    if (busy.current || refreshing.current || stopping || blocked || startBlocked || !plan) return;
     busy.current = true;
     setWorking('start');
     setAdmitted(false);
@@ -312,7 +314,19 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       if (mounted.current) setError(error instanceof Error ? error.message : 'Could not start the local task run.');
     } finally { busy.current = false; setWorking(undefined); }
   }
-  const refreshDisabled = blocked || refreshPending || (working !== undefined && !(working === 'start' && admitted));
+  const showStop = working === 'start' && admitted && result?.phase === 'active';
+  async function stop() {
+    if (!showStop || !result || stopping) return;
+    setStopping(true);
+    setError('');
+    try {
+      const stopped = await actions.stop(result);
+      if (mounted.current) statuses.remember(stopped);
+    } catch (error) {
+      if (mounted.current) setError(error instanceof Error ? error.message : 'Could not stop the local task run.');
+    } finally { if (mounted.current) setStopping(false); }
+  }
+  const refreshDisabled = blocked || refreshPending || stopping || (working !== undefined && !(working === 'start' && admitted));
   async function refresh(manual: boolean) {
     if (refreshDisabled || refreshing.current || !result) return;
     refreshing.current = true;
@@ -391,6 +405,9 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
       <button className="ghost" type="button" aria-label="Refresh local run status" disabled={refreshDisabled} onClick={() => void refresh(true)}>
         {refreshPending ? 'Refreshing…' : 'Refresh status'}
       </button>
+      {(showStop || stopping) && <button className="ghost" type="button" disabled={stopping} onClick={() => void stop()}>
+        {stopping ? 'Stopping…' : 'Stop local run'}
+      </button>}
       {initialRun && <button className="ghost" type="button" aria-label="Open run baseline"
         disabled={disabled || actions.modelViewBlocked} onClick={() => void openRunFile('baseline')}>
         {working === 'baseline' ? 'Verifying baseline…' : 'Open run baseline'}
