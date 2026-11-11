@@ -1,0 +1,154 @@
+{
+  "decision": "D634",
+  "tier": "FULL interface",
+  "baseCommit": "6822d4e0ad73f6150cb1ed4765bdc903997daf6c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceDirectory": "/Users/user/.cache/barocss-cad-evidence/d634-2026-11-11",
+  "gate": "gate.sh acquire heavy 180 <label> followed by gate.sh release heavy",
+  "checks": [
+    {
+      "label": "Desktop Studio shared interface conflict and approved assembly Open",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D634_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --shared-interface",
+      "receiptSHA256": "336cac504552e33d3b508ba027dfb30aa25c68c7b01dafca6c89e21aede60203",
+      "pinnedSources": 808,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0,
+      "observations": {
+        "interfaceId": "H1",
+        "diameterMm": 4,
+        "conflictingDiameterMm": 3,
+        "retiredReviewRefused": true,
+        "changedContractRefused": true,
+        "incompatibleNativeTasks": 2,
+        "commits": [
+          1,
+          0
+        ],
+        "finalHeightsMm": [
+          6,
+          3
+        ],
+        "conflictUsage": {
+          "limit": 8,
+          "used": 2,
+          "unknown": 0
+        }
+      }
+    },
+    {
+      "label": "Desktop Studio replacement provenance regression",
+      "result": "PASS",
+      "cwd": "apps/cad-studio",
+      "command": "D633_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-provenance\" --provenance",
+      "receiptSHA256": "3061b5303d0c925e9df8e5a269fdedf1adee042ef3e12a3461c94a8a9de97ac7",
+      "pinnedSources": 808,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    {
+      "label": "Independent native checkpoint and analytic volume and centroid reader",
+      "result": "PASS",
+      "command": "python3 -I \"$EVIDENCE/shared-interface-oracle.py\" \"$EVIDENCE/desktop\"",
+      "scriptSHA256": "bd197254635d25c5fd70cf0f8d17616fd4e52e9482602ef56dd0699bcc044e39",
+      "observations": {
+        "status": "PASS",
+        "productImports": 0,
+        "absoluteVolumeAndCentroidTolerance": 1e-08,
+        "heldVolumesMm3": [
+          1124.6017763138448,
+          333.7345175425633
+        ],
+        "acceptedSHA256": "ae298487985c0490a0ce5280614dececa94365337b4619a750c5da104793555d",
+        "refusedSourceSHA256": "f37928a792ef7f12abea27ca292366ec97586536a49c8fb30476c60b5f58858c",
+        "contractDiameterMm": 4,
+        "incompatibleDiameterMm": 3,
+        "commitCounts": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "label": "Model focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model test task-execution task-plan team-ecr toolset tool-contract requirement-evidence",
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Studio focused suites",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio test task-run task-plan-agent chat toolset-mcp tool-contract-mcp storage project-open-ownership project-version-ownership late-save-ownership document-file",
+      "pass": 178,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "label": "Model type check",
+      "result": "PASS",
+      "command": "pnpm --dir packages/barocss-cad-model exec tsc --noEmit"
+    },
+    {
+      "label": "Studio type check",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec tsc --noEmit"
+    },
+    {
+      "label": "Changed TypeScript lint",
+      "result": "PASS",
+      "command": "pnpm exec eslint <changed TypeScript paths>"
+    },
+    {
+      "label": "Studio build",
+      "result": "PASS",
+      "command": "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/vite-build\""
+    },
+    {
+      "label": "Browser driver syntax and diff whitespace",
+      "result": "PASS",
+      "command": "node --check <changed browser modules> and git diff --check"
+    }
+  ],
+  "failures": [
+    {
+      "result": "FAIL",
+      "check": "Desktop Studio first shared interface attempt",
+      "receiptSHA256": "e62c0b00ec295b7636b12f777bb0dc3bc4302df48778e9c61faecab0188def1b",
+      "reason": "The two native refusals appeared as generic worker failures and reserved four unknown units. The approved checkpoint was still byte-identical.",
+      "observedReasons": [
+        "RUN_WORKER_FAILED",
+        "RUN_WORKER_FAILED"
+      ],
+      "observedBudget": {
+        "limit": 8,
+        "used": 0,
+        "unknown": 4
+      }
+    },
+    {
+      "result": "FAIL",
+      "check": "First Studio focused suite and type check",
+      "reason": "The new test used a mistyped package import. The corrected test passes the focused suite, type check and lint."
+    }
+  ],
+  "notRun": [
+    "Dependent tasks",
+    "Collision-driven refusal",
+    "Whole CAD suites",
+    "Mobile",
+    "Paid or live model providers"
+  ],
+  "issueStatus": {
+    "2279": "OPEN",
+    "2399": "CLOSED",
+    "2402": "OPEN"
+  }
+}

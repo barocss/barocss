@@ -6,11 +6,11 @@ import test from 'node:test';
 import { askBatch } from '@barocss/cad-model/chat/questions';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
-import { withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { readInterfaces } from '@barocss/cad-model/team/interfaces';
+import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import { userToken } from '@barocss/cad-model/team/ecr';
-import { fixtureDoc, fixturePlan, fixtureLimits, threeOccurrenceDoc } from './task-run-fixture';
+import { fixtureDoc, fixturePlan, fixtureLimits, sharedHoleDoc, threeOccurrenceDoc } from './task-run-fixture';
 import { serveTaskThread, threadWorker, type ThreadFinish, type ThreadStart } from '../server/taskRun/thread';
 import { LocalRunRequestError, readLocalTaskApproval, readLocalTaskCandidate, readLocalTaskCheckpoint, readLocalTaskRunStatus, runLocalTaskRebuild } from '../server/taskRun/localService';
 import { isTaskRunStatus, retiresTaskRunReview } from '../src/chat/taskRunOffer';
@@ -555,12 +555,7 @@ if (!(await serveTaskThread(evaluate))) {
   }));
 
   test('D586 workers cannot change a shared interface or bypass an authored native check', async () => {
-    const source = fixtureDoc();
-    source.instances![1].position = [0, 0, 20];
-    for (const placed of source.instances!) {
-      placed.doc = withNode(placed.doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [5, 5], radius: 2 });
-    }
-    source.interfaces = { ...readInterfaces(undefined), holePatterns: [{ id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[5, 5, 0]], parts: ['p1', 'p2'] }] };
+    const source = sharedHoleDoc();
     await withRun(async host => {
       const baseline = host.snapshot.accepted;
       const escaped = await host.dispatch('escape', 'base', async ticket => {
@@ -585,6 +580,31 @@ if (!(await serveTaskThread(evaluate))) {
       const task = { ...fixturePlan.tasks[1], occurrence: 'p1' };
       await assert.rejects(TaskRunHost.create(dir, 'collision', source, { ...fixturePlan, tasks: [fixturePlan.tasks[0], task] }, fixtureLimits, 8, evaluate), /WRITE_CONFLICT/);
     } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  test('D634 refuses an old interface input and checks a worker native refusal independently', async () => {
+    const source = sharedHoleDoc(), old = compileTaskPlan(source, fixturePlan);
+    assert.ok(!('error' in old));
+    const revised = structuredClone(source);
+    revised.interfaces!.holePatterns[0].positions[0][2] = 1;
+    const current = compileTaskPlan(revised, fixturePlan);
+    assert.ok(!('error' in current));
+    assert.ok(current.tasks.every((task, i) => task.inputDigest !== old.tasks[i].inputDigest));
+    await withRun(async host => {
+      const original = host.snapshot.accepted;
+      const stale = await host.dispatch('old-interface', 'base', async ticket => {
+        const result = reply(ticket, 6);
+        return { ...result, submission: { ...result.submission, inputDigest: old.tasks[0].inputDigest } };
+      });
+      assert.equal(stale.code, 'TASK_SUBMISSION_MISMATCH');
+      const unconfirmed = await host.dispatch('unconfirmed-refusal', 'base',
+        async ticket => ({ ...reply(ticket, 6), nativeGateRefused: true }));
+      assert.equal(unconfirmed.code, 'RUN_WORKER_EVIDENCE_MISMATCH');
+      assert.deepEqual(host.snapshot.accepted, original);
+      assert.equal(host.snapshot.commits.length, 0);
+      assert.equal((await host.dispatch('current-interface', 'base', async ticket => reply(ticket, 6))).phase, 'completed');
+      assert.equal((await host.decide(decision(host, 'base', 'approve-current-interface'), trusted())).code, 'RUN_ACCEPTED');
+    }, 8, revised);
   });
 
   test('D586 wall-time refusal keeps received usage when host validation does not return', async () => {

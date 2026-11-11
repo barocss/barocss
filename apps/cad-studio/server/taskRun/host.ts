@@ -31,6 +31,7 @@ export interface WorkerReply {
   submission: TaskSubmission;
   usage: number;
   nativeCandidateDigest?: string;
+  nativeGateRefused?: true;
 }
 export type TaskWorker = (ticket: WorkerTicket, signal: AbortSignal) => Promise<WorkerReply>;
 export interface DecisionRequest {
@@ -267,7 +268,8 @@ export class TaskRunHost {
     try {
       const candidate = await until(deadline, () => buildTaskCandidate(plan, { doc, bodies: [] }, submission, { ...context, worker: bound.holder }, this.evaluate));
       if ('error' in candidate) return this.conclude(ticket, op, { phase: 'failed', reason: candidate.error.code }, usage);
-      if (reply.nativeCandidateDigest !== undefined && reply.nativeCandidateDigest !== candidate.candidateDigest)
+      if (reply.nativeGateRefused === true ||
+          (reply.nativeCandidateDigest !== undefined && reply.nativeCandidateDigest !== candidate.candidateDigest))
         return this.conclude(ticket, op, { phase: 'failed', reason: 'RUN_WORKER_EVIDENCE_MISMATCH' }, usage);
       const latest = this.store.snapshot;
       if (latest.accepted.sha256 !== record.accepted.sha256 || latest.state.specRevision !== plan.specRevision)

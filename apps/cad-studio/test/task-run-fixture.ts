@@ -1,4 +1,5 @@
-import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { readInterfaces } from '@barocss/cad-model/team/interfaces';
 import type { TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 
 const field = <T,>(value: T) => ({ value, basis: 'stated' as const, source: 'Two independent local plates.' });
@@ -14,6 +15,16 @@ export const fixtureDoc = (): StudioDoc => ({
     { id: 'p2', name: 'Lid', position: [45, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 4) },
   ],
 });
+export function sharedHoleDoc(): StudioDoc {
+  const doc = fixtureDoc();
+  doc.instances![1].position = [0, 0, 20];
+  for (const part of doc.instances!) {
+    part.doc = withNode(part.doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [5, 5], radius: 2 });
+  }
+  doc.interfaces = { ...readInterfaces(undefined),
+    holePatterns: [{ id: 'H1', axis: [0, 0, 1], diameter: 4, positions: [[5, 5, 0]], parts: ['p1', 'p2'] }] };
+  return doc;
+}
 export function threeOccurrenceDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances!.push({ id: 'p3', name: 'Back', position: [80, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 5) });

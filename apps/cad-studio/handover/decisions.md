@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D634 — preserve the approved assembly on a shared hole conflict](notes/studio-shared-interface-conflict-2026-11-11/README.md).
 - [D633 — preserve replacement-run provenance](notes/studio-replacement-provenance-2026-11-11/README.md).
 - [D632 — replan a stale task from revised saved requirements](notes/studio-replan-stale-task-2026-11-11/README.md).
 - [D631 — rebuild a stale candidate from Studio](notes/studio-rebuild-stale-candidate-2026-11-11/README.md).

@@ -96,11 +96,15 @@ export async function serveTaskThread(evaluate: Evaluate): Promise<boolean> {
       activePlan: plan, identity: plan.identity, policyRevision: plan.policyRevision, worker: task.holder,
       sequence: 0, leases: new Map([[task.occurrence, { part: task.occurrence, holder: task.holder, contract: interfacesRevision(doc), until: attempt.leaseUntil }]]),
     }, native);
-    if ('error' in candidate) send({ type: 'failure', code: candidate.error.code });
-    else send({
+    if ('error' in candidate && candidate.error.code !== 'TASK_NATIVE_GATE') {
+      send({ type: 'failure', code: candidate.error.code });
+      return true;
+    }
+    // The host validates the same scoped submission before recording a native refusal.
+    const evidence = 'error' in candidate ? { nativeGateRefused: true as const } : { nativeCandidateDigest: candidate.candidateDigest };
+    send({
       type: 'complete', threadId, finishedAt: performance.timeOrigin + performance.now(), nativeStartedAt: performance.timeOrigin + start!, nativeMs: performance.now() - start!,
-      reply: { runId: ticket.runId, epoch: attempt.epoch, attemptId: attempt.id, operationId: attempt.operationId, submission, usage: 1,
-        nativeCandidateDigest: candidate.candidateDigest },
+      reply: { runId: ticket.runId, epoch: attempt.epoch, attemptId: attempt.id, operationId: attempt.operationId, submission, usage: 1, ...evidence },
     });
   } catch {
     send({ type: 'failure', code: 'RUN_NATIVE_FAILED' });
