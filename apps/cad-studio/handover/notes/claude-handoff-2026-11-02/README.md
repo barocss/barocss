@@ -285,7 +285,9 @@ D673 shows one startup instruction for an absent Chat server and the existing di
 
 D674 qualifies current-sheet SVG output for one Top-view leader moving between two A4 sheets at 5:1 and 2:1. Four actual SVGs and eight desktop sheet observations pass. [D674](../two-sheet-leader-svg-2026-11-11/README.md).
 
-Next MAIN is D675 / P2 B06, rows 11–13 and 16. Compare D503 and D548, then qualify the first uncovered counterbore callout check in an actual current-sheet SVG.
+D675 verifies the depth-edited counterbore callout in four actual current-sheet SVG exports. [D675](../two-sheet-counterbore-svg-2026-11-11/README.md).
+
+Next MAIN is D676 / P2 B06, rows 11–13 and 16. Use D477 to identify the existing Hole suppression and recovery case. Check that the actual SVG omits the lost diameter after suppression and restores it after the first Undo.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
