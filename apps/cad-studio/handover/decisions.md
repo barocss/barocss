@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D691 — export and reopen the standalone STEP part](notes/step-standalone-roundtrip-2026-11-11/README.md).
 - [D690 — disclose editable CAD and assembly losses in 3MF export](notes/three-mf-loss-disclosure-2026-11-11/README.md).
 - [D689 — disclose omitted assembly parts in STL export](notes/stl-assembly-loss-2026-11-11/README.md).
 - [D688 — verify 3MF export from the shown assembly variant](notes/three-mf-shown-variant-2026-11-11/README.md).

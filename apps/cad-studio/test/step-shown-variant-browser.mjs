@@ -7,8 +7,15 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(mode === undefined || mode === '--round-trip');
-const roundTrip = mode === '--round-trip';
+assert.ok(mode === undefined || mode === '--round-trip' || mode === '--part-round-trip');
+const roundTrip = mode !== undefined;
+const standalone = mode === '--part-round-trip';
+const profiles = {
+  preparation: ['D678_SOURCE_FROZEN', 'D678 desktop STEP preparation uses Master, Tall and restored Master'],
+  '--round-trip': ['D683_SOURCE_FROZEN', 'D683 Studio Export and fresh Open of the exact Tall STEP bytes'],
+  '--part-round-trip': ['D691_SOURCE_FROZEN', 'D691 Studio Export and fresh Open of the D404 standalone box'],
+};
+const [envFrozen, qualification] = profiles[mode ?? 'preparation'];
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'), 'Use an external evidence directory');
 const graphReader = 'apps/cad-studio/test/part21-prism-check.py';
@@ -23,6 +30,7 @@ function box(width, depth, height, parameters = {}) {
     outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
   };
 }
+const part = box(80, 50, 10);
 const master = {
   ...box(30, 12, { parameter: 'Height' }, { Height: 6 }),
   instances: [{ id: 'cap', name: 'Cap', doc: box(4, 3, 4), position: [10, 2, 8], rotation: [0, 0, 0] }],
@@ -54,7 +62,7 @@ assert 'SI_UNIT(.MILLI.,.METRE.)' in text and 'NEXT_ASSEMBLY_USAGE_OCCURRENCE' n
 source, = re.findall(r'source revision ([0-9a-f]{16})', text)
 records = dict(re.findall(r'^#(\d+)=(.+);$', text, re.M))
 solids = [key for key, value in records.items() if value.startswith('MANIFOLD_SOLID_BREP(')]
-assert len(solids) == 2, solids
+assert len(solids) == len(d['boxes']), solids
 
 def vertices(solid):
     stack = [solid]
@@ -76,20 +84,18 @@ def vertices(solid):
     return sorted(positions)
 
 parts = sorted(map(vertices, solids))
-h, z = d['height'], d['height'] + d['gap']
-expected = [list(product((0, 30), (0, 12), (0, h))), list(product((10, 14), (2, 5), (z, z + 4)))]
+expected = sorted(list(product(*zip(box['min'], box['max']))) for box in d['boxes'])
 for actual, corners in zip(parts, expected):
     assert len(actual) == 8, actual
     assert all(math.dist(p, q) <= 1e-6 for p, q in zip(actual, corners)), (actual, corners)
 losses = d['losses']
-for entry in ('feature history', 'parameters and expressions', 'flattened at their placements', 'occurrence labels'):
+for entry in d['requiredLosses']:
     assert any(entry in loss for loss in losses), losses
-print(json.dumps(dict(status='PASS', source=source, solids=len(solids), height=h, capBottom=z, losses=losses)))
+print(json.dumps(dict(status='PASS', source=source, solids=len(solids), corners=sum(map(len, parts)), losses=losses)))
 `;
 
 const f = await createFlow({
-  name: 'step-shown-variant', envFrozen: roundTrip ? 'D683_SOURCE_FROZEN' : 'D678_SOURCE_FROZEN', output, oracleSource,
-  qualification: roundTrip ? 'D683 Studio Export and fresh Open of the exact Tall STEP bytes' : 'D678 desktop STEP preparation uses Master, Tall and restored Master',
+  name: standalone ? 'step-standalone-part' : 'step-shown-variant', envFrozen, output, oracleSource, qualification,
   initialFiles: [
     'apps/cad-studio/test/model-rail-helper.mjs',
     'apps/cad-studio/test/step-shown-variant-browser.mjs',
@@ -100,9 +106,11 @@ const f = await createFlow({
       'apps/cad-studio/src/files/importedFile.ts', 'packages/barocss-cad/src/io/step-import.ts',
     ] : []),
   ],
-  limits: roundTrip
-    ? ['Two prismatic solids and one distance mate. Real Export is intercepted at the local Blob boundary.', 'Independent readers check Part 21 graph, units and corners. Studio import is self-read evidence.']
-    : ['Two boxes, one named variant, one distance mate, real AP214 preparation in memory.'],
+  limits: [
+    standalone ? 'One standalone 80 × 50 × 10 mm sketch and extrude.' : 'Two boxes, one named variant and one distance mate.',
+    roundTrip ? 'Real Export is intercepted at the local Blob boundary. Studio import is self-read evidence.' : 'Real AP214 preparation in memory.',
+    'Independent readers check Part 21 graph, units and corners.',
+  ],
 });
 
 function observeStepAndPlacement() {
@@ -157,6 +165,40 @@ const button = name => f.page.getByRole('button', { name, exact: true });
 const variants = () => f.page.getByRole('complementary', { name: 'Variants panel', exact: true });
 const stepPanel = () => f.page.getByLabel('STEP export', { exact: true });
 
+async function prepareStep(label, index) {
+  await button('Export STEP').click();
+  const lossList = stepPanel().getByLabel('STEP loss report', { exact: true });
+  await lossList.waitFor();
+  const steps = await f.page.evaluate(() => window.__d678.steps);
+  assert.equal(steps.length, index + 1);
+  const reply = steps[index];
+  assert.ok(typeof reply.text === 'string', reply.error);
+  const losses = await lossList.getByRole('listitem').allTextContents();
+  assert.deepEqual(losses, reply.omitted);
+  const profile = await stepPanel().innerText();
+  assert.match(profile, /STEP AP214 · B-rep geometry · mm/);
+  assert.equal(await stepPanel().getByRole('button', { name: 'Export', exact: true }).isEnabled(), true);
+  await f.snapshot(label);
+  return { reply, losses, profile };
+}
+
+async function capturePreparedStep(stem, reply) {
+  assert.equal(await f.page.evaluate(() => window.__d683Exports.length), 0);
+  await stepPanel().getByRole('button', { name: 'Export', exact: true }).click();
+  await stepPanel().waitFor({ state: 'detached' });
+  const [file, ...extra] = await f.page.evaluate(() => Promise.all(window.__d683Exports));
+  assert.equal(file?.name, `${stem}.step`);
+  assert.deepEqual(extra, []);
+  const bytes = Buffer.from(file.bytes);
+  assert.deepEqual(bytes, Buffer.from(reply.text, 'utf8'));
+  return bytes;
+}
+
+function variantBounds(height, gap) {
+  const bottom = height + gap;
+  return [{ min: [0, 0, 0], max: [30, 12, height] }, { min: [10, 2, bottom], max: [14, 5, bottom + 4] }];
+}
+
 async function prepare(label, height, gap, index, active, exportFile = false) {
   f.phase = label;
   const volume = 30 * 12 * height;
@@ -174,46 +216,34 @@ async function prepare(label, height, gap, index, active, exportFile = false) {
   const placement = await f.page.evaluate(() => window.__d678.placements.at(-1));
   [10, 2, height + gap].forEach((value, axis) => assert.ok(Math.abs(value - placement.t[axis]) < 1e-6));
 
-  await button('Export STEP').click();
-  const lossList = stepPanel().getByLabel('STEP loss report', { exact: true });
-  await lossList.waitFor();
-  const steps = await f.page.evaluate(() => window.__d678.steps);
-  assert.equal(steps.length, index + 1);
-  const reply = steps[index];
-  assert.ok(typeof reply.text === 'string', reply.error);
-  assert.deepEqual(await lossList.getByRole('listitem').allTextContents(), reply.omitted);
-  assert.match(await stepPanel().innerText(), /STEP AP214 · B-rep geometry · mm/);
-  const exportButton = stepPanel().getByRole('button', { name: 'Export', exact: true });
-  assert.equal(await exportButton.isEnabled(), true);
-  await f.snapshot(label);
+  const { reply, losses } = await prepareStep(label, index);
   let bytes;
-  if (exportFile) {
-    assert.deepEqual(await f.page.evaluate(() => window.__d683Exports.length), 0);
-    await exportButton.click();
-    await stepPanel().waitFor({ state: 'detached' });
-    const [file, ...extra] = await f.page.evaluate(() => Promise.all(window.__d683Exports));
-    assert.equal(file?.name, 'step-variant.step');
-    assert.deepEqual(extra, []);
-    bytes = Buffer.from(file.bytes);
-    assert.deepEqual(bytes, Buffer.from(reply.text, 'utf8'));
-  } else {
+  if (exportFile) bytes = await capturePreparedStep('step-variant', reply);
+  else {
     await stepPanel().getByRole('button', { name: 'Cancel', exact: true }).click();
     await stepPanel().waitFor({ state: 'detached' });
   }
-  const result = await f.runOracle({ text: bytes?.toString('utf8') ?? reply.text, losses: reply.omitted, height, gap }, label);
+  const result = await f.runOracle({
+    text: bytes?.toString('utf8') ?? reply.text, boxes: variantBounds(height, gap), losses,
+    requiredLosses: ['feature history', 'parameters and expressions', 'flattened at their placements', 'occurrence labels'],
+  }, label);
   f.report.observations.push({ label, placement, volume, result, replyId: reply.id, sha256: sha256(reply.text) });
   assert.deepEqual(await f.doc(), accepted);
   return { result, bytes };
 }
 
-async function reopenExactStep(bytes) {
+async function reopenExactStep(bytes, stem, solidBounds, analytic) {
   f.phase = 'Read exported STEP graph and reopen the exact file';
-  const filename = 'step-variant.step';
+  const filename = `${stem}.step`;
+  const solidCount = solidBounds.length;
   const file = join(output, filename);
   const expectedFile = join(output, 'expected-step-geometry.json');
   const expected = {
-    productCount: 1, solidCount: 2, bounds: { min: [0, 0, 0], max: [30, 12, 18] },
-    solidBounds: [{ min: [0, 0, 0], max: [30, 12, 9] }, { min: [10, 2, 14], max: [14, 5, 18] }],
+    productCount: 1, solidCount, solidBounds,
+    bounds: {
+      min: [0, 1, 2].map(i => Math.min(...solidBounds.map(box => box.min[i]))),
+      max: [0, 1, 2].map(i => Math.max(...solidBounds.map(box => box.max[i]))),
+    },
   };
   await writeFile(file, bytes, { flag: 'wx' });
   await writeFile(expectedFile, JSON.stringify(expected), { flag: 'wx' });
@@ -223,7 +253,7 @@ async function reopenExactStep(bytes) {
   };
   const graph = await runGraphReader();
   assert.equal(graph.status, 'PASS');
-  assert.equal(graph.vertexCount, 16);
+  assert.equal(graph.vertexCount, 8 * solidCount);
   assert.ok(Object.values(graph.absentEntities).every(count => count === 0), graph.absentEntities);
   const controls = await runGraphReader('--selftest');
   assert.deepEqual([controls.status, controls.positiveControls, controls.negativeControlsDetected], ['PASS', 2, 5]);
@@ -233,22 +263,23 @@ async function reopenExactStep(bytes) {
   await f.page.setViewportSize({ width: 1440, height: 900 });
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles(file);
-  const toast = await f.waitToast(/STEP opened.*2 solids, in millimetres; 3,288 mm³ in all.*no colours, names or assembly structure/, 60000);
+  const total = analytic.reduce((sum, body) => sum + body.volume, 0).toLocaleString('en-US');
+  const toast = await f.waitToast(/STEP opened|Could not open this file/, 60000);
+  assert.match(toast, new RegExp(`STEP opened.*${solidCount} solid${solidCount === 1 ? '' : 's'}, in millimetres; ${total} mm³ in all.*no colours, names or assembly structure`));
   await f.ready();
   const imported = await f.doc();
   assert.equal(imported.units, 'mm');
   assert.deepEqual(imported.nodes.map(node => node.kind), ['import']);
-  assert.equal(imported.nodes[0].solids, 2);
-  assert.equal(imported.nodes[0].name, 'step-variant');
+  assert.equal(imported.nodes[0].solids, solidCount > 1 ? solidCount : undefined);
+  assert.equal(imported.nodes[0].name, stem);
   assert.equal(imported.nodes[0].step, bytes.toString('utf8'));
   assert.deepEqual(imported.parameters, {});
   for (const key of ['instances', 'mates', 'variability', 'bodies']) assert.equal(imported[key], undefined);
-  assert.equal(await f.page.locator('.doc-tab input').inputValue(), 'step-variant');
+  assert.equal(await f.page.locator('.doc-tab input').inputValue(), stem);
   const state = await f.bodies();
-  assert.equal(state.bodies.length, 2);
+  assert.equal(state.bodies.length, solidCount);
   assert.deepEqual(state.colored, []);
   const actual = [...state.bodies].sort((a, b) => b.volume - a.volume);
-  const analytic = [{ volume: 3240, centroid: [15, 6, 4.5] }, { volume: 48, centroid: [12, 3.5, 16] }];
   for (const [i, body] of actual.entries()) {
     assert.ok(Math.abs(body.volume - analytic[i].volume) < 1e-6, body.volume);
     analytic[i].centroid.forEach((value, axis) => assert.ok(Math.abs(body.centroid[axis] - value) < 1e-6));
@@ -256,7 +287,38 @@ async function reopenExactStep(bytes) {
   await button('Iso').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   f.report.observations.push({ label: 'fresh-open', name: filename, sha256: sha256(bytes), bytes: bytes.length, graph, controls, toast, imported: actual });
+  assert.deepEqual(await readFile(file), bytes);
   await f.snapshot('02-step-reopened');
+}
+
+async function openFixture(doc, stem) {
+  const seed = Buffer.from(JSON.stringify(doc));
+  f.report.seedSHA256 = sha256(seed);
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: `${stem}.bcad`, mimeType: 'application/json', buffer: seed });
+  await f.same(doc);
+}
+
+async function roundTripPart() {
+  const stem = 'step-part';
+  f.phase = 'Open D404 standalone box';
+  await openFixture(part, stem);
+  const analytic = [{ volume: 40000, centroid: [40, 25, 5] }];
+  const bounds = [{ min: [0, 0, 0], max: [80, 50, 10] }];
+  const sourceState = await f.bodies();
+  assert.equal(sourceState.bodies.length, 1);
+  assert.ok(Math.abs(sourceState.bodies[0].volume - analytic[0].volume) < 1e-6);
+
+  f.phase = 'Prepare and export the standalone box';
+  const label = '01-part-step-preview';
+  const { reply, losses, profile } = await prepareStep(label, 0);
+  assert.match(profile, /no native editing history, semantic PMI or named datum system transfer/);
+  assert.doesNotMatch(losses.join(' '), /flattened at their placements/);
+  const bytes = await capturePreparedStep(stem, reply);
+  const result = await f.runOracle({ text: bytes.toString('utf8'), boxes: bounds, losses, requiredLosses: ['feature history'] }, label);
+  f.report.observations.push({ label, profile, result, replyId: reply.id, sha256: sha256(bytes) });
+  assert.deepEqual(await f.doc(), part);
+  await reopenExactStep(bytes, stem, bounds, analytic);
 }
 
 await f.run(async () => {
@@ -280,12 +342,14 @@ await f.run(async () => {
   };
   await f.newPage();
   await f.page.setViewportSize({ width: 1440, height: 900 });
-  const seed = Buffer.from(JSON.stringify(master));
-  f.report.seedSHA256 = sha256(seed);
+  if (standalone) {
+    await roundTripPart();
+    assert.deepEqual(f.report.downloads, []);
+    f.phase = 'complete';
+    return;
+  }
   f.phase = 'Open variant fixture';
-  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: 'step-variant.bcad', mimeType: 'application/json', buffer: seed });
-  await f.same(master);
+  await openFixture(master, 'step-variant');
   await clickModelCommand(f.page, 'Inspect', 'Variants');
   await variants().waitFor();
   const original = roundTrip ? undefined : (await prepare('01-master', 6, 2, 0, undefined)).result;
@@ -298,7 +362,9 @@ await f.run(async () => {
   assert.deepEqual(await f.doc(), master);
   if (roundTrip) {
     assert.equal(tall.result.source, 'bb4cfd6d2ca9b48c');
-    await reopenExactStep(tall.bytes);
+    await reopenExactStep(tall.bytes, 'step-variant', variantBounds(9, 5), [
+      { volume: 3240, centroid: [15, 6, 4.5] }, { volume: 48, centroid: [12, 3.5, 16] },
+    ]);
   } else {
     const restored = await prepare('03-restored', 6, 2, 2, undefined);
     assert.deepEqual(restored.result, original);
