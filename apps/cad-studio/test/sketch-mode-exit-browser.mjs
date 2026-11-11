@@ -10,7 +10,7 @@ const pins = [
   'apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/select.ts',
-  ...(fixed ? ['apps/cad-studio/src/sketch/useSketchModeExit.tsx'] : []),
+  ...(fixed ? ['apps/cad-studio/src/ui/useWorkspaceModeExit.tsx'] : []),
 ];
 const oracleSource = `
 import json, math, sys

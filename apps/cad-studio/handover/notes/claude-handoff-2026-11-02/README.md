@@ -307,7 +307,9 @@ D684 fixes file-name Undo/Redo and focused-button Space. Root reproduced both fa
 
 D685 fixes top toolbar clipping at the two reported desktop sizes. All 14 tools remain reachable, and the existing More tools and Templates keyboard flow passed. [D685](../studio-top-toolbar-overflow-2026-11-11/README.md).
 
-Next MAIN is D686 / P0 R18, rows 12, 16 and 21. Reproduce feature draft loss on workspace switch and qualify the repair. The owner-selected Model rail is a planned follow-up. The next P2 case remains actual 3MF output from the shown assembly variant. See the [reliability intake](../../roadmap-tracks/01-reliability.md) and [P4 desktop usability queue](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
+D686 protects the Box draft on workspace requests and checks focus, Apply, Undo/Redo and simultaneous sketch and feature drafts in Studio. [D686](../studio-feature-mode-exit-2026-11-11/README.md).
+
+Next MAIN is D687 / P4, row 21. Implement the owner-selected compact Model rail and qualify the named Sketch and Extrude flow, selection context and keyboard access at both desktop sizes. The next P2 case remains actual 3MF output from the shown assembly variant. See the [P4 desktop usability acceptance](../../roadmap-tracks/03-platform-and-extensions.md#desktop-studio-usability-audit-follow-up).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

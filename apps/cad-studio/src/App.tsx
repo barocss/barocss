@@ -22,7 +22,7 @@ import { ModelTools, useToolColumns } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useSketchActions } from './sketch/useSketchActions';
-import { useSketchModeExit } from './sketch/useSketchModeExit';
+import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
 import { useFeatureHistory } from './state/useFeatureHistory';
@@ -353,10 +353,10 @@ export function App() {
   const [bodyDrag, setBodyDrag] = useState<{ matrix: Float64Array; settling: boolean } | null>(null);
   const previewFor = useRef<string | null>(null);
   const [sketch, setSketchState] = useState<SketchState | null>(null);
-  const sketchModeExit = useSketchModeExit(sketch, doc);
   // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
   const sketchGeneration = useRef(0);
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
+  const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => activeStore.get()?.ctx ?? null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
   /** The Drawing workspace: the part's dimensioned 2D views on a sheet. */
@@ -1204,6 +1204,14 @@ export function App() {
   const [restart, setRestart] = useState<Command | null>(null);
   // Apply while the preview is still computing (just after a drag or a typed value) waits for it.
   const applyWhenReady = useRef<Command | null>(null);
+  const discardFeatureDraft = useCallback(() => {
+    if (!activeStore.get()) return;
+    applyWhenReady.current = null;
+    again.current = null;
+    setRestart(null);
+    commandPreview.retire();
+    activeStore.set(null);
+  }, [activeStore, commandPreview.retire]);
   const apply = useCallback(() => {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
@@ -1303,7 +1311,8 @@ export function App() {
       const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
       const linkSource = face && base && base.side === 'solid' && !doc.instances?.length ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.name } : undefined;
       const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}) } } : { kind: 'xy', offset: 0 };
-      setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
+      discardFeatureDraft();
+      setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
@@ -1336,7 +1345,7 @@ export function App() {
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, fresh, busy]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1707,17 +1716,17 @@ export function App() {
   const referenceDimension = (where: string) => doc.drawing?.dimensions.find(d => where === `dimension ${d.id}`);
   const showWorkspace = (mode: 'Model' | 'Drawing' | 'Render') => {
     setSketch(null);
-    if (mode !== 'Model') { setActive(null); setMeasure(null); }
+    if (mode !== 'Model') { discardFeatureDraft(); setMeasure(null); }
     if (mode !== 'Render') setPlaying(false);
     setRendering(mode === 'Render');
     setDrawing(mode === 'Drawing');
   };
   const requestWorkspace = (mode: Parameters<typeof showWorkspace>[0], event: React.MouseEvent<HTMLButtonElement>) =>
-    sketchModeExit.switchWhenReady(() => showWorkspace(mode), event);
+    workspaceModeExit.switchWhenReady(() => showWorkspace(mode), { event, keepFeature: mode === 'Model' });
   const previewReference = (where: string, edge?: string, inModel = false) => {
     const dimension = referenceDimension(where);
     if (dimension && !inModel) {
-      sketchModeExit.switchWhenReady(() => {
+      workspaceModeExit.switchWhenReady(() => {
         setReferencePreview({ dimensionId: dimension.id, ...(edge ? { edge } : {}) });
         showWorkspace('Drawing');
         setBrowserOpen(true);
@@ -1774,7 +1783,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.isComposing || sketchModeExit.pending) return;
+      if (e.defaultPrevented || e.isComposing || workspaceModeExit.pending) return;
       const target = e.target;
       const typing = target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement
         || (target instanceof HTMLElement && target.isContentEditable);
@@ -2350,15 +2359,19 @@ export function App() {
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode" data-workspace-mode>
           <Button size="sm" variant={!sketch && !rendering && !drawing ? 'default' : 'ghost'} className={!sketch && !rendering && !drawing ? 'on' : ''}
-            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Model', event)}>Model</Button>
+            onPointerDown={workspaceModeExit.rememberFocus} onClick={event => requestWorkspace('Model', event)}>Model</Button>
           <Button size="sm" variant={sketch ? 'default' : 'ghost'} className={sketch ? 'on sketching' : ''}
-            onClick={() => { if (!sketch) start(commands.find(c => c.id === 'sketch')!); }}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
+            onPointerDown={workspaceModeExit.rememberFocus} onClick={event => {
+              if (!sketch) workspaceModeExit.switchWhenReady(() => {
+                startRef.current(commands.find(c => c.id === 'sketch')!);
+              }, { event });
+            }}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</Button>
           <Button size="sm" variant={rendering ? 'default' : 'ghost'} className={rendering ? 'on' : ''}
-            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Render', event)}>Render</Button>
+            onPointerDown={workspaceModeExit.rememberFocus} onClick={event => requestWorkspace('Render', event)}>Render</Button>
           <Button size="sm" variant={drawing ? 'default' : 'ghost'} className={drawing ? 'on' : ''}
-            onPointerDown={sketchModeExit.rememberFocus} onClick={event => requestWorkspace('Drawing', event)}>Drawing</Button>
+            onPointerDown={workspaceModeExit.rememberFocus} onClick={event => requestWorkspace('Drawing', event)}>Drawing</Button>
         </div>
-        {sketchModeExit.dialog}
+        {workspaceModeExit.dialog}
         <div className="grow" />
         {sketch && <Button variant="default" size="default" className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></Button>}
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
