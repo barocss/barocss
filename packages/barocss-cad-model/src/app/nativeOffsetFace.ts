@@ -1,6 +1,7 @@
 // Offset face owns a native cap snapshot. Display data identifies the pick only; it never authors a profile.
 import { CadNumericPolicy, CadPartLimits, brepFromPrismatic, checkBrep, prismaticFromProfile, prismaticMassProperties, transformBrep, type Brep, type BrepFace, type Curve, type Surface } from '@barocss/cad';
 import { fillFeaturePatternSpec } from '@barocss/cad/api';
+import { finiteBinary64Integer } from '../engine/binary64';
 import { leafBodies, type SketchNode, type StudioDoc } from '../engine/doc';
 import { evaluateDoc, massOfRef, partBreps, type BodyResult } from '../engine/evaluate';
 import { bodyKeyFor, withIds } from '../engine/ids';
@@ -24,14 +25,10 @@ export interface NativeOffsetFaceProfile {
 const unsupported = (message: string): never => { throw refusal('VALUE', `Offset face: ${message}`); };
 const missing = (message: string): never => { throw refusal('BAD_REFERENCE', `Offset face: ${message}`); };
 const abs = (n: bigint): bigint => n < 0n ? -n : n;
-const bits = new DataView(new ArrayBuffer(8));
 /** A finite binary64 length as an integer in fixed units of 2^-1074; no rounded subtraction. */
 function exact(value: number): bigint {
   if (typeof value !== 'number' || !Number.isFinite(value)) return unsupported('a nonfinite value cannot enter the native proof.');
-  bits.setFloat64(0, value, false);
-  const b = bits.getBigUint64(0, false), exponent = Number((b >> 52n) & 2047n), fraction = b & ((1n << 52n) - 1n);
-  const magnitude = exponent === 0 ? fraction : ((1n << 52n) | fraction) << BigInt(exponent - 1);
-  return b >> 63n ? -magnitude : magnitude;
+  return finiteBinary64Integer(value);
 }
 const finite = (n: number): boolean => Number.isFinite(n) && Math.abs(n) <= CadNumericPolicy.coordinateAbs;
 const samePoint = (a: readonly number[], b: readonly number[]): boolean => a.length === 3 && b.length === 3 && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];

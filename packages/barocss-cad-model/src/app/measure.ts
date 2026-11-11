@@ -4,6 +4,7 @@
 import { closestPointOnTriangle } from '@barocss/cad';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { sub, add, scale, dot, cross, len, unit } from '../engine/vec3';
+import { firstSegmentTriangleCrossing } from './measureIntersection';
 
 export interface MeasurePick { body: number; face?: number; edge?: number; vertex?: Vec3 }
 export interface MeasureResult {
@@ -68,11 +69,18 @@ export function measureBetween(ma: DisplayMesh, pa: MeasurePick, mb: DisplayMesh
   const offer = (x: Vec3, y: Vec3) => { const d = len(sub(x, y)); if (d < best) { best = d; ca = x; cb = y; } };
   const edgesOf = (P: typeof A) => [...P.segs, ...P.tris.flatMap(([a, b, c]) => [[a, b], [b, c], [c, a]] as [Vec3, Vec3][])];
   const pointsOf = (P: typeof A) => [...P.segs.flat(), ...P.tris.flat()];
-  // Vertex against triangle, both ways; then segment against segment (triangle sides included).
+  // Vertex against triangle in both directions, followed by interior crossings and closest edges.
   for (const p of pointsOf(A)) for (const [a, b, c] of B.tris) offer(p, closestPointOnTriangle(p, a, b, c));
   for (const p of pointsOf(B)) for (const [a, b, c] of A.tris) offer(closestPointOnTriangle(p, a, b, c), p);
   const ea = edgesOf(A), eb = edgesOf(B);
-  for (const [p1, q1] of ea) for (const [p2, q2] of eb) { const [x, y] = closestSegments(p1, q1, p2, q2); offer(x, y); }
+  const crossing = best === 0 ? null : firstSegmentTriangleCrossing(ea, B.tris) ?? firstSegmentTriangleCrossing(eb, A.tris);
+  if (crossing) {
+    best = 0;
+    ca = crossing;
+    cb = [...crossing];
+  } else if (best > 0) {
+    for (const [p1, q1] of ea) for (const [p2, q2] of eb) { const [x, y] = closestSegments(p1, q1, p2, q2); offer(x, y); }
+  }
   const result: MeasureResult = { distance: best, a: ca, b: cb };
   const fa = flatOf(ma, pa), fb = flatOf(mb, pb), deg = (c: number) => Math.acos(Math.min(1, Math.abs(c))) * 180 / Math.PI;
   if (fa.plane && fb.plane) {
@@ -80,11 +88,13 @@ export function measureBetween(ma: DisplayMesh, pa: MeasurePick, mb: DisplayMesh
     if (result.angle < 1e-6) {
       result.normalDistance = Math.abs(fa.plane.d - Math.sign(dot(fa.plane.n, fb.plane.n)) * fb.plane.d);
       // Shown from the middle of one face where it faces the other (a dimension across, not at a corner).
-      for (const [P, Q, from] of [[A, B, ma.faces[pa.face!].centroid], [B, A, mb.faces[pb.face!].centroid]] as const) {
-        if (!P.tris.length) continue;
-        let foot: Vec3 | null = null, d = Infinity;
-        for (const [a, b, c] of Q.tris) { const q = closestPointOnTriangle(from, a, b, c), e = len(sub(q, from)); if (e < d) { d = e; foot = q; } }
-        if (foot && Math.abs(d - result.normalDistance) <= 1e-6 * Math.max(1, d)) { [result.a, result.b] = P === A ? [from, foot] : [foot, from]; break; }
+      if (result.distance > 0) {
+        for (const [P, Q, from] of [[A, B, ma.faces[pa.face!].centroid], [B, A, mb.faces[pb.face!].centroid]] as const) {
+          if (!P.tris.length) continue;
+          let foot: Vec3 | null = null, d = Infinity;
+          for (const [a, b, c] of Q.tris) { const q = closestPointOnTriangle(from, a, b, c), e = len(sub(q, from)); if (e < d) { d = e; foot = q; } }
+          if (foot && Math.abs(d - result.normalDistance) <= 1e-6 * Math.max(1, d)) { [result.a, result.b] = P === A ? [from, foot] : [foot, from]; break; }
+        }
       }
     }
   } else if (fa.line && fb.line) result.angle = deg(dot(fa.line, fb.line));
