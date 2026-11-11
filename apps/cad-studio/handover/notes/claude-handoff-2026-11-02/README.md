@@ -1,5 +1,5 @@
 ---
-work_id: D654
+work_id: D655
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-11
@@ -245,7 +245,9 @@ D653 retains one direct saved successor with the original failure and approval. 
 
 D654 returns the exact retained follow-up through the selected Studio agent tool. The three saved pins, direct lineage and document ownership are verified. [D654](../studio-agent-retained-follow-up-2026-11-11/README.md).
 
-Next MAIN is D655 / P0 automation evidence, rows 04, 12 and 16. Use one retained regression to prepare a nested parameter repair for the same occurrence. Check the current working revision before offering the repair. Reuse the existing proposal, preview and user approval flow. Verify that a moved or already passing working revision cannot use the historical failure as current evidence. [#2279](https://github.com/barocss/barocss/issues/2279).
+D655 prepares a nested repair from a selected saved regression after fresh working and candidate checks. Desktop Studio verifies refusal of a moved or passing revision, explicit user approval, and native Save/Open. [D655](../studio-selected-follow-up-repair-2026-11-11/README.md).
+
+Next MAIN is D656 / P0 automation evidence, rows 04, 12 and 16. Verify a newer saved user-approved repair against the original retained regression. Show the later passing check in Versions and keep the earlier failure visible. Refuse unrelated revisions, occurrences and changed criteria. [#2279](https://github.com/barocss/barocss/issues/2279).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

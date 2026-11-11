@@ -34,7 +34,7 @@ import { REQUIREMENT_HANDLERS } from './part/requirements';
 import { VIEW_HANDLERS } from './part/views';
 import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
 import { VERSION_HANDLERS } from '../versions/tools';
-import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
+import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, proposeWith, rebaseProposalWith, type Decider } from './part/proposals';
 import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
 import { isObj, isVec3 } from '../util/guards';
 import { firstProblem, isRefusal } from '../engine/refusal';
@@ -57,6 +57,10 @@ const runProposalTool = (state: ChatState, name: string, input: unknown, evaluat
 // chat/part/proposals.ts and chat/part/history.ts, this module's runner passed in.)
 /** A proposal's change worked out on a copy (A4.2): see proposalOfWith. */
 export function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate) { return proposalOfWith(runProposalTool, state, ops, evaluate); }
+/** Create a user-reviewable repair only after its candidate passes the caller's fresh checks. */
+export function proposeFollowUpRepair(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, repair: NonNullable<Parameters<typeof proposeWith>[4]>) {
+  return proposeWith(runProposalTool, state, args, evaluate, repair);
+}
 /** A proposal accepted (A4.2, A4.3): see acceptProposalWith. */
 export function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}) { return acceptProposalWith(runProposalTool, state, id, evaluate, o); }
 /** A stale proposal made again on the part as it is now (D41): see rebaseProposalWith. */

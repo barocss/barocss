@@ -231,6 +231,7 @@ export interface SavedTaskRunPlan {
 
 export interface TaskRunChatOutput {
   summary: string;
+  proposalRef?: { id: string; at: string };
   taskRun?: SavedTaskRunPlan;
 }
 

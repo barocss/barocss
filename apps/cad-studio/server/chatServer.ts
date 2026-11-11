@@ -27,7 +27,7 @@ import { isLocalTaskRunHost, isTaskRunFindingSelection, readTaskRunOffer, type T
 import { MAX_TASK_RUN_HANDOFF_BYTES } from '../src/files/taskRunHandoff';
 import { createLocalTaskRuns, LocalRunRequestError, readLocalTaskApproval, readLocalTaskBaseline, readLocalTaskReview, readLocalTaskCheckpoint, readLocalTaskRunStatus } from './taskRun/localService';
 import { SELECTED_NATIVE_CHECK } from './taskRun/nativeEvidence';
-import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalForTurn } from './selectedApprovalEvidence';
+import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn } from './selectedApprovalEvidence';
 import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
@@ -81,20 +81,21 @@ export type ChatServerEvent =
   | { type: 'text'; delta: string }
   /** O17c: the model's thinking as the CLI streams it (additive: readers that take events by type ignore it). */
   | { type: 'reasoning'; delta: string }
-  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer }
+  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer; proposalRef?: { id: string; at: string } }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; usage?: TurnUsage; ops?: TurnOp[] };
 /** What the CLI reports a turn used (its result message, A5.5): tokens, model turns, cost. */
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
 /** The CLI arguments for one turn (the message itself goes in on stdin, see `userMessage`). */
-export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean; selectedApproval?: boolean }): string[] {
+export function claudeArgs(o: { mcpConfig: string; model: string; session?: string; selectedNativeCheck?: boolean; selectedApproval?: boolean; selectedFollowUpRepair?: boolean }): string[] {
   return [
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
     '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : []),
-      ...(o.selectedNativeCheck ? [`mcp__cad__${SELECTED_NATIVE_CHECK}`] : []), ...(o.selectedApproval ? [`mcp__cad__${SELECTED_APPROVAL_EVIDENCE}`] : [])].join(','),
+      ...(o.selectedNativeCheck ? [`mcp__cad__${SELECTED_NATIVE_CHECK}`] : []), ...(o.selectedApproval ? [`mcp__cad__${SELECTED_APPROVAL_EVIDENCE}`] : []),
+      ...(o.selectedFollowUpRepair ? [`mcp__cad__${SELECTED_FOLLOW_UP_REPAIR}`] : [])].join(','),
     // (O15: the L3 run's own spending cap, the CLI's.)
     ...(process.env.CAD_MAX_BUDGET_USD ? ['--max-budget-usd', process.env.CAD_MAX_BUDGET_USD] : []),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
@@ -135,6 +136,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === SELECTED_NATIVE_CHECK) return String(j.finding?.code ?? 'Selected native check');
   if (name === SELECTED_APPROVAL_EVIDENCE) return 'Selected approval evidence';
+  if (name === SELECTED_FOLLOW_UP_REPAIR && typeof j.proposal === 'string') return `${j.proposal} ready for review`;
   if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
     const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'diameter');
     const dimension = hasDimension || j.issues.some(issue => issue?.code === 'SHARED_HOLE_PATTERN') ? 'dimension' : 'height';
@@ -358,8 +360,9 @@ export function createChatServer(options: ChatServerOptions) {
     // (CG6: a version log as a turn carries it — the index, some documents; the tools check what they read.)
     const v = body.versions as { format?: unknown; versions?: unknown; branches?: unknown; snapshots?: unknown } | undefined;
     if (v !== undefined && (!v || v.format !== 'barocss-versions' || !Array.isArray(v.versions) || !Array.isArray(v.branches) || !v.snapshots || typeof v.snapshots !== 'object')) return sendJson(res, 400, { error: 'versions: not a version log.' });
-    const selectedApproval = await selectedApprovalForTurn(body.selectedApproval, v as StateFile['versions']);
-    if (body.selectedApproval !== undefined && !selectedApproval) return sendJson(res, 400, { error: 'Selected approval evidence does not match the saved versions.' });
+    const selected = await readSelectedApprovalForTurn(body.selectedApproval, v as StateFile['versions']);
+    if (body.selectedApproval !== undefined && !selected) return sendJson(res, 400, { error: 'Selected approval evidence does not match the saved versions.' });
+    const selectedApproval = selected?.file;
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(taskFinding ? { taskFinding } : {}), ...(selectedApproval ? { selectedApproval } : {}), ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
@@ -368,8 +371,9 @@ export function createChatServer(options: ChatServerOptions) {
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, ...(taskFinding ? { CAD_CHAT_TASK_RUN_ROOT: taskRunDir } : {}), CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const findingNote = taskFinding ? '\n\n[The person selected one local native check. Use read_selected_native_check to read it for this turn.]' : '';
     const approvalNote = selectedApproval ? '\n\n[The person attached one saved approval review. Use read_selected_approval_evidence to read it for this turn.]' : '';
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}`;
-    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
+    const repairNote = selected?.repair ? '\n\n[For a requested repair, read requirements.evidence for the selected occurrence. Pass its current revision as working_revision to propose_selected_follow_up_repair. A saved failure alone is not a current result.]' : '';
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}${findingNote}${approvalNote}${repairNote}`;
+    const args = claudeArgs({ mcpConfig, model, selectedNativeCheck: !!taskFinding, selectedApproval: !!selectedApproval, selectedFollowUpRepair: !!selected?.repair, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
     const emit = (e: ChatServerEvent) => { if (!res.writableEnded) res.write(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`); };
@@ -415,10 +419,14 @@ export function createChatServer(options: ChatServerOptions) {
           const text = typeof b.content === 'string' ? b.content : (b.content ?? []).map((c: { text?: string }) => c.text ?? '').join('');
           const handler = v1NameOf(call.name, call.input), isError = !!b.is_error || /"ok":false/.test(text);
           const offer = !isError && handler === 'inspect_local_task_plan' ? readyTaskRunOffer(text, call.input) : null;
+          const s = read();
+          const op = handler === SELECTED_FOLLOW_UP_REPAIR && !isError ? s?.ops?.at(-1) : undefined;
+          const proposal = op?.tool === handler ? op.effect.proposals.find(p => p.follow_up_repair) : undefined;
           emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(handler, text, isError), isError,
+            ...(proposal ? { proposalRef: { id: proposal.id, at: proposal.at } } : {}),
             ...(offer ? { taskRunOffer: offer } : {}) });
           // (Only a part a tool changed since the last state sent: a read-only call re-sent nothing, PERF3 A3.)
-          const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc, ...newOps(s) }); }
+          if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc, ...newOps(s) }); }
         }
       } else if (m.type === 'result') {
         if (m.usage || m.num_turns !== undefined) usage = { ...(m.usage ?? {}), ...(m.num_turns !== undefined ? { num_turns: m.num_turns } : {}), ...(m.total_cost_usd !== undefined ? { total_cost_usd: m.total_cost_usd } : {}) };

@@ -256,7 +256,9 @@ function ChatPart({ part: p, taskRunBlocked, runStatuses, ...props }: { part: St
   if (p.type !== 'dynamic-tool') return null;
   const output = p.state === 'output-available' ? p.output as TaskRunChatOutput | undefined : undefined;
   const failed = p.state === 'output-error', summary = failed ? p.errorText ?? '' : output?.summary ?? '';
-  const label = toolLabel(p.toolName, p.input), id = label === 'proposals.propose' && !failed ? /\bP\d+\b/.exec(summary)?.[0] : undefined, proposal = id ? props.proposals?.find(q => q.id === id) : undefined;
+  const label = toolLabel(p.toolName, p.input), repair = label === 'propose_selected_follow_up_repair';
+  const id = repair ? output?.proposalRef?.id : label === 'proposals.propose' && !failed ? /\bP\d+\b/.exec(summary)?.[0] : undefined;
+  const proposal = id ? props.proposals?.find(q => q.id === id && (!repair || (q.follow_up_repair && q.at === output?.proposalRef?.at))) : undefined;
   const taskRun = label === 'requirements.plan_tasks' ? output?.taskRun : undefined;
   return <>
     <Tool failed={failed} label={compactLocalPaths(label)} summary={compactLocalPaths(summary)} icon={<Icon name={failed ? 'error' : 'build'} small />}>

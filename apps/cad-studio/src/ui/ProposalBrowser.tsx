@@ -40,7 +40,8 @@ export function ProposalBrowser({ controller, doc, bodies, fresh, massReady, pla
               {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
               <span className="grow" />
               <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
-              {stale ? <button className="primary small" disabled={proposalBusy} title="Recheck the proposal against the current document and review it before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
+              {stale && p.follow_up_repair ? <span className="muted">Attach the saved follow-up again to recheck.</span>
+                : stale ? <button className="primary small" disabled={proposalBusy} title="Recheck the proposal against the current document and review it before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
                 : <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>{shown && ghost.leaveOut.length ? `Accept ${ghost.parts.length - ghost.leaveOut.length} of ${ghost.parts.length}` : 'Accept'}</button>}
             </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
           </div>;

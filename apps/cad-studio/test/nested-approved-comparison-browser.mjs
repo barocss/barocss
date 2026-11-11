@@ -11,10 +11,12 @@ assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(rep
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const persistFollowUpBaseline = mode === '--save-follow-up-baseline';
 const attachFollowUpBaseline = mode === '--attach-follow-up-baseline', attachFollowUp = mode === '--attach-follow-up';
-const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline || attachFollowUpBaseline || attachFollowUp;
+const repairBaseline = mode === '--repair-follow-up-baseline', repairFollowUp = mode === '--repair-follow-up';
+const repairReview = repairBaseline || repairFollowUp;
+const persistFollowUp = mode === '--save-follow-up' || persistFollowUpBaseline || attachFollowUpBaseline || attachFollowUp || repairReview;
 const followUpBaseline = mode === '--follow-up-baseline', followUp = mode === '--follow-up' || followUpBaseline || persistFollowUp;
 const attachBaseline = mode === '--attach-review-baseline', attachReview = mode === '--attach-review';
-const attachedAgent = attachReview || attachFollowUp;
+const attachedAgent = attachReview || attachFollowUp || repairReview;
 const evidenceBaseline = mode === '--save-review-baseline', saveReview = mode === '--save-review' || evidenceBaseline || attachBaseline || attachReview;
 const scripted = 'apps/cad-studio/test/fixtures/scripted-claude.mjs';
 if (agent || attachedAgent) {
@@ -36,6 +38,9 @@ const pins = [
   ...(persistFollowUp ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
   ...(attachedAgent ? ['apps/cad-studio/server/selectedApprovalEvidence.ts', 'apps/cad-studio/src/chat/useApprovalEvidenceAttachment.ts',
     'apps/cad-studio/src/chat/useStudioChat.ts', 'apps/cad-studio/src/chat/client.ts', 'apps/cad-studio/src/ui/ChatPanel.tsx'] : []),
+  ...(repairFollowUp ? ['apps/cad-studio/server/selectedFollowUpRepair.ts', 'apps/cad-studio/src/ui/ProposalBrowser.tsx',
+    'packages/barocss-cad-model/src/chat/merge.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts',
+    'packages/barocss-cad-model/src/engine/schema/proposals.ts'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
     'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
 ];
@@ -83,12 +88,30 @@ if 'artifact' in d:
         leaf, = d['working']['instances'][0]['doc']['instances']
         assert row['requirement'] == leaf['doc']['requirements'][0]
         assert (row['result']['run'], row['result']['number'], row['result']['verdict'], row['freshness']['state']) == (e['revision'], 8, 'fail', 'current')
-print(json.dumps({'status':'PASS','localHeightChecks':6}))
+if 'repaired' in d:
+    before, after = d['working']['instances'], d['repaired']['instances']
+    assert before[1] == after[1]
+    assert before[0]['position'] == after[0]['position'] and before[0]['rotation'] == after[0]['rotation']
+    leaf_before, = before[0]['doc']['instances']
+    leaf_after, = after[0]['doc']['instances']
+    assert leaf_before['position'] == leaf_after['position'] and leaf_before['rotation'] == leaf_after['rotation']
+    before_doc, after_doc = leaf_before['doc'], leaf_after['doc']
+    assert before_doc['nodes'] == after_doc['nodes'] and before_doc['requirements'] == after_doc['requirements']
+    sketch, extrusion = after_doc['nodes']
+    assert extrusion['height'] == {'parameter':'H'}
+    width, depth = (b - a for a, b in zip(sketch['min'], sketch['max'], strict=True))
+    old_h, new_h = before_doc['parameters']['H'], after_doc['parameters']['H']
+    assert (width, depth, old_h, new_h) == (20, 10, 8, 4)
+    assert (old_h > 5 and new_h <= 5) and width * depth * (new_h - old_h) == -800
+    assert d['previewVolume'] == '−800 mm³'
+    print(json.dumps({'status':'PASS','volumeDeltaMm3':-800,'siblingPreserved':True}))
+else:
+    print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: repairReview ? 'D655_SOURCE_FROZEN' : attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+  qualification: repairReview ? 'Prepare a repair from a selected saved regression after a fresh check' : saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
@@ -412,6 +435,26 @@ async function verifyPersistedFollowUp({ saved, first, approved, working, skippe
     assert.equal(await approvalEvidenceFile(pairFile), null);
     return;
   }
+  if (repairBaseline) {
+    const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+    await withScriptedAgent(origin, async turn => {
+      f.phase = 'baseline refuses to prepare a selected repair while evidence remains readable';
+      await section().getByRole('button', { name: 'Attach follow-up evidence to chat', exact: true }).click();
+      await f.page.getByLabel('Approval evidence for next message', { exact: true }).getByText('Saved follow-up · p1/p1').waitFor();
+      const out = await turn([{ tool: 'read_selected_approval_evidence', args: {} },
+        { tool: 'propose_selected_follow_up_repair', args: { working_revision: pins.later.evidenceRevision } }]);
+      assert.deepEqual(out.results.map(result => result.error), [false, true]);
+      assert.match(out.results[1].body.error, /Unknown tool/);
+      await f.same(skipped);
+      f.report.observations.push({ selectedEvidenceReadable: true, repairToolAvailable: false });
+      await f.snapshot('00-no-selected-repair-tool');
+    });
+    return;
+  }
+  if (repairFollowUp) {
+    await verifySelectedRepair({ saved, skipped, working, first, approved, historical, current, artifact, pins, laterFile, bytes });
+    return;
+  }
 
   // Keep the original pair through the independent action, then verify it stays readable through the refused later record.
   await history().getByRole('button', { name: 'Save approval evidence', exact: true }).click();
@@ -437,6 +480,117 @@ async function verifyPersistedFollowUp({ saved, first, approved, working, skippe
   await f.snapshot('08-follow-up-pin-refused');
   f.report.observations.push({ pins, payloadSHA256: artifact.sha256, persistedFileSHA256: sha256(bytes), laterVerdict: 'regressed',
     reopenedWithoutCheckEvaluation: true, separatePairPreserved: true, mismatchedPinRefused: true, storedVersionsUnchanged: true });
+}
+
+async function verifySelectedRepair({ saved, skipped, working, first, approved, historical, current, artifact, pins, laterFile, bytes }) {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const read = { tool: 'requirements', args: { action: 'evidence', part: 'p1/p1' } };
+  const repair = working_revision => ({ tool: 'propose_selected_follow_up_repair', args: { working_revision } });
+  const restore = name => versions().getByRole('button', { name: 'Restore ' + name, exact: true }).click();
+  const attach = async () => {
+    if (!await history().isVisible()) {
+      await versions().getByRole('button', { name: 'Compare Initial nested failure', exact: true }).click();
+      await selectTarget().selectOption(pins.to.id);
+    }
+    await history().getByLabel('Follow-up version', { exact: true }).selectOption(pins.later.id);
+    await history().getByRole('button', { name: 'Attach follow-up evidence to chat', exact: true }).click();
+    await f.page.getByLabel('Approval evidence for next message', { exact: true }).getByText('Saved follow-up · p1/p1').waitFor();
+  };
+  const height = result => {
+    assert.equal(result.error, false);
+    const evidence = JSON.parse(result.body.files[0].text);
+    const row = evidence.evidence.find(item => item.requirement?.id === 'HEIGHT');
+    assert.equal(row.freshness.state, 'current');
+    return { revision: evidence.revision, measured: row.result.number, verdict: row.result.verdict };
+  };
+  const proposal = () => f.page.getByRole('listitem', { name: 'Proposal P2', exact: true });
+
+  await f.page.reload();
+  await f.ready();
+  await openProject();
+  await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+  await f.same(skipped);
+  await withScriptedAgent(origin, async turn => {
+    f.phase = 'the same historical failure cannot authorize a repair without attachment or a current failure';
+    const absent = await turn([read, repair(pins.later.evidenceRevision)]);
+    const live = height(absent.results[0]);
+    assert.deepEqual([live.measured, live.verdict], [3, 'pass']);
+    assert.match(absent.results[1].body.error, /Unknown tool/);
+    await attach();
+    const refused = await turn([repair(pins.later.evidenceRevision), repair(live.revision)]);
+    assert.deepEqual(refused.results.map(result => result.body.code), ['REPAIR_STALE', 'REPAIR_ALREADY_PASSING']);
+    await f.same(skipped);
+    assert.deepEqual(await projectBytes(), saved);
+    await f.snapshot('08-stale-and-passing-refused');
+
+    f.phase = 'the current result fails but a working edit arrives during the repair turn';
+    await restore('Later working failure');
+    await f.same(working);
+    const failed = height((await turn([read])).results[0]);
+    assert.deepEqual(failed, { revision: pins.later.evidenceRevision, measured: 8, verdict: 'fail' });
+    await attach();
+    const late = await turn([repair(failed.revision), { pause: 1800 }], async () => {
+      await restore('Skipped later version');
+      await f.same(skipped);
+      assert.ok(await f.page.getByText('Working…', { exact: true }).isVisible());
+    }, true);
+    assert.equal(late.results[0].body.proposal, 'P2');
+    assert.equal(late.done.doc.proposals.at(-1).status, 'open');
+    await f.same(skipped);
+    assert.equal(await proposal().count(), 0);
+    await f.snapshot('09-late-repair-discarded');
+
+    f.phase = 'prepare one current repair, refuse agent acceptance and preview the placed candidate';
+    await restore('Later working failure');
+    await f.same(working);
+    await attach();
+    const prepared = await turn([{ tool: 'read_selected_approval_evidence', args: {} }, repair(failed.revision),
+      { tool: 'proposals', args: { action: 'accept', id: 'P2' } }], undefined, true);
+    assert.deepEqual(prepared.results.map(result => result.error), [false, false, true]);
+    assert.deepEqual(prepared.results[0].body.file, artifact);
+    assert.equal(prepared.results[1].body.applied, false);
+    assert.match(prepared.results[2].body.error, /user.s approval/);
+    const pending = await f.doc(), record = pending.proposals.at(-1);
+    assert.deepEqual({ ...pending, proposals: working.proposals, history: working.history }, working);
+    assert.deepEqual([record.id, record.status, record.base_evidence_revision], ['P2', 'open', failed.revision]);
+    assert.deepEqual(record.follow_up_repair, { evidence_sha256: artifact.sha256, version: pins.later.id, part: 'p1/p1', requirements: ['HEIGHT'] });
+    await f.page.getByLabel('Proposal P2 from the chat', { exact: true }).waitFor();
+    if (await versions().isVisible()) await button('Project and versions').click();
+    await proposal().getByRole('button', { name: 'Preview', exact: true }).click();
+    await proposal().getByRole('button', { name: 'Hide', exact: true }).waitFor();
+    const previewVolume = await proposal().getByLabel('Volume change').innerText();
+    assert.equal(previewVolume, '−800 mm³');
+    await f.same(pending);
+    assert.deepEqual(await projectBytes(), saved);
+    await f.snapshot('10-preview-before-approval');
+
+    f.phase = 'approve only in Studio and save and reopen the repaired assembly';
+    await proposal().getByRole('button', { name: 'Accept', exact: true }).click();
+    await f.page.waitForFunction(() => window.__studioDoc?.proposals?.find(p => p.id === 'P2')?.status === 'accepted');
+    await f.ready();
+    const repaired = await f.doc(), acceptance = repaired.proposals.at(-1).decided;
+    assert.deepEqual([acceptance.by, acceptance.evidence_revisions.before], ['user', failed.revision]);
+    assert.deepEqual(repaired.proposals.at(-1).follow_up_repair, record.follow_up_repair);
+    const nowPassing = height((await turn([read, repair(failed.revision)])).results[0]);
+    assert.deepEqual(nowPassing, { revision: acceptance.evidence_revisions.after, measured: 4, verdict: 'pass' });
+    await inspectWorkingHeight(4, 'Pass');
+    await makeVersion('Selected regression repaired');
+    const retained = await projectBytes();
+    assert.deepEqual(JSON.parse(retained.doc), repaired);
+    assert.deepEqual(retained.snapshots.slice(0, saved.snapshots.length), saved.snapshots);
+    assert.equal(await approvalEvidenceFile(laterFile), bytes);
+    await f.page.reload();
+    await f.ready();
+    await openProject();
+    await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+    await f.same(repaired);
+    await inspectWorkingHeight(4, 'Pass');
+    await f.runOracle({ first, approved, working, historical, current, artifact, pins, repaired, previewVolume }, 'selected-repair');
+    await f.snapshot('11-repaired-and-reopened');
+    f.report.observations.push({ evidence: artifact.sha256, currentBefore: failed, currentAfter: nowPassing, previewVolume,
+      proposal: record.id, missingAttachmentRefused: true, staleRefused: true, passingRefused: true, lateDiscarded: true,
+      agentAcceptanceRefused: true, userApproved: true, savedAndReopened: true, originalEvidencePreserved: true });
+  });
 }
 
 async function withScriptedAgent(origin, check) {
@@ -467,7 +621,7 @@ process.exitCode = code ?? 1;
   const ready = new Promise(resolve => chat.stdout.on('data', chunk => { stdout += chunk; if (stdout.includes('chat server on')) resolve(true); }));
   const isTurn = request => new URL(request.url()).pathname === '/api/chat/turn' && request.method() === 'POST';
 
-  async function turn(calls, afterSend) {
+  async function turn(calls, afterSend, allowWrite = false) {
     const input = f.page.getByRole('textbox', { name: 'Chat message', exact: true });
     if (!(await input.isVisible())) await button('Chat').first().click();
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
@@ -482,9 +636,9 @@ process.exitCode = code ?? 1;
     const events = (await reply.text()).split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
     const done = events.at(-1);
     assert.equal(done.end, 'done', JSON.stringify(done));
-    assert.equal(done.doc, undefined);
+    if (!allowWrite) assert.equal(done.doc, undefined);
     assert.equal(done.versions, undefined);
-    assert.equal(done.ops, undefined);
+    if (!allowWrite) assert.equal(done.ops, undefined);
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Chat message"]')?.disabled === false);
     const all = (await readFile(rawPath, 'utf8')).trim().split('\n').map(line => JSON.parse(line))
       .filter(line => line.type === 'user').flatMap(line => line.message.content);

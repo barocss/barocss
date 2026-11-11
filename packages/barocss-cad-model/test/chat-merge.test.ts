@@ -51,6 +51,24 @@ test('a concurrent chat merge cannot replace the user’s proposal decision or a
   assert.equal(waiting.deferred[0]?.code, 'TURN_NOT_REPLAYABLE');
 });
 
+test('a saved follow-up repair is discarded when the turn merges over a working edit', async () => {
+  const base = await stateOf(rectanglePart(40, 20, 8));
+  const proposed = await edit(base, 'propose', { title: 'Taller', ops: [{ tool: 'edit_feature', args: { index: 1, values: { h: 10 } } }] });
+  const record = proposed.doc.proposals![0];
+  const repair = { ...proposed.doc, proposals: [{ ...record,
+    follow_up_repair: { version: 'saved', evidence_sha256: 'a'.repeat(64), part: 'p1/p1', requirements: ['HEIGHT'] } }] };
+  const op = captureOp(base.doc, repair, 'propose_selected_follow_up_repair', { working_revision: record.base_evidence_revision });
+  const patch: TurnPatch = { id: 'T1', by: { agent: 'chat' }, base: revisionOf(base.doc), nextId: nextSerial(base.doc), ops: [op] };
+  const now = await edit(base, 'edit_feature', { index: 1, values: { h: 7 } });
+  for (const options of [{}, { deferAll: 'Working edits continued' }]) {
+    const result = await mergeTurn(base.doc, now.doc, patch, evaluate, options);
+    assert.deepEqual(result.doc, now.doc);
+    assert.deepEqual(result.applied, []);
+    assert.equal(result.proposal, null);
+    assert.deepEqual(result.deferred.map(row => row.code), ['TURN_NOT_REPLAYABLE']);
+  }
+});
+
 test('the README repro: a long turn and a box the person added meanwhile — both kept, no id meets another', async () => {
   const base = await stateOf(rectanglePart(40, 20, 8));
   // (The turn: a box, eight edits of its height by index, a hole in the plate.)

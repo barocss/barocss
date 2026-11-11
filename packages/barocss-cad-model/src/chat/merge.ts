@@ -74,6 +74,8 @@ export interface TurnPatch { id: string; by: { agent: string; model?: string }; 
 
 const isProposalAcceptance = (op: TurnOp) => op.tool === 'accept_proposal' || op.effect.history.some(entry => entry.kind === 'accept');
 const approvalConflict = 'proposal approval applies only to the original document. Review the current proposal before accepting.';
+const exactProposalConflict = (op: TurnOp) => isProposalAcceptance(op) ? approvalConflict
+  : op.effect.proposals.some(p => p.follow_up_repair) ? 'the saved follow-up repair requires a fresh check on the current working revision' : null;
 
 const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
 /** A node with its index references as serials. */
@@ -222,10 +224,12 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   // (Every op waiting, without running anything — nothing to await, so no edit lands in between: the last resort.)
   if (o.deferAll !== undefined) {
-    const deferred = patch.ops.map((op, k): TurnConflict => isProposalAcceptance(op)
-      ? { op: k, tool: op.tool, code: 'TURN_NOT_REPLAYABLE', reason: approvalConflict }
-      : { op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! });
-    const replayable = deferred.filter(({ op }) => !isProposalAcceptance(patch.ops[op]));
+    const deferred = patch.ops.map((op, k): TurnConflict => {
+      const reason = exactProposalConflict(op);
+      return reason ? { op: k, tool: op.tool, code: 'TURN_NOT_REPLAYABLE', reason }
+        : { op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! };
+    });
+    const replayable = deferred.filter(({ op }) => !exactProposalConflict(patch.ops[op]));
     if (!replayable.length) return { doc: now, applied: [], deferred, proposal: null };
     const p = staticProposal(now, patch, replayable);
     return { doc: p.doc, applied: [], deferred, proposal: p.id };
@@ -249,7 +253,8 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   const late = { ids: new Set<string>(), parameters: new Set<string>(), fields: new Set<string>(), bodies: new Set<string>(), outputs: new Set<string>() };
   const paramsNow = Object.keys({ ...base.parameters, ...now.parameters });
   const conflictOf = (op: TurnOp, e: TurnEffect, w: Work): [TurnCode, string] | null => {
-    if (isProposalAcceptance(op)) return ['TURN_NOT_REPLAYABLE', approvalConflict];
+    const exact = exactProposalConflict(op);
+    if (exact) return ['TURN_NOT_REPLAYABLE', exact];
     if (RESTORES.has(op.tool)) return ['TURN_NOT_REPLAYABLE', `it brings back a whole earlier state of the part, from before your edits`];
     const own = new Set(e.added.map(a => a.id)), uses = new Set<string>();
     for (const n of [...e.added, ...e.changed]) refsOf(n.node, uses);
@@ -326,7 +331,7 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   // (The history the applied ops added, after the person's.)
   for (const k of r!.applied) for (const h of patch.ops[k].effect.history) doc = withHistory(doc, historyOf(h));
-  const replayable = r!.deferred.filter(({ op }) => !isProposalAcceptance(patch.ops[op]));
+  const replayable = r!.deferred.filter(({ op }) => !exactProposalConflict(patch.ops[op]));
   if (!replayable.length) return { doc, applied: r!.applied, deferred: r!.deferred, proposal: null };
   const withProposal = await deferredProposal({ doc, bodies, rowFiles: o.rowFiles }, patch, replayable, ids, evaluate);
   return { doc: withProposal.doc, applied: r!.applied, deferred: r!.deferred, proposal: withProposal.id };

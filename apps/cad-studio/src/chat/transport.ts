@@ -63,6 +63,7 @@ export class TurnChunker {
     if (e.type === 'tool') {
       const id = `call-${++this.calls}`, out: StudioChunk[] = [...this.close(), { type: 'tool-input-available', toolCallId: id, toolName: e.name, input: e.input, dynamic: true }];
       out.push(e.isError ? { type: 'tool-output-error', toolCallId: id, errorText: e.summary, dynamic: true } : { type: 'tool-output-available', toolCallId: id, output: { summary: e.summary,
+        ...(e.proposalRef ? { proposalRef: e.proposalRef } : {}),
         ...(e.taskRunOffer && this.taskSourceKey ? { taskRun: { offer: e.taskRunOffer, sourceKey: this.taskSourceKey } } : {}) }, dynamic: true });
       return out;
     }

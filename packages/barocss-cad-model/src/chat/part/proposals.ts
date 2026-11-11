@@ -8,7 +8,7 @@ import { deleteFeatures, featureDependents, renumber } from '../features';
 import { factsOf } from '../observe';
 import { treeDiff } from '../transactions';
 import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, proposalIsStale, riskOf, riskRank, withHistory } from '../proposals';
-import type { ChecksDelta, Proposal, Risk } from '../../engine/schema/proposals';
+import type { ChecksDelta, FollowUpRepairSource, Proposal, Risk } from '../../engine/schema/proposals';
 import { checkSpec, modelHash } from '../spec';
 import { MUTATORS } from '../toolDefinitions';
 import { errorOf, moveOpsWith, runOps, type OpsRun } from './history';
@@ -266,7 +266,8 @@ export async function previewProposalWith(dispatch: PartRun, state: ChatState, i
   return { doc: run.cur.doc, bodies: run.cur.bodies };
 }
 
-async function proposeTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, _options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
+export async function proposeWith(dispatch: PartRun, state: ChatState, args: Record<string, unknown>, evaluate: Evaluate,
+  repair?: { source: FollowUpRepairSource; check(candidate: StudioDoc, risk: Risk, checks?: ChecksDelta): Promise<string | undefined> }): Promise<ToolOutcome> {
   // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
   const title = typeof args.title === 'string' ? args.title.trim() : '';
   if (!title) return fail(state, 'A proposal takes a title.');
@@ -274,14 +275,17 @@ async function proposeTool(state: ChatState, args: Record<string, unknown>, eval
   if (unknown.length) return fail(state, `No requirement ${unknown.join(', ')}; requirements: ${[...known].join(', ') || 'none'}.`);
   const made = await proposalOfWith(dispatch, state, args.ops, evaluate);
   if ('fail' in made) return made.fail;
+  const refusal = repair && await repair.check(made.cur.doc, made.risk, made.checks);
+  if (refusal) return fail(state, refusal);
   const env = typeof process !== 'undefined' ? process.env : undefined;
   const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
   const plan = typeof args.plan === 'string' ? args.plan : undefined;
   const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
-    ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), base_evidence_revision: requirementEvidenceRevision(state.doc), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
+    ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), base_evidence_revision: requirementEvidenceRevision(state.doc), ...(repair ? { follow_up_repair: repair.source } : {}), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
   const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
   return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', ...(nestedParameterOps(made.ops) !== undefined ? { summary: made.summary } : {}), diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
 }
+const proposeTool: PartHandler = (state, args, evaluate, _options, dispatch) => proposeWith(dispatch, state, args, evaluate);
 async function acceptProposalTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, _options: CallOptions, dispatch: PartRun): Promise<ToolOutcome> {
   if (state.partOf) return fail(state, 'A placed part always needs the user\'s approval. Propose the edit from the assembly and name the part in the operation.');
   const id = String(args.id ?? ''), p = state.doc.proposals?.find(q => q.id === id);

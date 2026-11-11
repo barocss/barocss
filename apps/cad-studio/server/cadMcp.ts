@@ -22,7 +22,8 @@ import { isTaskRunFindingSelection, type TaskRunFindingSelection } from '../src/
 import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
 import type { ApprovalEvidenceFile } from '@barocss/cad-model/versions/savedApprovalEvidence';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalEvidenceTool, selectedApprovalForTurn } from './selectedApprovalEvidence';
+import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn,
+  selectedApprovalEvidenceTool, selectedFollowUpRepairTool } from './selectedApprovalEvidence';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
@@ -69,9 +70,9 @@ export function stateFileStore(statePath: string): McpStore {
 export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, taskRunRoot?: string) {
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const selection = taskRunRoot && isTaskRunFindingSelection(saved.taskFinding) ? saved.taskFinding : undefined;
-  const approval = await selectedApprovalForTurn(saved.selectedApproval, saved.versions);
+  const approval = await readSelectedApprovalForTurn(saved.selectedApproval, saved.versions);
   const tools = [...TOOLS_LISTED, ...(robotL3() ? [robotCheckListed()] : []), ...(selection ? [selectedNativeCheckTool] : []),
-    ...(approval ? [selectedApprovalEvidenceTool] : [])];
+    ...(approval ? [selectedApprovalEvidenceTool] : []), ...(approval?.repair ? [selectedFollowUpRepairTool] : [])];
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.rowFiles ? { rowFiles: saved.rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}), ...(saved.versions ? { versions: saved.versions } : {}) };
   let changed = saved.changed, version = saved.version, versionsChanged = false;
@@ -103,13 +104,20 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         if (approval && msg.params?.name === SELECTED_APPROVAL_EVIDENCE) {
           const args: unknown = msg.params.arguments === undefined ? {} : msg.params.arguments;
           if (!isObj(args) || Object.keys(args).length) return error(msg.id, -32602, 'The selected approval evidence tool takes no arguments.');
-          const result = { file: approval };
+          const result = { file: approval.file };
           return reply(msg.id, { content: [{ type: 'text', text: JSON.stringify(result) }], isError: false, structuredContent: result });
         }
-        if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
         const before = state.doc, name = String(msg.params?.name), args = msg.params?.arguments;
-        const handler = v1Name(name, args), out = await runTool(state, name, args ?? {}, evaluate);
-        if (out.changed) { const v1 = v1Call(String(msg.params?.name), msg.params?.arguments ?? {}); ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : String(msg.params?.name), v1 && !('error' in v1) ? v1.args : {})); }
+        const repair = name === SELECTED_FOLLOW_UP_REPAIR ? approval?.repair : undefined;
+        if (!repair && !(name in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${name}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
+        const handler = v1Name(name, args);
+        const out = repair
+          ? await (await import('./selectedFollowUpRepair')).prepareSelectedFollowUpRepair(state, args, repair, evaluate)
+          : await runTool(state, name, args ?? {}, evaluate);
+        if (out.changed) {
+          const v1 = v1Call(name, args ?? {});
+          ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : name, v1 && !('error' in v1) ? v1.args : repair && isObj(args) ? args : {}));
+        }
         // (CG6: a call that moved the version log — a version, a branch, a document asked for — is kept even when the part is not.)
         const asked = out.isError ? wantedOf(out.content) : [], next = asked.length ? { ...out.state, versionsWanted: [...new Set([...(out.state.versionsWanted ?? []), ...asked])] } : out.state;
         const logMoved = next.versions !== state.versions, wantedMoved = next.versionsWanted !== state.versionsWanted;

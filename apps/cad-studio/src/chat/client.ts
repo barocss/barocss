@@ -14,7 +14,7 @@ export type TurnEvent =
   | { type: 'text'; delta: string }
   /** O17c: the model's thinking, when the CLI streams it. */
   | { type: 'reasoning'; delta: string }
-  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer }
+  | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean; taskRunOffer?: TaskRunOffer; proposalRef?: { id: string; at: string } }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; ops?: TurnOp[] };
 

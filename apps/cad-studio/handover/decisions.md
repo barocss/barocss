@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D655 — prepare a repair from a selected saved regression](notes/studio-selected-follow-up-repair-2026-11-11/README.md).
 - [D654 — attach a retained saved follow-up to the Studio agent](notes/studio-agent-retained-follow-up-2026-11-11/README.md).
 - [D653 — preserve the direct saved follow-up in Studio](notes/studio-persisted-follow-up-evidence-2026-11-11/README.md).
 - [D652 — attach a retained approval review to a Studio agent turn](notes/studio-agent-saved-approval-attachment-2026-11-11/README.md).

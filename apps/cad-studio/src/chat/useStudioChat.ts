@@ -45,6 +45,7 @@ interface Turn {
   ended: Promise<string[]>; end(stopped: string[]): void;
   /** The document it ran on (ChatPanelProps.scope). */
   scope: object | null;
+  approvalDocumentIsCurrent?: () => boolean;
   taskSourceKey?: string;
   versions?: ReturnType<NonNullable<ChatPanelProps['versions']>['turn']>;
 }
@@ -79,7 +80,7 @@ export function useStudioChat(props: ChatPanelProps) {
     // An aborted turn keeps what it had built when it stopped.
     let doc = done.doc ? reshareNodes(t.shared, done.doc) : done.end === 'aborted' ? t.built : null;
     // (A part edited in place started or ended meanwhile: the turn's document is not the one open now, so none of it is applied.)
-    const moved = turnMoved(t.scope, latest.current.scope);
+    let moved = turnMoved(t.scope, latest.current.scope) || t.approvalDocumentIsCurrent?.() === false;
     const versions = versionsToMerge(moved, done.versions);
     const wanted = versionsToMerge(moved, done.versionsWanted);
     if (versions || wanted?.length) t.versions?.back(versions, wanted ?? []);
@@ -97,11 +98,18 @@ export function useStudioChat(props: ChatPanelProps) {
           from = now;
           if (tries === 3 || !changedDuring(now, latest.current.base())) break;
         }
-        doc = merged.doc;
+        const repairDeferred = merged.deferred.some(conflict => ops[conflict.op]?.effect.proposals.some(proposal => proposal.follow_up_repair));
+        if (repairDeferred) notices.push('The working revision changed. Attach the saved follow-up again to recheck the repair.');
+        doc = repairDeferred && !merged.applied.length && !merged.proposal ? null : merged.doc;
       } catch (e) {
         notices.push(`The turn could not be merged with your edits: ${e instanceof Error ? e.message : String(e)}. Nothing of it was applied.`);
         doc = null; merged = undefined;
       }
+    }
+    if (!moved && t.approvalDocumentIsCurrent?.() === false) {
+      moved = true;
+      if (doc) notices.push('The document changed while the turn ran, so its changes were not applied.');
+      doc = null;
     }
     // (The turn in the design history, saved with the part: the message capped, the model, what it changed.)
     if (doc) {
@@ -194,7 +202,8 @@ export function useStudioChat(props: ChatPanelProps) {
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
-    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
+    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null,
+      approvalDocumentIsCurrent: approval?.documentIsCurrent, taskSourceKey: latest.current.taskRun?.sourceKey(), versions,
       inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}), ...(taskFinding ? { taskFinding } : {}), ...(approval ? { selectedApproval: approval.file } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');

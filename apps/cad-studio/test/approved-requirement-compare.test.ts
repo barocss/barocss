@@ -18,7 +18,9 @@ import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSa
   saveFollowUpEvidence } from '../src/storage/savedApprovalEvidence';
 import { memoryStore } from '../src/storage/memoryStore';
 import { serveMcp } from '../server/cadMcp';
-import { SELECTED_APPROVAL_EVIDENCE, selectedApprovalEvidenceTool, selectedApprovalForTurn } from '../server/selectedApprovalEvidence';
+import { SELECTED_APPROVAL_EVIDENCE, SELECTED_FOLLOW_UP_REPAIR, readSelectedApprovalForTurn, selectedApprovalEvidenceTool,
+  selectedApprovalForTurn } from '../server/selectedApprovalEvidence';
+import { prepareSelectedFollowUpRepair } from '../server/selectedFollowUpRepair';
 
 const requirement: Requirement = { id: 'H-CAP', source: 'Maximum 10 mm', hard: true,
   check: { query: { fn: 'bbox', axis: 'z' }, op: '<=', value: 10, unit: 'mm' } };
@@ -189,6 +191,35 @@ test('D653 and D654 retain a direct saved regression and admit only its exact at
   assert.deepEqual(await readSavedFollowUpEvidence(source), JSON.parse(JSON.stringify({ approval, followUp: { version: source.version, ...followUp } })));
   const attachment = JSON.parse(new TextDecoder().decode(retained.bytes));
   assert.deepEqual(await selectedApprovalForTurn(attachment, later.log), attachment);
+  const selected = await readSelectedApprovalForTurn(attachment, later.log);
+  assert.ok(selected?.repair);
+  const evalState = await evaluate(changed.doc);
+  assert.ok(evalState.ok);
+  const evaluateRepair = (doc: StudioDoc) => prepareSelectedFollowUpRepair({ doc, bodies: evalState.bodies },
+    { working_revision: requirementEvidenceRevision(doc) }, selected.repair!, evaluate);
+  const genuine = await evaluateRepair(changed.doc);
+  assert.equal(genuine.isError, false, genuine.content);
+  assert.deepEqual(genuine.state.doc.instances, changed.doc.instances);
+  const stale = await prepareSelectedFollowUpRepair({ doc: changed.doc, bodies: evalState.bodies },
+    { working_revision: requirementEvidenceRevision(repaired.doc) }, selected.repair, evaluate);
+  assert.equal(JSON.parse(stale.content).code, 'REPAIR_STALE');
+  assert.equal(stale.state.doc, changed.doc);
+  const passing = await evaluateRepair(repaired.doc);
+  assert.equal(JSON.parse(passing.content).code, 'REPAIR_ALREADY_PASSING');
+  assert.equal(passing.state.doc, repaired.doc);
+  const displaced = { ...changed.doc, instances: changed.doc.instances!.map((instance, index) =>
+    index === 1 ? { ...instance, position: [99, 0, 0] as [number, number, number] } : instance) };
+  const rejected = await evaluateRepair(displaced);
+  assert.equal(JSON.parse(rejected.content).code, 'REPAIR_SCOPE_CHANGED');
+  assert.equal(rejected.state.doc, displaced);
+  const floor: Requirement = { id: 'H-FLOOR', source: 'Minimum 11 mm', hard: true,
+    check: { ...requirement.check, op: '>=', value: 11 } };
+  const blocked = editNestedDefinition(accepted, leaf, { ...leaf.leaf.doc,
+    parameters: { H: 12 }, requirements: [requirement, floor] });
+  assert.ok(!('error' in blocked));
+  const unsafe = await evaluateRepair(blocked.doc);
+  assert.match(unsafe.content, /preserve the passing hard checks/);
+  assert.equal(unsafe.state.doc, blocked.doc);
   assert.equal(await selectedApprovalForTurn(attachment, approved.log), undefined);
   assert.equal(await selectedApprovalForTurn(attachment, { ...later.log, snapshots: approved.log.snapshots }), undefined);
   const skippedPin = approvalEvidencePin(skipped.version, requirementEvidenceRevision(repaired.doc));
@@ -247,6 +278,7 @@ test('D652 lists the read-only tool only for a retained approval bound to the tu
   };
   const [listed, read] = await mcp(log);
   assert.deepEqual(listed.result.tools.at(-1), selectedApprovalEvidenceTool);
+  assert.ok(listed.result.tools.every((entry: { name: string }) => entry.name !== SELECTED_FOLLOW_UP_REPAIR));
   assert.deepEqual(read.result.structuredContent, { file });
   assert.deepEqual(read.result.structuredContent, JSON.parse(read.result.content[0].text));
   assert.deepEqual(validate(selectedApprovalEvidenceTool.outputSchema, read.result.structuredContent), []);

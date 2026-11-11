@@ -11,6 +11,12 @@ export interface ChecksDelta { before: Counts; after: Counts; newly_failing: str
 export interface Counts { pass: number; fail: number; unknown: number }
 /** The authored report inputs immediately before and after the user applied a proposal. */
 export interface AcceptanceEvidence { before: string; after: string }
+export interface FollowUpRepairSource {
+  evidence_sha256: string;
+  version: string;
+  part: string;
+  requirements: string[];
+}
 export interface Proposal {
   id: string; title: string; status: 'open' | 'accepted' | 'rejected';
   by: { agent: string; model?: string }; at: string;
@@ -20,6 +26,8 @@ export interface Proposal {
   base: string; ops: Op[];
   /** The report revision on which the proposal was evaluated. An open proposal without it requires rebase. */
   base_evidence_revision?: string;
+  /** The selected saved regression that prompted a fresh check on the working revision. */
+  follow_up_repair?: FollowUpRepairSource;
   /** The feature ids in order before each op (O133): what an op's indices name, so a rebase moves them to the part as it is. */
   orders?: string[][];
   risk: Risk; checks?: ChecksDelta;
