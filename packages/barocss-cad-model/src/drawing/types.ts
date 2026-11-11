@@ -62,7 +62,7 @@ export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviatio
 /**
  * `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance.
  * `count` (R14.1, O2): it stands for that many — a diameter for as many equal holes (`4× Ø6.6 THRU`), a linear dimension
- * for as many equal spaces of a row (`3× 20`). `auto`: placed by Auto-dimension (which replaces only its own).
+ * for as many equal spaces of a row (`3× 20`). `auto`: placed by Auto-dimension. Authored tolerances and controls protect it from replacement.
  * `basic` (R14.4, O5): a theoretically exact dimension, its text boxed (a position tolerance's frame holds the tolerance).
  */
 export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; basic?: true }) & (

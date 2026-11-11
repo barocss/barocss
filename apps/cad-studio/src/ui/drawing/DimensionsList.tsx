@@ -14,7 +14,7 @@ export function DimensionsList({ sheet, views, layout, scope, settings, selected
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
   return <>
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <Button variant="ghost" disabled={!views || !layout || scope.kind === 'assembly'} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</Button></div>
+          <Button variant="ghost" disabled={!views || !layout || scope.kind === 'assembly'} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: keeps your dimensions and authored tolerances">Auto</Button></div>
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => onSelect(r.dim.id)}>

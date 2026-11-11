@@ -43,7 +43,7 @@ export interface AutoDimensionReport {
   added: { overall: number; levels: number; holePositions: number; pitches: number; callouts: number };
   /** O146: the keyseats' and keyways' widths and depths added (apart from `added`, whose shape R14's conformance pins). */
   keys: number;
-  /** Kept as they were: dimensions placed by hand; and auto ones that a hand-placed one already gives. */
+  /** Dimensions kept because they were placed by hand or carry authored controls. */
   kept: number;
   skipped: { view: ViewId; what: string; why: string }[];
   /** Sides of a view whose rows need more sheet room than there is at this scale and sheet (they overlap what is next to them). */
@@ -235,13 +235,19 @@ function pitchRuns(xs: readonly number[]): [number, number][] {
   return runs;
 }
 
+/** Keep the existing annotation and its source references when it carries an authored control. */
+export function retainedDimensions(settings: DrawingSettings): DrawingDimension[] {
+  const attached = new Set(settings.frames?.map(frame => frame.dim));
+  return settings.dimensions.filter(d => !d.auto || d.tol !== undefined || d.basic || attached.has(d.id));
+}
+
 /**
- * The dimensions Auto-dimension gives the part's views, with the hand-placed ones kept and its own earlier ones
+ * The dimensions Auto-dimension gives the part's views, with retained annotations kept and unedited auto dimensions
  * replaced. `callout`: a hole's callout by an edge of it (null: not a hole feature).
  */
 export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = [], locationOwner?: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
-  const manual = settings.dimensions.filter(d => !d.auto);
-  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: manual.length, skipped: [], crowded: [], needs: {} };
+  const retained = retainedDimensions(settings);
+  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: retained.length, skipped: [], crowded: [], needs: {} };
   const holes = holesOf(views, callout), planned: Partial<Record<DimView, Planned[]>> & Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
   // (O146: the keyseats' and the keyways' sizes, each in the view — or, O148 X2, the section — that shows it best.)
   for (const p of keyPlans(views, layout, elements, report, sections)) (planned[p.dim.view] ??= []).push(p);
@@ -321,9 +327,9 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     }
   }
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
-  const out: DrawingDimension[] = [...manual], used = new Set(manual.map(d => d.id));
-  const manualSpans = new Map<string, DrawingDimension[]>();
-  for (const m of manual) { const key = spanKey(dimViews, m, base); if (key) { const bucket = manualSpans.get(key) ?? []; bucket.push(m); manualSpans.set(key, bucket); } }
+  const out: DrawingDimension[] = [...retained], used = new Set(retained.map(d => d.id));
+  const retainedSpans = new Map<string, DrawingDimension[]>();
+  for (const m of retained) { const key = spanKey(dimViews, m, base); if (key) { const bucket = retainedSpans.get(key) ?? []; bucket.push(m); retainedSpans.set(key, bucket); } }
   const nextId = () => { const id = nextFreeId('d', used); used.add(id); return id; };
   const onSections = sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => `section:${x.id}` as SectionRef);
   for (const id of [...ORTHO.filter(o => !layout.views[o].hidden), ...onSections] as DimView[]) {
@@ -338,7 +344,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       const placeAt = (p: Planned, k: number, at: Side) => {
         const off = (FIRST_ROW + ROW * k) / s, mid = (p.span[0][along === 'u' ? 0 : 1] + p.span[1][along === 'u' ? 0 : 1]) / 2;
         const place: XY = along === 'u' ? [mid, at === 'above' ? pr.max[1] + off : pr.min[1] - off] : [at === 'left' ? pr.min[0] - off : pr.max[0] + off, mid];
-        add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base, locationOwner);
+        add(out, retained, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, retainedSpans, dimViews, base, locationOwner);
       };
       rows.slice(0, spill).forEach((p, k) => placeAt(p, k, opposite[side]));
       rows.slice(spill).forEach((p, k) => placeAt(p, k, side));
@@ -359,7 +365,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     leaders.sort((a, b) => a.span[0][0] - b.span[0][0]).forEach((p, k) => {
       const [x] = p.span[0], r = p.radius!, off = (CALLOUT_ROW + ROW * (k + usedOpposite.u)) / s;
       const place: XY = [x + (toRight ? 1 : -1) * (r + CALLOUT_RUN / s), down ? pr.min[1] - off : pr.max[1] + off];
-      add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base, locationOwner);
+      add(out, retained, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, retainedSpans, dimViews, base, locationOwner);
     });
   }
   return { dimensions: out, report };
@@ -371,14 +377,18 @@ function linear(view: DimView, a: DimPoint, b: DimPoint, k: 0 | 1): Omit<Extract
   return { view, kind: 'linear', a, b, orient: k === 0 ? 'horizontal' : 'vertical', auto: true };
 }
 
-/** The same measurement as a hand-placed one: same view, kind, orientation and references (by edge and point). */
+const edgeKey = (p: { edge: string; near: readonly number[] }) => JSON.stringify([p.edge, p.near.map(r6)]);
+const ringKey = (ring: readonly { edge: string; near: readonly number[] }[]) => JSON.stringify(ring.map(edgeKey).sort());
+
+/** The same measurement as a retained one: same view, kind, orientation and source references. */
 function sameAs(d: DrawingDimension, m: DrawingDimension): boolean {
   if (d.view !== m.view || d.kind !== m.kind) return false;
-  const ref = (p: DimPoint) => `${p.edge}|${p.at}|${p.near.map(r6).join(',')}`;
+  const ref = (p: DimPoint) => p.at === 'pcd' ? ringKey(p.ring ?? []) : `${p.at}|${edgeKey(p)}`;
   if (d.kind === 'linear' && m.kind === 'linear') {
     if (d.orient !== m.orient || (d.count ?? 1) !== (m.count ?? 1)) return false;
     return (ref(d.a) === ref(m.a) && ref(d.b) === ref(m.b)) || (!d.count && !m.count && ref(d.a) === ref(m.b) && ref(d.b) === ref(m.a));
   }
+  if (d.kind === 'pcd' && m.kind === 'pcd') return ringKey(d.ring) === ringKey(m.ring);
   if ((d.kind === 'diameter' || d.kind === 'radius') && (m.kind === 'diameter' || m.kind === 'radius')) return d.edge === m.edge;
   return false;
 }
@@ -400,13 +410,13 @@ function spanKey(views: Partial<Record<DimView, BrepProjection>>, d: DrawingDime
   return `${axisOf(base(d.view), k)}|${r6(lo)}|${r6(hi)}|${d.count ?? 1}`;
 }
 
-function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', manualSpans: ReadonlyMap<string, readonly DrawingDimension[]>, views: Partial<Record<DimView, BrepProjection>>, base: (v: DimView) => ViewId, locationOwner?: (edge: string) => string | null): void {
-  if (manual.some(m => sameAs(d, m))) return;
-  // (One a hand-placed dimension gives already, in this view or one sharing the axis.)
+function add(out: DrawingDimension[], retained: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', retainedSpans: ReadonlyMap<string, readonly DrawingDimension[]>, views: Partial<Record<DimView, BrepProjection>>, base: (v: DimView) => ViewId, locationOwner?: (edge: string) => string | null): void {
+  if (retained.some(m => sameAs(d, m))) return;
+  // A retained dimension may already give the measurement in this view or one sharing the axis.
   const key = spanKey(views, d, base);
   if (key) {
     const resolved = resolveDimension(views, d), projection = views[d.view];
-    if (resolved.ok && resolved.kind === 'linear' && projection) for (const m of manualSpans.get(key) ?? []) {
+    if (resolved.ok && resolved.kind === 'linear' && projection) for (const m of retainedSpans.get(key) ?? []) {
       const other = resolveDimension(views, m), otherProjection = views[m.view];
       if (other.ok && other.kind === 'linear' && otherProjection && sameLinearDependency(resolved, projection, other, otherProjection, axisOf(base(d.view), resolved.dim.orient === 'horizontal' ? 0 : 1), locationOwner)) return;
     }

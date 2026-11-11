@@ -7,10 +7,10 @@ import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engi
 import { projectViews } from '../src/drawing/project';
 import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
 import { snapPoints } from '../src/drawing/dimensions';
-import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
+import { applyFix, drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, chooseViews, rightAddsNothing } from '../src/drawing/layout';
 import { layoutSheet } from '../src/drawing/views';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 
 // R14.3 (O4): views chosen and laid out for their dimensions. Conformance cases packages/barocss-cad/conformance/r14/
 // layout-<name>/case.json: a studio document and drawing settings; the views shown, the sheet and scale chosen, whether
@@ -88,4 +88,42 @@ test('the right view adds nothing on a plate, something with a hole along X; a d
   const list = drawingIssues(issueContext(i));
   assert.ok(list.some(x => x.code === 'VIEW_NEEDED' && x.fix?.kind === 'show-view'), JSON.stringify(list.map(x => x.code)));
   assert.ok(MIN_HOLE_ON_PAPER_MM > 0);
+});
+
+test('Auto-layout and the issue fix retain a tolerance through reruns and source changes', () => {
+  const original = inputsOf(rectanglePart(40, 12, 6), defaultDrawing());
+  const first = autoLayout(original).settings;
+  const width = first.dimensions.find(d => d.kind === 'linear' && d.view === 'front' && d.orient === 'horizontal');
+  assert.ok(width);
+  const height = first.dimensions.find(d => d.kind === 'linear' && d.view === 'front' && d.orient === 'vertical');
+  assert.ok(height);
+  const manual = { ...height, id: 'manual-height', auto: undefined };
+  const controls = [
+    { kind: 'symmetric', value: 0.05 },
+    { kind: 'deviation', upper: 0.10, lower: -0.02 },
+    { kind: 'fit', code: 'H7' },
+  ] as const;
+  for (const tol of controls) {
+    const authored: DrawingDimension = { ...width, tol };
+    const settings: DrawingSettings = { ...first, dimensions: [authored, manual] };
+    const input: SheetInputs = { ...original, settings };
+    const outputs: DrawingSettings[] = [autoLayout(input).settings, applyFix(issueContext(input), { kind: 'auto-dimension' })];
+    for (const output of outputs) {
+      assert.equal(output.dimensions.length, first.dimensions.length);
+      assert.deepEqual(output.dimensions.find(d => d.id === width.id)?.tol, tol);
+      assert.deepEqual(output.dimensions.find(d => d.id === 'manual-height'), manual);
+      const reopened = readDrawing(JSON.parse(JSON.stringify(output)));
+      const resized = inputsOf(rectanglePart(48, 12, 6), reopened);
+      const rerun = autoLayout(resized).settings;
+      const measured = issueContext({ ...resized, settings: rerun }).sheet.dimensions.filter(r => r.ok && r.value === 48);
+      assert.equal(measured.length, 1);
+      assert.equal(measured[0].dim.id, width.id);
+      assert.deepEqual(measured[0].dim.tol, tol);
+    }
+  }
+  const withoutTolerance = { ...first, dimensions: [{ ...width, id: 'old-auto-width' }, manual] };
+  const regenerated = autoLayout({ ...original, settings: withoutTolerance });
+  assert.equal(regenerated.report.dimensions.kept, 1);
+  assert.equal(regenerated.settings.dimensions.some(d => d.id === 'old-auto-width'), false);
+  assert.equal(regenerated.settings.dimensions.length, first.dimensions.length);
 });

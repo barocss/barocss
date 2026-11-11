@@ -1,7 +1,7 @@
 // Auto layout (R14.3, O4): the views chosen and laid out so their dimensions have room, then Auto-dimension.
 //
 // - Views: the front and top views always; the right view dropped when it adds nothing (no circle shows round in it,
-//   no curve, every straight edge's position already in the top or front view, nothing placed in it by hand); the
+//   no curve, every straight edge's position already in the top or front view, no retained annotations); the
 //   isometric view as set.
 // - Room: Auto-dimension says how much sheet room each view side's rows take; the layout spaces the views by it
 //   (`settings.room`), and the two run in turn until every side has its rows (at most four rounds). What still overlaps
@@ -10,7 +10,7 @@
 //   largest first (or the one set), on the sheet set then A3 for an A4 sheet: the first giving nothing crowded and no
 //   error on the issue list. Only if none: the largest clean scale below them. Else the attempt with the fewest errors.
 import { elementNotes, withElementNotes } from './elementCallouts';
-import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
+import { autoDimensions, holesOf, levels, retainedDimensions, type AutoDimensionReport } from './auto';
 import { roundIn, type Resolved } from './dimensions';
 import { drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, SegmentGrid, textBox, type DrawingIssue, type IssueContext, type Quad, type SheetInputs } from './issues';
 import { presetFor } from './standard';
@@ -58,11 +58,11 @@ export function rightAddsNothing(views: DrawingViews): boolean {
   return inAll(across, topY) && inAll(up, frontZ);
 }
 
-/** The views to show: as set, less a right view that adds nothing and holds nothing placed by hand. */
+/** The views to show: as set, less a right view that adds nothing and holds no retained annotations. */
 export function chooseViews(views: DrawingViews, settings: DrawingSettings): { views: ViewId[]; dropped: ViewId[] } {
   const base = settings.views ?? [...VIEW_IDS];
-  const handInRight = settings.dimensions.some(d => d.view === 'right' && !d.auto) || (settings.notes ?? []).some(n => n.leader?.view === 'right');
-  if (base.includes('right') && !handInRight && rightAddsNothing(views)) return { views: base.filter(v => v !== 'right'), dropped: ['right'] };
+  const keptInRight = retainedDimensions(settings).some(d => d.view === 'right') || (settings.notes ?? []).some(n => n.leader?.view === 'right');
+  if (base.includes('right') && !keptInRight && rightAddsNothing(views)) return { views: base.filter(v => v !== 'right'), dropped: ['right'] };
   return { views: base, dropped: [] };
 }
 
@@ -80,11 +80,10 @@ export function information(pr: DrawingViews['front']): number {
 
 /**
  * The front view's side for Auto (R14.3b, O7): the side the right view looks from, when it tells clearly more than the
- * front (a fifth more, and two more); else the front as it is. Only for a drawing that has no side set and nothing
- * placed by hand on it (a side set, or annotations to keep, stay as they are). Null: keep the front.
+ * front (a fifth more, and two more); else the front as it is. A drawing with a set side or retained annotations keeps the front.
  */
 export function frontByInformation(views: DrawingViews, settings: DrawingSettings): { orientation: Orientation; why: string } | null {
-  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length || settings.frames?.some(f => f.dim === undefined)) return null;
+  if (settings.orientation || retainedDimensions(settings).length || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length || settings.frames?.some(f => f.dim === undefined)) return null;
   const front = information(views.front), right = information(views.right);
   if (!(right > 1.2 * front && right > front + 2)) return null;
   const t = views.right.toward, orientation = ORIENTATIONS.find(o => { const v = viewsFor(o).front.toward; return Math.abs(v[0] - t[0]) < 1e-9 && Math.abs(v[1] - t[1]) < 1e-9; })!;
@@ -197,7 +196,7 @@ export function placeDimensionLabels(initial: IssueContext): { settings: Drawing
 /** Auto layout: the settings with the views, room, scale and sheet chosen and Auto-dimension's dimensions; what it did. */
 export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report: AutoLayoutReport } {
   const { views: shown, dropped } = chooseViews(i.views, i.settings);
-  const manual = i.settings.dimensions.filter(d => !d.auto);
+  const retained = retainedDimensions(i.settings);
   const sheets: DrawingSettings['sheet'][] = i.settings.sheet === 'A4' ? ['A4', 'A3'] : [i.settings.sheet];
   type Attempt = { settings: DrawingSettings; dims: AutoDimensionReport; left: DrawingIssue[]; errors: number };
   let best: Attempt | null = null, clean: Attempt | null = null, tried = 0;
@@ -205,7 +204,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
   // Pass one: scales at which the smallest hole reads (on A4, then A3). Pass two, only if none was clean: the largest
   // clean scale below that.
   for (const readable of [true, false]) for (const sheet of sheets) {
-    const base: DrawingSettings = { ...i.settings, sheet, views: shown, dimensions: manual };
+    const base: DrawingSettings = { ...i.settings, sheet, views: shown, dimensions: retained };
     delete base.room; delete base.scale;
     // Scales: the one set (on its own sheet) or the largest that fits the views alone, then the smaller ones.
     const first = sheet === i.settings.sheet && i.settings.scale !== undefined ? i.settings.scale : layoutSheet(i.views, base, sectionExtents(base, i.sections)).scale;

@@ -11,6 +11,7 @@ import { autoDimensions } from '../src/drawing/auto';
 import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import { snapPoints } from '../src/drawing/dimensions';
+import { applySuggestion } from '../src/drawing/tolerance';
 
 // R14.1 (O2): Auto-dimension. Each conformance case (packages/barocss-cad/conformance/r14/<case>/case.json) is a studio
 // document and its drawing settings; the dimensions Auto-dimension gives it, as they read on the sheet, must be the
@@ -100,4 +101,47 @@ test('a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)', (
   const doc = PARTS['hole-row'].doc();
   assert.equal(holeCallout(doc.nodes, 'n1.top|n2_p3.side0#1'), '4× Ø6.6 THRU');
   assert.equal(holeCallout(doc.nodes, 'n1.top|n2.side0#1'), '4× Ø6.6 THRU');
+});
+
+test('rerunning Auto retains accepted and directly authored controls on their original dimensions', () => {
+  const doc = PARTS['bolt-circle'].doc(), first = run(doc);
+  const width = first.settings.dimensions.find(d => d.kind === 'linear' && d.view === 'front' && d.orient === 'horizontal');
+  const ring = first.settings.dimensions.find(d => d.kind === 'pcd');
+  assert.ok(width && ring);
+  const size = first.settings.dimensions.find(d => d.kind === 'diameter');
+  assert.ok(size);
+  const source = { ...first.settings, dimensions: [width, size, { ...ring, ring: [...ring.ring].reverse() }] };
+  const accepted = applySuggestion(source, {
+    id: 'position-test', kind: 'position', basis: 'test fixture', message: 'Position', estimate: false,
+    change: { kind: 'frame', frame: { id: 'frame-test', dim: size.id, characteristic: 'position', value: 0.1, datums: [] }, basic: [width.id] },
+  });
+  assert.deepEqual(accepted.frames?.map(frame => frame.dim), [size.id]);
+  const controls = accepted.dimensions.map(d => d.id === ring.id ? { ...d, tol: { kind: 'symmetric', value: 0.05 } as const } : d);
+  const after = run(doc, { ...accepted, dimensions: controls });
+  assert.deepEqual(after.settings.frames, accepted.frames);
+  assert.equal(after.report.kept, 3);
+  assert.equal(after.settings.dimensions.length, first.settings.dimensions.length);
+  assert.deepEqual(after.settings.dimensions.slice(0, 3), controls);
+  assert.equal(after.settings.dimensions.filter(d => d.kind === 'pcd').length, 1);
+  assert.deepEqual(run(doc, after.settings).settings, after.settings);
+});
+
+test('Auto keeps lost authored references and does not assign their tolerances to other features', () => {
+  const original = withNode(rectanglePart(40, 24, 6), hole(1, [10, 12], 3));
+  const initial = run(original);
+  const size = initial.settings.dimensions.find(d => d.kind === 'diameter');
+  assert.ok(size);
+  const retained = { ...size, tol: { kind: 'fit', code: 'H7' } as const };
+  const replacement = withNode(rectanglePart(40, 24, 6), { ...hole(1, [20, 12], 3), id: 'n7' });
+  const distinct = run(replacement, { dimensions: [retained] });
+  const newSize = distinct.sheet.dimensions.find(d => d.ok && d.kind === 'diameter' && d.dim.id !== retained.id);
+  assert.ok(newSize?.ok);
+  assert.ok(Math.abs(newSize.value - 6) < 1e-9);
+  assert.equal(newSize.dim.tol, undefined, 'equal nominal size cannot inherit the earlier tolerance');
+  assert.equal(distinct.sheet.dimensions.find(d => d.dim.id === retained.id)?.ok, false);
+
+  const lost = run(rectanglePart(40, 24, 6), { dimensions: [retained] });
+  assert.deepEqual(lost.settings.dimensions.find(d => d.id === retained.id), retained);
+  assert.equal(lost.sheet.dimensions.find(d => d.dim.id === retained.id)?.ok, false);
+  assert.deepEqual(lost.settings.dimensions.filter(d => d.tol), [retained]);
 });

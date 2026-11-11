@@ -19,16 +19,23 @@ export function ToleranceEditor({ selDim, settings, tolDraft, setTolDraft, commi
           }}><option value="none">None</option><option value="symmetric">± symmetric</option><option value="deviation">Upper / lower</option><option value="fit">Fit (H7, h6 …)</option></NativeSelect></label>
           {selDim.tol && (selDim.tol.kind === 'symmetric' ? [['value', '±']] : selDim.tol.kind === 'deviation' ? [['upper', 'Upper'], ['lower', 'Lower']] : [['code', 'Fit']]).map(([key, label]) => {
             const t = selDim.tol as Record<string, unknown>, shown = tolDraft[key] ?? String(t[key]);
+            const clearDraft = () => setTolDraft(m => { const rest = { ...m }; delete rest[key]; return rest; });
             const apply = () => {
               const raw = tolDraft[key]; if (raw === undefined) return;
               const next = { ...t, [key]: key === 'code' ? raw.trim() : Number(raw) } as Tolerance;
               const ok = next.kind === 'fit' ? /^[A-Za-z]{1,2}\d{1,2}$/.test(next.code) : next.kind === 'symmetric' ? Number.isFinite(next.value) && next.value > 0 : Number.isFinite(next.upper) && Number.isFinite(next.lower) && next.upper >= next.lower;
               if (ok) commitDims(settings.dimensions.map(d => d.id === selDim.id ? { ...d, tol: next } as DrawingDimension : d));
               else setMessage(next.kind === 'fit' ? 'A fit is a letter or two and a grade, as H7 or js6.' : next.kind === 'symmetric' ? 'A ± tolerance is a number above 0.' : 'The upper deviation must not be below the lower.');
-              setTolDraft(m => { const rest = { ...m }; delete rest[key]; return rest; });
+              clearDraft();
             };
             return <label key={key} className={FIELD}><span>{label}</span><Input className={CONTROL} aria-label={`Tolerance ${label}`} type={key === 'code' ? 'text' : 'number'} step="any" value={shown}
-              onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>;
+              onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => {
+                if (e.key === 'Enter') e.currentTarget.blur();
+                if (e.key === 'Escape' && tolDraft[key] !== undefined) {
+                  e.stopPropagation();
+                  clearDraft();
+                }
+              }} /></label>;
           })}
         </>}
   </>;

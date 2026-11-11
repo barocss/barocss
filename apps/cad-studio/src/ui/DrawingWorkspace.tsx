@@ -641,7 +641,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
   /**
    * Auto (R14.1–R14.3, O2–O4): the views chosen and laid out with room for their dimensions, the scale and sheet that
-   * give a clean drawing, then Auto-dimension; its own earlier dimensions replaced, those placed by hand kept.
+   * give a clean drawing, then Auto-dimension; keeps manual dimensions and those with authored controls.
    */
   const autoDimension = async () => {
     if (!views || scope.kind === 'assembly') return;

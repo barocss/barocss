@@ -38,6 +38,8 @@ Choose one declared daily part that uses an existing sketch, primary solid, cut 
 
 ## P2 — Drawings and engineering exchange
 
+[D696](../notes/auto-dimension-tolerance-retention-2026-11-11/README.md) preserves authored controls across Auto-dimension regeneration. Desktop Studio verifies the same width through first Undo/Redo, Save/Open and a 40→48 mm source edit. Independent readers verify the 40 ±0.05 SVG and DXF.
+
 [D674](../notes/two-sheet-leader-svg-2026-11-11/README.md) verifies one view-attached leader in four real A4 SVG exports. The note follows Top between the 5:1 and 2:1 sheets. The first Undo and Redo restore ownership in Studio.
 
 [D675](../notes/two-sheet-counterbore-svg-2026-11-11/README.md) verifies that the updated counterbore callout appears only on the Top sheet in actual SVG. [D676](../notes/lost-diameter-svg-2026-11-11/README.md) fixes shared pitch-circle reference state and verifies that actual SVG omits a lost diameter and restores it after Undo.
