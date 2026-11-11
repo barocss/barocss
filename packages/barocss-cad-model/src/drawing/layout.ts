@@ -81,9 +81,11 @@ export function information(pr: DrawingViews['front']): number {
 
 /**
  * The front view's side for Auto (R14.3b, O7): the side the right view looks from, when it tells clearly more than the
- * front (a fifth more, and two more); else the front as it is. A drawing with a set side or retained annotations keeps the front.
+ * front (a fifth more, and two more); else the front as it is. A set side, retained annotations or a drawing set keeps the front.
  */
 export function frontByInformation(views: DrawingViews, settings: DrawingSettings): { orientation: Orientation; why: string } | null {
+  // Auto lays out one sheet at a time. Front from changes the orientation of the whole drawing.
+  if (settings.sheets?.length || (settings.sheetContext?.of ?? 1) > 1) return null;
   if (settings.orientation || retainedDimensions(settings).length || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length || settings.frames?.some(f => f.dim === undefined)) return null;
   const front = information(views.front), right = information(views.right);
   if (!(right > 1.2 * front && right > front + 2)) return null;

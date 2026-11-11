@@ -96,6 +96,10 @@ test('Auto takes the side that tells more when nothing placed by hand ties it: t
   const doc = crossBlock(), v = viewsOf(doc);
   const pick = frontByInformation(v, defaultDrawing());
   assert.ok(pick && pick.orientation === 'x+', JSON.stringify(pick));
+  const set: DrawingSettings = { ...defaultDrawing(), sheets: [{ id: 'S2', views: ['right'] }] };
+  assert.equal(frontByInformation(v, set), null, 'a drawing set keeps its common direction');
+  assert.equal(frontByInformation(v, forSheet(set, 0)), null, 'the first sheet retains the drawing-set direction');
+  assert.equal(frontByInformation(v, forSheet(set, 1)), null, 'the continuation retains the drawing-set direction');
   assert.equal(frontByInformation(viewsOf(starterDoc()), defaultDrawing()), null, 'a plate: the front as it is');
   assert.equal(frontByInformation(v, { ...defaultDrawing(), orientation: 'y+' }), null, 'a side set stays');
   const s = auto(doc), hand = { ...s, dimensions: s.dimensions.map((d, k) => k ? d : { ...d, auto: undefined } as typeof d) };

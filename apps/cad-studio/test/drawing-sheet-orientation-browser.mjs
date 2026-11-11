@@ -1,19 +1,24 @@
-// D752: a drawing-wide Front from must preserve dimensions and their owning sheets.
+// D752/D753: drawing orientation and Auto-dimension must preserve the owning sheets.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-const baseline = mode === '--baseline';
-const fixturePath = 'packages/barocss-cad/conformance/r14/orient-plate-x-plus/case.json';
+const automatic = mode === '--auto' || mode === '--auto-baseline';
+const baseline = mode === '--baseline' || mode === '--auto-baseline';
+const fixtureName = automatic ? 'orient-cross-hole-y-plus' : 'orient-plate-x-plus';
+const fixturePath = `packages/barocss-cad/conformance/r14/${fixtureName}/case.json`;
 const fixtureBytes = await readFile(fixturePath);
 const fixture = JSON.parse(fixtureBytes);
+const manual = automatic ? { ...fixture.input.drawing.dimensions.find(dim => dim.id === 'd6'), id: 'retained-hole' } : null;
+if (manual) delete manual.auto;
 const source = {
   ...fixture.input.document,
   drawing: {
     ...fixture.input.drawing,
     title: 'Two-sheet orientation fixture',
-    sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', scale: 1, views: ['front'] }],
+    ...(manual ? { dimensions: [manual] } : {}),
+    sheets: [{ id: 'S2', name: 'Continuation', size: 'A3', scale: 1, views: [automatic ? 'right' : 'front'] }],
     notes: [
       { id: 'n-first', text: 'FIRST SHEET CONTROL', at: [130, 70] },
       { id: 'n-second', text: 'CONTINUATION CONTROL', at: [150, 80], sheet: 'S2' },
@@ -26,8 +31,9 @@ const pins = [
   'packages/barocss-cad-model/src/drawing/sheets.ts', fixturePath,
 ];
 const f = await createFlow({
-  name: 'drawing-sheet-orientation', output, envFrozen: 'D752_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Reproduce wrong dimension ownership after Front from on a drawing set' : 'Preserve global orientation and sheet ownership',
+  name: 'drawing-sheet-orientation', output, envFrozen: automatic ? 'D753_SOURCE_FROZEN' : 'D752_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: automatic ? 'Keep Auto-dimension within the active sheet'
+    : baseline ? 'Reproduce wrong dimension ownership after Front from on a drawing set' : 'Preserve global orientation and sheet ownership',
   limits: ['Two sheets of an ordinary plate drawing. Controlled delay changes only delivery time. SVG bytes are captured locally before file delivery.'],
   snapshotExtra: () => ({
     readout: window.__studioDrawing?.(),
@@ -40,6 +46,21 @@ const f = await createFlow({
 import json, sys, xml.etree.ElementTree as ET
 arg = json.load(sys.stdin)
 ns = {"s": "http://www.w3.org/2000/svg"}
+if "automatic" in arg:
+    sibling = ET.fromstring(arg["automatic"]["sibling"])
+    assert sibling.attrib["width"] == "420mm", sibling.attrib
+    dims = sibling.findall(".//s:g[@class='dimension'][@data-dim]", ns)
+    assert len(dims) == 1 and dims[0].attrib["data-dim"] == "retained-hole"
+    assert "".join(dims[0].itertext()).strip() == "Ø8 THRU"
+    assert any(node.text == "CONTINUATION CONTROL" for node in sibling.findall(".//s:text", ns))
+    if "active" in arg["automatic"]:
+        active = ET.fromstring(arg["automatic"]["active"])
+        dims = active.findall(".//s:g[@class='dimension'][@data-dim]", ns)
+        assert sorted("".join(d.itertext()).strip() for d in dims) == ["30", "30", "60"]
+        assert all(d.attrib["data-view"] in ["front", "top"] for d in dims)
+        assert any(node.text == "FIRST SHEET CONTROL" for node in active.findall(".//s:text", ns))
+    print(json.dumps({"status": "PASS"}))
+    sys.exit(0)
 physical = {"d1": "32", "d2": "16", "d3": "32", "d4": "Ø8", "d5": "64", "d6": "8"}
 for index, data in enumerate(arg["sheets"]):
     root = ET.fromstring(data)
@@ -62,7 +83,9 @@ function instrument() {
   const post = Worker.prototype.postMessage;
   const onmessage = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
   let armed = false, target, held, deliver;
+  const requests = [];
   Worker.prototype.postMessage = function (request, ...args) {
+    if (request?.type === 'drawing') requests.push({ id: request.id, orientation: request.options?.orientation ?? 'y-' });
     if (armed && request?.type === 'drawing' && request.options?.orientation === 'x+') {
       armed = false;
       target = { worker: this, id: request.id };
@@ -97,6 +120,7 @@ function instrument() {
   window.__d752 = {
     arm() { if (armed || target) throw new Error('Only one projection can be held'); armed = true; },
     held: () => held ?? null,
+    requests: () => requests,
     release() {
       if (!deliver) throw new Error('One genuine projection must be held');
       const run = deliver;
@@ -144,19 +168,136 @@ await f.run(async () => {
     return states;
   };
 
-  f.phase = 'Open the retained plate as two sheets';
-  const file = 'sheet-orientation.bcad';
-  const bytes = Buffer.from(JSON.stringify(source));
-  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: file, mimeType: 'application/json', buffer: bytes });
-  await page.waitForFunction(() => window.__studioDoc?.drawing?.title === 'Two-sheet orientation fixture');
-  await f.ready();
+  const openFile = async (doc, file) => {
+    const bytes = Buffer.from(JSON.stringify(doc));
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: file, mimeType: 'application/json', buffer: bytes });
+    await page.waitForFunction(title => window.__studioDoc?.drawing?.title === title, doc.drawing.title);
+    await f.ready();
+    return bytes;
+  };
+  const waitHeld = async () => (await page.waitForFunction(() => window.__d752.held())).jsonValue();
+  const release = async () => {
+    await page.evaluate(() => window.__d752.release());
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  };
+
+  f.phase = 'Open the retained two-sheet drawing';
+  const file = automatic ? 'sheet-auto-dimension.bcad' : 'sheet-orientation.bcad';
+  const bytes = await openFile(source, file);
   const original = await f.doc();
   assert.deepEqual(original.drawing.sheets, source.drawing.sheets);
   f.report.observations.push({ fixtureSHA256: sha256(fixtureBytes), authoredSHA256: sha256(bytes) });
+  const saveOpen = async (accepted, ids, values) => {
+    const project = automatic ? 'D753 sheet Auto' : 'D752 drawing orientation';
+    const panel = () => page.getByRole('complementary', { name: 'Versions panel', exact: true });
+    const attach = async () => {
+      if (!(await panel().isVisible())) await button('Project and versions').click();
+      await panel().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+      await panel().getByRole('button', { name: 'Project in this browser', exact: true }).click();
+      await panel().getByLabel('Project', { exact: true }).waitFor();
+    };
+    await modeButton('Model').click();
+    await attach();
+    await button('Save').click();
+    await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText(file, { exact: true }).waitFor();
+    const saved = await page.evaluate(async ([project, file]) => {
+      const root = await navigator.storage.getDirectory();
+      const dir = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(project);
+      return (await (await dir.getFileHandle(file)).getFile()).text();
+    }, [project, file]);
+    assert.deepEqual(JSON.parse(saved), accepted);
+    f.report.files.push({ name: file, sha256: sha256(saved) });
+    await panel().getByRole('button', { name: 'Close project', exact: true }).click();
+    await panel().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
+    await page.reload();
+    await f.ready();
+    await attach();
+    await panel().getByRole('button', { name: 'Open ' + file, exact: true }).click();
+    await f.same(accepted);
+    await modeButton('Drawing').click();
+    await selectSheet('Continuation');
+    const restored = await reads(ids);
+    restored.forEach((item, index) => assert.ok(Math.abs(item.value - values[index]) < 1e-8));
+    await f.snapshot('fresh-open-continuation');
+  };
+
   await modeButton('Drawing').click();
   await selectSheet('Sheet 1');
   assert.equal(await front().inputValue(), 'y-');
+  if (automatic) {
+    f.phase = 'Auto-dimension on sheet 1 with a manual Ø8 on the continuation';
+    await selectSheet('Continuation');
+    assert.ok(Math.abs((await reads(['retained-hole']))[0].value - 8) < 1e-8);
+    const before = await capture('before-auto-continuation');
+    await f.runOracle({ automatic: { sibling: before } }, 'before-auto-oracle');
+    await f.snapshot('authored-continuation-diameter');
+    await selectSheet('Sheet 1');
+    const previous = (await page.evaluate(() => window.__d752.requests())).length;
+    if (baseline) await page.evaluate(() => window.__d752.arm());
+    await button('Auto-dimension').click();
+    if (baseline) {
+      const projection = await waitHeld();
+      assert.equal(projection.ok, true);
+      f.report.observations.push({ automaticProjection: projection });
+      await release();
+    }
+    await f.changed(original);
+    const notice = await f.waitToast(/\d+ dimensions? placed/);
+    const after = await f.snapshot('auto-dimension-result');
+    assert.deepEqual(after.doc.nodes, original.nodes);
+    if (baseline) {
+      assert.equal(after.doc.drawing.orientation, 'x+');
+      assert.match(notice, /front seen from \+X/);
+      await selectSheet('Continuation');
+      const sibling = await f.snapshot('continuation-after-automatic-turn');
+      const diameter = sibling.readout?.dimensions.find(dim => dim.id === 'retained-hole');
+      assert.ok(!diameter || typeof diameter.value !== 'number', JSON.stringify(diameter));
+      return;
+    }
+    assert.equal(after.doc.drawing.orientation, undefined);
+    assert.deepEqual(after.doc.drawing.sheets, original.drawing.sheets);
+    assert.deepEqual(after.doc.drawing.notes, original.drawing.notes);
+    assert.deepEqual(after.doc.drawing.dimensions.find(dim => dim.id === 'retained-hole'), original.drawing.dimensions[0]);
+    const requests = (await page.evaluate(() => window.__d752.requests())).slice(previous);
+    assert.ok(requests.every(request => request.orientation === 'y-'));
+    assert.doesNotMatch(notice, /front seen from/);
+    f.report.observations.push({ notice, requests });
+    const afterFirst = await capture('automatic-active-sheet');
+    await selectSheet('Continuation');
+    const afterSecond = await capture('automatic-retained-continuation');
+    await f.runOracle({ automatic: { active: afterFirst, sibling: afterSecond } }, 'after-auto-oracle');
+    await f.snapshot('automatic-preserves-continuation');
+    await button('Undo').click();
+    await f.same(original);
+    await button('Redo').click();
+    await f.same(after.doc);
+    await saveOpen(after.doc, ['retained-hole'], [8]);
+
+    f.phase = 'Single-sheet Auto-dimension reply after leaving Drawing and replacing the part';
+    const single = { ...fixture.input.document, drawing: { sheet: 'A4', projection: 'third', hidden: true, dimensions: [], title: 'Single sheet Auto' } };
+    await modeButton('Model').click();
+    await openFile(single, 'single-sheet-auto.bcad');
+    await modeButton('Drawing').click();
+    await page.locator('svg[aria-label="Drawing sheet"]').waitFor();
+    await page.evaluate(() => window.__d752.arm());
+    await button('Auto-dimension').click();
+    const projection = await waitHeld();
+    assert.equal(projection.ok, true);
+    await modeButton('Model').click();
+    await button('New part').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await f.ready();
+    const replacement = await f.snapshot('replacement-before-old-auto-reply');
+    await release();
+    await f.same(replacement.doc);
+    const late = await f.snapshot('replacement-after-old-auto-reply');
+    for (const key of ['doc', 'undo', 'redo', 'history', 'dirty']) assert.deepEqual(late[key], replacement[key]);
+    assert.ok(late.notices.every(item => !/dimensions? placed/.test(item)));
+    f.report.observations.push({ held: projection, afterWorkspaceExit: late.notices });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await reads(['d1', 'd2', 'd3', 'd4']);
   const priorFirst = await capture('original-sheet-1');
   await selectSheet('Continuation');
@@ -224,35 +365,6 @@ await f.run(async () => {
   await button('Redo').click();
   await f.same(turned.doc);
 
-  const project = 'D752 drawing orientation';
-  const panel = () => page.getByRole('complementary', { name: 'Versions panel', exact: true });
-  const attach = async () => {
-    if (!(await panel().isVisible())) await button('Project and versions').click();
-    await panel().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
-    await panel().getByRole('button', { name: 'Project in this browser', exact: true }).click();
-    await panel().getByLabel('Project', { exact: true }).waitFor();
-  };
-  await modeButton('Model').click();
-  await attach();
-  await button('Save').click();
-  await panel().getByRole('list', { name: 'Project documents', exact: true }).getByText(file, { exact: true }).waitFor();
-  const saved = await page.evaluate(async ([project, file]) => {
-    const root = await navigator.storage.getDirectory();
-    const dir = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(project);
-    return (await (await dir.getFileHandle(file)).getFile()).text();
-  }, [project, file]);
-  assert.deepEqual(JSON.parse(saved), turned.doc);
-  f.report.files.push({ name: file, sha256: sha256(saved) });
-  await panel().getByRole('button', { name: 'Close project', exact: true }).click();
-  await panel().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
-  await page.reload();
-  await f.ready();
-  await attach();
-  await panel().getByRole('button', { name: 'Open ' + file, exact: true }).click();
-  await f.same(turned.doc);
-  await modeButton('Drawing').click();
-  await selectSheet('Continuation');
-  assert.deepEqual((await reads(['d5', 'd6'])).map(item => item.value), [64, 8]);
-  await f.snapshot('fresh-open-continuation');
+  await saveOpen(turned.doc, ['d5', 'd6'], [64, 8]);
   assert.deepEqual(f.report.downloads, []);
 });
