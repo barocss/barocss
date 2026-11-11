@@ -1,14 +1,14 @@
 // Sketch planes: where a sketch lies in the part (world, Z up, mm). A sketch's own coordinates (u, v) run
 // along xAxis and normal × xAxis from origin; its solids grow along the normal. Any flat face takes one.
-import type { Vec3 } from '../engine/mesh';
+import type { DisplayFace, Vec3 } from '../engine/mesh';
 import { dot, cross } from '../engine/vec3';
 
 export interface SketchPlane { origin: Vec3; normal: Vec3; xAxis: Vec3 }
 
 /** Rounding noise off: components near 0 or ±1 become exactly that. */
 const clean = (v: Vec3): Vec3 => v.map(c => Math.abs(c) < 1e-9 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-9 ? Math.sign(c) : c) as Vec3;
-/** Lengths to a micrometre, so face positions read as authored. */
-const mm = (x: number) => Math.round(x * 1000) / 1000 || 0;
+/** Compact coordinates for plane labels. */
+const displayMm = (x: number) => Math.round(x * 1000) / 1000 || 0;
 
 export type PlaneKind = 'xy' | 'xz' | 'yz';
 /**
@@ -19,7 +19,7 @@ export const standardPlane = (kind: PlaneKind): SketchPlane =>
   kind === 'xy' ? xyPlane() : kind === 'xz' ? { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } : { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
 /** A plane moved along its normal. */
 export const offsetPlane = (p: SketchPlane, d: number): SketchPlane =>
-  d ? { ...p, origin: [0, 1, 2].map(k => mm(p.origin[k] + p.normal[k] * d)) as Vec3 } : p;
+  d ? { ...p, origin: [0, 1, 2].map(k => p.origin[k] + p.normal[k] * d + 0) as Vec3 } : p;
 /** A plane tipped about its own X axis (through its origin) by degrees: positive tips its normal towards its Y. */
 export function tiltPlane(p: SketchPlane, degrees: number): SketchPlane {
   if (!degrees) return p;
@@ -39,9 +39,17 @@ export const yAxisOf = (p: SketchPlane): Vec3 => clean(cross(p.normal, p.xAxis))
 export function planeOfFace(normal: Vec3, point: Vec3): SketchPlane | null {
   const l = Math.hypot(...normal); if (!(l > 0)) return null;
   const n = clean(normal.map(c => c / l) as Vec3);
-  if (Math.abs(n[2]) === 1) return { origin: [0, 0, mm(point[2])], normal: [0, 0, n[2]], xAxis: [1, 0, 0] };
-  const h = Math.hypot(n[0], n[1]), x = clean([-n[1] / h, n[0] / h, 0]), d = mm(dot(point, n));
-  return { origin: clean([n[0] * d, n[1] * d, n[2] * d]).map(mm) as Vec3, normal: n, xAxis: x };
+  if (Math.abs(n[2]) === 1) return { origin: [0, 0, point[2] + 0], normal: [0, 0, n[2]], xAxis: [1, 0, 0] };
+  const h = Math.hypot(n[0], n[1]), x = clean([-n[1] / h, n[0] / h, 0]);
+  const d = dot(point, n) / dot(n, n);
+  return { origin: [n[0] * d + 0, n[1] * d + 0, n[2] * d + 0], normal: n, xAxis: x };
+}
+
+/** Use the native plane when present and the legacy mesh face otherwise. */
+export function planeOfDisplayFace(face: Pick<DisplayFace, 'kind' | 'normal' | 'centroid' | 'exact'>): SketchPlane | null {
+  if (face.kind !== 'plane') return null;
+  const exact = face.exact?.kind === 'plane' ? face.exact : null;
+  return planeOfFace(exact?.n ?? face.normal, exact?.o ?? face.centroid);
 }
 
 export const toWorld = (p: SketchPlane, [u, v]: readonly [number, number]): Vec3 => {
@@ -72,7 +80,7 @@ export function boxOnPlane(p: SketchPlane, min: Vec3, max: Vec3): [[number, numb
 /** A short name: the coordinate a face lies at when it is axis-aligned. */
 export function planeLabel(p: SketchPlane): string {
   const n = p.normal;
-  for (const [k, name] of [[2, 'Z'], [0, 'X'], [1, 'Y']] as const) if (Math.abs(n[k]) === 1) return `${name} ${mm(p.origin[k])}`;
+  for (const [k, name] of [[2, 'Z'], [0, 'X'], [1, 'Y']] as const) if (Math.abs(n[k]) === 1) return `${name} ${displayMm(p.origin[k])}`;
   if (n[2] === 0) return `${Math.round(Math.atan2(n[1], n[0]) * 180 / Math.PI)}° plane`;
   return `${Math.round(Math.acos(Math.abs(n[2])) * 180 / Math.PI)}° tilted plane`;
 }

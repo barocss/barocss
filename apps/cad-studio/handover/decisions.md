@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D739 — preserve sketch plane origins and offsets](notes/sketch-plane-origin-precision-2026-11-12/README.md).
 - [D738 — refuse parameter Rename collisions in stored configurations](notes/parameter-rename-configuration-collision-2026-11-12/README.md).
 - [D737 — preserve sketch Finish ownership across replacements](notes/sketch-finish-replacement-and-duplicates-2026-11-12/README.md).
 - [D736 — verify linked and detached sketch Finish replies](notes/sketch-finish-association-replies-2026-11-12/README.md).

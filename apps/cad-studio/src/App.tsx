@@ -212,7 +212,7 @@ import { PreviewSection, type PreviewMode } from './layout/PreviewSection';
 import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
 import { sketchDxf } from '@barocss/cad-model/sketch/dxf';
 import { settleShape } from '@barocss/cad-model/sketch/settle';
-import { planeLabel, planeOfFace, xyPlane } from '@barocss/cad-model/sketch/plane';
+import { planeLabel, planeOfDisplayFace, xyPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeNode } from '@barocss/cad-model/sketch/loops';
 import { isSettled } from '@barocss/cad-model/sketch/rules';
 import { SketchHistory } from '@barocss/cad-model/sketch/history';
@@ -1327,7 +1327,7 @@ export function App() {
     if (cmd.action === 'sketch') {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
-      const plane = face ? (face.kind === 'plane' ? planeOfFace(face.normal, face.centroid) : null) : xyPlane();
+      const plane = face ? planeOfDisplayFace(face) : xyPlane();
       if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face, or clear the selection to sketch on XY.', detail: '' }); return; }
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
@@ -1543,7 +1543,7 @@ export function App() {
     if (!exact) { setToast({ title: 'The section is still being cut', hint: 'Wait a moment for the exact section, then try again.', detail: '' }); return; }
     const from = nextSerial(evaluated), faces = exact.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && cutAfter(f.name, from)).map(f => ({ b, f })));
     if (!faces.length) { setToast({ title: 'Nothing is cut there', hint: 'Move the section plane through the part first.', detail: '' }); return; }
-    const plane = planeOfFace(faces[0].f.normal, faces[0].f.centroid); if (!plane) return;
+    const plane = planeOfDisplayFace(faces[0].f); if (!plane) return;
     const shapes = faces.flatMap(({ b, f }) => { const fp = faceProfile(b.mesh, f.index); return fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : []; });
     if (!shapes.length) { setToast({ title: 'The section’s outline could not be read', hint: 'Its edges are not lines and arcs yet.', detail: '' }); return; }
     setSection(null); setSelection(emptySel);

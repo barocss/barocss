@@ -4,11 +4,11 @@
 // outer loop is the profile; the loops inside it are its holes.
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import type { LoopSegment, SketchNode } from '../engine/doc';
-import { planeOfFace, toLocal } from '../sketch/plane';
+import { planeOfDisplayFace, toLocal } from '../sketch/plane';
 import { signedArea as area } from '../engine/geom2';
 
 type XY = [number, number];
-// To 0.1 µm: the display mesh is single precision, so authored sizes come back rounded off.
+// Fit local outlines from display vertices to 0.1 µm.
 const r4 = (x: number) => Math.round(x * 1e4) / 1e4 || 0;
 
 /** The closed boundary loops of face `face` of a display mesh, as world points (in triangle winding order). */
@@ -100,14 +100,13 @@ export function fitLoop(ring: readonly XY[], tol: number): LoopSegment[] {
 
 /** The sketch a flat face makes (its plane, outline and holes), or null for a curved face or no closed boundary. */
 export function faceProfile(mesh: DisplayMesh, face: number): SketchNode | null {
-  const f = mesh.faces[face]; if (!f || f.kind !== 'plane') return null;
-  const plane = planeOfFace(f.normal, f.centroid); if (!plane) return null;
+  const f = mesh.faces[face]; if (!f) return null;
+  const plane = planeOfDisplayFace(f); if (!plane) return null;
   const size = Math.max(...[0, 1, 2].map(k => mesh.bounds.max[k] - mesh.bounds.min[k])), tol = Math.max(1e-4, size * 2e-4);
   const rings = faceBoundary(mesh, face).map(l => l.map(p => toLocal(plane, p)))
     // Counter-clockwise each (holes too, as drawn ones are), the largest first: the outline.
     .map(r => area(r) < 0 ? [...r].reverse() : r).sort((a, b) => area(b) - area(a));
   if (!rings.length) return null;
   const [outer, ...holes] = rings.map(r => fitLoop(r, tol));
-  const r3 = (v: readonly number[]) => v.map(r4) as [number, number, number];
-  return { kind: 'sketch', profile: 'loop', segments: outer, ...(holes.length ? { holes } : {}), plane: { origin: r3(plane.origin), normal: r3(plane.normal), xAxis: r3(plane.xAxis) } };
+  return { kind: 'sketch', profile: 'loop', segments: outer, ...(holes.length ? { holes } : {}), plane };
 }

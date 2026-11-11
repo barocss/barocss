@@ -88,8 +88,8 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
               <option value="xy">XY (top)</option><option value="xz">XZ (front)</option><option value="yz">YZ (right)</option>
             </NativeSelect></label>
           <label className={FIELD}><span>Offset</span>
-            <span className={NUM}><Input aria-label="Plane offset" type="number" step="any" value={round(anchor.offset)}
-              onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) <= 10000) onPlace(anchor.kind, v, anchor.angle); }} /><em>mm</em></span></label>
+            <span className={NUM}><Input aria-label="Plane offset" type="number" step="any" value={anchor.offset}
+              onChange={e => { const text = e.target.value, v = Number(text); if (text && Number.isFinite(v) && Math.abs(v) <= 10000) onPlace(anchor.kind, v, anchor.angle); }} /><em>mm</em></span></label>
           <label className={FIELD}><span>Angle</span>
             <span className={NUM}><Input aria-label="Plane angle" type="number" step={5} min={-89} max={89} value={round(anchor.angle ?? 0)}
               onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) < 90) onPlace(anchor.kind, anchor.offset, v); }} /><em>°</em></span></label>
