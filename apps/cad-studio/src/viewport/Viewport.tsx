@@ -10,6 +10,7 @@ import { printPointToModel, printSceneBounds, projectPrintBodies } from './print
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
+import { modelFitArea } from './modelFitArea';
 import type { FrameCost } from './frameCost';
 import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
 import type { ScalarMap } from './scalarMaps';
@@ -361,6 +362,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     done?.(focus);
   };
   const fitted = useRef(false);
+  const fitBounds = (bounds: { min: Vec3; max: Vec3 }) => {
+    const view = canvas.current, c = camera.current;
+    if (!view) return;
+    c.aspect = view.clientWidth / Math.max(1, view.clientHeight);
+    const area = props.sketch || props.render || sourceProps.printActive || sourceProps.camActive ? undefined : modelFitArea(view);
+    c.fit(bounds.min, bounds.max, area);
+  };
 
   // (R1b: the bodies' offsets made once for the transforms or offsets they come from — viewState runs in each frame and hover.)
   const offsetsMemo = useRef<{ from: unknown; map: ViewState['offsets'] } | null>(null);
@@ -459,7 +467,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   useEffect(() => {
     const r = renderer.current; if (!r) return;
     r.setBodies(props.bodies);
-    if (!sourceProps.printActive && !fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
+    if (!sourceProps.printActive && !fitted.current && props.bodies.length) {
+      const b = r.bounds();
+      if (b) { fitBounds(b); fitted.current = true; }
+    }
     r.setState(viewState()); request();
   }, [props.bodies, backend]);
 
@@ -689,8 +700,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
-    fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
-    setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) fitBounds(b); request(); },
+    setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) fitBounds(b); request(); },
     frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
       const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
       camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);

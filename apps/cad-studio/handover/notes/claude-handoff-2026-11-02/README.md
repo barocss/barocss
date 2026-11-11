@@ -271,7 +271,9 @@ D666 enables keyboard navigation and activation in More tools. Desktop Studio re
 
 D667 restores Space activation to focused Browser buttons. Desktop Studio verified Box selection and focus on Escape, and the workspace palette retained the model selection when closed. [D667](../studio-browser-keyboard-2026-11-11/README.md).
 
-Next MAIN is D668 / P4, row 21. Check whether Fit keeps the model within the visible work area with the chat dock open and closed. Compare the projected model bounds with the tools and dock.
+D668 fits model bounds to the visible work area. Desktop Studio verified both chat states, keyboard F, the right dock sheet and automatic native-file fit. [D668](../studio-model-work-area-fit-2026-11-11/README.md).
+
+Next MAIN is D669 / P4, row 21. Check keyboard access to ViewCube directions and verify that pointer selection and orbit still work.
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 

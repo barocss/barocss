@@ -120,3 +120,34 @@ test('small near-plane policy is positive and continuous at the legacy distance 
     if (distance < 1) assert.equal(c.near(), .05 * distance);
   }
 });
+
+test('model fit keeps each corner inside an asymmetric work area in both projections', () => {
+  const area = { left: .49, right: .92, top: .24, bottom: .64 }, width = 640, height = 800;
+  const centre: Vec3 = [1200, -700, 400], extents: Vec3 = [50, 33, 22];
+  const min = centre.map((value, axis) => value - extents[axis]) as Vec3;
+  const max = centre.map((value, axis) => value + extents[axis]) as Vec3;
+  for (const ortho of [false, true]) for (const view of ['iso', 'top'] as const) {
+    const camera = new OrbitCamera();
+    camera.aspect = width / height;
+    camera.ortho = ortho;
+    camera.setView(view);
+    camera.fit(min, max, area);
+    const [cx, cy] = camera.project(centre, width, height);
+    close(cx / width, (area.left + area.right) / 2);
+    close(cy / height, (area.top + area.bottom) / 2);
+    for (const x of [min[0], max[0]]) for (const y of [min[1], max[1]]) for (const z of [min[2], max[2]]) {
+      const [px, py, depth] = camera.project([x, y, z], width, height);
+      assert.ok(px / width >= area.left - 1e-5 && px / width <= area.right + 1e-5);
+      assert.ok(py / height >= area.top - 1e-5 && py / height <= area.bottom + 1e-5);
+      assert.ok(Math.abs(depth) < 1);
+    }
+  }
+});
+
+test('an empty model fit area falls back to the ordinary camera fit', () => {
+  const camera = new OrbitCamera(), ordinary = clone(camera);
+  ordinary.fit(lo, hi);
+  camera.fit(lo, hi, { left: .6, right: .5, top: .1, bottom: .9 });
+  assert.equal(camera.distance, ordinary.distance);
+  assert.deepEqual(camera.target, ordinary.target);
+});

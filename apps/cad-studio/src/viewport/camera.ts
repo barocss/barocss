@@ -4,6 +4,8 @@ export { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/ve
 import { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/vec3';
 
 export type Mat4 = Float32Array;
+/** A rectangle in viewport fractions, measured from its top left. */
+export type CameraFitArea = { left: number; right: number; top: number; bottom: number };
 // The existing persisted RenderCamera admission (cad-model/engine/render.ts); no new camera state.
 const MIN_DISTANCE = 1e-3;
 
@@ -92,16 +94,43 @@ export class OrbitCamera {
     for (let k = 0; k < 3; k++) this.target[k] += (ndcX * w * right[k] + ndcY * h * up[k]) * shift;
   }
 
-  fit(min: Vec3, max: Vec3) {
+  fit(min: Vec3, max: Vec3, area?: CameraFitArea) {
     let valid = true;
     for (let k = 0; k < 3; k++) if (!Number.isFinite(min[k]) || !Number.isFinite(max[k]) || min[k] > max[k]) valid = false;
-    let radius = 1;
+    let radius = 1, centre: Vec3 | undefined;
     if (valid) {
       const measured = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2;
       const target: Vec3 = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
-      if (Number.isFinite(measured) && target.every(Number.isFinite)) { radius = measured || 1; this.target = target; }
+      if (Number.isFinite(measured) && target.every(Number.isFinite)) { radius = measured || 1; this.target = centre = target; }
     }
     this.distance = Math.max(MIN_DISTANCE, (radius / Math.sin(this.fovY / 2)) * 1.15 / Math.min(1, this.aspect));
+    if (area && centre) this.fitArea(min, max, centre, area);
+  }
+
+  private fitArea(min: Vec3, max: Vec3, centre: Vec3, area: CameraFitArea) {
+    const yScale = Math.tan(this.fovY / 2), xScale = yScale * this.aspect;
+    const left = (2 * area.left - 1) * xScale, right = (2 * area.right - 1) * xScale;
+    const bottom = (1 - 2 * area.bottom) * yScale, top = (1 - 2 * area.top) * yScale;
+    if (![left, right, bottom, top].every(Number.isFinite) || !(left < right && bottom < top)) return;
+    const midX = (left + right) / 2, midY = (bottom + top) / 2;
+    // Derive the fit basis from the angles so subtracting large world positions does not affect it.
+    const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
+    const forward: Vec3 = [-cp * cy, -cp * sy, -sp];
+    const side: Vec3 = [-sy, cy, 0], up: Vec3 = [-sp * cy, -sp * sy, cp];
+    let distance = this.distance;
+    for (let i = 0; i < 8; i++) {
+      const corner: Vec3 = [(i & 1 ? max[0] : min[0]) - centre[0], (i & 2 ? max[1] : min[1]) - centre[1], (i & 4 ? max[2] : min[2]) - centre[2]];
+      const x = dot(corner, side), y = dot(corner, up), z = this.ortho ? 0 : dot(corner, forward);
+      // At distance D the corner's horizontal slope is (x + midX * D) / (D + z).
+      // Solve the left and right bounds for D. The same bounds apply vertically.
+      distance = Math.max(distance, (left * z - x) / (midX - left), (x - right * z) / (right - midX),
+        (bottom * z - y) / (midY - bottom), (y - top * z) / (top - midY));
+    }
+    const target: Vec3 = [0, 1, 2].map(i => centre[i] - distance * (midX * side[i] + midY * up[i])) as Vec3;
+    if (Number.isFinite(distance) && target.every(Number.isFinite)) {
+      this.distance = distance;
+      this.target = target;
+    }
   }
 
   /**
