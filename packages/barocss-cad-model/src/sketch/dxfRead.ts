@@ -8,6 +8,7 @@
 // What it gives is a draft: its dimensions read from the drawing are the user's to confirm (drafts.ts).
 import { CadNumericPolicy } from '@barocss/cad';
 import type { LoopSegment } from '../engine/doc';
+import { dxfBulge } from './dxfBulge';
 import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
 import { createDxfVisibility } from './dxfVisibility';
 import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
@@ -30,7 +31,7 @@ export function dwgRefusal(head: string): BarocssError | null {
 }
 type P = [number, number];
 /** An edge: a line, or an arc from a to b about c, counter-clockwise when ccw. */
-type Edge = { a: P; b: P } & ({ c?: undefined } | { c: P; r: number; ccw: boolean });
+type Edge = { a: P; b: P } & ({ c?: undefined; bulged?: undefined } | { c: P; r: number; ccw: boolean; bulged?: true });
 export interface DxfLoop { segments: LoopSegment[]; area: number; box: [number, number, number, number]; circle?: { center: P; radius: number } }
 export interface DxfSketch {
   /** The regions (each a closed loop) and the holes (each inside a region), in mm. */
@@ -62,13 +63,9 @@ export function pairsOf(text: string): [number, string][] {
   return out;
 }
 const num = (v: string, what: string): number => { const x = Number(v); if (!Number.isFinite(x)) throw refusal('DXF_MALFORMED', `${what}: "${v.slice(0, 20)}" is not a number`); return x; };
-/** A bulge's arc between two points (bulge = tan(θ/4), positive counter-clockwise). */
-function bulgeEdge(a: P, b: P, bulge: number): Edge {
-  if (Math.abs(bulge) < 1e-12) return { a, b };
-  const dx = b[0] - a[0], dy = b[1] - a[1], chord = Math.hypot(dx, dy), theta = 4 * Math.atan(bulge), r = chord / (2 * Math.sin(theta / 2));
-  // (The centre is on the chord's perpendicular, at r cos(θ/2) from its middle, to the bulge's left for a positive one.)
-  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, h = r * Math.cos(theta / 2), nx = -dy / chord, ny = dx / chord;
-  return { a, b, c: [mx + nx * h, my + ny * h], r: Math.abs(r), ccw: bulge > 0 };
+function bulgeEdge(a: P, b: P, bulge: number, type: string): Edge {
+  const arc = dxfBulge(a, b, bulge, type);
+  return arc ? { a, b, c: arc.center, r: arc.radius, ccw: arc.sweep > 0, bulged: true } : { a, b };
 }
 const arcPoint = (c: P, r: number, deg: number): P => [c[0] + r * Math.cos(deg * Math.PI / 180), c[1] + r * Math.sin(deg * Math.PI / 180)];
 
@@ -106,8 +103,8 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
       const closed = (g(70, 0) & 1) === 1, pts: P[] = [], bulges: number[] = [];
       for (const [code, v] of body) { if (code === 10) { pts.push([num(v, 'LWPOLYLINE x') * k, 0]); bulges.push(0); } else if (code === 20 && pts.length) pts[pts.length - 1][1] = num(v, 'LWPOLYLINE y') * k; else if (code === 42 && pts.length) bulges[bulges.length - 1] = num(v, 'LWPOLYLINE bulge'); }
       if (pts.length < 2) throw refusal('DXF_MALFORMED', 'an LWPOLYLINE of fewer than two vertices');
-      for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j]));
-      if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1]));
+      for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j], type));
+      if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1], type));
     } else {
       // POLYLINE: its VERTEX entities follow, up to SEQEND.
       const closed = (g(70, 0) & 1) === 1, pts: P[] = [], bulges: number[] = [];
@@ -120,8 +117,8 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
         pts.push([num(x[1], 'VERTEX x') * k, num(y[1], 'VERTEX y') * k]); bulges.push(b ? num(b[1], 'VERTEX bulge') : 0);
       }
       if (pts.length < 2) throw refusal('DXF_MALFORMED', 'a POLYLINE of fewer than two vertices');
-      for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j]));
-      if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1]));
+      for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j], type));
+      if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1], type));
     }
   }
   visibility.finish();
@@ -223,7 +220,13 @@ export function readDxfSketch(text: string): DxfSketch {
     loops.push({ edges: chain, ...(circle ? { circle } : {}) });
   }
   for (const { c, r } of circles) loops.push({ edges: [{ a: [c[0] + r, c[1]], b: [c[0] - r, c[1]], c, r, ccw: true }, { a: [c[0] - r, c[1]], b: [c[0] + r, c[1]], c, r, ccw: true }], circle: { center: c, radius: r } });
-  const measured = loops.map(l => ({ ...l, ...areaOf(l.edges) }));
+  const measured = loops.map(loop => {
+    const measure = areaOf(loop.edges);
+    if (loop.edges.some(edge => edge.bulged) && (!Number.isFinite(measure.area) || !measure.box.every(Number.isFinite))) {
+      throw refusal('DXF_MALFORMED', 'a profile with a DXF bulge has nonfinite area or bounds');
+    }
+    return { ...loop, ...measure };
+  });
   // (Nesting: a loop inside another is its hole; inside a hole, refused.)
   const depthOf = (i: number) => measured.filter((o, j) => j !== i && Math.abs(o.area) > Math.abs(measured[i].area) && insideLoop(measured[i].edges[0].a, o.edges)).length;
   const regions: DxfLoop[] = [], holes: DxfLoop[] = [];

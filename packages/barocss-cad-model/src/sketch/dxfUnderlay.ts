@@ -7,6 +7,7 @@
 // sketch entity or a dimension: the profile reader reads regions from the top level's LINE, ARC, CIRCLE, LWPOLYLINE and
 // POLYLINE alone, as before. A spline given by fit points only is left out and listed (its interpolation is the writer's).
 import { pairsOf } from './dxfRead';
+import { dxfBulge } from './dxfBulge';
 import { createDxfVisibility } from './dxfVisibility';
 import { refusal } from '../engine/refusal';
 
@@ -212,11 +213,17 @@ export function readUnderlay(text: string, to: number, o: { detail?: boolean } =
         else for (let j = k + 1; j < list.length && list[j].type === 'VERTEX'; j++) { pts.push([get(list[j], 10), get(list[j], 20)]); bulges.push(get(list[j], 42, 0)); }
         const closed = (get(e, 70, 0) & 1) === 1, n = pts.length;
         for (let j = 0; j + 1 < n + (closed ? 1 : 0); j++) {
-          const a = pts[j], b = pts[(j + 1) % n], g = bulges[j];
-          if (Math.abs(g) < 1e-12) { if (!line.length) line.push(point(a[0], a[1])); line.push(point(b[0], b[1])); continue; }
-          const dx = b[0] - a[0], dy = b[1] - a[1], ch = Math.hypot(dx, dy), th = 4 * Math.atan(g), r = ch / (2 * Math.sin(th / 2)), h = r * Math.cos(th / 2);
-          const cx = (a[0] + b[0]) / 2 - dy / ch * h, cy = (a[1] + b[1]) / 2 + dx / ch * h, s0 = Math.atan2(a[1] - cy, a[0] - cx), R = Math.abs(r);
-          flatten(t => point(cx + R * Math.cos(t), cy + R * Math.sin(t)), s0, s0 + th, tol, 4, line);
+          const a = pts[j], b = pts[(j + 1) % n], arc = dxfBulge(a, b, bulges[j], e.type);
+          if (!arc) { if (!line.length) line.push(point(a[0], a[1])); line.push(point(b[0], b[1])); continue; }
+          if (!(tol > 0)) throw refusal('DXF_MALFORMED', `a ${e.type} bulge has an invalid underlay scale`);
+          const { center: [cx, cy], radius, sweep } = arc;
+          const start = Math.atan2(a[1] - cy, a[0] - cx);
+          const at = (t: number) => {
+            const sample = point(cx + radius * Math.cos(t), cy + radius * Math.sin(t));
+            if (!sample.every(Number.isFinite)) throw refusal('DXF_MALFORMED', `a ${e.type} bulge has a nonfinite underlay point`);
+            return sample;
+          };
+          flatten(at, start, start + sweep, tol, 4, line);
         }
         u.polylines.push(line); count(e.type); continue;
       }
