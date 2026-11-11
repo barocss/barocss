@@ -4,8 +4,8 @@ import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
-import type { Command, Ctx, Field, Values } from '@barocss/cad-model/app/commands';
-import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import type { Field } from '@barocss/cad-model/app/commands';
+import type { Active } from '../app/commandState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -15,7 +15,6 @@ import { FillPatternHints } from './FillPatternHints';
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
 
-interface Active { fillet?: { type: FilletType; radiusMode: RadiusMode }; cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
 interface Props {
   /** The running command (R1d): the HUD subscribes to it — its values, preview state and error — not the App. */
   store: ValueStore<Active | null>;
@@ -72,6 +71,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       {active.cmd.id === 'fill-feature-pattern' && <FillPatternHints />}
       {active.preview === 'error' && active.error && <div className="hud-error" role="status">
         <div className="hud-error-title">{active.error.title}</div><div>{active.error.hint}</div>
+        {active.error.failedFeature && <div className="hud-error-feature">Failed feature · {active.error.failedFeature}</div>}
         {active.error.detail && <details><summary onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>Kernel detail</summary><code>{active.error.detail}</code></details>}
       </div>}
       <div className="hud-actions">

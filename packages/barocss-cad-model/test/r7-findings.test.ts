@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
-import { evaluateCadPart } from '@barocss/cad';
+import { CadPartError, evaluateCadPart } from '@barocss/cad';
 import { friendly, friendlyCause } from '../src/engine/errors';
 import { rectanglePart, withNode, type ModelNode } from '../src/engine/doc';
 
@@ -53,4 +53,16 @@ test('a missing edge names the feature action for band, fillet and chamfer error
     assert.equal(error.code, message.startsWith('[BAND_EDGE_LOST]') ? 'BAND_EDGE_LOST' : 'SELECTION');
     assert.ok(error.detail.includes('n1.gone'));
   }
+});
+
+test('D749: structured feature attribution preserves native reasons and does not infer an ID from text', () => {
+  const detail = '[RADIUS_EXCEEDS_FACE] the fillet is too large';
+  const native = new CadPartError('PARAMETER', 'n41', detail);
+  assert.deepEqual(friendlyCause(native), { ...friendly(native.message, native.code), feature: 'n41' });
+  const noFeature = new CadPartError('PARAMETER', null, detail);
+  assert.deepEqual(friendlyCause(noFeature), friendly(noFeature.message, noFeature.code));
+  const ordinary = new Error('n41: ' + detail);
+  assert.deepEqual(friendlyCause(ordinary), friendly(ordinary.message));
+  const codeOnly = Object.assign(new Error('Invalid operation'), { code: 'PARAMETER' });
+  assert.deepEqual(friendlyCause(codeOnly), friendly(codeOnly.message, codeOnly.code));
 });

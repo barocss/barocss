@@ -5,6 +5,7 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { patchValues, shownFields, type Values } from '@barocss/cad-model/app/commands';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { missingCommandField, type Active } from '../app/commandState';
+import { failedFeatureText } from '../app/failedFeature';
 import type { EngineClient } from '../engine/client';
 import type { ValueStore } from './valueStore';
 interface CommandPreviewOptions {
@@ -89,7 +90,8 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
           if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
         }
         window.clearTimeout(fullTimer.current);
-        const t0 = performance.now(), reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, nextRevision()));
+        const t0 = performance.now(), revision = nextRevision();
+        const reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, revision));
         if (reply.stale) return; const result = reply.result;
         if (!rolled) wholeCost.current = { doc: ctx.doc, ms: performance.now() - t0 };
         if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== currentBearingDoc()) return;
@@ -121,7 +123,11 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
           }
         }
         if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
-        else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
+        else if (live && current?.cmd === cmd && current.ctx === ctx && current.values === values) {
+          const failedFeature = result.revision === revision ? failedFeatureText(result.error.feature, shown.nodes, ctx.doc.nodes) : undefined;
+          setPreviewBodies(null);
+          setActive(a => a && { ...a, preview: 'error', error: { ...result.error, failedFeature } });
+        }
         // Still a gap between the last good value and the bound: try the step-snapped middle of it next.
         // (Release does not stop this: it goes on from the value the pointer left, and Enter waits for the preview to settle on the converged value.)
         const mid = bisect && hd?.bad != null ? bisectValue(hd) : null;

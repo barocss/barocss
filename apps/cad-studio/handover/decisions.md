@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D749 — identify the native feature that refused a preview](notes/failed-feature-preview-2026-11-12/README.md).
 - [D748 — keep open sketch geometry when Finish refuses it](notes/sketch-open-chain-finish-2026-11-12/README.md).
 - [D747 — preserve deletion of the last horizontal or vertical constraint](notes/sketch-last-hv-removal-2026-11-12/README.md).
 - [D746 — respect body visibility in sketch snapping](notes/sketch-snap-body-visibility-2026-11-12/README.md).
