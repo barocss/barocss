@@ -11,6 +11,7 @@ import { requirementFollowUp } from '@barocss/cad-model/versions/requirementFoll
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { CheckpointReview } from '../files/taskCheckpoint';
 import { SavedRepairChecks } from './SavedRepairChecks';
+import { useEvidenceSave } from './useEvidenceSave';
 import { bindSavedApproval, bindSavedFollowUp, readSavedApprovalEvidence, readSavedFollowUpEvidence,
   saveApprovalEvidence, saveFollowUpEvidence, type SavedApprovalPair, type SavedApprovalSource } from './savedApprovalEvidence';
 
@@ -30,15 +31,6 @@ const FOLLOW_UP_STATUS = {
   'requirement-withdrawn': 'Requirement withdrawn',
   unresolved: 'Unresolved',
 };
-
-function useEvidenceSave() {
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
-  const save = (write: () => Promise<void>) => {
-    setState('saving');
-    void write().then(() => setState('saved'), () => setState('failed'));
-  };
-  return { state, save };
-}
 
 function AttachEvidenceButton({ source, onAttach, kind }: {
   source: SavedApprovalSource; onAttach: AttachApprovalEvidence; kind: 'approval' | 'follow-up';

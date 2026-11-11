@@ -101,7 +101,7 @@ export async function saveFollowUpEvidence(source: SavedFollowUp, approval: Appr
   await keepEvidence(source.review.store, source.path, bytes);
 }
 
-async function keepEvidence(store: ProjectStore, path: string, bytes: Uint8Array): Promise<void> {
+export async function keepEvidence(store: ProjectStore, path: string, bytes: Uint8Array): Promise<void> {
   const same = (other: Uint8Array) => other.length === bytes.length && other.every((byte, index) => byte === bytes[index]);
   const keep = async () => {
     const prior = await store.read(path);

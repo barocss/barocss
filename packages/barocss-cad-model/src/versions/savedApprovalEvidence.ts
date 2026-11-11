@@ -28,7 +28,8 @@ export function parseApprovalEvidenceFile(value: unknown): { file: ApprovalEvide
   }
 }
 
-function boundEvidence(value: unknown, root: StudioDoc, part: string, revision: string): value is RequirementEvidence {
+/** Validate the saved nested report against its exact root, occurrence and authored criteria without evaluating it. */
+export function isBoundSavedRequirementEvidence(value: unknown, root: StudioDoc, part: string, revision: string): value is RequirementEvidence {
   if (!isObj(value) || value.format !== 'barocss-requirement-evidence' || value.version !== 1 || value.checker !== 'checkSpec'
     || value.revision !== revision || value.part !== part || value.documentRevision !== documentRevision(root)) return false;
   const scope = nestedRequirementScope(root, part);
@@ -58,8 +59,8 @@ function matchApprovalPair(report: Record<string, unknown>, context: ApprovalEvi
   const { from, to, part, proposal } = context;
   if (canonical(report.from) !== canonical(from) || canonical(report.to) !== canonical(to)
     || report.part !== part || report.proposal !== proposal
-    || !boundEvidence(report.before, before, part, from.evidenceRevision)
-    || !boundEvidence(report.after, after, part, to.evidenceRevision)) return null;
+    || !isBoundSavedRequirementEvidence(report.before, before, part, from.evidenceRevision)
+    || !isBoundSavedRequirementEvidence(report.after, after, part, to.evidenceRevision)) return null;
   const { recoveries, changed } = summarizeApprovalEvidence(report.before, report.after);
   if (!recoveries.length || canonical(report.recoveries) !== canonical(recoveries) || canonical(report.changed) !== canonical(changed)) return null;
   return { before: report.before, after: report.after, recoveries, changed };
@@ -81,7 +82,7 @@ export function matchSavedFollowUpEvidence(report: Record<string, unknown>, cont
   if ('reason' in scope) return null;
   let evidence: RequirementEvidence | null = null;
   if (scope.requirements?.length) {
-    if (!boundEvidence(saved.evidence, doc, part, version.evidenceRevision)) return null;
+    if (!isBoundSavedRequirementEvidence(saved.evidence, doc, part, version.evidenceRevision)) return null;
     evidence = saved.evidence;
   } else if (saved.evidence !== null) return null;
   const findings = followUpFindings(approval.recoveries.map(row => row.id), approval.after, evidence, part, version.evidenceRevision);

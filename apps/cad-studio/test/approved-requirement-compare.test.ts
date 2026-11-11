@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PassThrough } from 'node:stream';
 import { validate } from '@barocss/cad-model/chat/contract';
+import { outputFile } from '@barocss/cad-model/chat/outputFile';
 import { editNestedDefinition } from '@barocss/cad-model/chat/nestedParameterProposal';
 import { acceptProposal, runTool } from '@barocss/cad-model/chat/tools';
 import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -290,7 +291,9 @@ test('D656 proves a later saved user repair on the same lineage, occurrence and 
   const newerFailure = edit(13), savedBase = makeVersion(savedFailure.log, newerFailure, at(3));
   const repaired = await acceptLinked(newerFailure), saved = makeVersion(savedBase.log, repaired, at(4));
   const verified = await checkSavedFollowUpRepair(source, saved.log, saved.version.id, evaluate);
-  assert.deepEqual(verified, { version: saved.version, proposal: 'P2', recoveries: [{ id: 'H-CAP', from: 13, to: 10, unit: 'mm' }] });
+  assert.ok(!('error' in verified) && !verified.saved);
+  const recoveries = [{ id: 'H-CAP', from: 13, to: 10, unit: 'mm' }];
+  assert.deepEqual(verified.recoveries, recoveries);
   const resultWithoutBase = makeVersion(savedFailure.log, repaired, at(4));
   const other = applyBranch(makeBranch(savedBase.log, 'separate', { from: fixed.version.id }), 'separate', newerFailure).log;
   const unrelated = makeVersion(other, repaired, at(4));
@@ -306,6 +309,38 @@ test('D656 proves a later saved user repair on the same lineage, occurrence and 
   }
   assert.ok('error' in await checkSavedFollowUpRepair(source, saved.log, saved.version.id, async () => null));
   assert.deepEqual(await store.read(source.path), original);
+  const proofPath = source.path.replace(/\.json$/, `-repair-${saved.version.id}.json`);
+  assert.equal(await store.read(proofPath), null);
+  await Promise.all([verified.saveEvidence(), verified.saveEvidence()]);
+  const kept = await store.read(proofPath);
+  assert.ok(kept);
+  const never = async () => assert.fail('A retained repair check must not evaluate geometry.');
+  const read = () => checkSavedFollowUpRepair(source, saved.log, saved.version.id, never);
+  assert.deepEqual(await read(), { version: saved.version, proposal: 'P2', recoveries, saved: true });
+  const repairFile = JSON.parse(new TextDecoder().decode(kept.bytes)), report = JSON.parse(repairFile.text);
+  assert.deepEqual([report.context.followUp.id, report.context.base.id, report.context.repaired.id],
+    [savedFailure.version.id, savedBase.version.id, saved.version.id]);
+  const changedBase = { ...report, context: { ...report.context, base: { ...report.context.base, id: savedFailure.version.id } } };
+  const changedRun = structuredClone(report);
+  changedRun.after.evidence[0].result.run = report.context.base.evidenceRevision;
+  const changedVerdict = structuredClone(report);
+  changedVerdict.after.evidence[0].result.verdict = 'fail';
+  const changedCriterion = structuredClone(report);
+  changedCriterion.after.evidence[0].requirement.check.value = 15;
+  for (const other of [changedBase, changedRun, changedVerdict, changedCriterion]) {
+    const bytes = new TextEncoder().encode(JSON.stringify(outputFile(repairFile.path, repairFile.mime, JSON.stringify(other))));
+    await store.write(proofPath, bytes);
+    assert.deepEqual(await read(), { error: 'Saved repair evidence does not match this review.' });
+    await assert.rejects(verified.saveEvidence(), { code: 'STORAGE_CHANGED' });
+    assert.deepEqual((await store.read(proofPath))?.bytes, bytes);
+  }
+  await store.write(proofPath, kept.bytes);
+  await store.write(source.path, new Uint8Array());
+  assert.deepEqual(await read(), { error: 'Saved follow-up evidence does not match this review.' });
+  await assert.rejects(verified.saveEvidence(), /Saved follow-up evidence does not match/);
+  await store.write(source.path, original.bytes);
+  assert.deepEqual((await store.read(proofPath))?.bytes, kept.bytes);
+  assert.deepEqual(await read(), { version: saved.version, proposal: 'P2', recoveries, saved: true });
 });
 
 test('D652 lists the read-only tool only for a retained approval bound to the turn snapshots', async () => {

@@ -2,11 +2,25 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import type { Version, VersionLog } from '@barocss/cad-model/versions/log';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Button } from '@/components/ui/button';
 import { checkSavedFollowUpRepair } from './savedFollowUpRepair';
+import { useEvidenceSave } from './useEvidenceSave';
 
 type Source = Parameters<typeof checkSavedFollowUpRepair>[0];
 type Result = Awaited<ReturnType<typeof checkSavedFollowUpRepair>>;
 const unitText = (unit?: string) => unit === 'mm3' ? ' mm³' : unit === 'mm2' ? ' mm²' : unit ? ' ' + unit : '';
+
+function KeepRepairEvidence({ result }: { result: Exclude<Result, { error: string }> }) {
+  const { state, save } = useEvidenceSave();
+  if (result.saved || state === 'saved') return <div role="status">Repair evidence saved</div>;
+  const write = result.saveEvidence;
+  return <>
+    <Button variant="ghost" size="xs" disabled={state === 'saving'} onClick={() => save(write)}>
+      {state === 'saving' ? 'Saving repair evidence…' : 'Save repair evidence'}
+    </Button>
+    {state === 'failed' && <div role="status">Could not save repair evidence.</div>}
+  </>;
+}
 
 export function SavedRepairChecks({ source, log, versions, evaluate }: {
   source: Source; log: VersionLog; versions: readonly Version[]; evaluate: Evaluate;
@@ -43,6 +57,7 @@ export function SavedRepairChecks({ source, log, versions, evaluate }: {
               {from !== null && to !== null && <span className="ml-2 inline-block whitespace-nowrap tabular-nums">{from}{suffix} → {to}{suffix}</span>}
             </div>;
           })}
+          <KeepRepairEvidence result={result} />
         </>}
     </div>}
   </div>;

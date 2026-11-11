@@ -11,7 +11,9 @@ assert.ok([output, prior].every(path => path && isAbsolute(path) && relative(rep
 const lifecycle = mode === '--lifecycle', agent = mode === '--agent' || lifecycle;
 const persistFollowUpBaseline = mode === '--save-follow-up-baseline';
 const attachFollowUpBaseline = mode === '--attach-follow-up-baseline', attachFollowUp = mode === '--attach-follow-up';
-const resolutionBaseline = mode === '--saved-repair-baseline', resolution = mode === '--saved-repair';
+const retainRepairBaseline = mode === '--retain-repair-baseline', retainRepair = mode === '--retain-repair';
+const retainResolution = retainRepairBaseline || retainRepair;
+const resolutionBaseline = mode === '--saved-repair-baseline', resolution = mode === '--saved-repair' || retainResolution;
 const repairBaseline = mode === '--repair-follow-up-baseline';
 const repairFollowUp = mode === '--repair-follow-up' || resolutionBaseline || resolution;
 const repairReview = repairBaseline || repairFollowUp;
@@ -44,6 +46,7 @@ const pins = [
     'packages/barocss-cad-model/src/chat/merge.ts', 'packages/barocss-cad-model/src/chat/part/proposals.ts',
     'packages/barocss-cad-model/src/engine/schema/proposals.ts'] : []),
   ...(resolution ? ['apps/cad-studio/src/storage/savedFollowUpRepair.ts', 'apps/cad-studio/src/storage/SavedRepairChecks.tsx'] : []),
+  ...(retainRepair ? ['apps/cad-studio/src/storage/useEvidenceSave.ts'] : []),
   ...(saveReview && !evidenceBaseline ? ['apps/cad-studio/src/storage/savedApprovalEvidence.ts',
     'packages/barocss-cad-model/src/versions/approvalEvidenceReport.ts', 'packages/barocss-cad-model/src/versions/savedApprovalEvidence.ts'] : []),
 ];
@@ -121,14 +124,35 @@ if 'repaired' in d:
         assert proposal['follow_up_repair'] == {'evidence_sha256': a['sha256'], 'version': later['id'], 'part': 'p1/p1', 'requirements': ['HEIGHT']}
         assert proposal['decided']['evidence_revisions']['before'] == later['evidenceRevision']
         report.update({'savedLineage':True, 'savedRecoveryMm':[old_h,new_h]})
+        if 'repairFile' in d:
+            file = d['repairFile']
+            payload = file['text'].encode('utf-8')
+            assert (file['path'], file['mime'], file['encoding']) == ('saved-repair-evidence.json', 'application/json', 'utf-8')
+            assert len(payload) == file['bytes'] and hashlib.sha256(payload).hexdigest() == file['sha256']
+            saved = json.loads(payload)
+            assert (saved['format'], saved['version']) == ('barocss-saved-repair-evidence', 1)
+            ctx = saved['context']
+            assert ctx['approval'] == {'from': d['pins']['from'], 'to': d['pins']['to'], 'part':'p1/p1', 'proposal':'P1'}
+            assert ctx['followUpSHA256'] == a['sha256'] and ctx['followUp'] == ctx['base'] == later
+            assert ctx['repaired'] == {key: repair[key] for key in ['id','revision','snapshot']} | {'evidenceRevision':proposal['decided']['evidence_revisions']['after']}
+            assert ctx['proposal'] == 'P2' and ctx['requirements'] == ['HEIGHT']
+            assert saved['historical'] == saved['before']
+            for column, pin, expected, verdict in [('before','base',8,'fail'), ('after','repaired',4,'pass')]:
+                evidence = saved[column]
+                row, = [v for v in evidence['evidence'] if v.get('requirement', {}).get('id') == 'HEIGHT']
+                assert evidence['revision'] == ctx[pin]['evidenceRevision'] == row['result']['run']
+                assert evidence['checker'] == 'checkSpec' and evidence['part'] == row['result']['part'] == 'p1/p1'
+                assert row['requirement'] == before_doc['requirements'][0] and row['freshness']['state'] == 'current'
+                assert (row['result']['number'], row['result']['verdict']) == (expected, verdict)
+            report.update({'retainedProof':True, 'reportsChecked':3})
     print(json.dumps(report))
 else:
     print(json.dumps({'status':'PASS','localHeightChecks':6}))
 `;
 const f = await createFlow({
-  name: 'nested-approved-comparison', envFrozen: resolutionBaseline || resolution ? 'D656_SOURCE_FROZEN' : repairReview ? 'D655_SOURCE_FROZEN' : attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
+  name: 'nested-approved-comparison', envFrozen: retainResolution ? 'D657_SOURCE_FROZEN' : resolutionBaseline || resolution ? 'D656_SOURCE_FROZEN' : repairReview ? 'D655_SOURCE_FROZEN' : attachFollowUpBaseline || attachFollowUp ? 'D654_SOURCE_FROZEN' : persistFollowUp ? 'D653_SOURCE_FROZEN' : attachBaseline || attachReview ? 'D652_SOURCE_FROZEN' : saveReview ? 'D651_SOURCE_FROZEN' : followUp ? 'D650_SOURCE_FROZEN' : lifecycle ? 'D610_SOURCE_FROZEN' : agent ? 'D609_SOURCE_FROZEN' : 'D608_SOURCE_FROZEN',
   output, initialFiles: pins, requiredFrozen: pins, oracleSource,
-  qualification: resolutionBaseline || resolution ? 'Link a retained saved failure to a newer user-approved repair' : repairReview ? 'Prepare a repair from a selected saved regression after a fresh check' : saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
+  qualification: retainResolution ? 'Retain a verified saved repair and reopen it without evaluation' : resolutionBaseline || resolution ? 'Link a retained saved failure to a newer user-approved repair' : repairReview ? 'Prepare a repair from a selected saved regression after a fresh check' : saveReview ? 'Persistent saved approval evidence and pin checks' : followUp ? 'Saved successor in the Studio approval comparison' : lifecycle ? 'A saved regression after a verified approval, independent of the working document' :
     agent ? 'Saved nested approval evidence through the Studio agent version context' : 'Historical comparison of an exact saved nested approval with a different working verdict',
   limits: ['D607 saved root approval and initial failure; ordinary static nested prisms. Delay is applied after real Worker transport decoding.'],
   snapshotExtra: () => ({
@@ -661,11 +685,87 @@ async function verifySavedResolution({ retained, repaired, working, first, appro
     resolution: { measurement: await measured.innerText(), original: '8 mm', repairedVersion, versions: versionsAtSave } }, 'saved-repair');
   await measured.scrollIntoViewIfNeeded();
   await f.snapshot('13-saved-repair-while-working-fails');
+  if (retainResolution) {
+    await verifyRetainedRepair({ retained, repaired, working, first, approved, historical, current, artifact, pins, laterFile, bytes, previewVolume,
+      repairedVersion, versionsAtSave, followUp, select, result });
+    return;
+  }
   await select().selectOption({ label: 'None' });
   await result().waitFor({ state: 'detached' });
   await followUp().getByText('Regressed', { exact: true }).waitFor();
   f.report.observations.push({ independentPassingVersionRefused: true, savedRepairShown: true, currentWorkingStillFails: true,
     savedFilesUnchanged: true, originalFailureVisible: true });
+}
+
+async function verifyRetainedRepair({ retained, repaired, working, first, approved, historical, current, artifact, pins, laterFile, bytes,
+  previewVolume, repairedVersion, versionsAtSave, followUp, select, result }) {
+  const file = laterFile.replace(/\.json$/, '-repair-' + repairedVersion.id + '.json');
+  const save = () => result().getByRole('button', { name: 'Save repair evidence', exact: true });
+  const stored = () => result().getByText('Repair evidence saved', { exact: true });
+  const measured = () => result().getByText('8 mm → 4 mm', { exact: true });
+  const reads = () => f.page.evaluate(() => window.__d651ReadAttempts);
+  const reopen = async () => {
+    await reopenAndBlockChecks(repaired, pins.to.id);
+    await history().getByLabel('Follow-up version', { exact: true }).selectOption(pins.later.id);
+    await followUp().getByText('Regressed', { exact: true }).waitFor();
+    await select().selectOption(repairedVersion.id);
+  };
+  assert.equal(await approvalEvidenceFile(file), null);
+  if (retainRepairBaseline) {
+    f.phase = 'baseline cannot reopen the verified repair without evaluation';
+    assert.equal(await save().count(), 0);
+    await reopen();
+    await result().getByText('Could not verify the saved repair.', { exact: true }).waitFor();
+    assert.ok(await reads() > 0);
+    assert.equal(await measured().count(), 0);
+    await f.snapshot('14-baseline-repair-requires-evaluation');
+    f.report.observations.push({ repairSaveUnavailable: true, repairReopenRequiresEvaluation: true });
+    return;
+  }
+  f.phase = 'keep the exact saved repair beside the original failure';
+  await save().click();
+  await stored().waitFor();
+  const kept = await approvalEvidenceFile(file);
+  assert.ok(kept);
+  const repairFile = JSON.parse(kept), proof = JSON.parse(repairFile.text);
+  assert.equal(repairFile.sha256, sha256(repairFile.text));
+  assert.equal(await approvalEvidenceFile(laterFile), bytes);
+  assert.deepEqual(await projectBytes(), retained);
+  await f.same(working);
+  await f.snapshot('14-repair-evidence-kept');
+
+  f.phase = 'reopen both failure and saved repair with Worker reads blocked';
+  await reopen();
+  await stored().waitFor();
+  await measured().waitFor();
+  assert.equal(await reads(), 0);
+  assert.equal(await approvalEvidenceFile(file), kept);
+  assert.equal(await approvalEvidenceFile(laterFile), bytes);
+  assert.deepEqual(await projectBytes(), retained);
+  await f.same(repaired);
+  await f.runOracle({ first, approved, working, historical, current, artifact, pins, repaired, previewVolume,
+    resolution: { measurement: await measured().innerText(), original: '8 mm', repairedVersion, versions: versionsAtSave },
+    repairFile }, 'retained-repair');
+  await measured().scrollIntoViewIfNeeded();
+  await f.snapshot('15-reopened-repair-evidence');
+
+  f.phase = 'refuse a rehashed repair file pinned to a different approval base';
+  const badText = JSON.stringify({ ...proof, context: { ...proof.context, base: { ...proof.context.base, id: versionsAtSave.at(-2).id } } }) + '\n';
+  const wrong = JSON.stringify({ ...repairFile, text: badText, sha256: sha256(badText), bytes: Buffer.byteLength(badText) });
+  await approvalEvidenceFile(file, wrong);
+  await reopen();
+  await result().getByText('Saved repair evidence does not match this review.', { exact: true }).waitFor();
+  assert.equal(await measured().count(), 0);
+  assert.equal(await save().count(), 0);
+  assert.equal(await reads(), 0);
+  assert.equal(await approvalEvidenceFile(file), wrong);
+  assert.equal(await approvalEvidenceFile(laterFile), bytes);
+  assert.deepEqual(await projectBytes(), retained);
+  await f.same(repaired);
+  await result().scrollIntoViewIfNeeded();
+  await f.snapshot('16-mismatched-repair-pin-refused');
+  f.report.observations.push({ originalFailureUnchanged: true, exactRepairRetained: true, workerReadsOnReopen: 0,
+    mismatchedRepairPinRefused: true, mismatchedFilePreserved: true, projectFilesUnchanged: true });
 }
 
 async function withScriptedAgent(origin, check) {
