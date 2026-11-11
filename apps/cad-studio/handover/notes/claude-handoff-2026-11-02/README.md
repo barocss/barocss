@@ -325,11 +325,13 @@ D693 verifies real Worker Float32 refusal and zero files written in Automatic an
 
 D694 verifies the actual 3MF of a two-axis occurrence rotation, with independent world-coordinate and mesh checks. Pending placement refuses, and Undo/Redo restore the corresponding export. [D694](../three-mf-rotated-occurrence-2026-11-11/README.md).
 
-Next MAIN is D695 / P2 B07, rows 10 and 13. Verify late 3MF compression across a document switch, then adjudicate the D689 exchange matrix.
+D695 verifies late 3MF compression across a same-name Open and accepts the six frozen B07 v1 profiles. [D695 ledger](../b07-neutral-file-acceptance-2026-11-11/README.md).
+
+Next MAIN is D696 / P2 B06, row 11. Reproduce authored tolerance loss on Auto-dimension rerun. Verify the selected dimension through Undo and fresh Open. [#2365](https://github.com/barocss/barocss/issues/2365).
 
 Owner[#2287](https://github.com/barocss/barocss/issues/2287) stays later P4 contextual Inspector/command/focus research in tracks03/06; no immediate UI framework/redesign/download. B01/B02/B04 retain12/12,11/11,26/26 scope, D548two-sheet10/10/D549output3/3 are supplements, wholeB06 NOT_ADJUDICATED, B03positive tapped data-blocked, whole CAD/core NOT_MEASURED/noaggregatepercentage. Broader#540 remains open; no comments/closure.
 
-D537 remains the public driven-sketch v1 single named LINE contract; it does not add general/multiple/radius bindings or bound topology editing. B01 uses a separate fully-defined ordinary rectangle, not that mixed2DOF profile. All34 stable rows remain unchanged. Whole CAD/core NOT_MEASURED; B01 v1 accepted12/12 scoped groups, B02 v1 accepted11/11, B04 v1 accepted26/26, B09 v1 accepted9/9, B03, B05–B08 and B10 NOT_ADJUDICATED, no aggregate baseline percentage. Legacy43% is historical.
+D537 remains the public driven-sketch v1 single named LINE contract; it does not add general/multiple/radius bindings or bound topology editing. B01 uses a separate fully-defined ordinary rectangle, not that mixed2DOF profile. All34 stable rows remain unchanged. Whole CAD/core NOT_MEASURED; B01 v1 accepted12/12 scoped groups, B02 v1 accepted11/11, B04 v1 accepted26/26, B07 v1 accepted6/6, B09 v1 accepted9/9, B03, B05, B06, B08 and B10 NOT_ADJUDICATED, no aggregate baseline percentage. Legacy43% is historical.
 
 Use the required SMALL/FEATURE/FULL tier and root's own actual desktop Studio flow. One bounded category milestone gets one decision and normal push to origin/local/cad-dev. Ordinary implementation/tests use Sol Medium; difficult geometry uses Sol High. Heavy work is serial under gate.sh. All writers freeze through actual execution and cleanup. Reuse exact eligible evidence; preserve every first failure. Downloads/paid live need owner permission each time. No new develop merge, release or UI redesign follows.
 

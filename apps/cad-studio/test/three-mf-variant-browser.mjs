@@ -6,13 +6,15 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 import { installD523PlacedReplyScheduler } from './placed-worker-reply-scheduler.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(mode === undefined || mode === '--loss-report' || mode === '--rotated-occurrence');
+assert.ok(mode === undefined || mode === '--loss-report' || mode === '--rotated-occurrence' || mode === '--late-compression');
 const lossReport = mode === '--loss-report';
 const rotationCase = mode === '--rotated-occurrence';
+const lateCompression = mode === '--late-compression';
 const profiles = {
   variant: ['D688_SOURCE_FROZEN', 'D688 desktop 3MF from the shown assembly variant and refusal during pending placement'],
   '--loss-report': ['D690_SOURCE_FROZEN', 'D690 desktop 3MF loss disclosure for the shown assembly and standalone part'],
   '--rotated-occurrence': ['D694_SOURCE_FROZEN', 'D694 desktop 3MF of the current two-axis occurrence rotation'],
+  '--late-compression': ['D695_SOURCE_FROZEN', 'D695 actual 3MF compression across a same-name document replacement'],
 };
 const [envFrozen, qualification] = profiles[mode ?? 'variant'];
 const repo = resolve(import.meta.dirname, '../../..');
@@ -160,11 +162,14 @@ const f = await createFlow({
   requiredFrozen: ['apps/cad-studio/src/files/useModelExports.ts'],
   extraFrozen: ['packages/barocss-cad-model/src/print/export3mf.ts', 'packages/barocss-cad-model/src/print/threemf.ts',
     'packages/barocss-cad-model/src/assembly/variability.ts', 'packages/barocss-cad-model/src/library/builtin/materials.json',
-    ...(rotationCase ? ['packages/barocss-cad-model/src/engine/placement.ts'] : [])],
-  snapshotExtra: () => ({ scheduler: window.__d523Placed.snapshot(), exportCount: window.__d688Exports.length }),
+    ...(rotationCase ? ['packages/barocss-cad-model/src/engine/placement.ts'] : []),
+    ...(lateCompression ? ['packages/barocss-cad-model/src/io/zip.ts'] : [])],
+  snapshotExtra: () => ({ scheduler: window.__d523Placed.snapshot(), exportCount: window.__d688Exports.length,
+    compression: window.__d695Compression?.snapshot() ?? null }),
   limits: [rotationCase ? 'Two prismatic meshes, one two-axis occurrence rotation and one hidden occurrence.'
     : 'Two axis-aligned prismatic meshes, one hidden occurrence, one distance mate and one named variant.',
-    'Real Export captured at the local Blob boundary. Python standard library reads the resulting package. No slicer run.'],
+    'Real Export captured at the local Blob boundary. Python standard library reads the resulting package. No slicer run.',
+    ...(lateCompression ? ['Hold output from native deflate and observe Response consumption. One release passes real bytes; one injects a stream error.'] : [])],
 });
 
 function captureThreeMf() {
@@ -186,11 +191,84 @@ function captureThreeMf() {
   };
 }
 
+function installCompressionHold() {
+  const NativeCompressionStream = window.CompressionStream;
+  const arrayBuffer = Response.prototype.arrayBuffer;
+  const streams = new WeakMap();
+  const runs = [];
+  const notices = [];
+  let armed;
+  let previousNotice = '';
+  new MutationObserver(() => {
+    const notice = [...document.querySelectorAll('.toast')].map(node => node.textContent).join(' ');
+    if (notice !== previousNotice && /3MF written|Could not write 3MF|Not written yet/.test(notice)) notices.push(notice);
+    previousNotice = notice;
+  }).observe(document, { childList: true, subtree: true, characterData: true });
+
+  window.__d695Compression = {
+    arm() {
+      if (armed || runs.some(run => !run.drained)) throw new Error('A compression hold is already active');
+      const run = { held: 0, consumed: null, error: null, injectedFailure: false, drained: false };
+      armed = run;
+      runs.push(run);
+    },
+    finish(reject) {
+      const run = runs.at(-1);
+      if (!run?.release || run.drained) throw new Error('No held native chunk');
+      run.release(reject);
+    },
+    snapshot() {
+      return { runs: runs.map(({ held, consumed, error, injectedFailure, drained }) => ({ held, consumed, error, injectedFailure, drained })), notices: notices.slice() };
+    },
+  };
+
+  window.CompressionStream = class {
+    constructor(format) {
+      const native = new NativeCompressionStream(format);
+      this.writable = native.writable;
+      const run = armed;
+      this.readable = run ? native.readable.pipeThrough(new TransformStream({
+        async transform(chunk, controller) {
+          if (!run.held) {
+            const reject = await new Promise(resolve => {
+              run.release = resolve;
+              run.held = chunk.byteLength;
+            });
+            if (reject) {
+              run.injectedFailure = true;
+              throw new Error('D695 controlled compression stream failure');
+            }
+          }
+          controller.enqueue(chunk);
+        },
+      })) : native.readable;
+      if (run) streams.set(this.readable, run);
+    }
+  };
+
+  Response.prototype.arrayBuffer = function (...args) {
+    const run = streams.get(this.body);
+    const read = Reflect.apply(arrayBuffer, this, args);
+    if (!run || run !== armed) return read;
+    armed = null;
+    const drained = () => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => { run.drained = true; })), 0);
+    return read.then(buffer => {
+      run.consumed = buffer.byteLength;
+      drained();
+      return buffer;
+    }, error => {
+      run.error = { name: error.name, message: error.message };
+      drained();
+      throw error;
+    });
+  };
+}
+
 const button = name => f.page.getByRole('button', { name, exact: true });
 const variants = () => f.page.getByRole('complementary', { name: 'Variants panel', exact: true });
 const exportCount = () => f.page.evaluate(() => window.__d688Exports.length);
 
-async function exportShown(label, height, gap, index, authored, { stem = 'three-mf-variant', occurrence } = {}) {
+async function exportShown(label, height, gap, index, authored, { stem = 'three-mf-variant', occurrence, dismiss = true } = {}) {
   f.phase = label;
   const count = authored.instances ? 2 : 1;
   await f.ready();
@@ -210,7 +288,7 @@ async function exportShown(label, height, gap, index, authored, { stem = 'three-
   f.report.observations.push({ label, notice, bytes: bytes.length, sha256: sha256(bytes), result });
   await f.snapshot(label);
   assert.deepEqual(await f.doc(), authored);
-  await f.dismissToasts();
+  if (dismiss) await f.dismissToasts();
   return result;
 }
 
@@ -306,6 +384,77 @@ async function rotateOccurrence() {
   for (const result of [after, undo, redo]) assert.deepEqual(result.parts['Base plate'], before.parts['Base plate']);
 }
 
+async function switchDuringCompression() {
+  const stem = 'three-mf-shared-name';
+  const replacement = box(30, 12, { parameter: 'Height' }, part.bodies.b1, { Height: 9 });
+  const snapshot = () => f.page.evaluate(() => window.__d695Compression.snapshot());
+
+  async function start(label, index) {
+    f.phase = label;
+    const original = await openFixture(master, stem);
+    await f.page.locator('.ol.instance').filter({ hasText: 'Cap' }).click();
+    const panel = f.page.getByRole('complementary', { name: 'Instance', exact: true });
+    await panel.getByText('48 mm³', { exact: true }).waitFor();
+    await f.dismissToasts();
+    assert.equal(await exportCount(), index);
+    await f.page.evaluate(() => window.__d695Compression.arm());
+    await button('Export 3MF').click();
+    await f.page.waitForFunction(() => window.__d695Compression.snapshot().runs.at(-1)?.held > 0);
+    assert.equal(await exportCount(), index);
+    assert.deepEqual(await f.doc(), master);
+    await f.snapshot(label);
+    return original;
+  }
+
+  async function finish(reject) {
+    await f.page.evaluate(reject => window.__d695Compression.finish(reject), reject);
+    await f.page.waitForFunction(() => window.__d695Compression.snapshot().runs.at(-1)?.drained);
+    const result = (await snapshot()).runs.at(-1);
+    assert.equal(result.injectedFailure, reject);
+    if (reject) {
+      assert.equal(result.consumed, null);
+      // Chrome reports a Fetch error for a Response whose body stream rejects.
+      assert.equal(result.error?.name, 'TypeError');
+    } else {
+      assert.equal(result.error, null);
+      assert.ok(result.consumed >= result.held);
+    }
+    return result;
+  }
+
+  f.report.seedSHA256 = await start('01-held-old-success', 0);
+  f.phase = 'Replace the assembly with a same-name part before the old success';
+  f.report.partSeedSHA256 = await openFixture(replacement, stem);
+  assert.notEqual(f.report.seedSHA256, f.report.partSeedSHA256);
+  assert.equal(await f.page.locator('.doc-tab input').inputValue(), stem);
+  const success = await finish(false);
+  assert.equal(await exportCount(), 0);
+  assert.deepEqual((await snapshot()).notices, []);
+  assert.deepEqual(await f.doc(), replacement);
+  f.report.observations.push({ label: '02-old-success-discarded', compression: success });
+  await f.snapshot('02-old-success-discarded');
+  const current = await exportShown('03-current-after-old-success', 9, 0, 0, replacement, { stem });
+
+  assert.equal(await start('04-held-old-error', 1), f.report.seedSHA256);
+  f.phase = 'Export the replacement while the old stream is held';
+  assert.equal(await openFixture(replacement, stem), f.report.partSeedSHA256);
+  const currentBeforeError = await exportShown('05-current-before-old-error', 9, 0, 1, replacement, { stem, dismiss: false });
+  assert.deepEqual(currentBeforeError, current);
+  assert.deepEqual((await snapshot()).runs.at(-1).drained, false);
+  const notices = await f.toasts();
+  const observed = (await snapshot()).notices;
+  assert.equal(observed.length, 2);
+
+  f.phase = 'Deliver the old compression failure';
+  const failure = await finish(true);
+  assert.equal(await exportCount(), 2);
+  assert.deepEqual((await snapshot()).notices, observed);
+  assert.deepEqual(await f.toasts(), notices);
+  assert.deepEqual(await f.doc(), replacement);
+  f.report.observations.push({ label: '06-old-error-discarded', compression: failure, notices });
+  await f.snapshot('06-old-error-discarded');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -314,6 +463,7 @@ await f.run(async () => {
     try {
       await context.addInitScript(installD523PlacedReplyScheduler);
       await context.addInitScript(captureThreeMf);
+      if (lateCompression) await context.addInitScript(installCompressionHold);
       await context.route('**/*', route => {
         const url = new URL(route.request().url());
         if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -328,6 +478,12 @@ await f.run(async () => {
 
   await f.newPage();
   await f.page.setViewportSize({ width: 1440, height: 900 });
+  if (lateCompression) {
+    await switchDuringCompression();
+    assert.deepEqual(f.report.downloads, []);
+    f.phase = 'complete';
+    return;
+  }
   if (rotationCase) {
     await rotateOccurrence();
     assert.deepEqual(f.report.downloads, []);

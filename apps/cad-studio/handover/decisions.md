@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D695 — verify late 3MF compression and accept the selected B07 cases](notes/b07-neutral-file-acceptance-2026-11-11/README.md).
 - [D694 — verify a two-axis occurrence rotation in 3MF](notes/three-mf-rotated-occurrence-2026-11-11/README.md).
 - [D693 — measure STL availability and verify the real Worker refusal](notes/stl-worker-availability-2026-11-11/README.md).
 - [D692 — reopen the assembly root-only STL](notes/stl-assembly-root-open-2026-11-11/README.md).
