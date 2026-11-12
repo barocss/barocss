@@ -1,0 +1,55 @@
+{
+  "decision": "D786",
+  "tier": "SMALL",
+  "parent": "9e379dc4c4d4640ce2eec38f4113bd53ffeac83a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/viewport-startup-fallback-browser.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test viewport-recovery mesh-reuse-ownership instance-pose selection-edge",
+    "cd apps/cad-studio && D786_SOURCE_FROZEN=1 node test/viewport-startup-fallback-browser.mjs \"$EVIDENCE/desktop-baseline\" --baseline",
+    "cd apps/cad-studio && D786_SOURCE_FROZEN=1 node test/viewport-startup-fallback-browser.mjs \"$EVIDENCE/desktop-fixed\"",
+    "cd apps/cad-studio && D525_SOURCE_FROZEN=1 node test/viewport-recovery-current-studio-browser.mjs \"$EVIDENCE/desktop-recovery-regression\" --expect=fixed",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d786-2026-11-12",
+    "receipts": {
+      "baseline": {
+        "product": "FAIL",
+        "driver": "PASS",
+        "sha256": "bcfef25f7acdbb1c51150077b18ac9fb86a16e010587c8d45681bcb4308ea663",
+        "frozenSources": 333
+      },
+      "fixed": {
+        "status": "PASS",
+        "sha256": "84f44a62db3fb8ad24f8e5fcee7002282a97d8510847fa9889b528773b47e5fd",
+        "frozenSources": 333
+      },
+      "deviceRecoveryRegression": {
+        "status": "PASS",
+        "sha256": "56c8148630202495791917bef08bbae2dd984fb6e03c22e810364c3c982b950c",
+        "frozenSources": 333
+      }
+    },
+    "studio": {
+      "pass": 71,
+      "fail": 0,
+      "skip": 0
+    },
+    "fixtureVolumeMm3": [
+      17840,
+      17760
+    ],
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "saveBytes": 1308,
+    "saveSHA256": "f755be0472be7d63dc25f1a296d51edc1257b90a3358b65f80cb47ab069fc581"
+  }
+}

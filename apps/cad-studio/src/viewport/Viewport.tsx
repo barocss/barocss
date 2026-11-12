@@ -327,6 +327,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   // (O10: tracking asked for before the renderer is made applies to it once it is.)
   const frameCostOn = useRef(false);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
+  const [startupBackend, setStartupBackend] = useState<'webgpu' | 'webgl2'>(() =>
+    new URLSearchParams(location.search).get('renderer') === 'webgl2' || !('gpu' in navigator) ? 'webgl2' : 'webgpu');
   const [displayStatus, setDisplayStatus] = useState<DisplayModeStatus | null>(null);
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
   /** The theme as state, for the overlay lines whose colour follows it (G7). */
@@ -441,22 +443,31 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   // WebGPU (the @barocss/gpu viewer) when the browser has it, else WebGL2; ?renderer=webgl2 forces the latter.
   useEffect(() => {
+    const target = canvas.current!;
     let live = true, observer: ResizeObserver | null = null, recoveryOwner: object | null = null;
+    let ownedRenderer: ViewRenderer | null = null;
     const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
       if (!live) { r.dispose?.(); return; }
       const owner = recoveryOwner = {};
-      renderer.current = r;
+      ownedRenderer = renderer.current = r;
       r.setRecoveryHost?.(viewportRecoveryHost(() => live && recoveryOwner === owner, notice => propsRef.current.onRecoveryNotice?.(notice)));
       r.setTheme(theme.current); r.aoEnabled = ao.current; r.trackFrameCost(frameCostOn.current); r.setRequestHost?.(() => requestRef.current());
-      observer = new ResizeObserver(request); observer.observe(canvas.current!);
+      observer = new ResizeObserver(request); observer.observe(target);
       setBackend(name);
     };
-    const webgl = () => { try { start(new Renderer(canvas.current!), 'webgl2'); } catch (e) { setError(String(e)); } };
-    const forced = new URLSearchParams(location.search).get('renderer');
-    if (forced !== 'webgl2' && 'gpu' in navigator) GpuRenderer.create(canvas.current!).then(r => start(r, 'webgpu'), webgl);
-    else webgl();
-    return () => { live = false; recoveryOwner = null; observer?.disconnect(); renderer.current?.dispose?.(); renderer.current = null; };
-  }, []);
+    if (startupBackend === 'webgpu') {
+      void GpuRenderer.create(target).then(r => start(r, 'webgpu'), () => {
+        // A canvas that has acquired a WebGPU context cannot acquire WebGL2.
+        if (live) setStartupBackend('webgl2');
+      });
+    } else {
+      try { start(new Renderer(target), 'webgl2'); } catch (e) { setError(String(e)); }
+    }
+    return () => {
+      live = false; recoveryOwner = null; observer?.disconnect(); ownedRenderer?.dispose?.();
+      if (renderer.current === ownedRenderer) renderer.current = null;
+    };
+  }, [startupBackend]);
   // A new pixel ratio (the window on another screen, the page zoomed) draws again at the new resolution.
   useEffect(() => {
     let query: MediaQueryList | null = null;
@@ -905,7 +916,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}
       data-display-mode-reason={props.displayModeReason ?? displayStatus?.reason}
       {...input.placementHandlers}>
-      <canvas ref={canvas} className="vp-canvas" {...input.canvasHandlers} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
+      <canvas key={startupBackend} ref={canvas} className="vp-canvas" {...input.canvasHandlers} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       <FrameOverlay ticker={ticker} draw={drawOverlay} />
       {error && <div className="vp-error" role="alert">{error}</div>}
       {printError && <div className="vp-error" role="alert">{printError}</div>}
