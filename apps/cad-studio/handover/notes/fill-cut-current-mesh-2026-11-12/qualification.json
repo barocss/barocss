@@ -1,0 +1,51 @@
+{
+  "decision": "D785",
+  "tier": "SMALL evidence",
+  "parent": "88f89c27f95e78a2b521e776c2edfcd43798b6e2",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/fill-cut-current-mesh-browser.mjs",
+    "node --check apps/cad-studio/test/readonlymeshobserver.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test mesh-reuse-ownership instance-pose selection-edge",
+    "cd apps/cad-studio && D785_SOURCE_FROZEN=1 node test/fill-cut-current-mesh-browser.mjs \"$EVIDENCE/desktop-fill\"",
+    "git show 4784149ebddd7502e61a8f2a74c893de9ce0560a:apps/cad-studio/src/viewport/gpuRenderer.ts",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d785-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "sha256": "77403ee39d6e669c1350f80de57174184587a3b4f929050b6044cf9db60e95bf",
+      "frozenSources": 337,
+      "snapshots": 9,
+      "uploadStates": 5,
+      "observedVertexAndIndexWrites": 34,
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "studio": {
+      "pass": 47,
+      "fail": 0,
+      "skip": 0
+    },
+    "preparedInputSHA256": "8919b49b3b826d20bf5515eee373c741b9ba7e7c5c1147a281bde940c136fc51",
+    "nearDeltaMm": 0.000030517578125,
+    "legacySignature": "b6,504,396,504,0,0,0,60,30,10,942850661",
+    "changedBuffers": [
+      "positions",
+      "indices",
+      "edgeLines"
+    ],
+    "pickRimXmm": [
+      12,
+      14
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 // D524 observation only: delegate every actual call unchanged. Never submit bodies or edit product state.
-export async function installD524MeshObserver() {
+export async function installD524MeshObserver({ capturePayloads = false } = {}) {
   const { GpuRenderer } = await import('/src/viewport/gpuRenderer.ts');
   const viewer = window.__studioViewer;
   if (!viewer) throw new Error('Existing DEV __studioViewer is required');
@@ -21,7 +21,11 @@ export async function installD524MeshObserver() {
     for (let i = 0; i < p.length; i += step) { h ^= Math.round(p[i] * 1e4); h = Math.imul(h, 16777619); }
     return [result.key, p.length, m.indices.length, m.edgeLines.length, ...m.bounds.min, ...m.bounds.max, h >>> 0].join(',');
   };
-  const geometry = g => g ? { id: id(g), disposed: g.disposed, gpuAllocated: !!g.gpu, data: copy(g.data) } : null;
+  const geometry = g => g ? { id: id(g), disposed: g.disposed, gpuAllocated: !!g.gpu, data: copy(g.data),
+    ...(capturePayloads && { gpuBuffers: g.gpu ? {
+      positions: id(g.gpu.positions), normals: id(g.gpu.normals), indices: id(g.gpu.indices),
+    } : null }),
+  } : null;
   const bodies = instance => (instance.bodies ?? []).map(body => ({ key: body.result.key, surface: geometry(body.surface?.geometry),
     edges: geometry(body.edges?.geometry), highlight: geometry(body.highlight?.geometry) }));
   const originalCreate = viewer.createGeometry;
@@ -47,8 +51,15 @@ export async function installD524MeshObserver() {
       // Record geometry vertex/index transfers, not each frame's camera/uniform buffers.
       if ((buffer.usage & (0x10 | 0x20)) !== 0) {
         uploadCount++;
-        if (uploads.length < 512) uploads.push({ sequence: uploadCount, buffer: id(buffer), label: buffer.label, usage: buffer.usage,
-          bufferOffset, dataType: data?.constructor?.name, sourceByteLength: data?.byteLength ?? null, dataOffset: dataOffset ?? null, size: size ?? null });
+        if (uploads.length < 512) {
+          const fullGeometryWrite = capturePayloads && bufferOffset === 0 && dataOffset === undefined && size === undefined
+            && ArrayBuffer.isView(data) && ['positions', 'normals', 'indices', 'lines'].includes(buffer.label);
+          uploads.push({ sequence: uploadCount, buffer: id(buffer), label: buffer.label, usage: buffer.usage,
+            bufferOffset, dataType: data?.constructor?.name, sourceByteLength: data?.byteLength ?? null,
+            dataOffset: dataOffset ?? null, size: size ?? null,
+            ...(fullGeometryWrite && { bytes: Array.from(new Uint8Array(data.buffer, data.byteOffset, data.byteLength)) }),
+          });
+        }
       }
       return originalWrite.apply(this, args);
     };

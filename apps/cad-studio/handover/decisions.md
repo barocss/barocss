@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D785 — verify current GPU buffers after a native cache signature collision](notes/fill-cut-current-mesh-2026-11-12/README.md).
 - [D784 — verify the upstream tool edit of a Fill cut pattern](notes/fill-cut-tool-lifecycle-2026-11-12/README.md).
 - [D783 — verify the bowed guided Loft edit lifecycle](notes/bowed-guided-loft-lifecycle-2026-11-12/README.md).
 - [D782 — approve a parameter-driven extrusion height](notes/local-named-height-task-2026-11-12/README.md).
