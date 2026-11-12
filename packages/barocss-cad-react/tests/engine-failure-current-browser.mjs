@@ -9,8 +9,10 @@ import {createFlow} from '../../../apps/cad-studio/test/flow-helper.mjs';
 import {installD528NativeWorkerObserver} from './native-worker-failure-observer.mjs';
 
 const repo = resolve(import.meta.dirname, '../../..'), output = process.argv[2];
+const retirement = process.argv.includes('--frame-retirement');
 const expectation = process.argv.find(arg => arg.startsWith('--expect='))?.split('=')[1] ?? 'fixed';
-assert.ok(['repro', 'fixed'].includes(expectation)); assert.ok(output && isAbsolute(output));
+assert.ok(['repro', 'fixed'].includes(expectation));
+assert.ok(!retirement || expectation === 'fixed'); assert.ok(output && isAbsolute(output));
 assert.ok(relative(repo, resolve(output)).startsWith('../')); await mkdir(output);
 const frozen = ['pnpm-lock.yaml'];
 for (const name of ['barocss-cad', 'barocss-cad-model', 'barocss-cad-react', 'barocss-viewer', 'barocss-gpu']) {
@@ -19,11 +21,12 @@ for (const name of ['barocss-cad', 'barocss-cad-model', 'barocss-cad-react', 'ba
 }
 for (const file of await readdir(join(repo, 'packages/barocss-cad-react/examples'), {recursive: true})) if (/\.(ts|tsx|css)$/.test(file)) frozen.push(`packages/barocss-cad-react/examples/${file}`);
 const ownFiles = ['engine-failure-current-browser.mjs', 'engine-failure-studio-fixture.tsx', 'native-worker-failure-observer.mjs'].map(file => `packages/barocss-cad-react/tests/${file}`);
-const f = await createFlow({name: 'engine-failure-current', envFrozen: 'D528_SOURCE_FROZEN', output,
-  qualification: `D528/R08 ${expectation === 'repro' ? 'settled native Worker failure baseline reproduction' : 'settled failure, caller-owned Retry, unchanged declaration and returned Doc Studio Open'}`,
+const f = await createFlow({name: 'engine-failure-current', envFrozen: retirement ? 'D776_SOURCE_FROZEN' : 'D528_SOURCE_FROZEN', output,
+  qualification: retirement ? 'B10-07 actual failure, restart, obsolete frame and disposal' : `D528/R08 ${expectation === 'repro' ? 'settled native Worker failure baseline reproduction' : 'settled failure, caller-owned Retry, unchanged declaration and returned Doc Studio Open'}`,
   initialFiles: ownFiles, extraFrozen: frozen,
   requiredFrozen: ['packages/barocss-cad-react/src/model-host.ts', 'packages/barocss-cad-react/src/adapter.ts', 'packages/barocss-cad-react/examples/ProfileApp.tsx', 'apps/cad-studio/src/engine/client.ts'],
-  limits: ['Desktop 1440x900 only; root must view original screenshots.', 'One canonical segmented Profile radius 6 then nondefault 8, actual EngineClient and existing Viewer facade.',
+  limits: retirement ? ['One owned native Worker fault and actual Viewer readback delays. Existing React example, desktop WebGPU, and returned Doc Studio Open.'] :
+    ['Desktop 1440x900 only; root must view original screenshots.', 'One canonical segmented Profile radius 6 then nondefault 8, actual EngineClient and existing Viewer facade.',
     'Fault is an explicit malformed protocol request to the owned real Worker, not an organic runtime failure.', 'No fake error callbacks, status, engine results, renderer or document actions.',
     'Old visible frame is retained but stale after failure; it has no current evaluation authority.', 'Retry false/throw, startup, unmount races and public API breadth require controlled tests.',
     'Returned Doc Open is a current consumer smoke; no new physical oracle or general CAD readiness claim.'],
@@ -35,7 +38,7 @@ const raw = async label => {
   assert.ok(!labels.has(label)); labels.add(label);
   await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
   const state = await f.page.evaluate(label => ({label, observation: window.d528Profiles.read(), worker: window.__d528Worker.snapshot(),
-    statusText: document.querySelector('[aria-label="Model status"]')?.textContent, alerts: [...document.querySelectorAll('[role="alert"]')].map(node => node.textContent),
+    statusText: document.querySelector('[aria-label="Model status"]')?.textContent ?? null, alerts: [...document.querySelectorAll('[role="alert"]')].map(node => node.textContent),
     radius: document.querySelector('input[aria-label="Profile Radius"]')?.value, dom: document.body.innerText}), label);
   f.report.states.push(state); await writeFile(join(output, `${label}.json`), JSON.stringify(state, null, 2));
   await f.page.screenshot({path: join(output, `${label}.png`)}); await f.persist(); return state;
@@ -48,6 +51,73 @@ const ready = async radius => {
   }, radius, {timeout: 90000});
   await f.page.getByRole('status', {name: 'Model status', exact: true}).filter({hasText: 'Ready'}).waitFor();
 };
+async function verifyFrameRetirement(recovered) {
+  const page = f.page;
+  const radius = page.getByRole('spinbutton', { name: 'Profile Radius', exact: true });
+  const hold = async (value, index) => {
+    await page.evaluate(() => window.d528Profiles.armReadback());
+    await radius.fill(String(value));
+    await page.waitForFunction(index => {
+      const state = window.d528Profiles.read();
+      return state.readbacks[index]?.bytes > 0 && state.readbacks[index].released === false;
+    }, index);
+  };
+  const release = async (index, previousIgnored) => {
+    await page.evaluate(() => window.d528Profiles.releaseReadback());
+    await page.waitForFunction(([index, previousIgnored]) => {
+      const state = window.d528Profiles.read();
+      return state.readbacks[index]?.released && state.host.ignored > previousIgnored;
+    }, [index, previousIgnored]);
+  };
+
+  f.phase = 'hold real radius 9 readback, then accept radius 10';
+  await hold(9, 0);
+  await page.getByRole('status', { name: 'Model status', exact: true }).filter({ hasText: 'Updating' }).waitFor();
+  const held = await raw('04b-radius9-real-readback-held');
+  assert.equal(held.observation.host.status, 'pending');
+  assert.equal(held.observation.host.viewer.frameOwner.evaluationRevision, recovered.observation.host.nativeOwner.evaluationRevision);
+  assert.ok(held.observation.host.viewer.mountedOwner.evaluationRevision > held.observation.host.viewer.frameOwner.evaluationRevision);
+  await radius.fill('10');
+  await ready(10);
+  const current = await raw('04c-radius10-ready-before-release');
+  assert.ok(current.observation.host.viewer.frameOwner.evaluationRevision > held.observation.host.viewer.mountedOwner.evaluationRevision);
+  assert.notEqual(current.observation.host.viewer.pixels.sha256, recovered.observation.host.viewer.pixels.sha256);
+  await release(0, current.observation.host.ignored);
+  const after = await raw('04d-radius10-retained-after-old-frame');
+  assert.equal(after.observation.host.status, 'ready');
+  assert.deepEqual(after.observation.host.viewer, current.observation.host.viewer);
+  assert.equal(after.observation.host.documentJSON, current.observation.host.documentJSON);
+
+  f.phase = 'unmount while the actual radius 11 GPU frame receipt waits';
+  await hold(11, 1);
+  const beforeUnmount = await raw('04e-radius11-held-before-unmount');
+  assert.equal(beforeUnmount.observation.host.status, 'pending');
+  await page.getByRole('button', { name: 'Unmount profile', exact: true }).click();
+  await page.getByRole('status', { name: 'Model status', exact: true }).waitFor({ state: 'hidden' });
+  const disposed = await raw('04f-disposed-before-release');
+  assert.equal(disposed.observation.closed, true);
+  assert.equal(disposed.observation.host.status, 'disposed');
+  assert.equal(disposed.observation.host.viewer.status, 'disposed');
+  assert.equal(disposed.observation.host.viewer.frameOwner, null);
+  assert.equal(disposed.observation.host.viewer.mountedOwner, null);
+  assert.equal(disposed.observation.host.native, null);
+  assert.ok(disposed.worker.workers.filter(worker => worker.relevant).every(worker => worker.terminated));
+  await release(1, disposed.observation.host.ignored);
+  const final = await raw('04g-disposed-after-release');
+  assert.equal(final.observation.host.status, 'disposed');
+  assert.deepEqual(final.observation.host.viewer, disposed.observation.host.viewer);
+  assert.equal(final.observation.host.native, null);
+  assert.equal(final.statusText, null);
+  f.report.observations.push({
+    recoveredOwner: recovered.observation.host.nativeOwner,
+    heldOwner: held.observation.host.viewer.mountedOwner,
+    currentOwner: current.observation.host.nativeOwner,
+    readbacks: final.observation.readbacks,
+    terminatedWorkers: final.worker.workers.filter(worker => worker.relevant && worker.terminated).length,
+  });
+  return current;
+}
+
 await f.run(async () => {
   try {
     const packageRoot = join(repo, 'packages/barocss-cad-react/tests');
@@ -64,7 +134,7 @@ await f.run(async () => {
         rolldownOptions: {input: join(packageRoot, 'engine-failure-studio-fixture.tsx')}}});
     const manifest = JSON.parse(await readFile(join(staticRoot, '.vite/manifest.json'), 'utf8'));
     const entry = Object.values(manifest).find(entry => entry.isEntry); assert.ok(entry?.file);
-    const html = `<div id="root"></div>${(entry.css ?? []).map(file => `<link rel="stylesheet" href="/${file}">`).join('')}<script type="module" src="/${entry.file}"></script>`;
+    const html = `<div id="root"></div>${retirement ? '<button id="unmount-profile" type="button">Unmount profile</button>' : ''}${(entry.css ?? []).map(file => `<link rel="stylesheet" href="/${file}">`).join('')}<script type="module" src="/${entry.file}"></script>`;
     f.report.packageRuntime = {mode: 'Vite production bundle, original fixture/product/Worker source', minify: false, staticRoot, entry,
       devWebSocketClient: 'ABSENT_BY_PRODUCTION_BUILD', consoleErrorHandling: 'All unknown errors still fail; no dev client stub or console suppression'};
     const httpServer = createHttpServer((request, response) => {
@@ -81,6 +151,18 @@ await f.run(async () => {
     });
     packageServer = {close: () => new Promise((resolve, reject) => httpServer.close(error => error ? reject(error) : resolve()))};
     await new Promise((resolve, reject) => { httpServer.once('error', reject); httpServer.listen(0, '127.0.0.1', resolve); });
+    const packageOrigin = 'http://127.0.0.1:' + httpServer.address().port;
+    const studioOrigin = new URL(f.server.resolvedUrls.local[0]).origin;
+    const newContext = f.browser.newContext.bind(f.browser);
+    f.browser.newContext = async options => {
+      const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+      await context.route('**/*', route => {
+        const url = new URL(route.request().url());
+        if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+        return [packageOrigin, studioOrigin].includes(url.origin) ? route.continue() : route.abort();
+      });
+      return context;
+    };
     await f.newPage(); await f.page.setViewportSize({width: 1440, height: 900});
     await f.context.addInitScript(installD528NativeWorkerObserver);
     const url = `http://127.0.0.1:${httpServer.address().port}/`;
@@ -122,7 +204,8 @@ await f.run(async () => {
     assert.ok(recovered.worker.workers.filter(worker => worker.relevant).length >= 2);
     assert.equal(recovered.observation.host.viewer.facade, '@barocss/viewer');
     assert.equal(recovered.observation.host.viewer.pixels.sha256, before.observation.host.viewer.pixels.sha256, 'Unchanged declaration returns the same bounded actual frame');
-    const returnedDoc = JSON.parse(recovered.observation.host.documentJSON), file = join(output, 'returned-recovered-radius8.bcad');
+    const current = retirement ? await verifyFrameRetirement(recovered) : recovered;
+    const returnedDoc = JSON.parse(current.observation.host.documentJSON), file = join(output, 'returned-current.bcad');
     await writeFile(file, JSON.stringify(returnedDoc));
     f.phase = 'public Studio Open and Frame of actual recovered returned document';
     await f.newPage(); await f.page.setViewportSize({width: 1440, height: 900});
