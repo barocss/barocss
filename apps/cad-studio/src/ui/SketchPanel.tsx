@@ -97,7 +97,6 @@ export function SketchPanel({ sketch, toolLabel, error, twoPointSnap, onShape, o
         </div>;
       })()}
       {twoPointSnap}
-      {!s && <div className="empty">Snap 1 mm</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {(error ?? splineError) && <div className="sk-status open" role="alert"><i />{error ?? splineError}</div>}
       {s?.kind === 'rectangle' && (() => {

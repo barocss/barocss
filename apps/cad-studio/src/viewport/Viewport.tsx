@@ -40,8 +40,8 @@ export { DRAG_TYPE, instancePickFields } from './viewportPointerInput';
 export interface ViewportHandle {
   /** Frames everything, or the box given (the picked bodies). */
   fit(box?: { min: Vec3; max: Vec3 }): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
-  /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
   startRectangleAt(owner: SketchState, at: [number, number]): boolean;
+  /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
   frameSketch(min: [number, number], max: [number, number], plane: SketchPlane, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
