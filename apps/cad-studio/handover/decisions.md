@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D760 — verify the concentric and distance mate lifecycle](notes/static-assembly-axial-mate-2026-11-12/README.md).
 - [D759 — verify the three-plane linked assembly mate](notes/static-assembly-three-plane-mate-2026-11-12/README.md).
 - [D758 — verify repeated placement and linked definition updates](notes/static-assembly-linked-placement-2026-11-12/README.md).
 - [D757 — preview a replacement edge for an unresolved drawing dimension](notes/drawing-reference-candidate-2026-11-12/README.md).
