@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D802 — cut a path-length gap in one construction arc](notes/construction-arc-path-gap-2026-11-12/README.md).
 - [D801 — reacquire circular extension after Trim](notes/arc-extension-source-edit-2026-11-12/README.md).
 - [D800 — verify clockwise arc extension and desktop snap reach](notes/arc-extension-desktop-scale-2026-11-12/README.md).
 - [D799 — snap once to the circular extension of a construction arc](notes/arc-extension-snap-2026-11-12/README.md).

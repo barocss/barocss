@@ -1,0 +1,137 @@
+{
+  "decision": "D802",
+  "tier": "FEATURE",
+  "parent": "22b4f02bb223016027262d4d2459ca1ada81282b",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-path-gap-browser.mjs",
+    "cd apps/cad-studio && D802_SOURCE_FROZEN=1 node test/arc-path-gap-browser.mjs \"$EVIDENCE/<run>\"",
+    "cd apps/cad-studio && D802_BASELINE=1 D802_SOURCE_FROZEN=1 node test/arc-path-gap-browser.mjs \"$EVIDENCE/<ordinary-run>\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test arcPathGap",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build-final\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d802-arc-path-gap",
+    "evidenceFolder": "d802-2026-11-12",
+    "attempts": [
+      {
+        "folder": "baseline-1",
+        "status": "FAIL",
+        "sha256": "6df26272617920251d6391c17a14faabd89b21c9366fb248dd8ad2caaf912484",
+        "detail": "Split point differed from the exact aim by 1e-6 mm."
+      },
+      {
+        "folder": "baseline-2",
+        "status": "PASS",
+        "sha256": "29aaa901b3cbff6601d937b3e30697c493fb18dde22df0d2eb339ab2630da92d",
+        "detail": "Ordinary Trim removes the isolated arc. Split preserves its full path length."
+      },
+      {
+        "folder": "desktop-1",
+        "status": "PASS",
+        "sha256": "5526f9a74dee8ec50f2029ff8b5087426d15dde0fe07b96947bea6c104ea2b9e",
+        "detail": "Initial four-millimetre gap flow."
+      },
+      {
+        "folder": "ordinary-trim-split",
+        "status": "PASS",
+        "sha256": "24ba594c094e577271f8d72fc36cfb2a1152f71f0116fb102c51abfd4ca36b81",
+        "detail": "Ordinary operations pass on the first candidate."
+      },
+      {
+        "folder": "repeat-before",
+        "status": "FAIL",
+        "sha256": "0c6b042ede47bf76edfa14d1932f9642b19f77051010ef5068336ce0280778dc",
+        "detail": "The repeated click entered regular Trim and removed one piece."
+      },
+      {
+        "folder": "desktop-2",
+        "status": "PASS",
+        "sha256": "42819cc5310b7d3a1845b713b745a0b9bb7d124a7b511d8606e8104b12012c1e",
+        "detail": "The final gap flow also keeps both arcs after the repeat click."
+      },
+      {
+        "folder": "ordinary-final",
+        "status": "FAIL",
+        "sha256": "72c96689623e495925c3739026ddf1552b298c4114f93e22ed8d2589e4854c5d",
+        "detail": "The accepted geometry checks passed but Chromium logged ERR_NETWORK_CHANGED."
+      },
+      {
+        "folder": "ordinary-retry",
+        "status": "PASS",
+        "sha256": "4b0028fd1528f294935649ccad0279b493aeea4c798285fd941bd140e8f3eef9",
+        "detail": "The same frozen final source passes without console errors."
+      }
+    ],
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-2",
+      "sha256": "42819cc5310b7d3a1845b713b745a0b9bb7d124a7b511d8606e8104b12012c1e",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 1526,
+      "savedSHA256": "518c3fcd131a60f5107791e379e9120f4f63fc7d1f92f46bb0e2d68ed467af9b",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "ordinary": {
+      "status": "PASS",
+      "folder": "ordinary-retry",
+      "sha256": "4b0028fd1528f294935649ccad0279b493aeea4c798285fd941bd140e8f3eef9",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "focused": {
+      "studioPass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "warnings": [
+        "INEFFECTIVE_DYNAMIC_IMPORT"
+      ]
+    },
+    "repeatClick": {
+      "gapMm": 1,
+      "endpointReachPx": 2.791345068540461,
+      "retainedPieces": 2
+    },
+    "requestedGapMm": 4,
+    "measuredGapMm": 4.000000391910905,
+    "chordMm": 3.9733870000000024,
+    "cutPointsMm": [
+      [
+        21.986695,
+        29.800666
+      ],
+      [
+        18.013308,
+        29.800666
+      ]
+    ],
+    "retainedIds": [
+      [
+        "e5",
+        "e7"
+      ],
+      [
+        "e8",
+        "e6"
+      ]
+    ],
+    "volumeMm3": 50,
+    "splitLengthMm": 31.415926537757684
+  }
+}

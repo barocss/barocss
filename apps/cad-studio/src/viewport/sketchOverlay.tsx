@@ -12,6 +12,7 @@ import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
 import type { OrbitCamera } from './camera';
+import type { ArcPathGapDraft } from '../sketch/useArcPathGap';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
 
@@ -21,7 +22,7 @@ export interface SketchOverlayDraft {
   bandHover?: number | null;
   snap?: SnapPoint | null;
   extension?: boolean;
-  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[]; owner: SketchState } | null;
+  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[]; owner: SketchState; gap?: ArcPathGapDraft; ends?: [P2, P2] } | null;
 }
 
 export interface CentreArcDraft {
@@ -51,6 +52,7 @@ interface SketchOverlayInputs {
   ellipse: EllipseDraft | null;
   centreArc: CentreArcDraft | null;
   extensionGuide?: readonly P2[];
+  pathGap?: ArcPathGapDraft;
   bandCache: RefObject<SketchBandCache | null>;
   picking: boolean;
   cutting: boolean;
@@ -61,7 +63,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -224,11 +226,15 @@ export function drawSketchOverlay({
       if (Math.abs(ca.sweep) > 1e-3) items.push(label(E[0] + 30, E[1] - 14, (Math.round(Math.abs(ca.sweep) * 1800 / Math.PI) / 10) + '°', 'live-carc-a'));
     }
   }
-  const trim = cutting && draft.trim?.owner === sk ? draft.trim : null;
+  const trim = cutting && draft.trim?.owner === sk && draft.trim.gap === pathGap ? draft.trim : null;
   if (extensionGuide) items.push(<polyline key="arc-extension" className="sk-guide sk-arc-extension" fill="none"
     points={extensionGuide.map(point => { const q = P(...point); return q[0] + ',' + q[1]; }).join(' ')} />);
   if (trim?.kind === 'split') { const p = P(trim.points[0][0], trim.points[0][1]); items.push(<circle key="split" cx={p[0]} cy={p[1]} r={5} className="sk-split" />); }
-  else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);
+  else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.gap ? 'sk-trim sk-path-gap' : trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);
+  trim?.ends?.forEach((point, index) => {
+    const p = P(...point);
+    items.push(<circle key={'gap-end-' + index} cx={p[0]} cy={p[1]} r={4} className="sk-split sk-path-gap-end" />);
+  });
   const cur = picking ? null : draft.cursor;
   if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
   // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.

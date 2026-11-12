@@ -29,7 +29,9 @@ import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
+import { planArcPathGap } from '../sketch/arcPathGap';
 import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
+import type { ArcPathGapDraft, ArcPathGapInput } from '../sketch/useArcPathGap';
 import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
 import { pickVertex } from './vertexPick';
 import type { CageOverlay, Spot, ToolView, ViewportTool } from './Viewport';
@@ -78,6 +80,7 @@ export interface ViewportPointerProps {
   onSketchBandPick?(index: number | null): void;
   /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
   onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
+  pathGap?: ArcPathGapInput;
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
   pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -288,6 +291,12 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
+  const pathGapAt = (draft: ArcPathGapDraft, sk: SketchState, point: [number, number], x: number, y: number) => {
+    const plan = planArcPathGap(draft.source, point, Number(draft.length));
+    if (!plan) return null;
+    const [px, py] = sketchProject(sk.plane)(...plan.hit);
+    return Math.hypot(px - x, py - y) < 8 ? plan : null;
+  };
   const referenceSnap = (points: readonly SnapPoint[], plane: SketchPlane, x: number, y: number) => {
     const project = sketchProject(plane);
     return nearestSnap(points, ([u, v]) => { const [sx, sy] = project(u, v); return [sx, sy]; }, [x, y]);
@@ -634,6 +643,13 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         }
       }
       else if (cutting(sk)) {
+        const gap = propsRef.current.pathGap?.read(sk);
+        if (gap) {
+          const plan = p && pathGapAt(gap, sk, [p[0], p[1]], x, y);
+          sketchDraft.current.trim = plan ? { kind: 'trim', points: plan.removed, owner: sk, gap, ends: [plan.cutA, plan.cutB] } : null;
+          request();
+          return;
+        }
         const { shapes, protectedShapes } = sketchCutInputs(sk);
         const q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
         const points = !q ? null : kind === 'trim' ? trimPreview(shapes, q, tol, protectedShapes)
@@ -673,6 +689,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
   const onPointerLeave = () => {
     clearSketchSnap();
+    if (sketchDraft.current.trim?.gap) { sketchDraft.current.trim = null; request(); }
     if (twoPointHover.current) { twoPointHover.current = null; request(); }
     const r = renderer.current, prev = hover.current;
     if (!r || drag.current.mode || (!prev.face && !prev.edge && !prev.vertex)) return;
@@ -734,7 +751,14 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }
-      if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
+      if (cutting(sk)) {
+        const input = propsRef.current.pathGap, gap = input?.read(sk);
+        if (input && gap) input.apply(sk, gap, pathGapAt(gap, sk, [p[0], p[1]], x, y));
+        else propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk));
+        sketchDraft.current.trim = null;
+        request();
+        return;
+      }
       if (sk.tool === 'spline') {
         // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
         const fit = splineFit.current ?? [], fresh = !fit.length;

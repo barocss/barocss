@@ -787,6 +787,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h,
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
+      pathGap: props.pathGap?.read(sk) ?? undefined,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;
