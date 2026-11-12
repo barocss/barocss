@@ -1,0 +1,154 @@
+{
+  "decision": "D825",
+  "tier": "FULL interface",
+  "parent": "c095c87f4164b699e187097abcb02e9bcad151e1",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d825-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d825-named-cylinder-height",
+    "node --check apps/cad-studio/test/task-plan-agent-browser.mjs",
+    "node --check apps/cad-studio/test/task-run-studio-delivery-flow.mjs",
+    "cd apps/cad-studio && D825_EXPECT_BLOCKED=1 D825_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/baseline\" --named-cylinder-height",
+    "cd apps/cad-studio && D825_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-2\" --named-cylinder-height",
+    "gate.sh acquire heavy 600 d825-named-cylinder-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution proposal",
+    "gate.sh acquire heavy 600 d825-named-cylinder-current-regressions",
+    "cd apps/cad-studio && D782_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/named-rectangle-regression\" --named-height",
+    "cd apps/cad-studio && D778_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/literal-cylinder-regression\" --cylinder-height",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff task-run-host",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/team/taskPlan.ts packages/barocss-cad-model/src/team/taskExecution.ts packages/barocss-cad-model/test/task-execution.test.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "FAIL",
+      "sha256": "ae8b90b3c5515839fe460ba401cfd351394ff022fe79db02138b98a81ee0baed",
+      "frozenSources": 890,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observed": [
+        {
+          "label": "named-cylinder-refused",
+          "issues": [
+            {
+              "code": "UNSUPPORTED_PROFILE",
+              "message": "UNSUPPORTED_PROFILE: p1 needs one plain rectangular extrusion with a parameter that controls only its height."
+            }
+          ],
+          "runCreated": false
+        }
+      ]
+    },
+    "desktop-1": {
+      "status": "FAIL",
+      "sha256": "d0886fcb81ec00980cbbee5365e2f1d3043b7f2540379a2ddf701f53faea1a95",
+      "frozenSources": 890,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-2": {
+      "status": "PASS",
+      "sha256": "721b3f63e79d227b7986f668bd062e7ebc9a4f3eab5843154f92d5ead798b6a7",
+      "frozenSources": 890,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "native": [
+        {
+          "status": "PASS",
+          "heightMm": 6,
+          "radiusMm": 4.23,
+          "volumeMm3": 337.27321914850097,
+          "productImports": 0
+        },
+        {
+          "status": "PASS",
+          "heightMm": 7,
+          "radiusMm": 4.23,
+          "volumeMm3": 393.48542233991776,
+          "productImports": 0
+        }
+      ],
+      "heightMm": [
+        5,
+        6,
+        7
+      ],
+      "centroidsMm": [
+        [
+          3.069999999999999,
+          -7.130000000000002,
+          3
+        ],
+        [
+          3.0699999999999994,
+          -7.130000000000003,
+          3.5000000000000004
+        ]
+      ]
+    },
+    "named-rectangle-regression": {
+      "status": "PASS",
+      "sha256": "8ffbfb3b90d3711c70ef3ad4e1341ed9a6f4babc35a6ef2b85edcc4750bc3f55",
+      "frozenSources": 890,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "literal-cylinder-regression": {
+      "status": "PASS",
+      "sha256": "b61be0098bd589e38a99b3706fa05edbb7251e47ba7b7cddeeccaae11361aa9e",
+      "frozenSources": 889,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CHAT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focused": {
+    "modelPass": 57,
+    "studioPass": 44,
+    "fail": 0,
+    "skip": 0
+  },
+  "types": "PASS",
+  "lint": "PASS",
+  "build": "PASS",
+  "rootVisualReview": "PASS",
+  "geometryReview": "Sol High confirmed strict circle and rectangle dispatch. Existing guard refuses configuration-owned height and variability."
+}

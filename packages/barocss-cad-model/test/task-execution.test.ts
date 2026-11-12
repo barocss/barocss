@@ -499,9 +499,10 @@ test('D782 refuses a missing, nonpositive, shared or configuration-owned height 
   }
 });
 
-for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778 a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {
+for (const source of ['positional', 'tagged', 'remembered', 'named'] as const) test(`a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {
   const doc = assembly(), [base, lid] = doc.instances!;
   delete doc.interfaces;
+  const named = source === 'named', tagged = source === 'tagged' || named;
   const radius = 4.23, heightMm = 6;
   const center: [number, number] = [3.07, -7.13];
   const cylinder = source === 'remembered' ? commandById('cylinder')!.build!(
@@ -513,10 +514,16 @@ for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778
   const sketch = base.doc.nodes[0];
   assert.ok(sketch.kind === 'sketch' && sketch.profile === 'circle');
   sketch.center = center;
-  if (source === 'tagged') {
+  if (tagged) {
     const drawn = profileOf([{ kind: 'circle', c: center, r: radius, ids: ['e7'] }]);
     assert.ok(!('error' in drawn) && drawn.node.kind === 'sketch' && drawn.node.profile === 'circle' && drawn.node.sideTags);
     sketch.sideTags = drawn.node.sideTags;
+  }
+  if (named) {
+    base.doc = bindParameter({ ...base.doc, parameters: { Thickness: 5, Spare: 9 } },
+      { feature: 'n1', value: 'h', parameter: 'Thickness' });
+    doc.parameters.Thickness = 42;
+    lid.doc.parameters.Thickness = 11;
   }
   const inspected = inspectLocalHeightPlan(doc, ['p1'], identity);
   assert.ok(!('error' in inspected), JSON.stringify(inspected));
@@ -535,7 +542,8 @@ for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778
   assert.ok(Math.abs(candidate.geometry.volumeMm3 - Math.PI * radius ** 2 * heightMm) < 1e-8);
   assert.deepEqual(candidate.geometry.centroidMm, [3.07, -7.13, heightMm / 2]);
   assert.equal(bound.verification.oracle, 'circular-cylinder');
-  const sideName = source === 'tagged' ? `n1.side[${sketch.sideTags!.outer[0]}]` : 'n1.side0';
+  assert.equal(bound.reads.heightParameter, named ? 'Thickness' : undefined);
+  const sideName = tagged ? `n1.side[${sketch.sideTags!.outer[0]}]` : 'n1.side0';
   const alteredNativeRadius = async (local: StudioDoc) => {
     const native = await evaluate(local);
     if (!native.ok || !native.faceTable) return native;
@@ -550,7 +558,7 @@ for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778
   assert.ok(!('error' in result), JSON.stringify(result));
   const extrusion = base.doc.nodes[1];
   assert.ok(extrusion.kind === 'extrude');
-  const expected = { ...extrusion, height: heightMm };
+  const expected = { ...extrusion, height: named ? extrusion.height : heightMm };
   if (source === 'remembered') {
     assert.equal(extrusion.made?.command, 'cylinder');
     expected.made = { ...extrusion.made, values: { ...extrusion.made.values, h: heightMm } };
@@ -558,6 +566,17 @@ for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778
   const { nodes } = result.doc.instances![0].doc;
   assert.deepEqual(nodes, [sketch, expected]);
   if (source === 'remembered') assert.equal(featureLabel(nodes[1], 1, nodes), 'Cylinder Ø8.46×6');
+  if (named) {
+    assert.deepEqual(result.doc.instances![0].doc.parameters, { Thickness: 6, Spare: 9 });
+    assert.deepEqual(result.doc.parameters, { Thickness: 42 });
+    assert.deepEqual(result.doc.proposals?.at(-1)?.ops, [{ tool: 'set_parameters', args: { part: 'p1', set: { Thickness: 6 } } }]);
+    const configured = structuredClone(doc);
+    configured.instances![0].doc.configurations = { Thin: { Thickness: 4 } };
+    refuses(compileTaskPlan(configured, inspected.request), 'UNSUPPORTED_PROFILE');
+    const shared = structuredClone(doc);
+    Object.assign(shared.instances![0].doc.nodes[0], { radius: { parameter: 'Thickness' } });
+    refuses(compileTaskPlan(shared, inspected.request), 'UNSUPPORTED_PROFILE');
+  }
   assert.deepEqual(result.doc.instances![1], lid);
   refuses(await applyTaskDecision(approval, state, worker, alteredNativeRadius), 'TASK_DECISION_UNTRUSTED');
   assert.equal(digestOf(state.doc), plan.baselineDigest);

@@ -244,7 +244,7 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   const grossArea = circle ? Math.PI * circle.radius ** 2 : shape.width * shape.depth;
   const holeArea = hole ? Math.PI * hole.radius ** 2 : 0;
   const area = grossArea - holeArea, volume = area * height;
-  const nativeRectangle = task.writes.field === 'footprint' || task.retainBoxCommand || task.reads.heightParameter !== undefined;
+  const nativeRectangle = !circle && (task.writes.field === 'footprint' || task.retainBoxCommand || task.reads.heightParameter !== undefined);
   const centre = [shape.minX + shape.width / 2, shape.minY + shape.depth / 2, height / 2] as const;
   const centroid = nativeRectangle ? centre : circle ? [...circle.center, height / 2] as const : [
     (centre[0] * grossArea - (hole?.x ?? 0) * holeArea) / area,

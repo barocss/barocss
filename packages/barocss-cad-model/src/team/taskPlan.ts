@@ -170,10 +170,10 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   const height = parameter?.value ?? extrusion.height;
   if (!positive(height))
     return error('UNSUPPORTED_PROFILE', `${instance.id} needs a positive literal extrusion height or an admitted local height parameter.`);
-  if (parameter && (nodes.length !== 2 || sketch.profile !== 'rectangle' || extrusion.made || part.variability
+  if (parameter && (nodes.length !== 2 || extrusion.made || part.variability
       || Object.values(part.configurations ?? {}).some(config => Object.hasOwn(config, parameter.name))
       || parameterUses([sketch, { ...extrusion, height: 0 }], parameter.name))) {
-    return error('UNSUPPORTED_PROFILE', `${instance.id} needs one plain rectangular extrusion with a parameter that controls only its height.`);
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs one plain extrusion with a parameter that controls only its height.`);
   }
   let shape: TaskShape;
   if (sketch.profile === 'rectangle' && xy(sketch.min) && xy(sketch.max)) {
@@ -240,7 +240,8 @@ export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclu
     if (target.heightParameter !== task.reads.heightParameter)
       return error('TASK_SCOPE_CHANGED', 'The extrusion height parameter differs from the task plan.');
     if (target.heightParameter !== undefined) {
-      if (!positive(shape.width * shape.depth * value))
+      const area = shape.circle ? Math.PI * shape.circle.radius ** 2 : shape.width * shape.depth;
+      if (!positive(area * value))
         return error('TASK_VALUE', 'The requested height must produce a positive finite volume.');
       const set = { [target.heightParameter]: value };
       const local = withParameters(instance.doc, set);

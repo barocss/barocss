@@ -7,8 +7,8 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false, boxScalarAxis, namedHeight = false }) {
-  const prefix = namedHeight ? 'd782' : boxScalarAxis ? 'd781-' + boxScalarAxis : boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false, boxScalarAxis, namedHeight = false, namedCylinderHeight = false }) {
+  const prefix = namedCylinderHeight ? 'd825' : namedHeight ? 'd782' : boxScalarAxis ? 'd781-' + boxScalarAxis : boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
   const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
   const rectangle = baseFootprint || !!boxScalarAxis, standardBox = boxFootprint || !!boxScalarAxis;
   const approvedSize = [boxScalarAxis === 'depth' ? 20 : 24, boxScalarAxis === 'width' ? 10 : 14];
@@ -289,8 +289,14 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     f.report.observations.push({ cylinderHeightMm: [5, 6, 7], radiusMm: 4.23, approved: cylinder, edited: changed, siblingLabel: 'Cylinder Ø6×4' });
   }
   if (namedHeight) {
-    const approved = await f.inspect(prefix + '-approved-height', reopened.doc, 'footprint-native-evidence');
-    await f.runOracle({ footprint: approved, namedHeight: 6, edited: false }, prefix + '-approved');
+    const inspectHeight = async (state, label, heightMm) => {
+      const geometry = await f.inspect(prefix + '-' + label + '-height', state, namedCylinderHeight ? 'cylinder-native-evidence' : 'footprint-native-evidence');
+      const expectation = namedCylinderHeight ? { cylinder: geometry, heightMm }
+        : { footprint: geometry, namedHeight: heightMm, edited: label === 'edited' };
+      await f.runOracle(expectation, prefix + '-' + label);
+      return geometry;
+    };
+    const approved = await inspectHeight(reopened.doc, 'approved', 6);
 
     f.phase = 'verify the binding and edit the named parameter in Studio';
     await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Base' }).click();
@@ -325,8 +331,7 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     projectBytes = await saveCurrentEdit(edited.doc);
     await bounds([7, 4]);
     const after = await f.snapshot('14-parameter-reedited-project-open');
-    const changed = await f.inspect(prefix + '-edited-height', after.doc, 'footprint-native-evidence');
-    await f.runOracle({ footprint: changed, namedHeight: 7, edited: true }, prefix + '-edited');
+    const changed = await inspectHeight(after.doc, 'edited', 7);
     f.report.observations.push({ parameter: 'Thickness', valueMm: [5, 6, 7], binding: revised.nodes[1].height,
       approved, edited: changed, manualEditSavedAndReopened: true });
   }
