@@ -1,0 +1,248 @@
+{
+  "decision": "D819",
+  "tier": "SMALL",
+  "parent": "da8e734fda4a8dedef0523072d40b8099b67cd5e",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d819-sheet-double-reflection",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-mirror-study.mjs",
+    "cd apps/cad-studio && D819_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --mirror-twice",
+    "cd apps/cad-studio && D819_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-2\" --mirror-twice",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d819-2026-11-12",
+    "runs": {
+      "desktop-1": {
+        "status": "FAIL",
+        "sha256": "770490960e7ba1731279a38ce41054964f28305137e300e89dc475d84e926347",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "watcherEvents": 2,
+        "cleanupHashesMatch": true
+      },
+      "desktop-2": {
+        "status": "PASS",
+        "sha256": "408cb7a0fd3f6dc98714ac1f7ef3d8beeca3e853ea54d1ff7932d3f600ddfa45",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "watcherEvents": 0,
+        "cleanupHashesMatch": true,
+        "observations": [
+          {
+            "label": "double-reflected-native",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.963975514199511,
+              7.007842511441254
+            ],
+            "vertexCount": 24,
+            "fixedNormal": [
+              -1,
+              0,
+              -6.123233995736767e-17
+            ],
+            "axis": {
+              "origin": [
+                3,
+                30,
+                2.9999999999999996
+              ],
+              "direction": [
+                0,
+                -1,
+                0
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907635,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "holes": [
+                [
+                  14.999999999999996,
+                  10.000000000000004
+                ],
+                [
+                  18.000000000000018,
+                  52.39292006587698
+                ]
+              ],
+              "bend": {
+                "name": "n0.bend1",
+                "direction": "down",
+                "angle": 89.99999999999993,
+                "radius": 1.5000000000000004,
+                "kFactor": 0.44,
+                "allowance": 3.392920065876975,
+                "centre": [
+                  [
+                    30,
+                    28.696460032938486
+                  ],
+                  [
+                    0,
+                    28.696460032938486
+                  ]
+                ],
+                "tangents": [
+                  [
+                    [
+                      30,
+                      27
+                    ],
+                    [
+                      0,
+                      27
+                    ]
+                  ],
+                  [
+                    [
+                      30,
+                      30.392920065876975
+                    ],
+                    [
+                      0,
+                      30.392920065876975
+                    ]
+                  ]
+                ],
+                "faces": [
+                  "n0.bend1.outer"
+                ]
+              }
+            }
+          },
+          {
+            "label": "double-reflected-reopened-native",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.963975514199511,
+              7.007842511441254
+            ],
+            "vertexCount": 24,
+            "fixedNormal": [
+              -1,
+              0,
+              -6.123233995736767e-17
+            ],
+            "axis": {
+              "origin": [
+                3,
+                30,
+                2.9999999999999996
+              ],
+              "direction": [
+                0,
+                -1,
+                0
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907635,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "holes": [
+                [
+                  14.999999999999996,
+                  10.000000000000004
+                ],
+                [
+                  18.000000000000018,
+                  52.39292006587698
+                ]
+              ],
+              "bend": {
+                "name": "n0.bend1",
+                "direction": "down",
+                "angle": 89.99999999999993,
+                "radius": 1.5000000000000004,
+                "kFactor": 0.44,
+                "allowance": 3.392920065876975,
+                "centre": [
+                  [
+                    30,
+                    28.696460032938486
+                  ],
+                  [
+                    0,
+                    28.696460032938486
+                  ]
+                ],
+                "tangents": [
+                  [
+                    [
+                      30,
+                      27
+                    ],
+                    [
+                      0,
+                      27
+                    ]
+                  ],
+                  [
+                    [
+                      30,
+                      30.392920065876975
+                    ],
+                    [
+                      0,
+                      30.392920065876975
+                    ]
+                  ]
+                ],
+                "faces": [
+                  "n0.bend1.outer"
+                ]
+              }
+            }
+          },
+          {
+            "label": "double-reflected-project",
+            "bytes": 2467,
+            "sha256": "ea9c660eaad86afabc7e871de446ce6db637ecbad77808d3b31ca6b0874e96d5"
+          }
+        ]
+      }
+    },
+    "rootVisualReview": "PASS",
+    "retainedFocusedEvidence": "D817 on the unchanged CAD, Model and Studio product sources",
+    "firstFailure": "Two watcher events on the driver files made the first run ineligible. The frozen and cleanup source hashes were exact. The unchanged repeat was clean."
+  }
+}

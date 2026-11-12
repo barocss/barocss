@@ -68,7 +68,7 @@ function checkReflected(native) {
   return checkFlat(native.flat, true);
 }
 
-export async function qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip, replacement = false }) {
+export async function qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip, replacement = false, twice = false }) {
   const source = { ...seed, nodes: seed.nodes.map(node => node.id === 'n1' ? { ...node, center: [25, 18] } : node) };
   const mirror = { kind: 'mirror', parent: { node: 6, side: 'solid' }, plane: 'yz', id: 'n7' };
   const expected = { ...source, nodes: [...source.nodes, mirror], outputs: { b7: { node: 7, side: 'solid' } }, nextId: 8 };
@@ -203,4 +203,66 @@ export async function qualifyMirrorBoundary(f, seed, { name, selectBody, showFla
   f.report.observations.push({ label: 'studio-reflected-only', keep: actual.feature.keep,
     bodyCount: actual.bodyCount, volume: actual.mass.volume, centroid: actual.mass.centroid, axis: actual.sheet.bends[0].axis,
     fixedNormal: actual.fixedFace.n, flat: actualFlat, bytes: reflectedBytes.length, sha256: sha256(reflectedBytes) });
+  if (!twice) return;
+
+  f.phase = 'reflect the reopened single sheet back through the origin YZ plane';
+  await f.page.evaluate(() => document.activeElement?.blur());
+  await f.page.keyboard.press('m');
+  const secondHud = f.page.getByRole('dialog', { name: 'Mirror', exact: true });
+  await secondHud.waitFor();
+  const secondOutcome = secondHud.getByLabel('Result', { exact: true });
+  assert.equal(await secondOutcome.inputValue(), 'combined');
+  await secondOutcome.selectOption('reflected');
+  await secondHud.getByLabel('Plane at', { exact: true }).fill('0');
+  await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent.trim() === 'preview');
+  await f.snapshot('11-second-reflection-preview');
+  await button(secondHud, 'Apply').click();
+  await secondHud.waitFor({ state: 'hidden' });
+  const twiceReflected = {
+    ...authored,
+    nodes: [...authored.nodes, { kind: 'mirror', parent: { node: 7, side: 'solid' }, plane: 'yz', keep: false, id: 'n8' }],
+    outputs: { b8: { node: 8, side: 'solid' } }, nextId: 9,
+  };
+  await f.same(twiceReflected);
+
+  async function verifyRestoration(label) {
+    const restored = await f.inspect(label, twiceReflected, { mirror: true });
+    assert.equal(restored.feature.keep, false);
+    assert.equal(restored.id, 'n8');
+    assert.equal(restored.bodyCount, 1);
+    checkFolded(restored, volume, centroid, [0, 0, 0], [40, 30, 30]);
+    assert.deepEqual(restored.faces, nativeSource.faces);
+    assert.equal(restored.points.length, nativeSource.points.length);
+    restored.points.forEach((point, index) => pointNear(point, nativeSource.points[index]));
+    assert.equal(restored.fixedFace.kind, 'plane');
+    pointNear(restored.fixedFace.n, [-1, 0, 0]);
+    assert.equal(restored.sheet.fixedFace, nativeSource.sheet.fixedFace);
+    assert.equal(restored.sheet.bends.length, 1);
+    assert.equal(restored.sheet.bends[0].name, 'n0.bend1');
+    pointNear(restored.sheet.bends[0].axis.origin, [3, 30, 3]);
+    pointNear(restored.sheet.bends[0].axis.direction, [0, -1, 0]);
+    const flat = checkFlat(restored.flat, false);
+    const worker = await f.bodies();
+    assert.ok(worker.fresh && worker.massReady);
+    assert.deepEqual(worker.bodies.map(body => body.key), ['b8']);
+    near(worker.bodies[0].volume, volume, 1e-9 * volume);
+    pointNear(worker.bodies[0].centroid, centroid);
+    f.report.observations.push({ label, volume: restored.mass.volume, centroid: restored.mass.centroid,
+      vertexCount: restored.points.length, fixedNormal: restored.fixedFace.n, axis: restored.sheet.bends[0].axis, flat });
+  }
+  await verifyRestoration('double-reflected-native');
+  await selectBody();
+  await showFlat('12-restored-flat');
+  f.phase = 'restore the reflection history and freshly reopen the double reflection';
+  await f.undo();
+  await f.same(authored);
+  await selectBody();
+  await showFlat('13-undo-single-reflection-flat');
+  await f.redo();
+  await f.same(twiceReflected);
+  const restoredBytes = await projectRoundTrip(twiceReflected);
+  await verifyRestoration('double-reflected-reopened-native');
+  await selectBody();
+  await showFlat('14-double-reflected-reopened-flat');
+  f.report.observations.push({ label: 'double-reflected-project', bytes: restoredBytes.length, sha256: sha256(restoredBytes) });
 }

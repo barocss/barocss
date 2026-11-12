@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D819 — restore sheet orientation with two reflections](notes/sheet-double-reflection-2026-11-12/README.md).
+
 - [D818 — edit an independent sheet duplicate](notes/independent-sheet-duplicate-2026-11-12/README.md).
 
 - [D817 — keep the flat pattern on an explicit reflected sheet](notes/sheet-reflected-only-2026-11-12/README.md).

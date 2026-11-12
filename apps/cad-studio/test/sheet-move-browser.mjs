@@ -7,7 +7,8 @@ import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
 import { qualifyMirrorBoundary } from './sheet-mirror-study.mjs';
 import { qualifySheetDuplicate } from './sheet-copy-flow.mjs';
 
-const mode = process.argv[3], mirrorReplacement = mode === '--mirror-replacement', duplicate = mode === '--duplicate';
+const mode = process.argv[3], mirrorTwice = mode === '--mirror-twice', duplicate = mode === '--duplicate';
+const mirrorReplacement = mirrorTwice || mode === '--mirror-replacement';
 const mirrorStudy = mode === '--mirror-study' || mirrorReplacement;
 const baseline = mode === '--baseline', flange = mode === '--flange';
 const rotateBaseline = mode === '--rotate-baseline', rotateFlange = mode === '--rotate-flange';
@@ -29,9 +30,10 @@ const pins = [
 ];
 const f = await createFlow({
   name: duplicate ? 'sheet-duplicate' : mirrorStudy ? 'sheet-mirror-boundary' : rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
-  envFrozen: duplicate ? 'D818_SOURCE_FROZEN' : mirrorReplacement ? 'D817_SOURCE_FROZEN' : mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  envFrozen: mirrorTwice ? 'D819_SOURCE_FROZEN' : duplicate ? 'D818_SOURCE_FROZEN' : mirrorReplacement ? 'D817_SOURCE_FROZEN' : mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: duplicate ? 'Duplicate a sheet and verify the copy-only thickness edit and both flats.' :
+  qualification: mirrorTwice ? 'Reflect one asymmetric sheet twice and verify the restored geometry and flat.' :
+    duplicate ? 'Duplicate a sheet and verify the copy-only thickness edit and both flats.' :
     mirrorReplacement ? 'Apply and reopen the single reflected sheet and verify legacy Mirror.' :
     mirrorStudy ? 'Compare the legacy Studio Mirror and a native single-body reflection with an asymmetric hole.' :
     rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
@@ -120,8 +122,8 @@ const button = (parent, name) => parent.getByRole('button', { name, exact: true 
 const flatDialog = () => f.page.getByRole('dialog', { name: 'Flat pattern', exact: true });
 const flatButton = () => button(f.page, 'Show the flat pattern');
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = (duplicate ? 'D818 sheet duplicate ' : mirrorReplacement ? 'D817 reflected sheet ' : mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
-const name = duplicate ? 'D818-sheet.bcad' : mirrorReplacement ? 'D817-sheet.bcad' : mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
+const project = (mirrorTwice ? 'D819 double reflection ' : duplicate ? 'D818 sheet duplicate ' : mirrorReplacement ? 'D817 reflected sheet ' : mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
+const name = mirrorTwice ? 'D819-sheet.bcad' : duplicate ? 'D818-sheet.bcad' : mirrorReplacement ? 'D817-sheet.bcad' : mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} differs from ${b} (tolerance ${tolerance})`);
 function vectorNear(a, b, tolerance) {
   assert.equal(a.length, b.length);
@@ -235,7 +237,7 @@ await f.run(async () => {
   const bytes = Buffer.from(JSON.stringify(seed));
   assert.equal(sha256(bytes), 'e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab');
   if (mirrorStudy) {
-    await qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip, replacement: mirrorReplacement });
+    await qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip, replacement: mirrorReplacement, twice: mirrorTwice });
     assert.deepEqual(f.report.downloads, []);
     return;
   }
