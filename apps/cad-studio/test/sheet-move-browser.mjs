@@ -5,8 +5,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { qualifyMovedFlange } from './sheet-move-flange.mjs';
 import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
 import { qualifyMirrorBoundary } from './sheet-mirror-study.mjs';
+import { qualifySheetDuplicate } from './sheet-copy-flow.mjs';
 
-const mode = process.argv[3], mirrorReplacement = mode === '--mirror-replacement';
+const mode = process.argv[3], mirrorReplacement = mode === '--mirror-replacement', duplicate = mode === '--duplicate';
 const mirrorStudy = mode === '--mirror-study' || mirrorReplacement;
 const baseline = mode === '--baseline', flange = mode === '--flange';
 const rotateBaseline = mode === '--rotate-baseline', rotateFlange = mode === '--rotate-flange';
@@ -24,18 +25,21 @@ const pins = [
   ...(flange || rotateFlange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
   ...(rotate ? ['apps/cad-studio/test/sheet-rotate-flow.mjs'] : []),
   ...(mirrorStudy ? ['apps/cad-studio/test/sheet-mirror-study.mjs'] : []),
+  ...(duplicate ? ['apps/cad-studio/test/sheet-copy-flow.mjs'] : []),
 ];
 const f = await createFlow({
-  name: mirrorStudy ? 'sheet-mirror-boundary' : rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
-  envFrozen: mirrorReplacement ? 'D817_SOURCE_FROZEN' : mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  name: duplicate ? 'sheet-duplicate' : mirrorStudy ? 'sheet-mirror-boundary' : rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
+  envFrozen: duplicate ? 'D818_SOURCE_FROZEN' : mirrorReplacement ? 'D817_SOURCE_FROZEN' : mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: mirrorReplacement ? 'Apply and reopen the single reflected sheet and verify legacy Mirror.' :
+  qualification: duplicate ? 'Duplicate a sheet and verify the copy-only thickness edit and both flats.' :
+    mirrorReplacement ? 'Apply and reopen the single reflected sheet and verify legacy Mirror.' :
     mirrorStudy ? 'Compare the legacy Studio Mirror and a native single-body reflection with an asymmetric hole.' :
     rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
     rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
     flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
     'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
-  limits: [mirrorStudy ? 'One asymmetric L-bracket, YZ at the origin, and the current legacy Mirror plus a native control.' :
+  limits: [duplicate ? 'One D546 sheet, one disjoint Duplicate offset 60 mm, and a copy-only thickness edit.' :
+    mirrorStudy ? 'One asymmetric L-bracket, YZ at the origin, and the current legacy Mirror plus a native control.' :
     rotate ? 'One single-body L-bracket with two through holes, explicit K, and Rotate 30° about X at the origin.' :
     'One single-body L-bracket with two through holes, explicit K, and Move by (7, -3, 11) mm.'],
   inspectorSource: `
@@ -67,23 +71,29 @@ if (args.fixture) {
     assert.equal(last.keep, true);
     part.features = [...part.features.slice(0, -1), { ...last, keep: false }];
   }
-  const [output, ...others] = evaluateCadPart(part).outputs;
-  assert.equal(others.length, 0);
-  let flat = null, flatError = null;
-  try { flat = flatPatternOf(output); }
-  catch (error) { flatError = { code: error.code, message: error.message }; }
-  const fixedFace = args.mirror ? output.brep.faces.find(face => face.name === 'n0.leg0.a') : undefined;
-  const manualFlat = args.reflectOnly ? flatPattern(output.brep, {
-    thickness: 1.5, kFactor: 0.44, fixedFace: 'n0.leg0.a',
-    bendNames: [{ name: 'n0.bend1', faces: ['n0.bend1.inner', 'n0.bend1.outer'] }],
-  }) : undefined;
-  console.log(JSON.stringify({
-    ...(args.mirror ? { feature: part.features.at(-1), fixedFace: fixedFace && faceGeometry(fixedFace), manualFlat } : {}),
-    id: output.id, valid: checkOutput(output).valid, bodyCount: output.bodyCount,
-    points: output.brep.vertices.map(vertex => vertex.point),
-    faces: output.brep.faces.map(face => face.name), edges: output.brep.edges.map(edge => edge.name), sheet: output.sheet ?? null,
-    mass: massPropertiesOf(output), flat, flatError,
-  }));
+  const outputs = evaluateCadPart(part).outputs;
+  function readOutput(output) {
+    let flat = null, flatError = null;
+    try { flat = flatPatternOf(output); }
+    catch (error) { flatError = { code: error.code, message: error.message }; }
+    const fixedFace = args.mirror ? output.brep.faces.find(face => face.name === 'n0.leg0.a') : undefined;
+    const manualFlat = args.reflectOnly ? flatPattern(output.brep, {
+      thickness: 1.5, kFactor: 0.44, fixedFace: 'n0.leg0.a',
+      bendNames: [{ name: 'n0.bend1', faces: ['n0.bend1.inner', 'n0.bend1.outer'] }],
+    }) : undefined;
+    return {
+      ...(args.mirror ? { feature: part.features.at(-1), fixedFace: fixedFace && faceGeometry(fixedFace), manualFlat } : {}),
+      id: output.id, valid: checkOutput(output).valid, bodyCount: output.bodyCount,
+      points: output.brep.vertices.map(vertex => vertex.point),
+      faces: output.brep.faces.map(face => face.name), edges: output.brep.edges.map(edge => edge.name), sheet: output.sheet ?? null,
+      mass: massPropertiesOf(output), flat, flatError,
+    };
+  }
+  if (args.multiple) console.log(JSON.stringify(outputs.map(readOutput)));
+  else {
+    assert.equal(outputs.length, 1);
+    console.log(JSON.stringify(readOutput(outputs[0])));
+  }
 }
 `,
 });
@@ -110,8 +120,8 @@ const button = (parent, name) => parent.getByRole('button', { name, exact: true 
 const flatDialog = () => f.page.getByRole('dialog', { name: 'Flat pattern', exact: true });
 const flatButton = () => button(f.page, 'Show the flat pattern');
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = (mirrorReplacement ? 'D817 reflected sheet ' : mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
-const name = mirrorReplacement ? 'D817-sheet.bcad' : mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
+const project = (duplicate ? 'D818 sheet duplicate ' : mirrorReplacement ? 'D817 reflected sheet ' : mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
+const name = duplicate ? 'D818-sheet.bcad' : mirrorReplacement ? 'D817-sheet.bcad' : mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} differs from ${b} (tolerance ${tolerance})`);
 function vectorNear(a, b, tolerance) {
   assert.equal(a.length, b.length);
@@ -237,6 +247,11 @@ await f.run(async () => {
   checkFlat(original, [3, 30, 3]);
   await selectBody();
   await showFlat('01-original-flat');
+  if (duplicate) {
+    await qualifySheetDuplicate(f, seed, { showFlat, projectRoundTrip });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (rotate) {
     const result = await qualifySheetRotation(f, seed, original, { selectBody, showFlat, projectRoundTrip, baseline: rotateBaseline });
     if (rotateFlange) await qualifyMovedFlange(f, result.doc, result.native, { selectBody, showFlat, projectRoundTrip, rotated: true });

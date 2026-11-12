@@ -1,0 +1,319 @@
+{
+  "decision": "D818",
+  "tier": "SMALL",
+  "parent": "80fa8c0d63679dd1953d76bc4b8d1208898c5eb1",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d818-sheet-duplicate",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-copy-flow.mjs",
+    "cd apps/cad-studio && D818_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --duplicate",
+    "cd apps/cad-studio && D818_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-2\" --duplicate",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d818-2026-11-12",
+    "runs": {
+      "desktop-1": {
+        "status": "FAIL",
+        "sha256": "60c46193e53d83d12f165bac6fa9b1b65cf2ac2cb44f82c988c02e660c341d3e",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      },
+      "desktop-2": {
+        "status": "PASS",
+        "sha256": "3dfcad99671d918fb6d5d8265293a6c73562a4b7c90c9fb6901823ca54d9a338",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "duplicate-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  72.14109805407996,
+                  14.999999999999995,
+                  7.007842511441253
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "axis": {
+                  "origin": [
+                    63,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "copy-edit-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.73849525777186
+                ],
+                "area": 1954.6382688476106,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999963,
+                    51.73849525777189
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "reopened-copy-edit-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.73849525777186
+                ],
+                "area": 1954.6382688476106,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999963,
+                    51.73849525777189
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "duplicate-project-readback",
+            "bytes": 4329,
+            "sha256": "e5db6e756db6a68e5ea5ae5f34dfe8106c3d68022b250b2fce8d2272eb5a7472"
+          }
+        ]
+      }
+    },
+    "rootVisualReview": "PASS",
+    "retainedFocusedEvidence": "D817 on the unchanged CAD, Model and Studio product sources",
+    "firstFailure": "Driver attempted to read hidden text before opening the Kernel detail disclosure.",
+    "copyOffsetMm": [
+      60,
+      0,
+      0
+    ],
+    "physicalRelativeVolumeTolerance": 1e-09,
+    "coordinateToleranceMm": 1e-09,
+    "flatRelativeTolerance": 1e-12
+  }
+}
