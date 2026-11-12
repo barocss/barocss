@@ -53,8 +53,9 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence, onPrepareFaceRepair }: {
-  project: ProjectActions; doc: StudioDoc; fileName: string;
+export function VersionsPanel({ project, doc, onMakeVersion, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence, onPrepareFaceRepair }: {
+  project: ProjectActions; doc: StudioDoc;
+  onMakeVersion(name?: string): Promise<boolean>;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
   /** Compare a saved version with the working document or another version, or stop (null). */
@@ -150,7 +151,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     </div>}
 
     <div className="card-title" style={{ marginTop: 8 }}>VERSIONS{log ? ` · ${log.current}` : ''}</div>
-    <form className={ROW} onSubmit={async e => { e.preventDefault(); if (await project.makeVersion(doc, fileName, { versionName: versionName.trim() || undefined })) setVersionName(''); }}>
+    <form className={ROW} onSubmit={async e => { e.preventDefault(); if (await onMakeVersion(versionName.trim() || undefined)) setVersionName(''); }}>
       <TextInput aria-label="Version name" placeholder="Name (optional)" value={versionName} onChange={e => setVersionName(e.target.value)} onKeyDown={stop} />
       <Button type="submit" variant="default" aria-label="Make version">Make version</Button>
     </form>

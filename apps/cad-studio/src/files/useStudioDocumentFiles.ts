@@ -38,7 +38,7 @@ interface StudioDocumentFileOptions {
     fileName: string;
     fileNameNow: RefObject<string>;
     recoveryDoc: StudioDoc | null;
-    project: Pick<ReturnType<typeof useProject>, 'save' | 'view' | 'readTaskSource' | 'taskSourceKey'>;
+    project: Pick<ReturnType<typeof useProject>, 'save' | 'makeVersion' | 'view' | 'readTaskSource' | 'taskSourceKey'>;
   };
   ownership: {
     saveAcceptanceScope: object;
@@ -98,19 +98,28 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     try { writeDocumentFile(d, name); return true; }
     catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
   };
+  const projectSaveReceipt = (name: string) => {
+    const owner = { token: saveAcceptanceScope, doc, name };
+    return () => {
+      if (!currentDocumentSave(owner, saveDocumentToken.current, docNow.current, fileNameNow.current)) return;
+      setDirty(false); clearRecovery();
+    };
+  };
   // (A copy still offered keeps its blobs: Restore can still bring it back.)
   const save = () => {
     if (sessionBlocked('saving')) return;
     // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
     if (project.view.store) {
-      const savedDoc = doc, owner = { token: saveAcceptanceScope, doc: savedDoc, name: fileNameNow.current };
-      void project.save(savedDoc, owner.name, () => {
-        if (!currentDocumentSave(owner, saveDocumentToken.current, docNow.current, fileNameNow.current)) return;
-        setDirty(false); clearRecovery();
-      });
+      const name = fileNameNow.current;
+      void project.save(doc, name, projectSaveReceipt(name));
       return;
     }
     if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recoveryDoc);
+  };
+  const makeVersion = async (versionName?: string) => {
+    if (sessionBlocked('saving a version')) return false;
+    const name = fileNameNow.current;
+    return project.makeVersion(doc, name, { versionName, onSaved: projectSaveReceipt(name) });
   };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
   const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
@@ -578,5 +587,5 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 
-  return { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair };
+  return { open, save, makeVersion, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair };
 }

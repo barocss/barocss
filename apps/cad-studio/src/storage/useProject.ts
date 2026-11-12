@@ -275,9 +275,9 @@ export function useProject(cb: ProjectCallbacks) {
         return f ? new File([f.bytes as BlobPart], path.split('/').pop()!) : null;
       },
       /** A version of the document: saved first (a version is a save with a name), then recorded. */
-      async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string } = {}) {
+      async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string; onSaved?: () => void } = {}) {
         const owner = versionOwner();
-        if (!(await actions.save(doc, name))) return false;
+        if (!(await actions.save(doc, name, o.onSaved))) return false;
         // A first Save may assign this session's path. It must not borrow a newer Open or document edit.
         if (!currentOpen({ ...owner, path: undefined })) return false;
         owner.path = live.current.part;

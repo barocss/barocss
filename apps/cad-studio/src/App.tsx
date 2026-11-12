@@ -1662,7 +1662,7 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const { open, save, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair } = useStudioDocumentFiles({
+  const { open, save, makeVersion, saveShared, exportTaskRun, startTaskRun, stopTaskRun, refreshTaskRun, rebuildTaskRun, observeTaskRunStatus, openTaskRunCheckpoint, openTaskRunBaseline, readTaskRunApproval, checkWorkingApproval, prepareWorkingRepair, prepareTaskReplacement, reviewTaskRun, decideTaskRunCandidate, cancelLocalCandidateReview, meshImport, editRepair } = useStudioDocumentFiles({
     document: { doc, docNow, fileName, fileNameNow, recoveryDoc: recovery?.doc ?? null, project },
     ownership: { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked,
       canOpenImport: () => openAccepted(inPlaceNow.current), canReviewLocalCandidate: occurrence => localCandidateView.current(occurrence) },
@@ -2228,7 +2228,7 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
-      {versionsVisible && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+      {versionsVisible && <VersionsPanel project={project} doc={doc} onMakeVersion={makeVersion} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {
           const scope = openIntent.current;
           if (docNow.current !== working || project.opening()) return false;
