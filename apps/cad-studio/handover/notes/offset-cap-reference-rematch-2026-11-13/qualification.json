@@ -1,0 +1,542 @@
+{
+  "decision": "D899",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "d37153e12061c5ea424494f10466c0ff2b18e92e",
+  "issue": 2285,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d899-studio-offset-cap-rematch02",
+    "D899_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/extrude-versus-offset-browser.mjs <external-evidence>/rematch02 --cap-rematch",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-offset-face native-offset-result references rematch",
+    "cd apps/cad-studio && node scripts/test.mjs document-file",
+    "node --check apps/cad-studio/test/extrude-versus-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstDriverRun": {
+    "status": "FAIL",
+    "reason": "The driver expected the live editor to apply a rematch. The editor directly evaluates the candidate and refuses the missing native face.",
+    "receiptSHA256": "8829e14bec773acdcf2da3a866ea447b90c3909b9f47076a41e7b5f783b7921d"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 70,
+    "studioPass": 12,
+    "logSHA256": "27692bbaa9ffab45cfdfc97ebfc8f1dd55a4b064b385dfb945c21ef5148db51f"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "279fceaf951caf1e3972524980a2fb3f9bec6e81858715f77051556d63efb940",
+    "sourceManifestSHA256": "9306347e22d9ba0c1fa4aa89d6545c6dbbaa367c7e6a9c4264daf4486d72a551",
+    "frozenFiles": 845,
+    "snapshots": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "toleranceMm": 1e-07,
+    "toleranceMm3": 1e-07,
+    "saved": [
+      {
+        "name": "D899 confirmed offset cap",
+        "bytes": 2026,
+        "sha256": "01ac4e4f2601fc26ef4b7a7d261540782091d4f4a2c7a17efb93c09ca6d8c9e8"
+      }
+    ],
+    "liveRefusal": "PASS",
+    "coldMarkedRematch": "PASS",
+    "explicitConfirmation": "PASS",
+    "freshOpen": "PASS",
+    "states": [
+      {
+        "label": "05-shell-from-offset-cap",
+        "sourceHeightMm": 5,
+        "storedPlane": {
+          "origin": [
+            0,
+            0,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "nativeCap": {
+          "name": "n3.top",
+          "geometry": {
+            "kind": "plane",
+            "o": [
+              0,
+              0,
+              7
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "rimLoops": [
+          {
+            "kind": "outer",
+            "vertices": [
+              [
+                0,
+                0,
+                7
+              ],
+              [
+                20,
+                0,
+                7
+              ],
+              [
+                20,
+                10,
+                7
+              ],
+              [
+                0,
+                10,
+                7
+              ]
+            ]
+          },
+          {
+            "kind": "inner",
+            "vertices": [
+              [
+                1,
+                9,
+                7
+              ],
+              [
+                19,
+                9,
+                7
+              ],
+              [
+                19,
+                1,
+                7
+              ],
+              [
+                1,
+                1,
+                7
+              ]
+            ]
+          }
+        ],
+        "open": [
+          "n3.top"
+        ],
+        "parent": {
+          "node": 4,
+          "side": "solid"
+        },
+        "sig": {
+          "k": "plane",
+          "p": [
+            10,
+            5,
+            7
+          ],
+          "d": [
+            0,
+            0,
+            1
+          ],
+          "s": 200
+        },
+        "volumeMm3": 536.0000000000001,
+        "expectedVolumeMm3": 536,
+        "centroidMm": [
+          9.999999999999995,
+          5,
+          2.694029850746269
+        ],
+        "wallMm": 1
+      },
+      {
+        "label": "08-cold-marked-rematch",
+        "sourceHeightMm": 8,
+        "storedPlane": {
+          "origin": [
+            0,
+            0,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "nativeCap": {
+          "name": "n1.top",
+          "geometry": {
+            "kind": "plane",
+            "o": [
+              0,
+              0,
+              8
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "rimLoops": [
+          {
+            "kind": "outer",
+            "vertices": [
+              [
+                0,
+                0,
+                8
+              ],
+              [
+                20,
+                0,
+                8
+              ],
+              [
+                20,
+                10,
+                8
+              ],
+              [
+                0,
+                10,
+                8
+              ]
+            ]
+          },
+          {
+            "kind": "inner",
+            "vertices": [
+              [
+                1,
+                9,
+                8
+              ],
+              [
+                19,
+                9,
+                8
+              ],
+              [
+                19,
+                1,
+                8
+              ],
+              [
+                1,
+                1,
+                8
+              ]
+            ]
+          }
+        ],
+        "open": [
+          "n1.top"
+        ],
+        "parent": {
+          "node": 4,
+          "side": "solid"
+        },
+        "sig": {
+          "k": "plane",
+          "p": [
+            10,
+            5,
+            7
+          ],
+          "d": [
+            0,
+            0,
+            1
+          ],
+          "s": 200
+        },
+        "volumeMm3": 592.0000000000001,
+        "expectedVolumeMm3": 592,
+        "centroidMm": [
+          9.999999999999995,
+          5,
+          3.1486486486486487
+        ],
+        "wallMm": 1
+      },
+      {
+        "label": "09-explicitly-confirmed-cap",
+        "sourceHeightMm": 8,
+        "storedPlane": {
+          "origin": [
+            0,
+            0,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "nativeCap": {
+          "name": "n1.top",
+          "geometry": {
+            "kind": "plane",
+            "o": [
+              0,
+              0,
+              8
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "rimLoops": [
+          {
+            "kind": "outer",
+            "vertices": [
+              [
+                0,
+                0,
+                8
+              ],
+              [
+                20,
+                0,
+                8
+              ],
+              [
+                20,
+                10,
+                8
+              ],
+              [
+                0,
+                10,
+                8
+              ]
+            ]
+          },
+          {
+            "kind": "inner",
+            "vertices": [
+              [
+                1,
+                9,
+                8
+              ],
+              [
+                19,
+                9,
+                8
+              ],
+              [
+                19,
+                1,
+                8
+              ],
+              [
+                1,
+                1,
+                8
+              ]
+            ]
+          }
+        ],
+        "open": [
+          "n1.top"
+        ],
+        "parent": {
+          "node": 4,
+          "side": "solid"
+        },
+        "sig": {
+          "k": "plane",
+          "p": [
+            10,
+            5,
+            8
+          ],
+          "d": [
+            0,
+            0,
+            1
+          ],
+          "s": 200
+        },
+        "volumeMm3": 592.0000000000001,
+        "expectedVolumeMm3": 592,
+        "centroidMm": [
+          9.999999999999995,
+          5,
+          3.1486486486486487
+        ],
+        "wallMm": 1
+      },
+      {
+        "label": "10-confirmed-cap-fresh-open",
+        "sourceHeightMm": 8,
+        "storedPlane": {
+          "origin": [
+            0,
+            0,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "nativeCap": {
+          "name": "n1.top",
+          "geometry": {
+            "kind": "plane",
+            "o": [
+              0,
+              0,
+              8
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "rimLoops": [
+          {
+            "kind": "outer",
+            "vertices": [
+              [
+                0,
+                0,
+                8
+              ],
+              [
+                20,
+                0,
+                8
+              ],
+              [
+                20,
+                10,
+                8
+              ],
+              [
+                0,
+                10,
+                8
+              ]
+            ]
+          },
+          {
+            "kind": "inner",
+            "vertices": [
+              [
+                1,
+                9,
+                8
+              ],
+              [
+                19,
+                9,
+                8
+              ],
+              [
+                19,
+                1,
+                8
+              ],
+              [
+                1,
+                1,
+                8
+              ]
+            ]
+          }
+        ],
+        "open": [
+          "n1.top"
+        ],
+        "parent": {
+          "node": 4,
+          "side": "solid"
+        },
+        "sig": {
+          "k": "plane",
+          "p": [
+            10,
+            5,
+            8
+          ],
+          "d": [
+            0,
+            0,
+            1
+          ],
+          "s": 200
+        },
+        "volumeMm3": 592.0000000000001,
+        "expectedVolumeMm3": 592,
+        "centroidMm": [
+          9.999999999999995,
+          5,
+          3.1486486486486487
+        ],
+        "wallMm": 1
+      }
+    ]
+  },
+  "adjacentFinding": {
+    "status": "FAIL",
+    "scope": "The generic pre-rematch evaluation failure toast remains when the repaired Open is current.",
+    "label": "08-cold-marked-rematch",
+    "notice": [
+      "The kernel could not build thisUndo the last change, or adjust the values and try again.Detailsno face named n3.top to open; faces: n1.top, n1.bottom, n1.side0, n1.side1, n1.side2, n1.side3"
+    ]
+  },
+  "notRun": [
+    "ambiguous Offset cap candidates",
+    "tangent chain comparison",
+    "general direct editing",
+    "full suites",
+    "mobile"
+  ]
+}

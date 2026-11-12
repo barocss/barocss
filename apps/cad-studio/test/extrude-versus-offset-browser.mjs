@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const capReference = process.argv[3] === '--cap-reference';
+const capRematch = process.argv[3] === '--cap-rematch';
 const replacementFlow = process.argv[3] === '--replacement';
 const handleParity = process.argv[3] === '--handle-parity';
 const producers = [
@@ -14,7 +15,8 @@ const producers = [
   'packages/barocss-cad-model/src/app/editCommand.ts',
   'packages/barocss-cad-model/src/app/profileCommands.ts',
   'packages/barocss-cad-model/src/app/nativeOffsetFace.ts',
-  ...(capReference ? ['apps/cad-studio/src/files/documentFile.ts',
+  ...(capReference || capRematch ? ['apps/cad-studio/src/files/documentFile.ts',
+    'apps/cad-studio/src/ui/ReferenceDecisions.tsx', 'packages/barocss-cad-model/src/engine/rematch.ts',
     'packages/barocss-cad-model/src/engine/references.ts', 'packages/barocss-cad/src/part/part-shell.ts'] : []),
   ...(replacementFlow ? ['apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
     'apps/cad-studio/src/state/previewLifetime.ts', 'apps/cad-studio/src/files/useStudioDocumentFiles.ts'] : []),
@@ -23,10 +25,11 @@ const producers = [
 ];
 const f = await createFlow({
   name: 'extrude-versus-offset', output: process.argv[2],
-  envFrozen: handleParity ? 'D898_SOURCE_FROZEN' : replacementFlow ? 'D897_SOURCE_FROZEN'
+  envFrozen: capRematch ? 'D899_SOURCE_FROZEN' : handleParity ? 'D898_SOURCE_FROZEN' : replacementFlow ? 'D897_SOURCE_FROZEN'
     : capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
   initialFiles: producers, requiredFrozen: producers,
-  qualification: handleParity ? 'Compare real Offset handle and distance field commits for the same signed values.'
+  qualification: capRematch ? 'Verify live refusal and a marked cold Shell rematch when the Offset-generated top becomes internal.'
+    : handleParity ? 'Compare real Offset handle and distance field commits for the same signed values.'
     : replacementFlow ? 'Retire a real pending Offset preview and queued Apply when the source file is replaced.'
     : capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
     : 'Compare a picked Extrude driver edit with an explicit native cap Offset face.',
@@ -79,9 +82,13 @@ const hud = () => f.page.locator('.hud');
 const status = text => f.page.waitForFunction(value => document.querySelector('.hud .status')?.textContent === value, text);
 const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} vs ${expected}`);
 
-async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
+async function choose(bytes) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: filename, mimeType: 'application/json', buffer: bytes });
+}
+
+async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
+  await choose(bytes);
   await f.same(doc);
 }
 
@@ -186,16 +193,16 @@ async function apply(previous, label) {
   return (await f.snapshot(label)).doc;
 }
 
-async function checkCapShell(label, doc, parent, height, wall) {
+async function checkCapShell(label, doc, parent, height, wall, name = 'n3.top', rematchedFrom) {
   await f.same(doc);
-  const shell = doc.nodes.at(-1), name = 'n3.top';
+  const shell = doc.nodes.at(-1);
   assert.equal(shell.kind, 'shell');
   assert.deepEqual(shell.parent, { node: 4, side: 'solid' });
   assert.deepEqual(shell.open, [name]);
   assert.ok(shell.sigs?.[name]);
   assert.equal(shell.held, undefined);
   assert.equal(shell.suppressed, undefined);
-  assert.equal(shell.rematched, undefined);
+  assert.deepEqual(shell.rematched, rematchedFrom ? { [name]: rematchedFrom } : undefined);
   const source = await f.inspect(`${label}-cap-native`, parent);
   const cap = source.faces.find(face => face.name === name);
   assert.equal(cap?.geometry.kind, 'plane');
@@ -229,7 +236,7 @@ async function checkCapShell(label, doc, parent, height, wall) {
   await f.snapshot(label);
 }
 
-async function checkCapReference() {
+async function authorCapShell() {
   const seed = await f.inspect('seed', {}, 'seed');
   await f.newPage();
   await open(seed);
@@ -249,7 +256,11 @@ async function checkCapReference() {
   const shelled = await apply(extended, '04-shell-applied');
   assert.deepEqual(shelled.nodes.slice(0, 5), extended.nodes);
   await checkCapShell('05-shell-from-offset-cap', shelled, extended, 7, 1);
+  return { extended, shelled };
+}
 
+async function checkCapReference() {
+  const { extended, shelled } = await authorCapShell();
   f.phase = 'edit the original Extrude while retaining the Offset cap and Shell opening';
   await f.openFeatureEditor(1);
   await f.editor().getByLabel('Distance', { exact: true }).fill('6');
@@ -276,6 +287,62 @@ async function checkCapReference() {
   await f.same(edited);
   await f.redo();
   await f.same(thicker);
+}
+
+async function checkCapRematch() {
+  const { extended, shelled } = await authorCapShell();
+  const oldName = 'n3.top', newName = 'n1.top';
+  const changed = { ...extended, nodes: [extended.nodes[0], { ...extended.nodes[1], height: 8 }, ...extended.nodes.slice(2)] };
+  const upstream = await f.inspect('source-8-native-offset-parent', changed);
+  assert.ok(!upstream.faces.some(face => face.name === oldName));
+  near(upstream.faces.find(face => face.name === newName).geometry.o[2], 8);
+
+  const references = () => f.page.getByRole('region', { name: 'References', exact: true });
+  async function marked(label, doc) {
+    await references().getByText('1 matched again · 0 need a choice', { exact: true }).waitFor();
+    await button(references(), 'Confirm reference').waitFor();
+    await references().getByText('Technical details', { exact: true }).click();
+    await references().getByText(new RegExp(`${oldName} → ${newName}`)).waitFor();
+    await checkCapShell(label, doc, changed, 8, 1, newName, oldName);
+  }
+
+  f.phase = 'refuse a live edit above the saved Offset cap';
+  const before = await f.snapshot('06-before-live-missing-cap');
+  await f.openFeatureEditor(1);
+  await f.editor().getByLabel('Distance', { exact: true }).fill('8');
+  await button(f.editor(), 'Apply').click();
+  const error = f.editor().locator('.hud-error');
+  await error.getByText('Kernel detail', { exact: true }).click();
+  await error.getByText(/no face named n3\.top to open/).waitFor();
+  const refusal = await f.snapshot('07-live-missing-cap-refused');
+  await f.same(shelled);
+  for (const field of ['doc', 'history', 'bodies']) assert.deepEqual(refusal[field], before[field], field);
+  await f.closeEditor();
+  await f.undo();
+  await f.same(extended);
+  await f.redo();
+  await f.same(shelled);
+
+  f.phase = 'open a cold file with its old signed reference still on the missing cap';
+  const stale = { ...shelled, nodes: [...changed.nodes, shelled.nodes[5]] };
+  await f.newPage();
+  await choose(Buffer.from(JSON.stringify(stale)));
+  await f.page.waitForFunction(() => window.__studioDoc?.nodes?.[5]?.rematched?.['n1.top'] === 'n3.top',
+    null, { timeout: 15000 });
+  const cold = await f.doc();
+  assert.deepEqual(cold.nodes.slice(0, 5), changed.nodes);
+  await marked('08-cold-marked-rematch', cold);
+  f.phase = 'confirm the marked cap and save the updated signature';
+  await button(references(), 'Confirm reference').click();
+  await f.changed(cold);
+  const confirmed = await f.doc();
+  await checkCapShell('09-explicitly-confirmed-cap', confirmed, changed, 8, 1, newName);
+  const signature = confirmed.nodes[5].sigs[newName];
+  near(signature.p[2], 8);
+  const saved = await save(confirmed, 'D899 confirmed offset cap');
+  await f.newPage();
+  await open(confirmed, saved);
+  await checkCapShell('10-confirmed-cap-fresh-open', confirmed, changed, 8, 1, newName);
 }
 
 function holdOffsetPreview() {
@@ -495,6 +562,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (capRematch) {
+    await checkCapRematch();
+    return;
+  }
   if (handleParity) {
     await checkHandleParity();
     return;
