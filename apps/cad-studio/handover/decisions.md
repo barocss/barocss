@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D866 — measure the Revolve axis-diameter boundary](notes/revolve-axis-diameter-boundary-2026-11-13/README.md).
 - [D865 — keep Enter on the focused Browser control](notes/sketch-enter-focus-2026-11-13/README.md).
 - [D864 — snap Rectangle to a certified native edge crossing](notes/native-edge-plane-crossing-snap-2026-11-13/README.md).
 - [D863 — measure the current straight edge crossing snap path](notes/native-edge-plane-snap-baseline-2026-11-13/README.md).
