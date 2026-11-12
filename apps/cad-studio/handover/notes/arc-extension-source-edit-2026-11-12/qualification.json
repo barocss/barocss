@@ -1,0 +1,83 @@
+{
+  "decision": "D801",
+  "tier": "SMALL",
+  "parent": "5caa4a1ecb54f825ccf97f75c4c8e0dc750bd240",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-extension-source-edit-browser.mjs",
+    "cd apps/cad-studio && D801_SOURCE_FROZEN=1 node test/arc-extension-source-edit-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D801_SOURCE_FROZEN=1 node test/arc-extension-source-edit-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d801-arc-extension-source-edit",
+    "evidenceFolder": "d801-2026-11-12",
+    "initial": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "302c8fdb66b0644783010fd193f53792794f65c47bc82b511ae3c76922b0d675",
+      "frozenSources": 802
+    },
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-2",
+      "sha256": "288ad30b02a549a551828c79f380207e6e81cb4e4931ab0f45e54bd87d1cae08",
+      "frozenSources": 802,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "oldTerminalMm": [
+      20,
+      30
+    ],
+    "trimPickMm": [
+      22.8,
+      29.6
+    ],
+    "newTerminalMm": [
+      26,
+      28
+    ],
+    "newBulge": 0.236067977,
+    "trimmedArcIds": [
+      "e5",
+      "e9"
+    ],
+    "storedCornerMm": [
+      20,
+      30
+    ],
+    "depthMm": 2,
+    "volumeMm3": 100,
+    "ordinaryPriority": [
+      {
+        "degrees": 176,
+        "kind": "Origin",
+        "reachPx": 3.8972721864837623
+      },
+      {
+        "degrees": 160,
+        "kind": "End",
+        "reachPx": 3.923342479631899
+      },
+      {
+        "degrees": 135,
+        "kind": "Quadrant",
+        "reachPx": 5.201846132599374,
+        "storedCornerMm": [
+          3,
+          8
+        ]
+      }
+    ]
+  }
+}
