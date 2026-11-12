@@ -70,3 +70,12 @@ test('only one identified construction circle inside the modeling range is eligi
   for (const radius of [0, -1, 1e-8, Infinity, NaN]) assert.equal(preparePathGap(circle([20, 20], radius)), null);
   assert.equal(preparePathGap(circle([9999, 0], 2)), null);
 });
+
+test('an ordinary circle requires the explicit draft scope', () => {
+  const shape = { ...circle(), construction: undefined };
+  assert.equal(preparePathGap(shape), null);
+  const source = preparePathGap(shape, true);
+  assert.ok(source?.kind === 'circle');
+  assert.equal(source.shape.construction, undefined);
+  assert.equal(planPathGap(source, [20, 30], 4)?.kind, 'circle');
+});

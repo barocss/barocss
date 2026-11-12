@@ -52,7 +52,8 @@ export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: R
     }
     if (references.length || done.length !== 1 || sketch.editNode !== undefined || sketch.band || sketch.association || sketch.base) return null;
     const [original] = done;
-    if (original.kind !== 'polygon' || (original.ids && original.ids.length !== 2)) return null;
+    if (original.kind !== 'circle' && original.kind !== 'polygon') return null;
+    if (original.ids && original.ids.length !== (original.kind === 'circle' ? 1 : 2)) return null;
     const source = preparePathGap(withIds([original])[0], true);
     return source && { original, source };
   }, [sketch]);
