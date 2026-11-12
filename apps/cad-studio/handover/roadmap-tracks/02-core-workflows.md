@@ -85,14 +85,10 @@ Existing placement, static mates, patterns/skips, linked updates, cuts and BOM a
 
 [B05 v1](15-b05-evidence-ledger.md) freezes seven groups. D758 qualifies repeated placement and linked revision adoption in current Studio. D759 qualifies the current three-plane mate chain and its linked update. D760 qualifies concentric and distance placement, conflict refusal and project reopen. D761 qualifies the nested mate through Keep, Accept and project reopen. D762 qualifies patterned material and skip through exact BOM and project reopen.
 
-Remaining acceptance:
-
-Issue an assembly drawing, change its accepted source and verify the stale notice, updated drawing revision and exact project reopen.
-
-Finite P3 closeout is one small static assembly with repeated and nested occurrences, one supported mate chain, one linked edit and one BOM/drawing consumer. Nested in-place editing and additional mate families remain separate acceptance items. No dynamic simulation, arbitrary solver completeness or whole-assembly scale claim follows.
+D763 qualifies the assembly drawing group. B05 v1 accepts the seven declared profiles. A single assembly combining all profiles, nested in-place editing, additional mate families and large assemblies retain separate acceptance scopes.
 
 ## Requirements and cross-track boundaries
 
 Each case names the requirement owner, source/consumer modules, existing evidence reused, affected SMALL/FEATURE/FULL tier, actual desktop observations and numeric authority. Record PASS, FAIL, NOT_RUN and UNKNOWN separately. A retained partial checkpoint is valid work, but does not close the category.
 
-The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B05 has 6/7 current groups and is pending. B03, B08 and B10 remain NOT_ADJUDICATED. B06 is qualified at 6/7 with PDF held. B07 and B09 are accepted at their recorded scopes.
+The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B05 v1 is accepted at 7/7. B03, B08 and B10 remain NOT_ADJUDICATED. B06 is qualified at 6/7 with PDF held. B07 and B09 are accepted at their recorded scopes.
