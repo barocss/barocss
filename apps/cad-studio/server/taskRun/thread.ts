@@ -2,6 +2,7 @@ import { isMainThread, parentPort, threadId, Worker, workerData } from 'node:wor
 import { performance } from 'node:perf_hooks';
 import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { interfacesRevision } from '@barocss/cad-model/team/interfaces';
+import type { TaskValue } from '@barocss/cad-model/team/taskPlan';
 import { buildTaskCandidate, taskSubmissionForDimension } from '@barocss/cad-model/team/taskExecution';
 import { compileTaskPlan } from '@barocss/cad-model/team/taskPlan';
 import type { TaskWorker, WorkerReply, WorkerTicket } from './host';
@@ -9,7 +10,7 @@ import type { TaskWorker, WorkerReply, WorkerTicket } from './host';
 interface ThreadInput {
   kind: 'barocss-task-v1';
   ticket: WorkerTicket;
-  valueMm: number;
+  valueMm: TaskValue;
   gate?: SharedArrayBuffer;
   nativeGate?: SharedArrayBuffer;
 }
@@ -31,7 +32,7 @@ export interface ThreadOptions {
 }
 
 /** Use a real Node isolate with its own evaluator and a structured-cloned native input. */
-export function threadWorker(entry: URL, valueMm: number, options: ThreadOptions = {}): TaskWorker {
+export function threadWorker(entry: URL, valueMm: TaskValue, options: ThreadOptions = {}): TaskWorker {
   return (ticket, signal) => new Promise((resolve, reject) => {
     if (signal.aborted) { reject(new Error('Worker cancelled before launch.')); return; }
     const input: ThreadInput = { kind: 'barocss-task-v1', ticket, valueMm, gate: options.gate, nativeGate: options.nativeGate };

@@ -1,0 +1,61 @@
+{
+  "decision": "D779",
+  "tier": "FULL interface",
+  "parent": "8abb9b988de33cd95b75e8e837007e64bb52b4c8",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff task-run-host",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "cd apps/cad-studio && D779_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop\" --footprint",
+    "cd apps/cad-studio && D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/width-regression\" --width",
+    "cd apps/cad-studio && D778_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/cylinder-regression\" --cylinder-height",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d779-2026-11-12",
+    "receipts": {
+      "desktop": {
+        "sha256": "50f5331ff65155c2c20b7f875dc8d31173e6575bedbff8dae3c415e4d29aad95",
+        "frozenSources": 876
+      },
+      "width-regression": {
+        "sha256": "bf0c8bad4ccedf3004de7c2c2474f64818b390b44aa2ce5bb5dbf6bf9198c060",
+        "frozenSources": 873
+      },
+      "cylinder-regression": {
+        "sha256": "6c62b6c24d616dce8377d255fa2458d2873a86ca483792bb88c3d16d26c54208",
+        "frozenSources": 876
+      }
+    },
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 25,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "drop-footprint-depth",
+      "bypass-native-footprint-planes"
+    ],
+    "nativeVolumeMm3": [
+      1680.0000000000002,
+      1875.0000000000005
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

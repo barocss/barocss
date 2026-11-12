@@ -1,7 +1,7 @@
 import { holeDiameterRequirementMm, meets } from '../chat/spec';
 import type { StudioDoc } from '../engine/doc';
 import type { Predicate } from '../engine/schema/spec';
-import { compileTaskPlan, taskAxis, taskDimensionEdit, taskTarget, type TaskPlan, type TaskPlanRequest } from './taskPlan';
+import { compileTaskPlan, taskAxis, taskDimensionEdit, taskTarget, type RectangleFootprint, type TaskPlan, type TaskPlanRequest } from './taskPlan';
 
 interface LocalHeightIssue {
   code: string;
@@ -10,12 +10,17 @@ interface LocalHeightIssue {
   inputs?: readonly string[];
 }
 
-export type LocalTaskTarget = { id: string; requirementId: string; toleranceMm: number } & (
+type ScalarTaskTarget = { id: string; requirementId: string; toleranceMm: number; footprintMm?: never } & (
   { currentHeightMm: number; heightMm: number; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
   { currentWidthMm: number; widthMm: number; currentHeightMm?: never; heightMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
   { currentDepthMm: number; depthMm: number; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
   { currentDiameterMm: number; diameterMm: number; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never }
 );
+export type FootprintTaskTarget = {
+  id: string; currentFootprintMm: RectangleFootprint; footprintMm: RectangleFootprint;
+  widthRequirementId: string; depthRequirementId: string; widthToleranceMm: number; depthToleranceMm: number;
+} & Partial<Record<Exclude<keyof ScalarTaskTarget, 'id' | 'footprintMm'>, never>>;
+export type LocalTaskTarget = ScalarTaskTarget | FootprintTaskTarget;
 type LocalHeightInspection = { error: LocalHeightIssue }
   | { request: TaskPlanRequest; plan: TaskPlan; targets: LocalTaskTarget[]; issues: LocalHeightIssue[] };
 
@@ -49,18 +54,20 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
       const widthChanges = hasExactChange('x', width), depthChanges = hasExactChange('y', depth);
       const heightFails = hasFailedCheck('z', height);
       const heightChanges = heightFails || hasExactChange('z', height);
+      const widthFails = hasFailedCheck('x', width), depthFails = hasFailedCheck('y', depth);
+      const footprint = widthChanges && depthChanges && widthFails && depthFails && !heightFails;
       // A failing Y check takes priority over fixed X and Z checks that already pass.
-      const depthOnlyFailure = depthChanges && hasFailedCheck('y', depth) && !hasFailedCheck('x', width) && !heightFails;
+      const depthOnlyFailure = depthChanges && depthFails && !widthFails && !heightFails;
       const diameter = checks.filter(req => isDiameter(req.check));
       const currentDiameter = hole?.kind === 'hole' && typeof hole.radius === 'number' ? 2 * hole.radius : undefined;
       const useDiameter = diameter.length > 0 && ((!widthChanges && !depthChanges && !heightChanges)
         || diameter.some(req => holeDiameterRequirementMm(req.check)?.diameterMm !== currentDiameter));
       const useWidth = !useDiameter && !depthOnlyFailure && widthChanges && !heightChanges;
       const useDepth = !useDiameter && (depthOnlyFailure || (!useWidth && depthChanges && !heightChanges));
-      const feature = useDiameter ? hole : useWidth || useDepth ? sketch : extrusion;
-      const capability = useDiameter ? 'hole-diameter' : useWidth ? 'rectangle-width' : useDepth ? 'rectangle-depth' : 'extrusion-height';
+      const feature = useDiameter ? hole : footprint || useWidth || useDepth ? sketch : extrusion;
+      const capability = useDiameter ? 'hole-diameter' : footprint ? 'rectangle-footprint' : useWidth ? 'rectangle-width' : useDepth ? 'rectangle-depth' : 'extrusion-height';
       return { id: occurrence, holder: `local-worker-${index + 1}`, occurrence, feature: feature?.id ?? '',
-        capability, units: 'mm', frame: useWidth ? 'part-local-x' : useDepth ? 'part-local-y' : 'part-local-z' };
+        capability, units: 'mm', frame: footprint && !useDiameter ? 'part-local-xy' : useWidth ? 'part-local-x' : useDepth ? 'part-local-y' : 'part-local-z' };
     }),
   };
   const protectedOccurrences = occurrences.length === 1 ? (doc.instances ?? [])
@@ -81,6 +88,20 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
     };
     if (task.blockers.length) return blocked('TASK_REQUIRED_UNKNOWN', `${task.id} has unresolved design inputs: ${task.blockers.join(', ')}.`, task.blockers);
     const dimension = task.writes.field;
+    const current = taskTarget(doc, task);
+    if ('error' in current) return blocked(current.error.code, current.error.message);
+    if (dimension === 'footprint') {
+      const width = task.checks.find(req => req.hard && req.check.op === '==' && isExtent(req.check, 'x'));
+      const depth = task.checks.find(req => req.hard && req.check.op === '==' && isExtent(req.check, 'y'));
+      if (!width || !depth || width.basis !== 'stated' || depth.basis !== 'stated' || !width.source.trim() || !depth.source.trim()
+          || typeof width.check.value !== 'number' || typeof depth.check.value !== 'number' || typeof current.value === 'number')
+        return blocked('MISSING_REQUIRED_CHECK', `${task.id} needs stated positive exact width and depth requirements in mm.`);
+      const footprintMm = { widthMm: width.check.value, depthMm: depth.check.value };
+      const edit = taskDimensionEdit(doc, task, current, footprintMm);
+      if ('error' in edit) return blocked(edit.error.code, edit.error.message);
+      return [{ id: task.id, currentFootprintMm: current.value, footprintMm,
+        widthRequirementId: width.id, depthRequirementId: depth.id, widthToleranceMm: width.check.tol ?? 0, depthToleranceMm: depth.check.tol ?? 0 }];
+    }
     const hardAxis = task.checks.filter(req => req.hard && (dimension === 'diameter' ? isDiameter(req.check)
       : isExtent(req.check, taskAxis(dimension))));
     const exact = hardAxis.filter(req => req.check.op === '==');
@@ -91,9 +112,7 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
       return blocked('MISSING_REQUIRED_CHECK', `${task.id} needs one stated positive exact ${dimension} requirement in ${dimension === 'diameter' ? 'mm or in' : 'mm'}.`, exact.map(req => req.id));
     if (dimension !== 'diameter' && hardAxis.some(req => !meets(value, req.check).ok))
       return blocked('CONFLICTING_REQUIREMENT', `${task.id}'s stated ${dimension} does not satisfy its other hard ${dimension} checks.`);
-    const current = taskTarget(doc, task);
-    if ('error' in current) return blocked(current.error.code, current.error.message);
-    if (value === current.value) return blocked('TASK_VALUE', `${task.id} is already at its stated ${dimension}.`);
+    if (typeof current.value !== 'number' || value === current.value) return blocked('TASK_VALUE', `${task.id} is already at its stated ${dimension}.`);
     if (dimension !== 'height') {
       const edit = taskDimensionEdit(doc, task, current, value);
       if ('error' in edit) return blocked(edit.error.code, edit.error.message);

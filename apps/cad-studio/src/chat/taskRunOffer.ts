@@ -1,7 +1,7 @@
 import type { TaskNativeFinding } from '@barocss/cad-model/team/taskExecution';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import { isTaskDimension, type BoundTask } from '@barocss/cad-model/team/taskPlan';
+import { isTaskDimension, readRectangleFootprint, type BoundTask } from '@barocss/cad-model/team/taskPlan';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 
@@ -238,7 +238,18 @@ export interface TaskRunChatOutput {
 const id = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 128 && value === value.trim();
 const number = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
-  if (!isObj(value) || value.id !== occurrence || typeof value.requirementId !== 'string' || !value.requirementId
+  if (!isObj(value) || value.id !== occurrence) return null;
+  const footprintKeys = ['id', 'currentFootprintMm', 'footprintMm', 'widthRequirementId', 'depthRequirementId', 'widthToleranceMm', 'depthToleranceMm'];
+  if (footprintKeys.slice(1).some(key => Object.hasOwn(value, key))) {
+    if (Object.keys(value).length !== footprintKeys.length || !footprintKeys.every(key => Object.hasOwn(value, key))) return null;
+    const currentFootprintMm = readRectangleFootprint(value.currentFootprintMm), footprintMm = readRectangleFootprint(value.footprintMm);
+    const { widthRequirementId, depthRequirementId, widthToleranceMm, depthToleranceMm } = value;
+    if (!currentFootprintMm || !footprintMm || typeof widthRequirementId !== 'string' || !widthRequirementId
+      || typeof depthRequirementId !== 'string' || !depthRequirementId || widthRequirementId === depthRequirementId ||
+      !number(widthToleranceMm) || widthToleranceMm < 0 || !number(depthToleranceMm) || depthToleranceMm < 0) return null;
+    return { id: occurrence, currentFootprintMm, footprintMm, widthRequirementId, depthRequirementId, widthToleranceMm, depthToleranceMm };
+  }
+  if (typeof value.requirementId !== 'string' || !value.requirementId
     || !number(value.toleranceMm) || value.toleranceMm < 0) return null;
   const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, currentDepthMm, depthMm, currentDiameterMm, diameterMm, toleranceMm } = value;
   const shared = { id: occurrence, requirementId, toleranceMm };

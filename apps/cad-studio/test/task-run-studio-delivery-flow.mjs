@@ -7,11 +7,13 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false }) {
-  const prefix = baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false }) {
+  const prefix = baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
   const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
-  const firstHeights = [6, siblingDiameter ? 6 : 3], finalHeights = [6, siblingDiameter ? 6 : 4];
-  const originalDimensions = [5, siblingBefore], finalDimensions = [6, siblingAfter];
+  const baseHeight = baseFootprint ? 5 : 6;
+  const firstHeights = [baseHeight, siblingDiameter ? 6 : 3], finalHeights = [baseHeight, siblingDiameter ? 6 : 4];
+  const originalDimensions = [baseFootprint ? [20, 10] : [5], [siblingBefore]];
+  const finalDimensions = [baseFootprint ? [24, 14] : [6], [siblingAfter]];
   const directory = launch.directory, runFile = join(directory, 'run.json');
   const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   const files = () => versions().getByRole('list', { name: 'Project documents', exact: true });
@@ -54,11 +56,16 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
       assert.equal(error, false, JSON.stringify(body));
       assert.deepEqual([artifact.path, artifact.bytes, artifact.sha256],
         ['requirement-evidence.json', Buffer.byteLength(artifact.text), sha256(artifact.text)]);
-      const report = JSON.parse(artifact.text), [item] = report.evidence.filter(row => row.result.kind === 'requirement');
+      const report = JSON.parse(artifact.text), items = report.evidence.filter(row => row.result.kind === 'requirement');
       assert.deepEqual([report.part, report.revision, report.checker], [part, revision, 'checkSpec']);
-      assert.deepEqual(item.requirement, doc.instances[index].doc.requirements[0]);
-      assert.deepEqual([item.requirement.hard, item.result.subject, item.result.part, item.result.run, item.result.status,
-        item.result.verdict, item.result.number, item.freshness.state], [true, item.requirement.id, part, revision, 'ok', verdict, dimensions[index], 'current']);
+      const requirements = doc.instances[index].doc.requirements;
+      assert.equal(items.length, requirements.length);
+      for (const [i, requirement] of requirements.entries()) {
+        const item = items.find(item => item.requirement.id === requirement.id);
+        assert.deepEqual(item.requirement, requirement);
+        assert.deepEqual([item.requirement.hard, item.result.subject, item.result.part, item.result.run, item.result.status,
+          item.result.verdict, item.result.number, item.freshness.state], [true, requirement.id, part, revision, 'ok', verdict, dimensions[index][i], 'current']);
+      }
       await writeFile(join(f.output, label + '-' + part + '.json'), artifact.text);
     }
     await f.same(doc);
@@ -69,9 +76,10 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   const originalEvidence = await checkDimensions(prefix + '-source', source, originalDimensions, 'fail');
   const first = await openCheckpoint(firstStatus, prefix + '-first', saved, firstHeights);
   const firstDoc = JSON.parse(first);
-  if (baseCylinder) {
+  if (baseCylinder || baseFootprint) {
     const instances = structuredClone(source.instances);
-    instances[0].doc.nodes[1].height = 6;
+    if (baseFootprint) instances[0].doc.nodes[0].max = [27, 11];
+    else instances[0].doc.nodes[1].height = 6;
     assert.deepEqual(firstDoc.instances, instances);
   }
   await f.snapshot('09-first-studio-checkpoint');
@@ -152,6 +160,36 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     const actual = await f.inspect(prefix + '-reopened-bore', reopened.doc, 'sibling-hole-native-evidence');
     assert.deepEqual([actual.face.kind, actual.face.outer, actual.face.radius], ['cylinder', false, 3]);
     assert.ok(Math.abs(actual.volumeMm3 - (1200 - 9 * Math.PI) * 6) < 1e-8);
+  }
+  if (baseFootprint) {
+    const footprint = await f.inspect(prefix + '-approved-footprint', reopened.doc, 'footprint-native-evidence');
+    await f.runOracle({ footprint, edited: false }, prefix + '-approved');
+
+    f.phase = 'edit both extents of the approved native rectangle in Studio';
+    await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Base' }).click();
+    await button(f.page.getByRole('complementary', { name: 'Instance', exact: true }), 'Edit part').click();
+    const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+    await banner.waitFor();
+    await f.same(doc.instances[0].doc);
+    await f.openFeatureEditor(1, 'approved rectangle extrusion');
+    for (const [label, before, after] of [['Width', 24, 25], ['Depth', 14, 15]]) {
+      const field = f.editor().getByRole('spinbutton', { name: label, exact: true });
+      assert.equal(Number(await field.inputValue()), before);
+      await field.fill(String(after));
+    }
+    await button(f.editor(), 'Apply').click();
+    const revised = structuredClone(doc.instances[0].doc);
+    revised.nodes[0].max = [28, 12];
+    await f.same(revised);
+    await f.closeEditor();
+    await button(banner, 'Finish').click();
+    await banner.waitFor({ state: 'hidden' });
+    await bounds([5, 4]);
+    const edited = await f.snapshot('13-native-footprint-edit');
+    assert.deepEqual(edited.doc.instances, [{ ...doc.instances[0], doc: revised }, doc.instances[1]]);
+    const changed = await f.inspect(prefix + '-edited-footprint', edited.doc, 'footprint-native-evidence');
+    await f.runOracle({ footprint: changed, edited: true }, prefix + '-edited');
+    f.report.observations.push({ footprintMm: [[20, 10], [24, 14], [25, 15]], approved: footprint, edited: changed });
   }
   if (baseCylinder) {
     const cylinder = await f.inspect(prefix + '-approved-cylinder', reopened.doc, 'cylinder-native-evidence');

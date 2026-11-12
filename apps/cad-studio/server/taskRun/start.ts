@@ -2,7 +2,7 @@ import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import type { BoundTask, TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import type { BoundTask, TaskPlanRequest, TaskValue } from '@barocss/cad-model/team/taskPlan';
 import type { TaskRunReplacementProvenance, TaskRunReplanSelection } from '../../src/chat/taskRunOffer';
 import { readTaskRunHandoff } from '../../src/files/taskRunHandoff';
 import { TaskRunHost } from './host';
@@ -14,17 +14,22 @@ interface LocalTaskRun {
   replaces?: TaskRunReplanSelection;
   doc: StudioDoc;
   config: { name: string; plan: TaskPlanRequest; limits: RunLimits; budget: number };
-  tasks: { id: string; valueMm: number; field: BoundTask['writes']['field'] }[];
+  tasks: { id: string; valueMm: TaskValue; field: BoundTask['writes']['field'] }[];
 }
 
 export function localRunTargets(targets: ReturnType<typeof deriveLocalRunPlan>['targets']): LocalTaskRun['tasks'] {
   return targets.map(target => {
+    if (target.footprintMm) return { id: target.id, valueMm: target.footprintMm, field: 'footprint' };
     const { id, diameterMm, widthMm, depthMm, heightMm } = target;
     if (diameterMm !== undefined) return { id, valueMm: diameterMm, field: 'diameter' };
     if (widthMm !== undefined) return { id, valueMm: widthMm, field: 'width' };
     if (depthMm !== undefined) return { id, valueMm: depthMm, field: 'depth' };
     return { id, valueMm: heightMm, field: 'height' };
   });
+}
+
+export function taskInputKey(field: BoundTask['writes']['field'], value: TaskValue): string {
+  return field + '-mm:' + (typeof value === 'number' ? value : value.widthMm + ':' + value.depthMm);
 }
 
 export async function prepareTaskRunHandoff(bytes: Uint8Array) {
@@ -79,7 +84,7 @@ export async function startLocalTaskRun(directory: string, { doc, config, tasks,
   let release: (() => void) | void = undefined;
   try {
     release = onAdmitted?.(host);
-    const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), field + '-mm:' + valueMm);
+    const run = ({ id, valueMm, field }: typeof tasks[number]) => host.dispatch('initial:' + id, id, threadWorker(worker, valueMm), taskInputKey(field, valueMm));
     const outcomes = await dispatchInitialTasks(tasks, config.limits.concurrent, run);
     return { ...localRunStatus(host.snapshot), outcomes };
   } finally {

@@ -10,7 +10,7 @@ import { isObj } from '../util/guards';
 import { isUserToken, type UserToken } from './ecr';
 import { interfacesRevision } from './interfaces';
 import { integratePart, type Lease, type PartCode, type PartTrace } from './parts';
-import { isTaskPlan, taskDimensionEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest } from './taskPlan';
+import { isPositiveTaskValue, isTaskPlan, readRectangleFootprint, taskDimensionEdit, taskPlanImpact, taskScopeMatches, taskTarget, type BoundTask, type TaskPlan, type TaskPlanError, type TaskPlanRequest, type TaskValue, type RectangleFootprint } from './taskPlan';
 
 type Identity = TaskPlanRequest['identity'];
 /** Host-owned inputs at the time a candidate or user decision is processed. */
@@ -25,13 +25,20 @@ export interface TaskContext {
 export interface TaskWorkerContext extends TaskContext { worker: string }
 type TaskSubmissionPin = { taskId: string; specRevision: string; inputDigest: string };
 export type TaskSubmission = TaskSubmissionPin & (
-  { heightMm: number; widthMm?: never; depthMm?: never; diameterMm?: never } |
-  { widthMm: number; heightMm?: never; depthMm?: never; diameterMm?: never } |
-  { depthMm: number; heightMm?: never; widthMm?: never; diameterMm?: never } |
-  { diameterMm: number; heightMm?: never; widthMm?: never; depthMm?: never }
+  { heightMm: number; widthMm?: never; depthMm?: never; diameterMm?: never; footprintMm?: never } |
+  { widthMm: number; heightMm?: never; depthMm?: never; diameterMm?: never; footprintMm?: never } |
+  { depthMm: number; heightMm?: never; widthMm?: never; diameterMm?: never; footprintMm?: never } |
+  { diameterMm: number; heightMm?: never; widthMm?: never; depthMm?: never; footprintMm?: never } |
+  { footprintMm: RectangleFootprint; heightMm?: never; widthMm?: never; depthMm?: never; diameterMm?: never }
 );
 
-export function taskSubmissionForDimension(pin: TaskSubmissionPin, field: BoundTask['writes']['field'], valueMm: number): TaskSubmission {
+export function taskSubmissionForDimension(pin: TaskSubmissionPin, field: BoundTask['writes']['field'], valueMm: TaskValue): TaskSubmission {
+  if (field === 'footprint') {
+    const footprintMm = readRectangleFootprint(valueMm);
+    if (!footprintMm) throw new Error('Expected a width and depth in mm for this footprint.');
+    return { ...pin, footprintMm };
+  }
+  if (typeof valueMm !== 'number') throw new Error('Expected a single dimension in mm.');
   if (field === 'diameter') return { ...pin, diameterMm: valueMm };
   if (field === 'width') return { ...pin, widthMm: valueMm };
   if (field === 'depth') return { ...pin, depthMm: valueMm };
@@ -48,9 +55,13 @@ export function readTaskSubmission(value: unknown): TaskSubmission | undefined {
   if (Object.hasOwn(value, 'widthMm') && typeof value.widthMm === 'number') return { taskId, specRevision, inputDigest, widthMm: value.widthMm };
   if (Object.hasOwn(value, 'depthMm') && typeof value.depthMm === 'number') return { taskId, specRevision, inputDigest, depthMm: value.depthMm };
   if (Object.hasOwn(value, 'diameterMm') && typeof value.diameterMm === 'number') return { taskId, specRevision, inputDigest, diameterMm: value.diameterMm };
+  if (Object.hasOwn(value, 'footprintMm')) {
+    const footprintMm = readRectangleFootprint(value.footprintMm);
+    if (footprintMm) return { taskId, specRevision, inputDigest, footprintMm };
+  }
 }
 
-export function taskSubmissionValue(submission: TaskSubmission, field: BoundTask['writes']['field']): number | undefined {
+export function taskSubmissionValue(submission: TaskSubmission, field: BoundTask['writes']['field']): TaskValue | undefined {
   return submission[`${field}Mm`];
 }
 export interface TaskCheckReceipt {
@@ -202,6 +213,24 @@ function cylinderBoundaryMatches(result: Extract<EvalResult, { ok: true }>, feat
     && [0, 0, 1].every((value, i) => close(top.normal[i], value));
 }
 
+function footprintBoundaryMatches(result: Extract<EvalResult, { ok: true }>, local: StudioDoc, shape: TaskShape,
+  height: number, close: (actual: number, want: number, scale?: number) => boolean): boolean {
+  const [sketch, extrude] = local.nodes;
+  if (sketch?.kind !== 'sketch' || sketch.profile !== 'rectangle' || extrude?.kind !== 'extrude') return false;
+  const sides = sketch.sideTags?.outer?.map(tag => `side[${tag}]`) ?? ['side0', 'side1', 'side2', 'side3'];
+  const { minX, minY, width, depth } = shape;
+  const faces = [
+    [sides[0], 1, minY, -1, depth], [sides[1], 0, minX + width, 1, width],
+    [sides[2], 1, minY + depth, 1, depth], [sides[3], 0, minX, -1, width],
+    ['bottom', 2, 0, -1, height], ['top', 2, height, 1, height],
+  ] as const;
+  return faces.every(([role, axis, at, sign, scale]) => {
+    const face = result.faceTable?.[extrude.id + '.' + role];
+    return face?.kind === 'plane' && close(face.point[axis], at, scale)
+      && face.normal.every((value, i) => close(value, i === axis ? sign : 0));
+  });
+}
+
 /** Recheck a local task's native geometry and requirements without granting a lease or decision. */
 export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   height: number, task: BoundTask, evaluate: Evaluate): Promise<Pick<TaskCandidate, 'geometry' | 'checks'> | TaskPlanError> {
@@ -215,20 +244,22 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   const grossArea = circle ? Math.PI * circle.radius ** 2 : shape.width * shape.depth;
   const holeArea = hole ? Math.PI * hole.radius ** 2 : 0;
   const area = grossArea - holeArea, volume = area * height;
-  const centroid = circle ? [...circle.center, height / 2] as const : [
-    ((shape.minX + shape.width / 2) * grossArea - (hole?.x ?? 0) * holeArea) / area,
-    ((shape.minY + shape.depth / 2) * grossArea - (hole?.y ?? 0) * holeArea) / area,
+  const paired = task.writes.field === 'footprint';
+  const centre = [shape.minX + shape.width / 2, shape.minY + shape.depth / 2, height / 2] as const;
+  const centroid = paired ? centre : circle ? [...circle.center, height / 2] as const : [
+    (centre[0] * grossArea - (hole?.x ?? 0) * holeArea) / area,
+    (centre[1] * grossArea - (hole?.y ?? 0) * holeArea) / area,
     height / 2,
   ] as const;
   const close = (actual: number, want: number, scale = Math.abs(want)) => Number.isFinite(actual) && Number.isFinite(want)
     && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, scale);
   const { min, max } = body.mesh.bounds;
-  const boundsMatch = circle
-    ? body.family === 'upright' && body.massMethod === 'closed-form' && (body.pieces ?? 1) === 1 && body.innerShells === 0
-      && cylinderBoundaryMatches(result, task.feature, circle, height, close)
+  const simpleSolid = body.family === 'upright' && body.massMethod === 'closed-form' && (body.pieces ?? 1) === 1 && body.innerShells === 0;
+  const boundsMatch = paired ? simpleSolid && footprintBoundaryMatches(result, local, shape, height, close)
+    : circle ? simpleSolid && cylinderBoundaryMatches(result, task.feature, circle, height, close)
     : [shape.minX, shape.minY, 0].every((v, i) => close(min[i], v)) && size.every((v, i) => close(max[i] - min[i], v));
   if (body.volume === null || (circle && body.volume <= 0) || !close(body.volume, volume) || !body.centroid
-      || !boundsMatch || !centroid.every((v, i) => close(body.centroid![i], v, i < 2 ? circle?.radius : undefined)))
+      || !boundsMatch || !centroid.every((v, i) => close(body.centroid![i], v, paired ? size[i] : i < 2 ? circle?.radius : undefined)))
     return failure('TASK_ORACLE_MISMATCH', circle ? 'native cylinder boundary or mass properties differ from the independent cylinder calculation'
       : 'native volume, bounds or centroid differs from the independent prism calculation');
 
@@ -273,7 +304,7 @@ export async function buildTaskCandidate(
   if (context.worker !== task.holder) return failure('TASK_WORKER_SCOPE', `${context.worker} does not own ${task.id}`);
   const value = taskSubmissionValue(submitted, task.writes.field);
   if (value === undefined) return failure('TASK_SUBMISSION_MISMATCH', 'the submitted dimension does not match the task scope');
-  if (!Number.isFinite(value) || value <= 0) return failure('TASK_VALUE', 'the dimension must be a positive finite value in mm');
+  if (!isPositiveTaskValue(value)) return failure('TASK_VALUE', 'the dimension must be a positive finite value in mm');
   if (task.blockers.length) return failure('TASK_REQUIRED_UNKNOWN', task.blockers.join(', '));
   const lease = leaseProblem(state.doc, task, context);
   if (lease) return lease;

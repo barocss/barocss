@@ -16,8 +16,8 @@ function criterion(req: Requirement, { field, feature }: TaskRunReplanPin): bool
     const { face } = check.query;
     return face === feature + '.side0' || (isObj(face) && face.feature === feature && face.role === 'side0');
   }
-  return check.unit === 'mm' && check.query.fn === 'bbox'
-    && check.query.axis === taskAxis(field) && check.query.body === undefined;
+  return check.unit === 'mm' && check.query.fn === 'bbox' && check.query.body === undefined
+    && (field === 'footprint' ? check.query.axis === 'x' || check.query.axis === 'y' : check.query.axis === taskAxis(field));
 }
 
 /** Preserve the accepted geometry and history while replanning the selected occurrence's edited requirements. */
@@ -36,22 +36,25 @@ export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioD
       || !extendsHistory(baseline, working) || !extendsHistory(original.doc, current.doc))
     throw new Error('The working model does not retain the accepted run geometry and history.');
 
-  const previous = original.doc.requirements?.filter(req => criterion(req, pin)) ?? [];
-  const revised = current.doc.requirements?.filter(req => criterion(req, pin)) ?? [];
-  if (previous.length !== 1 || revised.length !== 1)
-    throw new Error('Save a changed stated dimension for this occurrence before replanning.');
-  const before = previous[0].check, after = revised[0].check;
-  const sameCheck = pin.field === 'diameter' ? canonical(holeDiameterRequirementMm(before)) === canonical(holeDiameterRequirementMm(after))
-    : canonical(before) === canonical(after);
-  if (sameCheck)
+  const criteria = (doc: StudioDoc) => (doc.requirements ?? []).filter(req => criterion(req, pin));
+  const order = (checks: Requirement[]) => {
+    if (pin.field !== 'footprint') return checks.length === 1 ? checks : [];
+    const x = checks.find(req => req.check.query.fn === 'bbox' && req.check.query.axis === 'x');
+    const y = checks.find(req => req.check.query.fn === 'bbox' && req.check.query.axis === 'y');
+    return checks.length === 2 && x && y ? [x, y] : [];
+  };
+  const previous = order(criteria(original.doc)), revised = order(criteria(current.doc));
+  const normalize = (req: Requirement) => pin.field === 'diameter' ? holeDiameterRequirementMm(req.check) : req.check;
+  if (!previous.length || !revised.length || canonical(previous.map(normalize)) === canonical(revised.map(normalize)))
     throw new Error('Save a changed stated dimension for this occurrence before replanning.');
 
   const occurrences = [pin.occurrence];
   const inspection = inspectLocalHeightPlan(working, occurrences, { projectId: 'studio', documentId: 'working-model' });
   if ('error' in inspection) throw new Error(inspection.error.message);
   if (inspection.issues.length) throw new Error(inspection.issues[0].message);
-  const { targets } = inspection, [task] = inspection.plan.tasks;
-  if (targets.length !== 1 || targets[0].requirementId !== revised[0].id ||
+  const { targets } = inspection, [task] = inspection.plan.tasks, [target] = targets;
+  const ids = target?.footprintMm ? [target.widthRequirementId, target.depthRequirementId] : [target?.requirementId];
+  if (targets.length !== 1 || canonical(ids) !== canonical(revised.map(req => req.id)) ||
       task.writes.feature !== pin.feature || task.writes.field !== pin.field)
     throw new Error('The revised requirement does not match the selected task scope.');
   return { occurrences, targets, revision: digestOf(working) };

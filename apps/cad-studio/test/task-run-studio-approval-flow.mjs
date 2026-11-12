@@ -7,7 +7,7 @@ const base = '/api/chat/task-runs/';
 const matches = action => response => new URL(response.url()).pathname === base + action && response.request().method() === 'POST';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 
-export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver, siblingDiameter = false }) {
+export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver, siblingDiameter = false, baseFootprint = false }) {
   const run = launch.directory, file = join(run, 'run.json');
   const durable = async () => ({ bytes: await readFile(file), entries: (await readdir(run)).sort() });
   const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
@@ -19,7 +19,7 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
     const [response] = await Promise.all([f.page.waitForResponse(matches('review')), button(row, 'Review candidate ' + id).click()]);
     assert.equal(response.status(), 200);
     const envelope = await response.json(), { receipt, digest } = JSON.parse(envelope.review);
-    const dimension = siblingDiameter && id === 'p2' ? 'Diameter' : 'Height';
+    const dimension = baseFootprint && id === 'p1' ? 'Width × Depth' : siblingDiameter && id === 'p2' ? 'Diameter' : 'Height';
     await review.getByText(dimension + ' · ' + before + ' mm → ' + after + ' mm', { exact: true }).waitFor();
     assert.equal(await button(review, 'Approve candidate').isEnabled(), true);
     assert.equal(receipt.submission.taskId, id);
@@ -31,7 +31,14 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
   const retired = await readReview('p2', ...(siblingDiameter ? [4, 6] : [3, 4]));
   await button(review, 'Show accepted model').click();
   assert.equal(await button(review, 'Approve candidate').isDisabled(), true);
-  const request = await readReview('p1', 5, 6);
+  const request = baseFootprint ? await readReview('p1', '20 × 10', '24 × 14') : await readReview('p1', 5, 6);
+  if (baseFootprint) {
+    await review.getByText('Volume change · +680 mm³', { exact: true }).waitFor();
+    await f.page.waitForFunction(() => {
+      const base = window.__studioInstanceBounds?.().find(row => row.id === 'p1');
+      return base && base.min.join(',') === '3,-3,0' && base.max.join(',') === '27,11,5';
+    });
+  }
   await f.same(source);
   await f.snapshot('07-studio-review-before-approval');
   const wrong = await requestApproval({ ...request, receiptDigest: '0'.repeat(64) });

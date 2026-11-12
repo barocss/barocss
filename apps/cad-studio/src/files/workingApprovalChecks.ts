@@ -48,7 +48,10 @@ export function planWorkingApprovalRepair(doc: StudioDoc, review: CheckpointRevi
   if ('error' in inspection) throw new Error(inspection.error.message);
   if (inspection.issues.length) throw new Error(inspection.issues[0].message);
   const { targets } = inspection;
-  if (targets.length !== 1 || !hasWorkingRepairFailure(review, report, targets[0].requirementId))
+  if (targets.length !== 1) throw new Error('The repair target does not match the verified failure.');
+  const [target] = targets;
+  const requirementIds = target.footprintMm ? [target.widthRequirementId, target.depthRequirementId] : [target.requirementId];
+  if (!requirementIds.every(id => hasWorkingRepairFailure(review, report, id)))
     throw new Error('The repair target does not match the verified failure.');
   return { occurrences, targets, revision: digestOf(doc) };
 }

@@ -196,7 +196,84 @@ test('D777 automatic depth planning preserves in-tolerance width and height', ()
   assert.deepEqual(inspection.plan.protectedOccurrences, ['p2']);
 
   base.doc.requirements![1].check.value = 21;
+  base.doc.requirements![2].check.value = 6;
   refuses(inspectLocalHeightPlan(doc, ['p1'], identity), 'CONFLICTING_REQUIREMENT');
+});
+
+test('D779 admits one rectangle footprint and edits both extents before native publication', async () => {
+  const doc = assembly(), [base, lid] = doc.instances!;
+  delete doc.interfaces;
+  const width = height('width', 24), depth = height('depth', 14);
+  width.check.query = { fn: 'bbox', axis: 'x' };
+  depth.check.query = { fn: 'bbox', axis: 'y' };
+  depth.check.tol = 0.002;
+  base.doc = { ...rectanglePart(20, 10, 5), requirements: [width, depth, height('fixed-height', 5.0005)] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+  const sketch = base.doc.nodes[0];
+  assert.ok(sketch.kind === 'sketch' && sketch.profile === 'rectangle');
+  sketch.min = [3, -3];
+  sketch.max = [23, 7];
+  sketch.sideTags = { outer: ['e1', 'e2', 'e3', 'e4'] };
+  const inspected = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspected), JSON.stringify(inspected));
+  assert.deepEqual(inspected.issues, []);
+  const wanted = { widthMm: 24, depthMm: 14 };
+  assert.deepEqual(inspected.targets, [{ id: 'p1', currentFootprintMm: { widthMm: 20, depthMm: 10 }, footprintMm: wanted,
+    widthRequirementId: 'width', depthRequirementId: 'depth', widthToleranceMm: 0.001, depthToleranceMm: 0.002 }]);
+  const unstated = structuredClone(doc);
+  delete unstated.instances![0].doc.requirements![0].basis;
+  refuses(compileTaskPlan(unstated, inspected.request), 'BAD_REQUIREMENT');
+  const { plan, state, context } = setup(doc, { ...inspected.request, policyRevision });
+  const [bound] = plan.tasks;
+  assert.deepEqual([bound.capability, bound.frame, bound.writes], ['rectangle-footprint', 'part-local-xy',
+    { occurrence: 'p1', feature: 'n0', field: 'footprint' }]);
+  const worker = { ...context, worker: bound.holder };
+  const pin = { taskId: bound.id, specRevision: plan.specRevision, inputDigest: bound.inputDigest };
+  const neverEvaluate = async () => { throw new Error('An invalid footprint reached the evaluator'); };
+  for (const malformed of [
+    { ...pin, widthMm: 24 }, { ...pin, widthMm: 24, depthMm: 14 },
+    { ...pin, footprintMm: { widthMm: 24 } }, { ...pin, footprintMm: { ...wanted, heightMm: 5 } },
+    { ...pin, footprintMm: { widthMm: 24, depthMm: Infinity } },
+  ]) refuses(await buildTaskCandidate(plan, state, malformed as TaskSubmission, worker, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  refuses(await buildTaskCandidate(plan, state, { ...pin, footprintMm: { widthMm: 14, depthMm: 24 } }, worker, neverEvaluate), 'TASK_REQUIRED_CHECK');
+  refuses(await buildTaskCandidate(plan, state, { ...pin, footprintMm: { widthMm: 24, depthMm: 10 } }, worker, neverEvaluate), 'TASK_VALUE');
+  const submission = taskSubmissionForDimension(pin, 'footprint', wanted);
+  const changedNativePlane = async (local: StudioDoc) => {
+    const native = await evaluate(local), key = 'n1.side[e2]';
+    if (!native.ok || !native.faceTable) return native;
+    const face = native.faceTable[key];
+    if (face?.kind !== 'plane') return native;
+    return { ...native, faceTable: { ...native.faceTable, [key]: { ...face, point: [face.point[0] + 0.5, face.point[1], face.point[2]] as typeof face.point } } };
+  };
+  refuses(await buildTaskCandidate(plan, state, submission, worker, changedNativePlane), 'TASK_ORACLE_MISMATCH');
+  const candidate = await buildTaskCandidate(plan, state, submission, worker, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.deepEqual(candidate.geometry, { sizeMm: [24, 14, 5], volumeMm3: 1680, centroidMm: [15, 4, 2.5] });
+  const approval = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in approval));
+  const result = await applyTaskDecision(approval, state, worker, evaluate);
+  assert.ok(!('error' in result), JSON.stringify(result));
+  assert.deepEqual(result.doc.instances![0].doc.nodes, [{ ...sketch, max: [27, 11] }, base.doc.nodes[1]]);
+  assert.deepEqual(result.doc.instances![1], lid);
+  assert.ok(!('error' in compileTaskPlan(result.doc, inspected.request)));
+  assert.equal(digestOf(state.doc), plan.baselineDigest);
+
+  for (const axis of [0, 1] as const) {
+    const shifted = structuredClone(doc), part = shifted.instances![0].doc, shiftedSketch = part.nodes[0];
+    assert.ok(shiftedSketch.kind === 'sketch' && shiftedSketch.profile === 'rectangle');
+    shiftedSketch.min[axis] = 1e8;
+    shiftedSketch.max[axis] = 1e8 + [20, 10][axis];
+    part.requirements![axis].check.value = 1.1;
+    part.requirements![axis].check.tol = 0;
+    const precision = inspectLocalHeightPlan(shifted, ['p1'], identity);
+    assert.ok(!('error' in precision));
+    assert.equal(precision.issues[0]?.code, 'TASK_REQUIRED_CHECK');
+  }
+  const huge = structuredClone(doc);
+  huge.instances![0].doc.requirements!.slice(0, 2).forEach(req => { req.check.value = 1e155; });
+  const overflow = inspectLocalHeightPlan(huge, ['p1'], identity);
+  assert.ok(!('error' in overflow));
+  assert.equal(overflow.issues[0]?.code, 'TASK_VALUE');
 });
 
 for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778 a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {

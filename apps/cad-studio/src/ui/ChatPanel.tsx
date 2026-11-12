@@ -430,6 +430,10 @@ function TaskRunActions({ plan, initialRun, actions, blocked, statuses, repair =
   return <>
     {plan && <>
       <ul>{plan.offer.targets.map(target => {
+        if (target.footprintMm) {
+          const { currentFootprintMm: before, footprintMm: after } = target;
+          return <li key={target.id}>{target.id} · Width × Depth {before.widthMm} × {before.depthMm} → {after.widthMm} × {after.depthMm} mm</li>;
+        }
         const label = target.diameterMm !== undefined ? 'Diameter ' : target.widthMm !== undefined ? 'Width ' : target.depthMm !== undefined ? 'Depth ' : '';
         const current = target.currentHeightMm ?? target.currentWidthMm ?? target.currentDepthMm ?? target.currentDiameterMm;
         const requested = target.heightMm ?? target.widthMm ?? target.depthMm ?? target.diameterMm;

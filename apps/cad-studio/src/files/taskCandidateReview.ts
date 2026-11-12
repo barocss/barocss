@@ -2,7 +2,7 @@ import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readTaskSubmission, taskSubmissionValue, verifyProtectedTaskChecks, verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
-import { compileTaskPlan, isTaskDimension, taskDimensionEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { compileTaskPlan, isPositiveTaskValue, isTaskDimension, taskDimensionEdit, taskTarget, type TaskPlanRequest, type TaskValue } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
@@ -28,8 +28,8 @@ export interface CandidateReview {
   occurrence: string;
   feature: string;
   field: TaskCandidate['scope']['field'];
-  beforeMm: number;
-  candidateMm: number;
+  beforeMm: TaskValue;
+  candidateMm: TaskValue;
   checks: TaskCandidate['checks'];
   preview: Extract<PlacedProposalPreview, { kind: 'ready' }>;
 }
@@ -52,7 +52,7 @@ function isReceipt(value: unknown): value is CandidateReviewReceipt {
     Object.keys(baseline).length === 2 && sha(baseline.sha256) && sha(baseline.modelDigest) &&
     Object.keys(scope).length === 3 && id(scope.occurrence) && id(scope.feature) &&
     Object.keys(submission).length === 4 && id(submission.taskId) && sha(submission.specRevision) &&
-    sha(submission.inputDigest) && dimension !== undefined && Number.isFinite(dimension) && dimension > 0;
+    sha(submission.inputDigest) && isPositiveTaskValue(dimension);
 }
 
 export function encodeCandidateReview(receipt: CandidateReviewReceipt): string {

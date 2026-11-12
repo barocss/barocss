@@ -11,7 +11,7 @@ import {
   applyTaskDecision, bindTaskDecision, buildTaskCandidate, claimTaskUserToken, readTaskSubmission, taskSubmissionValue,
   type TaskContext, type TaskSubmission,
 } from '@barocss/cad-model/team/taskExecution';
-import { compileTaskPlan, type BoundTask, type TaskPlan, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { isPositiveTaskValue, compileTaskPlan, type BoundTask, type TaskPlan, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import type { TaskRunReplacementProvenance } from '../../src/chat/taskRunOffer';
 import { TaskRunStore, RunStoreError, type RunLimits, type RunOperation, type RunRecord, type RunState, type RunTask, type TaskAttempt, type WritePoint } from './store';
@@ -253,7 +253,7 @@ export class TaskRunHost {
       if (!submitted || submitted.taskId !== taskId || submitted.specRevision !== attempt.specRevision || submitted.inputDigest !== attempt.inputDigest)
         throw new Error('Invalid scoped submission.');
       const value = taskSubmissionValue(submitted, bound.writes.field);
-      if (value === undefined || !Number.isFinite(value) || value <= 0) throw new Error('Invalid scoped dimension.');
+      if (!isPositiveTaskValue(value)) throw new Error('Invalid scoped dimension.');
       submission = submitted;
     } catch {
       return this.conclude(ticket, op, { phase: 'failed', reason: 'TASK_SUBMISSION_MISMATCH' }, usage);

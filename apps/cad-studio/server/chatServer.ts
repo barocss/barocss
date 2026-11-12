@@ -143,7 +143,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (name === SELECTED_FACE_DIAGNOSIS) return `${j.part} · ${j.requirement?.id} · ${j.face} missing · repair unavailable`;
   if (name === SELECTED_FOLLOW_UP_REPAIR && typeof j.proposal === 'string') return `${j.proposal} ready for review`;
   if (name === 'inspect_local_task_plan' && Array.isArray(j.targets) && Array.isArray(j.issues)) {
-    const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'depth' || task?.field === 'diameter');
+    const hasDimension = Array.isArray(j.tasks) && j.tasks.some(task => task?.field === 'width' || task?.field === 'depth' || task?.field === 'diameter' || task?.field === 'footprint');
     const dimension = hasDimension || j.issues.some(issue => issue?.code === 'SHARED_HOLE_PATTERN') ? 'dimension' : 'height';
     return j.status === 'ready' ? `${j.targets.length} local ${dimension} target${j.targets.length === 1 ? '' : 's'} ready` : `Local ${dimension} plan blocked · ${j.issues.length} issue${j.issues.length === 1 ? '' : 's'}`;
   }

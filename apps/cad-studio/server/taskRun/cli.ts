@@ -6,7 +6,7 @@ import { readStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { isLocalTaskCount } from '@barocss/cad-model/team/localHeightPlan';
 import { userToken } from '@barocss/cad-model/team/ecr';
-import { isTaskCapability, taskField, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { isPositiveTaskValue, isTaskCapability, readRectangleFootprint, taskField, type RectangleFootprint, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { canonical } from '@barocss/cad-model/util/revision';
 import { encodeTaskCheckpoint, readTaskCheckpoint, TASK_CHECKPOINT_EXT } from '../../src/files/taskCheckpoint';
@@ -17,12 +17,12 @@ import { notLocalModel, openModel, writeAtomic } from '../cadDoc';
 import { TaskRunHost, type HostOutcome } from './host';
 import { deriveLocalRunPlan, localRunPlanInputs } from './localPlan';
 import { candidateReviewFor, TaskRunStore, type RunLimits, type RunRecord } from './store';
-import { localRunStatus, localRunTargets, prepareTaskRunHandoff, startLocalTaskRun } from './start';
+import { localRunStatus, localRunTargets, prepareTaskRunHandoff, startLocalTaskRun, taskInputKey } from './start';
 import { threadWorker } from './thread';
 
 interface Io { stdout: Pick<NodeJS.WriteStream, 'write'>; stderr: Pick<NodeJS.WriteStream, 'write'> }
-interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number>; depthsMm?: Record<string, number>; diametersMm?: Record<string, number> }
-const HELP = 'cad-cli task-run <plan source.bcad occurrenceA [occurrenceB] [occurrenceC] | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
+interface Config { name: string; source: string; plan: TaskPlanRequest; limits: RunLimits; budget: number; heightsMm?: Record<string, number>; widthsMm?: Record<string, number>; depthsMm?: Record<string, number>; diametersMm?: Record<string, number>; footprintsMm?: Record<string, RectangleFootprint> }
+const HELP = 'cad-cli task-run <plan source.bcad occurrenceA [occurrenceB] [occurrenceC] | start dir config.json | start dir --plan plan.json | start dir --handoff source.bcad-task | status dir | work dir operation task valueMm [depthMm] | refresh dir operation task | export dir part.bcad|part.bcad-run | review dir task part.bcad-candidate | decide dir operation task approve|reject [--review file.bcad-candidate] | pause|resume|stop dir operation | policy dir operation revision 1|2 | answer dir operation task batch answers.json>';
 
 function exportPath(directory: string, output: string): string {
   const parent = realpathSync.native(dirname(output)), run = statSync(directory, { bigint: true });
@@ -98,11 +98,13 @@ async function readStart(args: readonly string[]) {
   const config = JSON.parse(readFileSync(args[0], 'utf8')) as Config;
   const source = await openModel(config.source);
   if ('error' in source) throw new Error(source.error);
-  const dimensions = { height: config.heightsMm, width: config.widthsMm, depth: config.depthsMm, diameter: config.diametersMm };
+  const dimensions = { height: config.heightsMm, width: config.widthsMm, depth: config.depthsMm, diameter: config.diametersMm, footprint: config.footprintsMm };
   const tasks = config.plan.tasks.map(task => {
     if (!isTaskCapability(task.capability)) throw new Error('Unsupported task capability.');
-    const field = taskField(task.capability), valueMm = dimensions[field]?.[task.id];
-    if (typeof valueMm !== 'number' || !Number.isFinite(valueMm) || valueMm <= 0) throw new Error(`Expected a positive ${field} for ${task.id}.`);
+    const field = taskField(task.capability), supplied = dimensions[field]?.[task.id];
+    const valueMm = field === 'footprint' ? readRectangleFootprint(supplied) : supplied;
+    if (!isPositiveTaskValue(valueMm) || (field !== 'footprint' && typeof valueMm !== 'number'))
+      throw new Error(`Expected a positive ${field} for ${task.id}.`);
     return { id: task.id, field, valueMm };
   });
   return { doc: source.doc, config, tasks };
@@ -193,10 +195,13 @@ export async function taskRunMain(argv: readonly string[], io: Io): Promise<numb
       print({ accepted: record.accepted });
       return 0;
     }
-    if (command === 'work' && args.length === 3 && Number.isFinite(Number(value)) && Number(value) > 0) {
+    if (command === 'work') {
       const capability = record.state.plan.tasks.find(item => item.id === task)?.capability;
       const field = capability ? taskField(capability) : 'height';
-      outcome = await host.dispatch(operation, task, threadWorker(worker, Number(value)), field + '-mm:' + Number(value));
+      const paired = field === 'footprint';
+      const valueMm = paired ? { widthMm: Number(value), depthMm: Number(file) } : Number(value);
+      if (args.length !== (paired ? 4 : 3) || !isPositiveTaskValue(valueMm)) throw new Error(HELP);
+      outcome = await host.dispatch(operation, task, threadWorker(worker, valueMm), taskInputKey(field, valueMm));
     } else if (command === 'refresh' && args.length === 2) {
       outcome = await host.refresh(operation, task);
     } else if (command === 'decide') {

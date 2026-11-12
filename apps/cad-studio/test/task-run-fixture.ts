@@ -15,6 +15,21 @@ export const fixtureDoc = (): StudioDoc => ({
     { id: 'p2', name: 'Lid', position: [45, 0, 0], rotation: [0, 0, 0], doc: plate(12, 8, 3, 4) },
   ],
 });
+export function footprintDoc(): StudioDoc {
+  const doc = fixtureDoc(), base = doc.instances![0].doc, sketch = base.nodes[0];
+  if (sketch.kind !== 'sketch' || sketch.profile !== 'rectangle') throw new Error('Expected the fixture rectangle.');
+  sketch.min = [3, -3];
+  sketch.max = [23, 7];
+  sketch.sideTags = { outer: ['e1', 'e2', 'e3', 'e4'] };
+  base.requirements = [
+    { id: 'width', source: 'Width in the reviewed drawing.', hard: true, basis: 'stated',
+      check: { query: { fn: 'bbox', axis: 'x' }, op: '==', value: 24, unit: 'mm', tol: 0.001 } },
+    { id: 'depth', source: 'Depth in the reviewed drawing.', hard: true, basis: 'stated',
+      check: { query: { fn: 'bbox', axis: 'y' }, op: '==', value: 14, unit: 'mm', tol: 0.002 } },
+  ];
+  return doc;
+}
+
 export function sharedHoleDoc(): StudioDoc {
   const doc = fixtureDoc();
   doc.instances![1].position = [0, 0, 20];

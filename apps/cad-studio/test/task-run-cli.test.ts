@@ -9,8 +9,9 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { encodeCandidateReview, readCandidateReview, verifyCandidateReview, type CandidateReviewReceipt } from '../src/files/taskCandidateReview';
 import { encodeTaskCheckpoint, readTaskCheckpoint, verifyTaskCheckpoint, type TaskCheckpoint } from '../src/files/taskCheckpoint';
+import { planWorkingTaskReplacement } from '../src/files/workingTaskReplacement';
 import { planWorkingApprovalRepair, readWorkingApprovalChecks } from '../src/files/workingApprovalChecks';
-import { fixtureDoc, fixtureLimits, fixturePlan } from './task-run-fixture';
+import { fixtureDoc, fixtureLimits, fixturePlan, footprintDoc } from './task-run-fixture';
 
 const terminal = (challenge: string, args: string[], options = {}) => spawnSync('python3', [
   '-I', 'test/fixtures/task-run-terminal.py', challenge, JSON.stringify(options),
@@ -320,5 +321,94 @@ test('D777 an explicit CLI depth config publishes the exact local Y edit and can
     const forged = { ...decoded.receipt, accepted: { modelDigest: digestOf(working), sha256: sha256Hex(alteredBytes) } };
     const rejected = await readTaskCheckpoint(encodeTaskCheckpoint(forged, sourceBytes, alteredBytes));
     assert.ok(rejected && 'error' in rejected, JSON.stringify(rejected));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('D779 a footprint config pins both values, reopens one approval and supports paired repair and replacement', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'barocss-footprint-cli-'));
+  try {
+    const source = join(dir, 'source.bcad'), config = join(dir, 'config.json'), run = join(dir, 'run');
+    const checkpoint = join(dir, 'footprint.bcad-run'), candidateFile = join(dir, 'footprint.bcad-candidate');
+    const original = footprintDoc(), sourceBytes = encodeStudioFile(original);
+    writeFileSync(source, sourceBytes);
+    const plan = { ...fixturePlan, tasks: [
+      { ...fixturePlan.tasks[0], feature: 'n0', capability: 'rectangle-footprint', frame: 'part-local-xy' },
+      fixturePlan.tasks[1],
+    ] };
+    const pair = { widthMm: 24, depthMm: 14 };
+    const settings = { name: 'cli-footprint', source, plan, limits: fixtureLimits, budget: 8,
+      heightsMm: { lid: 4 }, footprintsMm: { base: pair } };
+    const launch = (...args: string[]) => spawnSync(process.execPath, ['scripts/cad-cli.mjs', 'task-run', ...args],
+      { cwd: process.cwd(), encoding: 'utf8', timeout: 30000 });
+    writeFileSync(config, JSON.stringify({ ...settings, footprintsMm: { base: { widthMm: 24 } } }));
+    const invalid = launch('start', run, config);
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /Expected a positive footprint/);
+    assert.equal(existsSync(run), false);
+    writeFileSync(config, JSON.stringify(settings));
+    const started = launch('start', run, config);
+    assert.equal(started.status, 0, started.stderr);
+    const { tasks: [candidate] } = JSON.parse(started.stdout);
+    assert.deepEqual(candidate.geometry, { sizeMm: [24, 14, 5], volumeMm3: 1680, centroidMm: [15, 4, 2.5] });
+    const repeated = launch('work', run, 'initial:base', 'base', '24', '14');
+    assert.equal(repeated.status, 0, repeated.stderr);
+    assert.equal(JSON.parse(repeated.stdout).outcome.duplicate, true);
+    const changedDepth = launch('work', run, 'initial:base', 'base', '24', '15');
+    assert.equal(changedDepth.status, 1);
+    assert.equal(JSON.parse(changedDepth.stdout).outcome.code, 'RUN_OPERATION_CONFLICT');
+
+    const candidateExport = launch('review', run, 'base', candidateFile);
+    assert.equal(candidateExport.status, 0, candidateExport.stderr);
+    const receipt = JSON.parse(candidateExport.stdout).candidateReview as CandidateReviewReceipt;
+    assert.deepEqual(receipt.submission.footprintMm, pair);
+    const admitted = readCandidateReview(readFileSync(candidateFile, 'utf8'), original);
+    assert.ok(!('error' in admitted), JSON.stringify(admitted));
+    assert.deepEqual([admitted.beforeMm, admitted.candidateMm], [{ widthMm: 20, depthMm: 10 }, pair]);
+    const altered = { ...receipt, submission: { ...receipt.submission, footprintMm: { widthMm: 14, depthMm: 24 } } } as CandidateReviewReceipt;
+    const swapped = readCandidateReview(encodeCandidateReview(altered), original);
+    assert.ok('error' in swapped);
+    const approval = terminal('approve ' + candidate.candidateDigest.slice(0, 12),
+      ['decide', run, 'accept-footprint', 'base', 'approve', '--review', candidateFile]);
+    assert.equal(approval.status, 0, approval.stderr);
+    const exported = launch('export', run, checkpoint);
+    assert.equal(exported.status, 0, exported.stderr);
+    const decoded = await readTaskCheckpoint(readFileSync(checkpoint));
+    assert.ok(decoded && !('error' in decoded), JSON.stringify(decoded));
+    assert.deepEqual(decoded.receipt.scope, { occurrence: 'p1', feature: 'n0', field: 'footprint' });
+    const expected = structuredClone(original.instances!);
+    const sketch = expected[0].doc.nodes[0];
+    assert.ok(sketch.kind === 'sketch' && sketch.profile === 'rectangle');
+    sketch.max = [27, 11];
+    assert.deepEqual(decoded.doc.instances, expected);
+    assert.deepEqual(readFileSync(source), Buffer.from(sourceBytes));
+    const scalar = { ...decoded.receipt, scope: { ...decoded.receipt.scope, field: 'width' as const } };
+    const narrowed = await readTaskCheckpoint(encodeTaskCheckpoint(scalar, sourceBytes, encodeStudioFile(decoded.doc)));
+    assert.match(narrowed && 'error' in narrowed ? narrowed.error : '', /plan does not match the checkpoint scope/);
+
+    const evaluate = async (doc: typeof original) => evaluatePart(doc, 1);
+    const verified = await verifyTaskCheckpoint(decoded, evaluate, () => true);
+    assert.ok(verified && !('error' in verified), JSON.stringify(verified));
+    const working = structuredClone(decoded.doc), [base, lid] = working.instances!;
+    const edited = base.doc.nodes[0], extrusion = lid.doc.nodes[1];
+    assert.ok(edited.kind === 'sketch' && edited.profile === 'rectangle' && extrusion.kind === 'extrude');
+    edited.max = [25, 9];
+    extrusion.height = 4;
+    const checks = await readWorkingApprovalChecks(working, verified.review, evaluate);
+    assert.ok(!('error' in checks), JSON.stringify(checks));
+    assert.deepEqual(planWorkingApprovalRepair(working, verified.review, checks).targets[0].footprintMm, pair);
+    base.doc.requirements![1].check.value = 15;
+    const revisedChecks = await readWorkingApprovalChecks(working, verified.review, evaluate);
+    assert.ok(!('error' in revisedChecks), JSON.stringify(revisedChecks));
+    assert.throws(() => planWorkingApprovalRepair(working, verified.review, revisedChecks), /does not match the verified failure/);
+
+    const baseline = structuredClone(original), sibling = baseline.instances![1].doc.nodes[1];
+    assert.ok(sibling.kind === 'extrude');
+    sibling.height = 4;
+    const replacement = structuredClone(baseline);
+    const pin = { attemptId: 'attempt-1', occurrence: 'p1', feature: 'n0', field: 'footprint' as const };
+    replacement.instances![0].doc.requirements![1].check.value = 15;
+    assert.deepEqual(planWorkingTaskReplacement(baseline, replacement, pin).targets[0].footprintMm, { widthMm: 24, depthMm: 15 });
+    replacement.instances![0].doc.requirements![1].check.value = 10;
+    assert.throws(() => planWorkingTaskReplacement(baseline, replacement, pin), /does not match the selected task scope/);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });

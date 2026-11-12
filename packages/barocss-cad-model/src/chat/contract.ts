@@ -23,12 +23,13 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
  */
 const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
 const versionPin = o({ id: str, snapshot: str, revision: str, evidenceRevision: str }, ['id', 'snapshot', 'revision', 'evidenceRevision']);
+const footprint = o({ widthMm: num, depthMm: num }, ['widthMm', 'depthMm']);
 const READ: Record<string, JsonSchema | null> = {
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
   output_requirement_evidence: o({ revision: str, files: arr }, ['revision', 'files']),
   inspect_local_task_plan: o({ revision: str, status: { type: 'string', enum: ['ready', 'blocked'] },
     occurrences: { type: 'array', items: str },
-    tasks: { type: 'array', items: o({ occurrence: str, feature: str, field: { type: 'string', enum: ['height', 'width', 'depth', 'diameter'] } }, ['occurrence', 'feature', 'field']) },
+    tasks: { type: 'array', items: o({ occurrence: str, feature: str, field: { type: 'string', enum: ['height', 'width', 'depth', 'diameter', 'footprint'] } }, ['occurrence', 'feature', 'field']) },
     targets: { type: 'array', items: { oneOf: [
       o({ id: str, requirementId: str, currentHeightMm: num, heightMm: num, toleranceMm: num },
         ['id', 'requirementId', 'currentHeightMm', 'heightMm', 'toleranceMm']),
@@ -38,6 +39,9 @@ const READ: Record<string, JsonSchema | null> = {
         ['id', 'requirementId', 'currentDepthMm', 'depthMm', 'toleranceMm']),
       o({ id: str, requirementId: str, currentDiameterMm: num, diameterMm: num, toleranceMm: num },
         ['id', 'requirementId', 'currentDiameterMm', 'diameterMm', 'toleranceMm']),
+      o({ id: str, currentFootprintMm: footprint, footprintMm: footprint,
+        widthRequirementId: str, depthRequirementId: str, widthToleranceMm: num, depthToleranceMm: num },
+      ['id', 'currentFootprintMm', 'footprintMm', 'widthRequirementId', 'depthRequirementId', 'widthToleranceMm', 'depthToleranceMm']),
     ] } },
     issues: { type: 'array', items: o({ code: str, message: str, occurrence: str, inputs: { type: 'array', items: str } }, ['code', 'message']) },
   }, ['revision', 'status', 'occurrences', 'tasks', 'targets', 'issues']),
