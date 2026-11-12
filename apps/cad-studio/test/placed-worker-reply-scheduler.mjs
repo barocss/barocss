@@ -58,7 +58,8 @@ export function installD523PlacedReplyScheduler() {
         if (isPlaced && data?.result) record.placedIds.delete(data.id);
         if (record.holding && (!onlyPlaced || isPlaced)) {
           event.stopImmediatePropagation(); record.held.push(event);
-          log('native-event-held', { key: record.key, id: data?.id ?? null, resultOK: data?.result?.ok ?? null });
+          log('native-event-held', { key: record.key, id: data?.id ?? null, resultOK: data?.result?.ok ?? null,
+            ...(data?.result?.ok === false ? { errorDetail: data.result.error?.detail } : {}) });
         } else log('native-event-delivered', { key: record.key, id: data?.id ?? null });
       });
     }

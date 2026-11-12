@@ -1,0 +1,85 @@
+{
+  "decision": "D885",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "be6ee0e60d4688163ebca96ff55ae03ebef99a1e",
+  "issue": 2333,
+  "issueDisposition": "READY_TO_CLOSE_AFTER_PUSH",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D885_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/studio-run03 --lifecycle",
+    "cd packages/barocss-cad-model && node scripts/test.mjs definitions.test instance-looks.test osnap",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership instance.test instance-looks.test sketch-framing",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "node --check apps/cad-studio/test/placed-worker-reply-scheduler.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 41,
+    "studioPass": 21,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "141ef7532129744dbaad6419abf321c58a16e41a982ecd3740336e921add5f43"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "First issue acceptance, effective visibility, current failed reply, live same-ID Open, native geometry and immutable coordinate snapshot."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "c5fc882af779a6f475ee3632b583e7c238676667234abc2b987a386eeb685393",
+    "sourceManifestSHA256": "128810686aa392bbca069fa942addfcbdd2470b894127d756e5b5ee8e2e8c0c8",
+    "frozenFiles": 841,
+    "snapshots": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "effectiveHidden": "PASS",
+    "failedNativeReply": "PASS",
+    "removed": "PASS",
+    "newDocument": "PASS",
+    "liveSameIdOpen": "PASS",
+    "oneFinish": "PASS",
+    "fixedAfterMove": "PASS",
+    "failedReply": {
+      "id": 6,
+      "workerKey": 2,
+      "nativeDetail": "height must not be zero",
+      "gridCornerMm": [
+        10,
+        14
+      ]
+    },
+    "storedCornersMm": [
+      [
+        35.25,
+        14.25
+      ],
+      [
+        65.75,
+        34.25
+      ]
+    ],
+    "volumeMm3": 1220,
+    "sourceMovedXmm": 38.25,
+    "nativeTolerance": 1e-8
+  },
+  "adjacent": {
+    "status": "FAIL",
+    "check": "Previous placed failure notice retires after healthy source or document replacement.",
+    "observed": "The previous zero-height notice remains visible through Remove, New, same-ID Open and a healthy source move.",
+    "next": "D886"
+  },
+  "notRun": [
+    "Polygon tool",
+    "held placed reply across same-ID Open",
+    "dedicated desktop coincident-point tie or nontrivial rounding",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

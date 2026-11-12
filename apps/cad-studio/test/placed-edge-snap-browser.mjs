@@ -7,6 +7,7 @@ const fixed = mode === '--fixed';
 const quarterTurn = mode === '--quarter-turn' || mode === '--quarter-turn-baseline';
 const quarterTurnFixed = mode === '--quarter-turn';
 const sourceRevision = mode === '--source-revision';
+const lifecycle = mode === '--lifecycle';
 
 const pins = [
   'apps/cad-studio/test/placed-edge-snap-browser.mjs',
@@ -16,23 +17,26 @@ const pins = [
   'packages/barocss-cad-model/src/engine/doc.ts',
   'packages/barocss-cad-model/src/engine/evaluate.ts',
   'packages/barocss-cad-model/src/sketch/osnap.ts',
-  ...(fixed || quarterTurn || sourceRevision ? [
+  ...(fixed || quarterTurn || sourceRevision || lifecycle ? [
     'apps/cad-studio/src/viewport/placedBoxSnap.ts',
     'apps/cad-studio/src/viewport/placedSketchSnaps.ts',
     'apps/cad-studio/src/viewport/SceneViewport.tsx',
     'apps/cad-studio/test/placed-worker-reply-scheduler.mjs',
   ] : []),
-  ...(sourceRevision ? ['packages/barocss-cad-model/src/assembly/definitions.ts'] : []),
+  ...(sourceRevision || lifecycle ? ['packages/barocss-cad-model/src/assembly/definitions.ts'] : []),
 ];
 const f = await createFlow({
   name: 'placed-edge-snap', output: process.argv[2],
-  envFrozen: sourceRevision ? 'D884_SOURCE_FROZEN' : quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
+  envFrozen: lifecycle ? 'D885_SOURCE_FROZEN' : sourceRevision ? 'D884_SOURCE_FROZEN'
+    : quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: sourceRevision ? 'Check placed snap ownership through an accepted source revision with the same occurrence and body keys.'
+  qualification: lifecycle ? 'Reject stale placed snaps after hiding, evaluation failure, removal, New and same-ID Open.'
+    : sourceRevision ? 'Check placed snap ownership through an accepted source revision with the same occurrence and body keys.'
     : quarterTurn ? 'Check +90 degree Z placed box End and Middle against independent world coordinates.'
     : fixed ? 'Consume current translated box endpoints and midpoints with stale and hidden occurrence controls.'
     : 'Measure placed edge snap availability and the accepted root sketch coordinates.',
-  limits: [sourceRevision ? 'One revised native box and one independent sibling in desktop Studio.'
+  limits: [lifecycle ? 'Native rectangular extrusions, one zero-height revision and same-ID desktop document replacement.'
+    : sourceRevision ? 'One revised native box and one independent sibling in desktop Studio.'
     : quarterTurn
     ? 'A +90 degree Z box and an unrotated sibling sharing one native definition in desktop Studio.'
     : 'Two top-level static translated native boxes with a shared source and a separate native root box in desktop Studio.'],
@@ -464,6 +468,160 @@ async function checkSourceRevision() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkLifecycle() {
+  const left = { ...instances[0], part: { id: 'left-definition', rev: 'A' } };
+  const right = { ...instances[1], part: { id: 'right-definition', rev: 'A' } };
+  const doc = { ...root, instances: [left, right] };
+  const invalid = { ...definition, nodes: [definition.nodes[0], { ...definition.nodes[1], height: 0 }] };
+  const replacementEnd = [35.25, 14.25], replacementPointer = [35.30, 14.30];
+  const replacement = { ...doc, instances: [{ ...left, position: [...replacementEnd, 0] }, right] };
+  const points = [[-24.75, -9.5], firstPointer, replacementPointer, secondPointer];
+  await f.newPage();
+  await open(doc);
+
+  f.phase = 'hide the body of one occurrence through its Appearance Details';
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, 'End', 'left');
+  await hover(secondPointer, 'Middle', 'right');
+  await cancel();
+  const appearance = (await occurrenceControls()).getByRole('group', { name: 'Appearance (this occurrence)', exact: true });
+  await button(appearance, 'Details').click();
+  await appearance.getByRole('checkbox', { name: 'Visible', exact: true }).uncheck();
+  await f.changed(doc);
+  const hidden = await f.doc();
+  assert.equal(hidden.instances[0].looks.b1.hidden, true);
+  assert.equal(hidden.instances[0].hidden, undefined);
+  assert.deepEqual(hidden.instances[1], right);
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, null);
+  await hover(secondPointer, 'Middle', 'right');
+  await f.snapshot('01-hidden-body-only');
+  await cancel();
+  await f.undo();
+  await f.same(doc);
+
+  f.phase = 'hold an original failed placed Worker reply for an accepted revision';
+  const panel = await occurrenceControls();
+  await panel.getByLabel('New revision file', { exact: true }).setInputFiles({
+    name: 'zero-height-revision.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(invalid)),
+  });
+  const waiting = panel.getByRole('status', { name: 'Revision waiting', exact: true });
+  await button(waiting, 'Accept Rev B').waitFor();
+  const offered = await f.doc();
+  assert.deepEqual(offered.pendingParts['left-definition'].doc, invalid);
+  await f.page.evaluate(() => window.__d523Placed.arm({ onlyPlaced: true }));
+  await button(waiting, 'Accept Rev B').click();
+  await f.page.waitForFunction(() => window.__studioDoc.instances[0].part.rev === 'B');
+  const bad = await f.doc();
+  assert.deepEqual(bad.instances[0].doc, invalid);
+  assert.deepEqual(bad.instances[1], right);
+  const failure = await (await f.page.waitForFunction(() => {
+    const { claimed, events } = window.__d523Placed.snapshot();
+    return claimed && events.find(event => event.kind === 'native-event-held' && event.key === claimed.key && event.id === claimed.id);
+  })).jsonValue();
+  assert.equal(failure.resultOK, false);
+  assert.match(failure.errorDetail, /height must not be zero/i);
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, null);
+  await hover(secondPointer, 'Middle', 'right');
+  const pending = await f.snapshot('02-failed-reply-pending-old-mesh');
+  assert.equal(pending.instanceBounds.find(item => item.id === 'left')?.min[0], 10.25);
+  await f.page.evaluate(() => window.__d523Placed.release());
+  assert.ok(await f.page.evaluate(({ key, id }) => window.__d523Placed.snapshot().events.some(event =>
+    event.kind === 'client-callback-reached' && event.delivery === 'held-original-event' && event.key === key && event.id === id), failure));
+  await f.page.waitForFunction(() => window.__studioInstanceBounds?.().map(item => item.id).join(',') === 'right');
+  await hover(firstPointer, null);
+  await hover(secondPointer, 'Middle', 'right');
+  await f.page.mouse.click(...await hover(firstPointer, null));
+  const failedCorner = await draftCorner();
+  assert.deepEqual(failedCorner, expectedGrid[0]);
+  await f.same(bad);
+  await f.snapshot('03-failed-reply-grid-corner');
+  f.report.observations.push({ label: 'failed-native-reply', ...failure, gridCorner: failedCorner });
+  await cancel();
+  await f.undo();
+  await f.same(offered);
+  await f.page.waitForFunction(() => window.__studioInstanceBounds?.().some(item => item.id === 'left' && item.min[0] === 10.25));
+
+  f.phase = 'remove the recovered occurrence and open a new blank part';
+  await button(await occurrenceControls(), 'Remove').click();
+  await f.page.waitForFunction(() => window.__studioDoc.instances.length === 1 && window.__studioDoc.instances[0].id === 'right');
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, null);
+  await hover(secondPointer, 'Middle', 'right');
+  await f.snapshot('04-removed-left');
+  await cancel();
+  await button(f.page, 'New part').click();
+  await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && !window.__studioDoc.instances?.length);
+  await f.ready();
+  await begin();
+  await f.frame([firstPointer, secondPointer]);
+  await hover(firstPointer, null);
+  await hover(secondPointer, null);
+  const empty = await f.snapshot('05-new-blank-part');
+  assert.deepEqual(empty.instanceBounds, []);
+  await cancel();
+
+  f.phase = 'open reused IDs and send a double Finish click for one snapped profile';
+  await open(doc);
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, 'End', 'left');
+  await f.snapshot('05a-old-cue-before-direct-open');
+  await open(replacement);
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  assert.equal(await cue().count(), 0);
+  await begin();
+  await f.frame(points);
+  await hover(firstPointer, null);
+  const next = await hover(replacementPointer, 'End', 'left');
+  await markAt(replacementEnd);
+  await f.snapshot('06-same-id-current-only');
+  await f.page.mouse.click(...next);
+  await f.page.mouse.click(...await hover(secondPointer, 'Middle', 'right'));
+  const finish = await f.page.locator('.topbar button.finish').boundingBox();
+  assert.ok(finish);
+  await f.page.mouse.dblclick(finish.x + finish.width / 2, finish.y + finish.height / 2);
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await f.ready();
+  const accepted = (await f.snapshot('07-same-id-one-finish')).doc;
+  assert.equal(accepted.nodes.length, 3);
+  assert.deepEqual(accepted.nodes[2].min, replacementEnd);
+  assert.deepEqual(accepted.nodes[2].max, middleAt);
+  assert.deepEqual(accepted.instances, replacement.instances);
+  await f.undo();
+  await f.same(replacement);
+  await f.redo();
+  await f.same(accepted);
+  await f.openExtrudeHud();
+  const solid = (await f.applyExtrude({ distance: 2, previous: accepted, label: '08-same-id-consumer' })).doc;
+  const native = await f.inspect('same-id-native', solid);
+  checkBox(native.placed[0].bodies[0], [...replacementEnd, 0], [55.25, 26.25, 6], 1440);
+  checkBox(native.root.find(body => body.id === 'n3'), [...replacementEnd, 0], [...middleAt, 2], 1220);
+  assert.deepEqual(solid.instances, replacement.instances);
+  f.report.observations.push({ label: 'same-id-native-consumer', storedCornersMm: [replacementEnd, middleAt], volumeMm3: 1220, finishedSketches: 1 });
+
+  f.phase = 'move the source after Finish and keep the stored profile as a coordinate snapshot';
+  const field = (await occurrenceControls()).getByLabel('Instance X', { exact: true }).first();
+  await field.fill('38.25');
+  await field.press('Enter');
+  await f.page.waitForFunction(() => window.__studioInstanceBounds?.().some(item => item.id === 'left' && item.min[0] === 38.25));
+  const moved = await f.doc();
+  assert.deepEqual(moved.nodes, solid.nodes);
+  assert.deepEqual(moved.instances[0], { ...solid.instances[0], position: [38.25, 14.25, 0] });
+  assert.deepEqual(moved.instances[1], solid.instances[1]);
+  const movedNative = await f.inspect('same-id-after-source-move', moved);
+  assert.deepEqual(movedNative.root, native.root);
+  assert.deepEqual(movedNative.placed[1], native.placed[1]);
+  checkBox(movedNative.placed[0].bodies[0], [38.25, 14.25, 0], [58.25, 26.25, 6], 1440);
+  await f.snapshot('09-finished-geometry-keeps-original-snap-coordinates');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -475,10 +633,14 @@ await f.run(async () => {
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
       return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
     });
-    if (fixed || sourceRevision) await context.addInitScript(installD523PlacedReplyScheduler);
+    if (fixed || sourceRevision || lifecycle) await context.addInitScript(installD523PlacedReplyScheduler);
     return context;
   };
 
+  if (lifecycle) {
+    await checkLifecycle();
+    return;
+  }
   if (sourceRevision) {
     await checkSourceRevision();
     return;
