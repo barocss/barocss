@@ -50,7 +50,7 @@ export function ReferenceDecisions({ doc, referenceLabels, refMarks, refProblems
       <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
     </div>)}
     {refProblems.map(p => <div key={'p' + p.index} style={referenceRowStyle}>
-      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
+      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : p.reason === 'ambiguous-split-cap' ? 'Reference ambiguous' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
       <div style={referenceActionsStyle}>
       {referenceDimension(p.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where)}>Show dimension</button>}
       </div>

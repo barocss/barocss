@@ -1,0 +1,105 @@
+{
+  "decision": "D791",
+  "tier": "SMALL reference admission",
+  "parent": "dbd378ad0ca9bd2886e8ac4048d527877ebb24fb",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/split-cap-ambiguity-browser.mjs",
+    "cd apps/cad-studio && D791_SOURCE_FROZEN=1 node test/split-cap-ambiguity-browser.mjs \"$EVIDENCE/desktop-before\"",
+    "cd apps/cad-studio && D791_SOURCE_FROZEN=1 node test/split-cap-ambiguity-browser.mjs \"$EVIDENCE/desktop-after\"",
+    "cd apps/cad-studio && D790_SOURCE_FROZEN=1 node test/split-cap-reference-browser.mjs \"$EVIDENCE/desktop-d790-regression\"",
+    "node packages/barocss-cad/scripts/tool.mjs build:fast",
+    "node --test --test-concurrency=1 packages/barocss-cad/test/part-model.test.mjs",
+    "pnpm --dir packages/barocss-cad type-check",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test references rematch api-verbs",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d791-split-cap-ambiguity",
+    "evidenceFolder": "d791-2026-11-12",
+    "productBaseline": {
+      "status": "FAIL",
+      "sha256": "892871e44faf75eca9cb9d8e670aa31e3b1046caa020d1d17ccb5e3ba2598218",
+      "acceptedLiveVolumesMm3": [
+        7460.000000000001,
+        4745.699111843078
+      ],
+      "acceptedColdVolumesMm3": [
+        7460.000000000001,
+        4745.699111843078
+      ]
+    },
+    "desktop": {
+      "status": "PASS",
+      "sha256": "5c03c1aa4ca91bd4bb12560a191abedc23c8c848d4fc575872575d000dc1d3df",
+      "frozenSources": 796,
+      "preparedInputSHA256": "762f75beb2b8be0a5150c10b1f5fb995ae611ad9f623f3664de67177867dc55c",
+      "sourceSaveBytes": 1670,
+      "sourceSaveSHA256": "720cda1459de4451892bcadbf6000265e1ec783ddab09fbdd47a53206ebc13a0",
+      "errors": 0,
+      "downloads": 0
+    },
+    "d790DesktopRegression": {
+      "status": "PASS",
+      "sha256": "af6a299f182d0c50129099f243be4915c5fb8ba3d6055923870620b818ea0676",
+      "frozenSources": 798
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "kernel": {
+      "pass": 47,
+      "fail": 0,
+      "skip": 0
+    },
+    "model": {
+      "pass": 66,
+      "fail": 0,
+      "skip": 0
+    },
+    "nativeCapDescendants": [
+      {
+        "name": "n5.cut.side1#1",
+        "spanY": [
+          0,
+          5
+        ],
+        "area": 50
+      },
+      {
+        "name": "n5.cut.side1#2",
+        "spanY": [
+          12,
+          30
+        ],
+        "area": 180
+      }
+    ],
+    "nativeRefusal": {
+      "code": "REFERENCE",
+      "feature": "n6",
+      "message": "n6: Split cap \"n5.cut.side1\" is ambiguous on this output (2 native faces)."
+    },
+    "acceptedCutsMm": [
+      24,
+      26
+    ],
+    "refusedCutMm": 30,
+    "shellWallMm": 2,
+    "acceptedShellVolumesMm3": [
+      3768,
+      4056
+    ],
+    "heldSplitVolumesMm3": [
+      8860,
+      7460
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

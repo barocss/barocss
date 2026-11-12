@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-12 · Priority authority: D520 · Latest delivery: D790 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-12 · Priority authority: D520 · Latest delivery: D791 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D790 prevents a missing generated Split cap from being substituted with an exterior stock wall during File Open or chat edit. [D790](notes/split-cap-reference-2026-11-12/README.md).
-- **Next MAIN:** D791 / P0, rows 08, 12 and 16. Verify and fix the reproduced case where moving a Split across a through-cut gives one stored cap two native descendants. Use the same Shell across Studio edit, chat and cold Open. [#1659](https://github.com/barocss/barocss/issues/1659).
+- **Current position:** D791 rejects one Shell whose generated Split cap has two native members and verifies the unchanged live document and held File Open. [D791](notes/split-cap-ambiguity-2026-11-12/README.md).
+- **Next MAIN:** D792 / P1, rows 09 and 15. Trace whether desktop vertex picks carry a unique, current native endpoint for the three-vertex sketch plane. Use the existing Sketch plane and file path for one exact ordered profile if the native selection can be bound. [#2292](https://github.com/barocss/barocss/issues/2292).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

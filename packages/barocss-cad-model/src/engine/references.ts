@@ -25,7 +25,7 @@ import { bodyKeyFor } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
-import { isSplitCapFace, matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
+import { hasSplitShellCapAmbiguity, isSplitCapFace, matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
 import type { Vec3 } from './mesh';
 
 /** A stored signature (rounded: positions to 1e-6 mm, directions to 1e-9, sizes to 1e-6). */
@@ -257,7 +257,7 @@ export async function refreshSignatures(doc: StudioDoc, finals: readonly BodyRes
 
 export interface Verified { where: string; was: string; now: string }
 /** A reference that cannot be told: several as near (`candidates`), or none alike (gone). */
-export interface Problem { index: number; where: string; node: number | null; name: string; candidates: string[] }
+export interface Problem { index: number; where: string; node: number | null; name: string; candidates: string[]; reason?: 'ambiguous-split-cap' }
 /**
  * The stored references checked against their signatures (a document opened, no prior one to compare with):
  * those whose geometry is now named otherwise substituted and marked; those that cannot be told listed, and the
@@ -277,7 +277,9 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
     const splitCap = ref.node !== null && !ref.edge && isSplitCapFace(out.nodes, ref.name);
-    let m = splitCap ? (cands.has(ref.name) ? ref.name : []) : matchSignature(fromSig(ref.sig), cands, ref.edge);
+    const parent = splitCap && ref.parent ? parents.get(parentKey(ref.node!, ref.parent)) : undefined;
+    const ambiguous = parent !== undefined && hasSplitShellCapAmbiguity(out.nodes, out.nodes[ref.node!], parent, ref.name);
+    let m = splitCap ? (cands.has(ref.name) && !ambiguous ? ref.name : []) : matchSignature(fromSig(ref.sig), cands, ref.edge);
     // The bounded wrap requires its exact original wall; another match cannot replace it.
     if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
     // A band's names are strict too (B2, D-c): a name that moved to other geometry is never substituted, not even marked — the
@@ -295,10 +297,11 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
       }
       return;
     }
-    problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: m });
+    problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: m, ...(ambiguous ? { reason: 'ambiguous-split-cap' as const } : {}) });
     if (ref.node !== null) {
       const n = out.nodes[ref.node];
-      if (!n.suppressed) out.nodes[ref.node] = { ...n, suppressed: true, held: m.length ? `"${ref.name}" could be ${m.join(' or ')}` : `"${ref.name}" is gone` };
+      const held = ambiguous ? `Split cap "${ref.name}" is ambiguous` : m.length ? `"${ref.name}" could be ${m.join(' or ')}` : `"${ref.name}" is gone`;
+      if (!n.suppressed) out.nodes[ref.node] = { ...n, suppressed: true, held };
     }
   });
   return { doc: changes.length || problems.length ? prefixDoc(out, out.nodes.length) : doc, changes, problems };

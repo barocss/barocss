@@ -8,7 +8,7 @@
 // (within 1°), the nearest (centroid, midpoint), when it is clearly the nearest (the next is at least twice as
 // far, measured against the body's size). A substitution is kept on the node (`rematched`, new name → old) until
 // confirmed; none, or several as near, refuses the edit with the candidates.
-import { bodyKeyFor, nodeIndexOf } from './ids';
+import { bodyKeyFor, featureId, nodeIndexOf } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import type { BodyResult, EvalResult } from './evaluate';
 import type { Vec3 } from './mesh';
@@ -61,6 +61,14 @@ function alike(a: Signature, b: Signature, edge: boolean): boolean {
 export function isSplitCapFace(nodes: readonly ModelNode[], name: string): boolean {
   const match = /^(n\d+)\.cut\.(?:side\d+|top|bottom)(?:#\d+)?$/.exec(name);
   return !!match && nodes[nodeIndexOf(nodes, match[1])]?.kind === 'split';
+}
+
+/** Count distinct display faces for a direct Shell opening. Native evaluation checks the actual B-rep members. */
+export function hasSplitShellCapAmbiguity(nodes: readonly ModelNode[], node: ModelNode, body: BodyResult, name: string): boolean {
+  if (node.kind !== 'shell' || (node.parent.side !== 'negative' && node.parent.side !== 'positive') ||
+      !isSplitCapFace(nodes, name) || !/\.cut\.(?:side[0-3]|top|bottom)$/.test(name) ||
+      !name.startsWith(featureId(nodes, node.parent.node) + '.cut.')) return false;
+  return body.mesh.faces.filter(face => face.name.split('+').some(member => member.replace(/#\d+$/, '') === name)).length > 1;
 }
 
 /** The names among `candidates` alike `old`, nearest first. */
@@ -131,14 +139,16 @@ export async function rematchNames(prev: StudioDoc, next: StudioDoc, evaluate: (
     const before = a.bodies.find(x => x.key === bodyKeyFor(prev.nodes, parentBefore.node, parentBefore.side)), after = b.bodies.find(x => x.key === bodyKeyFor(nodes, node.parent.node, node.parent.side));
     if (!before || !after) continue;
     const sa = signaturesOf(before, node.kind === 'cylindrical-wrap'), sb = signaturesOf(after, node.kind === 'cylindrical-wrap'), old = what.edge ? sa.edges : sa.faces, now = what.edge ? sb.edges : sb.faces;
-    if (sameNames(old, now, what.edge)) continue;
+    const stableNames = sameNames(old, now, what.edge);
     const list = (node as Record<string, unknown>)[what.key] as string[], out: string[] = [], rematched: Record<string, string> = { ...(node as { rematched?: Record<string, string> }).rematched };
     for (const name of list) {
       if (!what.edge && isSplitCapFace(prev.nodes, name)) {
+        if (hasSplitShellCapAmbiguity(nodes, node, after, name)) return { error: `[BAD_REFERENCE] Feature ${k}: the Split cap "${name}" is ambiguous on its body after this edit.` };
         if (!now.has(name)) return { error: `[BAD_REFERENCE] Feature ${k}: the Split cap "${name}" is gone from its body after this edit.` };
         out.push(name);
         continue;
       }
+      if (stableNames) { out.push(name); continue; }
       const sig = old.get(name);
       if (!sig) { out.push(name); continue; }
       const m = matchSignature(sig, now, what.edge);

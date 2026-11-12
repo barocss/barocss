@@ -138,6 +138,40 @@ test('shell: the section eroded exactly, open faces removed, the result still up
   refused(D([...slot, shell('e', 1, ['e.top', 'e.side1'])]), 'CAPABILITY', /only straight walls can be left open/);
 });
 
+test('shell: a direct Split cap must resolve to one native face', () => {
+  const cap = 'split.cut.side1';
+  const stock = (low, high) => [
+    rect('base', 0, 0, 60, 30), extrude('stock', 'base', 10),
+    rect('notch', 28, low, 52, high), extrude('tool', 'notch', 10),
+    { id: 'cut', kind: 'difference', target: 'stock', tool: 'tool' },
+    { id: 'split', kind: 'split', target: 'cut', axis: 'x', at: { parameter: 'splitAt' } },
+  ];
+  const shell = { id: 'shell', kind: 'shell', target: 'split/0', thickness: 2, open: [cap] };
+  const signed = { ...shell, expect: { [cap]: { kind: 'plane', at: [24, 15, 5], dir: [1, 0, 0], size: 300 } } };
+  const initial = evaluateCadPart(D([...stock(5, 12), signed], { splitAt: 24 }));
+  const moved = reevaluate(initial, { parameters: { splitAt: 26 } });
+  const saved = saveCadPart(moved);
+  for (const [snapshot, at] of [[initial, 24], [moved, 26], [loadCadPart(saved), 26]]) {
+    const output = outputOf(snapshot, 'shell');
+    assert.equal(checkOutput(output).valid, true);
+    assert.ok(close(volume(output), 300 * at - 156 * (at - 2), 1e-12));
+  }
+
+  const split = outputOf(evaluateCadPart(D(stock(5, 12), { splitAt: 30 })), 'split/0');
+  assert.deepEqual(split.brep.faces.map(face => face.name).filter(name => name?.startsWith(`${cap}#`)).sort(), [`${cap}#1`, `${cap}#2`]);
+  const ambiguous = error => error instanceof CadPartError && error.code === 'REFERENCE' && error.feature === 'shell'
+    && error.message === `shell: Split cap "${cap}" is ambiguous on this output (2 native faces).`;
+  assert.throws(() => reevaluate(moved, { parameters: { splitAt: 30 } }), ambiguous);
+  assert.throws(() => loadCadPart(JSON.stringify(D([...stock(5, 12), shell], { splitAt: 30 }))), ambiguous);
+  assert.throws(() => evaluateCadPart(D([...stock(10, 20), signed], { splitAt: 30 })), ambiguous);
+  assert.equal(saveCadPart(moved), saved);
+
+  const outer = 'stock.side3';
+  const other = { ...shell, open: [outer], expect: { [outer]: { kind: 'plane', at: [0, 15, 5], dir: [1, 0, 0], size: 300 } } };
+  assert.throws(() => evaluateCadPart(D([...stock(5, 12), other], { splitAt: 30 })), error =>
+    error instanceof CadPartError && error.code === 'REFERENCE_MOVED' && error.feature === 'shell' && error.message.includes(outer));
+});
+
 test('smooth loft through three or more sections: C1 sides through every section, quadrature mass', () => {
   const sq = (id, h) => rect(id, -h, -h, h, h), loft = secs => ({ id: 'L', kind: 'loft', smooth: true, sections: secs.map(([sketch, z]) => ({ sketch, z })) });
   // Sections changing linearly: the smooth sides are the ruled ones — a frustum exactly.

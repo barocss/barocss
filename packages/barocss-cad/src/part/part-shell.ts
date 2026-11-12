@@ -25,6 +25,7 @@ import { validateSurface } from '../core/math.js';
 import type { CadPartDim, Solid, CadPartFeature, Result, Tools, PartHelpers, Part, Finish, SweepStep } from './part-model.js';
 import { CadPartError, CadPartLimits, affine, boolean, brepOf, facetTriangles, movedMass, profiling, sweepBrep } from './part-model.js';
 import { finishEdges } from './part-finish.js';
+import { checkExpected, expectOf } from './part-expect.js';
 
 /** A shell or thicken feature's evaluation (part-model.ts's operation() for these kinds). */
 export function shellOperation(f: CadPartFeature & Record<string, unknown>, t: Tools, k: PartHelpers): () => Result {
@@ -49,11 +50,26 @@ export function shellOperation(f: CadPartFeature & Record<string, unknown>, t: T
       };
     }
     case 'shell': {
-      const target = solids(f.target, 'target'), t = dim(f.thickness as CadPartDim, 'thickness', true);
+      const target = solids(f.target, 'target'), thickness = dim(f.thickness as CadPartDim, 'thickness', true);
       const open = f.open === undefined ? [] : f.open as unknown;
       if (!Array.isArray(open) || open.length > CadPartLimits.edges || !open.every(x => typeof x === 'string')) fail('INPUT', 'open must list up to 64 face names');
       if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
-      return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
+      const names = open as string[], part = target[0], expect = expectOf(f, fail);
+      const [targetId, output] = f.target.split('/'), capPrefix = `${targetId}.cut.`;
+      const caps = names.length && output !== undefined && t.featureKind(targetId) === 'split'
+        ? names.filter(name => name.startsWith(capPrefix) && /^(?:side[0-3]|top|bottom)$/.test(name.slice(capPrefix.length))) : [];
+      return () => {
+        if (caps.length || expect) {
+          // Inspect the chosen Split output before a base tag can open several native faces.
+          const brep = caps.length ? part.brep ?? brepOf({ solid: part.solid }, targetId) : brepOf(part, at);
+          for (const cap of caps) {
+            const count = brep.faces.filter(face => !isFacetFace(face) && face.name?.replace(/#\d+$/, '') === cap).length;
+            if (count > 1) fail('REFERENCE', `Split cap "${cap}" is ambiguous on this output (${count} native faces).`);
+          }
+          if (expect) checkExpected(brep, expect, false, 'shell', fail);
+        }
+        return { kind: 'solid', parts: [shellOf(part, thickness, names, at, fail)] };
+      };
     }
   }
   throw new Error(`shellOperation: ${f.kind} is not one of its features`);

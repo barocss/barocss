@@ -185,3 +185,33 @@ test('a stored Split cap survives a same-side edit and cannot be rematched to a 
   assert.equal(shell.rematched, undefined);
   assert.deepEqual((await bodiesOf(cold.doc)).map(body => body.key).sort(), ['b2_positive', 'b3']);
 });
+
+test('a Split cap with two descendants refuses a Shell edit and stays held on File Open', async () => {
+  const stock = rectanglePart(60, 30, 10);
+  const profile = withNode(stock, { kind: 'sketch', profile: 'rectangle', min: [28, 5], max: [52, 12] });
+  const tool = withNode(profile, { kind: 'extrude', sketch: 2, height: 10 });
+  const cut = withNode(tool, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const split = withNode(cut, { kind: 'split', parent: { node: 4, side: 'solid' }, axis: 'x', at: 26 });
+  const cap = 'n5.cut.side1';
+  const doc = captureSignatures(withNode(split, {
+    kind: 'shell', parent: { node: 5, side: 'negative' }, thickness: 2, open: [cap],
+  }), await bodiesOf(split));
+  const edited = await runTool({ doc, bodies: await bodiesOf(doc) }, 'edit_feature', { index: 5, values: { at: 30 } }, evaluate);
+  assert.equal(edited.isError, true);
+  assert.match(edited.content, /Split cap.*ambiguous/);
+  assert.deepEqual(edited.state.doc, doc);
+
+  const stale = structuredClone(doc), plane = stale.nodes[5];
+  assert.equal(plane.kind, 'split');
+  plane.at = 30;
+  const direct = await evaluate(stale);
+  assert.ok(!direct.ok && direct.error.code === 'REFERENCE');
+  const verified = await verifyReferences(stale, [], evaluate);
+  assert.deepEqual(verified.changes, []);
+  assert.deepEqual(verified.problems.map(p => [p.node, p.name, p.reason, p.candidates]), [[6, cap, 'ambiguous-split-cap', []]]);
+  const shell = verified.doc.nodes[6];
+  assert.equal(shell.kind, 'shell');
+  assert.deepEqual(shell.open, [cap]);
+  assert.equal(shell.suppressed, true);
+  assert.ok(Math.abs((await bodiesOf(verified.doc)).find(body => body.key === 'b6')!.volume! - 8860) < 1e-8);
+});

@@ -278,6 +278,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
   const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>();
   const lookup = (key: string, deps: readonly Result[]) => previous?.get(key)?.find(e => e.deps.length === deps.length && e.deps.every((d, i) => d === deps[i]))?.result;
   const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
+  const featureKind: Tools['featureKind'] = id => doc.features.find(feature => feature.id === id)?.kind;
   const consumed = new Map<string, Set<number> | 'all'>(), features: { id: string; kind: CadPartFeature['kind']; dependencies: string[] }[] = [];
   const evaluated: string[] = [], reusedIds: string[] = [], profile: Record<string, CadPartFeatureProfile> | null = options.profile === true ? {} : null;
   // One frame plan per evaluation. A participant cannot escape a peer's refusal through the result cache.
@@ -362,9 +363,9 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
         result = lookup(key, []) ?? sketch;
         remember(key, [], result);
       } else {
-        const tools = { dim, xy, xyz, integer, axisOf, solids, ref, cutSource, fail, at, endpointBead }, run = operation(f, tools);
+        const tools = { dim, xy, xyz, integer, axisOf, solids, ref, featureKind, cutSource, fail, at, endpointBead }, run = operation(f, tools);
         // (O19: stored names checked against what they named before the feature builds on them, D277.)
-        const expect = expectOf(f, fail), compute = expect && f.kind !== 'band-surface' ? expectedThen(f, tools, expect, run) : run;
+        const expect = f.kind === 'shell' ? null : expectOf(f, fail), compute = expect && f.kind !== 'band-surface' ? expectedThen(f, tools, expect, run) : run;
         const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), ...(isEndpointBead(f) ? [endpointContext(doc.features, f.frame, doc.parameters)] : [])]), inputs = deps.map(d => results.get(d)!);
         const reused = lookup(key, inputs);
         result = reused ?? compute();
@@ -457,6 +458,7 @@ export type Tools = {
   dim: (v: CadPartDim | undefined, what: string, positive?: boolean) => number; xy: (p: CadPartPoint2 | undefined, what: string) => XY; xyz: (p: CadPartPoint3 | undefined, what: string) => Point;
   integer: (v: unknown, what: string, lo: number, hi: number) => number; axisOf: (v: unknown) => CadPartAxis; solids: (r: unknown, what: string, allowEmpty?: boolean) => Part[];
   ref: (r: unknown, what: string) => { id: string; part: number | null; result: Result };
+  featureKind: (id: string) => CadPartFeature['kind'] | undefined;
   cutSource: (r: unknown) => { seed: Part; tool: Part[] };
   fail: (code: CadPartErrorCode, detail: string) => never; at: string;
   endpointBead: (f: EndpointBead, byMember: ReadonlyMap<number, Part>, frame: string) => Result;
