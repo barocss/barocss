@@ -25,7 +25,7 @@ import { bodyKeyFor } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
-import { matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
+import { isSplitCapFace, matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
 import type { Vec3 } from './mesh';
 
 /** A stored signature (rounded: positions to 1e-6 mm, directions to 1e-9, sizes to 1e-6). */
@@ -276,7 +276,8 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     }
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
-    let m = matchSignature(fromSig(ref.sig), cands, ref.edge);
+    const splitCap = ref.node !== null && !ref.edge && isSplitCapFace(out.nodes, ref.name);
+    let m = splitCap ? (cands.has(ref.name) ? ref.name : []) : matchSignature(fromSig(ref.sig), cands, ref.edge);
     // The bounded wrap requires its exact original wall; another match cannot replace it.
     if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
     // A band's names are strict too (B2, D-c): a name that moved to other geometry is never substituted, not even marked — the

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 import { captureSignatures, referencesOf, refreshSignatures, verifyReferences, type Sig } from '../src/engine/references';
@@ -145,4 +145,43 @@ test('verification preserves only aliases of the same live drawing edge, without
   assert.deepEqual(checked.doc.bodies!.b1.faces, { [faceFirst]: '#ff0000' });
   assert.deepEqual(checked.doc.bodies!.b1.facesWas, { [faceFirst]: faceStored });
   assert.deepEqual(source, before);
+});
+
+test('a stored Split cap survives a same-side edit and cannot be rematched to a stock face', async () => {
+  const split = withNode(rectanglePart(60, 30, 10), {
+    kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', normal: [1, 0, 0], at: 24,
+  });
+  const cap = 'n2.cut.side1';
+  const doc = captureSignatures(withNode(split, {
+    kind: 'shell', parent: { node: 2, side: 'negative' }, thickness: 2, open: [cap],
+  }), await bodiesOf(split));
+  assert.ok(doc.nodes[3].sigs?.[cap]);
+  const initial = { doc, bodies: await bodiesOf(doc) };
+  const moved = await runTool(initial, 'edit_feature', { index: 2, values: { at: 30 } }, evaluate);
+  assert.ok(!moved.isError, moved.content);
+  assert.deepEqual(await verifyReferences(moved.state.doc, moved.state.bodies, evaluate), {
+    doc: moved.state.doc, changes: [], problems: [],
+  });
+
+  const flipped = await runTool(moved.state, 'edit_feature', { index: 2, values: { nx: -1, at: -30 } }, evaluate);
+  assert.equal(flipped.isError, true);
+  assert.match(flipped.content, /BAD_REFERENCE.*Split cap.*n2\.cut\.side1.*is gone/);
+  assert.deepEqual(flipped.state.doc, moved.state.doc);
+
+  const stale = structuredClone(moved.state.doc);
+  const source = stale.nodes[2];
+  assert.equal(source.kind, 'split');
+  source.normal = [-1, 0, 0];
+  source.at = -30;
+  const original = await evaluate(stale);
+  assert.ok(!original.ok && original.error.code === 'SELECTION');
+  const cold = await verifyReferences(stale, [], evaluate);
+  assert.deepEqual(cold.changes, []);
+  assert.deepEqual(cold.problems.map(p => [p.node, p.name, p.candidates]), [[3, cap, []]]);
+  const shell = cold.doc.nodes[3];
+  assert.equal(shell.kind, 'shell');
+  assert.deepEqual(shell.open, [cap]);
+  assert.equal(shell.suppressed, true);
+  assert.equal(shell.rematched, undefined);
+  assert.deepEqual((await bodiesOf(cold.doc)).map(body => body.key).sort(), ['b2_positive', 'b3']);
 });

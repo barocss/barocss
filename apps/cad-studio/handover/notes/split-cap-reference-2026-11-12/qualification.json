@@ -1,0 +1,101 @@
+{
+  "decision": "D790",
+  "tier": "SMALL",
+  "parent": "6402ac350a0f38735db57812da8ad4c2379e770c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/split-cap-reference-browser.mjs",
+    "cd apps/cad-studio && D790_SOURCE_FROZEN=1 node test/split-cap-reference-browser.mjs \"$EVIDENCE/desktop-before\"",
+    "cd apps/cad-studio && D790_SOURCE_FROZEN=1 node test/split-cap-reference-browser.mjs \"$EVIDENCE/desktop-before-2\"",
+    "cd apps/cad-studio && D790_SOURCE_FROZEN=1 node test/split-cap-reference-browser.mjs \"$EVIDENCE/desktop-after\"",
+    "cd apps/cad-studio && D790_SOURCE_FROZEN=1 node test/split-cap-reference-browser.mjs \"$EVIDENCE/desktop-after-2\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test references rematch api-verbs",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d790-split-cap",
+    "evidenceFolder": "d790-2026-11-12",
+    "attempts": [
+      {
+        "folder": "desktop-before",
+        "status": "FAIL",
+        "sha256": "5906826cc0c386f137770dc157aad32a7b16e212d81d7405a84c01759f776e00",
+        "detail": "The driver used the wrong field of the strict B-rep check report."
+      },
+      {
+        "folder": "desktop-before-2",
+        "status": "FAIL",
+        "sha256": "777e0b48f66b6159f8a6da2fd23777d7dfc9fa4b1754b2d65644345d684319d2",
+        "detail": "The standalone File Open substituted the exterior stock wall."
+      },
+      {
+        "folder": "desktop-after",
+        "status": "FAIL",
+        "sha256": "f956e4450528dc4778a4aa67ad7c520337f24df10bb5a163ad1b6517cb4bf052",
+        "detail": "The driver expected a held Shell to discard its stable passthrough key."
+      },
+      {
+        "folder": "desktop-after-2",
+        "status": "PASS",
+        "sha256": "61a0ff1c456d447508facf2f3225b029b613033d387d2cd96fd229f81ab42e91",
+        "detail": "The retained cap and held missing-cap flow both pass."
+      }
+    ],
+    "desktop": {
+      "status": "PASS",
+      "sha256": "61a0ff1c456d447508facf2f3225b029b613033d387d2cd96fd229f81ab42e91",
+      "frozenSources": 798,
+      "preparedInputSHA256": "49d387bdcc1d762e01270cecaa4bcb73e1450299802b65937322737bf6806e44",
+      "sourceSaveBytes": 1452,
+      "sourceSaveSHA256": "dc22d822625fad001a6277547ceb68319396152b6bed110adbe4a21b932a6d19",
+      "errors": 0,
+      "downloads": 0
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 65,
+      "fail": 0,
+      "skip": 0
+    },
+    "cap": "n2.cut.side1",
+    "wrongBaselineSubstitution": "n1.side1",
+    "nativeReversalRefusal": {
+      "code": "SELECTION",
+      "feature": "n3"
+    },
+    "cutsMm": [
+      24,
+      30
+    ],
+    "shellWallMm": 2,
+    "shellVolumesMm3": [
+      3768,
+      4632
+    ],
+    "shellCentroidsMm": [
+      [
+        11.089171974522293,
+        15,
+        5
+      ],
+      [
+        14.05699481865285,
+        15,
+        5
+      ]
+    ],
+    "heldReversalVolumesMm3": [
+      9000,
+      9000
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

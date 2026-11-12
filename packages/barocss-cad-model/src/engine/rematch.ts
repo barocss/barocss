@@ -57,6 +57,12 @@ function alike(a: Signature, b: Signature, edge: boolean): boolean {
   return (edge ? Math.abs(c) : c) >= SAME_DIRECTION;
 }
 
+/** A generated Split cap has a specific output role. A nearby stock face cannot replace it. */
+export function isSplitCapFace(nodes: readonly ModelNode[], name: string): boolean {
+  const match = /^(n\d+)\.cut\.(?:side\d+|top|bottom)(?:#\d+)?$/.exec(name);
+  return !!match && nodes[nodeIndexOf(nodes, match[1])]?.kind === 'split';
+}
+
 /** The names among `candidates` alike `old`, nearest first. */
 export function rankAlike(old: Signature, candidates: ReadonlyMap<string, Signature>, edge: boolean): string[] {
   return [...candidates].filter(([, s]) => alike(old, s, edge)).map(([name, s]) => ({ name, d: Math.hypot(s.at[0] - old.at[0], s.at[1] - old.at[1], s.at[2] - old.at[2]) })).sort((x, y) => x.d - y.d).map(x => x.name);
@@ -128,6 +134,11 @@ export async function rematchNames(prev: StudioDoc, next: StudioDoc, evaluate: (
     if (sameNames(old, now, what.edge)) continue;
     const list = (node as Record<string, unknown>)[what.key] as string[], out: string[] = [], rematched: Record<string, string> = { ...(node as { rematched?: Record<string, string> }).rematched };
     for (const name of list) {
+      if (!what.edge && isSplitCapFace(prev.nodes, name)) {
+        if (!now.has(name)) return { error: `[BAD_REFERENCE] Feature ${k}: the Split cap "${name}" is gone from its body after this edit.` };
+        out.push(name);
+        continue;
+      }
       const sig = old.get(name);
       if (!sig) { out.push(name); continue; }
       const m = matchSignature(sig, now, what.edge);

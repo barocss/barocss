@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D790 — preserve the generated Split cap on edit and File Open](notes/split-cap-reference-2026-11-12/README.md).
 - [D789 — keep the moved negative Split body’s own material and visibility](notes/split-side-material-2026-11-12/README.md).
 - [D788 — preserve the authored Split side through Move and project Open](notes/split-side-lifecycle-2026-11-12/README.md).
 - [D787 — wait for a viewport renderer before picking a model](notes/viewport-startup-picks-2026-11-12/README.md).

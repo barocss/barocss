@@ -45,6 +45,8 @@ A second desktop Chrome/WebGPU audit used an independent copy at `0c374f4e0aeb6f
 
 ## Source and retained evidence
 
+- [D790](../notes/split-cap-reference-2026-11-12/README.md) keeps one generated Split cap tied to its authored name in chat edits and standalone File Open. It holds the missing cap instead of applying a Shell to the stock wall.
+
 - [D708](../notes/external-mcp-stale-save-2026-11-11/README.md) protects the disk baseline of external MCP sessions, with a real two-process test and Studio Save/Open against the same file. Rows [04](../roadmap-rows/04.md), [12](../roadmap-rows/12.md) and [16](../roadmap-rows/16.md).
 
 - R01/R02: [project actions](../../src/storage/useProject.ts), [version UI](../../src/storage/VersionsPanel.tsx), [App](../../src/App.tsx); existing [Open ownership tests](../../test/project-open-ownership.test.ts), [Save ownership tests](../../test/late-save-ownership.test.ts) and [snapshot tests](../../test/storage-version-snapshot.test.ts). Open/Save guards do not prove delayed version-write safety.
