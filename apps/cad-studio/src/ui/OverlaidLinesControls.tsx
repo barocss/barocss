@@ -20,7 +20,7 @@ export function OverlaidLinesControls({ scan }: { scan: ReturnType<typeof useOve
   return <section aria-label="Overlaid lines"
       onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') event.stopPropagation(); }}>
     <div className="flex flex-wrap items-center gap-1.5">
-      <Button type="button" variant="outline" size="sm" onClick={scan.start}>Find overlaid lines</Button>
+      <Button type="button" variant="outline" size="sm" disabled={scan.dragging} onClick={scan.start}>Find overlaid lines</Button>
       {report ? <Button type="button" variant="ghost" size="sm" onClick={scan.close}>Close scan</Button> : null}
     </div>
     {report?.status === 'complete' ? <>

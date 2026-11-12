@@ -69,6 +69,7 @@ export interface ViewportPointerProps {
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
+  onSplineDragChange?(active: boolean): void;
   onCursor(p: Vec3 | null): void;
   /** Use projected triangle overlap for crossing boxes in the idle native Model view. */
   meshBoxCrossing?: boolean;
@@ -321,8 +322,13 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const splineCancelRef = useRef<() => void>(() => undefined);
   const listenForSketchKeys = () => {
     // (Capture phase: the drag's Escape is not also the app's.)
-    // While a spline drag is active every key is swallowed (Escape cancels it), so no app shortcut acts mid-drag.
-    const key = (e: KeyboardEvent) => { if (drag.current.mode !== 'spline') return; e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') splineCancelRef.current(); };
+    // The pointer owns the gesture from the press. Escape cancels it without leaving the sketch.
+    const key = (e: KeyboardEvent) => {
+      if (drag.current.mode !== 'spline' && !drag.current.splineArm) return;
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      if (e.key === 'Escape') splineCancelRef.current();
+    };
     // An Ellipse draft's Escape drops the draft only (not the whole sketch, which is the app's Escape).
     const esc = (e: KeyboardEvent) => { if (e.key !== 'Escape' || !ellipseDraft.current) return; e.stopImmediatePropagation(); e.preventDefault(); ellipseDraft.current = null; requestRef.current(); };
     window.addEventListener('keydown', key, true); window.addEventListener('keydown', esc, true);
@@ -540,6 +546,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const d = drag.current; if (d.mode !== 'spline' && !d.splineArm) return;
     if (d.mode === 'spline') liveShape.current = d.splineStart ?? null;
     drag.current = { mode: null, x: 0, y: 0, moved: true };
+    propsRef.current.onSplineDragChange?.(false);
     if (canvas.current) canvas.current.style.cursor = '';
     request();
   };
@@ -560,7 +567,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     // (D353: a down on a closed spline's handle end or fit point arms a drag; a release before it starts is the ordinary click.)
     const sk1 = propsRef.current.sketch, sd = e.button === 0 && !e.altKey && sk1?.tool === 'select' ? closedSplineOf(liveShape.current) : null;
     const sh = sd ? splineHandleHit(sd, sketchProject(sk1!.plane), x, y) : null;
-    if (sh) { drag.current = { mode: null, x, y, moved: false, x0: x, y0: y, splineArm: { hit: sh, pointerId: e.pointerId } }; return; }
+    if (sh) {
+      drag.current = { mode: null, x, y, moved: false, x0: x, y0: y, splineArm: { hit: sh, pointerId: e.pointerId } };
+      propsRef.current.onSplineDragChange?.(true);
+      return;
+    }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
@@ -699,6 +710,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
     if ((d.splineArm || d.mode === 'spline') && (d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
     drag.current = { mode: null, x: 0, y: 0, moved: false };
+    if (d.splineArm) propsRef.current.onSplineDragChange?.(false);
     const { x, y, w, h } = local(e);
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
@@ -709,6 +721,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       const same = !!cur && !!st && (cur === st || JSON.stringify(cur) === JSON.stringify(st));
       const changed = d.splineLastDef && st?.kind === 'polygon' && !sameSplineDef(st.spline!, d.splineLastDef);
       if (same && changed && d.splineLast) emit(d.splineLast); else liveShape.current = cur ?? null;
+      propsRef.current.onSplineDragChange?.(false);
       request(); return;
     }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey, e.pointerType === 'mouse'); request(); return; }

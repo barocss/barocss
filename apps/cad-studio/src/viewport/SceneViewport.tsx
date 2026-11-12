@@ -15,7 +15,7 @@ type ViewportProps = ComponentPropsWithoutRef<typeof Viewport>;
 export type ScenePickingActions = Pick<ViewportProps,
   'onPick' | 'onPickBody' | 'onPickChain' | 'onBoxSelect' | 'onContextMenu' | 'onPickProfile'>;
 export type SceneSketchActions = Pick<ViewportProps,
-  'onSketchShape' | 'onSketchPick' | 'onSketchBandPick' | 'onSketchTrim' | 'onDimClick' | 'onDimEdit' | 'onDimCommit' | 'pathGap' | 'overlaidLine'>;
+  'onSketchShape' | 'onSketchPick' | 'onSketchBandPick' | 'onSketchTrim' | 'onDimClick' | 'onDimEdit' | 'onDimCommit' | 'pathGap' | 'overlaidLine' | 'onSplineDragChange'>;
 
 export interface SceneViewportProps extends Omit<ViewportProps, 'instanceTransforms' | keyof ScenePickingActions | keyof SceneSketchActions> {
   poses: ScenePoseInputs;

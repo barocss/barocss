@@ -1,0 +1,71 @@
+{
+  "decision": "D830",
+  "tier": "SMALL",
+  "parent": "33d7e1a9100bfcdae277feb5740e33c2ea9e0344",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d830-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d830-overlaid-lines",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "cd apps/cad-studio && D830_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/baseline\" --spline-drag",
+    "cd apps/cad-studio && D830_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/desktop-1\" --spline-drag",
+    "gate.sh acquire heavy 600 d830-overlaid-lines-regressions",
+    "cd apps/cad-studio && D828_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/adjacent-regression\"",
+    "cd apps/cad-studio && D829_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/stored-id-regression\" --stored-ids",
+    "cd apps/cad-studio && D353_SOURCE_FROZEN=1 node test/spline-handle-drag-browser.mjs \"$EVIDENCE/spline-regression\"",
+    "gate.sh acquire heavy 600 d830-overlaid-lines-small",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test overlaid-lines trim.test sketchIds.test constraints.test spline-handle-drag.test",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/useOverlaidLines.ts apps/cad-studio/src/ui/OverlaidLinesControls.tsx apps/cad-studio/src/viewport/SceneViewport.tsx apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "git diff --check"
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "43cd8fef587c671ab04303e13fe3367077d7835a8f17a7c65fdcf4066b51933c",
+      "frozenSources": 811,
+      "pressedReportCount": 1,
+      "draggedMarkCount": 1,
+      "enterReportCount": 1
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "d31bf1cb11bf59d48edf7ad21579dd73587b05460b6340fb5de7bd55cbc1ef65",
+      "frozenSources": 811,
+      "pressedReportCount": 0,
+      "draggedMarkCount": 0,
+      "enterReportCount": 0,
+      "committedHandleDegrees": 60,
+      "rescannedSegments": 8,
+      "rescannedGroups": 1
+    },
+    "adjacent-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "a0411c042b49fd4e5e260fbc1fe2c643ed25d8d24db2632a748b7f4f323f47b3",
+      "frozenSources": 811
+    },
+    "stored-id-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "ec0fec20ee647ef9e9c23c9711adfd2d12e3812bd6d8fe08c7b43abc07cf0275",
+      "frozenSources": 811
+    },
+    "spline-regression": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "896fa5c87d379c76ae66e0adea20504751ddc58c9ec637388827366cab485b32",
+      "frozenSources": 1033,
+      "firstFailure": "locator.fill timed out after 30000 ms waiting for .palette input before entering Sketch"
+    }
+  },
+  "allDesktopRuns": { "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "studioPass": 49, "fail": 0, "skip": 0 },
+  "types": "PASS",
+  "scopedLint": "PASS",
+  "rootVisualReview": "PASS",
+  "productionBuild": "NOT_RUN"
+}

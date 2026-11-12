@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const storedIdMode = process.argv[3] === '--stored-ids';
+const dragMode = process.argv[3] === '--spline-drag';
 const pins = [
   'apps/cad-studio/test/overlaid-lines-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -10,13 +11,15 @@ const pins = [
   'apps/cad-studio/src/sketch/useOverlaidLines.ts',
   'apps/cad-studio/src/ui/OverlaidLinesControls.tsx',
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
+  'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'overlaid-lines', output: process.argv[2], envFrozen: storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
+  name: 'overlaid-lines', output: process.argv[2], envFrozen: dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: dragMode ? 'Retire the scan on spline pointer-down and prevent scans until release or cancellation.'
+    : storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
     : 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
-  limits: ['Ordinary desktop rectangles. The diagnostic reads straight segments and does not determine profile validity.'],
+  limits: ['Ordinary desktop rectangles and a closed spline. The diagnostic reads straight segments and does not determine profile validity.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
@@ -146,6 +149,93 @@ async function checkStoredIds(empty) {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkSplineDrag(empty) {
+  const fit = [[30, 0], [15, 20], [-15, 20], [-30, 0], [-15, -20], [15, -20]];
+  await f.tool('Spline', 'p');
+  await f.frame(fit);
+  for (const point of [...fit, fit[0]]) await f.worldClick(point);
+  await f.tool('Select', 's');
+  const handle = f.sketchPanel().getByLabel('Fit point 1 handle', { exact: true });
+  const find = button(scan(), 'Find overlaid lines');
+  const status = scan().getByRole('status');
+  const group = button(scan(), 'Group 1 · 2 segments');
+  const canvas = f.page.locator('canvas.vp-canvas');
+  const forward = () => f.page.locator('.vp-overlay circle.sk-handle-end').nth(1).evaluate(circle => {
+    const point = new DOMPoint(circle.cx.baseVal.value, circle.cy.baseVal.value).matrixTransform(circle.getScreenCTM());
+    return [point.x, point.y];
+  });
+  const inputState = async () => ({ disabled: await find.isDisabled(), reports: await status.count(), marks: await mark().count() });
+  const idle = { disabled: false, reports: 0, marks: 0 };
+  const busy = { ...idle, disabled: true };
+  const original = await handle.inputValue();
+  const originalControls = await controls();
+  assert.equal(original, '');
+
+  f.phase = 'retire the highlighted report while a real spline handle is held';
+  await beginScan(8, 1);
+  await group.click();
+  await mark().waitFor();
+  await find.focus();
+  const from = await forward();
+  const target = await f.screenOf([35, 5 * Math.sqrt(3)]);
+  await f.page.mouse.move(...from);
+  await f.page.mouse.down();
+  const armed = await inputState();
+  await f.page.mouse.move(...target, { steps: 12 });
+  assert.equal(await canvas.evaluate(el => el.style.cursor), 'grabbing');
+  const dragging = await inputState();
+  await f.snapshot('01-real-drag');
+  assert.equal(await handle.inputValue(), original);
+  await f.same(empty);
+  await f.page.keyboard.press('Escape');
+  await f.page.mouse.up();
+  const canceled = await inputState();
+  assert.equal(await handle.inputValue(), original);
+  await f.same(empty);
+  assert.deepEqual(await controls(), originalControls);
+
+  f.phase = 'attempt to start a scan by keyboard before the drag threshold';
+  if (await status.count()) await button(scan(), 'Close scan').click();
+  await find.focus();
+  await f.page.mouse.move(...await forward());
+  await f.page.mouse.down();
+  if (await find.isEnabled()) await find.focus();
+  await f.page.keyboard.press('Enter');
+  const attempted = await inputState();
+  await f.page.mouse.up();
+  const released = await inputState();
+  f.report.observations.push({ label: 'spline-pointer-ownership', armed, dragging, canceled, attempted, released });
+  assert.deepEqual(armed, busy, 'pointer-down must retire the report and disable scanning');
+  assert.deepEqual(dragging, busy, 'the live drag must keep the scan disabled');
+  assert.deepEqual(canceled, idle, 'Escape must restore scan access without restoring the report');
+  assert.deepEqual(attempted, busy, 'a keyboard activation while armed must not start a scan');
+  assert.deepEqual(released, idle, 'pointer-up before the drag threshold must restore scan access');
+
+  f.phase = 'commit a valid handle drag and check its first sketch Undo and Redo';
+  await beginScan(8, 1);
+  await f.page.mouse.move(...await forward());
+  await f.page.mouse.down();
+  await f.page.mouse.move(...target, { steps: 12 });
+  await f.page.mouse.up();
+  const committed = await handle.inputValue();
+  assert.ok(committed !== '' && Math.abs(Number(committed) - 60) <= 1, committed);
+  assert.deepEqual(await inputState(), idle);
+  await f.same(empty);
+  await beginScan(8, 1);
+  await f.page.keyboard.press('Meta+z');
+  assert.equal(await handle.inputValue(), original);
+  assert.deepEqual(await inputState(), idle);
+  await f.page.keyboard.press('Meta+Shift+z');
+  assert.equal(await handle.inputValue(), committed);
+  await beginScan(8, 1);
+  await group.click();
+  await mark().waitFor();
+  await f.snapshot('02-rescan-after-redo');
+  await f.same(empty);
+  f.report.observations.push({ label: 'spline-commit-history', original, committed, checked: 8, groups: 1 });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   f.phase = 'draw two adjacent rectangles through the actual desktop sketch tool';
   await f.newPage();
@@ -166,6 +256,7 @@ await f.run(async () => {
   const original = await controls();
   const graphics = await shapeGraphics();
   assert.equal(graphics.length, 2);
+  if (dragMode) { await checkSplineDrag(empty); return; }
 
   f.phase = 'scan and highlight the two original directions';
   await beginScan(8, 1);

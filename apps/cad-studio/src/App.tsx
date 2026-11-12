@@ -1471,7 +1471,7 @@ export function App() {
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch }),
-    pathGap: pathGap.input, overlaidLine: overlaidLines.highlight };
+    pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
