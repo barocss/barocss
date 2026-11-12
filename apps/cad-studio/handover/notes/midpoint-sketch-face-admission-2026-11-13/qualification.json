@@ -1,0 +1,91 @@
+{
+  "decision": "D888",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "ef38623a30b4767be4ac84c6fb6ccea1d6efe837",
+  "issue": 2371,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D888_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/midpoint-sketch-browser.mjs <external-evidence>/studio-run02 --admission",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-midpoint-plane plane sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs midpoint-sketch sketch-edit-identity named-sketch-guards",
+    "pnpm exec eslint apps/cad-studio/test/midpoint-sketch.test.ts",
+    "node --check apps/cad-studio/test/midpoint-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 98,
+    "studioPass": 39,
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "b51e98ab29bb4cc8bae185223ec67c50de3f0bcd92b0d99a8899e192203f6b02",
+    "quality": {
+      "status": "PASS",
+      "segmentsPerQuarter": [
+        4,
+        16
+      ],
+      "differentTriangleCounts": true,
+      "cylinderRadiusMm": 7,
+      "cylinderHeightMm": 8,
+      "nativeFrameZMm": 4
+    }
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Physical faceted support and body identity picks, source acceptance, prior bounds and native consumer."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "8d8576dedbaf405e095cabc7d93025cb6ba495e28b48f274e0709576a5466804",
+    "sourceManifestSHA256": "82c9326b2fe6f0150b62b12022c7638d386162867a32d98b69f66ce37e6c0238",
+    "frozenFiles": 840,
+    "snapshots": 12,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "firstAttempt": {
+      "status": "FAIL",
+      "phase": "initial browser navigation timeout before product assertion",
+      "receiptSHA256": "e8cfcd17d0f015ecec797c639606be47b9b97db8b61ec7bffc38202a75a28ce9"
+    },
+    "refused": [
+      "same-face toggle",
+      "three faces",
+      "two native bodies",
+      "two mesh faces",
+      "native and mesh"
+    ],
+    "nativeRecovery": "PASS",
+    "undoRedo": "PASS",
+    "fixtureSHA256": "fd051961ff6c938f6a9705760d9caa0aec96793f8f84599d6f65116e049278ae",
+    "frameZMm": 6.0004,
+    "profileCornersMm": [
+      [
+        44,
+        4
+      ],
+      [
+        50,
+        8
+      ]
+    ],
+    "volumeMm3": 72.00000000000004,
+    "nativeTolerance": 1e-9
+  },
+  "notRun": [
+    "direct raw mesh import",
+    "physical face and edge selection",
+    "curved/hidden/assembly admission",
+    "display body reorder",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

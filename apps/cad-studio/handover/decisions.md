@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D888 — verify native midpoint face admission in Studio](notes/midpoint-sketch-face-admission-2026-11-13/README.md).
 - [D887 — verify an oblique midpoint sketch in desktop Studio](notes/oblique-midpoint-sketch-2026-11-13/README.md).
 - [D886 — retire a placed evaluation notice with its source](notes/placed-evaluation-notice-ownership-2026-11-13/README.md).
 - [D885 — verify placed snap visibility and document replacement](notes/placed-snap-lifecycle-2026-11-13/README.md).

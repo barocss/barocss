@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rectanglePart } from '@barocss/cad-model/engine/doc';
+import { nativeMidpointPlane } from '@barocss/cad-model/app/nativeMidpointPlane';
+import { cylinderPart, rectanglePart } from '@barocss/cad-model/engine/doc';
 import { evaluatePart, partBreps } from '@barocss/cad-model/engine/evaluate';
 import { bodyMesh } from '@barocss/cad-model/engine/mesh';
 import { bindMidpointPick, midpointFaces } from '../src/app/midpointSketch';
@@ -34,4 +35,25 @@ test('a same-name merged planar display face lacks unique native provenance', ()
   assert.equal(topGroup.kind, 'plane');
   assert.ok(topGroup.exact);
   assert.equal(topGroup.nativePlaneName, undefined);
+});
+
+test('fresh cap picks resolve the same native midpoint at different display tessellation qualities', () => {
+  const doc = cylinderPart(7, 8);
+  const faceNames = ['n1.top', 'n1.bottom'];
+  const frame = { origin: [0, 0, 4], normal: [0, 0, 1], xAxis: [1, 0, 0] };
+  const counts = [];
+  for (const quality of [4, 16]) {
+    const result = evaluatePart(doc, quality, quality);
+    assert.ok(result.ok);
+    const [body] = result.bodies;
+    counts.push(body.mesh.indices.length / 3);
+    const faces = faceNames.map(name => ({ body: 0, face: body.mesh.faces.findIndex(face => face.nativePlaneName === name) }));
+    assert.ok(faces.every(pick => pick.face >= 0));
+    for (const pick of faces) bindMidpointPick(pick, doc, body);
+    const bound = midpointFaces({ doc, bodies: result.bodies, selection: { faces, edges: [], bodies: [] } });
+    assert.ok(bound);
+    assert.deepEqual(bound.faces.map(face => face.name), faceNames);
+    assert.deepEqual(nativeMidpointPlane(doc, bound.key, bound.faces), frame);
+  }
+  assert.ok(counts[1] > counts[0], counts.join(' vs '));
 });

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const oblique = process.argv[3] === '--oblique';
+const admission = process.argv[3] === '--admission';
 const pins = [
   'apps/cad-studio/test/midpoint-sketch-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -18,10 +19,11 @@ const pins = [
   'packages/barocss-cad-model/src/app/nativeMidpointPlane.ts',
 ];
 const f = await createFlow({
-  name: 'midpoint-sketch', envFrozen: oblique ? 'D887_SOURCE_FROZEN' : 'D862_SOURCE_FROZEN', output: process.argv[2],
+  name: 'midpoint-sketch', envFrozen: admission ? 'D888_SOURCE_FROZEN' : oblique ? 'D887_SOURCE_FROZEN' : 'D862_SOURCE_FROZEN', output: process.argv[2],
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Review two native face picks, then draw and extrude on their independent midpoint plane.',
-  limits: [oblique ? 'Exact oblique native caps and a near-parallel refusal on desktop.'
+  limits: [admission ? 'Two native stocks and a stored faceted mesh, with physical face selection on desktop.'
+    : oblique ? 'Exact oblique native caps and a near-parallel refusal on desktop.'
     : 'Fractional axial desktop stock. The native model tests cover oblique and invalid support separately.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -111,7 +113,7 @@ async function clickWorld(point, additive = false) {
   }
 }
 
-async function pick(view, additive = false, point = faces[view]) {
+async function pick(view, additive = false, point = faces[view], count = additive ? 2 : 1) {
   await button(f.page, 'View cube directions').click();
   await f.page.getByRole('menuitem', { name: view, exact: true }).click();
   await f.page.waitForFunction(name => {
@@ -119,7 +121,7 @@ async function pick(view, additive = false, point = faces[view]) {
     return labels.length === 1 && labels[0].textContent === name;
   }, view.toUpperCase());
   await clickWorld(point, additive);
-  await f.page.waitForFunction(count => window.__studioSelection.selection.faces.length === count, additive ? 2 : 1);
+  await f.page.waitForFunction(count => window.__studioSelection.selection.faces.length === count, count);
 }
 
 async function launch() {
@@ -310,12 +312,110 @@ async function checkOblique() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkAdmission() {
+  const mesh = {
+    id: 'n4', kind: 'mesh', name: 'Faceted tetrahedron', unit: 'mm', representation: 'facets',
+    positions: [-20, 0, 0, -10, 0, 0, -20, 10, 0, -20, 0, 10],
+    indices: [0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3],
+  };
+  const doc = { ...seed, nextId: 5, nodes: [
+    ...seed.nodes,
+    { kind: 'sketch', profile: 'rectangle', min: [52, 0], max: [62, 14], id: 'n2' },
+    { kind: 'extrude', sketch: 2, height: 4, id: 'n3' },
+    mesh,
+  ], outputs: { ...seed.outputs, b3: { node: 3, side: 'solid' }, b4: { node: 4, side: 'solid' } } };
+  const originals = await f.inspect('admission-original-bodies', doc);
+  assert.equal(originals.length, 3);
+  assert.ok(originals.every(body => body.valid));
+  await f.newPage();
+  await open('D888-face-admission.bcad', doc);
+  await frameStock();
+  const filter = button(f.page, 'Selection filter');
+  await filter.click();
+  await filter.getByText('Faces', { exact: true }).waitFor();
+
+  async function refuse(label, verifySelection) {
+    const before = await f.snapshot(label + '-input');
+    verifySelection(before.selection.selection);
+    await launch();
+    await f.waitToast(/select two distinct native planar faces on one visible solid/i);
+    await review().waitFor({ state: 'hidden' });
+    assert.equal(await f.sketchPanel().isVisible(), false);
+    unchanged(await f.snapshot(label + '-refused'), before);
+    await f.dismissToasts();
+  }
+
+  f.phase = 'refuse the same face toggled twice';
+  await pick('Top');
+  await pick('Top', true, faces.Top, 0);
+  await refuse('01-same-face', selection => assert.equal(selection.faces.length, 0));
+
+  f.phase = 'refuse three faces on one body';
+  await pick('Top');
+  await pick('Bottom', true);
+  await pick('Front', true, faces.Front, 3);
+  await refuse('02-three-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 0, 0]));
+
+  f.phase = 'refuse a face pair from different native bodies';
+  await pick('Top');
+  await pick('Top', true, [57, 7, 4]);
+  await refuse('03-two-native-bodies', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 1]));
+
+  f.phase = 'refuse two actual faceted mesh picks';
+  await pick('Top', false, [-17, 3, 4]);
+  await pick('Bottom', true, [-16, 2, 0]);
+  await refuse('04-faceted-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [2, 2]));
+
+  f.phase = 'refuse a native face and a faceted face';
+  await pick('Top');
+  await pick('Top', true, [-17, 3, 4]);
+  await refuse('05-native-and-facet', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 2]));
+
+  f.phase = 'recover with the same-body native pair and verify the separate result';
+  await pick('Top');
+  await pick('Bottom', true);
+  await readyReview();
+  await button(review(), 'Start sketch').click();
+  await f.sketchPanel().waitFor();
+  assert.equal(await f.page.getByLabel('Sketch plane', { exact: true }).inputValue(), 'midpoint');
+  await f.tool('Rectangle', 'r');
+  await clickWorld([44, 4, midpoint]);
+  await clickWorld([50, 8, midpoint]);
+  const finished = (await f.finishSketch('06-native-pair-finished')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 5), doc.nodes);
+  const sketch = finished.nodes[5];
+  assert.deepEqual(sketch.plane, { origin: [0, 0, midpoint], normal, xAxis });
+  assert.deepEqual(sketch.min, [44, 4]);
+  assert.deepEqual(sketch.max, [50, 8]);
+  assert.equal(sketch.association, undefined);
+  assert.equal(sketch.on, undefined);
+  await f.openExtrudeHud();
+  const solid = (await f.applyExtrude({ distance: 3, previous: finished, label: '07-admission-consumer' })).doc;
+  const result = await f.inspect('admission-consumer-native', solid);
+  assert.deepEqual(result.slice(0, 3), originals);
+  const made = result.find(body => body.id === 'n6');
+  assert.ok(made?.valid && made.corners.length === 8);
+  close(made.volume, 72);
+  for (const x of [44, 50]) for (const y of [4, 8]) for (const z of [midpoint, midpoint + 3]) {
+    assert.ok(made.corners.some(point => Math.hypot(point[0] - x, point[1] - y, point[2] - z) < 1e-9));
+  }
+  await f.undo();
+  await f.same(finished);
+  await f.redo();
+  await f.same(solid);
+  f.report.observations.push({ label: 'midpoint-admission', fixtureSHA256: sha256(Buffer.from(JSON.stringify(doc))),
+    refusals: ['same-face', 'three-faces', 'two-native-bodies', 'faceted-faces', 'native-and-facet'],
+    acceptedBody: 'b1', outputVolumeMm3: made.volume, nativeCornersMm: made.corners });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    if (admission) context.setDefaultNavigationTimeout(30000);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -324,6 +424,10 @@ await f.run(async () => {
     await context.addInitScript(holdRead);
     return context;
   };
+  if (admission) {
+    await checkAdmission();
+    return;
+  }
   if (oblique) {
     await checkOblique();
     return;
