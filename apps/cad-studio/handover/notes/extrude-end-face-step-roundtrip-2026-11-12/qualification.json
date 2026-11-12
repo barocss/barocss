@@ -1,0 +1,69 @@
+{
+  "decision": "D846",
+  "tier": "SMALL",
+  "parent": "68de4267d43c84647439ac2a6f6cdabd5af80d5c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d846-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d846-end-face-step",
+    "node --check apps/cad-studio/test/step-shown-variant-browser.mjs",
+    "cd apps/cad-studio && D846_SOURCE_FROZEN=1 node test/step-shown-variant-browser.mjs \"$EVIDENCE/desktop-1\" --end-face-round-trip",
+    "python3 -I apps/cad-studio/test/part21-prism-check.py \"$EVIDENCE/desktop-1/step-end-face.step\" \"$EVIDENCE/desktop-1/expected-step-geometry.json\"",
+    "python3 -I apps/cad-studio/test/part21-prism-check.py \"$EVIDENCE/desktop-1/step-end-face.step\" \"$EVIDENCE/desktop-1/expected-step-geometry.json\" --selftest",
+    "gate.sh acquire heavy 600 d846-end-face-step-regression",
+    "cd apps/cad-studio && D691_SOURCE_FROZEN=1 node test/step-shown-variant-browser.mjs \"$EVIDENCE/standalone-regression\" --part-round-trip",
+    "cd apps/cad-studio && D683_SOURCE_FROZEN=1 node test/step-shown-variant-browser.mjs \"$EVIDENCE/variant-regression\" --round-trip",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude step-profile-losses api-step-report step-units",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test step-export-preparation step-metadata document-file assembly-linked-faces",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "desktop": {
+    "renderer": "WebGPU",
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "aed6fa8db90309a513f8b2cb4b2bb926153701995f9938ece401a829c3150ec2",
+      "frozenSources": 356,
+      "workerSourceRevision": "d341cedd0fd8e247",
+      "capturedBytes": 10586,
+      "capturedSha256": "5c39664c80aa069dc5d9c39c108c21067e88b82c29f0c21bd79b02bb1d78be8d",
+      "samePreparedAndReopenedBytes": true,
+      "nativeHistoryLoss": "DISCLOSED",
+      "authoredDocumentAfterExport": "UNCHANGED",
+      "part21": {
+        "status": "PASS",
+        "schema": "AP214",
+        "units": "mm",
+        "entities": 261,
+        "products": 1,
+        "solidRecords": 2,
+        "closedShellRecords": 2,
+        "corners": 16,
+        "boundsAbsoluteToleranceMm": 1e-7,
+        "cornersAbsoluteToleranceMm": 1e-6,
+        "extrusionBounds": [[-100, 12, -7], [-70, 22, 3]],
+        "targetBounds": [[-70, 7, -12], [-65, 27, 8]],
+        "positiveControls": 2,
+        "negativeControlsDetected": 5,
+        "volume": "NOT_CALCULATED"
+      },
+      "studioSelfRead": {
+        "status": "PASS",
+        "authoredNodes": ["import"],
+        "solidCount": 2,
+        "volumeMm3": [3000, 2000],
+        "centroidMm": [[-85, 17, -2], [-67.5, 17, -2]],
+        "absoluteComparisonTolerance": 1e-6
+      }
+    },
+    "standalone-regression": { "status": "PASS", "exit": 0, "sha256": "c4093d1ad76bc1a65b3c5d6e99fa2a4582961dd838d8a66473ec304456906ddc", "frozenSources": 354 },
+    "variant-regression": { "status": "PASS", "exit": 0, "sha256": "7b73f4cdc482f9f86d314a721e88a3541861e42ce64d5584088802a379ef8b49", "frozenSources": 354 },
+    "allRuns": { "browserDownloads": 0, "pageErrors": 0, "consoleErrors": 0, "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] }
+  },
+  "focused": { "modelPass": 42, "studioPass": 33, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS"
+}

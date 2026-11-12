@@ -7,13 +7,15 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(mode === undefined || mode === '--round-trip' || mode === '--part-round-trip');
+assert.ok(mode === undefined || ['--round-trip', '--part-round-trip', '--end-face-round-trip'].includes(mode));
 const roundTrip = mode !== undefined;
-const standalone = mode === '--part-round-trip';
+const endFace = mode === '--end-face-round-trip';
+const standalone = mode === '--part-round-trip' || endFace;
 const profiles = {
   preparation: ['D678_SOURCE_FROZEN', 'D678 desktop STEP preparation uses Master, Tall and restored Master'],
   '--round-trip': ['D683_SOURCE_FROZEN', 'D683 Studio Export and fresh Open of the exact Tall STEP bytes'],
   '--part-round-trip': ['D691_SOURCE_FROZEN', 'D691 Studio Export and fresh Open of the D404 standalone box'],
+  '--end-face-round-trip': ['D846_SOURCE_FROZEN', 'D846 Studio Export and fresh Open of an edited associative YZ extrusion'],
 };
 const [envFrozen, qualification] = profiles[mode ?? 'preparation'];
 const repo = resolve(import.meta.dirname, '../../..');
@@ -31,6 +33,18 @@ function box(width, depth, height, parameters = {}) {
   };
 }
 const part = box(80, 50, 10);
+const endFacePlane = { origin: [-100, 12, -7], normal: [1, 0, 0], xAxis: [0, 1, 0] };
+const boundPart = {
+  format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+  nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-5, -5], max: [15, 15], plane: endFacePlane },
+    { id: 'n1', kind: 'extrude', sketch: 0, from: 20, height: 5 },
+    { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10], plane: endFacePlane },
+    { id: 'n3', kind: 'face-end-extrude', sketch: 2,
+      target: { body: { node: 1, side: 'solid' }, feature: 'n1', face: 'n1.bottom' } },
+  ],
+  outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
+};
 const master = {
   ...box(30, 12, { parameter: 'Height' }, { Height: 6 }),
   instances: [{ id: 'cap', name: 'Cap', doc: box(4, 3, 4), position: [10, 2, 8], rotation: [0, 0, 0] }],
@@ -95,19 +109,21 @@ print(json.dumps(dict(status='PASS', source=source, solids=len(solids), corners=
 `;
 
 const f = await createFlow({
-  name: standalone ? 'step-standalone-part' : 'step-shown-variant', envFrozen, output, oracleSource, qualification,
+  name: endFace ? 'step-end-face-part' : standalone ? 'step-standalone-part' : 'step-shown-variant', envFrozen, output, oracleSource, qualification,
   initialFiles: [
     'apps/cad-studio/test/model-rail-helper.mjs',
     'apps/cad-studio/test/step-shown-variant-browser.mjs',
     'packages/barocss-cad-model/src/assembly/variability.ts', 'packages/barocss-cad-model/src/engine/evaluate.ts',
     'packages/barocss-cad-model/src/engine/wireDoc.ts', 'packages/barocss-cad/src/io/step.ts',
+    ...(endFace ? ['packages/barocss-cad-model/src/engine/faceEndExtrude.ts', 'packages/barocss-cad-model/src/engine/part.ts'] : []),
     ...(roundTrip ? [
       graphReader, 'apps/cad-studio/src/files/stepExportPreparation.ts', 'apps/cad-studio/src/files/StepExportPanel.tsx',
       'apps/cad-studio/src/files/importedFile.ts', 'packages/barocss-cad/src/io/step-import.ts',
     ] : []),
   ],
   limits: [
-    standalone ? 'One standalone 80 × 50 × 10 mm sketch and extrude.' : 'Two boxes, one named variant and one distance mate.',
+    endFace ? 'Two standalone prismatic bodies from a qualified +X-normal bound end and its edited target.'
+      : standalone ? 'One standalone 80 × 50 × 10 mm sketch and extrude.' : 'Two boxes, one named variant and one distance mate.',
     roundTrip ? 'Real Export is intercepted at the local Blob boundary. Studio import is self-read evidence.' : 'Real AP214 preparation in memory.',
     'Independent readers check Part 21 graph, units and corners.',
   ],
@@ -300,16 +316,36 @@ async function openFixture(doc, stem) {
 }
 
 async function roundTripPart() {
-  const stem = 'step-part';
-  f.phase = 'Open D404 standalone box';
-  await openFixture(part, stem);
-  const analytic = [{ volume: 40000, centroid: [40, 25, 5] }];
-  const bounds = [{ min: [0, 0, 0], max: [80, 50, 10] }];
-  const sourceState = await f.bodies();
-  assert.equal(sourceState.bodies.length, 1);
-  assert.ok(Math.abs(sourceState.bodies[0].volume - analytic[0].volume) < 1e-6);
+  const stem = endFace ? 'step-end-face' : 'step-part';
+  const source = endFace ? boundPart : part;
+  f.phase = endFace ? 'Open a qualified bound YZ extrusion and move its target' : 'Open D404 standalone box';
+  await openFixture(source, stem);
+  let accepted = source;
+  if (endFace) {
+    const before = await f.doc();
+    await f.openFeatureEditor(1, 'target local start');
+    const editor = f.editor();
+    await editor.getByLabel('Start Z', { exact: true }).fill('30');
+    await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+    await f.changed(before);
+    await editor.waitFor({ state: 'hidden' });
+    accepted = { ...source, nodes: source.nodes.map((node, index) => index === 1 ? { ...node, from: 30 } : node) };
+    assert.deepEqual(await f.doc(), accepted);
+  }
+  const analytic = endFace
+    ? [{ volume: 3000, centroid: [-85, 17, -2] }, { volume: 2000, centroid: [-67.5, 17, -2] }]
+    : [{ volume: 40000, centroid: [40, 25, 5] }];
+  const bounds = endFace
+    ? [{ min: [-100, 12, -7], max: [-70, 22, 3] }, { min: [-70, 7, -12], max: [-65, 27, 8] }]
+    : [{ min: [0, 0, 0], max: [80, 50, 10] }];
+  const sourceState = await f.bodies(), sourceBodies = [...sourceState.bodies].sort((a, b) => b.volume - a.volume);
+  assert.equal(sourceBodies.length, analytic.length);
+  for (const [i, body] of sourceBodies.entries()) {
+    assert.ok(Math.abs(body.volume - analytic[i].volume) < 1e-6, body.volume);
+    analytic[i].centroid.forEach((value, axis) => assert.ok(Math.abs(body.centroid[axis] - value) < 1e-6));
+  }
 
-  f.phase = 'Prepare and export the standalone box';
+  f.phase = 'Prepare and export the current standalone part';
   const label = '01-part-step-preview';
   const { reply, losses, profile } = await prepareStep(label, 0);
   assert.match(profile, /no native editing history, semantic PMI or named datum system transfer/);
@@ -317,7 +353,7 @@ async function roundTripPart() {
   const bytes = await capturePreparedStep(stem, reply);
   const result = await f.runOracle({ text: bytes.toString('utf8'), boxes: bounds, losses, requiredLosses: ['feature history'] }, label);
   f.report.observations.push({ label, profile, result, replyId: reply.id, sha256: sha256(bytes) });
-  assert.deepEqual(await f.doc(), part);
+  assert.deepEqual(await f.doc(), accepted);
   await reopenExactStep(bytes, stem, bounds, analytic);
 }
 
