@@ -29,6 +29,7 @@ import { PathGapControls } from './sketch/PathGapControls';
 import { useOverlaidLines } from './sketch/useOverlaidLines';
 import { OverlaidLinesControls } from './ui/OverlaidLinesControls';
 import { useSketchActions } from './sketch/useSketchActions';
+import { clearConstraintInspection, createConstraintInspection } from './sketch/constraintInspection';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
@@ -370,6 +371,7 @@ export function App() {
   const [bodyDrag, setBodyDrag] = useState<{ matrix: Float64Array; settling: boolean } | null>(null);
   const previewFor = useRef<string | null>(null);
   const [sketch, setSketchState] = useState<SketchState | null>(null);
+  const [constraintInspection] = useState(createConstraintInspection);
   // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
   const sketchGeneration = useRef(0);
   const footprintRequest = useRef(0);
@@ -1925,10 +1927,35 @@ export function App() {
   // added once and calls the newest handler (set each render), so a key pressed right after a click sees
   // that click's selection, not the one before it (effects run only after the frame is painted).
   const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  const dismissInspectionRef = useRef<() => boolean>(() => false);
+  dismissInspectionRef.current = () => !help && !palette && !stepAsk && !workspaceModeExit.pending
+    && clearConstraintInspection(constraintInspection, sketch);
   useEffect(() => {
     const listen = (e: KeyboardEvent) => onKeyRef.current(e);
+    let dismissed = false;
+    let removing = false;
+    const constraintKeys = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing) return;
+      if (e.key === 'Escape') {
+        if (!e.repeat) dismissed = dismissInspectionRef.current();
+        if (!dismissed) return;
+      } else if (e.key === 'Enter') {
+        if (!e.repeat) {
+          removing = e.target instanceof Element && e.target.hasAttribute('data-remove-sketch-constraint');
+          return;
+        }
+        // The Remove button can unmount on keydown. Its repeats must not finish the sketch.
+        if (!removing) return;
+      } else return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    };
+    window.addEventListener('keydown', constraintKeys, true);
     window.addEventListener('keydown', listen);
-    return () => window.removeEventListener('keydown', listen);
+    return () => {
+      window.removeEventListener('keydown', constraintKeys, true);
+      window.removeEventListener('keydown', listen);
+    };
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
@@ -2349,7 +2376,7 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+      {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
@@ -2634,7 +2661,7 @@ export function App() {
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
         bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection}
-        ghost={sketchGhost} sketch={sketch} regions={regions} threads={threads} profiles={active ? [] : profiles}
+        ghost={sketchGhost} sketch={sketch} constraintInspection={constraintInspection} regions={regions} threads={threads} profiles={active ? [] : profiles}
         gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool}
         handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} contactLinks={contactShown && motionContact ? motionContact.links : undefined}
         render={rendering ? render : null} analysis={rendering ? null : viewAnalysis}

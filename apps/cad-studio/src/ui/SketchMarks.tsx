@@ -14,7 +14,7 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number, source: Polygon): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
   done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
@@ -33,7 +33,7 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, picked, hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
   const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map<string, XY>();
@@ -55,12 +55,21 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
     under.push(<polyline key={'ci' + j} points={ring(c.c, c.r).map(p => p.join(',')).join(' ')} className="sk-shape" />, <circle key={'cc' + j} cx={q[0]} cy={q[1]} r={2.5} className="sk-point" />);
   });
 
-  // Picked and hovered entities.
-  const mark = (p: SketchPick, cls: string) => {
-    if (p.kind === 'circle') { const c = circleOf(p); if (c) under.push(<polyline key={cls + 'c' + (p.done ? 'd' : '') + p.i} points={ring(c.c, c.r).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />); return; }
-    if (p.kind === 'point') { const q = pts[p.i]; if (q) under.push(<circle key={cls + 'p' + p.i} cx={q[0]} cy={q[1]} r={7} className={'sk-pick-point ' + cls} />); }
-    else if (p.i < n) under.push(<polyline key={cls + 'e' + p.i} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+  // Draw inspection first so the selected entities retain their own marks on top.
+  const mark = (p: SketchPick, cls: 'inspected' | 'hover' | 'on') => {
+    const entity = `${p.kind}:${p.done ? 'done:' : ''}${p.i}`;
+    const key = `${cls}:${entity}`;
+    if (p.kind === 'circle') {
+      const c = circleOf(p);
+      if (c) under.push(<polyline key={key} data-sketch-entity={entity} points={ring(c.c, c.r).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+    } else if (p.kind === 'point') {
+      const q = pts[p.i];
+      if (q) under.push(<circle key={key} data-sketch-entity={entity} cx={q[0]} cy={q[1]} r={cls === 'inspected' ? 10 : 7} className={'sk-pick-point ' + cls} />);
+    } else if (p.i >= 0 && p.i < n) {
+      under.push(<polyline key={key} data-sketch-entity={entity} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+    }
   };
+  inspected.forEach((p, index) => { if (!inspected.slice(0, index).some(q => samePick(p, q))) mark(p, 'inspected'); });
   if (hover && !picked.some(p => samePick(p, hover))) mark(hover, 'hover');
   picked.forEach(p => mark(p, 'on'));
 

@@ -1,12 +1,15 @@
 // The sketch panel's constraint section for a closed outline: what is picked, the constraints that can
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { roundCorner } from '@barocss/cad-model/sketch/corner';
 import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
-  type ConstraintKind, type Polygon, type SketchPick,
+  type ConstraintEntry, type ConstraintKind, type Polygon, type SketchPick,
 } from '@barocss/cad-model/sketch/rules';
+import type { SketchState } from '@barocss/cad-model/sketch/types';
+import { clearConstraintInspection, keepsDimensionDraft, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
+import { useStoreValue } from '../state/valueStore';
 import './constraints.css';
 
 const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }[] = [
@@ -17,12 +20,21 @@ const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }
 
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
 
-export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim }: {
-  shape: Polygon; picked: readonly SketchPick[];
-  onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string): void;
+export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, onPicked, onEditDim }: {
+  shape: Polygon; owner: SketchState; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
+  onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string | null): void;
 }) {
   const [refused, setRefused] = useState<string | null>(null);
   const [roundR, setRoundR] = useState(2);
+  const current = useStoreValue(inspection);
+  const inspectedId = current?.owner === owner ? current.entry.id : null;
+  useLayoutEffect(() => () => { clearConstraintInspection(inspection, owner); }, [inspection, owner]);
+  // The last input to enter a row owns the preview. The other input cannot clear it.
+  const enter = (entry: ConstraintEntry, input: ConstraintInspection['input']) => inspection.set({ owner, entry, input });
+  const leave = (entry: ConstraintEntry, input: ConstraintInspection['input']) => {
+    const active = inspection.get();
+    if (active?.owner === owner && active.entry.id === entry.id && active.input === input) inspection.set(null);
+  };
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
   const point = picked.find(p => p.kind === 'point'), circle = picked.find(p => p.kind === 'circle');
@@ -60,13 +72,23 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
     <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length + (ell ? 1 : 0)}</div>
-    <div role="list" aria-label="Constraints">
+    <div role="list" aria-label="Constraints" data-sketch-dimension-focus
+      onBlur={e => { if (owner.editDim && !keepsDimensionDraft(e.relatedTarget)) onEditDim(null); }}>
       {ell && <div className="cons-row" role="listitem"><div className="kv">Ellipse<b>{2 * ELLIPSE_POINTS} tangent arcs</b></div></div>}
       {entries.map(c => {
         const hit = c.involves.some(p => picked.some(q => samePick(p, q)));
-        return <div className={'cons-row' + (hit ? ' hit' : '')} role="listitem" key={c.id}>
+        return <div className={'cons-row' + (hit ? ' hit' : '') + (inspectedId === c.id ? ' inspecting' : '')}
+          role="listitem" tabIndex={0} key={`${c.id}:${c.label}:${c.detail}`} data-constraint-id={c.id}
+          onPointerEnter={() => enter(c, 'pointer')} onPointerLeave={() => leave(c, 'pointer')}
+          onFocus={() => enter(c, 'focus')}
+          onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) leave(c, 'focus'); }}
+          onKeyDown={e => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.stopPropagation();
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}>
           <div className="kv">{c.label}<b>{c.detail}</b></div>
-          <button type="button" className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
+          <button type="button" data-remove-sketch-constraint className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
             title={c.removable ? 'Remove this constraint' : undefined} onClick={() => onShape(removeConstraint(s, c.id))}>×</button>
         </div>;
       })}

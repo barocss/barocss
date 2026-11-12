@@ -10,6 +10,7 @@ import { ellipseMatches, type EllipseDef } from '@barocss/cad-model/sketch/ellip
 import { applyEllipse, ellipseConstraintRows } from './ellipsePanel';
 import { liveBand } from '@barocss/cad-model/sketch/band';
 import { ConstraintTools } from './ConstraintTools';
+import type { ConstraintInspectionStore } from '../sketch/constraintInspection';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,7 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, toolLabel, error, toolControls, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; toolLabel: string; error: string | null; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, constraintInspection, toolLabel, error, toolControls, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; constraintInspection: ConstraintInspectionStore; toolLabel: string; error: string | null; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
@@ -173,7 +174,7 @@ export function SketchPanel({ sketch, toolLabel, error, toolControls, onShape, o
                 title="Same centre" onClick={() => togglePair(s, 'concentric', pair)}>◎</button></div>;
           })}
         </div></>}
-      {isSettled(s) && <ConstraintTools shape={s} picked={sketch.picked ?? NONE} onShape={onShape}
+      {isSettled(s) && <ConstraintTools shape={s} owner={sketch} inspection={constraintInspection} picked={sketch.picked ?? NONE} onShape={onShape}
         onPicked={picked => onUi?.({ picked })} onEditDim={editDim => onUi?.({ editDim })} />}
       {constraints.length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {constraints.length}</div>

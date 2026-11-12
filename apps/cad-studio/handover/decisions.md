@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D856 — show the entities of a sketch constraint from its row](notes/constraint-row-inspection-2026-11-13/README.md).
 - [D855 — use native circular edge centres for sketch snapping](notes/native-circle-centre-snaps-2026-11-13/README.md).
 - [D854 — preserve Offset direction on a split circle](notes/split-circle-offset-direction-2026-11-12/README.md).
 - [D853 — project an orthogonal solid’s material footprint to a sketch](notes/orthogonal-material-footprint-2026-11-12/README.md).

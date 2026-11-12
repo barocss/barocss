@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from 'react';
+import { keepsDimensionDraft } from '../sketch/constraintInspection';
 
 type ArcMode = 'radius' | 'diameter';
 export type DimensionAxis = 'a' | 'h' | 'v';
@@ -48,8 +49,8 @@ export function InlineSketchDimension({ at, value, label, driving, arc, onConfir
   }
 
   return (
-    <div className="dim-editor" style={{ left: at[0] - 42, top: at[1] - 13 }}
-      onKeyDown={onKeyDown} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) onClose(); }}>
+    <div className="dim-editor" data-sketch-dimension-focus style={{ left: at[0] - 42, top: at[1] - 13 }}
+      onKeyDown={onKeyDown} onBlur={event => { if (!keepsDimensionDraft(event.relatedTarget)) onClose(); }}>
       <input className="dim-edit" type="number" step="any" autoFocus value={entry.text}
         aria-label={inputLabel} title={`${inputLabel}${arc ? ' (mm)' : ''}${driving ? '' : ' · Enter adds it as a driving dimension'}${onAxis ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         onFocus={event => event.currentTarget.select()}

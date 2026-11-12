@@ -5,6 +5,12 @@
 .vp-overlay .sk-pick-edge.hover { stroke-width: 4; opacity: 0.4; }
 .vp-overlay .sk-pick-point { fill: none; stroke: var(--accent); stroke-width: 2.5; }
 .vp-overlay .sk-pick-point.hover { opacity: 0.5; }
+.vp-overlay .sk-pick-edge.inspected, .vp-overlay .sk-pick-point.inspected {
+  stroke: #8fb8ff; stroke-dasharray: 7 5; stroke-linecap: butt; opacity: 1; pointer-events: none;
+}
+.vp-overlay .sk-pick-edge.inspected { stroke-width: 8; }
+:root[data-theme='light'] .vp-overlay .sk-pick-edge.inspected,
+:root[data-theme='light'] .vp-overlay .sk-pick-point.inspected { stroke: #2f6fd6; }
 .vp-overlay .dim-line, .vp-overlay .dim-ext { stroke: #8fb8ff; stroke-width: 1.2; }
 .vp-overlay .dim-ext { opacity: 0.7; }
 .vp-overlay .dim-arrow { fill: #8fb8ff; }
@@ -40,6 +46,8 @@
 .cons-row { display: flex; align-items: center; gap: 6px; min-height: 22px; }
 .cons-row .kv { flex: 1; }
 .cons-row.hit .kv { color: var(--accent); }
+.cons-row.inspecting { background: var(--accent-soft); }
+.cons-row:focus-visible { outline: 1px solid currentColor; outline-offset: -1px; }
 .cons-row .x { width: 20px; height: 20px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; font: 500 13px var(--mono); line-height: 1; padding: 0; }
 .cons-row .x:hover { background: var(--warn-soft); color: var(--warn); }
 .cons-row .x.off { visibility: hidden; }

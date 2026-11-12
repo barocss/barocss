@@ -1,0 +1,17 @@
+# D856 — Inspect a sketch constraint from its row
+
+P1, rows 09, 15 and 16. FEATURE. A pointer or keyboard focus on a constraint row shows its existing `involves` entities as dashed blue marks. The last input to enter a row owns the inspection. Leaving that row by the owning input clears the inspection. Selected entities retain their existing marks above it. The store owns the current sketch object and clears on sketch replacement or panel unmount. Shape, solver, document and public APIs are unchanged.
+
+| Result | Check |
+| --- | --- |
+| PASS | Actual desktop Studio maps Parallel to edges 1 and 3, Equal length to edges 1 and 2, and Fixed to point 3. The projected endpoints and point centres match within 0.02 CSS px. The second sketch has the same `rule:0` and highlights only point 4. |
+| PASS | Edge 4 stays selected while focus supersedes hover. Ordinary viewport hover continues. Inspections preserve the document, history, dirty state, solver rank and DOF. Across the measured sequence and the 1,000 ms autosave window, App renders, Worker requests, file writes and storage writes each increase by zero. |
+| PASS | An inline draft of 31.25 mm survives row hover, keyboard focus, focus on Remove and return to the editor. The first Escape and its repeat clear only inspection. The next press closes the editor. Leaving the editor and constraint list clears the draft. A failed perpendicular application retains its error through inspection. |
+| PASS | Enter and Space on a row leave the sketch open. Pointer, Enter and Space on the existing Remove control each remove one relation. Held Enter does not Finish after that row unmounts. First Undo restores the row and Redo removes it again. Reindexing, tool change and Escape/Cancel clear inspection. |
+| PASS | Finish, same-context File Open and New part clear an active inspection. Extrude of the primary polygon at 8 mm produces one body of 5,760 mm³. The original polygon, rule recipe and side IDs agree with the source. Browser-project Save writes 2,346 bytes. Fresh File Open and re-edit restore the original relation targets. |
+| FAIL | Four earlier browser attempts used a feature locator on a free sketch, extruded the newest free sketch without explicit selection, tried to recreate an attached project, or used an old-page locator. The final driver corrects those harness errors. The initial Studio suite command also used the wrong working directory for seven existing fixtures. It passes from the Studio package directory. |
+| PASS | Studio 74/74, Model 241/241, both type checks, scoped lint, browser driver syntax and production build. |
+| FAIL | Full App.tsx lint reports the same unused `_k` on the parent and current source. There are no new App.tsx lint diagnostics. |
+| NOT_RUN | Parent browser run, mobile, additional browser engines, light-theme interaction, circle and linked-association browser cases, glyph hit-testing and full repository suites. |
+
+The independent FEATURE audit found two draft ownership defects and identified a held-Enter hazard. The final browser verifies all three corrections. The root also reviewed the Equal, Fixed and overlapping selected/inspected marks. No schema, kernel, dependency or layout redesign follows from [#2307](https://github.com/barocss/barocss/issues/2307). Initial scenarios remain **8/10**. Whole CAD and core readiness remain **NOT_MEASURED**. [Commands and receipt digests](qualification.json).

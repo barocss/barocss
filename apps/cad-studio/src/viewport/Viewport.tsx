@@ -30,6 +30,8 @@ import type { CageValidation } from '@barocss/cad';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
 import { drawSketchOverlay, fmtLen, type SketchBandCache } from './sketchOverlay';
+import { createConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
+import { useStoreValue } from '../state/valueStore';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { banding, cutting, picking, useViewportPointerInput, type ViewportHover, type ViewportPointerProps } from './viewportPointerInput';
 
@@ -81,7 +83,10 @@ export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: nu
  */
 export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
+const NO_CONSTRAINT_INSPECTION = createConstraintInspection();
+
 interface Props extends ViewportPointerProps, MarkHandlers {
+  constraintInspection?: ConstraintInspectionStore;
   overlaidLine?: OverlaidLine;
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
@@ -321,6 +326,7 @@ function printViewportProps(source: Props, projection: ReturnType<typeof project
 
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
   countRender('Viewport');
+  const inspected = useStoreValue(sourceProps.constraintInspection ?? NO_CONSTRAINT_INSPECTION);
   const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
     [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.top, sourceProps.printDisplay?.printed]);
   const printSel = useMemo(() => projection ? printSelection(sourceProps.selection, projection) : null, [sourceProps.selection, projection]);
@@ -791,6 +797,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
       overlaidLine: props.overlaidLine,
+      inspected: inspected?.owner === sk && drag.current.mode !== 'spline' ? inspected.entry.involves : undefined,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;

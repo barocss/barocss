@@ -55,6 +55,7 @@ interface SketchOverlayInputs {
   extensionGuide?: readonly P2[];
   pathGap?: PathGapDraft;
   overlaidLine?: OverlaidLine;
+  inspected?: readonly SketchPick[];
   bandCache: RefObject<SketchBandCache | null>;
   picking: boolean;
   cutting: boolean;
@@ -65,7 +66,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, inspected, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -147,7 +148,7 @@ export function drawSketchOverlay({
     items.push(...bezierMarks('bz', s.poles, P, false));
   } else if (s?.kind === 'polygon') {
     const pts = s.points.map(p => P(p[0], p[1])); const cur = draft.cursor;
-    const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
+    const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], inspected, hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
       onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit }) : null;
     const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
     const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
