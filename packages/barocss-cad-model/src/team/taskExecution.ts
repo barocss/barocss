@@ -25,14 +25,16 @@ export interface TaskContext {
 export interface TaskWorkerContext extends TaskContext { worker: string }
 type TaskSubmissionPin = { taskId: string; specRevision: string; inputDigest: string };
 export type TaskSubmission = TaskSubmissionPin & (
-  { heightMm: number; widthMm?: never; diameterMm?: never } |
-  { widthMm: number; heightMm?: never; diameterMm?: never } |
-  { diameterMm: number; heightMm?: never; widthMm?: never }
+  { heightMm: number; widthMm?: never; depthMm?: never; diameterMm?: never } |
+  { widthMm: number; heightMm?: never; depthMm?: never; diameterMm?: never } |
+  { depthMm: number; heightMm?: never; widthMm?: never; diameterMm?: never } |
+  { diameterMm: number; heightMm?: never; widthMm?: never; depthMm?: never }
 );
 
 export function taskSubmissionForDimension(pin: TaskSubmissionPin, field: BoundTask['writes']['field'], valueMm: number): TaskSubmission {
   if (field === 'diameter') return { ...pin, diameterMm: valueMm };
   if (field === 'width') return { ...pin, widthMm: valueMm };
+  if (field === 'depth') return { ...pin, depthMm: valueMm };
   return { ...pin, heightMm: valueMm };
 }
 
@@ -44,6 +46,7 @@ export function readTaskSubmission(value: unknown): TaskSubmission | undefined {
   const { taskId, specRevision, inputDigest } = value;
   if (Object.hasOwn(value, 'heightMm') && typeof value.heightMm === 'number') return { taskId, specRevision, inputDigest, heightMm: value.heightMm };
   if (Object.hasOwn(value, 'widthMm') && typeof value.widthMm === 'number') return { taskId, specRevision, inputDigest, widthMm: value.widthMm };
+  if (Object.hasOwn(value, 'depthMm') && typeof value.depthMm === 'number') return { taskId, specRevision, inputDigest, depthMm: value.depthMm };
   if (Object.hasOwn(value, 'diameterMm') && typeof value.diameterMm === 'number') return { taskId, specRevision, inputDigest, diameterMm: value.diameterMm };
 }
 

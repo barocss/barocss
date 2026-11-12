@@ -5,7 +5,7 @@ import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import { verifyProtectedTaskChecks } from '@barocss/cad-model/team/taskExecution';
-import { compileTaskPlan, taskDimensionEdit, type BoundTask, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { compileTaskPlan, isTaskDimension, taskDimensionEdit, type BoundTask, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, requirementEvidenceRevision, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
@@ -55,7 +55,7 @@ function isCheckpoint(value: unknown): value is TaskCheckpoint {
   const { scope } = value;
   return id(value.runId) && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision > 0 &&
     id(value.taskId) && id(value.operationId) && sha(value.specRevision) && sha(value.candidateDigest) && id(value.proposalId) &&
-    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && (scope.field === 'height' || scope.field === 'width' || scope.field === 'diameter') &&
+    id(scope.occurrence) && !scope.occurrence.includes('/') && id(scope.feature) && isTaskDimension(scope.field) &&
     nativeRef(value.from) && nativeRef(value.accepted) && value.from.sha256 !== value.accepted.sha256;
 }
 
@@ -148,7 +148,7 @@ export async function verifyTaskCheckpoint(checkpoint: NonNullable<Awaited<Retur
   const instance = checkpoint.doc.instances?.find(instance => instance.id === part);
   const approvalAt = checkpoint.doc.proposals?.find(proposal => proposal.id === proposalId)?.decided?.at;
   if (!instance || !approvalAt) return refusal('The approved occurrence or decision is missing.');
-  const kind = scope.field === 'diameter' ? 'hole' : scope.field === 'width' ? 'sketch' : 'extrude';
+  const kind = scope.field === 'diameter' ? 'hole' : scope.field === 'height' ? 'extrude' : 'sketch';
   const occurrence: CheckpointReview['occurrence'] = { feature: scope.feature,
     kind, definition: instance.part, pattern: instance.pattern, approvalAt };
   const review: CheckpointReview = { taskId, revision, proposalId, occurrence, before: result.before, approved };

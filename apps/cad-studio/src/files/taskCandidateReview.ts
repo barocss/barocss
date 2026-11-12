@@ -2,7 +2,7 @@ import type { Evaluate } from '@barocss/cad-model/chat/toolKit';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readTaskSubmission, taskSubmissionValue, verifyProtectedTaskChecks, verifyTaskGeometry, type TaskCandidate, type TaskSubmission } from '@barocss/cad-model/team/taskExecution';
-import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
+import { compileTaskPlan, isTaskDimension, taskDimensionEdit, taskTarget, type TaskPlanRequest } from '@barocss/cad-model/team/taskPlan';
 import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
 import { canonical } from '@barocss/cad-model/util/revision';
@@ -45,7 +45,7 @@ function isReceipt(value: unknown): value is CandidateReviewReceipt {
   if (!isObj(value) || Object.keys(value).length !== 8 || !isObj(value.plan) || !isObj(value.baseline) ||
       !isObj(value.scope) || !isObj(value.submission)) return false;
   const { baseline, scope } = value, submission = readTaskSubmission(value.submission);
-  if (!submission || (scope.field !== 'height' && scope.field !== 'width' && scope.field !== 'diameter')) return false;
+  if (!submission || !isTaskDimension(scope.field)) return false;
   const dimension = taskSubmissionValue(submission, scope.field);
   return id(value.runId) && id(value.attemptId) && typeof value.revision === 'number' &&
     Number.isSafeInteger(value.revision) && value.revision > 0 && sha(value.candidateDigest) &&

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D777 — edit rectangle depth in a local worker run](notes/local-rectangle-depth-task-2026-11-12/README.md).
 - [D776 — verify CAD React failure recovery and frame retirement](notes/cad-react-worker-frame-retirement-2026-11-12/README.md).
 - [D775 — verify CAD React props and the returned Studio edit](notes/cad-react-props-viewer-studio-edit-2026-11-12/README.md).
 - [D774 — measure Studio drag cadence and retained geometry](notes/studio-drag-cadence-and-resources-2026-11-12/README.md).

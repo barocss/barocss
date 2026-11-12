@@ -1,6 +1,7 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { holeDiameterRequirementMm } from '@barocss/cad-model/chat/spec';
+import { taskAxis } from '@barocss/cad-model/team/taskPlan';
 import { inspectLocalHeightPlan } from '@barocss/cad-model/team/localHeightPlan';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
@@ -16,7 +17,7 @@ function criterion(req: Requirement, { field, feature }: TaskRunReplanPin): bool
     return face === feature + '.side0' || (isObj(face) && face.feature === feature && face.role === 'side0');
   }
   return check.unit === 'mm' && check.query.fn === 'bbox'
-    && check.query.axis === (field === 'width' ? 'x' : 'z') && check.query.body === undefined;
+    && check.query.axis === taskAxis(field) && check.query.body === undefined;
 }
 
 /** Preserve the accepted geometry and history while replanning the selected occurrence's edited requirements. */

@@ -1,7 +1,7 @@
 import type { TaskNativeFinding } from '@barocss/cad-model/team/taskExecution';
 import { digestOf } from '@barocss/cad-model/util/digest';
 import { isObj } from '@barocss/cad-model/util/guards';
-import type { BoundTask } from '@barocss/cad-model/team/taskPlan';
+import { isTaskDimension, type BoundTask } from '@barocss/cad-model/team/taskPlan';
 
 export const MAX_TASK_RUN_NATIVE_BYTES = 16 * 1024 * 1024;
 
@@ -152,7 +152,7 @@ export function sameTaskRunCheckpoint(a: TaskRunCheckpointPin, b: TaskRunCheckpo
 
 function isTaskRunReplanPin(value: unknown): value is TaskRunReplanPin {
   return isObj(value) && Object.keys(value).length === 4 && label(value.attemptId) && label(value.occurrence)
-    && label(value.feature) && (value.field === 'height' || value.field === 'width' || value.field === 'diameter');
+    && label(value.feature) && isTaskDimension(value.field);
 }
 
 export function isTaskRunReplanSelection(value: unknown): value is TaskRunReplanSelection {
@@ -240,18 +240,22 @@ const number = (value: unknown): value is number => typeof value === 'number' &&
 function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
   if (!isObj(value) || value.id !== occurrence || typeof value.requirementId !== 'string' || !value.requirementId
     || !number(value.toleranceMm) || value.toleranceMm < 0) return null;
-  const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, currentDiameterMm, diameterMm, toleranceMm } = value;
+  const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, currentDepthMm, depthMm, currentDiameterMm, diameterMm, toleranceMm } = value;
   const shared = { id: occurrence, requirementId, toleranceMm };
   const hasHeight = currentHeightMm !== undefined || heightMm !== undefined;
   const hasWidth = currentWidthMm !== undefined || widthMm !== undefined;
+  const hasDepth = currentDepthMm !== undefined || depthMm !== undefined;
   const hasDiameter = currentDiameterMm !== undefined || diameterMm !== undefined;
-  if (!hasWidth && !hasDiameter
+  if (!hasWidth && !hasDepth && !hasDiameter
     && number(currentHeightMm) && currentHeightMm > 0 && number(heightMm) && heightMm > 0)
     return { ...shared, currentHeightMm, heightMm };
-  if (!hasHeight && !hasDiameter
+  if (!hasHeight && !hasDepth && !hasDiameter
     && number(currentWidthMm) && currentWidthMm > 0 && number(widthMm) && widthMm > 0)
     return { ...shared, currentWidthMm, widthMm };
-  if (!hasHeight && !hasWidth
+  if (!hasHeight && !hasWidth && !hasDiameter
+    && number(currentDepthMm) && currentDepthMm > 0 && number(depthMm) && depthMm > 0)
+    return { ...shared, currentDepthMm, depthMm };
+  if (!hasHeight && !hasWidth && !hasDepth
     && number(currentDiameterMm) && currentDiameterMm > 0 && number(diameterMm) && diameterMm > 0)
     return { ...shared, currentDiameterMm, diameterMm };
   return null;

@@ -16,9 +16,9 @@ export interface TaskRequest {
   readonly holder: string;
   readonly occurrence: string;
   readonly feature: string;
-  readonly capability: 'extrusion-height' | 'rectangle-width' | 'hole-diameter';
+  readonly capability: 'extrusion-height' | 'rectangle-width' | 'rectangle-depth' | 'hole-diameter';
   readonly units: 'mm';
-  readonly frame: 'part-local-z' | 'part-local-x';
+  readonly frame: 'part-local-z' | 'part-local-x' | 'part-local-y';
   readonly dependsOn?: readonly string[];
 }
 export interface TaskPlanRequest {
@@ -30,11 +30,12 @@ export interface TaskPlanRequest {
   readonly protectedOccurrences?: readonly string[];
 }
 export interface TaskPlanError { error: { code: string; message: string } }
+export type TaskDimension = 'height' | 'width' | 'depth' | 'diameter';
 export interface BoundTask extends TaskRequest {
   readonly dependsOn: readonly string[];
   readonly inputDigest: string;
   readonly reads: Readonly<{ occurrence: string; requirements: readonly string[]; interfaces: readonly string[]; holeFace?: string }>;
-  readonly writes: Readonly<{ occurrence: string; feature: string; field: 'height' | 'width' | 'diameter' }>;
+  readonly writes: Readonly<{ occurrence: string; feature: string; field: TaskDimension }>;
   readonly verification: Readonly<{ native: 'requirements'; oracle: 'rectangular-prism'; relativeTolerance: number }>;
   readonly checks: readonly Requirement[];
   readonly blockers: readonly string[];
@@ -52,8 +53,20 @@ export interface TaskPlan {
   readonly protectedOccurrences?: readonly string[];
 }
 
-export const taskField = (capability: TaskRequest['capability']): BoundTask['writes']['field'] =>
-  ({ 'extrusion-height': 'height', 'rectangle-width': 'width', 'hole-diameter': 'diameter' } as const)[capability];
+const taskCapabilities = {
+  'extrusion-height': { field: 'height', frame: 'part-local-z' },
+  'rectangle-width': { field: 'width', frame: 'part-local-x' },
+  'rectangle-depth': { field: 'depth', frame: 'part-local-y' },
+  'hole-diameter': { field: 'diameter', frame: 'part-local-z' },
+} as const;
+
+export const isTaskCapability = (capability: unknown): capability is TaskRequest['capability'] =>
+  typeof capability === 'string' && Object.hasOwn(taskCapabilities, capability);
+export const taskField = (capability: TaskRequest['capability']): TaskDimension => taskCapabilities[capability].field;
+export const isTaskDimension = (field: unknown): field is TaskDimension =>
+  field === 'height' || field === 'width' || field === 'depth' || field === 'diameter';
+export const taskAxis = (field: TaskDimension): 'x' | 'y' | 'z' | undefined =>
+  ({ height: 'z', width: 'x', depth: 'y', diameter: undefined } as const)[field];
 
 /** The only authored change allowed by the local extrusion-height task. */
 export function taskHeightEdit(doc: StudioDoc, instance: PartInstance, index: number, height: number): { doc: StudioDoc; local: StudioDoc } {
@@ -111,10 +124,13 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   }
   if (doc.units !== 'mm' || part.units !== 'mm') return error('WRONG_UNIT', 'The assembly and part must use mm.');
   const nodes = part.nodes, [sketch, extrusion, hole] = nodes;
-  const dimension = taskField(task.capability ?? 'extrusion-height');
-  const index = dimension === 'width' ? 0 : dimension === 'diameter' ? 2 : 1;
+  const capability = task.capability ?? 'extrusion-height';
+  if (!isTaskCapability(capability)) return error('UNSUPPORTED_CAPABILITY', 'Unsupported task capability.');
+  const dimension = taskField(capability);
+  const planar = dimension === 'width' || dimension === 'depth';
+  const index = planar ? 0 : dimension === 'diameter' ? 2 : 1;
   if (!featureId(task.feature) || nodes.filter(n => n.id === task.feature).length !== 1 || nodes[index]?.id !== task.feature) {
-    const feature = dimension === 'width' ? 'rectangle sketch' : dimension === 'diameter' ? 'Hole feature' : 'extrusion';
+    const feature = planar ? 'rectangle sketch' : dimension === 'diameter' ? 'Hole feature' : 'extrusion';
     return error('WRONG_TARGET', `${instance.id}/${task.feature} must name the authored ${feature}.`);
   }
   if ((nodes.length !== 2 && nodes.length !== 3) || nodes.some(n => !featureId(n.id) || n.suppressed || n.held)
@@ -133,7 +149,7 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   if (!positive(shape.width) || !positive(shape.depth) || !positive(shape.width * shape.depth * extrusion.height)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} has nonfinite volume.`);
   }
-  if (dimension === 'width' && hole) return error('UNSUPPORTED_PROFILE', `${instance.id} needs a solid rectangle without holes for a width task.`);
+  if (planar && hole) return error('UNSUPPORTED_PROFILE', `${instance.id} needs a solid rectangle without holes for a ${dimension} task.`);
   if (hole) {
     if (hole.kind !== 'hole' || hole.parent?.node !== 1 || hole.parent.side !== 'solid'
       || !xy(hole.center) || !positive(hole.radius) || !positive(2 * hole.radius)
@@ -151,7 +167,7 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   if (Object.entries(part.outputs).some(([id, ref]) => id !== key || ref.node !== leaf.node || ref.side !== leaf.side)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} must expose its final solid as the only output.`);
   }
-  const value = dimension === 'width' ? shape.width : dimension === 'diameter' ? 2 * shape.hole!.radius : extrusion.height;
+  const value = planar ? shape[dimension] : dimension === 'diameter' ? 2 * shape.hole!.radius : extrusion.height;
   return { instance, index, shape, height: extrusion.height, value, body: key, ...(hole && { holeFace: `${hole.id}.side0` }) };
 }
 
@@ -174,21 +190,26 @@ export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclu
     return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
       args: { index, values: { dia: value } }, shape: { ...shape, hole: { ...hole, radius } }, height: target.height };
   }
-  const sketch = node;
-  const maxX = shape.minX + value, width = maxX - shape.minX;
-  if (sketch.kind !== 'sketch' || sketch.profile !== 'rectangle' || !positive(width) || width === shape.width
-    || shape.minX + width !== maxX || !positive(width * shape.depth * target.height)
-    || Math.abs(width - value) > task.verification.relativeTolerance * Math.max(1, value))
-    return error('TASK_VALUE', 'The requested width cannot be represented by this rectangle.');
+  const sketch = node, field = task.writes.field;
+  const coordinate = field === 'width' ? 0 : 1;
+  const origin = field === 'width' ? shape.minX : shape.minY;
+  const endpoint = origin + value, extent = endpoint - origin;
+  const editedShape = { ...shape, [field]: extent };
+  if (sketch.kind !== 'sketch' || sketch.profile !== 'rectangle' || !positive(extent) || extent === shape[field]
+    || origin + extent !== endpoint || !positive(editedShape.width * editedShape.depth * target.height)
+    || Math.abs(extent - value) > task.verification.relativeTolerance * Math.max(1, value))
+    return error('TASK_VALUE', `The requested ${field} cannot be represented by this rectangle.`);
   const outsideTolerance = task.checks.find(req => req.hard && req.check.query.fn === 'bbox'
-    && req.check.query.axis === 'x' && !meets(width, req.check).ok);
-  if (outsideTolerance) return error('TASK_REQUIRED_CHECK', `The authored width does not satisfy ${outsideTolerance.id}.`);
-  const feature = { ...sketch, max: [maxX, sketch.max[1]] as typeof sketch.max };
+    && req.check.query.axis === taskAxis(field) && !meets(extent, req.check).ok);
+  if (outsideTolerance) return error('TASK_REQUIRED_CHECK', `The authored ${field} does not satisfy ${outsideTolerance.id}.`);
+  const max: typeof sketch.max = [...sketch.max];
+  max[coordinate] = endpoint;
+  const feature = { ...sketch, max };
   const reason = checkNode(feature, [], instance.doc.parameters);
   if (reason) return error('UNSUPPORTED_PROFILE', reason);
   const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? feature : node) };
   return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
-    args: { index, feature }, shape: { ...shape, width }, height: target.height };
+    args: { index, feature }, shape: editedShape, height: target.height };
 }
 
 const briefFields = (brief: Brief | undefined) => Object.fromEntries(BRIEF_FIELDS
@@ -297,7 +318,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
   for (const gap of briefGaps(combined)) if (gap.field === 'purpose' || gap.field === 'process' || gap.field === 'material') {
     blockers.push(`brief:${gap.field}:${gap.why}`);
   }
-  const dimension = taskField(request.capability), axis = dimension === 'width' ? 'x' : dimension === 'height' ? 'z' : undefined;
+  const dimension = taskField(request.capability), axis = taskAxis(dimension);
   let hardAxis = false, diameterChecks = 0, low = 0, high = Infinity;
   for (const req of checks) {
     const invalid = checkRequirement(req);
@@ -391,10 +412,10 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
   for (const task of request.tasks) {
     if (!isObj(task) || !only(task, ['id', 'holder', 'occurrence', 'feature', 'capability', 'units', 'frame', 'dependsOn'])
       || !name(task.id) || !name(task.holder) || !name(task.occurrence) || !name(task.feature)) return error('BAD_TASK', 'Supply task, holder, occurrence, and feature IDs.');
-    if (task.capability !== 'extrusion-height' && task.capability !== 'rectangle-width' && task.capability !== 'hole-diameter')
-      return error('UNSUPPORTED_CAPABILITY', `${task.id} must use extrusion-height, rectangle-width, or hole-diameter.`);
+    if (!isTaskCapability(task.capability))
+      return error('UNSUPPORTED_CAPABILITY', `${task.id} must use extrusion-height, rectangle-width, rectangle-depth, or hole-diameter.`);
     if (task.units !== 'mm') return error('WRONG_UNIT', `${task.id} must use mm.`);
-    const requiredFrame = task.capability === 'rectangle-width' ? 'part-local-x' : 'part-local-z';
+    const requiredFrame = taskCapabilities[task.capability].frame;
     if (task.frame !== requiredFrame) return error('WRONG_FRAME', `${task.id} must use ${requiredFrame}.`);
     if (tasks.has(task.id)) return error('DUPLICATE_TASK', `Task ID ${task.id} is repeated.`);
     if (owned.has(task.occurrence)) return error('WRITE_CONFLICT', `More than one task writes ${task.occurrence}.`);

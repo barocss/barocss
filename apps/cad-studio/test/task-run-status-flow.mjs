@@ -29,8 +29,11 @@ export function taskRunTerminal(f, run) {
   return { callCli, approve };
 }
 
-export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false, widthMode = false }) {
-  const baseHeight = widthMode ? 5 : 6;
+export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, launch, source, saved, savedBytes, openFile, startRequests, directCheckpoint = false, widthMode = false, depthMode = false, project }) {
+  const planar = depthMode
+    ? { label: 'Depth', values: [10, 14], volumeChange: 400, size: [20, 14, 5] }
+    : widthMode ? { label: 'Width', values: [20, 24], volumeChange: 200, size: [24, 10, 5] } : null;
+  const baseHeight = planar ? 5 : 6;
   const run = launch.directory, locator = { runKey: launch.runKey, runId: launch.runId };
   const { callCli, approve } = taskRunTerminal(f, run);
   const durable = async () => {
@@ -114,14 +117,15 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   assert.equal(await openApprovedButton.count(), 0);
   const initialPosts = startRequests.length;
   assert.equal(initialPosts, 3);
-  if (widthMode) {
-    f.phase = 'verify the width candidate preserves the depth, height and sibling';
+  if (planar) {
+    f.phase = 'verify the rectangle candidate preserves its other extents and sibling';
+    const [before, after] = planar.values;
     await pick(firstRow, 'p1').click();
-    await review.getByText('Width · 20 mm → 24 mm', { exact: true }).waitFor();
-    await review.getByText('Volume change · +200 mm³', { exact: true }).waitFor();
-    await placedSizes([24, 10, 5], [12, 8, 3]);
+    await review.getByText(planar.label + ' · ' + before + ' mm → ' + after + ' mm', { exact: true }).waitFor();
+    await review.getByText('Volume change · +' + planar.volumeChange + ' mm³', { exact: true }).waitFor();
+    await placedSizes(planar.size, [12, 8, 3]);
     await f.same(source);
-    await f.snapshot('12-rectangle-width-preview');
+    await f.snapshot('12-rectangle-' + planar.label.toLowerCase() + '-preview');
   }
   await pick(firstRow, 'p2').click();
   const oldPin = launch.tasks[1].review;
@@ -211,9 +215,10 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   await openApproved(afterApproval, 'base-approved');
   await checkpoint.waitFor();
   await bounds(baseHeight, 3);
-  if (widthMode) {
-    await placedSizes([24, 10, 5], [12, 8, 3]);
-    assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), ['Fail · 20 mm', 'Pass · 24 mm']);
+  if (planar) {
+    await placedSizes(planar.size, [12, 8, 3]);
+    assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), planar.values.map((value, i) =>
+      (i === 0 ? 'Fail' : 'Pass') + ' · ' + value + ' mm'));
   }
   const baseline = await f.doc();
   assert.deepEqual(baseline.instances.map(part => part.doc.nodes[1].height), [baseHeight, 3]);
@@ -328,11 +333,72 @@ export async function taskRunStatusFlow({ f, origin, firstRow, duplicateRow, lau
   await openApproved(latest, 'both-approved');
   await bounds(baseHeight, 4);
   assert.deepEqual(await checkpoint.getByRole('cell').allTextContents(), ['Fail · 3 mm', 'Pass · 4 mm']);
-  if (widthMode) await placedSizes([24, 10, 5], [12, 8, 4]);
+  if (planar) await placedSizes(planar.size, [12, 8, 4]);
   assert.deepEqual(await savedBytes(), saved);
   assert.equal(startRequests.length, initialPosts);
   assert.deepEqual(await durable(), finished);
   await f.snapshot('11-both-terminal-approved');
+  if (depthMode) {
+    f.phase = 'save and reopen the approved depth result as a native Studio project document';
+    const doc = await f.doc(), expected = structuredClone(source.instances);
+    expected[0].doc.nodes[0].max[1] = 11;
+    expected[1].doc.nodes[1].height = 4;
+    assert.deepEqual(doc.instances, expected);
+    const button = (scope, name) => scope.getByRole('button', { name, exact: true });
+    const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+    const files = panel.getByRole('list', { name: 'Project documents', exact: true });
+    if (!(await panel.isVisible())) await button(f.page, 'Project and versions').click();
+    const name = 'depth-approved.bcad';
+    await f.page.getByRole('textbox', { name: 'File name', exact: true }).fill('depth-approved');
+    await button(f.page, 'Save').click();
+    await files.getByText(name, { exact: true }).waitFor();
+    const native = await savedBytes(name);
+    assert.deepEqual(JSON.parse(native), doc);
+    await f.page.reload();
+    await f.page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
+    await f.ready();
+    assert.notDeepEqual(await f.doc(), doc);
+    if (!(await panel.isVisible())) await button(f.page, 'Project and versions').click();
+    await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+    await button(panel, 'Project in this browser').click();
+    await button(files, 'Open ' + name).click();
+    await f.same(doc);
+    await placedSizes(planar.size, [12, 8, 4]);
+    assert.deepEqual(await savedBytes(name), native);
+    assert.deepEqual(await savedBytes(), saved);
+    assert.deepEqual(await durable(), finished);
+    const reopened = await f.snapshot('13-fresh-depth-project-open');
+    const rectangles = await f.inspect('depth-native', reopened.doc, 'rectangle-native-evidence');
+    f.report.observations.push({ depthMm: [10, 14], fixedWidthMm: 20, fixedHeightMm: 5,
+      finalPlacedSizesMm: [planar.size, [12, 8, 4]], nativeProjectReopened: true, rectangles });
+    await f.runOracle({ rectangles, document: reopened.doc }, 'depth-native');
+
+    f.phase = 'edit the reopened native depth in Studio and preserve the saved approval';
+    await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Base' }).click();
+    const instance = f.page.getByRole('complementary', { name: 'Instance', exact: true });
+    await button(instance, 'Edit part').click();
+    const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+    await banner.waitFor();
+    await f.same(doc.instances[0].doc);
+    await f.openFeatureEditor(1, 'approved rectangle extrusion');
+    const depth = f.editor().getByRole('spinbutton', { name: 'Depth', exact: true });
+    assert.equal(Number(await depth.inputValue()), 14);
+    await depth.fill('15');
+    await button(f.editor(), 'Apply').click();
+    const revised = structuredClone(doc.instances[0].doc);
+    revised.nodes[0].max[1] = 12;
+    await f.same(revised);
+    await f.closeEditor();
+    await button(banner, 'Finish').click();
+    await banner.waitFor({ state: 'hidden' });
+    await placedSizes([20, 15, 5], [12, 8, 4]);
+    const edited = await f.doc();
+    assert.deepEqual(edited.instances, [{ ...doc.instances[0], doc: revised }, doc.instances[1]]);
+    assert.deepEqual(await savedBytes(name), native);
+    assert.deepEqual(await durable(), finished);
+    await f.snapshot('14-native-depth-edited');
+    f.report.observations.push({ nativeStudioDepthEditMm: [14, 15], savedApprovalUnchanged: true });
+  }
   if (widthMode) {
     f.phase = 'open the historical height-only checkpoint from D622';
     assert.ok(process.env.D623_LEGACY_CHECKPOINT);

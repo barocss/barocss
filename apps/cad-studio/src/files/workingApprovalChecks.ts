@@ -32,7 +32,7 @@ export function hasWorkingRepairFailure(review: CheckpointReview, report: Requir
     const req = row.requirement;
     if (!req?.hard || req.basis !== 'stated' || (requirementId !== undefined && req.id !== requirementId) ||
         req.check.op !== '==' || req.check.query.fn !== 'bbox' || req.check.query.body !== undefined || req.check.unit !== 'mm' ||
-        (req.check.query.axis !== 'x' && req.check.query.axis !== 'z') || row.result.verdict !== 'fail' ||
+        (req.check.query.axis !== 'x' && req.check.query.axis !== 'y' && req.check.query.axis !== 'z') || row.result.verdict !== 'fail' ||
         row.result.number === null || !isCurrentRequirement(row, report.part, report.revision)) return false;
     const prior = review.approved.evidence.find(before => before.requirement?.id === req.id);
     return !!prior && canonical(prior.requirement) === canonical(req)

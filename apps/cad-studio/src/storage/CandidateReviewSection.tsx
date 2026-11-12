@@ -17,7 +17,7 @@ export function CandidateReviewSection({ review, shown, available, toggle, decid
     catch (error) { setError(error instanceof Error ? error.message : 'Could not record the candidate decision.'); }
     finally { setDeciding(undefined); }
   }
-  const dimension = { height: 'Height', width: 'Width', diameter: 'Diameter' }[review.field];
+  const dimension = { height: 'Height', width: 'Width', depth: 'Depth', diameter: 'Diameter' }[review.field];
   const volume = review.preview.volumeChange;
   const delta = volume === null ? null : Math.round(volume * 1000) / 1000;
   return <section className="my-2 text-[11px]" aria-label="Worker candidate review">

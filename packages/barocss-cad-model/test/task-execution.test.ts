@@ -92,12 +92,17 @@ test('D627 a protected sibling must pass the native check both before review and
   assert.equal(digestOf(state.doc), plan.baselineDigest);
 });
 
-test('D623 a width task edits only the plain rectangle X extent and refuses unsupported width inputs', async () => {
+for (const [field, axis, coordinate, title, target] of [
+  ['width', 'x', 0, 'Width', 24],
+  ['depth', 'y', 1, 'Depth', 14],
+] as const) test(`A ${field} task edits only the local ${axis} extent and refuses unsupported inputs`, async () => {
+  const current = field === 'width' ? 20 : 10;
+  const dimension = field === 'width' ? 'widthMm' : 'depthMm';
   const doc = assembly();
   delete doc.interfaces;
   const [base, lid] = doc.instances!;
   base.doc = { ...rectanglePart(20, 10, 5), requirements: [
-    { ...height('width', 24), check: { ...height('width', 24).check, query: { fn: 'bbox', axis: 'x' } } },
+    { ...height(field, target), check: { ...height(field, target).check, query: { fn: 'bbox', axis } } },
     height('fixed-height', 5),
   ] };
   lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 4)] };
@@ -108,39 +113,53 @@ test('D623 a width task edits only the plain rectangle X extent and refuses unsu
   const inspection = inspectLocalHeightPlan(doc, ['p1', 'p2'], identity);
   assert.ok(!('error' in inspection));
   assert.deepEqual(inspection.issues, []);
-  assert.deepEqual(inspection.plan.tasks.map(task => [task.feature, task.writes.field]), [['n0', 'width'], ['n1', 'height']]);
-  assert.deepEqual(inspection.targets[0], { id: 'p1', requirementId: 'width', currentWidthMm: 20, widthMm: 24, toleranceMm: 0.001 });
+  assert.deepEqual(inspection.plan.tasks.map(task => [task.feature, task.writes.field]), [['n0', field], ['n1', 'height']]);
+  assert.deepEqual(inspection.targets[0], { id: 'p1', requirementId: field, [`current${title}Mm`]: current, [dimension]: target, toleranceMm: 0.001 });
   const request = { ...inspection.request, policyRevision };
+  const [planarTask, otherTask] = request.tasks;
+  for (const [change, code] of [
+    [{ frame: axis === 'x' ? 'part-local-y' : 'part-local-x' }, 'WRONG_FRAME'],
+    [{ feature: 'n1' }, 'WRONG_TARGET'],
+  ] as const) {
+    refuses(compileTaskPlan(doc, { ...request, tasks: [{ ...planarTask, ...change }, otherTask] }), code);
+  }
   const { plan, state, context } = setup(doc, request);
-  const width = plan.tasks[0];
-  const pin = { taskId: width.id, specRevision: plan.specRevision, inputDigest: width.inputDigest };
-  const workerContext = { ...context, worker: width.holder };
-  const neverEvaluate = async () => { throw new Error('Invalid width task reached the evaluator'); };
-  refuses(await buildTaskCandidate(plan, state, { ...pin, heightMm: 24 }, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
-  const hidden = Object.defineProperty({ ...pin }, 'widthMm', { value: 24, enumerable: false }) as typeof pin & { widthMm: number };
+  const task = plan.tasks[0];
+  assert.equal(task.frame, `part-local-${axis}`);
+  const pin = { taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest };
+  const workerContext = { ...context, worker: task.holder };
+  const neverEvaluate = async () => { throw new Error('Invalid planar task reached the evaluator'); };
+  refuses(await buildTaskCandidate(plan, state, { ...pin, heightMm: target }, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  const wrongDimension = taskSubmissionForDimension(pin, field === 'depth' ? 'width' : 'depth', target);
+  refuses(await buildTaskCandidate(plan, state, wrongDimension, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  const mixedDimensions = { ...pin, widthMm: target, depthMm: target } as unknown as Parameters<typeof buildTaskCandidate>[2];
+  refuses(await buildTaskCandidate(plan, state, mixedDimensions, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
+  const hidden = Object.defineProperty({ ...pin }, dimension, { value: target, enumerable: false }) as Parameters<typeof buildTaskCandidate>[2];
   refuses(await buildTaskCandidate(plan, state, hidden, workerContext, neverEvaluate), 'TASK_SUBMISSION_MISMATCH');
-  refuses(await buildTaskCandidate(plan, state, { ...pin, widthMm: 20 }, workerContext, neverEvaluate), 'TASK_VALUE');
-  const candidate = await buildTaskCandidate(plan, state, { ...pin, widthMm: 24 }, workerContext, evaluate);
+  refuses(await buildTaskCandidate(plan, state, taskSubmissionForDimension(pin, field, current), workerContext, neverEvaluate), 'TASK_VALUE');
+  const candidate = await buildTaskCandidate(plan, state, taskSubmissionForDimension(pin, field, target), workerContext, evaluate);
   assert.ok(!('error' in candidate), JSON.stringify(candidate));
-  assert.deepEqual(candidate.geometry, { sizeMm: [24, 10, 5], volumeMm3: 1200, centroidMm: [15, 7, 2.5] });
+  assert.deepEqual(candidate.geometry, field === 'width'
+    ? { sizeMm: [24, 10, 5], volumeMm3: 1200, centroidMm: [15, 7, 2.5] }
+    : { sizeMm: [20, 14, 5], volumeMm3: 1400, centroidMm: [13, 9, 2.5] });
   const decision = bindTaskDecision(candidate, true, userToken(at));
   assert.ok(!('error' in decision));
   const accepted = await applyTaskDecision(decision, state, workerContext, evaluate);
   assert.ok(!('error' in accepted), JSON.stringify(accepted));
-  assert.deepEqual(accepted.doc.instances![0].doc.nodes, [{ ...sketch, max: [27, 12] }, base.doc.nodes[1]]);
+  assert.deepEqual(accepted.doc.instances![0].doc.nodes, [{ ...sketch, max: field === 'width' ? [27, 12] : [23, 16] }, base.doc.nodes[1]]);
   assert.deepEqual(accepted.doc.instances![1], lid);
   assert.deepEqual(sketch.max, [23, 12]);
 
   const shifted = structuredClone(doc), shiftedSketch = shifted.instances![0].doc.nodes[0];
   assert.ok(shiftedSketch.kind === 'sketch' && shiftedSketch.profile === 'rectangle');
-  shiftedSketch.min = [1e9, 0];
-  shiftedSketch.max = [1e9 + 20, 10];
+  shiftedSketch.min[coordinate] = 1e9;
+  shiftedSketch.max[coordinate] = 1e9 + current;
   shifted.instances![0].doc.requirements![0].check.value = 1e-10;
   const unrepresentable = inspectLocalHeightPlan(shifted, ['p1', 'p2'], identity);
   assert.ok(!('error' in unrepresentable));
   assert.equal(unrepresentable.issues[0]?.code, 'TASK_VALUE');
-  shiftedSketch.min = [1e8, 0];
-  shiftedSketch.max = [1e8 + 20, 10];
+  shiftedSketch.min[coordinate] = 1e8;
+  shiftedSketch.max[coordinate] = 1e8 + current;
   shifted.instances![0].doc.requirements![0].check.value = 1.1;
   shifted.instances![0].doc.requirements![0].check.tol = 0;
   const outsideTolerance = inspectLocalHeightPlan(shifted, ['p1', 'p2'], identity);
@@ -156,6 +175,26 @@ test('D623 a width task edits only the plain rectangle X extent and refuses unsu
   withHole.instances![0].doc = withNode(withHole.instances![0].doc,
     { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [8, 7], radius: 1 });
   refuses(inspectLocalHeightPlan(withHole, ['p1', 'p2'], identity), 'UNSUPPORTED_PROFILE');
+});
+
+test('D777 automatic depth planning preserves in-tolerance width and height', () => {
+  const doc = assembly();
+  delete doc.interfaces;
+  const [base, lid] = doc.instances!;
+  base.doc = { ...rectanglePart(20, 10, 5), requirements: [
+    { ...height('depth', 14), check: { ...height('depth', 14).check, query: { fn: 'bbox', axis: 'y' } } },
+    { ...height('width', 20.0005), check: { ...height('width', 20.0005).check, query: { fn: 'bbox', axis: 'x' } } },
+    height('fixed-height', 5.0005),
+  ] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+  const inspection = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspection), JSON.stringify(inspection));
+  assert.deepEqual(inspection.issues, []);
+  assert.deepEqual(inspection.targets, [{ id: 'p1', requirementId: 'depth', currentDepthMm: 10, depthMm: 14, toleranceMm: 0.001 }]);
+  assert.deepEqual(inspection.plan.protectedOccurrences, ['p2']);
+
+  base.doc.requirements![1].check.value = 21;
+  refuses(inspectLocalHeightPlan(doc, ['p1'], identity), 'CONFLICTING_REQUIREMENT');
 });
 
 test('D584 two scoped native candidates, one exact user decision and native readback', async () => {

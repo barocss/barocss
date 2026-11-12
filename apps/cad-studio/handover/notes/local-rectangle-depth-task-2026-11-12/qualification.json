@@ -1,0 +1,50 @@
+{
+  "decision": "D777",
+  "tier": "FULL interface",
+  "parent": "702e8202de8c5daaaaeeef3971d54cb2bbc702ba",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "cd apps/cad-studio && D777_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified\" --depth",
+    "cd apps/cad-studio && D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/width-regression\" --width",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d777-2026-11-12",
+    "legacyCheckpointSHA256": "07b28ae1d74457808faf557f69650f0cae3275eecb941accc2091575350a5e43",
+    "frozenSources": [
+      835,
+      835
+    ],
+    "receiptSHA256": [
+      "04931d621230bc2d43c43c2fe854a3203070b945379a51d80f2565a5f8b105a2",
+      "0a67772fb2dfd9829b49080cf9543b3f51bd674b74af32cba7a4d72c8a656aef"
+    ],
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 21,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 20,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "depth-edits-x",
+      "depth-loses-fixed-axis-tolerance"
+    ]
+  }
+}

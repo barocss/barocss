@@ -19,9 +19,10 @@ interface LocalTaskRun {
 
 export function localRunTargets(targets: ReturnType<typeof deriveLocalRunPlan>['targets']): LocalTaskRun['tasks'] {
   return targets.map(target => {
-    const { id, diameterMm, widthMm, heightMm } = target;
+    const { id, diameterMm, widthMm, depthMm, heightMm } = target;
     if (diameterMm !== undefined) return { id, valueMm: diameterMm, field: 'diameter' };
     if (widthMm !== undefined) return { id, valueMm: widthMm, field: 'width' };
+    if (depthMm !== undefined) return { id, valueMm: depthMm, field: 'depth' };
     return { id, valueMm: heightMm, field: 'height' };
   });
 }
