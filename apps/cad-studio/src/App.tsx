@@ -497,7 +497,7 @@ export function App() {
   const [notice, setToast] = useState<(FriendlyError & {
     action?: { label: string; run(): void };
     bodyCopy?: true;
-    documentSource?: { doc: StudioDoc; name?: string; placed?: { view: StudioDoc; workerSession: number } };
+    documentSource?: { doc: StudioDoc; name?: string; evaluated?: StudioDoc; placed?: { view: StudioDoc; workerSession: number } };
   }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
     clipboard.current = null;
@@ -778,13 +778,6 @@ export function App() {
   const variants = useVariants(evalDoc), shownDoc = variants.shown; shownVariant.current = variants.showing;
   const { resetDocumentDraft } = variants;
   const shownDocNow = useRef(shownDoc); shownDocNow.current = shownDoc;
-  const noticeSource = notice?.documentSource, placedNotice = noticeSource?.placed;
-  const noticeExpired = !!noticeSource && (noticeSource.doc !== doc
-    || (noticeSource.name !== undefined && noticeSource.name !== fileName)
-    || (!!placedNotice && (placedNotice.view !== shownDoc || placedNotice.workerSession !== workerSession)));
-  useEffect(() => {
-    if (noticeExpired) setToast(current => current === notice ? null : current);
-  }, [noticeExpired, notice]);
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -797,6 +790,14 @@ export function App() {
     catch { return shownDoc; }
   }, [shownDoc.nodes, shownDoc.direct, marker]);
   const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, curvePathKey, followsParts ? shownDoc.instances : null, marker]);
+  const noticeSource = notice?.documentSource, placedNotice = noticeSource?.placed;
+  const noticeExpired = !!noticeSource && (noticeSource.doc !== doc
+    || (noticeSource.name !== undefined && noticeSource.name !== fileName)
+    || (noticeSource.evaluated !== undefined && noticeSource.evaluated !== evaluated)
+    || (!!placedNotice && (placedNotice.view !== shownDoc || placedNotice.workerSession !== workerSession)));
+  useEffect(() => {
+    if (noticeExpired) setToast(current => current === notice ? null : current);
+  }, [noticeExpired, notice]);
   const commandDoc = useMemo(() => directCommandDocument(evaluated, shownDoc), [evaluated, shownDoc.direct]);
   // Labels outlive the Drawing view, but only for the exact accepted document and displayed model.
   // Do not bind to DrawingWorkspace's spread prop: that wrapper is new on every render.
@@ -905,9 +906,9 @@ export function App() {
         if (again.current) { setRestart(again.current); again.current = null; }
         chatSelection.current = null;
       }
-      else setToast(result.error);
+      else setToast({ ...result.error, documentSource: { doc: docNow.current, evaluated } });
     };
-    void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
+    void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause), documentSource: { doc: docNow.current, evaluated } }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
     return () => { live = false; workOwnership.current = finishWork(workOwnership.current, work.token); };
   }, [engine, evaluated, parameterEdit, parameterCurrent, importWorkerRecovery]);
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)

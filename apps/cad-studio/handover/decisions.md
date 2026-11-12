@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D900 — retire a superseded repaired-Open notice](notes/repaired-open-notice-ownership-2026-11-13/README.md).
 - [D899 — verify a lost Offset cap and its marked replacement](notes/offset-cap-reference-rematch-2026-11-13/README.md).
 - [D898 — compare Offset face handle and distance field input](notes/offset-face-handle-field-parity-2026-11-13/README.md).
 - [D897 — retire a pending Offset preview on document replacement](notes/offset-preview-document-replacement-2026-11-13/README.md).

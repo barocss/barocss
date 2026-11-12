@@ -1,0 +1,115 @@
+{
+  "decision": "D900",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "d29e26bc6c813a0c486cf14118ac7cd77472527d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d900-studio-notice",
+    "D900_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/extrude-versus-offset-browser.mjs <external-evidence>/notice --cap-notice",
+    "gate.sh acquire heavy 600 d900-studio-notice-regressions",
+    "D886_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-evaluation-notice-browser.mjs <external-evidence>/placed-regression",
+    "D557_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/studio-document-files-browser.mjs <external-evidence>/file-regression",
+    "cd apps/cad-studio && node scripts/test.mjs document-file stop-work-ownership viewport-recovery fillet-family",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/test/fillet-family.test.ts",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "node --check apps/cad-studio/test/extrude-versus-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "decision": "D899",
+    "status": "FAIL",
+    "receiptSHA256": "279fceaf951caf1e3972524980a2fb3f9bec6e81858715f77051556d63efb940",
+    "finding": "Generic kernel failure remained after successful repaired Open."
+  },
+  "initialTypeCheck": {
+    "status": "FAIL",
+    "reason": "The D897 Fillet hook fixture had an incomplete cast after the callback was added.",
+    "logSHA256": "cb9b0c522a7ed16f51252d10ed5422d2044d7309af40fc44c3090969d77016c0"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPass": 63,
+    "typeCheck": "PASS",
+    "studioBuild": "PASS",
+    "fixtureLint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "7548234b0347bfdb4160678a26e14996d750d3eca73f0a1ee48846a70ad4fb91"
+  },
+  "appLint": {
+    "status": "FAIL",
+    "diagnosticComparison": "PASS",
+    "existingDiagnostic": "@typescript-eslint/no-unused-vars: '_k' is assigned a value but never used.",
+    "parentLogSHA256": "5bede98f5c8cc895711511ccc39b84960e971b5d5de67fb0085d51a15bf7bf9f",
+    "currentLogSHA256": "3c1c514c3fe39f734813e3b23b421963dae2b5711c50039efea2d5fe0fdc9b6f"
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "d52945f6c29b4ee81fc4a0f33ede6a4b203ef1054536f816944ffc4edbc170d4",
+    "sourceManifestSHA256": "54c0c1e3713d1f5defe6292e652535ea2da8d225c9bdfd784ba002e439dd4827",
+    "frozenFiles": 845,
+    "snapshots": 13,
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "saved": [
+      {
+        "name": "D899 confirmed offset cap",
+        "bytes": 2026,
+        "sha256": "01ac4e4f2601fc26ef4b7a7d261540782091d4f4a2c7a17efb93c09ca6d8c9e8"
+      }
+    ],
+    "states": [
+      {
+        "label": "08-cold-marked-rematch",
+        "notices": []
+      },
+      {
+        "label": "09-explicitly-confirmed-cap",
+        "notices": []
+      },
+      {
+        "label": "11-current-kernel-failure",
+        "notices": [
+          "The kernel could not build thisUndo the last change, or adjust the values and try again.Detailsno face named n9.missing to open; faces: n1.top, n1.bottom, n1.side0, n1.side1, n1.side2, n1.side3"
+        ]
+      },
+      {
+        "label": "12-replacement-clears-kernel-failure",
+        "notices": []
+      },
+      {
+        "label": "13-rejected-file-retains-current-notice",
+        "notices": [
+          "Could not open this fileThis is not a BaroCSS model file (it is not JSON). Your part is unchanged."
+        ]
+      }
+    ],
+    "placedRegression": {
+      "status": "PASS",
+      "receiptSHA256": "96b0f7643cda1a635850b19dad804bd2b611814af016124c28a39a76385bcbfd",
+      "sourceManifestSHA256": "ad4ae5c239a9ebfd869371ecf9284d558de70bd5f6d51496ca84f2d849c63e7e",
+      "frozenFiles": 369,
+      "snapshots": 10
+    },
+    "nativeFileRegression": {
+      "status": "PASS",
+      "receiptSHA256": "b22987a1100f07e959c5efcbf3b0d6df3ff868392bd0cecdcac3ffb780053f9a",
+      "sourceManifestSHA256": "8eea427efcb0cadd880c2f76f71f9935dcf57db503551fdd70378103091ca2fc",
+      "frozenFiles": 842,
+      "snapshots": 5
+    }
+  },
+  "notRun": [
+    "marker and variant transitions for a root failure notice",
+    "project repair notification",
+    "full suites",
+    "mobile"
+  ]
+}

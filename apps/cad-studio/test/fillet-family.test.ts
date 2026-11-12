@@ -10,7 +10,9 @@ import { GROUP_COMMANDS } from '../src/app/studioConstants';
 import { paletteList } from '../src/ui/paletteList';
 import { NodeEditor } from '../src/ui/NodeEditor';
 import { useViewportPicking } from '../src/viewport/useViewportPicking';
+import type { Active } from '../src/app/commandState';
 import { createPreviewLifetime, ownedPreview } from '../src/state/previewLifetime';
+import { createValueStore } from '../src/state/valueStore';
 function context(): Ctx { const doc=rectanglePart(30,12,6),r=evaluateDoc(doc,0);assert.ok(r.ok);return {doc,bodies:r.bodies,selection:{faces:[],edges:[],bodies:[]}}; }
 function deferred<T>() { let resolve!:(value:T)=>void,reject!:(error:Error)=>void;const promise=new Promise<T>((ok,no)=>{resolve=ok;reject=no;});return {promise,resolve,reject}; }
 test('one primary Fillet family keeps Chamfer separate and all original model command IDs and labels intact',()=>{
@@ -93,7 +95,19 @@ test('rejected live pick clears queued Apply while unchanged selection and defer
 test('viewport route clears pending family Apply before rejecting hidden or missing instance hits',async()=>{
  const ctx=context();ctx.selection.edges=[{body:0,edge:0}];ctx.doc={...ctx.doc,instances:[{id:'hidden',hidden:true} as NonNullable<Ctx['doc']['instances']>[number]]};const active=newFilletActive('edge',ctx,{radius:1}),owner=createPreviewLifetime(),work=deferred<{ok:boolean}>();let pending=true,commits=0,onPick!:ReturnType<typeof useViewportPicking>['onPick'];const sectionRef={current:null} as Parameters<typeof useViewportPicking>[0]['sectionRef'],sectionFacePickRef={current:null as number|null};
  const reply=ownedPreview(owner,owner.capture(),()=>work.promise).then(result=>{if(!result.stale&&pending)commits++;return result;});
- function Picker(){onPick=useViewportPicking({doc:ctx.doc,activeStore:{get:()=>active},activeRef:{current:active},sectionRef,sectionFacePickRef,halvesShownRef:{current:false},onExtrudeTargetPick:()=>false,onFilletPick:(hit,additive)=>{assert.equal(prepareFilletPick(active,ctx.bodies,hit,additive,()=>{pending=false;}),null);return true;}} as Parameters<typeof useViewportPicking>[0]).onPick;return null;}
+ function Picker() {
+   const inputs: Partial<Parameters<typeof useViewportPicking>[0]> = {
+     doc: ctx.doc, activeRef: { current: active }, sectionRef, sectionFacePickRef, halvesShownRef: { current: false },
+     onExtrudeTargetPick: () => false,
+     onFilletPick: (hit, additive) => {
+       assert.equal(prepareFilletPick(active, ctx.bodies, hit, additive, () => { pending = false; }), null);
+       return true;
+     },
+   };
+   const activeStore = createValueStore<Active | null>(active);
+   onPick = useViewportPicking({ ...inputs, activeStore } as Parameters<typeof useViewportPicking>[0]).onPick;
+   return null;
+ }
  renderToStaticMarkup(createElement(Picker));const before=JSON.stringify(active.ctx.selection);
  for(const instance of ['missing','hidden']){pending=true;onPick({face:null,edge:{body:0,edge:0},point:null,instance},false);assert.equal(pending,false,instance);assert.equal(JSON.stringify(active.ctx.selection),before);}
  pending=true;onPick({face:null,edge:null,point:null},false);assert.equal(pending,false,'empty genuine click clears queued Apply');

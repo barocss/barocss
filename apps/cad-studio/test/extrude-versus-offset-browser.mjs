@@ -4,6 +4,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const capReference = process.argv[3] === '--cap-reference';
 const capRematch = process.argv[3] === '--cap-rematch';
+const noticeScope = process.argv[3] === '--cap-notice';
 const replacementFlow = process.argv[3] === '--replacement';
 const handleParity = process.argv[3] === '--handle-parity';
 const producers = [
@@ -15,7 +16,7 @@ const producers = [
   'packages/barocss-cad-model/src/app/editCommand.ts',
   'packages/barocss-cad-model/src/app/profileCommands.ts',
   'packages/barocss-cad-model/src/app/nativeOffsetFace.ts',
-  ...(capReference || capRematch ? ['apps/cad-studio/src/files/documentFile.ts',
+  ...(capReference || capRematch || noticeScope ? ['apps/cad-studio/src/files/documentFile.ts',
     'apps/cad-studio/src/ui/ReferenceDecisions.tsx', 'packages/barocss-cad-model/src/engine/rematch.ts',
     'packages/barocss-cad-model/src/engine/references.ts', 'packages/barocss-cad/src/part/part-shell.ts'] : []),
   ...(replacementFlow ? ['apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
@@ -25,10 +26,12 @@ const producers = [
 ];
 const f = await createFlow({
   name: 'extrude-versus-offset', output: process.argv[2],
-  envFrozen: capRematch ? 'D899_SOURCE_FROZEN' : handleParity ? 'D898_SOURCE_FROZEN' : replacementFlow ? 'D897_SOURCE_FROZEN'
+  envFrozen: noticeScope ? 'D900_SOURCE_FROZEN' : capRematch ? 'D899_SOURCE_FROZEN'
+    : handleParity ? 'D898_SOURCE_FROZEN' : replacementFlow ? 'D897_SOURCE_FROZEN'
     : capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
   initialFiles: producers, requiredFrozen: producers,
-  qualification: capRematch ? 'Verify live refusal and a marked cold Shell rematch when the Offset-generated top becomes internal.'
+  qualification: noticeScope ? 'Retire the superseded failure notice after a repaired Open and retain a genuine current refusal.'
+    : capRematch ? 'Verify live refusal and a marked cold Shell rematch when the Offset-generated top becomes internal.'
     : handleParity ? 'Compare real Offset handle and distance field commits for the same signed values.'
     : replacementFlow ? 'Retire a real pending Offset preview and queued Apply when the source file is replaced.'
     : capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
@@ -332,6 +335,11 @@ async function checkCapRematch() {
   const cold = await f.doc();
   assert.deepEqual(cold.nodes.slice(0, 5), changed.nodes);
   await marked('08-cold-marked-rematch', cold);
+  const kernelToast = () => f.page.locator('.toast .toast-title').getByText('The kernel could not build this', { exact: true });
+  if (noticeScope) {
+    assert.equal(await kernelToast().count(), 0, 'A valid repaired Open must retire the initial evaluation failure.');
+    await button(references(), 'Confirm reference').waitFor();
+  }
   f.phase = 'confirm the marked cap and save the updated signature';
   await button(references(), 'Confirm reference').click();
   await f.changed(cold);
@@ -343,6 +351,27 @@ async function checkCapRematch() {
   await f.newPage();
   await open(confirmed, saved);
   await checkCapShell('10-confirmed-cap-fresh-open', confirmed, changed, 8, 1, newName);
+  if (!noticeScope) return;
+
+  f.phase = 'keep a genuine current failure on a different same-name file';
+  const broken = structuredClone(confirmed);
+  delete broken.nodes[5].sigs;
+  broken.nodes[5].open = ['n9.missing'];
+  await choose(Buffer.from(JSON.stringify(broken)));
+  await f.page.waitForFunction(() => window.__studioDoc?.nodes?.[5]?.open?.[0] === 'n9.missing');
+  const toast = f.page.getByRole('alert').filter({ hasText: 'The kernel could not build this' });
+  await toast.getByText('Details', { exact: true }).click();
+  await toast.getByText(/no face named n9\.missing to open/).waitFor();
+  await f.snapshot('11-current-kernel-failure');
+  f.phase = 'replace the genuine failure and verify the prior notice is gone';
+  await open(confirmed, saved);
+  assert.equal(await kernelToast().count(), 0);
+  await checkCapShell('12-replacement-clears-kernel-failure', confirmed, changed, 8, 1, newName);
+  await choose(Buffer.from('{'));
+  const invalid = f.page.getByRole('alert').filter({ hasText: 'Could not open this file' });
+  await invalid.waitFor();
+  await f.same(confirmed);
+  await f.snapshot('13-rejected-file-retains-current-notice');
 }
 
 function holdOffsetPreview() {
@@ -562,7 +591,7 @@ await f.run(async () => {
     });
     return context;
   };
-  if (capRematch) {
+  if (capRematch || noticeScope) {
     await checkCapRematch();
     return;
   }
