@@ -83,9 +83,11 @@ Row [10](../roadmap-rows/10.md), with file/reference dependencies in rows 12/16.
 
 Existing placement, static mates, patterns/skips, linked updates, cuts and BOM are implemented. Evidence includes [D457 linked planar mate](../notes/static-mate-linked-update-2026-11-03/README.md), [D493 constrained mates](../notes/fully-constrained-mate-workflow-2026-11-04/README.md), [D487 linked assembly cut](../notes/assembly-cut-linked-revision-2026-11-04/README.md), [D511 patterned material/BOM](../notes/patterned-material-bom-mass-2026-11-04/README.md), [D512 nested revision/BOM](../notes/nested-selection-bom-revision-2026-11-04/README.md), and [D513 transient card correction](../notes/nested-card-freshness-2026-11-04/README.md).
 
+[B05 v1](15-b05-evidence-ledger.md) freezes seven groups. D758 qualifies repeated placement and linked revision adoption in current Studio.
+
 Remaining acceptance:
 
-1. Insert an authored part twice, retain separate occurrence paths, place/mate it, and distinguish definition edit from occurrence placement. Confirm remaining freedom/conflict refusal within the selected mate scope.
+1. Confirm the remaining freedom, full placement and conflict refusal in the selected mate chain.
 2. Change the linked source while a nested occurrence is selected. Explicitly accept/reject it; card path, geometry, mate/reference state and BOM must name one accepted revision, including pending and superseded states.
 3. Edit material and a pattern/skip value; independently check the declared quantity and numeric mass scope. Aggregate mass precision is not inferred from displayed BOM values.
 4. Exercise first Undo/Redo, own Save/fresh Open and post-Open re-edit. Refusal must retain the prior assembly and avoid an unintended history entry. Current assembly export depends on P0-R03.
@@ -96,4 +98,4 @@ Finite P3 closeout is one small static assembly with repeated and nested occurre
 
 Each case names the requirement owner, source/consumer modules, existing evidence reused, affected SMALL/FEATURE/FULL tier, actual desktop observations and numeric authority. Record PASS, FAIL, NOT_RUN and UNKNOWN separately. A retained partial checkpoint is valid work, but does not close the category.
 
-The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B03, B05, B08 and B10 remain NOT_ADJUDICATED. B06 is qualified at 6/7 with PDF held. B07 and B09 are accepted at their recorded scopes.
+The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02 v1 is accepted11/11; B04 v1 is accepted26/26; B05 has 2/7 current groups and is pending. B03, B08 and B10 remain NOT_ADJUDICATED. B06 is qualified at 6/7 with PDF held. B07 and B09 are accepted at their recorded scopes.
