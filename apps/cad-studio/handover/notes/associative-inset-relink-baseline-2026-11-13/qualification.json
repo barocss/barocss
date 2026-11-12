@@ -1,0 +1,50 @@
+{
+  "decision": "D867",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "06aca45597f890948af8715d14cf53f14ee9d1fb",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d867-inset-baseline-desktop",
+    "D867_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/studio-run03",
+    "gate.sh acquire heavy 600 d867-inset-baseline-focused",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-associative-inset drawing-associative-sketch saved-perpendicular",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-edit-identity midpoint-sketch",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 20,
+    "studioPass": 34,
+    "logSHA256": "6afe7ca227882247be56557c25ce665fd1d3800c518c097151092bdea6618736"
+  },
+  "studio": {
+    "status": "PASS",
+    "invalidLooseOpen": "FAIL",
+    "invalidProjectOpen": "FAIL",
+    "receiptSHA256": "6d4fdf2386bc5179e8353f6d45e5b1cdcf056b0ab96bd1fc1de9c31d23ecd136",
+    "sourceManifestSHA256": "df13189ab47ae6d34bb05264232f93912de0ade66aa4ee181fde808c30cbc4eb",
+    "runnerSHA256": "45edeaf1f06ebce6b35e63a71cc4d3d4d03860fa4a631c58da118178493b0d53",
+    "fixtureSHA256": "fd54a310d836918d5c2e9b6842abb0f6a8af714e33a9ac30a71ffc7ef7b5baf1",
+    "firstFailureReceipts": [
+      "5f09d8b00abb62db338fdcfab9ff4497a2808b0e057bc933e1fa24a3aafa0495",
+      "4b5e5b9ea92e6311d0dc933ccaeb3b837a75a3eb83b71cd3794e3ebd02505ad0"
+    ],
+    "frozenFiles": 826,
+    "snapshots": 9,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "insetMm": 2,
+    "extrusionMm": 4,
+    "sourceWidthsMm": [40, 60, 64],
+    "ringAreasMm2": [240, 320, 336],
+    "nativeRingVolumesMm3": [960.0000000000016, 1280.0000000000011, 1343.9999999999977],
+    "preservedOn": { "node": 1, "side": "solid" },
+    "invalidBindingCode": "BAD_REFERENCE"
+  }
+}

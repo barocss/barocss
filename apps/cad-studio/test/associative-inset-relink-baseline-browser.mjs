@@ -1,0 +1,228 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { createFlow, sha256 } from './flow-helper.mjs';
+
+const pins = [
+  'apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs',
+  'apps/cad-studio/src/App.tsx',
+  'apps/cad-studio/src/sketch/useSketchActions.ts',
+  'apps/cad-studio/src/ui/SketchPanel.tsx',
+  'apps/cad-studio/src/ui/NodeEditor.tsx',
+  'packages/barocss-cad-model/src/engine/part.ts',
+  'packages/barocss-cad-model/src/engine/references.ts',
+  'packages/barocss-cad-model/src/engine/migrate.ts',
+];
+const f = await createFlow({
+  name: 'associative-inset-relink-baseline', output: process.argv[2], envFrozen: 'D867_SOURCE_FROZEN',
+  initialFiles: pins, requiredFrozen: pins,
+  qualification: 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
+  limits: ['Two earlier axial native rectangular solids and one 2 mm linked inset. A prepared candidate file measures the existing reader and evaluator.'],
+  snapshotExtra: () => ({
+    dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
+    name: document.querySelector('.doc-tab input')?.value ?? null,
+    controls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
+  }),
+  inspectorSource: `
+import { readFileSync } from 'node:fs';
+import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
+import { referencesOf } from '@barocss/cad-model/engine/references';
+import { resolveAssociativeSketch, toPartDocument } from '@barocss/cad-model/engine/part';
+const text = readFileSync(process.argv[2], 'utf8'), read = readStudioDoc(text);
+if ('error' in read) { console.log(JSON.stringify({ stage: 'read', error: read.error })); process.exit(0); }
+try {
+  const { doc } = read, sketch = resolveAssociativeSketch(doc, 4), outputs = evaluateCadPart(toPartDocument(doc)).outputs;
+  console.log(JSON.stringify({
+    stage: 'accepted', sketch, sketchRefs: referencesOf(doc, true).refs.filter(ref => ref.node === 4),
+    outputs: outputs.map(output => ({
+      id: output.id, valid: checkOutput(output).valid, volume: massPropertiesOf(output).volume,
+      corners: output.brep.vertices.map(vertex => vertex.point),
+    })),
+  }));
+} catch (error) {
+  console.log(JSON.stringify({ stage: 'resolve', error: error instanceof Error ? error.message : String(error) }));
+}
+`,
+});
+const seed = {
+  format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+  nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 24], id: 'n0' },
+    { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
+    { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [160, 24], id: 'n2' },
+    { kind: 'extrude', sketch: 2, height: 8, id: 'n3' },
+  ],
+  outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
+};
+const firstSource = { node: 1, side: 'solid' };
+const button = (panel, name) => panel.getByRole('button', { name, exact: true });
+const near = (a, b) => assert.ok(Number.isFinite(a) && Math.abs(a - b) <= 1e-8, `${a} vs ${b}`);
+
+async function chooseFile(name, doc) {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+}
+
+async function open(name, doc) {
+  await chooseFile(name, doc);
+  await f.same(doc);
+}
+
+function association(id, node) {
+  return { kind: 'planar-face-outline-inset', version: 1, source: { node, side: 'solid' }, sourceFeature: id, face: id + '.top', insetMM: 2 };
+}
+
+function expectedCorners(x, width, inset, z) {
+  return [x + inset, x + width - inset].flatMap(u => [inset, 24 - inset].map(v => [u, v, z]));
+}
+
+async function verify(label, doc, x, width, id, sourceIndex, bodyZ = 8) {
+  await f.same(doc);
+  const read = await f.inspect(label, doc);
+  assert.equal(read.stage, 'accepted', read.error);
+  assert.deepEqual(read.sketch.association, association(id, sourceIndex));
+  assert.deepEqual(read.sketch.on, firstSource);
+  assert.deepEqual(read.sketchRefs, []);
+  assert.deepEqual(read.outputs.map(body => body.id), ['n1', 'n3', 'n5']);
+  const [a, b, ring] = read.outputs;
+  assert.ok(read.outputs.every(body => body.valid));
+  near(a.volume, 40 * 24 * 8);
+  near(b.volume, (sourceIndex === 3 ? width : 60) * 24 * bodyZ);
+  const area = width * 24 - (width - 4) * 20;
+  near(ring.volume, area * 4);
+  near((await f.bodies()).bodies.find(body => body.key === 'b5').volume, area * 4);
+  for (const z of [bodyZ, bodyZ + 4]) for (const inset of [0, 2]) for (const corner of expectedCorners(x, width, inset, z)) {
+    assert.ok(ring.corners.some(point => Math.hypot(...point.map((value, axis) => value - corner[axis])) <= 1e-8), corner);
+  }
+  f.report.observations.push({ label, area, ...read });
+  return read;
+}
+
+async function observeBadOpen(label, before, damaged) {
+  await f.waitToast(/BAD_REFERENCE.*source feature binding/i);
+  const after = await f.snapshot(label);
+  assert.deepEqual(after.doc, damaged);
+  assert.equal(after.bodies.fresh, false);
+  assert.deepEqual(after.bodies.bodies, before.bodies.bodies);
+  assert.equal(after.dirty, false);
+  assert.notEqual(after.name, before.name);
+  f.report.observations.push({ label, oldDirty: before.dirty, oldName: before.name, newDirty: after.dirty,
+    newName: after.name, oldVolumes: before.bodies.bodies.map(body => body.volume), fresh: after.bodies.fresh });
+  await f.undo();
+  await f.same(before.doc);
+  await f.dismissToasts();
+}
+
+async function putProjectFile(name, doc) {
+  const project = 'D867 invalid ' + randomUUID();
+  await f.page.evaluate(async ([project, name, text]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects', { create: true });
+    const folder = await projects.getDirectoryHandle(project, { create: true });
+    const file = await folder.getFileHandle(name, { create: true });
+    const writer = await file.createWritable();
+    await writer.write(text);
+    await writer.close();
+  }, [project, name, JSON.stringify(doc)]);
+  const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  if (!(await versions.isVisible())) await button(f.page, 'Project and versions').click();
+  await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(versions, 'Project in this browser').click();
+  await versions.getByLabel('Project', { exact: true }).waitFor();
+  await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  return versions;
+}
+
+await f.run(async () => {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const newContext = f.browser.newContext.bind(f.browser);
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    context.setDefaultTimeout(10000);
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
+    });
+    return context;
+  };
+  await f.newPage();
+  await open('D867-inset-source.bcad', seed);
+  f.report.observations.push({ label: 'fixture', sha256: sha256(JSON.stringify(seed)) });
+
+  f.phase = 'select the original top face and start the existing linked inset';
+  await button(f.page.locator('.views'), 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const p = await f.page.evaluate(() => {
+    const xy = window.__studioScreenOf([20, 12, 8]);
+    return xy && document.elementFromPoint(...xy)?.closest('canvas.vp-canvas') ? xy : null;
+  });
+  assert.ok(p);
+  await f.page.mouse.click(...p);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
+  await button(f.page.locator('.mode'), 'Sketch').click();
+  await f.sketchPanel().waitFor();
+  await button(f.sketchPanel(), 'Link face outline + inset').click();
+  await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
+  const linked = (await f.finishSketch('01-linked-original')).doc;
+  assert.deepEqual(linked.nodes[4].association, association('n1', 1));
+  assert.deepEqual(linked.nodes[4].on, firstSource);
+
+  f.phase = 'consume the existing linked ring in an independent Extrude';
+  await f.openExtrudeHud();
+  const applied = await f.applyExtrude({ distance: 4, previous: linked, label: '02-original-ring' });
+  const original = applied.doc;
+  assert.deepEqual(original.nodes[5], { kind: 'extrude', sketch: 4, height: 4, id: 'n5' });
+  await verify('native-original', original, 0, 40, 'n1', 1);
+
+  f.phase = 'inspect the existing editor for an explicit replacement control';
+  await f.openFeatureEditor(5, 'linked ring source');
+  await button(f.editor(), 'Edit sketch').click();
+  await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
+  assert.equal(await f.sketchPanel().getByRole('button', { name: /re-link|reconnect|replace source/i }).count(), 0);
+  assert.equal(await f.sketchPanel().getByRole('button', { name: 'Link face outline + inset', exact: true }).count(), 0);
+  await f.snapshot('03-existing-linked-editor');
+  await f.page.keyboard.press('Escape');
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await f.same(original);
+
+  f.phase = 'measure a prepared v1 source replacement with the old on target retained';
+  const replacement = structuredClone(original);
+  replacement.nodes[4].association = association('n3', 3);
+  assert.deepEqual({ ...replacement.nodes[4], association: original.nodes[4].association }, original.nodes[4]);
+  await open('D867-prepared-replacement.bcad', replacement);
+  await verify('native-replacement', replacement, 100, 60, 'n3', 3);
+  await f.snapshot('04-prepared-replacement');
+
+  f.phase = 'edit the original replacement body through its ordinary feature editor';
+  await f.openFeatureEditor(3, 'replacement stock width');
+  const width = f.editor().getByLabel('Width', { exact: true });
+  assert.equal(Number(await width.inputValue()), 60);
+  await width.fill('64');
+  const edited = await f.applyEditor(replacement, '05-replacement-width-64');
+  assert.deepEqual(edited.doc.nodes[4], replacement.nodes[4]);
+  assert.deepEqual(edited.doc.nodes[5], replacement.nodes[5]);
+  await verify('native-edited-replacement', edited.doc, 100, 64, 'n3', 3);
+  await f.undo();
+  await f.same(replacement);
+  await f.redo();
+  await f.same(edited.doc);
+
+  f.phase = 'open a wrong stable source identity without promoting its saved geometry';
+  const damaged = structuredClone(edited.doc);
+  damaged.nodes[4].association.sourceFeature = 'n1';
+  const refusal = await f.inspect('native-invalid-binding', damaged);
+  assert.ok(refusal.stage !== 'accepted' && /BAD_REFERENCE/i.test(refusal.error), JSON.stringify(refusal));
+  const before = await f.snapshot('06-before-bad-loose-open');
+  assert.equal(before.dirty, true);
+  await chooseFile('D867-wrong-inset-source.bcad', damaged);
+  await observeBadOpen('07-bad-loose-open-adopted', before, damaged);
+
+  f.phase = 'measure the same failed binding through Project Open';
+  const projectFile = 'D867-project-wrong-inset-source.bcad';
+  const versions = await putProjectFile(projectFile, damaged);
+  const beforeProject = await f.snapshot('08-before-bad-project-open');
+  await button(versions, 'Open ' + projectFile).click();
+  await observeBadOpen('09-bad-project-open-adopted', beforeProject, damaged);
+  f.report.observations.push({ label: 'invalid-binding', ...refusal });
+  assert.deepEqual(f.report.downloads, []);
+});
