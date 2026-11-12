@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D774 — measure Studio drag cadence and retained geometry](notes/studio-drag-cadence-and-resources-2026-11-12/README.md).
 - [D773 — verify Viewer resize and resource lifetime](notes/viewer-resize-and-resource-lifetime-2026-11-12/README.md).
 - [D772 — verify Studio section clipping and occurrence picks](notes/studio-section-occurrence-picking-2026-11-12/README.md).
 - [D771 — verify same-ID native Viewer source replacement](notes/viewer-native-source-replacement-2026-11-12/README.md).
