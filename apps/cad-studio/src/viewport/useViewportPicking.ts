@@ -7,6 +7,7 @@ import { selectedBodies, type Selection, type Values } from '@barocss/cad-model/
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import type { MeasurePick } from '@barocss/cad-model/app/measure';
 import type { useAssembly } from '../assembly/useAssembly';
+import type { ExtrudeEndHit } from '../app/extrudeEndFace';
 import type { Active } from '../app/commandState';
 import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
@@ -22,7 +23,8 @@ export interface ViewportMenu {
 
 export function useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, pickFilterRef, onFilletPick, scene }: {
+  setDirectSel, setMeasure, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
+  onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   doc: StudioDoc; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
@@ -43,6 +45,7 @@ export function useViewportPicking({ doc, nativeVertexReady, activeStore, setAct
   };
 }) {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
+    if (onExtrudeTargetPick(hit, !!sectionRef.current || halvesShownRef.current)) return;
     // Family attempts retire queued Apply even when an instance was removed or hidden.
     if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -106,7 +109,7 @@ export function useViewportPicking({ doc, nativeVertexReady, activeStore, setAct
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, assembly, doc, nativeVertexReady, onFilletPick]);
+  }, [activeStore, measure, assembly, doc, nativeVertexReady, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {

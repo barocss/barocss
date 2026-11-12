@@ -1,5 +1,5 @@
 import { CadNumericPolicy, CadPartLimits, checkOutput, coedgeVertices, evaluateCadPart, faceGeometry, type Brep, type BrepFace, type CadPartFeature, type Point } from '@barocss/cad';
-import { NODE_EXTRA_FIELDS, type FaceEndExtrudeNode, type StudioDoc } from './doc';
+import { NODE_EXTRA_FIELDS, type FaceEndExtrudeNode, type ModelNode, type SketchNode, type StudioDoc } from './doc';
 import { refusal } from './refusal';
 
 const recipeFields = new Set(['kind', 'sketch', 'target']);
@@ -88,15 +88,20 @@ function targetRectangle(brep: Brep, face: BrepFace) {
   return { min, max, z };
 }
 
+type LiteralRectangle = Extract<SketchNode, { profile: 'rectangle' }> & { min: [number, number]; max: [number, number] };
+
+export function isFaceEndExtrudeSketch(sketch: ModelNode | undefined): sketch is LiteralRectangle {
+  return sketch?.kind === 'sketch' && sketch.profile === 'rectangle' && !sketch.suppressed && !sketch.plane && !sketch.on
+    && !sketch.association && !sketch.regions?.length && !sketch.holes?.length
+    && Array.isArray(sketch.min) && sketch.min.length === 2 && sketch.min.every(finiteCoordinate)
+    && Array.isArray(sketch.max) && sketch.max.length === 2 && sketch.max.every(finiteCoordinate);
+}
+
 /** Resolve from the live preceding native results. A consumed target has no eligible output. */
 export function faceEndExtrudeHeight(doc: StudioDoc, node: FaceEndExtrudeNode, prefix: readonly CadPartFeature[]): number {
   const sketch = doc.nodes[node.sketch];
-  if (sketch?.kind !== 'sketch' || sketch.profile !== 'rectangle' || sketch.suppressed || sketch.plane || sketch.on
-    || sketch.association || sketch.regions?.length || sketch.holes?.length || !Array.isArray(sketch.min) || sketch.min.length !== 2
-    || !Array.isArray(sketch.max) || sketch.max.length !== 2 || !sketch.min.every(finiteCoordinate) || !sketch.max.every(finiteCoordinate)) {
-    throw invalid('the source needs a literal rectangle on the default XY plane.');
-  }
-  const [x0, y0] = sketch.min as [number, number], [x1, y1] = sketch.max as [number, number];
+  if (!isFaceEndExtrudeSketch(sketch)) throw invalid('the source needs a literal rectangle on the default XY plane.');
+  const [x0, y0] = sketch.min, [x1, y1] = sketch.max;
   if (x0 >= x1 || y0 >= y1) throw invalid('the source rectangle needs a positive width and height.');
   const target = doc.nodes[node.target.body.node];
   if (!target || target.suppressed) throw missing('the target body is missing or suppressed.');

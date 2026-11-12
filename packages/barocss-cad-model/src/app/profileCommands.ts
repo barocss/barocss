@@ -16,6 +16,8 @@ import type { Command, Ctx, Field, Values } from './commands';
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
 import { refOf } from './bodyRef';
 import { refusal } from '../engine/refusal';
+import { isFaceEndExtrudeSketch } from '../engine/faceEndExtrude';
+import { extrudeEndFaceTarget, extrudeEndFaceValues } from './extrudeEndFacePick';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */
@@ -67,19 +69,63 @@ function throughDepth(ctx: Ctx, node: SketchNode): number {
   return Math.ceil(deepest) + 1;
 }
 
+function canExtrudeToFace(ctx: Ctx, p: ReturnType<typeof extrudeProfile>): boolean {
+  return ctx.viewportEndFace === true && !!p && !p.fresh && isFaceEndExtrudeSketch(p.node)
+    && ctx.bodies.some(body => body.ref?.side === 'solid' && body.family !== 'faceted' && !body.band && !body.role);
+}
+
+const fixedExtrudeDepth = (v: Values) => v.depth !== 'to-face' && !(v.op === 'cut' && v.depth === 'through');
+
 export const extrudeCommand: Command = {
   id: 'extrude', label: 'Extrude', icon: 'cad-extrude', shortcut: 'E', group: 'create', keywords: 'pull push pad boss cut pocket press',
   hint: 'Pull a flat face or a finished sketch along its normal: drag the arrow or type the distance',
   available: ctx => extrudeProfile(ctx) ? ok : faceSketch(ctx) === null ? no('Pick a flat face: a curved one has no plane to pull along.') : no('Pick a flat face or a finished sketch (in the viewport or the History).'),
   fields: ctx => {
     const p = extrudeProfile(ctx), base = !!(p && baseOf(ctx, p.node));
-    return [{ key: 'h', label: 'Distance', kind: 'mm', min: 0.1, when: (v: Values) => !(v.op === 'cut' && v.depth === 'through') },
-      { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1 }, ...opFields(base),
-      ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' }] : [])];
+    const fields: Field[] = [
+      { key: 'h', label: 'Distance', kind: 'mm', min: 0.1, when: fixedExtrudeDepth },
+      { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.depth !== 'to-face' },
+      ...opFields(base),
+    ];
+    const distance = { value: 'distance', label: 'Distance' };
+    if (base) fields.push({ key: 'depth', label: 'Depth', kind: 'choice', options: [distance, { value: 'through', label: 'Through all' }], when: v => v.op === 'cut' });
+    else if (canExtrudeToFace(ctx, p)) fields.push({ key: 'depth', label: 'Depth', kind: 'choice', options: [distance, { value: 'to-face', label: 'To face' }] });
+    return fields;
   },
-  defaults: ctx => { const p = extrudeProfile(ctx); return { h: 8, draft: 0, ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) }; },
-  steps: ctx => { const p = extrudeProfile(ctx); return [{ label: 'Profile', text: !p ? 'pick a flat face or a finished sketch' : p.fresh ? 'the picked face' : `Sketch ${p.index + 1}`, done: !!p }]; },
+  defaults: ctx => {
+    const p = extrudeProfile(ctx);
+    return { h: 8, draft: 0, ...(canExtrudeToFace(ctx, p) ? { depth: 'distance' } : {}),
+      ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) };
+  },
+  derive: (_ctx, v, changed) => {
+    if (!changed.includes('depth') || (v.endBody === undefined && v.endFace === undefined)) return v;
+    const next = { ...v };
+    delete next.endBody;
+    delete next.endFace;
+    return next;
+  },
+  steps: (ctx, v) => {
+    const p = extrudeProfile(ctx);
+    const steps = [{ label: 'Profile', text: !p ? 'pick a flat face or a finished sketch' : p.fresh ? 'the picked face' : `Sketch ${p.index + 1}`, done: !!p }];
+    if (v.depth === 'to-face') {
+      const target = extrudeEndFaceTarget(ctx, v);
+      steps.push({ label: 'End face', text: target?.face ?? 'Pick the lower face of a solid', done: !!target });
+    }
+    return steps;
+  },
+  onPick: (ctx, v, hit) => {
+    if (v.depth !== 'to-face' || !canExtrudeToFace(ctx, extrudeProfile(ctx))) return null;
+    const next = hit.face && extrudeEndFaceValues(ctx, v, hit.face);
+    return next ?? { error: 'Pick one original planar face of a current solid.' };
+  },
   build: (ctx, v) => {
+    if (v.depth === 'to-face') {
+      const profile = extrudeProfile(ctx);
+      if (!profile || !canExtrudeToFace(ctx, profile) || (v.op !== undefined && v.op !== 'new')) throw refusal('VALUE', 'Extrude to face requires a finished XY rectangle and a new body.');
+      const target = extrudeEndFaceTarget(ctx, v);
+      if (!target) throw refusal('BAD_REFERENCE', 'Pick one original planar face of a current solid.');
+      return withNode(ctx.doc, { kind: 'face-end-extrude', sketch: profile.index, target });
+    }
     const selected = extrudeProfile(ctx)!, p = selected.fresh ? { ...selected, node: nativeExtrudeFace(ctx, selected.node) } : selected;
     const cut = v.op === 'cut', height = cut && v.depth === 'through' ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
     const doc = p.fresh ? withNode(ctx.doc, p.node) : ctx.doc;
@@ -90,7 +136,7 @@ export const extrudeCommand: Command = {
   },
   // The distance: an arrow from the profile's middle along the normal (into the body for a cut).
   handles: (ctx, v) => {
-    const p = extrudeProfile(ctx); if (!p || (v.op === 'cut' && v.depth === 'through')) return [];
+    const p = extrudeProfile(ctx); if (!p || !fixedExtrudeDepth(v)) return [];
     const plane = planeOf(p.node), n = plane.normal, sign = v.op === 'cut' ? -1 : 1, h = Number(v.h);
     let c: Vec3; try { c = toWorld(plane, profileMiddle(p.node, ctx.doc.parameters)); } catch { return []; }
     return [{ key: 'h', at: [c[0] + n[0] * sign * h, c[1] + n[1] * sign * h, c[2] + n[2] * sign * h], dir: [n[0] * sign, n[1] * sign, n[2] * sign], min: 0.1 }];

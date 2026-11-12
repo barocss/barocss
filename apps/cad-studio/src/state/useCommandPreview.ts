@@ -3,6 +3,7 @@ import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import { prefixDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { patchValues, shownFields, type Values } from '@barocss/cad-model/app/commands';
+import { awaitingExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { missingCommandField, type Active } from '../app/commandState';
 import { failedFeatureText } from '../app/failedFeature';
@@ -62,6 +63,12 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
       if (!bearingRootCurrent) {
         setPreviewBodies(null);
         setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
+        return;
+      }
+      if (awaitingExtrudeEndFace(active.cmd.id, active.values)) {
+        previewFor.current = null;
+        setPreviewBodies(null);
+        setActive(a => a === active ? { ...a, preview: 'input', error: undefined } : a);
         return;
       }
       let live = true; const ticket = lifetime.current.capture();

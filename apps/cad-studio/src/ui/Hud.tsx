@@ -61,7 +61,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   return (
     <div className="card hud" role="dialog" aria-label={active.fillet ? 'Fillet' : active.cmd.label}>
       <div className="hud-title"><Icon name={commandIconName(active.cmd.id, active.cmd.icon)} small className="accent" />{active.fillet ? 'Fillet' : active.cmd.label}
-        <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : 'refused'}</span></div>
+        <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : active.preview === 'input' ? 'pick face' : 'refused'}</span></div>
       {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">

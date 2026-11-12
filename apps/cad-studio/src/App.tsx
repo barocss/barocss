@@ -47,6 +47,8 @@ import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocumen
 import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
+import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
+import { awaitingExtrudeEndFace, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
@@ -1278,7 +1280,8 @@ export function App() {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
     if (!active?.cmd.build || !canChangeDocument()) return;
-    if (active.fillet && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    const toFace = isExtrudeToFace(active.cmd.id, active.values);
+    if ((active.fillet || toFace) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1286,9 +1289,10 @@ export function App() {
     }
     if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
+    if (toFace && awaitingExtrudeEndFace(active.cmd.id, active.values)) { again.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
-    if (active.preview !== 'ok') return;
+    if (active.preview !== 'ok') { if (toFace) again.current = null; return; }
     // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
     // while the committed document evaluates).
     const next = active.cmd.build(active.ctx, active.values);
@@ -1414,8 +1418,9 @@ export function App() {
     // Before the first link exists, the base memo does not depend on placed parts. Bearing still needs
     // the current authored targets when it builds its candidate, as well as when it lists choices.
     // Loft also captures the shown document's current curves without changing its evaluated prefix.
-    const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
-      : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
+    const startCtx: Ctx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
+      : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } }
+      : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, doc, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference]);
@@ -1474,6 +1479,29 @@ export function App() {
     pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
+  const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
+  const pickExtrudeEndFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
+    const current = activeStore.get();
+    if (!current || !isExtrudeToFace(current.cmd.id, current.values)) return false;
+    applyWhenReady.current = null;
+    again.current = null;
+    if (docNow.current !== doc || evaluatedRef.current !== evaluated || current.ctx.doc !== commandDoc) {
+      commandPreview.retire();
+      setActive(null);
+      return true;
+    }
+    const scope = extrudeTargetScope.current;
+    const face = !blocked && scope && hit.face && !scope.hidden.has(hit.face.body)
+      ? sourceExtrudeEndFace(current, scope.bodies, hit) : null;
+    const picked = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
+    if (!picked || typeof picked.error === 'string') {
+      setToast({ title: 'End face not selected', hint: 'Pick one original planar face of a current solid.', detail: '' });
+      return true;
+    }
+    commandPreview.retire();
+    setActive({ ...current, values: picked, preview: 'busy', error: undefined });
+    return true;
+  };
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
   const changeFillet = (type: FilletType, mode?: RadiusMode) => {
     if (docNow.current !== doc || evaluatedRef.current !== evaluated || activeStore.get()?.ctx.doc !== ctx.doc) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
@@ -1486,7 +1514,7 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
-  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, onFilletPick: pickFillet, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -2011,7 +2039,13 @@ export function App() {
   const sectionFrom = nextSerial(evaluated);
   // (The Band surface command highlights what it has picked — A and B — while it runs, also when its preview hides the selection.)
   const bandShown = active?.cmd.id === 'band-surface' ? bandHighlight(bodies, bandPicksOf(active.values)) : null;
+  extrudeTargetScope.current = fresh && !busy && !section && !sketch && !inPlace && !cageEd.session && !routePreviewBodies
+    && !ghost && !rendering && !drawing && !bodyDrag && previewMode === 'none' && (shownBodies === drawnBodies || shownBodies === previewBodies)
+    ? { bodies: shownBodies, hidden: hiddenBodies } : null;
+  const shownEndFace = active && extrudeTargetScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
+    ? shownExtrudeEndFace(active, shownBodies) : null;
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+    : shownEndFace ? { ...emptySel, faces: [shownEndFace] }
     : bandShown ? bandShown
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
@@ -2463,9 +2497,30 @@ export function App() {
     setActive({ ...current, values, preview: 'busy', error: undefined });
     return true;
   };
-  // (R1d: the HUD subscribes to the command; the values it types are noted, so the App does not render for them.)
-  const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
-    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFilletType={type => changeFillet(type)} onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }} onFile={uploadFont} onHoleOptions={applyHoleOptions} onApply={owner => { if (filletApplyCurrent(owner, activeStore.get())) apply(); }} onCancel={cancel} />;
+  // The HUD subscribes to values it edits without a parent render.
+  const changeHudValue = (key: string, value: number | string) => {
+    const current = activeStore.get();
+    if (!current) return;
+    if (current.cmd.id === 'extrude' && key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face')) {
+      applyWhenReady.current = null;
+      again.current = null;
+      commandPreview.retire();
+    }
+    lastTyped.current = Date.now();
+    handleDrag.current = null;
+    const values = patchValues(current.cmd, current.ctx, current.values, { [key]: value });
+    hudValues.current = values;
+    setActive({ ...current, values, preview: current.upload === 'error' ? 'error' : 'busy' });
+  };
+  const applyHud = (owner: Active) => {
+    const current = activeStore.get();
+    if (!current || !filletApplyCurrent(owner, current)) return;
+    if (owner !== current && (isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values))) return;
+    apply();
+  };
+  const hud = active && <Hud store={activeStore} onChange={changeHudValue} onFilletType={changeFillet}
+    onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }}
+    onFile={uploadFont} onHoleOptions={applyHoleOptions} onApply={applyHud} onCancel={cancel} />;
   return (
     <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px', '--rail-w': sketch || rendering || drawing ? '44px' : '116px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}

@@ -2,19 +2,21 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const baseline = process.argv[3] === '--baseline';
+const baseline = process.argv[3] === '--baseline', create = process.argv[3] === '--create';
 const pins = [
   'apps/cad-studio/test/face-end-extrude-browser.mjs',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
+  ...(create ? ['apps/cad-studio/src/app/extrudeEndFace.ts', 'packages/barocss-cad-model/src/app/extrudeEndFacePick.ts', 'packages/barocss-cad-model/src/app/profileCommands.ts'] : []),
   'packages/barocss-cad-model/src/engine/doc.ts',
   ...(baseline ? [] : ['packages/barocss-cad-model/src/engine/faceEndExtrude.ts']),
   'packages/barocss-cad-model/src/engine/migrate.ts',
   'packages/barocss-cad-model/src/engine/part.ts',
 ];
 const f = await createFlow({
-  name: 'face-end-extrude', output: process.argv[2], envFrozen: 'D840_SOURCE_FROZEN',
+  name: 'face-end-extrude', output: process.argv[2], envFrozen: create ? 'D841_SOURCE_FROZEN' : 'D840_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: baseline ? 'Verify legacy fixed distance and unsupported-kind Open in the pre-feature reader.'
+    : create ? 'Author Extrude to face from the actual HUD and the original body face, then verify history and project reopen.'
     : 'Resolve a fixed XY rectangle to a preceding native cap and retain its two output bodies through target edits and Open.',
   limits: ['Two rectangular prisms in the same desktop document. Positive Z. One native rectangle cap.'],
   inspectorSource: `
@@ -51,7 +53,8 @@ const documentAt = (from, fixed) => ({
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
 });
-const name = 'D840-face-end.bcad', project = 'D840 face end ' + randomUUID();
+const decision = create ? 'D841' : 'D840';
+const name = decision + '-face-end.bcad', project = decision + ' face end ' + randomUUID();
 const near = (a, b) => Math.abs(a - b) < 1e-8;
 const button = (panel, name) => panel.getByRole('button', { name, exact: true });
 const field = (panel, name) => panel.getByLabel(name, { exact: true });
@@ -109,11 +112,91 @@ async function attachProject() {
   await field(versions(), 'Project').waitFor();
 }
 
+async function pickCap(view, point) {
+  await button(f.page, 'View cube directions').click();
+  await f.page.getByRole('menuitem', { name: view, exact: true }).click();
+  await f.page.waitForFunction(name => {
+    const faces = [...document.querySelectorAll('.view-cube .vc-label')];
+    return faces.length === 1 && faces[0].textContent === name;
+  }, view.toUpperCase());
+  const pixel = await f.page.evaluate(point => {
+    const xy = window.__studioScreenOf(point);
+    return xy && document.elementFromPoint(...xy)?.closest('.vp-canvas') ? xy : null;
+  }, point);
+  assert.ok(pixel, `${view} cap click reaches the canvas`);
+  await f.page.mouse.click(...pixel);
+}
+
+async function authorFaceEnd() {
+  f.phase = 'select a finished sketch and switch to To face';
+  const full = documentAt(20, true);
+  const initial = { ...full, nodes: full.nodes.slice(0, 3), outputs: { b1: full.outputs.b1 }, nextId: 3 };
+  await open(name, initial);
+  await f.same(initial);
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · rectangle').click();
+  await f.editor().waitFor();
+  await f.closeEditor();
+  await f.page.waitForFunction(() => window.__studioSelection?.selection?.sketches?.includes(2));
+  await f.openExtrudeHud();
+  const hud = f.hud(), depth = field(hud, 'Depth'), distance = field(hud, 'Distance'), apply = button(hud, 'Apply');
+  const status = value => hud.locator('.status').filter({ hasText: new RegExp('^' + value + '$') }).waitFor();
+  assert.equal(await depth.inputValue(), 'distance');
+  assert.equal(await distance.inputValue(), '8');
+  await depth.selectOption('to-face');
+  await status('pick face');
+  assert.equal(await distance.count(), 0);
+  assert.equal(await field(hud, 'Draft').count(), 0);
+  assert.equal(await apply.isDisabled(), true);
+  await f.page.evaluate(() => document.activeElement?.blur());
+  await f.page.keyboard.press('Enter');
+  assert.deepEqual(await f.doc(), initial);
+  await f.snapshot('00-awaiting-target');
+
+  f.phase = 'refuse the upper cap in Studio and select the original lower cap';
+  await pickCap('Top', [13, 13, 25]);
+  await status('refused');
+  assert.match(await hud.locator('.hud-error').textContent(), /must face down along Z/i);
+  assert.deepEqual(await f.doc(), initial);
+  await pickCap('Bottom', [13, 13, 20]);
+  await status('preview');
+  await hud.getByText('n1.bottom', { exact: true }).waitFor();
+  assert.deepEqual(await f.doc(), initial);
+  await f.snapshot('01-picked-target');
+
+  f.phase = 'return to Distance then require a fresh pick';
+  await depth.selectOption('distance');
+  await status('preview');
+  assert.equal(await distance.inputValue(), '8');
+  await depth.selectOption('to-face');
+  await status('pick face');
+  assert.equal(await apply.isDisabled(), true);
+  await pickCap('Bottom', [13, 13, 20]);
+  await status('preview');
+  f.phase = 'refuse the generated preview face, then pick the retained original cap again';
+  await pickCap('Bottom', [5, 5, 0]);
+  await f.waitToast(/End face not selected/);
+  await status('preview');
+  await pickCap('Bottom', [-3, -3, 20]);
+  await status('preview');
+  await hud.getByText('n1.bottom', { exact: true }).waitFor();
+  assert.deepEqual(await f.doc(), initial);
+  await apply.click();
+  await f.changed(initial);
+  await hud.waitFor({ state: 'hidden' });
+  await geometry('authored-original-lower-cap', 20, 20, true);
+  await f.undo();
+  assert.deepEqual(await f.doc(), initial);
+  await f.redo();
+  await geometry('authored-first-redo', 20, 20, true);
+  f.report.observations.push({ label: 'authored-control', wrongCap: 'n1.top', acceptedCap: 'n1.bottom', defaultDistanceMm: 8, outputsBefore: ['b1'], outputsAfter: ['b1', 'b3'] });
+}
+
 await f.run(async () => {
   await f.newPage();
   const initial = documentAt(20, !baseline);
-  await open(name, initial);
-  await f.same(initial);
+  if (create) await authorFaceEnd();
+  else { await open(name, initial); await f.same(initial); }
   await geometry('opened', 20, 20, !baseline);
   await editTargetStart(30);
   await geometry('target-moved', 30, baseline ? 20 : 30, !baseline);

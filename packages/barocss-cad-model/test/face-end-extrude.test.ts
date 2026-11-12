@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { patchValues, shownFields, type Ctx } from '../src/app/commands';
+import { extrudeCommand } from '../src/app/profileCommands';
+import { evaluateDoc } from '../src/engine/evaluate';
 import { bodyNodes, duplicateBody, moveFeature, renumber } from '../src/chat/features';
 import { parentsOf, prefixDoc, usesOf, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -90,4 +93,45 @@ test('the target is a history dependency and stays outside the new body ownershi
   assert.ok('error' in moved);
   assert.match(moved.error, /cannot come first/i);
   assert.throws(() => duplicateBody(doc, { node: 3, side: 'solid' }, [5, 0, 0]), /duplicating a body with a bound end face/i);
+});
+
+test('the Extrude command binds a picked native cap and resets the pick when depth mode changes', () => {
+  const doc = { ...prefixDoc(documentAt(20), 3), nextId: 3 };
+  const evaluated = evaluateDoc(doc, 0);
+  assert.ok(evaluated.ok);
+  const ctx: Ctx = { doc, viewportEndFace: true, bodies: evaluated.bodies, selection: { sketches: [2], faces: [], edges: [], bodies: [] } };
+  const cmd = extrudeCommand, defaults = cmd.defaults!(ctx);
+  const depth = cmd.fields!(ctx).find(field => field.key === 'depth');
+  assert.ok(depth?.kind === 'choice');
+  assert.deepEqual(depth.options.map(option => option.value), ['distance', 'to-face']);
+  const withoutViewport: Ctx = { doc, bodies: ctx.bodies, selection: ctx.selection };
+  assert.deepEqual(cmd.fields!(withoutViewport).map(field => field.key), ['h', 'draft']);
+  assert.deepEqual(cmd.fields!({ ...ctx, bodies: [] }).map(field => field.key), ['h', 'draft']);
+  const legacy = cmd.build!(ctx, { ...defaults, h: 11, draft: 3 });
+  assert.deepEqual(legacy.nodes[3], { id: 'n3', kind: 'extrude', sketch: 2, height: 11, draft: 3 });
+  assert.equal(cmd.handles!(ctx, defaults).length, 1);
+
+  const targetMode = patchValues(cmd, ctx, { ...defaults, h: 11, draft: 3 }, { depth: 'to-face' });
+  assert.deepEqual(shownFields(cmd.fields!(ctx), targetMode).map(field => field.key), ['depth']);
+  assert.deepEqual(cmd.handles!(ctx, targetMode), []);
+  assert.throws(() => cmd.build!(ctx, targetMode), /original planar face/i);
+  const bottom = ctx.bodies[0].mesh.faces.find(face => face.name === 'n1.bottom')!;
+  const picked = cmd.onPick!(ctx, targetMode, { face: { body: 0, face: bottom.index }, edge: null });
+  assert.ok(picked && !('error' in picked));
+  const bound = cmd.build!(ctx, picked);
+  assert.deepEqual(bound.nodes[3], recipe);
+  assert.deepEqual(bound.outputs, documentAt(20).outputs);
+  assert.throws(() => cmd.build!(ctx, { ...picked, op: 'cut' }), /new body/i);
+
+  const back = patchValues(cmd, ctx, picked, { depth: 'distance' });
+  assert.equal(back.endBody, undefined);
+  assert.equal(back.endFace, undefined);
+  assert.deepEqual(cmd.build!(ctx, back), legacy);
+
+  const face = { body: 0, face: bottom.index };
+  const attached: Ctx = { ...ctx, selection: { faces: [face], edges: [], bodies: [] } };
+  const attachedDepth = cmd.fields!(attached).find(field => field.key === 'depth');
+  assert.ok(attachedDepth?.kind === 'choice');
+  assert.deepEqual(attachedDepth.options.map(option => option.value), ['distance', 'through']);
+  assert.throws(() => cmd.build!(attached, picked), /finished XY rectangle/i);
 });
