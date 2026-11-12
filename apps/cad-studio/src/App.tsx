@@ -57,6 +57,7 @@ import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { activeKey, type Active } from './app/commandState';
+import { canUseHolePresets } from './app/holePresets';
 import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
 import { routeMessage } from './app/routeSession';
 import { CursorReadout } from './ui/CursorReadout';
@@ -2447,9 +2448,20 @@ export function App() {
       </SelectionInspector>}
       </div></Profiler>
   );
+  const applyHoleOptions = (owner: Active, patch: Values) => {
+    const current = activeStore.get();
+    if (!current || current.cmd !== owner.cmd || current.ctx !== owner.ctx || current.ctx.doc !== commandDoc ||
+        current.cmd.id !== 'hole' || !canUseHolePresets(current.values) || !canChangeDocument()) return false;
+    applyWhenReady.current = null;
+    commandPreview.retire();
+    const values = patchValues(current.cmd, current.ctx, current.values, patch);
+    hudValues.current = values;
+    setActive({ ...current, values, preview: 'busy', error: undefined });
+    return true;
+  };
   // (R1d: the HUD subscribes to the command; the values it types are noted, so the App does not render for them.)
   const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
-    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFilletType={type => changeFillet(type)} onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }} onFile={uploadFont} onApply={owner => { if (filletApplyCurrent(owner, activeStore.get())) apply(); }} onCancel={cancel} />;
+    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFilletType={type => changeFillet(type)} onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }} onFile={uploadFont} onHoleOptions={applyHoleOptions} onApply={owner => { if (filletApplyCurrent(owner, activeStore.get())) apply(); }} onCancel={cancel} />;
   return (
     <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px', '--rail-w': sketch || rendering || drawing ? '44px' : '116px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}

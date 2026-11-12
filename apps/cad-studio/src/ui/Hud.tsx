@@ -4,14 +4,15 @@ import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
-import type { Field } from '@barocss/cad-model/app/commands';
-import type { Active } from '../app/commandState';
+import type { Field, Values } from '@barocss/cad-model/app/commands';
+import { activeKey, type Active } from '../app/commandState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
+import { HolePresets } from './HolePresets';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
@@ -22,12 +23,13 @@ interface Props {
   onChange(key: string, value: number | string): void; onApply(owner: Active): void; onCancel(): void;
   onFilletType?(type: FilletType): void; onRadiusMode?(mode: RadiusMode): void;
   onFile?(key: string, file: File): void;
+  onHoleOptions(owner: Active, patch: Values): boolean;
 }
 function renderOption(option: { value: string; label: string }) { return <option key={option.value} value={option.value}>{option.label}</option>; }
 
 /** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. (G12f: its fields, choices and
  * actions shadcn's Input, NativeSelect and Button, at the HUD's 26 px in the studio's mono type.) */
-export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, onRadiusMode }: Props) {
+export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, onRadiusMode, onHoleOptions }: Props) {
   const active = useStoreValue(store);
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement && first.current.type !== 'file') first.current.select(); }, [active?.cmd.id]);
@@ -69,6 +71,13 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}
         {fields.map(renderField)}
       </div>
+      {active.cmd.id === 'hole' ? <HolePresets key={activeKey(active, active.values)} values={active.values}
+        onUse={options => onHoleOptions(active, options)} onReset={() => {
+          const defaults = active.cmd.defaults?.(active.ctx);
+          if (!defaults) return false;
+          const { type, d, depth, cd, ch, csd } = defaults;
+          return onHoleOptions(active, { type, d, depth, cd, ch, csd });
+        }} /> : null}
       {active.cmd.id === 'fill-feature-pattern' && <FillPatternHints />}
       {active.preview === 'error' && active.error && <FeatureFailureNotice error={active.error} />}
       <div className="hud-actions">

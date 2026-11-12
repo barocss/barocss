@@ -1,0 +1,146 @@
+{
+  "decision": "D826",
+  "tier": "FEATURE",
+  "parent": "d9fb7dd0fab91fd1f7a25ca52536f40cb2fa8bf1",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d826-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d826-hole-presets-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test hole-presets stop-work-ownership",
+    "gate.sh acquire heavy 600 d826-hole-presets",
+    "node --check apps/cad-studio/test/hole-presets-browser.mjs",
+    "cd apps/cad-studio && D826_SOURCE_FROZEN=1 node test/hole-presets-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D826_SOURCE_FROZEN=1 node test/hole-presets-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "cd apps/cad-studio && D826_SOURCE_FROZEN=1 node test/hole-presets-browser.mjs \"$EVIDENCE/desktop-3\"",
+    "gate.sh acquire heavy 600 d826-hole-presets-final-checks",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test hole-presets stop-work-ownership command preview project-open-ownership",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test hole-types hole-thread-depth-compatibility hole-region",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/holePresets.ts apps/cad-studio/src/ui/HolePresets.tsx apps/cad-studio/src/ui/Hud.tsx apps/cad-studio/test/hole-presets.test.ts",
+    "gate.sh acquire heavy 600 d826-hole-presets-lint-and-build",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "PASS",
+      "sha256": "11c6ff8df5d152114871ff3383b271317f16f96596dd4371a435e4a7a7c8ab21",
+      "frozenSources": 809,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-2": {
+      "status": "PASS",
+      "sha256": "cd4ded135e9aa26eb0d2480844dfd0bd3ff27ccfcd9c2235dd07e776d217019b",
+      "frozenSources": 809,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-3": {
+      "status": "PASS",
+      "sha256": "305f0a4ced4ae5b3e2050bb9519e42ed41a79ab687dd67d20b02d44e5f806731",
+      "frozenSources": 809,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "retired-success-with-queued-enter",
+          "held": {
+            "id": 5,
+            "ok": true
+          },
+          "sourceUnchanged": true
+        },
+        {
+          "label": "applied-right-hole",
+          "depth": 5,
+          "face": "n1.side1",
+          "axis": "x",
+          "center": [
+            25,
+            6
+          ],
+          "volume": 14258.628330588454,
+          "centroid": [
+            69.82649072846687,
+            24.999999999999996,
+            5.999999999999999
+          ]
+        },
+        {
+          "label": "reopened-right-hole",
+          "depth": 5,
+          "face": "n1.side1",
+          "axis": "x",
+          "center": [
+            25,
+            6
+          ],
+          "volume": 14258.628330588454,
+          "centroid": [
+            69.82649072846687,
+            24.999999999999996,
+            5.999999999999999
+          ]
+        },
+        {
+          "label": "edited-right-hole",
+          "depth": 4,
+          "face": "n1.side1",
+          "axis": "x",
+          "center": [
+            25,
+            6
+          ],
+          "volume": 14286.902664470763,
+          "centroid": [
+            69.85750921054506,
+            25,
+            6
+          ]
+        },
+        {
+          "label": "project-without-presets",
+          "bytes": 721,
+          "sha256": "381adab6fe8a9f49ba3da308f552223876db619a9992feb25c8369bd0084d2cc"
+        }
+      ]
+    }
+  },
+  "focused": {
+    "modelPass": 9,
+    "studioPass": 91,
+    "fail": 0,
+    "skip": 0
+  },
+  "types": "PASS",
+  "lint": {
+    "presetAndHud": "PASS",
+    "firstControlRegex": "FAIL",
+    "wholeApp": "FAIL_EXISTING_UNUSED_K",
+    "parentWholeApp": "FAIL_EXISTING_UNUSED_K"
+  },
+  "build": "PASS",
+  "rootVisualReview": "PASS"
+}
