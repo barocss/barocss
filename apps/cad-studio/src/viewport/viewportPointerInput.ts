@@ -635,7 +635,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey, e.pointerType === 'mouse'); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
-      const { face, edge } = pickAt(renderer.current!, x, y);
+      const r = renderer.current;
+      if (!r) return;
+      const { face, edge } = pickAt(r, x, y);
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
@@ -732,7 +734,6 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       return;
     }
-    const r = renderer.current!;
     // A finished sketch's outline (or inside its main loop) comes before the bodies behind it.
     const prof = profileAt(x, y, w, h);
     if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
@@ -742,6 +743,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       for (const p of poles) { const q = camera.current.project(p.at, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = p.key; } }
       if (best !== null) { propsRef.current.onPickPole?.(best); return; }
     }
+    const r = renderer.current;
+    if (!r) return;
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;

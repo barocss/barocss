@@ -1,0 +1,57 @@
+{
+  "decision": "D787",
+  "tier": "SMALL",
+  "parent": "d3bd7dff6d9299123165beb35537f24c8f7d3016",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/viewport-startup-fallback-browser.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test viewport-recovery selection-edge instance-pose",
+    "cd apps/cad-studio && D787_SOURCE_FROZEN=1 node test/viewport-startup-fallback-browser.mjs \"$EVIDENCE/desktop-baseline\" --baseline --picks",
+    "cd apps/cad-studio && D787_SOURCE_FROZEN=1 node test/viewport-startup-fallback-browser.mjs \"$EVIDENCE/desktop-fixed\" --picks",
+    "cd apps/cad-studio && D786_SOURCE_FROZEN=1 node test/viewport-startup-fallback-browser.mjs \"$EVIDENCE/desktop-fallback-regression\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d787-2026-11-12",
+    "receipts": {
+      "baseline": {
+        "product": "FAIL",
+        "driver": "PASS",
+        "sha256": "b87a60566a9f455bdefcc102a8b3b19965c71fd03d72917820e486c6c5fe3d4f",
+        "frozenSources": 333,
+        "pageErrors": 2
+      },
+      "fixed": {
+        "status": "PASS",
+        "sha256": "0bd1e374f91992914ca48330ec2b0460eeb8bd52e073e45a5f865c06397b8864",
+        "frozenSources": 333,
+        "pageErrors": 0
+      },
+      "fallbackRegression": {
+        "status": "PASS",
+        "sha256": "34dc3015078639327ca370fa839018fae4384474f10cceea8a8e5a083ec30a02",
+        "frozenSources": 333,
+        "pageErrors": 0
+      }
+    },
+    "studio": {
+      "pass": 33,
+      "fail": 0,
+      "skip": 0
+    },
+    "fixtureVolumeMm3": 17840,
+    "faceAfterStartup": {
+      "body": 0,
+      "face": 9
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  }
+}

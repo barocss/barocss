@@ -6,6 +6,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
 const baseline = process.argv.includes('--baseline');
+const picks = process.argv.includes('--picks');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 await mkdir(output);
 const fixture = 'apps/cad-studio/test/fixtures/linear-cut-pattern.bcad';
@@ -15,11 +16,14 @@ const pins = [fixture, 'apps/cad-studio/test/viewport-startup-fallback-browser.m
   'apps/cad-studio/src/viewport/gpuRenderer.ts', 'apps/cad-studio/src/viewport/renderer.ts',
   'apps/cad-studio/src/viewport/viewportRecovery.ts', 'packages/barocss-gpu/src/viewer/viewer.ts'];
 const f = await createFlow({
-  name: 'viewport-startup-fallback', envFrozen: 'D786_SOURCE_FROZEN', output,
+  name: picks ? 'viewport-startup-picks' : 'viewport-startup-fallback',
+  envFrozen: picks ? 'D787_SOURCE_FROZEN' : 'D786_SOURCE_FROZEN', output,
   initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Reproduce failure after the WebGPU context has been configured'
+  qualification: picks ? 'Check public pointer selection while WebGPU is starting and after it attaches'
+    : baseline ? 'Reproduce failure after the WebGPU context has been configured'
     : 'Open, edit and save through WebGL2 after WebGPU fails on its configured canvas',
-  limits: ['Test holds and rejects one real viewport GPU pipeline result after configure.',
+  limits: [picks ? 'Test holds one real viewport GPU pipeline result and returns it unchanged.'
+    : 'Test holds and rejects one real viewport GPU pipeline result after configure.',
     'Other browser operations and all native geometry run normally.',
     'Deliberate startup injection covers one Chrome desktop profile.'],
   snapshotExtra: () => ({
@@ -32,7 +36,7 @@ const f = await createFlow({
 
 function observeStartup(inject) {
   const events = [], ids = new WeakMap();
-  let nextId = 0, targetContext, targetDevice, pending, release;
+  let nextId = 0, targetContext, targetDevice, pending, settle;
   const id = value => {
     if (!ids.has(value)) ids.set(value, ++nextId);
     return ids.get(value);
@@ -42,11 +46,16 @@ function observeStartup(inject) {
   const armed = inject && sessionStorage.getItem(key) === null;
   window.__viewportStartup = {
     events,
+    finish() {
+      if (!settle) throw new Error('No viewport pipeline result is held.');
+      record('native-pipeline-returned');
+      settle();
+    },
     reject() {
-      if (!release) throw new Error('No viewport pipeline result is held.');
+      if (!settle) throw new Error('No viewport pipeline result is held.');
       sessionStorage.setItem(key, 'true');
       record('injected-pipeline-rejection');
-      release(new Error('D786 deliberate viewport startup failure after configure'));
+      settle(new Error('D786 deliberate viewport startup failure after configure'));
     },
   };
   const getContext = HTMLCanvasElement.prototype.getContext;
@@ -81,9 +90,9 @@ function observeStartup(inject) {
     const result = createPipeline.call(this, options);
     if (this !== targetDevice || pending) return result;
     pending = true;
-    return result.then(() => {
+    return result.then(pipeline => {
       record('native-pipeline-acquired-return-held', { label: options.label });
-      return new Promise((_resolve, reject) => { release = reject; });
+      return new Promise((resolve, reject) => { settle = error => error ? reject(error) : resolve(pipeline); });
     });
   };
 }
@@ -122,6 +131,54 @@ async function checkModel(doc, volume) {
   assert.ok(Math.abs(state.bodies[0].volume - volume) < 1e-8);
 }
 
+async function checkStartupPicks(held) {
+  f.phase = 'click the model while the GPU renderer has not attached';
+  const canvas = f.page.locator('canvas.vp-canvas');
+  const position = { x: 360, y: 300 };
+  await canvas.click({ button: 'left', position });
+  await canvas.click({ button: 'right', position });
+  await checkModel(original, 17840);
+  const before = await f.snapshot('02-clicks-while-starting');
+  assert.equal(before.backend, null);
+  assert.equal(before.dirty, false);
+  assert.deepEqual(before.history, held.history);
+  assert.deepEqual(before.selection, held.selection);
+  assert.equal(await f.page.locator('.ctx-menu').count(), 0);
+  if (baseline) {
+    const expected = f.report.errors.filter(error => /Cannot read properties of null \(reading '(pickFace|pickDirect)'\)/.test(error));
+    assert.equal(expected.length, 2, JSON.stringify(f.report.errors));
+    for (const field of ['pickFace', 'pickDirect']) assert.equal(expected.filter(error => error.includes("'" + field + "'")).length, 1);
+    f.report.expectedPageErrors = expected;
+    f.report.errors = f.report.errors.filter(error => !expected.includes(error));
+  }
+
+  f.phase = 'pick the same model after the real renderer attaches';
+  await f.page.evaluate(() => window.__viewportStartup.finish());
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await checkModel(original, 17840);
+  await f.page.locator('.views').getByRole('button', { name: 'Top', exact: true }).click();
+  await f.page.keyboard.press('f');
+  const filter = f.page.getByRole('button', { name: 'Selection filter', exact: true });
+  for (let attempt = 0; attempt < 4 && !(await filter.innerText()).includes('Faces'); attempt++) await filter.click();
+  assert.ok((await filter.innerText()).includes('Faces'));
+  const point = await f.page.evaluate(() => window.__studioScreenOf([30, 15, 10]));
+  assert.ok(point?.length === 2 && point.every(Number.isFinite));
+  await f.page.mouse.click(...point);
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.faces.length === 1);
+  const selected = await f.snapshot('03-face-pick-after-startup');
+  assert.equal(selected.selection.selection.faces[0].body, 0);
+  await f.page.keyboard.press('Escape');
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.faces.length === 0);
+  await f.page.mouse.click(...point, { button: 'right' });
+  await f.page.getByRole('menu', { name: 'FACE', exact: true }).waitFor();
+  const menu = await f.snapshot('04-face-menu-after-startup');
+  assert.deepEqual(menu.selection.selection.faces, selected.selection.selection.faces);
+  assert.equal(menu.dirty, false);
+  await checkModel(original, 17840);
+  f.report.observations.push({ pendingPointerErrors: f.report.expectedPageErrors?.length ?? 0, faceAfterStartup: selected.selection.selection.faces[0] });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   f.phase = 'hold the real first viewport pipeline after WebGPU configuration';
   await openPage({ inject: true });
@@ -133,6 +190,7 @@ await f.run(async () => {
   const configured = held.startup.find(event => event.kind === 'native-webgpu-configured');
   assert.ok(configured);
   assert.equal(held.dirty, false);
+  if (picks) return checkStartupPicks(held);
 
   f.phase = 'release the injected failure and observe actual WebGL2 startup';
   await f.page.evaluate(() => window.__viewportStartup.reject());
