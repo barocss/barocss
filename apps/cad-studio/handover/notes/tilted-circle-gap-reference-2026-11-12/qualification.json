@@ -1,0 +1,112 @@
+{
+  "decision": "D824",
+  "tier": "SMALL",
+  "parent": "be8fe0303d2105ca3789d1f1f1b6476c1f834aaf",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d824-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d824-tilted-circle-gap",
+    "node --check apps/cad-studio/test/tilted-circle-gap-browser.mjs",
+    "cd apps/cad-studio && D824_SOURCE_FROZEN=1 node test/tilted-circle-gap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D824_SOURCE_FROZEN=1 node test/tilted-circle-gap-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "gate.sh acquire heavy 600 d824-tilted-circle-gap-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test PathGap trim.test",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sketch-plane sketch-reopen",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "FAIL",
+      "sha256": "db3544cd447104d86ad937eb629268f2bc867d30e708eddd19e26f3055be7d60",
+      "frozenSources": 806,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": []
+    },
+    "desktop-2": {
+      "status": "PASS",
+      "sha256": "f8ceceb80acbdb137a212af22275d3a9de099d67d88416a36014666c0194d9be",
+      "frozenSources": 806,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "tilted-gap",
+          "gap": 4.000000391912056,
+          "retained": 58.8318587573587,
+          "chord": 3.973387000001131,
+          "ids": [
+            "e7",
+            "e6"
+          ],
+          "outlineLength": 8,
+          "plane": {
+            "origin": [
+              0,
+              3.5,
+              6.06217782649107
+            ],
+            "normal": [
+              0,
+              0.5,
+              0.8660254037844386
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "label": "original-e1-wall",
+          "wall": "n1.side[e1]",
+          "volume": 96,
+          "centroid": [
+            40.00000000000001,
+            37.77499074759312,
+            -12.571796769724504
+          ],
+          "corners": 8
+        },
+        {
+          "label": "reopened-e1-wall",
+          "wall": "n1.side[e1]",
+          "volume": 96,
+          "centroid": [
+            40.00000000000001,
+            37.77499074759312,
+            -12.571796769724504
+          ],
+          "corners": 8
+        },
+        {
+          "label": "tilted-project-readback",
+          "bytes": 1828,
+          "sha256": "9e3e0f9944926ad47814f9c08666faedf61cb78ed0900f66f70975eccec7987c"
+        }
+      ]
+    }
+  },
+  "focused": {
+    "modelPass": 58,
+    "studioPass": 20,
+    "fail": 0,
+    "skip": 0
+  },
+  "geometryReview": "Sol High source review, no run",
+  "rootVisualReview": "PASS"
+}

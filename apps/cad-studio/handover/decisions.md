@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D824 — verify a tilted circle gap and the neighboring sketch reference](notes/tilted-circle-gap-reference-2026-11-12/README.md).
 - [D823 — refuse invalid separate Z circular pattern counts](notes/separate-z-count-refusal-2026-11-12/README.md).
 - [D822 — verify independent editing of separate partial Z pattern copies](notes/separate-z-pattern-copy-2026-11-12/README.md).
 - [D821 — verify the partial Z circular pattern edit lifecycle](notes/partial-z-pattern-lifecycle-2026-11-12/README.md).
