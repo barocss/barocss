@@ -23,6 +23,13 @@ test('Linear pattern: spacing at the second copy, count past the last, made and 
   const doc = lp.build!(ctx, v), edit = editCommand(2, doc.nodes)!, ectx = picked(doc);
   const [es, en] = edit.handles!(ectx, edit.defaults!(ectx));
   assert.deepEqual([es.key, es.at[0], en.key, en.at[0]], ['spacing', 25, 'count', 50]);
+  const invalid = edit.build!(ectx, { ...edit.defaults!(ectx), count: 2.5 });
+  const pattern = invalid.nodes[2];
+  assert.ok(pattern.kind === 'linear-pattern');
+  assert.equal(pattern.count, 2.5);
+  const refused = evaluateDoc(invalid, 1);
+  assert.ok(!refused.ok);
+  assert.match(refused.error.detail, /count must be an integer from 1 to 64/i);
 });
 
 test('Circular pattern about a moved axis: copies spread over an angle; a puck and an arc', () => {

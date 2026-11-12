@@ -3,17 +3,20 @@ import { createFlow } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
+const editMode = mode === '--edit-count' || mode === '--edit-baseline';
 const pins = [
   'apps/cad-studio/test/linear-pattern-admission-browser.mjs',
   'apps/cad-studio/src/ui/Hud.tsx',
   'apps/cad-studio/src/state/useCommandPreview.ts',
   'packages/barocss-cad-model/src/app/commands.ts',
+  'packages/barocss-cad-model/src/app/editFields.ts',
   'packages/barocss-cad-model/src/chat/features.ts',
   'packages/barocss-cad/src/part/part-transform.ts',
 ];
 const f = await createFlow({
-  name: 'linear-pattern-admission', output, envFrozen: 'D831_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Validate separate-body Count and Spacing before any copy and verify the first history step.',
+  name: 'linear-pattern-admission', output, envFrozen: editMode ? 'D832_SOURCE_FROZEN' : 'D831_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: editMode ? 'Pass the edited Count to native validation without rounding and verify the first history step.'
+    : 'Validate separate-body Count and Spacing before any copy and verify the first history step.',
   limits: ['Actual desktop HUD and one 4 × 6 mm XY rectangular extrusion. Direction X.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -91,7 +94,91 @@ async function commit(previous, label) {
   return (await f.snapshot(label)).doc;
 }
 
+async function checkRow(label, doc, expectedCount) {
+  const [native, ...extras] = await f.inspect(label, doc);
+  assert.equal(extras.length, 0);
+  assert.ok(native.valid);
+  assert.equal(native.id, 'n2');
+  assert.equal(native.count, expectedCount);
+  assert.equal(native.points.length, expectedCount * 8);
+  for (let index = 0; index < expectedCount; index++) {
+    const xOffset = index * 16;
+    for (const x of [50 + xOffset, 54 + xOffset]) {
+      for (const y of [10, 16]) {
+        for (const z of [0, 8]) assert.ok(native.points.some(point => point.every((v, axis) => near(v, [x, y, z][axis]))));
+      }
+    }
+  }
+  const volume = 192 * expectedCount, centroid = [52 + 8 * (expectedCount - 1), 13, 4];
+  const { fresh, massReady, bodies: [shown, ...otherBodies] } = await f.bodies();
+  assert.ok(fresh && massReady);
+  assert.deepEqual(otherBodies, []);
+  assert.equal(shown.key, 'b2');
+  for (const result of [native.mass, shown]) {
+    assert.ok(near(result.volume, volume));
+    assert.ok(result.centroid.every((v, axis) => near(v, centroid[axis])));
+  }
+  f.report.observations.push({ label, count: expectedCount, volume, centroid, corners: native.points.length });
+}
+
+async function editCount() {
+  const node = { kind: 'linear-pattern', parent: { node: 1, side: 'solid' }, axis: 'x', spacing: { parameter: 'pitch' }, count: 3, id: 'n2' };
+  const initial = { ...source, nodes: [...source.nodes, node], parameters: { pitch: 16 }, outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3 };
+  const edited = value => ({ ...initial, nodes: [...source.nodes, { ...node, count: value }] });
+  const editField = () => field(f.editor(), 'Count');
+  const editApply = () => button(f.editor(), 'Apply');
+  f.phase = 'open a saved One body row and apply a prior valid count edit';
+  await f.newPage();
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name: 'D832-linear-pattern.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(initial)) });
+  await f.same(initial);
+  await f.openFeatureEditor(2, 'linear count');
+  await editField().fill('4');
+  await f.applyEditor(initial, 'prior-count-four');
+  const accepted = edited(4);
+  await f.same(accepted);
+  await checkRow('prior-count-four', accepted, 4);
+  await f.openFeatureEditor(2, 'linear count');
+  if (mode === '--edit-baseline') {
+    f.phase = 'reproduce silent fractional Count rounding in the history editor';
+    await editField().fill('2.5');
+    await f.applyEditor(accepted, 'fractional-count-rounded');
+    await f.same(initial);
+    await checkRow('fractional-count-rounded', initial, 3);
+    assert.fail('The history editor accepted 2.5 as Count 3.');
+  }
+
+  const before = await f.snapshot('accepted-edit-open');
+  for (const value of ['2.5', '0', '65']) {
+    f.phase = 'refuse history Count ' + value;
+    await editField().fill(value);
+    await editApply().click();
+    const error = f.editor().locator('.hud-error');
+    await error.waitFor();
+    assert.match(await error.textContent(), /count must be an integer from 1 to 64/i);
+    assert.equal(await editField().inputValue(), value);
+    const after = await f.snapshot('refused-count-' + value);
+    for (const key of ['doc', 'history', 'historyControls', 'dirty', 'selection']) assert.deepEqual(after[key], before[key], key);
+    assert.deepEqual(after.bodies.bodies, before.bodies.bodies);
+  }
+  await f.closeEditor();
+  await f.undo();
+  await f.same(initial);
+  await checkRow('first-undo', initial, 3);
+  await f.redo();
+  await f.same(accepted);
+  await checkRow('first-redo', accepted, 4);
+  await f.openFeatureEditor(2, 'linear count');
+  await editField().fill('5');
+  await f.applyEditor(accepted, 'accepted-count-five');
+  const valid = edited(5);
+  await f.same(valid);
+  await checkRow('accepted-count-five', valid, 5);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
+  if (editMode) { await editCount(); return; }
   f.phase = 'open source and make the previous accepted history step';
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);

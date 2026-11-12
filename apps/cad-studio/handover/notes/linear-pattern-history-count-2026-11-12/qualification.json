@@ -1,0 +1,58 @@
+{
+  "decision": "D832",
+  "tier": "SMALL",
+  "parent": "f7c279b397ee409d51ac0c3db6e8570baf0fceee",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d832-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d832-linear-pattern-history",
+    "node --check apps/cad-studio/test/linear-pattern-admission-browser.mjs",
+    "cd apps/cad-studio && D832_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/baseline\" --edit-baseline",
+    "cd apps/cad-studio && D832_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/desktop-1\" --edit-count",
+    "gate.sh acquire heavy 600 d832-linear-pattern-history-small",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/separate-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test editFields feature-handles circular-pattern api-verbs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/test/feature-handles.test.ts",
+    "git diff --check"
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "6c490932ef1b439913e14508907b9c1aa03e2d738f8763eb213c94d961d63946",
+      "enteredCount": 2.5,
+      "committedCount": 3,
+      "priorVolume": 768,
+      "committedVolume": 576
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "e1fab4018611b3ee2672d4e69b538b814994530410e162e050008602128dd7bc",
+      "refusedCounts": [2.5, 0, 65],
+      "firstUndoCount": 3,
+      "firstRedoCount": 4,
+      "acceptedCount": 5,
+      "boundPitchMm": 16,
+      "acceptedVolume": 960,
+      "acceptedNativeCorners": 40,
+      "acceptedCentroid": [84, 13, 4],
+      "nativeComparisonAbsoluteTolerance": 1e-8
+    },
+    "separate-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "e6bcee018c01e99a8fc864ac8910913a301350225f6b3fdce0c9c9b58a36a7f5"
+    }
+  },
+  "allDesktopRuns": { "frozenSources": 814, "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 48, "fail": 0, "skip": 0 },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "driverSyntax": "PASS",
+  "scopedLint": "PASS",
+  "productionBuild": "NOT_RUN",
+  "rootVisualReview": "PASS"
+}
