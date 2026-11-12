@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const controlBaseline = process.argv[3] === '--controls-baseline';
+const planeMode = process.argv[3] === '--planes';
 const pins = [
   'apps/cad-studio/test/circle-from-chord-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -10,15 +11,19 @@ const pins = [
   'apps/cad-studio/src/sketch/useCircleFromChord.ts',
   'apps/cad-studio/src/viewport/CircleChordMarks.tsx',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts',
+  'apps/cad-studio/src/viewport/sketchOverlay.tsx',
   'apps/cad-studio/src/ui/ConstraintTools.tsx',
   'apps/cad-studio/src/viewport/dragTrimStroke.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
+  ...(planeMode ? ['packages/barocss-cad-model/src/sketch/plane.ts', 'apps/cad-studio/src/sketch/useSketchActions.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'circle-from-chord', output: process.argv[2], envFrozen: 'D878_SOURCE_FROZEN',
+  name: 'circle-from-chord', output: process.argv[2], envFrozen: planeMode ? 'D879_SOURCE_FROZEN' : 'D878_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Use two actual sketch clicks and a typed radius to choose an ordinary circle and extrude it.',
-  limits: ['Default XY plane, existing desktop snap and one ordinary circle per source.'],
+  qualification: planeMode ? 'Consume circles drawn from chord points on three non-default working planes.'
+    : 'Use two actual sketch clicks and a typed radius to choose an ordinary circle and extrude it.',
+  limits: planeMode ? ['One cylinder each on XZ, YZ and a translated 30 degree XY plane.']
+    : ['Default XY plane, existing desktop snap and one ordinary circle per source.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
@@ -45,8 +50,10 @@ const finish = () => f.page.locator('.topbar button.finish');
 const a = [20, 20], b = [26, 20], low = [23, 16], high = [23, 24];
 const mmTolerance = 1e-7, pxTolerance = 0.02;
 
-async function newPart() {
-  await f.newPage();
+const xy = { normal: [0, 0, 1], world: ([x, y]) => [x, y, 0] };
+
+async function newPart(deviceScaleFactor = 1) {
+  await f.newPage({ deviceScaleFactor });
   await button(f.page, 'New part').click();
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
@@ -59,19 +66,23 @@ async function enterCircle() {
   await f.frame([[16, 12], [32, 28], a, b]);
 }
 
-async function pixel(point) {
-  const p = await f.screenOf(point);
+function screenOf(point, basis = xy) {
+  return f.page.evaluate(world => window.__studioScreenOf(world), basis.world(point));
+}
+
+async function pixel(point, basis) {
+  const p = await screenOf(point, basis);
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), p), point);
   return p;
 }
 
-async function previewMarks(marks, expected) {
+async function previewMarks(marks, expected, basis) {
   await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
   const actual = await marks.evaluateAll(list => list.map(mark => {
     const r = mark.closest('svg').getBoundingClientRect();
     return [mark.cx.baseVal.value + r.left, mark.cy.baseVal.value + r.top];
   }));
-  const positions = await Promise.all(expected.map(point => f.screenOf(point)));
+  const positions = await Promise.all(expected.map(point => screenOf(point, basis)));
   assert.equal(actual.length, positions.length);
   assert.ok(actual.every((p, i) => Math.hypot(p[0] - positions[i][0], p[1] - positions[i][1]) < pxTolerance), { actual, positions });
 }
@@ -109,68 +120,86 @@ async function cancelWithHeldEnter() {
   await f.page.keyboard.up('Enter');
 }
 
-async function pickPoints(first, second) {
-  await f.page.mouse.click(...await pixel(first));
+async function pickPoints(first, second, basis, inputs = [first, second]) {
+  await f.page.mouse.click(...await pixel(inputs[0], basis));
   await controls().getByRole('status').getByText(/second point/).waitFor();
-  await f.page.mouse.click(...await pixel(second));
+  await f.page.mouse.click(...await pixel(inputs[1], basis));
   await radiusField().waitFor();
-  await previewMarks(endpoints(), [first, second]);
+  await previewMarks(endpoints(), [first, second], basis);
 }
 
 function unchanged(after, before) {
   for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty', 'historyDisabled']) assert.deepEqual(after[key], before[key], key);
 }
 
-async function native(label, doc, center, radius) {
+const norm = vector => Math.hypot(...vector);
+const difference = (p, q) => p.map((value, i) => value - q[i]);
+const dot = (p, q) => p.reduce((value, component, i) => value + component * q[i], 0);
+
+async function native(label, doc, center, radius, basis = xy) {
   const { id, valid, volume, centroid, corners, faces } = await f.inspect(label, doc);
   const expectedVolume = 2 * Math.PI * radius ** 2;
+  const axis = basis.normal, bottom = basis.world(center), mid = bottom.map((x, i) => x + axis[i]);
+  const heightAt = point => dot(difference(point, bottom), axis);
+  const radial = point => {
+    const height = heightAt(point);
+    return difference(point, bottom).map((v, i) => v - height * axis[i]);
+  };
   assert.equal(id, 'n1');
   assert.equal(valid, true);
   assert.ok(Math.abs(volume - expectedVolume) < mmTolerance);
-  assert.ok(Math.hypot(centroid[0] - center[0], centroid[1] - center[1], centroid[2] - 1) < mmTolerance);
+  assert.ok(norm(difference(centroid, mid)) < mmTolerance, JSON.stringify({ centroid, mid }));
   assert.ok(corners.length >= 4);
-  for (const height of [0, 2]) {
-    for (const x of [center[0] - radius, center[0] + radius]) {
-      assert.ok(corners.some(p => Math.hypot(p[0] - x, p[1] - center[1], p[2] - height) < mmTolerance));
-    }
-  }
+  const caps = faces.filter(face => face.kind === 'plane');
   const sideFaces = faces.filter(face => face.kind === 'cylinder');
+  assert.equal(caps.length, 2);
   assert.ok(sideFaces.length > 0, JSON.stringify(faces));
+  for (const h of [0, 2]) {
+    assert.ok(caps.some(face => Math.abs(dot(face.n, axis) - (h === 0 ? -1 : 1)) < mmTolerance
+      && Math.abs(heightAt(face.o) - h) < mmTolerance));
+    assert.ok(corners.filter(point => Math.abs(heightAt(point) - h) < mmTolerance).length >= 2);
+  }
   for (const side of sideFaces) {
     assert.ok(Math.abs(side.r - radius) < mmTolerance);
-    assert.ok(Math.hypot(side.c[0] - center[0], side.c[1] - center[1]) < mmTolerance);
-    assert.ok(Math.hypot(side.a[0], side.a[1], Math.abs(side.a[2]) - 1) < mmTolerance);
+    assert.ok(norm(radial(side.c)) < mmTolerance);
+    assert.ok(Math.abs(Math.abs(dot(side.a, axis)) - 1) < mmTolerance);
   }
-  for (const [x, y, z] of corners) {
-    assert.ok(Math.min(Math.abs(z), Math.abs(z - 2)) < mmTolerance);
-    assert.ok(Math.abs(Math.hypot(x - center[0], y - center[1]) - radius) < mmTolerance);
+  for (const point of corners) {
+    assert.ok(Math.min(Math.abs(heightAt(point)), Math.abs(heightAt(point) - 2)) < mmTolerance);
+    assert.ok(Math.abs(norm(radial(point)) - radius) < mmTolerance);
   }
   const [body] = (await f.bodies()).bodies;
   assert.equal(body.key, 'b1');
   assert.ok(Math.abs(body.volume - expectedVolume) < mmTolerance);
-  f.report.observations.push({ label, id, valid, volume, centroid, corners: corners.length, cylindricalFaces: sideFaces.length, expectedVolumeMm3: expectedVolume });
+  f.report.observations.push({ label, id, valid, volume, centroid, expectedCentroid: mid, corners: corners.length, cylindricalFaces: sideFaces.length, expectedVolumeMm3: expectedVolume });
 }
 
-async function acceptAndExtrude(label, center, radius, first, second) {
+async function acceptAndExtrude(label, center, radius, first, second, basis) {
   const profile = (await f.finishSketch(label + '-circle')).doc;
   assert.equal(profile.nodes.length, 1);
   const [circle] = profile.nodes;
   assert.equal(circle.profile, 'circle');
   assert.ok(Math.hypot(circle.center[0] - center[0], circle.center[1] - center[1]) < mmTolerance);
   assert.equal(circle.radius, radius);
-  assert.deepEqual(circle.sideTags, { outer: ['e1'] });
+  assert.equal(circle.sideTags?.outer.length, 1);
+  if (!circle.construction?.length) assert.deepEqual(circle.sideTags, { outer: ['e1'] });
+  if (basis?.plane) {
+    for (const field of ['origin', 'normal', 'xAxis']) {
+      assert.ok(norm(difference(circle.plane[field], basis.plane[field])) < mmTolerance);
+    }
+  }
   for (const point of [first, second]) {
     assert.ok(Math.abs(Math.hypot(circle.center[0] - point[0], circle.center[1] - point[1]) - radius) < mmTolerance);
   }
   await f.openExtrudeHud();
   const solid = (await f.applyExtrude({ distance: 2, previous: profile, label })).doc;
   assert.deepEqual(solid.nodes[0], circle);
-  await native(label + '-native', solid, center, radius);
+  await native(label + '-native', solid, center, radius, basis);
   return { profile, solid };
 }
 
 async function save(doc) {
-  const name = 'D878-circle-from-chord', file = name + '.bcad', project = 'D878 circle';
+  const name = planeMode ? 'D879-circle-plane' : 'D878-circle-from-chord', file = name + '.bcad', project = 'Circle from chord';
   await f.page.locator('.doc-tab input').fill(name);
   await button(f.page, 'Project and versions').click();
   const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -196,6 +225,133 @@ async function open(doc, { file, bytes }) {
   await f.same(doc);
 }
 
+async function setPlane(kind, offset, angle = 0) {
+  await f.sketchPanel().getByLabel('Sketch plane', { exact: true }).selectOption(kind);
+  await f.sketchPanel().getByLabel('Plane offset', { exact: true }).fill(String(offset));
+  if (angle) await f.sketchPanel().getByLabel('Plane angle', { exact: true }).fill(String(angle));
+}
+
+async function qualifyPlanes() {
+  const c = Math.sqrt(3) / 2;
+  const xz = { normal: [0, -1, 0], world: ([u, v]) => [u, -7, v],
+    plane: { origin: [0, -7, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } };
+  const yz = { normal: [1, 0, 0], world: ([u, v]) => [3, u, v],
+    plane: { origin: [3, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } };
+  const tilt = { normal: [0, 0.5, c], world: ([u, v]) => [u, 3.5 + c * v, 7 * c - 0.5 * v],
+    plane: { origin: [0, 3.5, 7 * c], normal: [0, 0.5, c], xAxis: [1, 0, 0] } };
+
+  f.phase = 'retire candidates on plane change and accept an exact XZ diameter';
+  await newPart();
+  const empty = await f.doc();
+  await enterCircle();
+  await begin();
+  await pickPoints(a, b);
+  await radiusField().fill('5');
+  await button(controls(), 'Use circle 2').waitFor();
+  await setPlane('xz', 7);
+  await controls().waitFor({ state: 'hidden' });
+  assert.equal(await centers().count(), 0);
+  await f.same(empty);
+  await begin();
+  await pickPoints(a, b, xz);
+  await radiusField().fill('3');
+  await button(controls(), 'Use circle 1').waitFor();
+  await previewMarks(centers(), [[23, 20]], xz);
+  await button(controls(), 'Use circle 1').click();
+  await acceptAndExtrude('01-xz-diameter', [23, 20], 3, a, b, xz);
+
+  f.phase = 'accept the upper candidate on the YZ plane';
+  await newPart();
+  await enterCircle();
+  await setPlane('yz', 3);
+  await begin();
+  await pickPoints(b, a, yz);
+  await radiusField().fill('5');
+  await button(controls(), 'Use circle 2').waitFor();
+  await previewMarks(centers(), [low, high], yz);
+  await button(controls(), 'Use circle 2').click();
+  await acceptAndExtrude('02-yz-upper', high, 5, b, a, yz);
+
+  const first = [20.25, 20.25], second = [25.25, 20.25];
+  const inputs = [[20.29, 20.27], [25.29, 20.27]];
+  const dy = Math.sqrt(39) / 2, chosen = [22.75, 20.25 + dy];
+  const tiltedCenters = [[22.75, 20.25 - dy], chosen];
+  async function drawTilted(dpr) {
+    f.phase = 'draw off-grid construction endpoints at DPR ' + dpr;
+    await newPart(dpr);
+    assert.equal(await f.page.evaluate(() => devicePixelRatio), dpr);
+    await enterCircle();
+    await setPlane('xy', 7, 30);
+    await f.tool('Rectangle', 'r');
+    await button(f.page, 'Construction').click();
+    await f.page.mouse.click(...await pixel([20, 20], tilt));
+    await f.page.mouse.click(...await pixel([25, 26], tilt));
+    await f.sketchPanel().locator('input#sk-x').fill('20.25');
+    await f.sketchPanel().locator('input#sk-y').fill('20.25');
+    await f.tool('Circle', 'c');
+    await button(f.page, 'Construction').click();
+
+    if (dpr === 2) {
+      f.phase = 'use the grid while the off-grid source is hidden';
+      await button(f.page, 'Hide construction').click();
+      await begin();
+      await pickPoints([20, 20], [25, 20], tilt, inputs);
+      await button(controls(), 'Cancel circle').click();
+      await button(f.page, 'Show construction').click();
+    }
+    await begin();
+    await f.page.mouse.move(...await pixel(inputs[0], tilt));
+    await f.page.locator('.vp-overlay .sk-osnap').getByText('End', { exact: true }).waitFor();
+    await pickPoints(first, second, tilt, inputs);
+    await f.page.locator('.vp-overlay .sk-osnap').waitFor({ state: 'hidden' });
+    await radiusField().fill('4');
+    await button(controls(), 'Use circle 2').waitFor();
+    await previewMarks(centers(), tiltedCenters, tilt);
+    if (dpr === 2) {
+      const beforeZoom = await screenOf(chosen, tilt);
+      await f.page.mouse.move(...await pixel([24, 23], tilt));
+      await f.page.mouse.wheel(0, -180);
+      await previewMarks(centers(), tiltedCenters, tilt);
+      assert.ok(norm(difference(await screenOf(chosen, tilt), beforeZoom)) > 1);
+      assert.equal(await f.page.locator('.vp-overlay .sk-osnap').count(), 0);
+      await f.snapshot('03-tilted-off-grid-after-zoom');
+    }
+    await button(controls(), 'Use circle 2').click();
+    const result = await acceptAndExtrude('04-tilted-off-grid-dpr' + dpr, chosen, 4, first, second, tilt);
+    const refs = result.profile.nodes[0].construction;
+    assert.equal(refs.length, 1);
+    assert.equal(refs[0].kind, 'rectangle');
+    assert.equal(refs[0].construction, true);
+    assert.deepEqual(refs[0].a, first);
+    assert.deepEqual(refs[0].b, [25.25, 26.25]);
+    assert.equal(new Set([...result.profile.nodes[0].sideTags.outer, ...refs[0].ids]).size, 5);
+    return result.solid;
+  }
+  const tilted = await drawTilted(2);
+  assert.deepEqual(await drawTilted(1), tilted);
+  const saved = await save(tilted);
+  await f.newPage();
+  await open(tilted, saved);
+  await native('05-tilted-fresh-native', tilted, chosen, 4, tilt);
+  await f.snapshot('05-tilted-fresh-open');
+
+  f.phase = 'New part retires pending circles from the prior document';
+  await enterCircle();
+  await begin();
+  const other = [[45, 10], [51, 10]];
+  await f.frame(other);
+  await pickPoints(...other);
+  await radiusField().fill('5');
+  await button(controls(), 'Use circle 2').waitFor();
+  await button(f.page, 'New part').click();
+  await f.same(empty);
+  await controls().waitFor({ state: 'hidden' });
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  assert.equal(await centers().count(), 0);
+  await f.snapshot('06-new-part-retires-candidates');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -209,6 +365,7 @@ await f.run(async () => {
     });
     return context;
   };
+  if (planeMode) { await qualifyPlanes(); return; }
   await newPart();
   const empty = await f.doc();
   assert.equal(empty.nodes.length, 0);

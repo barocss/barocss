@@ -268,7 +268,7 @@ export function drawSketchOverlay({
       <circle cx={b[0]} cy={b[1]} r={3.5} fill="var(--bg)" />
     </g>);
   }
-  const cur = picking ? null : draft.cursor;
+  const cur = picking || circleChord?.second ? null : draft.cursor;
   if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
   // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.
   const sn = picking ? null : draft.snap;

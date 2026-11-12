@@ -1,0 +1,100 @@
+{
+  "decision": "D879",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2092ecbea01afaf1bfc2f6b717bf5d3cb67a12ba",
+  "issue": 2318,
+  "issueDisposition": "ACCEPTED",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D879_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/studio-run01 --planes",
+    "D879_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/studio-run02 --planes",
+    "D878_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/xy-regression",
+    "D879_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/studio-run03 --planes",
+    "cd apps/cad-studio && node scripts/test.mjs circle-from-chord object-snap-kinds",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/viewport/sketchOverlay.tsx",
+    "node --check apps/cad-studio/test/circle-from-chord-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 7,
+    "typeCheck": "PASS",
+    "scopedLint": "PASS",
+    "worldFrameReview": "PASS",
+    "logSHA256": "91cab9e1abb0f347b44b3af4e7508e540781f81dd1ccd7b8d3982e2e82bf6f3d"
+  },
+  "studio": {
+    "initialPlanes": {
+      "status": "PASS",
+      "receiptSHA256": "f8b4ab193def4260f34576cbb4f0d9cbdb70b2ae558496551a37b6a4eec70a9d",
+      "sourceManifestSHA256": "fddc2363c5d39f0a1f7aaf0d7c25f44e9d516cb1d2656e8368d98d773ff4e5a0",
+      "frozenFiles": 835,
+      "snapshots": 8,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "preRepairPlanes": {
+      "status": "PASS",
+      "receiptSHA256": "5a276d59087d32fd69e1a387c814dc3dc77358d68dab9f1e4a55145395f1dfd7",
+      "sourceManifestSHA256": "5068aec2441020626088742dc683cb2e8c89f2d46fcb9a2cf7f63227bf0d89cd",
+      "frozenFiles": 835,
+      "snapshots": 11,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "unobscuredCandidateLabels": "FAIL"
+    },
+    "preRepairXY": {
+      "status": "PASS",
+      "receiptSHA256": "4b89b146a6072dde2e0383fdcd2f8e572f027a5260081adab10f645072cac568",
+      "sourceManifestSHA256": "51bf8781d3a19312adc45f2c9adabbe4b32e6fc186caa3e8333bed1e59f3042f",
+      "frozenFiles": 835,
+      "snapshots": 19,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "finalPlanes": {
+      "status": "PASS",
+      "receiptSHA256": "8d41f7626a3dd62203886e49485a4c2717d845d8774312d241dd64b1feb0e4d8",
+      "sourceManifestSHA256": "ee25f46b4206b1ef6549a0486166c01cc2ce9d234218d86a9cc9bc0f6a0824fd",
+      "frozenFiles": 835,
+      "snapshots": 11,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "d8122d724c30cfb59b3e95d968ddc5e2b36c7ad7e72173312228b833c50ed0e4",
+    "projectionTolerancePx": 0.02,
+    "nativeTolerance": 1e-07,
+    "heightMm": 2,
+    "worldCentroidsMm": {
+      "xz": [
+        23,
+        -8,
+        20
+      ],
+      "yz": [
+        4,
+        23,
+        24
+      ],
+      "tilt": [
+        22.75,
+        24.241177883232872,
+        -4.75804626932409
+      ]
+    },
+    "deviceScaleFactors": [
+      1,
+      2
+    ],
+    "projectBytes": 1180,
+    "projectSHA256": "967f8a2c69844969abfd07cec27f6772bb8dbb39828629928ca1407103f3bb2d"
+  }
+}

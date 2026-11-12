@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D879 — verify two-point circles on axial and tilted working planes](notes/circle-chord-working-planes-2026-11-13/README.md).
 - [D878 — create a circle from two circumference points and a radius](notes/circle-from-two-points-2026-11-13/README.md).
 - [D877 — drag Trim a newly drawn material line](notes/material-drag-trim-2026-11-13/README.md).
 - [D876 — preview and commit a straight drag Trim stroke](notes/straight-drag-trim-2026-11-13/README.md).
