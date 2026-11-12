@@ -13,6 +13,7 @@ import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
 import type { OrbitCamera } from './camera';
 import type { PathGapDraft } from '../sketch/usePathGap';
+import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
 
@@ -53,6 +54,7 @@ interface SketchOverlayInputs {
   centreArc: CentreArcDraft | null;
   extensionGuide?: readonly P2[];
   pathGap?: PathGapDraft;
+  overlaidLine?: OverlaidLine;
   bandCache: RefObject<SketchBandCache | null>;
   picking: boolean;
   cutting: boolean;
@@ -63,7 +65,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -235,6 +237,14 @@ export function drawSketchOverlay({
     const p = P(...point);
     items.push(<circle key={'gap-end-' + index} cx={p[0]} cy={p[1]} r={4} className="sk-split sk-path-gap-end" />);
   });
+  if (overlaidLine) {
+    const a = P(...overlaidLine.start), b = P(...overlaidLine.end);
+    items.push(<g key="overlaid-line" className="sk-overlaid-line" data-shape={overlaidLine.shape + 1} data-side={overlaidLine.side + 1} data-id={overlaidLine.id}>
+      <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
+      <circle cx={a[0]} cy={a[1]} r={3.5} />
+      <circle cx={b[0]} cy={b[1]} r={3.5} fill="var(--bg)" />
+    </g>);
+  }
   const cur = picking ? null : draft.cursor;
   if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
   // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.

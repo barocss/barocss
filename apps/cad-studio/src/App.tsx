@@ -26,6 +26,8 @@ import { useArcExtensionSnap } from './sketch/useArcExtensionSnap';
 import { SketchSnapControls } from './sketch/SketchSnapControls';
 import { usePathGap } from './sketch/usePathGap';
 import { PathGapControls } from './sketch/PathGapControls';
+import { useOverlaidLines } from './sketch/useOverlaidLines';
+import { OverlaidLinesControls } from './ui/OverlaidLinesControls';
 import { useSketchActions } from './sketch/useSketchActions';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
@@ -1467,7 +1469,9 @@ export function App() {
   const twoPointSnap = useTwoPointSnap(doc, sketch, docNow, sketchGeneration, viewport);
   const arcExtensionSnap = useArcExtensionSnap(doc, sketch, docNow, sketchGeneration);
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
-  const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch }), pathGap: pathGap.input };
+  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
+  const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch }),
+    pathGap: pathGap.input, overlaidLine: overlaidLines.highlight };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
@@ -1915,7 +1919,7 @@ export function App() {
         return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
-      if (e.key === 'Escape' && (twoPointSnap.cancel() || arcExtensionSnap.cancel() || pathGap.cancel())) { e.preventDefault(); return; }
+      if (e.key === 'Escape' && (overlaidLines.close() || twoPointSnap.cancel() || arcExtensionSnap.cancel() || pathGap.cancel())) { e.preventDefault(); return; }
       if (e.key === 'Enter' && (twoPointSnap.input.read() || arcExtensionSnap.input.read(sketch) || pathGap.input.read(sketch))) { e.preventDefault(); return; }
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
@@ -2278,7 +2282,7 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+      {sketch && <SketchPanel sketch={sketch} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}

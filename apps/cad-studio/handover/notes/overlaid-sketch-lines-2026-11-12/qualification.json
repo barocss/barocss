@@ -1,0 +1,118 @@
+{
+  "decision": "D828",
+  "tier": "FEATURE",
+  "parent": "29a7b6d719810f6d8adc673bd3bd9d827ad19af5",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d828-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d828-overlaid-lines-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test overlaid-lines trim.test sketchIds.test",
+    "gate.sh acquire heavy 600 d828-overlaid-lines",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "cd apps/cad-studio && D828_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D828_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "gate.sh acquire heavy 600 d828-overlaid-lines-final-checks",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test overlaid-lines trim.test sketchIds.test constraints.test",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/overlaidLines.ts apps/cad-studio/src/sketch/useOverlaidLines.ts apps/cad-studio/src/ui/OverlaidLinesControls.tsx apps/cad-studio/src/viewport/SceneViewport.tsx apps/cad-studio/src/viewport/Viewport.tsx apps/cad-studio/src/viewport/sketchOverlay.tsx apps/cad-studio/test/overlaid-lines.test.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "PASS",
+      "sha256": "1be5babdf0b914201bace8c7de6bd2b38c7fc14fd0e68e9c9c77c6b7e33bbe97",
+      "frozenSources": 811,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-2": {
+      "status": "PASS",
+      "sha256": "944425be88e206ea21176a3e1192df82f21635f5183f0093a00629b616483fba",
+      "frozenSources": 811,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "two-directions",
+          "checked": 8,
+          "groups": 1,
+          "firstPixels": [
+            [
+              320.829833984375,
+              578.1677856445312
+            ],
+            [
+              320.83233642578125,
+              522.3334350585938
+            ]
+          ],
+          "reversePixels": [
+            [
+              320.83233642578125,
+              522.3334350585938
+            ],
+            [
+              320.829833984375,
+              578.1677856445312
+            ]
+          ],
+          "zoomed": [
+            [
+              399.3223876953125,
+              492.7891540527344
+            ],
+            [
+              399.32135009765625,
+              525.81787109375
+            ]
+          ]
+        },
+        {
+          "label": "scan-retired-on-edit",
+          "planeOffset": 3,
+          "groupsBefore": 1,
+          "groupsAfter": 0,
+          "groupsRestored": 1
+        },
+        {
+          "label": "control-project",
+          "bytes": 588,
+          "sha256": "86e591f0a08201cb95ac934c00c7b21048324379dff163aba9897f81cd1ebabe",
+          "volume": 60.000000000000014,
+          "names": [
+            "n1.side[e1]",
+            "n1.side[e2]",
+            "n1.side[e3]",
+            "n1.side[e4]",
+            "n1.bottom",
+            "n1.top"
+          ]
+        }
+      ]
+    }
+  },
+  "focused": {
+    "studioPass": 38,
+    "fail": 0,
+    "skip": 0
+  },
+  "types": "PASS",
+  "scopedLint": "PASS",
+  "build": "PASS",
+  "rootVisualReview": "PASS",
+  "appWholeLint": "NOT_RUN; prior D826 baseline unused _k remains"
+}

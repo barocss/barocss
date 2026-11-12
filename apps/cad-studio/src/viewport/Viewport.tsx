@@ -30,6 +30,7 @@ import type { CageValidation } from '@barocss/cad';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
 import { drawSketchOverlay, fmtLen, type SketchBandCache } from './sketchOverlay';
+import type { OverlaidLine } from '../sketch/overlaidLines';
 import { banding, cutting, picking, useViewportPointerInput, type ViewportHover, type ViewportPointerProps } from './viewportPointerInput';
 
 import type { SketchState } from '@barocss/cad-model/sketch/types';
@@ -81,6 +82,7 @@ export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: nu
 export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
 interface Props extends ViewportPointerProps, MarkHandlers {
+  overlaidLine?: OverlaidLine;
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
   annotationSelected?: string | null;
@@ -788,6 +790,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
+      overlaidLine: props.overlaidLine,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;
