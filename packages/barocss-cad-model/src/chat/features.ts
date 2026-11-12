@@ -507,6 +507,10 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   const users = (i: number) => nodes.flatMap((n, k) => usesOf(n).includes(i) ? [k] : []);
   const removed = new Set([index]);
   for (const s of parentsOf(nodes[index])) if ((nodes[s]?.kind === 'sketch' || nodes[s]?.kind === 'driven-sketch') && users(s).every(k => k === index)) removed.add(s);
+  // The explicit target is independent of the geometry source. A removed index must not bind it to a different body.
+  const linkedTargetUser = nodes.findIndex((node, i) => !removed.has(i) && node.kind === 'sketch' && node.association
+    && node.on && node.on.node !== node.association.source.node && removed.has(node.on.node));
+  if (linkedTargetUser >= 0) return { error: `Linked sketch ${linkedTargetUser + 1} uses this feature as its separate target. Delete the linked sketch before deleting its target.` };
   const blocking = [...removed].flatMap(users).filter(k => !removed.has(k));
   // (FRf, O121: a skeleton or sketch frames follow: refused, typed, naming them.)
   const followers = followersOf(nodes, index);

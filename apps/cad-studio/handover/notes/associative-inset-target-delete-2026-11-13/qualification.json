@@ -1,0 +1,49 @@
+{
+  "decision": "D869",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "846dee8faec2220b1e83373f9e2c20a267304fb3",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d869-target-delete-baseline",
+    "D869_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-target-delete-browser.mjs <external-evidence>/baseline-run01 --baseline",
+    "gate.sh acquire heavy 600 d869-target-delete-fixed",
+    "D869_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-target-delete-browser.mjs <external-evidence>/fixed-run01 --fixed",
+    "gate.sh acquire heavy 600 d869-target-delete-focused",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-associative-inset drawing-associative-sketch feature-delete feature-history sketch-outline-field-identity",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-edit-identity document-file midpoint-sketch",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/chat/features.ts packages/barocss-cad-model/test/sketch-associative-inset.test.ts",
+    "node --check apps/cad-studio/test/associative-inset-target-delete-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 23,
+    "studioPass": 46,
+    "logSHA256": "5c37dd719aa654c617b1a79d1c887e384d3e03570f0e80ce35cba74750ac4095"
+  },
+  "studio": {
+    "status": "PASS",
+    "baselineTargetCustody": "FAIL",
+    "baselineReceiptSHA256": "3900b24f9011692189167a983ea99978a199460b8a6fcb3488d22fe06622b501",
+    "baselineSourceManifestSHA256": "1dc0fb323f8d2daf62c71bac045b797962f0cf37fb9e50c5f90e6bb2be914711",
+    "fixedReceiptSHA256": "5b8583f7b03ea80ead3668b5251ddfc4c961e8fe82ba68ee0cf53d97cd491ddb",
+    "fixedSourceManifestSHA256": "58538a7d8a17457a8d018467f018349fb4441afb5f694996a92ed356e1a83263",
+    "runnerSHA256": "ea9a7bd342e7b8285a0838c60162ddf3cde640d5492bfc0834b3983a364840c0",
+    "fixtureSHA256": "d9e78708a62e7974262dea8c46dd4b8b5dba04e6f32251bb35eed5010d419c81",
+    "fixtureBytes": 1040,
+    "frozenFiles": 355,
+    "fixedSnapshots": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "oldExplicitTarget": "n1",
+    "baselineAliasedTarget": "n3",
+    "source": "n3.top",
+    "remainingBodyVolumeMm3": 11520.000000000005
+  }
+}

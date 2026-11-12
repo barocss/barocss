@@ -8,7 +8,7 @@ import {
 import { featureId, withIds } from '../src/engine/ids';
 import { featureOf, partSnapshot, resolveAssociativeSketch, toPartDocument } from '../src/engine/part';
 import { evaluatePart } from '../src/engine/evaluate';
-import { deleteFeature, duplicateBody, moveFeature, renumber } from '../src/chat/features';
+import { deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature, renumber } from '../src/chat/features';
 import { flattenAssembly } from '../src/engine/flatten';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { isRefusal } from '../src/engine/refusal';
@@ -286,4 +286,56 @@ test('explicit inset: the original face drives geometry while a separate earlier
   assert.deepEqual(resolved.association?.source, { node: 1, side: 'solid' });
   ringBounds(resolved, [0, 0, 8], [40, 24, 8], [2, 2, 8], [38, 22, 8]);
   assert.deepEqual(doc, before, 'resolving must preserve the separate authored on target and original document');
+});
+
+
+function separateTargetInset() {
+  let doc = withIds(rectanglePart(40, 24, 8));
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [160, 24] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 8 });
+  const sourceFeature = featureId(doc.nodes, 3);
+  doc = withNode(doc, { ...savedRing(), association: { kind: 'planar-face-outline-inset', version: 1,
+    source: { node: 3, side: 'solid' }, sourceFeature, face: sourceFeature + '.top', insetMM: 2 } });
+  return withNode(doc, { kind: 'extrude', sketch: 4, height: 4 });
+}
+
+test('explicit inset: deleting a separate target refuses without an automatic cascade or stale index', () => {
+  const doc = separateTargetInset(), before = structuredClone(doc);
+  assert.deepEqual(parentsOf(doc.nodes[4]), [3]);
+  assert.deepEqual(featureDependents(doc, 1), []);
+  for (const result of [deleteFeature(doc, 1), deleteFeatures(doc, [0, 1])]) {
+    assert.ok('error' in result);
+    assert.match(result.error, /linked sketch 5.*separate target/i);
+  }
+  assert.deepEqual(doc, before);
+  const explicit = deleteFeatures(doc, [1, 5]);
+  assert.ok('doc' in explicit);
+  assert.deepEqual(explicit.doc.nodes.map(node => node.id), ['n2', 'n3']);
+  assert.deepEqual(explicit.doc.outputs, { b3: { node: 1, side: 'solid' } });
+  const [body] = partSnapshot(explicit.doc).outputs;
+  assert.equal(body.id, 'n3');
+  near(massPropertiesOf(body, 1).volume, 11520);
+});
+
+test('explicit inset: keeping a separate target preserves both stable identities during reorder and removal', () => {
+  const doc = separateTargetInset(), before = structuredClone(doc);
+  const reordered = moveFeature(doc, 3, -1);
+  assert.ok('doc' in reordered);
+  assert.ok('error' in moveFeature(doc, 5, -1));
+  assert.ok('error' in moveFeature(reordered.doc, 5, -1));
+  const moved = reordered.doc.nodes[4];
+  assert.ok(moved.kind === 'sketch' && moved.association && moved.on);
+  assert.equal(featureId(reordered.doc.nodes, moved.on.node), 'n1');
+  assert.equal(featureId(reordered.doc.nodes, moved.association.source.node), 'n3');
+  ringBounds(resolveAssociativeSketch(reordered.doc, 4), [100, 0, 8], [160, 24, 8], [102, 2, 8], [158, 22, 8]);
+
+  const shifted = { ...doc, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 40], max: [5, 45], id: 'n70' },
+    { kind: 'extrude', sketch: 0, height: 5, id: 'n71' },
+    ...doc.nodes.map(node => renumber(node, index => index + 2)),
+  ] } satisfies StudioDoc;
+  const deleted = deleteFeature(shifted, 1);
+  assert.ok('doc' in deleted);
+  assert.deepEqual(deleted.doc.nodes, doc.nodes);
+  assert.deepEqual(doc, before);
 });
