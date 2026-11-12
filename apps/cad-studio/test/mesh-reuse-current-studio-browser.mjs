@@ -10,15 +10,24 @@ const output = process.argv[2]; assert.ok(output && isAbsolute(output));
 assert.ok(relative(resolve(import.meta.dirname, '../../..'), resolve(output)).startsWith('../'));
 await mkdir(output);
 const f = await createFlow({ name: 'mesh-reuse-current-studio', envFrozen: 'D524_SOURCE_FROZEN', output,
-  qualification: 'D524/P0-R04 native edit and selection smoke; sampled-signature reachability observation',
-  initialFiles: ['apps/cad-studio/test/mesh-reuse-current-studio-browser.mjs', 'apps/cad-studio/test/readonlymeshobserver.mjs'],
+  qualification: 'D524/P0-R04 and B10-01 native edit, current upload and selection',
+  initialFiles: ['apps/cad-studio/test/mesh-reuse-current-studio-browser.mjs', 'apps/cad-studio/test/readonlymeshobserver.mjs', 'apps/cad-studio/handover/roadmap-tracks/17-b10-evidence-ledger.md'],
   requiredFrozen: ['apps/cad-studio/src/viewport/gpuRenderer.ts', 'apps/cad-studio/src/App.tsx'],
   extraFrozen: ['packages/barocss-gpu/src/viewer/scene.ts', 'packages/barocss-gpu/src/viewer/viewer.ts'],
+  oracleSource: String.raw`
+import math, json, sys
+x = json.load(sys.stdin)
+height = x["height"]
+expected = {"min":[0,0,0],"max":[64,32,height]}
+assert x["inputBounds"] == x["preparedBounds"] == expected
+assert math.isclose(x["volume"], 64*32*height, rel_tol=1e-9)
+print(json.dumps({"status":"PASS","height":height,"volume":64*32*height}))
+`,
   snapshotExtra: () => ({ meshObservation: window.__d524Mesh?.snapshot() ?? null,
     selectedOutliner: [...document.querySelectorAll('.outliner .ol.sel, .outliner .ol-row.sel')].map(row => row.textContent) }),
   limits: ['Desktop WebGPU 1440x900 only. Root must view screenshots.', 'One native box extrude edit Distance 8 to 12 plus body/face/edge selection, Undo/Redo and clear.',
     'No fabricated geometry, forced signature collision or synthetic product action.', 'Collision reachability is observational: no matching signature with changed full mesh means NOT_REPRODUCED_IN_THIS_FLOW, not proof of safety.',
-    'Prepared geometry and native vertex/index writeBuffer calls are observed; GPU memory readback and independent physical accuracy are NOT_RUN.',
+    'Prepared geometry and native vertex/index writeBuffer calls are observed. No GPU memory readback.',
     'Instance pose/curved-edge fixture breadth is NOT_RUN; straight native edge selection is captured.'],
 });
 const labels = new Set();
@@ -41,6 +50,17 @@ const pick = async (kind, point, label) => {
   const state = await capture(label); assert.equal(state.selection.selection[kind].length, 1); return state;
 };
 await f.run(async () => {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const newContext = f.browser.newContext.bind(f.browser);
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return url.origin === origin ? route.continue() : route.abort();
+    });
+    return context;
+  };
   await f.newPage(); await f.page.setViewportSize({ width: 1440, height: 900 });
   await f.page.evaluate(installD524MeshObserver);
   try {
@@ -76,6 +96,15 @@ await f.run(async () => {
     const redone = await capture('08-redo-native-mesh'); assert.deepEqual(latestBody(redone).input[0], after.input[0]);
     await clear(); const final = await capture('09-cleared-current-native-mesh');
     assert.equal(final.meshObservation.current[0].surface.data.bounds.max[2], 12);
+    for (const [state, height] of [[initial, 8], [edited, 12], [undone, 8], [redone, 12]]) {
+      const read = latestBody(state);
+      assert.equal(state.bodies.bodies.length, 1);
+      await f.runOracle({
+        height, inputBounds: read.input[0].bounds, preparedBounds: read.after[0].surface.data.bounds,
+        volume: state.bodies.bodies[0].volume,
+      }, state.label);
+    }
+    assert.deepEqual(f.report.downloads, []);
     const pairs = [];
     const calls = final.meshObservation.calls.filter(call => call.input.length === 1);
     for (let i = 0; i < calls.length; i++) for (let j = i + 1; j < calls.length; j++) {
