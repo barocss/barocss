@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D827 — verify the remaining named Hole options](notes/hole-preset-types-and-storage-2026-11-12/README.md).
 - [D826 — save and reuse named Hole options in Studio](notes/named-hole-options-2026-11-12/README.md).
 - [D825 — approve a parameter-driven circular extrusion height](notes/local-named-cylinder-height-2026-11-12/README.md).
 - [D824 — verify a tilted circle gap and the neighboring sketch reference](notes/tilted-circle-gap-reference-2026-11-12/README.md).

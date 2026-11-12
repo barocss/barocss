@@ -1,0 +1,272 @@
+{
+  "decision": "D827",
+  "tier": "SMALL",
+  "parent": "3e7f0cb41f1dd89c191600c1081957bb76c5ac30",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d827-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d827-hole-presets",
+    "node --check apps/cad-studio/test/hole-presets-browser.mjs",
+    "node --check apps/cad-studio/test/hole-presets-other-types.mjs",
+    "cd apps/cad-studio && D827_SOURCE_FROZEN=1 node test/hole-presets-browser.mjs \"$EVIDENCE/desktop-4\" --other-types (earlier attempts desktop-1 through desktop-3)",
+    "cd apps/cad-studio && D826_SOURCE_FROZEN=1 node test/hole-presets-browser.mjs \"$EVIDENCE/blind-regression\"",
+    "gate.sh acquire heavy 600 d827-hole-presets-other-types-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test hole-presets stop-work-ownership",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test hole-types hole-thread-depth-compatibility hole-region",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "FAIL",
+      "sha256": "cd680be0916f356effb1629fe75879b5495832e8c682d6493fd61668f0b52c10",
+      "frozenSources": 810,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-2": {
+      "status": "FAIL",
+      "sha256": "65282f32a2f78dd3bf0d15f7bb78a4a9bb8ed7813a5f858c4cb7fa937bef44e2",
+      "frozenSources": 810,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-3": {
+      "status": "PASS",
+      "sha256": "b8a7b876cbdb2a5ab410e726a7111106e820c2c0060fa54dbf310e4c3a95f905",
+      "frozenSources": 810,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "desktop-4": {
+      "status": "PASS",
+      "sha256": "cd6443d0115b52899ecb9a3e62a6a163b06c278d198f01af1d49c54a279f6faf",
+      "frozenSources": 810,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "retired-success-on-open",
+          "sourceUnchanged": true,
+          "firstHistoryIsOpen": true
+        },
+        {
+          "label": "applied-through",
+          "type": "through",
+          "volume": 13269.02664470768,
+          "centroid": [
+            70,
+            25,
+            6
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              90,
+              3
+            ]
+          ],
+          "shoulder": false
+        },
+        {
+          "label": "applied-countersink",
+          "type": "countersink",
+          "volume": 13222.949952491907,
+          "centroid": [
+            69.93252547151214,
+            24.999999999999826,
+            5.99999999999998
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              88,
+              3
+            ],
+            [
+              90,
+              5
+            ]
+          ],
+          "shoulder": false
+        },
+        {
+          "label": "applied-counterbore",
+          "type": "counterbore",
+          "depth": 2,
+          "volume": 13168.495679792803,
+          "centroid": [
+            69.85495014921761,
+            25.000000000000004,
+            6
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              88,
+              3
+            ],
+            [
+              88,
+              5
+            ],
+            [
+              90,
+              5
+            ]
+          ],
+          "shoulder": true
+        },
+        {
+          "label": "reopened-counterbore",
+          "type": "counterbore",
+          "depth": 2,
+          "volume": 13168.495679792803,
+          "centroid": [
+            69.85495014921761,
+            25.000000000000004,
+            6
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              88,
+              3
+            ],
+            [
+              88,
+              5
+            ],
+            [
+              90,
+              5
+            ]
+          ],
+          "shoulder": true
+        },
+        {
+          "label": "counterbore-project-without-preset",
+          "bytes": 956,
+          "sha256": "166a12f2b744733e32d747274482b1ef5c9f47fb9d4b07b074a7b378ba2c6c81"
+        },
+        {
+          "label": "edited-counterbore",
+          "type": "counterbore",
+          "depth": 3,
+          "volume": 13118.230197335362,
+          "centroid": [
+            69.78733912773126,
+            25,
+            6
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              87,
+              3
+            ],
+            [
+              87,
+              5
+            ],
+            [
+              90,
+              5
+            ]
+          ],
+          "shoulder": true
+        },
+        {
+          "label": "retired-success-on-command-and-new",
+          "sourceUnchanged": true,
+          "firstHistoryIsNew": true
+        },
+        {
+          "label": "manual-after-corrupt-store",
+          "type": "through",
+          "volume": 13269.02664470768,
+          "centroid": [
+            70,
+            25,
+            6
+          ],
+          "rims": [
+            [
+              50,
+              3
+            ],
+            [
+              90,
+              3
+            ]
+          ],
+          "shoulder": false
+        }
+      ]
+    },
+    "blind-regression": {
+      "status": "PASS",
+      "sha256": "cdd621126c1dabe609605b5c6305e44e8e5f98608171f469d12a06c03927a4ca",
+      "frozenSources": 810,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focused": {
+    "modelPass": 9,
+    "studioPass": 16,
+    "fail": 0,
+    "skip": 0
+  },
+  "rootVisualReview": "PASS",
+  "geometryReview": "Sol High source review and independent formula",
+  "physicalTolerance": {
+    "positionMm": 1e-08,
+    "volumeMm3": 1e-07
+  }
+}

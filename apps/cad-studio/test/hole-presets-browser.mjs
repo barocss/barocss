@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { runOtherHolePresets } from './hole-presets-other-types.mjs';
 
+const otherTypes = process.argv[3] === '--other-types';
 const pins = [
   'apps/cad-studio/test/hole-presets-browser.mjs',
+  'apps/cad-studio/test/hole-presets-other-types.mjs',
   'apps/cad-studio/src/app/holePresets.ts',
   'apps/cad-studio/src/ui/HolePresets.tsx',
   'apps/cad-studio/src/ui/Hud.tsx',
@@ -12,9 +15,11 @@ const pins = [
   'packages/barocss-cad-model/src/app/commands.ts',
 ];
 const f = await createFlow({
-  name: 'hole-presets', output: process.argv[2], envFrozen: 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Save hole options from the top of one part and explicitly apply them to the right face of another part.',
-  limits: ['Two ordinary rectangular stock parts, blind and counterbore presets in desktop; all four modes in codec checks.'],
+  name: 'hole-presets', output: process.argv[2], envFrozen: otherTypes ? 'D827_SOURCE_FROZEN' : 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: otherTypes ? 'Apply through, counterbore and countersink presets to fresh right faces and recover from corrupt settings.'
+    : 'Save hole options from the top of one part and explicitly apply them to the right face of another part.',
+  limits: [otherTypes ? 'Two ordinary rectangular stock parts and right-face holes.'
+    : 'Two ordinary rectangular stock parts, blind and counterbore presets in desktop; all four modes in codec checks.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
@@ -24,7 +29,8 @@ const outputs = evaluateCadPart(toPartDocument(doc)).outputs;
 if (outputs.length !== 1) throw Error('Expected one output');
 const [body] = outputs;
 console.log(JSON.stringify({ valid: checkOutput(body).valid, count: body.bodyCount, ...massPropertiesOf(body),
-  faces: body.brep.faces.map(face => ({ name: face.name, ...faceGeometry(face) })) }));
+  faces: body.brep.faces.map(face => ({ name: face.name, ...faceGeometry(face) })),
+  corners: body.brep.vertices.map(vertex => vertex.point), shells: body.brep.shells.map(shell => shell.closed) }));
 `,
 });
 const key = 'barocss:cad:hole-presets:v1';
@@ -35,7 +41,7 @@ const plate = (min, max, height) => ({
   outputs: { b1: ref(1) }, nextId: 2,
 });
 const first = plate([0, 0], [40, 30], 10), second = plate([50, 10], [90, 40], 12);
-const project = 'D826 hole presets ' + randomUUID(), name = 'D826-side.bcad';
+const project = (otherTypes ? 'D827' : 'D826') + ' hole presets ' + randomUUID(), name = 'D826-side.bcad';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const field = (parent, name) => parent.getByLabel(name, { exact: true });
 const hud = () => f.page.getByRole('dialog', { name: 'Hole', exact: true });
@@ -77,7 +83,7 @@ function holdNextPreview() {
       });
     },
   });
-  window.__holeHold = { arm() { armed = true; }, read: () => pending, release() { deliver(); deliver = null; } };
+  window.__holeHold = { arm() { armed = true; pending = undefined; }, read: () => pending, release() { deliver(); deliver = null; } };
 }
 
 async function open(modelName, doc) {
@@ -118,6 +124,29 @@ async function openProject() {
   await versionPanel().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
   await button(versionPanel(), 'Project in this browser').click();
   await field(versionPanel(), 'Project').waitFor();
+}
+
+async function saveAndReopen(doc, fileName, beforeReload) {
+  await openProject();
+  await button(f.page, 'Save').click();
+  await versionPanel().getByRole('list', { name: 'Project documents', exact: true }).getByText(fileName, { exact: true }).waitFor();
+  await field(f.page, 'Unsaved changes').waitFor({ state: 'hidden' });
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const directory = await projects.getDirectoryHandle(project);
+    return Array.from(new Uint8Array(await (await (await directory.getFileHandle(name)).getFile()).arrayBuffer()));
+  }, [project, fileName]));
+  assert.deepEqual(JSON.parse(bytes), doc);
+  await button(versionPanel(), 'Close project').click();
+  await field(versionPanel(), 'Project').waitFor({ state: 'hidden' });
+  if (beforeReload) await beforeReload();
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await f.ready();
+  await openProject();
+  await button(versionPanel(), 'Open ' + fileName).click();
+  await f.same(doc);
+  return { bytes: bytes.length, sha256: sha256(bytes) };
 }
 
 async function checkNative(label, doc, depth) {
@@ -162,6 +191,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (otherTypes) {
+    await runOtherHolePresets({ f, key, first, second, open, pick, startHole, savePreset, saveAndReopen, editState });
+    return;
+  }
   f.phase = 'store and manage options on the top face of the first part';
   await f.newPage();
   await open('D826-top.bcad', first);
@@ -265,25 +298,7 @@ await f.run(async () => {
   await f.same(committed);
 
   f.phase = 'save and reopen the hole with no preset in browser storage';
-  await openProject();
-  await button(f.page, 'Save').click();
-  await versionPanel().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
-  await field(f.page, 'Unsaved changes').waitFor({ state: 'hidden' });
-  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
-    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
-    const directory = await projects.getDirectoryHandle(project);
-    return Array.from(new Uint8Array(await (await (await directory.getFileHandle(name)).getFile()).arrayBuffer()));
-  }, [project, name]));
-  assert.deepEqual(JSON.parse(bytes), committed);
-  await button(versionPanel(), 'Close project').click();
-  await field(versionPanel(), 'Project').waitFor({ state: 'hidden' });
-  await f.page.evaluate(key => localStorage.removeItem(key), key);
-  await f.page.reload();
-  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
-  await f.ready();
-  await openProject();
-  await button(versionPanel(), 'Open ' + name).click();
-  await f.same(committed);
+  const saved = await saveAndReopen(committed, name, () => f.page.evaluate(key => localStorage.removeItem(key), key));
   assert.equal(await storage(), null);
   await checkNative('reopened-right-hole', committed, 5);
   await f.openFeatureEditor(2, 'reopened blind hole');
@@ -292,6 +307,6 @@ await f.run(async () => {
   await field(f.editor(), 'Depth').fill('4');
   await f.applyEditor(committed, '02-reopened-depth-four');
   await checkNative('edited-right-hole', await f.doc(), 4);
-  f.report.observations.push({ label: 'project-without-presets', bytes: bytes.length, sha256: sha256(bytes) });
+  f.report.observations.push({ label: 'project-without-presets', ...saved });
   assert.deepEqual(f.report.downloads, []);
 });
