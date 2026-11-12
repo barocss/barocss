@@ -1,0 +1,110 @@
+{
+  "decision": "D887",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "3596ab303565e639d6011ef1f831ca5a22dac7e3",
+  "issue": 2371,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D887_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/midpoint-sketch-browser.mjs <external-evidence>/studio-run01 --oblique",
+    "D862_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/midpoint-sketch-browser.mjs <external-evidence>/axial-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-midpoint-plane plane sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs midpoint-sketch sketch-edit-identity named-sketch-guards",
+    "node --check apps/cad-studio/test/midpoint-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 98,
+    "studioPass": 38,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "e4a0ad696d264ee81274eac660b8bf4daeb83033f1f269e21c569da72fc06c5d"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Oblique cap visibility, signed distances, native support admission, exact positive extrusion, and fractional refusal."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "02d5b51411fc83acfd4ecc411b39fd7b862012e5e299719d03ad451918259ac3",
+    "sourceManifestSHA256": "638abf84346864b06148157ff0909d83435e270f38eb2ddc71eb0b48abba3946",
+    "frozenFiles": 840,
+    "snapshots": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "reversePickOrder": "PASS",
+    "fractionalRefusal": "PASS",
+    "nativeExtrude": "PASS",
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "frame": {
+      "originMm": [
+        0,
+        4.5,
+        6
+      ],
+      "normal": [
+        0,
+        0.6,
+        0.8
+      ],
+      "xAxis": [
+        1,
+        0,
+        0
+      ],
+      "yAxis": [
+        0,
+        0.8,
+        -0.6
+      ]
+    },
+    "sourceStationsMm": [
+      5,
+      10
+    ],
+    "profileStationsMm": [
+      7.5,
+      10.5
+    ],
+    "profileCornersMm": [
+      [
+        24,
+        1
+      ],
+      [
+        30,
+        5
+      ]
+    ],
+    "sourceVolumeMm3": 500,
+    "volumeMm3": 72.00000000000001,
+    "nativeTolerance": 1e-9,
+    "sourceSHA256": "cd38b871189bad71e9263596921ffc01b04cdf1517fb1eb905f56b0a2b51b192",
+    "refusalSourceSHA256": "0a710356c72ed8b191a936ae0c147b8439bc4878c94a21878814971f2c7ffda8",
+    "savedBytes": 1401,
+    "savedSHA256": "225e35d38823bc144406f17e77edc4b41568421bd703ba6fa78d66cd484bb9b2"
+  },
+  "axialRegression": {
+    "status": "PASS",
+    "receiptSHA256": "23af0facb9fec02197359f0cfe0162eb740bfad81c09fd164ac72968a9ae9fbd",
+    "frozenFiles": 840,
+    "snapshots": 16,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "notRun": [
+    "faceted and mixed/three-pick desktop admission",
+    "tessellation-quality sweep",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const oblique = process.argv[3] === '--oblique';
 const pins = [
   'apps/cad-studio/test/midpoint-sketch-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -17,10 +18,11 @@ const pins = [
   'packages/barocss-cad-model/src/app/nativeMidpointPlane.ts',
 ];
 const f = await createFlow({
-  name: 'midpoint-sketch', envFrozen: 'D862_SOURCE_FROZEN', output: process.argv[2],
+  name: 'midpoint-sketch', envFrozen: oblique ? 'D887_SOURCE_FROZEN' : 'D862_SOURCE_FROZEN', output: process.argv[2],
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Review two native face picks, then draw and extrude on their independent midpoint plane.',
-  limits: ['Fractional axial desktop stock. The native model tests cover oblique and invalid support separately.'],
+  limits: [oblique ? 'Exact oblique native caps and a near-parallel refusal on desktop.'
+    : 'Fractional axial desktop stock. The native model tests cover oblique and invalid support separately.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     historyControls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
@@ -125,11 +127,11 @@ async function launch() {
   await f.command('Sketch at midpoint');
 }
 
-async function readyReview() {
+async function readyReview(origin = [0, 0, midpoint], direction = normal) {
   await launch();
   await review().getByText('Independent plane snapshot', { exact: true }).waitFor();
-  assert.match(await review().innerText(), /Origin \(mm\) · 0, 0, 6\.0004/);
-  assert.match(await review().innerText(), /Normal · 0, 0, 1/);
+  await review().getByText('Origin (mm) · ' + origin.join(', '), { exact: true }).waitFor();
+  await review().getByText('Normal · ' + direction.join(', '), { exact: true }).waitFor();
 }
 
 function unchanged(actual, previous) {
@@ -190,6 +192,124 @@ async function verify(label, doc, start = 2.0002, width = 6) {
   f.report.observations.push({ label, sourceMinZ: start, sketch: doc.nodes[2], solid });
 }
 
+async function saveProject(name, project, doc) {
+  if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
+  await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(versions(), 'Project in this browser').click();
+  await versions().getByLabel('Project', { exact: true }).waitFor();
+  await button(f.page, 'Save').click();
+  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const folder = await projects.getDirectoryHandle(project);
+    const saved = await (await folder.getFileHandle(name)).getFile();
+    return Array.from(new Uint8Array(await saved.arrayBuffer()));
+  }, [project, name]));
+  assert.deepEqual(JSON.parse(bytes), doc);
+  const saved = join(f.output, 'saved-midpoint.bcad');
+  await writeFile(saved, bytes);
+  f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
+  return saved;
+}
+
+async function frameStock() {
+  const ortho = button(f.page, 'Ortho');
+  if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+}
+
+async function checkOblique() {
+  const frame = { origin: [0, 4.5, 6], normal: [0, 0.6, 0.8], xAxis: [1, 0, 0] };
+  const world = (x, v, s) => [x, 0.8 * v + 0.6 * s, -0.6 * v + 0.8 * s];
+  const stockSketch = { ...seed.nodes[0], min: [0, 0], max: [20, 5], plane: { ...frame, origin: [0, 0, 0] } };
+  const exact = { ...seed, nodes: [stockSketch, { ...seed.nodes[1], from: 5, height: 5 }] };
+  const nearly = { ...seed, nodes: [stockSketch, seed.nodes[1]] };
+  const name = 'D887-oblique-midpoint.bcad';
+  const min = [24, 1], max = [30, 5];
+  const station = ([, y, z]) => 0.6 * y + 0.8 * z;
+  const savedFrameStation = station(frame.origin);
+  const expectStock = native => {
+    const stock = native.find(body => body.id === 'n1');
+    assert.ok(stock?.valid && stock.corners.length === 8);
+    const stations = stock.corners.map(station).sort((a, b) => a - b);
+    stations.forEach((value, index) => close(value, index < 4 ? 5 : 10));
+    close(stock.volume, 500);
+    close(savedFrameStation - stations[3], 2.5);
+    close(stations[4] - savedFrameStation, 2.5);
+    return stock;
+  };
+
+  await f.newPage();
+  f.phase = 'reject near-parallel oblique native caps without changing the document';
+  await open(name, nearly);
+  await frameStock();
+  await pick('Top', false, world(10, 2, 10.0006));
+  await pick('Bottom', true, world(10, 2, 2.0002));
+  const before = await f.snapshot('01-oblique-near-parallel-input');
+  await launch();
+  await f.waitToast(/exactly parallel native faces/i);
+  await review().waitFor({ state: 'hidden' });
+  unchanged(await f.snapshot('02-oblique-near-parallel-refusal'), before);
+  await f.dismissToasts();
+
+  f.phase = 'verify the canonical oblique frame in both physical pick orders';
+  await open(name, exact);
+  await frameStock();
+  const stock = expectStock(await f.inspect('oblique-stock-native', exact));
+  await pick('Top', false, world(8, 2, 10));
+  await pick('Bottom', true, world(13, 2, 5));
+  await readyReview(frame.origin, frame.normal);
+  assert.match((await f.snapshot('03-oblique-top-bottom-review')).review, /n1.top · n1.bottom/);
+  await button(review(), 'Cancel').click();
+  await review().waitFor({ state: 'hidden' });
+  await f.same(exact);
+  await pick('Bottom', false, world(5, 1.5, 5));
+  await pick('Top', true, world(15, 3.5, 10));
+  await readyReview(frame.origin, frame.normal);
+  assert.match((await f.snapshot('04-oblique-bottom-top-review')).review, /n1.bottom · n1.top/);
+  await button(review(), 'Start sketch').click();
+  await f.sketchPanel().waitFor();
+  assert.equal(await f.page.getByLabel('Sketch plane', { exact: true }).inputValue(), 'midpoint');
+  await f.same(exact);
+
+  f.phase = 'make and verify an independent solid in the positive oblique direction';
+  await f.tool('Rectangle', 'r');
+  await clickWorld(world(...min, 7.5));
+  await clickWorld(world(...max, 7.5));
+  const finished = (await f.finishSketch('05-oblique-finished')).doc;
+  const sketch = finished.nodes[2];
+  assert.deepEqual(sketch.plane, frame);
+  assert.deepEqual(sketch.min, min);
+  assert.deepEqual(sketch.max, max);
+  assert.equal(sketch.association, undefined);
+  assert.equal(sketch.on, undefined);
+  assert.deepEqual(finished.nodes.slice(0, 2), exact.nodes);
+  await f.openExtrudeHud();
+  const solid = (await f.applyExtrude({ distance: 3, previous: finished, label: '06-oblique-extruded' })).doc;
+  assert.deepEqual(solid.nodes[3], { kind: 'extrude', sketch: 2, height: 3, id: 'n3' });
+  const native = await f.inspect('oblique-consumer-native', solid);
+  assert.deepEqual(expectStock(native), stock);
+  const consumer = native.find(body => body.id === 'n3');
+  assert.ok(consumer?.valid && consumer.corners.length === 8);
+  close(consumer.volume, 72);
+  const corners = [7.5, 10.5].flatMap(s => [min[0], max[0]].flatMap(x => [min[1], max[1]].map(y => world(x, y, s))));
+  for (const expected of corners) assert.ok(consumer.corners.some(point =>
+    Math.hypot(...point.map((value, axis) => value - expected[axis])) < 1e-9), expected);
+  await f.undo();
+  await f.same(finished);
+  await f.redo();
+  await f.same(solid);
+
+  const saved = await saveProject(name, 'D887 oblique midpoint ' + randomUUID(), solid);
+  await f.freshOpen(saved, solid, '07-oblique-fresh-open');
+  assert.deepEqual(await f.inspect('oblique-fresh-open-native', solid), native);
+  f.report.observations.push({ label: 'oblique-midpoint-solid', frame, capStationsMm: [5, 10], profileStationsMm: [7.5, 10.5],
+    profileCornersMm: [min, max], volumeMm3: consumer.volume, worldCornersMm: corners,
+    sourceSHA256: sha256(Buffer.from(JSON.stringify(exact))), refusalSourceSHA256: sha256(Buffer.from(JSON.stringify(nearly))) });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -204,13 +324,15 @@ await f.run(async () => {
     await context.addInitScript(holdRead);
     return context;
   };
+  if (oblique) {
+    await checkOblique();
+    return;
+  }
   const name = 'D862-midpoint.bcad';
   await f.newPage();
   const starter = await f.doc();
   await open(name, seed);
-  const ortho = button(f.page, 'Ortho');
-  if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
-  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await frameStock();
 
   f.phase = 'one face refuses midpoint and still starts ordinary face Sketch';
   await pick('Top');
@@ -329,24 +451,7 @@ await f.run(async () => {
   await verify('source-caps-moved', changed, 12.0002);
 
   f.phase = 'save the current snapshot to project and read the native file';
-  const project = 'D862 midpoint ' + randomUUID();
-  if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
-  await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
-  await button(versions(), 'Project in this browser').click();
-  await versions().getByLabel('Project', { exact: true }).waitFor();
-  await button(f.page, 'Save').click();
-  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
-  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
-  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
-    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
-    const folder = await projects.getDirectoryHandle(project);
-    const saved = await (await folder.getFileHandle(name)).getFile();
-    return Array.from(new Uint8Array(await saved.arrayBuffer()));
-  }, [project, name]));
-  assert.deepEqual(JSON.parse(bytes), changed);
-  const saved = join(f.output, 'saved-midpoint.bcad');
-  await writeFile(saved, bytes);
-  f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
+  const saved = await saveProject(name, 'D862 midpoint ' + randomUUID(), changed);
 
   await f.freshOpen(saved, changed, '14-fresh-open');
   await verify('fresh-open', changed, 12.0002);
