@@ -1,0 +1,90 @@
+{
+  "decision": "D803",
+  "tier": "FEATURE",
+  "parent": "b5bc0309a173d08e9cc4913879474c20806ed5ce",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/line-path-gap-browser.mjs",
+    "node --check apps/cad-studio/test/arc-path-gap-browser.mjs",
+    "cd apps/cad-studio && D803_SOURCE_FROZEN=1 node test/line-path-gap-browser.mjs \"$EVIDENCE/baseline-1\" (before the feature; original driver hash in receipt)",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test PathGap",
+    "cd apps/cad-studio && D803_SOURCE_FROZEN=1 node test/line-path-gap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D802_SOURCE_FROZEN=1 node test/arc-path-gap-browser.mjs \"$EVIDENCE/arc-regression\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d803-line-path-gap",
+    "evidenceFolder": "d803-2026-11-12",
+    "baseline": {
+      "status": "PASS",
+      "folder": "baseline-1",
+      "sha256": "533752cec37b080ec4d662a48f8f8ff51b6fc14543f20384d3e4c50b9efc5862",
+      "frozenSources": 340,
+      "retainedLengthMm": 0
+    },
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "91eb399e9d741d7993c9414476e7ec81aa94335e9a944019bb77fb91e88e35a4",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 1506,
+      "savedSHA256": "537d224d030ca6c5702e7da8c6e9f44a069b1fc010d9a14506826a32362db1a5",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "arcRegression": {
+      "status": "PASS",
+      "folder": "arc-regression",
+      "sha256": "e4dd6127b9a883e8f600fc344a2d187b0dd1beef78f11d7fcbf63078a274731f",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "focused": {
+      "studioPass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "warnings": [
+        "INEFFECTIVE_DYNAMIC_IMPORT"
+      ]
+    },
+    "sourceLengthMm": 30,
+    "requestedGapMm": 4,
+    "measuredGapMm": 3.9999999999999982,
+    "cutPointsMm": [
+      [
+        30.400001,
+        27.800001
+      ],
+      [
+        33.600001,
+        30.200001
+      ]
+    ],
+    "retainedIds": [
+      [
+        "e5",
+        "e7"
+      ],
+      [
+        "e8",
+        "e6"
+      ]
+    ],
+    "volumeMm3": 50
+  }
+}

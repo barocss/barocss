@@ -29,9 +29,9 @@ import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
-import { planArcPathGap } from '../sketch/arcPathGap';
+import { planPathGap } from '../sketch/pathGap';
 import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
-import type { ArcPathGapDraft, ArcPathGapInput } from '../sketch/useArcPathGap';
+import type { PathGapDraft, PathGapInput } from '../sketch/usePathGap';
 import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
 import { pickVertex } from './vertexPick';
 import type { CageOverlay, Spot, ToolView, ViewportTool } from './Viewport';
@@ -80,7 +80,7 @@ export interface ViewportPointerProps {
   onSketchBandPick?(index: number | null): void;
   /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
   onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
-  pathGap?: ArcPathGapInput;
+  pathGap?: PathGapInput;
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
   pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -291,8 +291,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
-  const pathGapAt = (draft: ArcPathGapDraft, sk: SketchState, point: [number, number], x: number, y: number) => {
-    const plan = planArcPathGap(draft.source, point, Number(draft.length));
+  const pathGapAt = (draft: PathGapDraft, sk: SketchState, point: [number, number], x: number, y: number) => {
+    const plan = planPathGap(draft.source, point, Number(draft.length));
     if (!plan) return null;
     const [px, py] = sketchProject(sk.plane)(...plan.hit);
     return Math.hypot(px - x, py - y) < 8 ? plan : null;

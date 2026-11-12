@@ -12,7 +12,7 @@ import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
 import type { OrbitCamera } from './camera';
-import type { ArcPathGapDraft } from '../sketch/useArcPathGap';
+import type { PathGapDraft } from '../sketch/usePathGap';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
 
@@ -22,7 +22,7 @@ export interface SketchOverlayDraft {
   bandHover?: number | null;
   snap?: SnapPoint | null;
   extension?: boolean;
-  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[]; owner: SketchState; gap?: ArcPathGapDraft; ends?: [P2, P2] } | null;
+  trim?: { kind: 'trim' | 'extend' | 'split'; points: P2[]; owner: SketchState; gap?: PathGapDraft; ends?: [P2, P2] } | null;
 }
 
 export interface CentreArcDraft {
@@ -52,7 +52,7 @@ interface SketchOverlayInputs {
   ellipse: EllipseDraft | null;
   centreArc: CentreArcDraft | null;
   extensionGuide?: readonly P2[];
-  pathGap?: ArcPathGapDraft;
+  pathGap?: PathGapDraft;
   bandCache: RefObject<SketchBandCache | null>;
   picking: boolean;
   cutting: boolean;

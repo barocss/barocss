@@ -3,25 +3,25 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { nextIdOf } from '@barocss/cad-model/sketch/entityIds';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { detachSketchLink, switchTool } from '../app/sketchControls';
-import { prepareArcPathGap, type ArcPathGapPlan, type PreparedArcPathGap } from './arcPathGap';
+import { preparePathGap, type PathGapPlan, type PreparedPathGap } from './pathGap';
 
-export interface ArcPathGapDraft {
-  source: PreparedArcPathGap;
+export interface PathGapDraft {
+  source: PreparedPathGap;
   length: string;
   notice?: string;
 }
-interface OwnedDraft extends ArcPathGapDraft {
+interface OwnedDraft extends PathGapDraft {
   doc: StudioDoc;
   sketch: SketchState;
   generation: number;
 }
 
-export interface ArcPathGapInput {
-  read(owner: SketchState | null): ArcPathGapDraft | null;
-  apply(owner: SketchState, draft: ArcPathGapDraft, plan: ArcPathGapPlan | null): void;
+export interface PathGapInput {
+  read(owner: SketchState | null): PathGapDraft | null;
+  apply(owner: SketchState, draft: PathGapDraft, plan: PathGapPlan | null): void;
 }
 
-export function useArcPathGap(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>,
+export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>,
   generation: RefObject<number>, setSketch: Dispatch<SetStateAction<SketchState | null>>) {
   const [draft, setDraft] = useState<OwnedDraft | null>(null);
   const current = useRef<OwnedDraft | null>(null);
@@ -38,14 +38,14 @@ export function useArcPathGap(doc: StudioDoc, sketch: SketchState | null, docNow
   const source = useMemo(() => {
     if (sketch?.tool !== 'trim' || sketch.shape || sketch.hideConstruction) return null;
     const references = (sketch.done ?? []).filter(shape => shape.construction);
-    return references.length === 1 ? prepareArcPathGap(references[0]) : null;
+    return references.length === 1 ? preparePathGap(references[0]) : null;
   }, [sketch]);
-  const input: ArcPathGapInput = {
+  const input: PathGapInput = {
     read,
     apply(owner, expected, plan) {
       const value = read(owner);
       if (!value || value !== expected) return;
-      if (!plan) { change({ ...value, notice: 'The gap must fit inside the arc.' }); return; }
+      if (!plan) { change({ ...value, notice: value.source.arc ? 'The gap must fit inside the arc.' : 'The gap must fit inside the line.' }); return; }
       const shape = value.source.shape;
       const done = owner.done ?? [], index = done.indexOf(shape);
       if (index < 0) return;
@@ -63,7 +63,7 @@ export function useArcPathGap(doc: StudioDoc, sketch: SketchState | null, docNow
     },
   };
   return {
-    input, visible, available: source !== null,
+    input, visible, kind: source ? (source.arc ? 'arc' : 'line') : null,
     toggle() {
       if (read(sketch)) { change(null); return; }
       if (source && sketch && docNow.current === doc && generation.current === renderedGeneration)

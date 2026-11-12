@@ -7,7 +7,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const output = process.argv[2], baseline = process.env.D802_BASELINE === '1';
 const pins = ['apps/cad-studio/test/arc-path-gap-browser.mjs', 'apps/cad-studio/src/sketch/useSketchActions.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts', 'packages/barocss-cad-model/src/sketch/trim.ts',
-  ...(baseline ? [] : ['apps/cad-studio/src/sketch/arcPathGap.ts', 'apps/cad-studio/src/sketch/useArcPathGap.ts'])];
+  ...(baseline ? [] : ['apps/cad-studio/src/sketch/pathGap.ts', 'apps/cad-studio/src/sketch/usePathGap.ts'])];
 const f = await createFlow({
   name: 'arc-path-gap', output, envFrozen: 'D802_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: 'Measure existing Trim and Split and cut a fixed path-length gap in a construction semicircle.',
