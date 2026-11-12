@@ -1,0 +1,77 @@
+{
+  "decision": "D800",
+  "tier": "SMALL",
+  "parent": "2cafeb61cabfa7af13f8370ff3fa3d08d3f6b531",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/flow-helper.mjs",
+    "node --check apps/cad-studio/test/arc-extension-scale-browser.mjs",
+    "cd apps/cad-studio && D800_SOURCE_FROZEN=1 node test/arc-extension-scale-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D800_SOURCE_FROZEN=1 node test/arc-extension-scale-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "cd apps/cad-studio && D799_SOURCE_FROZEN=1 node test/arc-extension-snap-browser.mjs \"$EVIDENCE/default-scale\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d800-arc-extension-scale",
+    "evidenceFolder": "d800-2026-11-12",
+    "initial": {
+      "status": "FAIL",
+      "folder": "desktop-1",
+      "sha256": "03590167f16f35b93ef6ceb04fd5a032dec5f4ff702f2c7c9bc4b1d679c059a2",
+      "detail": "Driver waited for an unobserved zoom increase."
+    },
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-2",
+      "sha256": "ed25c86e2ebaaac277d7d8e6e69e8fa7992ef42106c4c9c6a5768f068fdca9e9",
+      "frozenSources": 801,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "devicePixelRatio": 2,
+      "backingScale": 2,
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "defaultScale": {
+      "status": "PASS",
+      "folder": "default-scale",
+      "sha256": "d79fa991cce4f7331486aa1a1041ced22a584704124293c4d5a3ae62212d4082",
+      "frozenSources": 802,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "devicePixelRatio": 1
+    },
+    "cssPxPerMm": [
+      5.583368950732693,
+      4.136272239363768
+    ],
+    "insidePx": 7,
+    "outsidePx": 9,
+    "insideMm": [
+      1.2537233454868508,
+      1.6923450863274716
+    ],
+    "outsideMm": [
+      1.6119300156259513,
+      2.1758722538496063
+    ],
+    "candidateMm": [
+      22.928932188134524,
+      22.928932188134524
+    ],
+    "storedCornerMm": [
+      22.9289,
+      22.9289
+    ],
+    "volumeMm3": 91.28991042,
+    "sourceNodeIdReused": "n0"
+  }
+}

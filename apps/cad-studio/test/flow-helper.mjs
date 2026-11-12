@@ -150,10 +150,10 @@ export async function createFlow(options) {
     report.states.push(state); await writeFile(join(output, `${label}.json`), JSON.stringify(state, null, 2)); await writeFile(join(output, `${label}.html`), await f.page.content()); await f.page.screenshot({ path: join(output, `${label}.png`), fullPage: true }); await f.persist(); return state;
   };
 
-  /** Close the previous context (if any) and open a fresh one (1440 x 1000) on the Studio, with error / console / download / dialog capture; waits for the WebGPU viewport and ready. */
-  f.newPage = async () => {
+  /** Open a fresh 1440 x 1000 desktop context and wait for the WebGPU viewport. */
+  f.newPage = async ({ deviceScaleFactor = 1 } = {}) => {
     if (f.context) { await f.context.close(); report.cleanup.push('CONTEXT_CLOSED'); }
-    f.context = await f.browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 }); const page = f.page = await f.context.newPage();
+    f.context = await f.browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor }); const page = f.page = await f.context.newPage();
     page.on('pageerror', e => report.errors.push(e.stack ?? String(e))); page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push(m.text()); });
     page.on('download', d => report.downloads.push({ phase: f.phase, suggestedFilename: d.suggestedFilename() })); page.on('dialog', d => d.accept());
     await page.goto(f.server.resolvedUrls.local[0]); await page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 }); await f.ready();
