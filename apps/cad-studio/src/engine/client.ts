@@ -11,7 +11,7 @@ export interface ProposalOverlay {
   why: string | null;
 }
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { SketchNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { stepMetadata } from './stepMetadata';
@@ -22,6 +22,7 @@ import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from
 import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
 export type FaceEndDistanceReply = { distance: number } | { error: string };
+export type FootprintReply = { sketch: SketchNode } | { error: string };
 export type VolumeReply = VolumeEvaluation | { ok: false; error: 'stopped' };
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
@@ -198,6 +199,14 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve(data as FaceEndDistanceReply));
       this.post(id, () => ({ type: 'faceEndDistance', id, doc: this.wire!.pack(doc), index }));
+    });
+  }
+
+  projectFootprint(doc: StudioDoc, key: string): Promise<FootprintReply> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve(data as FootprintReply));
+      this.post(id, () => ({ type: 'projectFootprint', id, doc: this.wire!.pack(doc), key }));
     });
   }
 

@@ -1,0 +1,17 @@
+# D853 — Project the material footprint of an orthogonal solid to a sketch
+
+P1, rows 09, 16 and 30. FULL for one new desktop consumer. In Model, select one current top-level native solid and use **Create → Project to sketch**. The Worker reads the accepted native body and unions the complete horizontal face trims. A blind pocket has material below or above its opening and projects as filled. A through hole projects as a hole. The command opens the existing editable XY sketch draft. Finish records a standalone polygon sketch with its holes and plane. The file has no new node kind, schema or source link.
+
+The source must have one closed shell with cardinal planar faces and straight cardinal native edges. The bounded path admits at most 48 faces, 192 coedges and 128 output sketch edges. It checks the native solid, preserves exact source coordinates through axis ranks, rejects intersecting output loops and checks the resulting profile with the existing prismatic builder. No kernel arrangement implementation changed.
+
+| Result | Check |
+| --- | --- |
+| PASS | Actual Studio projects the 32 × 20 × 4 mm part. The sketch retains the 4 × 6 mm through hole and fills the 4 × 4 mm blind pocket. The sketch plane moves to Z10 before Finish. The first Undo and Redo restore the exact source and the standalone sketch. |
+| PASS | The resulting 2 mm Extrude has 16 exact native vertices, Z10–12 and volume 1232 mm³ from independent area 616 mm². The source remains 2432 mm³. Browser project Save writes 3200 bytes. A fresh Studio context opens those same bytes through File Open. After changing source width to 34 mm, source volume is 2592 mm³ and the copied profile and Extrude stay exact. |
+| PASS | The curved-body refusal and draft Cancel retain the accepted document, bodies, history and selection. Two held actual Worker successes are delivered after opening a newer History draft and after same-ID file replacement. Neither result opens Sketch or changes the current accepted state. The History field retains its uncommitted value. |
+| PASS | Model tests also cover opposed blind pockets with both exterior caps missing the projected region, fractional translation, a valid source with a short projected edge and a valid source with point contact in projection. Two independent reviews cover native admission and UI/Worker ownership. The native profile preflight and History request invalidation address their findings. |
+| PASS | Model 138/138, Studio 87/87, both type checks, lint on the other changed files, driver syntax, production build, diff check and root visual review. All six mutations fail their designated assertions. |
+| FAIL | The first driver used a feature editor locator for a free sketch. The second used Height instead of the current Extrude Distance field. Both driver failures are retained. App lint reports the same existing unused `_k` at parent and current source. |
+| NOT_RUN | General curved, inclined, multi-region or assembly projection, automatic source updates, same-project UI reopen, other browsers and full test suites. |
+
+[Issue #2304](https://github.com/barocss/barocss/issues/2304) remains open for its remaining research and acceptance cases. D854 checks the existing sketch Offset direction after Split. Initial scenarios remain **8/10**. Whole CAD and core readiness are **NOT_MEASURED**. [Commands, quantities and receipt digests](qualification.json).

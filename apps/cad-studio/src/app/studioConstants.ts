@@ -4,13 +4,17 @@ import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { SKETCH3D_COMMAND } from '../skeleton/useSkeletonEditor';
 import type { DisplayMode } from '../viewport/renderer';
 import { STEPS_COMMAND } from './assemblySteps';
+import { PROJECT_TO_SKETCH } from './materialFootprint';
 export const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 export const NO_INSTANCES: PartInstance[] = [];
 /** No assembly cuts (a stable empty list for the Browser's rows). */
 export const NO_CUTS: readonly import('@barocss/cad-model/engine/doc').AssemblyCut[] = [];
 // (The rail's groups and the shapes strip's commands, made once: the button lists compare them by identity.)
 export const TOOL_GROUPS = ['create', 'modify', 'pattern', 'combine', 'inspect'] as const;
-export const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place && c.id !== 'face-fillet' && c.id !== 'full-round').map(c => c.id === 'fillet' ? FILLET_LAUNCHER : c));
+const modelCommands = [...commands, PROJECT_TO_SKETCH];
+export const GROUP_COMMANDS = TOOL_GROUPS.map(g => modelCommands
+  .filter(c => c.group === g && !c.place && c.id !== 'face-fillet' && c.id !== 'full-round')
+  .map(c => c.id === 'fillet' ? FILLET_LAUNCHER : c));
 export const PLACE_COMMANDS = commands.filter(c => c.place);
 /** What a command is about to add, in its preview. */
 export const PREVIEW_TINT = '#7fb2f0';
@@ -21,7 +25,7 @@ export const whenOf = (at: string) => { const d = new Date(at); return Number.is
 export const BROWSER_PLACEMENT = 'dock' as 'dock' | 'left';
 
 /** The studio's own commands in the palette, after the model's (G17's 3D sketch). */
-export const PALETTE_EXTRA = [SKETCH3D_COMMAND, STEPS_COMMAND];
+export const PALETTE_EXTRA = [SKETCH3D_COMMAND, STEPS_COMMAND, PROJECT_TO_SKETCH];
 export const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
   { value: 'shaded-with-edges', label: 'Shaded with edges' },
   { value: 'hidden-lines-removed', label: 'Hidden lines removed' },

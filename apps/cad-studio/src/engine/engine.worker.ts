@@ -3,6 +3,7 @@ import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evalu
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { currentFaceEndDistance } from '@barocss/cad-model/engine/part';
+import { projectMaterialFootprint } from '@barocss/cad-model/engine/materialFootprint';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionsCut } from '@barocss/cad-model/drawing/section';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
@@ -26,6 +27,7 @@ export type WorkerRequest =
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'faceEndDistance'; id: number; doc: WireDoc; index: number }
+  | { type: 'projectFootprint'; id: number; doc: WireDoc; key: string }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
   /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
   | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean; mould: StudioDoc['mould'] }
@@ -106,6 +108,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const request = { ...event.data, doc };
   if (request.type === 'faceEndDistance') {
     try { post({ id: request.id, distance: currentFaceEndDistance(doc, request.index) }); }
+    catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    return;
+  }
+  if (request.type === 'projectFootprint') {
+    try { post({ id: request.id, sketch: projectMaterialFootprint(doc, request.key) }); }
     catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
     return;
   }

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D853 — project an orthogonal solid’s material footprint to a sketch](notes/orthogonal-material-footprint-2026-11-12/README.md).
 - [D852 — refuse a reversed target with the same lower face name](notes/extrude-end-face-start-cap-2026-11-12/README.md).
 - [D851 — replay the affected bracket and enclosure profiles](notes/end-face-extrude-baseline-regressions-2026-11-12/README.md).
 - [D850 — qualify unsupported native end faces and target deletion](notes/extrude-end-face-target-refusals-2026-11-12/README.md).

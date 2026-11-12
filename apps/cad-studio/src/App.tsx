@@ -51,6 +51,7 @@ import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from '.
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
 import { StepExportPanel } from './files/StepExportPanel';
@@ -371,6 +372,8 @@ export function App() {
   const [sketch, setSketchState] = useState<SketchState | null>(null);
   // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
   const sketchGeneration = useRef(0);
+  const footprintRequest = useRef(0);
+  const footprintState = useRef<{ ready: boolean; selection: Selection | null }>({ ready: false, selection: null });
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
   const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => activeStore.get()?.ctx ?? null);
   const sketchModeButton = useRef<HTMLButtonElement>(null);
@@ -1359,6 +1362,32 @@ export function App() {
   const nativeVertexReady = fresh && !busy && marker === null && !inPlace && !doc.instances?.length &&
     !active && !rendering && !drawing && !section && previewMode === 'none';
   const start = useCallback((cmd: Command, initial?: Values) => {
+    const request = ++footprintRequest.current;
+    if (cmd.id === PROJECT_TO_SKETCH.id) {
+      setPalette(false);
+      const key = footprintBody(ctx);
+      const refuse = (hint: string) => setToast({ title: 'Projection not started', hint, detail: '' });
+      if (!key || !footprintState.current.ready || !canChangeDocument()) {
+        refuse('Close other tools and select one current solid in Model.');
+        return;
+      }
+      const open = openIntent.current, worker = workerSessionNow.current, work = workOwnership.current;
+      const sketchRevision = sketchGeneration.current;
+      void engine.projectFootprint(evaluated, key).then(result => {
+        if (request !== footprintRequest.current || open !== openIntent.current || worker !== workerSessionNow.current
+          || work.generation !== workOwnership.current.generation || work.scope !== workOwnership.current.scope
+          || sketchRevision !== sketchGeneration.current
+          || docNow.current !== doc || evaluatedRef.current !== evaluated || footprintState.current.selection !== selection
+          || !footprintState.current.ready || activeStore.get()) return;
+        if ('error' in result) { refuse(result.error); return; }
+        const plane = xyPlane(), { shape, done } = sketchShapes(result.sketch);
+        setEditNode(null);
+        setSketch({ plane, anchor: { kind: 'xy', offset: 0 }, tool: 'rectangle', shape, done, base: null });
+        const [min, max] = sketchRegion(bodies, plane);
+        viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+      });
+      return;
+    }
     if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.action === 'assembly-cut' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
     const vertexSelection = cmd.id === 'sketch' && selection.vertices?.length ? selection.vertices : undefined;
     const vertexPoints = vertexSelection && nativeVertexReady &&
@@ -1424,13 +1453,14 @@ export function App() {
       : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, doc, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference]);
+  }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
     if (raw === undefined) return;
     const index = Number(raw), node = doc.nodes[index];
     if (!Number.isInteger(index) || index < 0 || !node) return;
+    footprintRequest.current++;
     setInstanceSel([]); setDirectSel([]); assembly.cancel();
     if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'band-surface') {
       const command = editCommand(index, doc.nodes, doc);
@@ -1806,6 +1836,7 @@ export function App() {
   const { ghost, proposalOverlay, proposalBusy, evidenceRevision, isStale, partEval, acceptIt, rejectIt } = proposals;
   const [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   routeContext.current = { blocked: busy || !fresh || !!parameterEdit || marker !== null || !!shownVariant.current || !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!ghost };
+  footprintState.current = { ready: nativeVertexReady && !routeContext.current.blocked && !routePanelOpen && !bodyDrag && editNode === null, selection };
   useEffect(() => routeEditor.discardBlocked(), [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
   useEffect(() => proposals.resetForModelChange(), [doc.nodes, doc.parameters, evidenceRevision]);
   useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
@@ -1953,7 +1984,7 @@ export function App() {
       if (e.key === 'Enter' && (twoPointSnap.input.read() || arcExtensionSnap.input.read(sketch) || pathGap.input.read(sketch))) { e.preventDefault(); return; }
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
-      if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
+      if (e.key === 'Escape') { footprintRequest.current++; if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
       if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT) again.current = active.cmd; apply(); } return; }
