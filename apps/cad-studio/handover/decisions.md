@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D863 — measure the current straight edge crossing snap path](notes/native-edge-plane-snap-baseline-2026-11-13/README.md).
 - [D862 — start an independent sketch between two native faces](notes/two-face-midpoint-sketch-2026-11-13/README.md).
 - [D861 — preview a straight-edge constraint before applying it](notes/straight-constraint-preview-2026-11-13/README.md).
 - [D860 — refuse an inert saved perpendicular constraint](notes/saved-perpendicular-reference-admission-2026-11-13/README.md).

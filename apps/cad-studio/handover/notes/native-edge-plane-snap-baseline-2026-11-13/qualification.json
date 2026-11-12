@@ -1,0 +1,45 @@
+{
+  "decision": "D863",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "ff2e7b9f12a9712698ddf8ac7338bc745d1e5d5e",
+  "issue": 2319,
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d863-edge-plane-baseline-desktop",
+    "D863_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/native-edge-plane-snap-baseline-browser.mjs <external-evidence>/studio-run01",
+    "gate.sh acquire heavy 600 d863-baseline-focused",
+    "node packages/barocss-cad-model/scripts/test.mjs osnap native-midpoint-plane",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-snap-visibility vertex-pick-filter",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 15,
+    "studioPass": 6,
+    "logSHA256": "45881064cc3cdcab7292445c7696690058519ac2cc6f02c1cef78ec8186c420c"
+  },
+  "studio": {
+    "status": "PASS",
+    "crossingCue": "FAIL",
+    "receiptSHA256": "cf2d72cf9eeb19cc32320a2b041ca3f67e4160f4221c437f4c709f8adfc35e6e",
+    "sourceManifestSHA256": "2d75bd82a3c824df61eeebf59348fc3807292d9ee72e783dc0288c15262da65a",
+    "runnerSHA256": "060357d5db03e44ec7462ff358a2f2d37317f4c86da7c6470e10ca3a9a0c79a6",
+    "fixtureSHA256": "07d516bb33d604780b351948d68a789f22de91195b7ba73ba2ec94d20e9dd5b4",
+    "fixtureBytes": 290,
+    "frozenFiles": 823,
+    "snapshots": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "qualities": [4, 8, 12],
+    "nativeVertices": ["n1_v0", "n1_v3"],
+    "crossingParameter": 0.3,
+    "crossingMm": [4.234567, 6.345678, 3],
+    "acceptedGridMm": [4, 6],
+    "gridResidualMm": 0.4177498739353494,
+    "extrusionVolumeMm3": 24.000000000000004,
+    "acceptedEndpointMm": [4.2346, 6.3457]
+  }
+}
