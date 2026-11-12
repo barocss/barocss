@@ -10,6 +10,8 @@ Work in the order below. First reproduce the selected boundary without changing 
 
 [D820](../notes/sheet-bend-table-atomic-2026-11-12/README.md) fixes the reproduced Studio bend-table import that committed an unmatched row before native validation. The valid table, both accepted bodies and the first history step remain current.
 
+[D886](../notes/placed-evaluation-notice-ownership-2026-11-13/README.md) scopes a regular placed evaluation notice to the authored document, displayed view and Worker generation. Desktop Studio verifies the current native failure, Undo, Remove, New, same-ID Open and late delivery.
+
 ## Acceptance queue
 
 | ID | Boundary and owner | Required acceptance | Initial tier / dependencies |

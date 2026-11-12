@@ -497,7 +497,7 @@ export function App() {
   const [notice, setToast] = useState<(FriendlyError & {
     action?: { label: string; run(): void };
     bodyCopy?: true;
-    documentSource?: { doc: StudioDoc; name?: string };
+    documentSource?: { doc: StudioDoc; name?: string; placed?: { view: StudioDoc; workerSession: number } };
   }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
     clipboard.current = null;
@@ -512,11 +512,6 @@ export function App() {
   useEffect(clearReferencePreview, [doc, clearReferencePreview]);
   useEffect(() => { if (!drawing) clearReferencePreview(); }, [drawing, clearReferencePreview]);
   const [fileName, setFileNameRaw] = useState('Bracket-01');
-  const noticeSource = notice?.documentSource;
-  const noticeExpired = !!noticeSource && (noticeSource.doc !== doc || (noticeSource.name !== undefined && noticeSource.name !== fileName));
-  useEffect(() => {
-    if (noticeExpired) setToast(current => current === notice ? null : current);
-  }, [noticeExpired, notice]);
   const fileNameNow = useRef(fileName); fileNameNow.current = fileName;
   const setFileName = useCallback((next: string) => { fileNameNow.current = next; setFileNameRaw(next); }, []);
   // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
@@ -783,6 +778,13 @@ export function App() {
   const variants = useVariants(evalDoc), shownDoc = variants.shown; shownVariant.current = variants.showing;
   const { resetDocumentDraft } = variants;
   const shownDocNow = useRef(shownDoc); shownDocNow.current = shownDoc;
+  const noticeSource = notice?.documentSource, placedNotice = noticeSource?.placed;
+  const noticeExpired = !!noticeSource && (noticeSource.doc !== doc
+    || (noticeSource.name !== undefined && noticeSource.name !== fileName)
+    || (!!placedNotice && (placedNotice.view !== shownDoc || placedNotice.workerSession !== workerSession)));
+  useEffect(() => {
+    if (noticeExpired) setToast(current => current === notice ? null : current);
+  }, [noticeExpired, notice]);
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -1088,12 +1090,16 @@ export function App() {
     // (R4b: each placed part on its own O9 lane, `placed:<id>`; this run's lanes cancelled by its cleanup, so a reply from
     // a document since replaced comes back stale and the run stops, setting nothing.)
     const asked = (shownDoc.instances ?? []).map(i => `placed:${i.id}`), generation = workerSessionNow.current;
+    const reportFailure = (error: FriendlyError) => {
+      if (docNow.current !== doc || shownDocNow.current !== shownDoc || workerSessionNow.current !== generation) return;
+      setToast({ ...error, documentSource: { doc, placed: { view: shownDoc, workerSession: generation } } });
+    };
     (async () => {
       const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
       for (const inst of shownDoc.instances ?? []) {
         if (generation !== workerSessionNow.current) return;
         const source = instanceSources.get(inst.id);
-        if (!source?.ok) { setToast({ title: 'The placed part could not be evaluated', hint: source && !source.ok ? source.error : 'Missing part context.', detail: '' }); continue; }
+        if (!source?.ok) { reportFailure({ title: 'The placed part could not be evaluated', hint: source && !source.ok ? source.error : 'Missing part context.', detail: '' }); continue; }
         // The same placement of the same part (objects are replaced on edit, so by reference first; a new
         // object only when its content changed, compared then).
         const have = instanceBodies.get(inst.id);
@@ -1102,12 +1108,12 @@ export function App() {
         if (reply.stale || generation !== workerSessionNow.current) return;
         const r = reply.result;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, sourceKey: source.key, inst, bodies: r.bodies });
-        else setToast(r.error);
+        else reportFailure(r.error);
       }
       if (generation === workerSessionNow.current) setInstanceBodies(next);
     })();
     return () => { for (const lane of asked) lanes.cancel(lane); };
-  }, [shownDoc.instances, instanceSources, workerSession]);
+  }, [doc, shownDoc, instanceSources, workerSession]);
   // Roadmap 10 ⑤: the Assembly cut HUD's preview. It is the viewport's only: the parts the draft changes are evaluated apart from the
   // committed ones (`instanceBodies`), so no export, robot calculation or looks panel reads an unapplied draft.
   const cutPreviewDoc = useMemo(() => withDraftCut(shownDoc, cutDraft), [shownDoc, cutDraft]);

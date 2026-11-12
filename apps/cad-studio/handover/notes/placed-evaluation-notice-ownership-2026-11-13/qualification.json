@@ -1,0 +1,140 @@
+{
+  "decision": "D886",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "859fad6cff0cbb37f9a57a012cbc5c96f4ad3750",
+  "node": "22.19.0",
+  "relatedIssue": {
+    "number": 2333,
+    "state": "CLOSED",
+    "scope": "Placed snap acceptance only",
+    "evidenceComment": "https://github.com/barocss/barocss/issues/2333#issuecomment-6835438226"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D886_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-evaluation-notice-browser.mjs <external-evidence>/baseline --baseline",
+    "D886_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-evaluation-notice-browser.mjs <external-evidence>/fixed",
+    "D885_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/snap-regression --lifecycle",
+    "D707_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/bom-nested-currentness-browser.mjs <external-evidence>/bom-regression",
+    "D571_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/body-clipboard-notice-browser.mjs <external-evidence>/clipboard-regression --expect=fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs definitions.test osnap",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership instance.test instance-looks.test bom-nested-ui viewport-recovery body-clipboard",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "node --check apps/cad-studio/test/placed-evaluation-notice-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 15,
+    "studioPass": 45,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "driverSyntax": "PASS",
+    "diff": "PASS",
+    "lint": "FAIL",
+    "lintComparison": "PASS",
+    "parentLintExit": 1,
+    "currentLintExit": 1,
+    "lintExisting": "@typescript-eslint/no-unused-vars: '_k' is assigned a value but never used.",
+    "logSHA256": "3159d25d02f637efd00e96f912008d85c118d55621e975c4c8ada6b037fef5d3"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Both publishers, authored document, displayed view and Worker ownership, current alert retention and exact cleanup with unrelated notice controls."
+  },
+  "studio": [
+    {
+      "run": "baseline",
+      "status": "PASS",
+      "receiptSHA256": "181852d083f8abdc0b4a516300c283d69cd145b4c45b319931ea190c315bd179",
+      "sourceManifestSHA256": "cacdbd7bbc7b37f07ef9cc1fab58305a2d53d1451a8f4f0655229f9cd0fda095",
+      "frozenFiles": 369,
+      "snapshots": 10,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "currentFailure": "PASS",
+      "retirement": "FAIL",
+      "staleNoticesAfterUndoRemoveNewOpen": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "lateFailureAfterOpen": "PASS"
+    },
+    {
+      "run": "fixed",
+      "status": "PASS",
+      "receiptSHA256": "b6fa6e424efa99b9a2d8ade9a7635112865427c17e00b177035c40e57b29e062",
+      "sourceManifestSHA256": "d79b3f181b1441d89d79e7a651828282bdba7403a6087c9810bfd0115aff468e",
+      "frozenFiles": 369,
+      "snapshots": 10,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "backend": "webgpu",
+      "visualReview": "PASS",
+      "currentFailure": "PASS",
+      "retirement": "PASS",
+      "staleNoticesAfterUndoRemoveNewOpen": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "lateFailureAfterOpen": "PASS",
+      "lateWorkerKey": 2,
+      "lateRequestId": 6
+    },
+    {
+      "run": "snap-regression",
+      "status": "PASS",
+      "receiptSHA256": "38a2a97d2e3e4b41382944e7988e007031a797e6ee65fe928fe4d51a6b14aa95",
+      "sourceManifestSHA256": "798f2bffd90151b64a19379dceb2053abf77fd2fa66e97600b65eb1926c8626b",
+      "frozenFiles": 841,
+      "snapshots": 10,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    {
+      "run": "bom-regression",
+      "status": "PASS",
+      "receiptSHA256": "20b9c97012003c92be87e111e3052c80060113052bb3fc7b3ed107e19d0bf750",
+      "sourceManifestSHA256": "849c2c900c591625548fb968d828ec3d2c136a2a368a3b092b987eaad4b8794f",
+      "frozenFiles": 373,
+      "snapshots": 8,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    {
+      "run": "clipboard-regression",
+      "status": "PASS",
+      "receiptSHA256": "dd06a7a835e3b2ebdfbb5a38846929857af62a492481c1386774e98e7ad88b5b",
+      "sourceManifestSHA256": "b258a755e83ef84359644d6dc51edf90d821e7c5f5aaa2cdfd8908440e3042ce",
+      "frozenFiles": 371,
+      "snapshots": 19,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    }
+  ],
+  "fixture": {
+    "originalSHA256": "b9d46172d41d1a279c6963b7bf8e469e41127133c8a7f258a011ac68fea886dd",
+    "replacementSHA256": "9105abdeec7bb5f72298242f28a45ebfb0dde6a218d5c21970e0851feb07ed94",
+    "nativeFailure": "height must not be zero"
+  },
+  "notRun": [
+    "placed preparation-error in desktop",
+    "variant-switch in desktop",
+    "Worker restart in this flow",
+    "full suites",
+    "mobile"
+  ]
+}
