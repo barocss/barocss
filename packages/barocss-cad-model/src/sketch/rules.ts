@@ -6,6 +6,7 @@ import type { SketchShape } from './types';
 import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
 import { edgeAngle, type SketchRule } from './terms';
 import { circleRelation } from './loops';
+import { fixedTriangleLengthSeed } from './fixedTriangleLength';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 /**
@@ -32,6 +33,12 @@ export const constraintsOf = (s: Polygon): OutlineConstraints => ({
 });
 
 const solved = new WeakMap<Polygon, SolveResult>();
+const fixedTriangleSources = new WeakMap<Polygon, Polygon>();
+
+/** Reuse an exact recovery only for the same source and accepted shape. */
+export function isVerifiedFixedTriangleEdit(shape: Polygon, source: SketchShape | null): boolean {
+  return source !== null && fixedTriangleSources.get(shape) === source;
+}
 /** The outline solved with all its constraints (cached per shape object). */
 export function solveShape(s: Polygon): SolveResult {
   let r = solved.get(s);
@@ -47,9 +54,12 @@ export type EditResult = { ok: true; shape: Polygon; report: SolveReport } | { o
  * more constraints redundant than `prev` had (`what` names the addition in the reason).
  */
 export function checkEdit(candidate: Polygon, prev: Polygon | null, what = 'That'): EditResult {
-  const r = solveShape(candidate);
+  return checkedEdit(candidate, prev, what, solveShape(candidate));
+}
+
+function checkedEdit(candidate: Polygon, prev: Polygon | null, what: string, r: SolveResult): EditResult {
   if (!r.ok) return { ok: false, reason: `${what}: ${r.reason}` };
-  if (prev && redundancy(r) > redundancy(solveShape(prev)))
+  if (prev && !r.recoveredFixedTriangle && redundancy(r) > redundancy(solveShape(prev)))
     return { ok: false, reason: `${what} is already implied by the other constraints — adding it would over-define the sketch` };
   const shape: Polygon = { ...candidate, points: r.points, bulges: r.bulges, ...(candidate.circles ? { circles: candidate.circles.map((c, j) => ({ ...c, c: r.circles[j] ?? c.c })) } : {}) };
   // An attached circle is a hole (inside) or a boss (outside): an edit must not push it across the edge or off the outline.
@@ -279,6 +289,15 @@ export function dimensionLabel(s: Polygon, key: string): string {
 
 /** Sets a driving dimension to `value` mm (adding it if new): the solved outline, or why it is refused. */
 export function commitDimension(s: Polygon, key: string, value: number): EditResult {
+  return editDimension(s, key, value, false);
+}
+
+/** The inline editor can recover a verified existing fixed-vertex triangle's third edge. */
+export function commitInlineDimension(s: Polygon, key: string, value: number): EditResult {
+  return editDimension(s, key, value, true);
+}
+
+function editDimension(s: Polygon, key: string, value: number, recoverTriangle: boolean): EditResult {
   const l = parseLinkKey(key);
   if (l) {
     if (dimensionValue(s, key) === null) return { ok: false, reason: l.kind === 'cedge' ? 'Measure a circle from a horizontal or vertical edge (or from a point)' : 'Unknown dimension' };
@@ -316,7 +335,14 @@ export function commitDimension(s: Polygon, key: string, value: number): EditRes
     return checkEdit({ ...base, rules: [...rules, { kind, a: d.a, b: d.b, value }] }, s, what);
   }
   const field = d.kind === 'rad' ? 'radii' : 'lengths';
-  return checkEdit({ ...base, [field]: { ...(s[field] ?? {}), [d.i]: value } }, s, what);
+  const candidate = { ...base, [field]: { ...(s[field] ?? {}), [d.i]: value } };
+  if (recoverTriangle && key === 'len2') {
+    const report = solveOutline(candidate.points, constraintsOf(candidate), candidate.bulges, () => fixedTriangleLengthSeed(s, value));
+    const edit = checkedEdit(candidate, s, what, report);
+    if (edit.ok && edit.report.recoveredFixedTriangle) fixedTriangleSources.set(edit.shape, s);
+    return edit;
+  }
+  return checkEdit(candidate, s, what);
 }
 
 export interface ConstraintEntry { id: string; label: string; detail: string; removable: boolean; involves: SketchPick[] }

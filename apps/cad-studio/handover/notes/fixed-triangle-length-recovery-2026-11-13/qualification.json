@@ -1,0 +1,78 @@
+{
+  "decision": "D858",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "ac212e1ede14c50aba27c7fd447cbfa66c965656",
+  "issue": 2394,
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d858-studio03",
+    "D858_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/studio-run03 --recover",
+    "node packages/barocss-cad-model/scripts/test.mjs fixed-triangle-length sketch outlineFields",
+    "pnpm -C apps/cad-studio run test fixed-triangle-inline-ownership constraints sketch-edit-identity sketch-reopen sketch-mode-exit named-sketch-guards",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/{fixedTriangleLength,profile,rules,settle}.ts packages/barocss-cad-model/test/fixed-triangle-length.test.ts apps/cad-studio/src/{viewport/studioSketchViewportActions,sketch/useSketchActions}.ts apps/cad-studio/test/fixed-triangle-inline-ownership.test.ts",
+    "node <external-evidence>/mutations.mjs",
+    "node <external-evidence>/named-warm-cold.mjs",
+    "pnpm -C apps/cad-studio run build",
+    "node --check apps/cad-studio/test/large-sketch-length-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "runnerSHA256": "c44a640280a83b8b5c36600e4c945417792e68ecb04286971b6a7fe049027950",
+    "receiptSHA256": "bd18deb69ef2cc0569c739ee7007dc5e5bc952e93e2e7e4e6fa1611a4c68c3e0",
+    "sourceManifestSHA256": "a76c99559b90c2a3ced5b96c102d9a8da8e04895734aaf4017fb031120b822b7",
+    "frozenFilesBeforeAfterAndAfterCleanup": 823,
+    "snapshots": 11,
+    "downloads": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "fromMm": 131.95, "targetMm": 124.05, "refusedMm": 132.05, "postOpenMm": 124.04,
+    "points": [[0, 0], [4, 0], [-122.4496875000001, 19.86143326027408]],
+    "nativeVolumeMm3": 238.33719912328928,
+    "nativeNamedFaces": ["n1.side[e1]", "n1.side[e2]", "n1.side[e3]", "n1.bottom", "n1.top"],
+    "nativeEdges": 9,
+    "nativeVertices": 6,
+    "recoveryInputToResultMs": 27.516292,
+    "savedBytes": 1235,
+    "savedSHA256": "724d224179dacdf68866093d2bc7c1c2fa967ae7d6c90a94e4a4fa6238f45878",
+    "postOpenReeditVolumeMm3": 213.30087011793188,
+    "priorPassingReceiptSHA256": "0a964d6b54045a9fc08cf82e867fd79f03f1f502d536610f5a55bddaf8a4ed17"
+  },
+  "nativeSeedProbe": {
+    "scriptSHA256": "03f44de2919228a75b30056418306d82a733ae7ad9d202e810e724f9cee29d4b",
+    "receiptSHA256": "d3f6b9c2fa0a34630fddb1e999ab4f810aee71de808611453104624a5bad8a69",
+    "cases": 49, "accepted": 10, "triangleRefused": 25, "rangeRefused": 7, "mirroredRefused": 7,
+    "iterationsPerAcceptedSeed": 0, "evaluationsPerAcceptedSeed": 2
+  },
+  "namedWarmCold": {
+    "status": "PASS",
+    "scriptSHA256": "43d9d79dd129a4d3e4a9979f733c362c5b843bf974816f3d12a7d5e6e020e6ad",
+    "receiptSHA256": "3a6e68b87be98a255b362083d82085c57bbaa7b23501562a9736da7aacd7b98a",
+    "sourceSHA256": "401c04ab741f577f06baadefb54bee3004b8c24cebb423af57b2678e741d0b3b",
+    "separateNodeProcesses": 3, "sourceBytes": 2217, "seedMm": 60, "coldMm": 64,
+    "warmEditsMm": [64, 68, 0.0005, 64], "exactOutputBytesEqual": true
+  },
+  "modelFocused": { "pass": 248, "fail": 0 },
+  "studioFocused": { "pass": 62, "fail": 0 },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "studioBuild": "PASS",
+  "scopedLint": "PASS",
+  "appLint": {
+    "status": "FAIL",
+    "sameParentDiagnostic": "Unused _k",
+    "parentSHA256": "3828bc82ca24ff3b9f3b0f8c5f0818ee05ef0dbb7896b9ce8022679bac6ca7dc",
+    "currentSHA256": "dce7bae4777e75894a916d3ad244c253e167046b9b5d2fa78db4499883573132"
+  },
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS",
+  "retainedDriverFailureSHA256": "b7cb5978ad01c99b3cacce1542627ba5e1e85e3c27014f5bff860a7c057aee67",
+  "mutations": {
+    "scriptSHA256": "5f6e2a234670ab19974e781c5ccf51301825c5305bc7d570ee7ed5b6d6a47d6d",
+    "receiptSHA256": "9507f88642b8251b8760c41bdfca99f351832ed66d34f06e0a3ebcb7f86cc1bc",
+    "controlsPass": 2, "detected": 7
+  }
+}

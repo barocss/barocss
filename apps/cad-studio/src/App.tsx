@@ -1503,12 +1503,12 @@ export function App() {
 
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const twoPointSnap = useTwoPointSnap(doc, sketch, docNow, sketchGeneration, viewport);
   const arcExtensionSnap = useArcExtensionSnap(doc, sketch, docNow, sketchGeneration);
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
-  const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch }),
+  const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }),
     pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);

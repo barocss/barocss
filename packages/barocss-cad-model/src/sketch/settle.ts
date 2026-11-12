@@ -4,7 +4,7 @@ import type { SketchShape } from './types';
 import { inferArcRelations, inferredHV, inferTangents, samePair, type ArcPair, type P2 } from './profile';
 import { splineMatches } from './spline';
 import { ellipseMatches } from './ellipse';
-import { checkEdit, redundancy, solveShape, type Polygon } from './rules';
+import { checkEdit, isVerifiedFixedTriangleEdit, redundancy, solveShape, type Polygon } from './rules';
 
 type Relations = { tangents: number[]; equalRadii: ArcPair[]; concentric: ArcPair[] };
 const settled = (s: SketchShape | null): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;
@@ -28,7 +28,7 @@ export function settleShape(shape: SketchShape | null, prev: SketchShape | null)
 }
 
 function settleCore(shape: SketchShape | null, prev: SketchShape | null): { shape: SketchShape | null; error: string | null } {
-  if (!settled(shape)) return { shape, error: null };
+  if (!settled(shape) || isVerifiedFixedTriangleEdit(shape, prev)) return { shape, error: null };
   const justClosed = !settled(prev);
   // Closing freezes the drawn horizontal / vertical edges: from then on they change only explicitly.
   const base: Polygon = justClosed && !shape.hv ? { ...shape, hv: inferredHV(shape.points as P2[], shape.bulges) } : shape;

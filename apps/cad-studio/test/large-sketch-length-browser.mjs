@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2);
+const [output, mode] = process.argv.slice(2);
+const recover = mode === '--recover';
 const name = 'large-sketch-length';
 const project = 'D857 driving line length';
 const pins = [
@@ -12,18 +13,36 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/profile.ts',
   'packages/barocss-cad-model/src/sketch/settle.ts',
   'packages/barocss-cad/src/sketch/xy-numerical-sketch-solver-internal.ts',
+  ...(recover ? ['packages/barocss-cad-model/src/sketch/fixedTriangleLength.ts'] : []),
 ];
 const f = await createFlow({
-  name, output, envFrozen: 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Measure current driving line edits on independently solvable XY profiles',
+  name, output, envFrozen: recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: recover ? 'Recover a feasible fixed-vertex triangle length in one desktop edit'
+    : 'Measure current driving line edits on independently solvable XY profiles',
   limits: ['Existing line lengths on two straight XY triangle fixtures, existing Extrude, desktop Studio and local project Save.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { checkBrep } from '@barocss/cad';
+import { partBreps } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape } from '@barocss/cad-model/sketch/rules';
-const { shape, height } = JSON.parse(process.argv[3]);
+const { shape, height, native } = JSON.parse(process.argv[3]);
+if (native) {
+  const source = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+  const parts = partBreps(source);
+  assert.equal(parts.length, 1);
+  const brep = parts[0].brep;
+  assert.equal(checkBrep(brep, { strict:true }).valid, true);
+  assert.equal(brep.bodies.length, 1);
+  assert.equal(brep.bodies[0].kind, 'solid');
+  assert.equal(brep.shells.length, 1);
+  assert.equal(brep.shells[0].closed, true);
+  console.log(JSON.stringify({ faces:brep.faces.map(face => face.name), edges:brep.edges.length, vertices:brep.vertices.length }));
+  process.exit(0);
+}
 const solved = solveShape(shape);
 assert.ok(solved.ok, JSON.stringify(solved));
 const profile = profileOf([shape]);
@@ -217,7 +236,20 @@ async function qualify(case_) {
 
   f.phase = label + ' direct length edit';
   await setLength(case_, from, to);
-  if (case_.intermediate) {
+  if (case_.intermediate && recover) {
+    assert.equal(await f.sketchAlert(), null);
+    await expectLength(case_, to);
+    await f.same(source);
+    const finalFields = await sketchFields();
+    const drafted = await f.snapshot(label + '-one-input-draft');
+    assert.equal(drafted.dirty, false);
+    assert.deepEqual(drafted.history, initial.history);
+    assert.deepEqual(drafted.bodies, initial.bodies);
+    await f.page.keyboard.press('Meta+z');
+    assert.deepEqual(await sketchFields(), before);
+    await f.page.keyboard.press('Meta+Shift+z');
+    assert.deepEqual(await sketchFields(), finalFields);
+  } else if (case_.intermediate) {
     assert.ok(Math.abs(base - radius) < to && to < base + radius, 'The independent triangle inequality admits the target');
     assert.match(await f.sketchAlert(), case_.refusal);
     await f.same(source);
@@ -249,6 +281,16 @@ async function qualify(case_) {
   await f.same(source);
   const accepted = await f.finishSketch(label + '-final');
   verifyPart(accepted, case_, to, source);
+  if (recover && case_.intermediate) {
+    const [before, after] = [
+      await f.inspect(label + '-native-source', source, { native: true }),
+      await f.inspect(label + '-native-recovered', accepted.doc, { native: true }),
+    ];
+    assert.deepEqual(after, before);
+    assert.equal(after.faces.length, 5);
+    assert.equal(after.edges, 9);
+    assert.equal(after.vertices, 6);
+  }
   await f.undo();
   await f.same(source);
   await f.redo();

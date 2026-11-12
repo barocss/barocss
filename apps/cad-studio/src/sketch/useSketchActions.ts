@@ -159,6 +159,14 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
     } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
   };
+  const sketchRenderGeneration = sketchGeneration.current;
+  function currentSketchSource() {
+    const opened = reopenedDraft.current, index = sketch?.editNode;
+    if (!opened || index === undefined || opened.draft.editNode !== index || docNow.current !== doc ||
+      sketchGeneration.current !== sketchRenderGeneration || docNow.current.nodes[index] !== opened.source) return undefined;
+    return opened.source;
+  }
+
   const finishSketch = useCallback(() => {
     if (!canChangeDocument()) return;
     if (sketch?.editNode !== undefined && (doc.nodes[sketch.editNode]?.kind === 'driven-sketch' || docNow.current.nodes[sketch.editNode]?.kind === 'driven-sketch')) {
@@ -251,5 +259,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError };
 }

@@ -4,6 +4,7 @@
 import { solveXYNumericalSketchPoints } from '@barocss/cad';
 import { ruleTerms, type SketchRule } from './terms';
 import { rectilinearConflict } from './conflict';
+import type { FixedTriangleSeed } from './fixedTriangleLength';
 
 export type P2 = [number, number];
 export type LoopSegment = { kind: 'line'; start: P2 } | { kind: 'arc'; start: P2; center: P2; direction: 'ccw' | 'cw' };
@@ -101,7 +102,7 @@ export interface OutlineConstraints {
   circles?: P2[]; circleRadii?: number[];
 }
 /** `rows`: scalar equations; more rows than `rank` means some constraints are redundant (over-defined). */
-export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[]; circles: P2[] }
+export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[]; circles: P2[]; recoveredFixedTriangle?: true }
 /** `conflict`: the constraints are provably contradictory (rectilinear class, see conflict.ts), not merely unsolved. */
 export type SolveResult = SolveReport | { ok: false; reason: string; conflict?: true };
 
@@ -163,7 +164,8 @@ export const canBeTangent = (points: P2[], bulges: number[] | undefined, j: numb
  * Solves a closed outline with the kernel's numerical sketch solver: point 1 anchored, drawn H/V edges
  * kept, locked lengths and radii held, tangent joints kept tangent. Arcs keep their turning direction.
  */
-export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[]): SolveResult {
+export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[],
+  recoverFixedTriangle?: () => FixedTriangleSeed | null): SolveResult {
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
   const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? [], c.circleRadii ?? []);
@@ -192,16 +194,31 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     }),
     ...extra.constraints,
   ];
-  const solveFrom = (seed: { id: string; position: P2 }[]) => solveXYNumericalSketchPoints({
+  const solveFrom = (seed: { id: string; position: P2 }[], ccw = false) => solveXYNumericalSketchPoints({
     format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v1', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
-    points: seed, segments, constraints, branchGuards: [],
+    points: seed, segments, constraints, branchGuards: ccw
+      ? [{ id: 'triangle-branch', kind: 'oriented-triplet', pointA: 'p0', pointB: 'p1', pointC: 'p2', orientation: 'ccw' }]
+      : [],
   });
   let result = solveFrom([...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points]);
+  let recovered = false;
+  if (!result.ok && result.diagnostics[0]?.code === 'NONCONVERGENCE') {
+    if (rectilinearConflict(points, { ...c, hv }, bulges).proven)
+      return { ok: false, reason: 'Conflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)', conflict: true };
+    const seed = recoverFixedTriangle?.();
+    if (seed) {
+      const exact = solveFrom(seed.map((position, i) => ({ id: 'p' + i, position })), true);
+      if (exact.ok && exact.report.iterations === 0 && exact.report.numericalRank === 6 && exact.report.scalarResidualCount === 6) {
+        result = exact;
+        recovered = true;
+      }
+    }
+  }
   // (The solver stops once every residual is within its tolerance, a few 1e-8 mm off the exact answer: a width of 60
   // came back 59.999999964 and a typed rectangle no longer read as one. The solution on the 1e-6 mm grid is taken
   // instead when the solver's own check accepts it as it is — a solve from it takes no step — and the solver's own
   // values are kept otherwise: an off-grid anchor or a driving 10.0000004 is never moved. CAD review 2215, D284.)
-  if (result.ok) {
+  if (result.ok && !recovered) {
     const first = result.solution.points, snapped = first.map(p => ({ id: p.id, position: [snap(p.position[0]), snap(p.position[1])] as P2 }));
     if (snapped.some((p, i) => p.position[0] !== first[i].position[0] || p.position[1] !== first[i].position[1])) {
       const again = solveFrom(snapped);
@@ -210,8 +227,6 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   }
   if (!result.ok) {
     const code = result.diagnostics[0]?.code;
-    if (code === 'NONCONVERGENCE' && rectilinearConflict(points, { ...c, hv }, bulges).proven)
-      return { ok: false, reason: 'Conflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)', conflict: true };
     return { ok: false, reason: code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
       : code === 'DEGENERATE_GEOMETRY' ? 'These constraints would collapse an edge to a point' : result.diagnostics[0]?.message ?? 'The solver refused this sketch' };
   }
@@ -227,5 +242,6 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     return Math.tan(sweep / 4);
   });
   const circles = (c.circles ?? []).map((p, j) => { const q = byId.get('k' + j); return q ? [q[0], q[1]] as P2 : p; });
-  return { ok: true, dof: result.report.localDegreesOfFreedom, rank: result.report.numericalRank, rows: result.report.scalarResidualCount, points: solved, bulges: solvedBulges, circles };
+  return { ok: true, dof: result.report.localDegreesOfFreedom, rank: result.report.numericalRank, rows: result.report.scalarResidualCount,
+    points: solved, bulges: solvedBulges, circles, ...(recovered ? { recoveredFixedTriangle: true } : {}) };
 }
