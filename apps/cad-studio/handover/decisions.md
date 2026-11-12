@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D766 — verify late branch receipts after a project owner change](notes/project-branch-receipt-owner-2026-11-12/README.md).
 - [D765 — verify branch switch, compatible merge and conflict refusal](notes/project-branch-merge-and-conflict-2026-11-12/README.md).
 - [D764 — verify named version Restore as a dirty working edit](notes/named-version-working-and-saved-2026-11-12/README.md).
 - [D763 — verify assembly drawing revision and accepted source](notes/static-assembly-drawing-revision-2026-11-12/README.md).
