@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const fixed = process.argv[3] === '--fixed';
+const toolFixed = process.argv[3] === '--tool-fixed';
+const toolBoundary = toolFixed || process.argv[3] === '--tool-baseline';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/app/sketchControls.ts',
@@ -10,13 +12,16 @@ const pins = [
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
   'packages/barocss-cad-model/src/sketch/history.ts',
   'packages/barocss-cad-model/src/sketch/trim.ts',
-  ...(fixed ? ['apps/cad-studio/src/sketch/draftHistory.ts'] : []),
+  ...(fixed || toolBoundary ? ['apps/cad-studio/src/sketch/draftHistory.ts',
+    'packages/barocss-cad-model/src/sketch/select.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
+  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
-  limits: ['One 40 × 20 mm native rectangle with two straight construction boundaries. Actual desktop Studio.'],
+  qualification: toolBoundary ? 'Measure Trim history across activation of the same closed outline in Select'
+    : fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
+  limits: [toolBoundary ? 'A reopened native rectangle and one isolated visible construction segment. Desktop Studio.'
+    : 'One 40 × 20 mm native rectangle with two straight construction boundaries. Actual desktop Studio.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     controls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
@@ -24,11 +29,13 @@ const f = await createFlow({
   }),
 });
 const boundary = (x, ids) => ({ kind: 'polygon', points: [[x, -5], [x, 5]], closed: false, bulges: [0, 0], ids, construction: true });
+const guide = { kind: 'polygon', points: [[50, 5], [60, 5]], closed: false, bulges: [0, 0], ids: ['e5', 'e6'], construction: true };
 const source = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
   nodes: [
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20], id: 'n0',
-      sideTags: { outer: ['e1', 'e2', 'e3', 'e4'] }, construction: [boundary(10, ['e5', 'e6']), boundary(30, ['e7', 'e8'])] },
+      sideTags: { outer: ['e1', 'e2', 'e3', 'e4'] },
+      construction: toolBoundary ? [guide] : [boundary(10, ['e5', 'e6']), boundary(30, ['e7', 'e8'])] },
     { kind: 'extrude', sketch: 0, height: 2, id: 'n1' },
   ],
   outputs: { b1: { node: 1, side: 'solid' } },
@@ -39,7 +46,7 @@ const cue = () => f.page.locator('.vp-overlay polyline.sk-trim');
 async function open() {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   const bytes = Buffer.from(JSON.stringify(source));
-  await chooser.setFiles({ name: 'D873-click-trim.bcad', mimeType: 'application/json', buffer: bytes });
+  await chooser.setFiles({ name: toolBoundary ? 'D875-trim-tool-change.bcad' : 'D873-click-trim.bcad', mimeType: 'application/json', buffer: bytes });
   await f.same(source);
   f.report.observations.push({ label: 'fixture', bytes: bytes.length, sha256: sha256(bytes) });
 }
@@ -75,7 +82,61 @@ async function expectGap() {
 
 function unchanged(after, before) {
   for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(after[key], before[key], key);
-  if (!fixed) assert.deepEqual(after.controls, before.controls);
+  if (!fixed && !toolBoundary) assert.deepEqual(after.controls, before.controls);
+}
+
+async function acrossToolChange() {
+  const target = [55, 5], a = [50, 5], b = [60, 5];
+  await f.frame([[0, 0], [40, 20], a, b]);
+  f.phase = 'remove one isolated visible construction line';
+  await expectSegment(target, a, b);
+  const before = await f.snapshot('01-tool-change-before');
+  await f.page.mouse.down();
+  await f.page.mouse.up();
+  await hover(target);
+  await cue().waitFor({ state: 'detached' });
+  const cut = await f.snapshot('02-construction-line-removed');
+  unchanged(cut, before);
+  assert.deepEqual(cut.controls, [false, true]);
+
+  f.phase = 'activate the remaining closed outline and undo its dimension edit';
+  await f.tool('Select', 's');
+  const width = f.sketchPanel().getByRole('spinbutton', { name: 'Edge 1 length', exact: true });
+  await width.waitFor();
+  assert.equal(await width.inputValue(), '40');
+  await width.fill('44');
+  assert.equal(await width.inputValue(), '44');
+  await f.page.evaluate(() => document.activeElement.blur());
+  await f.page.keyboard.press('Meta+z');
+  await f.page.waitForFunction(() => document.querySelector('[aria-label="Edge 1 length"]')?.value === '40');
+  const afterDimension = await f.snapshot('03-dimension-undo');
+  unchanged(afterDimension, before);
+  assert.deepEqual(afterDimension.controls, [!toolFixed, false]);
+
+  f.phase = 'Undo the Trim with Select still active';
+  await f.page.keyboard.press('Meta+z');
+  assert.equal(await width.inputValue(), '40');
+  await f.tool('Trim', 't');
+  if (toolFixed) {
+    await expectSegment(target, a, b);
+    unchanged(await f.snapshot('04-tool-change-undo-restores-construction'), before);
+    await button(f.page, 'Redo').click();
+    await hover(target);
+    await cue().waitFor({ state: 'detached' });
+    await button(f.page, 'Undo').click();
+    await hover([55, 4]);
+    await expectSegment(target, a, b);
+    unchanged(await f.snapshot('05-tool-change-redo-and-undo'), before);
+  } else {
+    await hover(target);
+    await cue().waitFor({ state: 'detached' });
+    unchanged(await f.snapshot('04-tool-change-loses-trim-undo'), before);
+  }
+  await f.page.keyboard.press('Escape');
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await f.same(source);
+  f.report.observations.push({ label: 'tool-change-boundary', construction: [a, b],
+    widthEditMm: [40, 44, 40], precedingTrimUndo: toolFixed ? 'PASS' : 'FAIL' });
 }
 
 await f.run(async () => {
@@ -97,6 +158,11 @@ await f.run(async () => {
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();
   await f.tool('Trim', 't');
+  if (toolBoundary) {
+    await acrossToolChange();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await f.frame([[0, 0], [40, 0], [40, 20], [10, -5], [30, -5]]);
 
   f.phase = 'measure the bounded straight trim and its two untouched residual ends';

@@ -5,7 +5,7 @@ import { xyPlane } from '@barocss/cad-model/sketch/plane';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { createDraftHistory, draftHistoryState, outlineHistoryState, restoreDraftHistory } from '../src/sketch/draftHistory';
 
-const outline = (width: number): SketchShape => ({
+const outline = (width: number): Extract<SketchShape, { kind: 'polygon' }> => ({
   kind: 'polygon', closed: true, points: [[0, 0], [width, 0], [width, 20], [0, 20]], ids: ['e1', 'e2', 'e3', 'e4'],
 });
 const trim = (x: number): SketchShape => ({ kind: 'polygon', closed: false, points: [[x, 0], [40, 0], [40, 20]], ids: ['e2', 'e3'] });
@@ -76,4 +76,46 @@ test('outline edits and draft edits share a stack, and a no-op preserves Redo', 
   const redoCut = history.redo(draftHistoryState(doc, dimensioned));
   assert.ok(redoCut);
   assert.equal(restoreDraftHistory(dimensioned, redoCut).done, cut.done);
+});
+
+test('the same stored straight outline keeps Trim history when Select activates it', () => {
+  const doc = emptyDoc(), plane = xyPlane(), main = outline(40), guide = trim(30);
+  const before: SketchState = { tool: 'trim', plane, editNode: 0, mainIds: main.ids, shape: null, done: [guide, main] };
+  const after: SketchState = { ...before, done: [main] };
+  const selecting: SketchState = { ...after, tool: 'select', shape: main, done: [] };
+  const history = createDraftHistory();
+  history.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
+  assert.deepEqual(history.available(draftHistoryState(doc, selecting)), { undo: true, redo: false });
+  const step = history.undo(draftHistoryState(doc, selecting));
+  assert.ok(step);
+  const restored = restoreDraftHistory(selecting, step);
+  assert.equal(restored.tool, 'select');
+  assert.equal(restored.shape, main);
+  assert.deepEqual(restored.done, [guide]);
+
+  const rehomed: SketchState = { ...restored, tool: 'trim', shape: null,
+    done: [guide, { ...main, pending: false }] };
+  const redo = history.redo(draftHistoryState(doc, rehomed));
+  assert.ok(redo);
+  assert.deepEqual(restoreDraftHistory(rehomed, redo).done, [main]);
+});
+
+test('Trim replay refuses changed coefficients, constraints, IDs or nonmain shape order', () => {
+  const doc = emptyDoc(), plane = xyPlane(), main = outline(40), first = trim(20), second = trim(30);
+  assert.equal(main.kind, 'polygon');
+  const before: SketchState = { tool: 'trim', plane, editNode: 0, mainIds: main.ids, shape: null, done: [main, first, second, trim(10)] };
+  const after: SketchState = { ...before, done: [main, first, second] };
+  const selecting: SketchState = { ...after, tool: 'select', shape: main, done: [first, second] };
+  const replacements: SketchState[] = [
+    { ...selecting, shape: { ...main, points: main.points.map(point => [...point]) } },
+    { ...selecting, shape: { ...main, lengths: { 0: 40 } } },
+    { ...selecting, shape: { ...main, ids: ['e0', ...main.ids!.slice(1)] } },
+    { ...selecting, done: [second, first] },
+    { ...selecting, tool: 'rectangle' },
+  ];
+  for (const replacement of replacements) {
+    const history = createDraftHistory();
+    history.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
+    assert.deepEqual(history.available(draftHistoryState(doc, replacement)), { undo: false, redo: false });
+  }
 });

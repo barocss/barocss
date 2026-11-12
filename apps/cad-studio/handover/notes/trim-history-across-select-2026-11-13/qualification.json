@@ -1,0 +1,84 @@
+{
+  "decision": "D875",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "be75ca4570699cad84aafe529135a7dd5579c3b9",
+  "issue": 2328,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d875-tool-change-baseline",
+    "D875_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/baseline-run01 --tool-baseline",
+    "gate.sh acquire heavy 600 d875-tool-change-fixed",
+    "D875_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/fixed-run01 --tool-fixed",
+    "D874_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/trim-regression --fixed",
+    "gate.sh acquire heavy 600 d875-focused",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history trim sketch-cut-visibility constraints sketch-edit-identity",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/draftHistory.ts apps/cad-studio/test/draft-sketch-history.test.ts",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 70,
+    "typeChecks": "PASS",
+    "scopedLint": "PASS",
+    "logSHA256": "b7c51c0494ab83fd0297a1b719646a4e399620a42444e70878cb2f84f38c5cee"
+  },
+  "studio": {
+    "baseline": {
+      "status": "PASS",
+      "receiptSHA256": "ec2a51eb1de3cea4a8d3bf817125660c03dfd81563bb516e65c82f04e7d52fb9",
+      "sourceManifestSHA256": "06adcf222b30df99e342e8fdbb4770d03c282d0417c0a21cd9cf4ab9e3da6c3a",
+      "frozenFiles": 360,
+      "snapshots": 4,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "baselineTrimUndo": "FAIL",
+    "fixed": {
+      "status": "PASS",
+      "receiptSHA256": "b99411ac1c5483bdc88a5fade1358e977d68e0c030c5f4579ce89bac01221ad9",
+      "sourceManifestSHA256": "f15219684a0f29e2bfe4b2c0b16c7f0a3190af2e8ce6495ce8b938eac0a8ba8a",
+      "frozenFiles": 360,
+      "snapshots": 5,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "trimRegression": {
+      "status": "PASS",
+      "receiptSHA256": "87c2b9ea125592e6f9d3fd1a9ddab10201cbbe70a0ac21b25cb77c70e278ec47",
+      "sourceManifestSHA256": "f15219684a0f29e2bfe4b2c0b16c7f0a3190af2e8ce6495ce8b938eac0a8ba8a",
+      "frozenFiles": 360,
+      "snapshots": 9,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "5d812c54ca4045222c0e4f26aa5a190adea1790c73a4eb11c388955ce312a0c4",
+    "fixtureBytes": 433,
+    "fixtureSHA256": "fde27148e09936efc96ab6d07559f1298660d0466ddd2f1870a36bdaeac60f78",
+    "widthMm": [
+      40,
+      44,
+      40
+    ],
+    "constructionMm": [
+      [
+        50,
+        5
+      ],
+      [
+        60,
+        5
+      ]
+    ],
+    "projectionTolerancePx": 0.02,
+    "currentBodyVolumeMm3": 1600
+  }
+}

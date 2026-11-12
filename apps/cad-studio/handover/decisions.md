@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D875 — retain Trim history when Select activates the same outline](notes/trim-history-across-select-2026-11-13/README.md).
 - [D874 — undo and redo an ordinary click Trim in the sketch](notes/click-trim-draft-history-2026-11-13/README.md).
 - [D873 — measure click Trim and its draft history boundary](notes/click-trim-draft-history-baseline-2026-11-13/README.md).
 - [D872 — choose ordinary object snap kinds during a sketch command](notes/session-object-snap-kinds-2026-11-13/README.md).
