@@ -7,11 +7,14 @@ import {randomUUID} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {isAbsolute,join,relative,resolve} from 'node:path';
 import {createFlow,sha256} from './flow-helper.mjs';
+import {clickModelCommand} from './model-rail-helper.mjs';
 import {inspectorSource,oracleSource} from './enclosure-baseline-oracles.mjs';
 
 const output=process.argv[2],repo=resolve(import.meta.dirname,'../../..');
 assert.ok(output&&isAbsolute(output));assert.ok(relative(repo,resolve(output)).startsWith('../'));await mkdir(output);
-const seedFile='/tmp/barocss-d449-category-run01/shell-edited.bcad',seedBytes=await readFile(seedFile);
+const seedFile=process.env.D539_SEED_FILE??'/tmp/barocss-d449-category-run01/shell-edited.bcad';
+assert.ok(isAbsolute(seedFile),'Seed input must be an absolute path');
+const seedBytes=await readFile(seedFile);
 assert.equal(seedBytes.length,582);assert.equal(sha256(seedBytes),'17351eb2ad01ffbafcf9c76d21e2da5030b794600ca80a55a41a0928fdbaf6c9');
 const continuationFile=process.env.D539_CONTINUE_HOLE_ROW_FROM;
 const continuationReadFile=continuationFile?'/tmp/barocss-d539-studio01/10-actual-Hole-row-native.stdout.json':null;
@@ -29,7 +32,7 @@ const seedDoc=JSON.parse(seedBytes),projectName=`D539-${randomUUID()}`,partName=
 const editorProducers=['packages/barocss-cad-model/src/app/commands.ts','packages/barocss-cad-model/src/app/editFields.ts','packages/barocss-cad-model/src/sketch/rules.ts','packages/barocss-cad-model/src/sketch/settle.ts','packages/barocss-cad-model/src/sketch/outlineFields.ts','packages/barocss-cad-model/src/sketch/reopen.ts','packages/barocss-cad-model/src/sketch/profile.ts','apps/cad-studio/src/sketch/preserveConstruction.ts','apps/cad-studio/src/viewport/Viewport.tsx','apps/cad-studio/src/viewport/vertexPick.ts','apps/cad-studio/test/vertex-pick-filter.test.ts','apps/cad-studio/src/engine/engine.worker.ts','packages/barocss-cad-model/src/engine/wireDoc.ts','packages/barocss-cad-model/src/engine/errors.ts'];
 const f=await createFlow({name:'enclosure-baseline',envFrozen:'D539_SOURCE_FROZEN',output,inspectorSource,oracleSource,
   qualification:'D539 B02 admitted true Shell: public rail New/Union/Hole row/fourR1, Width80→90/Wall2→3, Width4 collapse retention/FIRST UndoRedo, owned project roundtrip and postOpen Copies3→2',
-  initialFiles:['apps/cad-studio/test/enclosure-baseline-browser.mjs','apps/cad-studio/test/enclosure-baseline-oracles.mjs','apps/cad-studio/test/enclosure-admission-preflight.mjs',seedFile,...(continuationFile?[continuationFile,continuationReadFile]:[])],
+  initialFiles:['apps/cad-studio/test/enclosure-baseline-browser.mjs','apps/cad-studio/test/enclosure-baseline-oracles.mjs','apps/cad-studio/test/enclosure-admission-preflight.mjs','apps/cad-studio/test/model-rail-helper.mjs',seedFile,...(continuationFile?[continuationFile,continuationReadFile]:[])],
   extraFrozen:editorProducers,
   requiredFrozen:[...editorProducers,'apps/cad-studio/src/App.tsx','apps/cad-studio/src/ui/NodeEditor.tsx','apps/cad-studio/src/ui/Hud.tsx','apps/cad-studio/src/ui/BodyBrowserRows.tsx','packages/barocss-cad-model/src/engine/evaluate.ts'],
   limits:['Desktop WebGPU1440x900 only; root must view original screenshots.',
@@ -227,7 +230,7 @@ async function numericEdit(index,label,value,previous,tag){
   const state=await capture(`${tag}-actual-accepted-before-assert`);await f.closeEditor();return state.doc;
 }
 async function makeRail(base){
-  f.phase='01-public-Box-rail-New';await f.closeEditor();await f.page.keyboard.press('Escape');await f.command('Box');
+  f.phase='01-public-Box-rail-New';await f.closeEditor();await f.page.keyboard.press('Escape');await clickModelCommand(f.page,'Shapes','Box');
   const hud=f.page.getByRole('dialog',{name:'Box',exact:true});await hud.waitFor();
   for(const [label,value]of [['Width X',30],['Depth Y',6],['Height Z',5],['At X',0],['At Y',-3],['At Z',1]])await hud.getByLabel(label,{exact:true}).fill(String(value));
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});
@@ -243,7 +246,7 @@ async function unionRail(rail){
   const rows=f.page.locator('.outliner .ol-row > button.ol');assert.equal(await rows.count(),2);
   await rows.nth(shell).click();await rows.nth(mount).click({modifiers:['Shift']});await capture('04-real-ordered-two-body-selection');
   assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.bodies),[shell,mount]);
-  await f.command('Union');await f.changed(rail);const state=await capture('05-actual-Union-before-assert');return state.doc;
+  await clickModelCommand(f.page,'Combine','Union');await f.changed(rail);const state=await capture('05-actual-Union-before-assert');return state.doc;
 }
 async function holeRow(union,top){
   f.phase='07-real-positive-Z-railTop-Through-Hole-row';assert.ok(top&&Number.isInteger(top.index)&&top.nativeNames?.includes('n4.top'));
@@ -252,7 +255,7 @@ async function holeRow(union,top){
   assert.equal(await frameQualified3D(f,[top]),true);await f.page.mouse.click(...await projected(f,top.world));
   await capture('07-real-rail-top-face-selected-before-assert');
   assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.faces),[{body:0,face:top.index}]);
-  await f.command('Hole');const hud=f.page.getByRole('dialog',{name:'Hole',exact:true});await hud.waitFor();
+  await clickModelCommand(f.page,'Create','Hole');const hud=f.page.getByRole('dialog',{name:'Hole',exact:true});await hud.waitFor();
   await hud.getByLabel('Type',{exact:true}).selectOption('through');await hud.getByLabel('Copies',{exact:true}).selectOption('row');
   for(const [label,value]of [['Diameter',2],['Count',3],['Step X',10],['Step Y',0],['Centre X',5],['Centre Y',0]])await hud.getByLabel(label,{exact:true}).fill(String(value));
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});await capture('08-Through-Hole-row-typed-preview');
@@ -280,7 +283,7 @@ async function cornerFinish(holes,targets){
     expected.push({body:0,edge:target.index});await capture(`11-real-corner-pick-${i+1}-before-assert`);
     assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.edges),expected);
   }
-  await f.command('Fillet');const hud=f.page.getByRole('dialog',{name:'Fillet',exact:true});await hud.waitFor();
+  await clickModelCommand(f.page,'Modify','Fillet');const hud=f.page.getByRole('dialog',{name:'Fillet',exact:true});await hud.waitFor();
   await hud.getByLabel('Fillet type',{exact:true}).selectOption('edge');await hud.getByLabel('Fillet radius mode',{exact:true}).selectOption('constant');
   await hud.getByLabel('Radius',{exact:true}).fill('1');await hud.getByLabel('Section',{exact:true}).selectOption('circular');
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});await capture('12-four-R1-typed-preview');
@@ -292,7 +295,10 @@ async function refusedCollapse(C,acceptedC){
   f.phase='17-source-Width4-Wall3-NodeEditor-Apply';await f.openFeatureEditor(1,'17-invalid-width4');
   await f.editor().getByLabel('Width',{exact:true}).fill('4');await capture('17-invalid-Width4-local-before-Apply');
   await f.editor().getByRole('button',{name:'Apply',exact:true}).click();
-  const reason=await f.waitToast(/leaves no hollow/i);const refused=await capture('18-invalid-Width4-refused-before-assert');
+  const notice=f.editor().getByRole('status').filter({has: f.page.getByText('Kernel detail',{exact:true})});
+  await notice.getByText('Kernel detail',{exact:true}).click();
+  await notice.getByText(/leaves no hollow/i).waitFor();
+  const reason=await notice.innerText();const refused=await capture('18-invalid-Width4-refused-before-assert');
   assert.match(reason,/leaves no hollow/i);assert.deepEqual(refused.doc,C);assert.deepEqual(refused.worker.bodies,acceptedC.worker.bodies);assert.deepEqual(refused.historyRows,acceptedC.historyRows);
   const journal=await restoreWorkerJournal();assert.deepEqual(journal.errors,[]);assert.equal(journal.ownedWrapperAtRestore,true);assert.equal(journal.wrapperRestored,true);
   assert.equal(journal.requests.length,1,'Exactly one actual Width4 evaluate request');const request=journal.requests[0];

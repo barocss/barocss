@@ -6,17 +6,20 @@ import {randomUUID} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {isAbsolute,join,relative,resolve} from 'node:path';
 import {createFlow,sha256} from './flow-helper.mjs';
+import {clickModelCommand} from './model-rail-helper.mjs';
 import {inspectorSource,oracleSource} from './bracket-baseline-oracles.mjs';
 
 const output=process.argv[2],repo=resolve(import.meta.dirname,'../../..');
 assert.ok(output&&isAbsolute(output));assert.ok(relative(repo,resolve(output)).startsWith('../'));await mkdir(output);
-const seedFile='/tmp/barocss-d448-remaining-run02/05-opfs-saved.bcad',seedBytes=await readFile(seedFile);
+const seedFile=process.env.D538_SEED_FILE??'/tmp/barocss-d448-remaining-run02/05-opfs-saved.bcad';
+assert.ok(isAbsolute(seedFile),'Seed input must be an absolute path');
+const seedBytes=await readFile(seedFile);
 assert.equal(seedBytes.length,3431);assert.equal(sha256(seedBytes),'2727e7d3d726a58030657720ebc7a8d09a4dab574887dd7d2001cc42305ed16f');
 const seedDoc=JSON.parse(seedBytes),projectName=`D538-${randomUUID()}`,partName='D538-support-bracket';
 const editorProducers=['packages/barocss-cad-model/src/sketch/rules.ts','packages/barocss-cad-model/src/sketch/settle.ts','packages/barocss-cad-model/src/sketch/outlineFields.ts','packages/barocss-cad-model/src/sketch/reopen.ts','packages/barocss-cad-model/src/sketch/profile.ts','apps/cad-studio/src/sketch/preserveConstruction.ts'];
 const f=await createFlow({name:'bracket-baseline',envFrozen:'D538_SOURCE_FROZEN',output,inspectorSource,oracleSource,
   qualification:'D538 B01 selected retained support bracket: upstream Width60→80, invalid Fillet HUD1000/Cancel/FIRST Undo/Redo, real Measure76, owned project roundtrip, Width80→60 and real Measure56',
-  initialFiles:['apps/cad-studio/test/bracket-baseline-browser.mjs','apps/cad-studio/test/bracket-baseline-oracles.mjs',seedFile],
+  initialFiles:['apps/cad-studio/test/bracket-baseline-browser.mjs','apps/cad-studio/test/bracket-baseline-oracles.mjs','apps/cad-studio/test/model-rail-helper.mjs',seedFile],
   extraFrozen:editorProducers,
   requiredFrozen:[...editorProducers,'apps/cad-studio/src/App.tsx','apps/cad-studio/src/sketch/useSketchActions.ts','apps/cad-studio/src/ui/SketchPanel.tsx','packages/barocss-cad-model/src/engine/evaluate.ts'],
   limits:['Desktop WebGPU1440x900 only; root must inspect original screenshots.',
@@ -174,7 +177,7 @@ async function invalidFilletRetains(target,accepted,beforeState){
 }
 async function realMeasure(target,width,label){
   f.phase=label;const before=await f.doc();await f.page.keyboard.press('Escape');await publicView(f,'Iso');await selectionFilter(f,'Edges');
-  await visibleEdge(f,target);await f.command('Measure');const panel=f.page.getByLabel('Measurement',{exact:true});await panel.waitFor();
+  await visibleEdge(f,target);await clickModelCommand(f.page,'Inspect','Measure');const panel=f.page.getByLabel('Measurement',{exact:true});await panel.waitFor();
   await f.page.mouse.click(...await visibleEdge(f,target));
   await panel.locator('.measure-item').getByText('Line',{exact:true}).waitFor();
   await panel.locator('.kv').filter({hasText:/^Length/}).getByText(`${width-4} mm`,{exact:true}).waitFor();

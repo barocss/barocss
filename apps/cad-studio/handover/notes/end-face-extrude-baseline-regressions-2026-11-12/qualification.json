@@ -1,0 +1,97 @@
+{
+  "decision": "D851",
+  "tier": "SMALL",
+  "parent": "8ade9e01812b919cd4dcbf01910fca89a6833785",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d851-2026-11-12",
+  "commands": [
+    "From the repository root, import seedText from apps/cad-studio/test/bracket-baseline-oracles.mjs and apps/cad-studio/test/enclosure-admission-preflight.mjs using node --input-type=module. Write each UTF-8 string unchanged to its external input file.",
+    "gate.sh acquire heavy 600 d851-bracket-studio",
+    "cd apps/cad-studio && D538_SOURCE_FROZEN=1 D538_SEED_FILE=\"$EVIDENCE/inputs/bracket.bcad\" node test/bracket-baseline-browser.mjs \"$EVIDENCE/bracket-run02\"",
+    "gate.sh acquire heavy 600 d851-enclosure-studio",
+    "cd apps/cad-studio && D539_SOURCE_FROZEN=1 D539_SEED_FILE=\"$EVIDENCE/inputs/enclosure.bcad\" node test/enclosure-baseline-browser.mjs \"$EVIDENCE/enclosure-run03\"",
+    "gate.sh acquire heavy 600 d851-baseline-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude measure.test hole-types sketch-rectangle-driving-retention",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test model-rail failed-feature project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "node --check apps/cad-studio/test/bracket-baseline-browser.mjs",
+    "node --check apps/cad-studio/test/enclosure-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "failedDesktopAttempts": [
+    {
+      "run": "bracket-run01",
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "dbe88b41700b7e3ecd3f9bc18d2d9a1f1f1901ec22995a43873926b74577a883",
+      "firstFailure": "Measure palette input did not open after the driver changed the selection filter."
+    },
+    {
+      "run": "enclosure-run01",
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "956bac75ef162295bc64b5b35ee7f674859bd20215f63cacc062cf04d382d820",
+      "firstFailure": "Union palette input did not open after ordered outliner selection."
+    },
+    {
+      "run": "enclosure-run02",
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "d9ec59645164a29bbfca2739a90a4da0fbfd3a1954bee6827999d6b6f2f7c505",
+      "firstFailure": "The actual Shell refusal was in the feature editor. The driver waited for a toast."
+    }
+  ],
+  "desktop": {
+    "status": "PASS",
+    "renderer": "WebGPU",
+    "viewport": [1440, 900],
+    "bracket": {
+      "run": "bracket-run02",
+      "exit": 0,
+      "seedBytes": 3431,
+      "seedSha256": "2727e7d3d726a58030657720ebc7a8d09a4dab574887dd7d2001cc42305ed16f",
+      "receiptSha256": "df97411632a7572ccea90666e0d16191d9bab140d67ac9f2859f142a1483a6ae",
+      "frozenSources": 823,
+      "joinedOracleStates": 9,
+      "measurementEdge": "n1.bottom|n1.side[e1]",
+      "w60Mm3": 27971.19433947058,
+      "w80Mm3": 35971.19433947058,
+      "w60EdgeMm": 56,
+      "w80EdgeMm": 76
+    },
+    "enclosure": {
+      "run": "enclosure-run03",
+      "exit": 0,
+      "seedBytes": 582,
+      "seedSha256": "17351eb2ad01ffbafcf9c76d21e2da5030b794600ca80a55a41a0928fdbaf6c9",
+      "receiptSha256": "df2fda3bd123db8f40f0b07eec84e202f6a0950d7cf000df714ff1a12a93e67b",
+      "frozenSources": 827,
+      "joinedOracleStates": 12,
+      "w80Wall2Holes3Mm3": 10766.86725877128,
+      "w90Wall2Holes3Mm3": 11886.86725877128,
+      "w90Wall3Holes3Mm3": 16482.86725877128,
+      "w90Wall3Holes2Mm3": 16501.71681469282,
+      "rejectedWidthMm": 4,
+      "rejectedWallMm": 3,
+      "failedFeature": "n2",
+      "workerCode": "PARAMETER",
+      "rejectedWorkerInputSha256": "4c98f5e537ae130f3e2b473d11659f0fc7d60f1295638d0beaeb67477b161857"
+    },
+    "oracleBudgets": {
+      "sketchLinearMm": 1e-7,
+      "sketchAngularRad": 1e-9,
+      "nativeVolumeRelative": 1e-9,
+      "nativeLinearMm": 1e-9
+    },
+    "rootVisualReview": "PASS",
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "cleanup": ["OWNED_PROJECT_REMOVED_AND_ABSENT", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 40, "studioPass": 41, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "driverSyntax": "PASS",
+  "diffCheck": "PASS"
+}
