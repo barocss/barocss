@@ -1,0 +1,535 @@
+{
+  "decision": "D892",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "db034f86e3e0c21b917c8f6f507f3f1f76bf89c9",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D892_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/baseline --source-edit-baseline",
+    "D892_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/xy02 --source-edit",
+    "D892_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/xz --mirrored-source-edit",
+    "D891_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/fillet-regression --mirrored",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "run": "baseline",
+    "status": "PASS",
+    "receiptSHA256": "e30cf88ea2a79796dc8313d1755b71f6beaeb7f44105f8f082c4a682b3e77ba5",
+    "sourceManifestSHA256": "c0c0e8313731b105513f1a9c170dc5307f4d60e3cb4b0eb305e58a7da5e6df88",
+    "frozenFiles": 841,
+    "snapshots": 4,
+    "saved": [],
+    "native": [
+      {
+        "label": "source-R20-native",
+        "radiusMm": 4,
+        "sourceRadiusMm": 20,
+        "expectedVolumeMm3": 7091.948937557186,
+        "volumeMm3": 7091.948937557187,
+        "sideTags": [
+          "e1",
+          "e5",
+          "e2",
+          "e3",
+          "e4"
+        ],
+        "lineContactMm": [
+          35.491933384829665,
+          20
+        ],
+        "sourceContactMm": [
+          39.364916731037084,
+          25
+        ]
+      },
+      {
+        "label": "source-R16-parent-native",
+        "radiusMm": 4,
+        "sourceRadiusMm": 16,
+        "expectedVolumeMm3": 6616.283004441058,
+        "volumeMm3": 6616.28300444106,
+        "sideTags": [
+          "e1",
+          "e5",
+          "e2",
+          "e3",
+          "e4"
+        ],
+        "lineContactMm": [
+          32,
+          20
+        ],
+        "sourceContactMm": [
+          36,
+          24
+        ]
+      }
+    ],
+    "productOutcome": "R16 exact, R10 incorrectly accepted into the draft",
+    "afterCancel": "PASS"
+  },
+  "focusedRelockBaseline": {
+    "status": "FAIL",
+    "command": "node packages/barocss-cad-model/scripts/test.mjs corner.test",
+    "gateLabel": "d892-agent-relock-baseline",
+    "pass": 6,
+    "fail": 1,
+    "observedLineContactMm": [
+      20.000821466932415,
+      5.193457153635702e-09
+    ],
+    "observedSourceContactMm": [
+      20.001369110662733,
+      2.337047926395285e-08
+    ],
+    "exactCoincidentContactMm": [
+      20,
+      0
+    ],
+    "basis": "Model fixture translated down 20 mm from the XY Studio fixture."
+  },
+  "driverFailure": {
+    "run": "xy",
+    "status": "FAIL",
+    "receiptSHA256": "86ccc5af47df08034db6e5d59140cf81a15d6e36c3a9d823641fe7e842f69b7b",
+    "sourceManifestSHA256": "cedf9b1536d50c2d2a0f4fe97262b550a61d3463f023128d276de7f710d25d30",
+    "frozenFiles": 841,
+    "snapshots": 8,
+    "saved": [
+      {
+        "bytes": 2183,
+        "sha256": "3251d3dc3f9fd94c66b9e8f975b862281041b10e0ae8ea155369553e70dd8941"
+      }
+    ],
+    "native": [
+      {
+        "label": "source-R20-native",
+        "radiusMm": 4,
+        "sourceRadiusMm": 20,
+        "expectedVolumeMm3": 7091.948937557186,
+        "volumeMm3": 7091.948937557187,
+        "sideTags": [
+          "e1",
+          "e5",
+          "e2",
+          "e3",
+          "e4"
+        ],
+        "lineContactMm": [
+          35.491933384829665,
+          20
+        ],
+        "sourceContactMm": [
+          39.364916731037084,
+          25
+        ]
+      },
+      {
+        "label": "source-R16-native",
+        "radiusMm": 4,
+        "sourceRadiusMm": 16,
+        "expectedVolumeMm3": 6616.283004441058,
+        "volumeMm3": 6616.28300444106,
+        "sideTags": [
+          "e1",
+          "e5",
+          "e2",
+          "e3",
+          "e4"
+        ],
+        "lineContactMm": [
+          32,
+          20
+        ],
+        "sourceContactMm": [
+          36,
+          24
+        ]
+      },
+      {
+        "label": "source-R16-reopened-native",
+        "radiusMm": 4,
+        "sourceRadiusMm": 16,
+        "expectedVolumeMm3": 6616.283004441058,
+        "volumeMm3": 6616.28300444106,
+        "sideTags": [
+          "e1",
+          "e5",
+          "e2",
+          "e3",
+          "e4"
+        ],
+        "lineContactMm": [
+          32,
+          20
+        ],
+        "sourceContactMm": [
+          36,
+          24
+        ]
+      }
+    ],
+    "reason": "The driving-radius selector cannot find the reference label after the unlock."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "panelRefusal": "PASS",
+    "inlineRefusal": "PASS",
+    "unlockAndRelockRefusal": "PASS",
+    "validInlineRelock": "PASS",
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "xy": {
+      "run": "xy02",
+      "status": "PASS",
+      "receiptSHA256": "8f76b49f4eaa7a41fd652f96660de43dfb024276b5779bad6cde7646b0a3e571",
+      "sourceManifestSHA256": "882d3aad2625cd048815963da0d3f8d6d6fe5837989b5ffd06fb40124345b45f",
+      "frozenFiles": 841,
+      "snapshots": 8,
+      "saved": [
+        {
+          "bytes": 2183,
+          "sha256": "3251d3dc3f9fd94c66b9e8f975b862281041b10e0ae8ea155369553e70dd8941"
+        }
+      ],
+      "native": [
+        {
+          "label": "source-R20-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7091.948937557186,
+          "volumeMm3": 7091.948937557187,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            35.491933384829665,
+            20
+          ],
+          "sourceContactMm": [
+            39.364916731037084,
+            25
+          ]
+        },
+        {
+          "label": "source-R16-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 16,
+          "expectedVolumeMm3": 6616.283004441058,
+          "volumeMm3": 6616.28300444106,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            32,
+            20
+          ],
+          "sourceContactMm": [
+            36,
+            24
+          ]
+        },
+        {
+          "label": "source-R16-reopened-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 16,
+          "expectedVolumeMm3": 6616.283004441058,
+          "volumeMm3": 6616.28300444106,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            32,
+            20
+          ],
+          "sourceContactMm": [
+            36,
+            24
+          ]
+        },
+        {
+          "label": "source-R18-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 18,
+          "expectedVolumeMm3": 6865.290693253592,
+          "volumeMm3": 6865.290693253592,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            33.856406460551014,
+            20
+          ],
+          "sourceContactMm": [
+            37.81537973499417,
+            24.571428571428573
+          ]
+        }
+      ]
+    },
+    "xz": {
+      "run": "xz",
+      "status": "PASS",
+      "receiptSHA256": "91a22b1ad1655640e6dbe972f812f4db2a6d4dba4ad519cfe3e6c4778be3eb8c",
+      "sourceManifestSHA256": "882d3aad2625cd048815963da0d3f8d6d6fe5837989b5ffd06fb40124345b45f",
+      "frozenFiles": 841,
+      "snapshots": 8,
+      "saved": [
+        {
+          "bytes": 2410,
+          "sha256": "9f7ed781e5528d7fbc07cdb875d55f3181da313163423481fee93e8b0873b72c"
+        }
+      ],
+      "native": [
+        {
+          "label": "source-R20-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7091.948937557186,
+          "volumeMm3": 7091.948937557187,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            35.491933384829665,
+            20
+          ],
+          "sourceContactMm": [
+            39.364916731037084,
+            15
+          ]
+        },
+        {
+          "label": "source-R16-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 16,
+          "expectedVolumeMm3": 6616.283004441058,
+          "volumeMm3": 6616.28300444106,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            32,
+            20
+          ],
+          "sourceContactMm": [
+            36,
+            16
+          ]
+        },
+        {
+          "label": "source-R16-reopened-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 16,
+          "expectedVolumeMm3": 6616.283004441058,
+          "volumeMm3": 6616.28300444106,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            32,
+            20
+          ],
+          "sourceContactMm": [
+            36,
+            16
+          ]
+        },
+        {
+          "label": "source-R18-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 18,
+          "expectedVolumeMm3": 6865.290693253592,
+          "volumeMm3": 6865.290693253588,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            33.856406460551014,
+            20
+          ],
+          "sourceContactMm": [
+            37.81537973499417,
+            15.428571428571427
+          ]
+        }
+      ]
+    },
+    "reflectedFilletRegression": {
+      "run": "fillet-regression",
+      "status": "PASS",
+      "receiptSHA256": "79ca7faca7850a34d12b7328bbc4245a456fd1a5889939614a32b6e75b3e00d4",
+      "sourceManifestSHA256": "882d3aad2625cd048815963da0d3f8d6d6fe5837989b5ffd06fb40124345b45f",
+      "frozenFiles": 841,
+      "snapshots": 4,
+      "saved": [
+        {
+          "bytes": 2536,
+          "sha256": "142c23e9a90f6fea2ed8ac33bfca2057b98210765159a2f70a34b862dcd73ca5"
+        }
+      ],
+      "native": [
+        {
+          "label": "clockwise-R3-native",
+          "radiusMm": 3,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7116.460269574863,
+          "volumeMm3": 7116.4602695748645,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            36.733200530681515,
+            20
+          ],
+          "sourceContactMm": [
+            39.686118271390015,
+            16.470588235294116
+          ]
+        },
+        {
+          "label": "clockwise-R4-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7091.948937557186,
+          "volumeMm3": 7091.948937557187,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            35.491933384829665,
+            20
+          ],
+          "sourceContactMm": [
+            39.364916731037084,
+            15
+          ]
+        },
+        {
+          "label": "clockwise-R4-reopened-native",
+          "radiusMm": 4,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7091.948937557186,
+          "volumeMm3": 7091.948937557187,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            35.491933384829665,
+            20
+          ],
+          "sourceContactMm": [
+            39.364916731037084,
+            15
+          ]
+        },
+        {
+          "label": "clockwise-R5-native",
+          "radiusMm": 5,
+          "sourceRadiusMm": 20,
+          "expectedVolumeMm3": 7054.301379805951,
+          "volumeMm3": 7054.301379805949,
+          "sideTags": [
+            "e1",
+            "e5",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "lineContactMm": [
+            34.14213562373095,
+            20
+          ],
+          "sourceContactMm": [
+            38.85618083164127,
+            13.333333333333332
+          ]
+        }
+      ]
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 62,
+    "studioPass": 45,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "961ab959b2b96d326dd6662a275ac9f54f39bf82b88f71260f4c64c66f811d4b"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Finite-contact source edit and narrow re-lock after explicit unlock, for both windings."
+  },
+  "notRun": [
+    "arbitrary line angles and incoming arcs",
+    "re-lock of an unlocked fillet",
+    "edits of both radii at once",
+    "downstream Measure",
+    "full suites",
+    "mobile"
+  ]
+}

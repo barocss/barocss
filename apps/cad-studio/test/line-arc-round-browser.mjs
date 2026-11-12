@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
-const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline';
+const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
+const sourceEdit = mode === '--source-edit' || mode === '--source-edit-baseline' || mode === '--mirrored-source-edit';
+const sourceEditBaseline = mode === '--source-edit-baseline';
 const pins = [
   'apps/cad-studio/test/line-arc-round-browser.mjs',
   'apps/cad-studio/src/ui/ConstraintTools.tsx',
@@ -15,12 +17,14 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
-  ...(fixed || mirrored ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(fixed || mirrored || sourceEdit ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'line-arc-round', output: process.argv[2], envFrozen: mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
+  name: 'line-arc-round', output: process.argv[2],
+  envFrozen: sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
+  qualification: sourceEdit ? 'Edit the source radius of a pinned round and verify native contacts and history.'
+    : mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
     : fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
     : 'Measure the finite line–circular-arc Round boundary and the existing straight-corner control.',
   limits: [mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
@@ -60,6 +64,9 @@ console.log(JSON.stringify({ volume: massPropertiesOf(output).volume, faces: out
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     roundError: document.querySelector('.sk-panel [role="alert"]')?.textContent ?? null,
+    outlineInputs: Array.from(document.querySelectorAll('[aria-label="Outline points"] input'), input => ({
+      label: input.getAttribute('aria-label'), value: input.value,
+    })),
   }),
 });
 
@@ -130,26 +137,29 @@ async function save(doc) {
   return bytes;
 }
 
-function independentRound(radius) {
-  const x = Math.sqrt(400 - 40 * radius);
-  const fillet = [20 + x, 20 + radius], source = [20, 20];
-  const a = [fillet[0], 20], b = [20 + 20 * x / (20 - radius), 20 + 20 * radius / (20 - radius)];
-  const angle = Math.atan2(radius, x);
+function independentRound(radius, sourceRadius = 20) {
+  const source = [20, 40 - sourceRadius];
+  const y = 20 + radius - source[1], inner = sourceRadius - radius;
+  const x = Math.sqrt(inner ** 2 - y ** 2);
+  const fillet = [20 + x, 20 + radius];
+  const a = [fillet[0], 20], b = [20 + sourceRadius * x / inner, source[1] + sourceRadius * y / inner];
+  const angle = Math.atan2(y, x);
   const polygon = [[0, 20], a, b, [20, 40], [0, 40]];
   const cross = ([ax, ay], [bx, by]) => ax * by - ay * bx;
   const chordArea = polygon.reduce((sum, point, i) => sum + cross(point, polygon[(i + 1) % polygon.length]), 0) / 2;
   const arcArea = (r, sweep) => r * r * (sweep - Math.sin(sweep)) / 2;
-  return { fillet, source, polygon, volume: 10 * (chordArea + arcArea(radius, Math.PI / 2 + angle) + arcArea(20, Math.PI / 2 - angle)) };
+  return { fillet, source, polygon,
+    volume: 10 * (chordArea + arcArea(radius, Math.PI / 2 + angle) + arcArea(sourceRadius, Math.PI / 2 - angle)) };
 }
 
-async function checkRound(label, doc, original, radius) {
-  const expected = independentRound(radius);
+async function checkRound(label, doc, original, radius, sourceRadius = 20) {
+  const expected = independentRound(radius, sourceRadius);
   const sketch = doc.nodes[0];
   const local = mirrored ? reflect : point => point;
   assert.deepEqual(doc.nodes.slice(1), original.nodes.slice(1));
   assert.deepEqual(doc.outputs, original.outputs);
   assert.deepEqual(sketch.sideTags.outer, ['e1', 'e5', 'e2', 'e3', 'e4']);
-  assert.deepEqual(sketch.outline.radii, { 1: radius, 2: 20 });
+  assert.deepEqual(sketch.outline.radii, { 1: radius, 2: sourceRadius });
   assert.deepEqual(sketch.outline.tangents, [1, 2, 3]);
   assert.deepEqual(sketch.outline.hv, { h: [0, 3], v: [4] });
   assert.deepEqual(sketch.outline.rules, [{ kind: 'fix', point: 3, at: local([20, 40]) }]);
@@ -157,7 +167,8 @@ async function checkRound(label, doc, original, radius) {
   assert.equal(sketch.segments.length, 5);
   sketch.segments.forEach((segment, i) => point(segment.start, local(expected.polygon[i])));
   const native = await f.inspect(label, doc);
-  for (const [i, tag, center, r] of [[1, 'e5', expected.fillet, radius], [2, 'e2', expected.source, 20]]) {
+  assert.equal(native.cylinders.length, 2);
+  for (const [i, tag, center, r] of [[1, 'e5', expected.fillet, radius], [2, 'e2', expected.source, sourceRadius]]) {
     assert.equal(sketch.segments[i].kind, 'arc');
     assert.equal(sketch.segments[i].direction, mirrored ? 'cw' : 'ccw');
     point(sketch.segments[i].center, local(center));
@@ -170,18 +181,154 @@ async function checkRound(label, doc, original, radius) {
     near(cylinder.r, r);
     point(cylinder.a, mirrored ? [0, 1, 0] : [0, 0, 1]);
   }
-  if (mirrored) {
-    assert.deepEqual(sketch.plane, workingPlane);
-    for (const [x, z] of expected.polygon.map(local)) {
-      for (const y of [-5, 5]) assert.ok(native.vertices.some(v => Math.hypot(v[0] - x, v[1] - y, v[2] - z) < 1e-8));
+  if (mirrored) assert.deepEqual(sketch.plane, workingPlane);
+  if (mirrored || sourceEdit) {
+    for (const [x, y] of expected.polygon.map(local)) {
+      for (const depth of [0, 10]) {
+        const expectedVertex = mirrored ? [x, 5 - depth, y] : [x, y, depth];
+        assert.ok(native.vertices.some(vertex => Math.hypot(...vertex.map((value, i) => value - expectedVertex[i])) < 1e-8),
+          `Missing cap vertex ${expectedVertex}`);
+      }
     }
   }
   assert.ok(['e1', 'e3', 'e4'].every(tag => native.faces.includes(`n1.side[${tag}]`)));
   near(native.volume, expected.volume, 1e-7);
   near((await f.bodies()).bodies[0].volume, expected.volume, 1e-7);
-  f.report.observations.push({ label, radiusMm: radius, expectedVolumeMm3: expected.volume, volumeMm3: native.volume,
+  f.report.observations.push({ label, radiusMm: radius, sourceRadiusMm: sourceRadius, expectedVolumeMm3: expected.volume, volumeMm3: native.volume,
     sideTags: sketch.sideTags.outer, nativeCylinders: native.cylinders, lineContactMm: local(expected.polygon[1]), sourceContactMm: local(expected.polygon[2]) });
   return native;
+}
+
+async function checkSourceEdit() {
+  const doc = await f.inspect('source-radius-fixture', {}, mirrored ? 'mirrored' : 'pinned');
+  const panel = () => f.sketchPanel();
+  const radius = () => panel().getByLabel('Arc 3 radius', { exact: true });
+  const alert = () => panel().getByRole('alert');
+  async function enterInline(value, reference = false) {
+    const chip = reference
+      ? f.page.locator('g.dim:not(.driving) .dim-text').getByText('R16', { exact: true })
+      : f.page.locator('g.dim[data-dim="rad2"] .dim-text');
+    await chip.dblclick();
+    const input = f.page.locator('.dim-editor input');
+    await input.fill(String(value));
+    await input.press('Enter');
+    await input.waitFor({ state: 'hidden' });
+  }
+  await f.newPage();
+  await open(doc);
+  await edit();
+  await applyRound([40, 20], 4);
+  const r20 = (await f.finishSketch('01-pinned-fillet-source-R20')).doc;
+  await checkRound('source-R20-native', r20, doc, 4);
+
+  f.phase = 'edit the retained source radius using the outline panel';
+  await edit();
+  await radius().fill('16');
+  if (sourceEditBaseline && await alert().count()) {
+    const refused = await f.snapshot('02-parent-source-R16-refused');
+    await f.same(r20);
+    assert.equal(await radius().inputValue(), '20');
+    f.report.observations.push({ label: 'source-edit-baseline', outcome: 'REFUSED', refusal: refused.roundError });
+    await cancel();
+    await f.same(r20);
+    return;
+  }
+  assert.equal(await radius().inputValue(), '16');
+  await radius().press('Enter');
+  assert.equal(await alert().count(), 0);
+  await panel().getByText(/^Fully defined/).waitFor();
+  const r16 = (await f.finishSketch('02-pinned-fillet-source-R16')).doc;
+  if (sourceEditBaseline) {
+    try {
+      await checkRound('source-R16-parent-native', r16, doc, 4, 16);
+      f.report.observations.push({ label: 'source-edit-baseline', outcome: 'EXACT' });
+    } catch (error) {
+      const native = await f.inspect('source-R16-parent-observed', r16);
+      f.report.observations.push({ label: 'source-edit-baseline', outcome: 'GEOMETRY_MISMATCH',
+        reason: error.message, outline: r16.nodes[0].outline, native });
+      return;
+    }
+  } else {
+    await checkRound('source-R16-native', r16, doc, 4, 16);
+    await f.undo();
+    await f.same(r20);
+    await f.redo();
+    await f.same(r16);
+    const saved = await save(r16);
+    await f.newPage();
+    await open(r16, saved);
+    await checkRound('source-R16-reopened-native', r16, doc, 4, 16);
+  }
+
+  f.phase = 'refuse the exact source-radius limit and keep both previous arcs';
+  await edit();
+  const before = await f.snapshot('03-before-source-limit');
+  await radius().fill('10');
+  if (sourceEditBaseline && !await alert().count()) {
+    const accepted = await f.snapshot('04-parent-source-limit-accepted');
+    await f.same(r16);
+    assert.equal(await radius().inputValue(), '10');
+    f.report.observations.push({ label: 'source-limit-baseline', outcome: 'ACCEPTED_DRAFT', dirty: accepted.dirty });
+    await cancel();
+    await f.same(r16);
+    return;
+  }
+  await alert().waitFor();
+  const refused = await f.snapshot('04-source-limit-refused');
+  assert.equal(await radius().inputValue(), '16');
+  assert.equal(await panel().getByLabel('Arc 2 radius', { exact: true }).inputValue(), '4');
+  assert.deepEqual(refused.doc, before.doc);
+  assert.deepEqual(refused.history, before.history);
+  assert.deepEqual(refused.outlineInputs, before.outlineInputs);
+  assert.equal(refused.dirty, before.dirty);
+  if (sourceEditBaseline) {
+    f.report.observations.push({ label: 'source-limit-baseline', outcome: 'REFUSED', refusal: refused.roundError });
+    await cancel();
+    await f.same(r16);
+    return;
+  }
+
+  await cancel();
+  await f.same(r16);
+  await edit();
+  assert.equal(await alert().count(), 0);
+  f.phase = 'refuse the same limit in the on-canvas field, then recover at R18';
+  await enterInline(10);
+  await alert().waitFor();
+  assert.equal(await radius().inputValue(), '16');
+  assert.equal(await panel().getByLabel('Arc 2 radius', { exact: true }).inputValue(), '4');
+  const inlineRefused = await f.snapshot('05-inline-source-limit-refused');
+  assert.deepEqual(inlineRefused.doc, before.doc);
+  assert.deepEqual(inlineRefused.history, before.history);
+  assert.deepEqual(inlineRefused.outlineInputs, before.outlineInputs);
+  assert.equal(inlineRefused.dirty, before.dirty);
+
+  f.phase = 'clear the source lock, then refuse an invalid replacement';
+  await radius().fill('');
+  assert.equal(await radius().evaluate(field => field.classList.contains('locked')), false);
+  assert.equal(await alert().count(), 0);
+  const unlocked = await f.snapshot('06-source-unlocked');
+  await radius().fill('10');
+  await alert().waitFor();
+  assert.equal(await radius().evaluate(field => field.classList.contains('locked')), false);
+  const relockRefused = await f.snapshot('07-source-limit-relock-refused');
+  assert.deepEqual(relockRefused.doc, before.doc);
+  assert.deepEqual(relockRefused.history, before.history);
+  assert.deepEqual(relockRefused.outlineInputs, unlocked.outlineInputs);
+  assert.equal(relockRefused.dirty, before.dirty);
+
+  f.phase = 're-lock the source at R18 in the on-canvas field';
+  await enterInline(18, true);
+  assert.equal(await radius().inputValue(), '18');
+  assert.equal(await radius().evaluate(field => field.classList.contains('locked')), true);
+  assert.equal(await alert().count(), 0);
+  await panel().getByText(/^Fully defined/).waitFor();
+  const r18 = (await f.finishSketch('08-pinned-fillet-source-R18')).doc;
+  await checkRound('source-R18-native', r18, doc, 4, 18);
+  await f.undo();
+  await f.same(r16);
+  await f.redo();
+  await f.same(r18);
 }
 
 async function checkMirrored() {
@@ -366,6 +513,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (sourceEdit) {
+    await checkSourceEdit();
+    return;
+  }
   if (mirrored) {
     await checkMirrored();
     return;

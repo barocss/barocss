@@ -155,27 +155,37 @@ export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number)
   };
 }
 
-function roundRecipe(s: Polygon) {
+function roundRecipe(s: Polygon, allowUnlockedSource = false) {
   if (!ordinaryOutline(s, 5) || !supportedIds(s.ids, 5)
     || s.tangents?.length !== 3 || ![1, 2, 3].every(j => s.tangents!.includes(j))
-    || !s.radii || Object.keys(s.radii).length !== 2 || typeof s.radii[1] !== 'number' || !validRadius(s.radii[2])) return null;
+    || !s.radii || typeof s.radii[1] !== 'number') return null;
+  const unlocked = allowUnlockedSource && s.radii[2] === undefined && Object.keys(s.radii).length === 1;
+  if (!unlocked && (Object.keys(s.radii).length !== 2 || typeof s.radii[2] !== 'number')) return null;
   const fix = supportedPins(s, 3);
-  return fix ? { end: fix.at, radius: s.radii[1], sourceRadius: s.radii[2], direction: roundDirection(s.bulges) } : null;
+  if (!fix) return null;
+  const direction = roundDirection(s.bulges);
+  // An unlocked source can be re-locked only after its actual arc proves the prior finite branch.
+  const sourceRadius = unlocked && direction ? arcOf(s.points[2], s.points[3], s.bulges![2]).radius : s.radii[2];
+  return { end: fix.at, radius: s.radii[1], sourceRadius, direction };
 }
 
 /** Recognize the persisted pinned geometry before guarding a radius-only edit. */
 export function planPinnedLineArcRadiusEdit(candidate: Polygon, prev: Polygon): { plan: Plan } | { error: string } | null {
-  if (candidate.radii?.[1] === prev.radii?.[1] || !candidate.ids?.every((id, i) => id === prev.ids?.[i])) return null;
-  const old = roundRecipe(prev), next = roundRecipe(candidate);
-  if (!old?.direction || !next || next.sourceRadius !== old.sourceRadius || distance(next.end, old.end) !== 0
-    || !validRadius(old.radius)) return null;
+  const filletChanged = candidate.radii?.[1] !== prev.radii?.[1];
+  const sourceChanged = candidate.radii?.[2] !== prev.radii?.[2];
+  if (filletChanged === sourceChanged || !candidate.ids?.every((id, i) => id === prev.ids?.[i])) return null;
+  const old = roundRecipe(prev, sourceChanged), next = roundRecipe(candidate);
+  if (!old?.direction || !next || distance(next.end, old.end) !== 0 || !validRadius(old.radius)) return null;
   const carrier = carrierOf(prev.points[0], old.end, old.sourceRadius, old.direction);
   const current = carrier && planRound(carrier, old.radius);
   if (!current || !matchesPinnedRound(prev, current)) return null;
   if (next.direction !== old.direction) return { error: 'The radius edit must keep both arcs in their original direction.' };
-  if (!validRadius(next.radius)) return { error: badRadius };
-  const plan = planRound(current.carrier, next.radius);
-  if (!plan) return { error: noFit(next.radius) };
+  const changedRadius = sourceChanged ? next.sourceRadius : next.radius;
+  if (!validRadius(changedRadius)) return { error: badRadius };
+  // The source radius moves its center along the perpendicular through the fixed end.
+  const target = sourceChanged ? carrierOf(prev.points[0], old.end, next.sourceRadius, old.direction) : current.carrier;
+  const plan = target && planRound(target, next.radius);
+  if (!plan) return { error: noFit(changedRadius) };
   // The panel supplies the current coefficients. The inline path can have already applied this plan.
   if (!matchesPinnedRound(candidate, current) && !matchesPinnedRound(candidate, plan)) {
     return { error: 'The radius edit would move the pinned line or source arc.' };
