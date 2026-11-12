@@ -239,7 +239,7 @@ import { currentNativeVertexPoints } from './viewport/vertexPick';
 import { orderedVertexPlane, planeLabel, planeOfDisplayFace, xyPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeNode } from '@barocss/cad-model/sketch/loops';
 import { isSettled } from '@barocss/cad-model/sketch/rules';
-import { SketchHistory } from '@barocss/cad-model/sketch/history';
+import { createDraftHistory, draftHistoryState, outlineHistoryState, restoreDraftHistory } from './sketch/draftHistory';
 
 // A free sketch's outlines at the document's parameter values; none when a parameter it uses is missing.
 const ringsOf = (n: SketchNode, params: StudioDoc['parameters']) => { try { return profileRings(n, params); } catch (e) { if (!isRefusal(e, 'PARAMETER_UNKNOWN') && !(n.profile === 'band' && isRefusal(e, 'VALUE'))) throw e; return []; } }; // (A band that cannot be made shows no outline; the evaluation error says why.)
@@ -448,7 +448,8 @@ export function App() {
   useEffect(() => { liveShape.current = sketch?.shape ?? null; }, [sketch?.shape]);
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
   // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
-  const sketchHistory = useRef(new SketchHistory());
+  const [sketchHistory] = useState(createDraftHistory);
+  const queuedSketchHistory = useRef<{ doc: StudioDoc; generation: number; draft: SketchState } | null>(null);
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
     // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
@@ -460,7 +461,9 @@ export function App() {
     if (shape?.kind === 'bezier') { const b = bezierEdit(shape); if ('error' in b) { setSketchError(b.error); return; } shape = b.shape; }
     else if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
-    if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
+    if (!keep && isSettled(prev) && isSettled(r.shape)) {
+      sketchHistory.push(outlineHistoryState(prev), outlineHistoryState(r.shape));
+    }
     setSketchError(r.error);
     setSketch(s => {
       if (!s) return s;
@@ -471,8 +474,8 @@ export function App() {
         ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}),
       };
     });
-  }, [setSketch]);
-  useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
+  }, [setSketch, sketchHistory]);
+  useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.clear(); queuedSketchHistory.current = null; } }, [sketch, sketchHistory]);
   const [palette, setPalette] = useState(false);
   // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
   const layout = useLayout(), chat = layout.chatOpen, setChat = layout.setChatOpen;
@@ -1548,7 +1551,13 @@ export function App() {
     });
   }, [ctx]);
 
-  const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
+  const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration,
+    recordTrim: (before, after) => {
+      sketchHistory.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
+      liveShape.current = after.shape;
+      queuedSketchHistory.current = { doc, generation: sketchGeneration.current, draft: after };
+    },
+  }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const finishSketch = () => {
@@ -1984,6 +1993,29 @@ export function App() {
   // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames. The listener is
   // added once and calls the newest handler (set each render), so a key pressed right after a click sees
   // that click's selection, not the one before it (effects run only after the frame is painted).
+  const sketchHistoryGeneration = sketchGeneration.current;
+  const sketchHistoryAvailable = sketch ? sketchHistory.available(draftHistoryState(doc, sketch)) : null;
+  const replayHistory = (forward: boolean) => {
+    if (!sketch) { if (forward) doRedo(); else doUndo(); return; }
+    if (docNow.current !== doc) return;
+    const queued = queuedSketchHistory.current, generation = sketchGeneration.current;
+    // Consecutive history keys may arrive before React renders the preceding full draft.
+    const pending = queued?.doc === doc && queued.generation === generation ? queued.draft : null;
+    const draft = pending ?? (generation === sketchHistoryGeneration ? sketch : null);
+    if (!draft) return;
+    clearConstraintInspection(constraintInspection, sketch);
+    twoPointSnap.cancel();
+    arcExtensionSnap.cancel();
+    pathGap.cancel();
+    const current = draftHistoryState(doc, draft, pending ? pending.shape : liveShape.current);
+    const step = forward ? sketchHistory.redo(current) : sketchHistory.undo(current);
+    if (!step) return;
+    const next = restoreDraftHistory(draft, step);
+    liveShape.current = next.shape;
+    setSketchError(null);
+    setSketch(next);
+    queuedSketchHistory.current = { doc, generation: sketchGeneration.current, draft: next };
+  };
   const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   const dismissInspectionRef = useRef<() => boolean>(() => false);
   dismissInspectionRef.current = () => !help && !palette && !stepAsk && !workspaceModeExit.pending
@@ -2029,18 +2061,7 @@ export function App() {
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
-      if (undoKey) {
-        e.preventDefault();
-        clearConstraintInspection(constraintInspection, sketch);
-        twoPointSnap.cancel();
-        arcExtensionSnap.cancel();
-        pathGap.cancel();
-        // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
-        const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
-        if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...detachSketchLink(s), shape: back, picked: [], editDim: null }); return; }
-        if (!sketch) { if (e.shiftKey) doRedo(); else doUndo(); }
-        return;
-      }
+      if (undoKey) { e.preventDefault(); replayHistory(e.shiftKey); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && !active && !sketch) { e.preventDefault(); start(commands.find(c => c.id === 'duplicate')!); return; }
       // Copy a body, paste copies of it beside (each paste a little further on).
@@ -2733,8 +2754,8 @@ export function App() {
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
         <ToolsTray items={[
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
-          <ToolIconButton key="tool1" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></ToolIconButton>,
-          <ToolIconButton key="tool2" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></ToolIconButton>,
+          <ToolIconButton key="tool1" aria-label="Undo" data-tip={sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.undo : !undo.length} onClick={() => replayHistory(false)}><Icon name="undo" /></ToolIconButton>,
+          <ToolIconButton key="tool2" aria-label="Redo" data-tip={sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.redo : !redo.length} onClick={() => replayHistory(true)}><Icon name="redo" /></ToolIconButton>,
           <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { if (sessionBlocked('starting a new part')) return; replaceDoc(emptyDoc(), 'new-part'); }}><Icon name="add_box" /></ToolIconButton>,
           <TemplatePicker key="tool4" doc={doc} state={{ templatesOpen, setTemplatesOpen, templateName, setTemplateName }} open={open} onNotice={setToast}
             onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,

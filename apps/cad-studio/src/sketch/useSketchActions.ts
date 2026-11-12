@@ -32,7 +32,8 @@ import type { EngineClient } from '../engine/client';
 import { preserveConstruction } from './preserveConstruction';
 interface SketchActionOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null };
-  editor: { sketch: SketchState | null; setSketch: Dispatch<SetStateAction<SketchState | null>>; sketchGeneration: RefObject<number> };
+  editor: { sketch: SketchState | null; setSketch: Dispatch<SetStateAction<SketchState | null>>; sketchGeneration: RefObject<number>;
+    recordTrim?(before: SketchState, after: SketchState): void };
   owner: { docNow: RefObject<StudioDoc>; acceptanceScope: object };
   worker: { engine: EngineClient; nextRevision(): number };
   viewport: RefObject<ViewportHandle | null>;
@@ -51,7 +52,8 @@ function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
 /** Sketch placement, editing and Finish retain App's dispatch and sketch generation owner. */
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
   const { doc, bodies, selection, marker } = model;
-  const { sketch, setSketch, sketchGeneration } = editor;
+  const { sketch, setSketch, sketchGeneration, recordTrim } = editor;
+  const sketchRenderGeneration = sketchGeneration.current;
   const [finishRefusal, setFinishRefusal] = useState<{ generation: number; message: string } | null>(null);
   const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
   const pendingFinish = useRef<{ doc: StudioDoc; generation: number } | null>(null);
@@ -115,10 +117,18 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
+    const ownedTrim = op === 'trim' && recordTrim;
+    if (ownedTrim && (docNow.current !== doc || sketchGeneration.current !== sketchRenderGeneration)) return;
     const { shapes, protectedShapes } = sketchCutInputs(sketch);
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
+    if (ownedTrim) {
+      const next: SketchState = { ...detachSketchLink(sketch), shape: null, done: r.shapes, picked: [], editDim: null };
+      setSketch(next);
+      ownedTrim(sketch, next);
+      return;
+    }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
@@ -160,7 +170,6 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
     } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
   };
-  const sketchRenderGeneration = sketchGeneration.current;
   function currentSketchSource() {
     const opened = reopenedDraft.current, index = sketch?.editNode;
     if (!opened || index === undefined || opened.draft.editNode !== index || docNow.current !== doc ||

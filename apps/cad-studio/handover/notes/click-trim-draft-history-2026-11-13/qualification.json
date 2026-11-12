@@ -1,0 +1,73 @@
+{
+  "decision": "D874",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "1885add4f51a245945e737ddc68c361c7d5c222f",
+  "issue": 2328,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d874-desktop-01",
+    "D874_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/studio-run01 --fixed",
+    "D871_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-local-mobility-browser.mjs <external-evidence>/dimension-regression",
+    "gate.sh acquire heavy 600 d874-feature-publish",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history trim sketch-cut-visibility constraints sketch-edit-identity fixed-triangle-inline-ownership",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-rectangle-driving-retention sketch-associative-inset",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist-final",
+    "pnpm exec eslint apps/cad-studio/src/sketch/{draftHistory,useSketchActions}.ts apps/cad-studio/test/draft-sketch-history.test.ts",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --exit-code -- packages/barocss-cad-model/src/sketch/history.ts",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 70,
+    "modelPass": 31,
+    "typeChecks": "PASS",
+    "productionBuild": "PASS",
+    "scopedLint": "PASS",
+    "firstStudioTypeCheck": "FAIL: missing required hook fixture callback",
+    "logSHA256": "eea415d02400961c7b7d1ae8f1a3c901a58a18b38341a91414c909498c7f832d"
+  },
+  "studio": {
+    "fixed": {
+      "status": "PASS",
+      "receiptSHA256": "b62ebea4ecfcc3cf968547b4f7f3060ef1e112c1ce4dffe5ac567820bab5ba2c",
+      "sourceManifestSHA256": "0ad42fc1f2cd329332573820af100373605ed52e4693ed2b7b7a35aed9ae6d3a",
+      "frozenFiles": 358,
+      "snapshots": 9,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "dimensionRegression": {
+      "status": "PASS",
+      "receiptSHA256": "d8764397a235d766cbf8a3b5c34dd3c33d3c41570c2ba615f10286947827c27d",
+      "sourceManifestSHA256": "47b38c508d63a20bfa87b15cbcd8350b3bf35457e5f4aef48d6a690de751ae0a",
+      "frozenFiles": 829,
+      "snapshots": 8,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "6b67624b542e59eb006a27fa4e3a489d2bffcd4a9a4866eaa76edb7912a01b2d",
+    "fixtureBytes": 547,
+    "fixtureSHA256": "03b67d63bfa8680d0a14fae3206f65cbbfc49128966927743b91169a5e95329b",
+    "removedIntervalMm": [
+      [
+        10,
+        0
+      ],
+      [
+        30,
+        0
+      ]
+    ],
+    "currentBodyVolumeMm3": 1600,
+    "projectionTolerancePx": 0.02,
+    "rapidUndoEvents": 2
+  }
+}

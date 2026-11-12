@@ -10,9 +10,10 @@ const pins = [
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
   'packages/barocss-cad-model/src/sketch/history.ts',
   'packages/barocss-cad-model/src/sketch/trim.ts',
+  ...(fixed ? ['apps/cad-studio/src/sketch/draftHistory.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: 'D873_SOURCE_FROZEN',
+  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
   limits: ['One 40 × 20 mm native rectangle with two straight construction boundaries. Actual desktop Studio.'],
@@ -73,7 +74,8 @@ async function expectGap() {
 }
 
 function unchanged(after, before) {
-  for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty', 'controls']) assert.deepEqual(after[key], before[key], key);
+  for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(after[key], before[key], key);
+  if (!fixed) assert.deepEqual(after.controls, before.controls);
 }
 
 await f.run(async () => {
@@ -100,12 +102,15 @@ await f.run(async () => {
   f.phase = 'measure the bounded straight trim and its two untouched residual ends';
   const beforeSegment = await expectSegment([20, 0], [10, 0], [30, 0]);
   const before = await f.snapshot('01-original-trim-preview');
+  if (fixed) assert.deepEqual(before.controls, [true, true]);
   assert.equal(before.bodies.fresh, true);
   assert.ok(Math.abs(before.bodies.bodies.find(body => body.key === 'b1').volume - 1600) < 1e-8);
   await f.page.mouse.down();
   await f.page.mouse.up();
   await expectGap();
-  unchanged(await f.snapshot('02-gap-after-one-click'), before);
+  const cut = await f.snapshot('02-gap-after-one-click');
+  unchanged(cut, before);
+  if (fixed) assert.deepEqual(cut.controls, [false, true]);
   await expectSegment([5, 0], [0, 0], [10, 0]);
   await expectSegment([35, 0], [30, 0], [40, 0]);
   for (const x of [10, 30]) {
@@ -113,17 +118,64 @@ await f.run(async () => {
     await expectSegment([x, 3], [x, 0], [x, 5]);
   }
 
-  f.phase = 'apply the first sketch Undo after click Trim';
-  await f.page.keyboard.press('Meta+z');
   if (fixed) {
+    f.phase = 'Undo a second Trim without restoring the first cut';
+    await expectSegment([20, 20], [0, 20], [40, 20]);
+    await f.page.mouse.down();
+    await f.page.mouse.up();
+    await hover([20, 20]);
+    await cue().waitFor({ state: 'detached' });
+    await button(f.page, 'Undo').click();
+    await hover([20, 18]);
+    await expectSegment([20, 20], [0, 20], [40, 20]);
+    await expectGap();
+    unchanged(await f.snapshot('03-only-second-cut-undone'), before);
+
+    f.phase = 'Undo the first cut and keep Redo through an invalid Trim click';
+    await f.page.keyboard.press('Meta+z');
+    await hover([20, 2]);
     await expectSegment([20, 0], [10, 0], [30, 0]);
-    unchanged(await f.snapshot('03-first-undo-restores-trim'), before);
+    const restored = await f.snapshot('04-first-cut-undone');
+    unchanged(restored, before);
+    assert.deepEqual(restored.controls, [true, false]);
+    await hover([20, 4]);
+    await f.page.mouse.down();
+    await f.page.mouse.up();
+    await f.waitToast(/Nothing to trim there/i);
+    unchanged(await f.snapshot('05-invalid-trim-refused'), before);
+    await f.dismissToasts();
+
+    f.phase = 'Redo the first cut, refuse Finish and undo the gap again';
     await f.page.keyboard.press('Meta+Shift+z');
     await expectGap();
-    unchanged(await f.snapshot('04-first-redo-restores-gap'), before);
+    await expectSegment([20, 20], [0, 20], [40, 20]);
+    unchanged(await f.snapshot('06-first-cut-redone'), before);
+    await f.page.locator('.topbar button.finish').click();
+    await f.sketchPanel().getByRole('alert').getByText('Close or trim the open chain from (30, 0) to (10, 0) mm.', { exact: true }).waitFor();
     await f.page.keyboard.press('Meta+z');
+    await f.sketchPanel().getByRole('alert').waitFor({ state: 'hidden' });
     await expectSegment([20, 0], [10, 0], [30, 0]);
+    unchanged(await f.snapshot('07-restored-after-finish-refusal'), before);
+
+    f.phase = 'consume two queued Undo events without reading an old draft';
+    await button(f.page, 'Redo').click();
+    await expectGap();
+    await button(f.page, 'Redo').click();
+    await hover([20, 20]);
+    await cue().waitFor({ state: 'detached' });
+    await f.page.evaluate(() => {
+      for (let i = 0; i < 2; i++) window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'z', metaKey: true, bubbles: true, cancelable: true,
+      }));
+    });
+    await expectSegment([20, 0], [10, 0], [30, 0]);
+    await expectSegment([20, 20], [0, 20], [40, 20]);
+    const queued = await f.snapshot('08-two-queued-undos');
+    unchanged(queued, before);
+    assert.deepEqual(queued.controls, [true, false]);
   } else {
+    f.phase = 'apply the first sketch Undo after click Trim';
+    await f.page.keyboard.press('Meta+z');
     await expectGap();
     unchanged(await f.snapshot('03-parent-undo-leaves-gap'), before);
     await f.page.keyboard.press('Meta+Shift+z');
@@ -145,7 +197,12 @@ await f.run(async () => {
   await f.tool('Trim', 't');
   await f.frame([[10, 0], [20, 0], [30, 0]]);
   await expectSegment([20, 0], [10, 0], [30, 0]);
-  await f.snapshot('06-original-profile-reopened');
+  if (fixed) {
+    await f.page.keyboard.press('Meta+Shift+z');
+    await hover([20, 2]);
+    await expectSegment([20, 0], [10, 0], [30, 0]);
+  }
+  await f.snapshot(fixed ? '09-original-profile-reopened' : '06-original-profile-reopened');
   f.report.observations.push({ label: 'trim-boundary', removedMm: [[10, 0], [30, 0]], originalLengthMm: 40,
     retainedLengthMm: 20, nativeVolumeMm3: 1600, originalPreviewCss: beforeSegment,
     draftUndo: fixed ? 'PASS' : 'FAIL' });
