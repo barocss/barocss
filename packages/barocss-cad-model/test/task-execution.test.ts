@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { commandById } from '../src/app/commands';
 import { askBatch, checkBatch } from '../src/chat/questions';
 import { requirementEvidenceOf } from '../src/chat/requirementEvidence';
 import type { ChatState } from '../src/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, featureLabel, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { evaluatePart } from '../src/engine/evaluate';
 import type { Question } from '../src/engine/schema/questions';
 import type { Requirement } from '../src/engine/schema/spec';
@@ -13,6 +14,7 @@ import { taskDrawingCandidate, taskDrawingImpact } from '../src/team/taskDrawing
 import { interfacesRevision, readInterfaces } from '../src/team/interfaces';
 import { applyTaskDecision, bindTaskDecision, buildTaskCandidate, taskCandidateImpact, taskSubmissionForDimension, type TaskSubmission, type TaskWorkerContext } from '../src/team/taskExecution';
 import { inspectLocalHeightPlan } from '../src/team/localHeightPlan';
+import { profileOf } from '../src/sketch/loops';
 import { compileTaskPlan, taskDimensionEdit, taskTarget, type TaskPlanRequest, type TaskRequest } from '../src/team/taskPlan';
 import { answerTaskQuestions, bindTaskQuestions } from '../src/team/taskQuestions';
 import { digestOf } from '../src/util/digest';
@@ -195,6 +197,88 @@ test('D777 automatic depth planning preserves in-tolerance width and height', ()
 
   base.doc.requirements![1].check.value = 21;
   refuses(inspectLocalHeightPlan(doc, ['p1'], identity), 'CONFLICTING_REQUIREMENT');
+});
+
+for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778 a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {
+  const doc = assembly(), [base, lid] = doc.instances!;
+  delete doc.interfaces;
+  const radius = 4.23, heightMm = 6;
+  const center: [number, number] = [3.07, -7.13];
+  const cylinder = source === 'remembered' ? commandById('cylinder')!.build!(
+    { doc: emptyDoc(), selection: { bodies: [], edges: [], faces: [] }, bodies: [] },
+    { r: radius, h: 5, x: center[0], y: center[1], z: 0 },
+  ) : cylinderPart(radius, 5);
+  base.doc = { ...cylinder, requirements: [height('base-height', heightMm)] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+  const sketch = base.doc.nodes[0];
+  assert.ok(sketch.kind === 'sketch' && sketch.profile === 'circle');
+  sketch.center = center;
+  if (source === 'tagged') {
+    const drawn = profileOf([{ kind: 'circle', c: center, r: radius, ids: ['e7'] }]);
+    assert.ok(!('error' in drawn) && drawn.node.kind === 'sketch' && drawn.node.profile === 'circle' && drawn.node.sideTags);
+    sketch.sideTags = drawn.node.sideTags;
+  }
+  const inspected = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspected), JSON.stringify(inspected));
+  assert.deepEqual(inspected.targets, [
+    { id: 'p1', requirementId: 'base-height', currentHeightMm: 5, heightMm, toleranceMm: 0.001 },
+  ]);
+  assert.deepEqual(inspected.plan.protectedOccurrences, ['p2']);
+  assert.deepEqual(inspected.plan.tasks[0].writes, { occurrence: 'p1', feature: 'n1', field: 'height' });
+  const { plan, state, context, submission } = setup(doc, { ...inspected.request, policyRevision });
+  const bound = plan.tasks[0];
+  const worker = { ...context, worker: bound.holder };
+  const submitted = submission(bound.id, heightMm);
+  const candidate = await buildTaskCandidate(plan, state, submitted, worker, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.deepEqual(candidate.geometry.sizeMm, [2 * radius, 2 * radius, heightMm]);
+  assert.ok(Math.abs(candidate.geometry.volumeMm3 - Math.PI * radius ** 2 * heightMm) < 1e-8);
+  assert.deepEqual(candidate.geometry.centroidMm, [3.07, -7.13, heightMm / 2]);
+  assert.equal(bound.verification.oracle, 'circular-cylinder');
+  const sideName = source === 'tagged' ? `n1.side[${sketch.sideTags!.outer[0]}]` : 'n1.side0';
+  const alteredNativeRadius = async (local: StudioDoc) => {
+    const native = await evaluate(local);
+    if (!native.ok || !native.faceTable) return native;
+    const side = native.faceTable[sideName];
+    if (side?.kind !== 'cylinder') return native;
+    return { ...native, faceTable: { ...native.faceTable, [sideName]: { ...side, radius: side.radius + 0.1 } } };
+  };
+  refuses(await buildTaskCandidate(plan, state, submitted, worker, alteredNativeRadius), 'TASK_ORACLE_MISMATCH');
+  const approval = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in approval));
+  const result = await applyTaskDecision(approval, state, worker, evaluate);
+  assert.ok(!('error' in result), JSON.stringify(result));
+  const extrusion = base.doc.nodes[1];
+  assert.ok(extrusion.kind === 'extrude');
+  const expected = { ...extrusion, height: heightMm };
+  if (source === 'remembered') {
+    assert.equal(extrusion.made?.command, 'cylinder');
+    expected.made = { ...extrusion.made, values: { ...extrusion.made.values, h: heightMm } };
+  }
+  const { nodes } = result.doc.instances![0].doc;
+  assert.deepEqual(nodes, [sketch, expected]);
+  if (source === 'remembered') assert.equal(featureLabel(nodes[1], 1, nodes), 'Cylinder Ø8.46×6');
+  assert.deepEqual(result.doc.instances![1], lid);
+  refuses(await applyTaskDecision(approval, state, worker, alteredNativeRadius), 'TASK_DECISION_UNTRUSTED');
+  assert.equal(digestOf(state.doc), plan.baselineDigest);
+
+  const fixedWidth = height('fixed-width', 2 * radius);
+  fixedWidth.check.query = { fn: 'bbox', axis: 'x' };
+  const widthCheck = structuredClone(doc);
+  widthCheck.instances![0].doc.requirements!.push(fixedWidth);
+  refuses(compileTaskPlan(widthCheck, inspected.request), 'UNSUPPORTED_CHECK');
+
+  for (const invalid of [
+    { ...sketch, radius: { parameter: 'r' } },
+    { ...sketch, center: [1e20, -7.13] },
+    { ...sketch, construction: [] },
+    { ...sketch, sideTags: { outer: ['e7', 'e8'] } },
+  ]) {
+    const changed = structuredClone(doc);
+    changed.instances![0].doc.nodes[0] = invalid as typeof sketch;
+    changed.instances![0].doc.parameters.r = radius;
+    refuses(compileTaskPlan(changed, inspected.request), 'UNSUPPORTED_PROFILE');
+  }
 });
 
 test('D584 two scoped native candidates, one exact user decision and native readback', async () => {

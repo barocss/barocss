@@ -38,7 +38,8 @@ const replanMode = provenanceMode || mode === '--replan';
 const rebuildMode = mode === '--rebuild';
 const baselineMode = mode === '--baseline';
 const mixedDiameterMode = mode === '--mixed-diameter';
-const reopenedStopMode = mode === '--reopened-stop', studioDeliveryMode = mode === '--studio-delivery' || mixedDiameterMode;
+const cylinderHeightMode = mode === '--cylinder-height';
+const reopenedStopMode = mode === '--reopened-stop', studioDeliveryMode = mode === '--studio-delivery' || mixedDiameterMode || cylinderHeightMode;
 const studioApprovalMode = mode === '--studio-approval' || studioDeliveryMode, studioRejectionMode = mode === '--studio-rejection';
 const reopenMode = mode === '--reopen' || baselineMode || reopenedStopMode;
 const repairMode = mode === '--repair';
@@ -95,10 +96,15 @@ const pins = [
   ...((liveStartMode || liveStopMode) ? ['apps/cad-studio/test/fixtures/task-run-worker-barrier.mjs'] : []),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: depthMode ? 'D777_SOURCE_FROZEN' : inchDiameterMode ? 'D648_SOURCE_FROZEN' : mixedDiameterMode ? 'D647_SOURCE_FROZEN' : diameterMode ? 'D646_SOURCE_FROZEN' : studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: cylinderHeightMode ? 'D778_SOURCE_FROZEN' : depthMode ? 'D777_SOURCE_FROZEN' : inchDiameterMode ? 'D648_SOURCE_FROZEN' : mixedDiameterMode ? 'D647_SOURCE_FROZEN' : diameterMode ? 'D646_SOURCE_FROZEN' : studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf, requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
+import { commandById } from '@barocss/cad-model/app/commands';
+import { emptyDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
+import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { fixtureDoc, holeDiameterDocs, inchDiameterDocs, mixedDiameterDoc, sharedHoleDoc, singleRepairDoc, threeOccurrenceDoc } from './test/task-run-fixture';
 if (process.argv[3]) {
   const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
@@ -109,6 +115,21 @@ if (process.argv[3]) {
     if (!native.ok || native.bodies.length !== 1 || !native.faceTable?.['n2.side0']) throw new Error('Expected a native bore and one body.');
     const [body] = native.bodies;
     console.log(JSON.stringify({ face: native.faceTable['n2.side0'], volumeMm3: body.volume, centroidMm: body.centroid }));
+  } else if (action === 'cylinder-native-evidence') {
+    const local = doc.instances[0].doc, { outputs } = evaluateCadPart(toPartDocument(local)), [body] = outputs;
+    if (outputs.length !== 1) throw new Error('Expected one native cylinder.');
+    const check = checkOutput(body);
+    if (!check.valid || check.counts.bodies !== 1 || check.counts.shells !== 1)
+      throw new Error(JSON.stringify(check));
+    const { volume, centroid, method } = massPropertiesOf(body);
+    const nativeFaces = name => body.brep.faces.filter(face => face.name?.split('#')[0] === name).map(face => faceGeometry(face));
+    const sides = nativeFaces('n1.side[' + local.nodes[0].sideTags.outer[0] + ']');
+    const bottom = nativeFaces('n1.bottom'), top = nativeFaces('n1.top');
+    if (!sides.length || bottom.length !== 1 || top.length !== 1 || sides.length + 2 !== check.counts.faces)
+      throw new Error('Expected only the tagged outer wall and two native caps.');
+    const z = body.brep.vertices.map(vertex => vertex.point[2]);
+    console.log(JSON.stringify({ volumeMm3: volume, centroidMm: centroid, massMethod: method,
+      sides, ends: [Math.min(...z), Math.max(...z)], bottom: bottom[0], top: top[0] }));
   } else if (action === 'rectangle-native-evidence') {
     const geometry = doc.instances.map(instance => {
       const native = evaluatePart(instance.doc, 0);
@@ -125,7 +146,14 @@ else if (${mixedDiameterMode}) console.log(JSON.stringify(mixedDiameterDoc()));
 else {
   const doc = ${interfaceMode} ? sharedHoleDoc() : ${repairMode} ? singleRepairDoc() : ${threeMode} ? threeOccurrenceDoc() : fixtureDoc();
   doc.instances[1].doc.requirements[0].id = 'check_spec';
-  if (${depthMode}) {
+  if (${cylinderHeightMode}) {
+    const drawn = profileOf([{ kind: 'circle', c: [3.07, -7.13], r: 4.23, ids: ['e7'] }]);
+    if (!drawn.node?.sideTags) throw new Error('Expected a Studio-authored circle with one stable side tag.');
+    doc.instances[0].doc.nodes[0] = { ...drawn.node, id: 'n0' };
+    const lid = doc.instances[1].doc, made = commandById('cylinder').build(
+      { doc: emptyDoc(), selection: { bodies: [], edges: [], faces: [] }, bodies: [] }, { r: 3, h: 3, x: 0, y: 0, z: 0 });
+    doc.instances[1].doc = { ...made, brief: lid.brief, requirements: lid.requirements };
+  } else if (${depthMode}) {
     const [sketch] = doc.instances[0].doc.nodes;
     sketch.min = [0, -3];
     sketch.max = [20, 7];
@@ -138,8 +166,28 @@ else {
   console.log(JSON.stringify(doc));
 }`,
   oracleSource: String.raw`
-import json, sys
+import json, math, sys
 d = json.load(sys.stdin)
+if 'cylinder' in d:
+    g = d['cylinder']
+    cx, cy, radius, height = 3.07, -7.13, 4.23, d['heightMm']
+    assert g['massMethod'] == 'closed-form'
+    bottom, top = g['bottom'], g['top']
+    def close(actual, expected):
+        assert abs(actual - expected) < 1e-8, (actual, expected)
+    for side in g['sides']:
+        assert side['kind'] == 'cylinder' and side['out'] > 0
+        assert side['a'] == [0,0,1]
+        for a,b in zip(side['c'][:2], [cx,cy], strict=True): close(a,b)
+        close(side['r'], radius)
+    for a,b in zip(g['ends'], [0,height], strict=True): close(a,b)
+    for cap, z, normal in [(bottom,0,[0,0,-1]),(top,height,[0,0,1])]:
+        assert cap['kind'] == 'plane' and cap['n'] == normal
+        close(cap['o'][2],z)
+    close(g['volumeMm3'],math.pi*radius**2*height)
+    for a,b in zip(g['centroidMm'], [cx,cy,height/2], strict=True): close(a,b)
+    print(json.dumps({'status':'PASS','heightMm':height,'radiusMm':radius,'volumeMm3':math.pi*radius**2*height,'productImports':0}))
+    sys.exit(0)
 if 'rectangles' in d:
     expected = [([0,-3,0],[20,11,5]), ([0,0,0],[12,8,4])]
     for geometry, part, (lo, hi) in zip(d['rectangles'], d['document']['instances'], expected, strict=True):
@@ -168,10 +216,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: depthMode ? 'Approve an authored rectangle depth and sibling height, then reopen the saved native assembly' : inchDiameterMode ? 'Normalize an authored inch diameter and tolerance in an approved native Studio run' : mixedDiameterMode ? 'Approve height and rebuilt through-hole diameter, then save and reopen the assembly' : diameterMode ? 'Approve a native through-hole diameter and refuse a shared pattern in Studio' : studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: cylinderHeightMode ? 'Approve the height of a plain circular extrusion and edit it after native Studio Save and Open' : depthMode ? 'Approve an authored rectangle depth and sibling height, then reopen the saved native assembly' : inchDiameterMode ? 'Normalize an authored inch diameter and tolerance in an approved native Studio run' : mixedDiameterMode ? 'Approve height and rebuilt through-hole diameter, then save and reopen the assembly' : diameterMode ? 'Approve a native through-hole diameter and refuse a shared pattern in Studio' : studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    depthMode ? 'One local Y edit on a native rectangle with a nonzero Y origin and one independent height edit.' : inchDiameterMode ? 'One explicitly authored inch diameter with a protected sibling and ambiguous-unit, radius and shared-pattern refusal controls.' : mixedDiameterMode ? 'One native through-hole diameter and one sibling extrusion height in a single saved Studio run.' : diameterMode ? 'One independent native through-hole and one protected sibling, with a shared-pattern refusal control.' : sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    cylinderHeightMode ? 'One circular extrusion with a decimal centre and radius and one sibling made by the Cylinder command.' : depthMode ? 'One local Y edit on a native rectangle with a nonzero Y origin and one independent height edit.' : inchDiameterMode ? 'One explicitly authored inch diameter with a protected sibling and ambiguous-unit, radius and shared-pattern refusal controls.' : mixedDiameterMode ? 'One native through-hole diameter and one sibling extrusion height in a single saved Studio run.' : diameterMode ? 'One independent native through-hole and one protected sibling, with a shared-pattern refusal control.' : sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -182,7 +230,7 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = depthMode ? 'D777 rectangle depth' : inchDiameterMode ? 'D648 inch bore diameter' : mixedDiameterMode ? 'D647 mixed dimension delivery' : diameterMode ? 'D646 through-hole diameter' : studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const project = cylinderHeightMode ? 'D778 circular height' : depthMode ? 'D777 rectangle depth' : inchDiameterMode ? 'D648 inch bore diameter' : mixedDiameterMode ? 'D647 mixed dimension delivery' : diameterMode ? 'D646 through-hole diameter' : studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const readySummary = `${occurrences.length} local ${widthMode || depthMode || diameterMode || mixedDiameterMode ? 'dimension' : 'height'} target${occurrences.length === 1 ? '' : 's'} ready`;
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences, ...extra } });
 async function openFile(name, buffer) {
@@ -343,6 +391,16 @@ process.exitCode = code ?? 1;
     assert.equal(first.results[0].body.revision, cliPlan.modelDigest);
     assert.equal(first.results[0].body.status, 'ready');
     assert.equal(first.events[0].summary, readySummary);
+    if (cylinderHeightMode) {
+      assert.deepEqual(cliPlan.targets, [
+        { id: 'p1', requirementId: 'height', currentHeightMm: 5, heightMm: 6, toleranceMm: 0.001 },
+        { id: 'p2', requirementId: 'check_spec', currentHeightMm: 3, heightMm: 4, toleranceMm: 0.001 },
+      ]);
+      assert.deepEqual(first.results[0].body.tasks, [
+        { occurrence: 'p1', feature: 'n1', field: 'height' },
+        { occurrence: 'p2', feature: 'n1', field: 'height' },
+      ]);
+    }
     if (depthMode) {
       assert.deepEqual(cliPlan.targets, [
         { id: 'p1', requirementId: 'depth', currentDepthMm: 10, depthMm: 14, toleranceMm: 0.001 },
@@ -500,6 +558,10 @@ process.exitCode = code ?? 1;
           assert.equal(volumes.length, 2);
           assert.equal(volumes[0], 1200);
           assert.ok(Math.abs(volumes[1] - (1200 - 9 * Math.PI) * 6) < 1e-8);
+        } else if (cylinderHeightMode) {
+          assert.equal(volumes.length, 2);
+          assert.ok(Math.abs(volumes[0] - Math.PI * 4.23 ** 2 * 6) < 1e-8);
+          assert.ok(Math.abs(volumes[1] - Math.PI * 3 ** 2 * 4) < 1e-8);
         } else if (interfaceMode) {
           for (const [actual, expected] of volumes.map((actual, i) => [actual, ([200, 96][i] - 4 * Math.PI) * [6, 4][i]]))
             assert.ok(Math.abs(actual - expected) < 1e-8, JSON.stringify({ actual, expected }));
@@ -522,7 +584,7 @@ process.exitCode = code ?? 1;
         }
         if (studioApprovalMode) {
           const deliver = studioDeliveryMode ? values => taskRunStudioDeliveryFlow({ f, row, launch: firstLaunch, source, saved,
-            project, savedBytes, turn, siblingDiameter: mixedDiameterMode, ...values }) : undefined;
+            project, savedBytes, turn, siblingDiameter: mixedDiameterMode, baseCylinder: cylinderHeightMode, ...values }) : undefined;
           await taskRunStudioApprovalFlow({ f, row, launch: firstLaunch, source, saved, bytes, openFile, deliver, siblingDiameter: mixedDiameterMode });
           assert.deepEqual(f.report.downloads, []);
           return;

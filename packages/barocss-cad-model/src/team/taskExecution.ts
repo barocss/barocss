@@ -186,6 +186,22 @@ function verifyHoleFace(result: Extract<EvalResult, { ok: true }>, shape: TaskSh
     return failure('TASK_HOLE_FACE', `Native face ${name} must span the full extrusion height.`);
 }
 
+function cylinderBoundaryMatches(result: Extract<EvalResult, { ok: true }>, feature: string,
+  circle: NonNullable<TaskShape['circle']>, height: number, close: (actual: number, want: number, scale?: number) => boolean): boolean {
+  const side = result.faceTable?.[circle.wall], bottom = result.faceTable?.[feature + '.bottom'],
+    top = result.faceTable?.[feature + '.top'];
+  if (side?.kind !== 'cylinder' || !side.outer || !side.span || bottom?.kind !== 'plane' || top?.kind !== 'plane')
+    return false;
+  const z = side.span.map(value => side.point[2] + side.axis[2] * value);
+  return z[0] < z[1] && close(side.radius, circle.radius)
+    && circle.center.every((value, i) => close(side.point[i], value, circle.radius))
+    && [0, 0, 1].every((value, i) => close(side.axis[i], value))
+    && close(z[0], 0) && close(z[1], height)
+    && close(bottom.point[2], 0) && close(top.point[2], height)
+    && [0, 0, -1].every((value, i) => close(bottom.normal[i], value))
+    && [0, 0, 1].every((value, i) => close(top.normal[i], value));
+}
+
 /** Recheck a local task's native geometry and requirements without granting a lease or decision. */
 export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   height: number, task: BoundTask, evaluate: Evaluate): Promise<Pick<TaskCandidate, 'geometry' | 'checks'> | TaskPlanError> {
@@ -194,23 +210,27 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   const holeFace = verifyHoleFace(result, shape, height, task);
   if (holeFace) return holeFace;
   const [body] = result.bodies;
-  const { min, max } = body.mesh.bounds;
   const size = [shape.width, shape.depth, height] as const;
-  const grossArea = shape.width * shape.depth;
-  const holeArea = shape.hole ? Math.PI * shape.hole.radius ** 2 : 0;
+  const { circle, hole } = shape;
+  const grossArea = circle ? Math.PI * circle.radius ** 2 : shape.width * shape.depth;
+  const holeArea = hole ? Math.PI * hole.radius ** 2 : 0;
   const area = grossArea - holeArea, volume = area * height;
-  const centroid = [
-    ((shape.minX + shape.width / 2) * grossArea - (shape.hole?.x ?? 0) * holeArea) / area,
-    ((shape.minY + shape.depth / 2) * grossArea - (shape.hole?.y ?? 0) * holeArea) / area,
+  const centroid = circle ? [...circle.center, height / 2] as const : [
+    ((shape.minX + shape.width / 2) * grossArea - (hole?.x ?? 0) * holeArea) / area,
+    ((shape.minY + shape.depth / 2) * grossArea - (hole?.y ?? 0) * holeArea) / area,
     height / 2,
   ] as const;
-  const close = (actual: number, want: number) => Number.isFinite(actual)
-    && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, Math.abs(want));
-  if (body.volume === null || !close(body.volume, volume) || !body.centroid
-      || ![shape.minX, shape.minY, 0].every((v, i) => close(min[i], v))
-      || !size.every((v, i) => close(max[i] - min[i], v))
-      || !centroid.every((v, i) => close(body.centroid![i], v)))
-    return failure('TASK_ORACLE_MISMATCH', 'native volume, bounds or centroid differs from the independent prism calculation');
+  const close = (actual: number, want: number, scale = Math.abs(want)) => Number.isFinite(actual) && Number.isFinite(want)
+    && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, scale);
+  const { min, max } = body.mesh.bounds;
+  const boundsMatch = circle
+    ? body.family === 'upright' && body.massMethod === 'closed-form' && (body.pieces ?? 1) === 1 && body.innerShells === 0
+      && cylinderBoundaryMatches(result, task.feature, circle, height, close)
+    : [shape.minX, shape.minY, 0].every((v, i) => close(min[i], v)) && size.every((v, i) => close(max[i] - min[i], v));
+  if (body.volume === null || (circle && body.volume <= 0) || !close(body.volume, volume) || !body.centroid
+      || !boundsMatch || !centroid.every((v, i) => close(body.centroid![i], v, i < 2 ? circle?.radius : undefined)))
+    return failure('TASK_ORACLE_MISMATCH', circle ? 'native cylinder boundary or mass properties differ from the independent cylinder calculation'
+      : 'native volume, bounds or centroid differs from the independent prism calculation');
 
   const { outcomes } = await checkSpec(local, result.bodies, evaluate);
   const checks = task.checks.map(req => {

@@ -3,7 +3,7 @@ import { briefGaps, readBrief } from '../chat/brief';
 import { unitAssumptions, unconfirmed } from '../chat/drafts';
 import { checkNode } from '../chat/features';
 import { checkRequirement, holeDiameterRequirementMm, meets, meetsHoleDiameterMm } from '../chat/spec';
-import { bodyKey, type BodyRef, type PartInstance, type StudioDoc } from '../engine/doc';
+import { bodyKey, withExtrusionHeight, type BodyRef, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BRIEF_FIELDS, type Brief } from '../engine/schema/brief';
 import type { Predicate, Requirement } from '../engine/schema/spec';
 import { digestOf } from '../util/digest';
@@ -36,7 +36,7 @@ export interface BoundTask extends TaskRequest {
   readonly inputDigest: string;
   readonly reads: Readonly<{ occurrence: string; requirements: readonly string[]; interfaces: readonly string[]; holeFace?: string }>;
   readonly writes: Readonly<{ occurrence: string; feature: string; field: TaskDimension }>;
-  readonly verification: Readonly<{ native: 'requirements'; oracle: 'rectangular-prism'; relativeTolerance: number }>;
+  readonly verification: Readonly<{ native: 'requirements'; oracle: 'rectangular-prism' | 'circular-cylinder'; relativeTolerance: number }>;
   readonly checks: readonly Requirement[];
   readonly blockers: readonly string[];
 }
@@ -70,11 +70,14 @@ export const taskAxis = (field: TaskDimension): 'x' | 'y' | 'z' | undefined =>
 
 /** The only authored change allowed by the local extrusion-height task. */
 export function taskHeightEdit(doc: StudioDoc, instance: PartInstance, index: number, height: number): { doc: StudioDoc; local: StudioDoc } {
-  const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? { ...node, height } : node) };
+  const { nodes } = instance.doc;
+  const local = { ...instance.doc, nodes: nodes.map((node, at) => at === index && node.kind === 'extrude'
+    ? withExtrusionHeight(node, nodes[node.sketch], height) : node) };
   return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) } };
 }
 export interface TaskShape {
   minX: number; minY: number; width: number; depth: number;
+  circle?: { center: [number, number]; radius: number; wall: string };
   hole?: { x: number; y: number; radius: number };
 }
 export interface TaskImpact { id: string; state: 'current' | 'stale' | 'blocked'; reason?: string }
@@ -135,18 +138,34 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   }
   if ((nodes.length !== 2 && nodes.length !== 3) || nodes.some(n => !featureId(n.id) || n.suppressed || n.held)
     || new Set(nodes.map(n => n.id)).size !== nodes.length
-    || sketch?.kind !== 'sketch' || sketch.profile !== 'rectangle' || !xy(sketch.min) || !xy(sketch.max)
+    || sketch?.kind !== 'sketch'
     || sketch.association || sketch.plane || sketch.regions?.length || sketch.holes?.length || sketch.outline || sketch.on
     || extrusion.kind !== 'extrude' || extrusion.sketch !== 0 || !positive(extrusion.height)
     || (extrusion.from !== undefined && extrusion.from !== 0) || (extrusion.draft !== undefined && extrusion.draft !== 0)) {
-    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle with a positive literal extrusion along local +Z.`);
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain supported sketch with a positive literal extrusion along local +Z.`);
   }
-  const [minX, minY] = sketch.min, [maxX, maxY] = sketch.max;
-  if (!finite(minX) || !finite(minY) || !finite(maxX) || !finite(maxY)) {
-    return error('UNSUPPORTED_PROFILE', `${instance.id} needs literal rectangle dimensions.`);
+  let shape: TaskShape;
+  if (sketch.profile === 'rectangle' && xy(sketch.min) && xy(sketch.max)) {
+    const [minX, minY] = sketch.min, [maxX, maxY] = sketch.max;
+    shape = { minX, minY, width: maxX - minX, depth: maxY - minY };
+  } else if (dimension === 'height' && nodes.length === 2 && sketch.profile === 'circle' && xy(sketch.center)
+      && positive(sketch.radius) && sketch.construction === undefined) {
+    const { center, radius, sideTags } = sketch, [x, y] = center;
+    const tag = sideTags?.outer?.[0];
+    if (sideTags !== undefined && (!isObj(sideTags) || !only(sideTags, ['outer', 'regions', 'holes'])
+      || !Array.isArray(sideTags.outer) || sideTags.outer.length !== 1 || typeof tag !== 'string' || !/^[A-Za-z0-9_-]{1,32}$/.test(tag)
+      || (sideTags.regions !== undefined && (!Array.isArray(sideTags.regions) || sideTags.regions.length > 0))
+      || (sideTags.holes !== undefined && (!Array.isArray(sideTags.holes) || sideTags.holes.length > 0))))
+      return error('UNSUPPORTED_PROFILE', `${instance.id} needs one valid outer side tag for a tagged circle.`);
+    const minX = x - radius, minY = y - radius, maxX = x + radius, maxY = y + radius;
+    if (!(finite(minX) && finite(minY) && finite(maxX) && finite(maxY) && minX < x && x < maxX && minY < y && y < maxY))
+      return error('UNSUPPORTED_PROFILE', `${instance.id} needs representable circle bounds around its literal centre.`);
+    shape = { minX, minY, width: 2 * radius, depth: 2 * radius, circle: { center, radius, wall: extrusion.id + (tag ? `.side[${tag}]` : '.side0') } };
+  } else {
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a solid literal circle for a height task.`);
   }
-  const shape: TaskShape = { minX, minY, width: maxX - minX, depth: maxY - minY };
-  if (!positive(shape.width) || !positive(shape.depth) || !positive(shape.width * shape.depth * extrusion.height)) {
+  const area = shape.circle ? Math.PI * shape.circle.radius ** 2 : shape.width * shape.depth;
+  if (!positive(shape.width) || !positive(shape.depth) || !positive(area * extrusion.height)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} has nonfinite volume.`);
   }
   if (planar && hole) return error('UNSUPPORTED_PROFILE', `${instance.id} needs a solid rectangle without holes for a ${dimension} task.`);
@@ -241,6 +260,7 @@ function protectedChecksPass(doc: StudioDoc, id: string): boolean {
     if (checkRequirement(req) || req.basis !== 'stated' || !req.source.trim() || (check.tol ?? 0) < 0) return false;
     if (diameterCheckMatches(check, target)) return meetsHoleDiameterMm(2 * target.shape.hole!.radius, check)?.ok === true;
     return check.query.fn === 'bbox' && check.query.body === undefined && check.unit === 'mm'
+      && (!target.shape.circle || check.query.axis === 'z')
       && (check.op !== 'between' || ((check.tol ?? 0) === 0 && check.min! <= check.max!)) && meets(bounds[check.query.axis], check).ok;
   });
 }
@@ -344,6 +364,8 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
       return error('BAD_REQUIREMENT', `${req.id} has an invalid tolerance or range.`);
     }
     if (!req.hard) continue;
+    if (shape.circle && p.query.axis !== 'z')
+      return error('UNSUPPORTED_CHECK', `${req.id} must check local Z for a circular extrusion height task.`);
     if (p.query.axis === axis) hardAxis = true;
     if (req.basis === 'assumed' || req.basis === 'ambiguous') {
       blockers.push(`requirement:${req.id}:${req.basis}`);
@@ -390,7 +412,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
     id: request.id, holder: request.holder, occurrence: request.occurrence, feature: request.feature,
     capability: request.capability, units: request.units, frame: request.frame, dependsOn: request.dependsOn ?? [],
     reads, writes: { occurrence: instance.id, feature: request.feature, field: dimension },
-    verification: { native: 'requirements', oracle: 'rectangular-prism', relativeTolerance: 1e-8 },
+    verification: { native: 'requirements', oracle: shape.circle ? 'circular-cylinder' : 'rectangular-prism', relativeTolerance: 1e-8 },
     checks, blockers, inputs,
   };
 }

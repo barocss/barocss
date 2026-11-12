@@ -1,0 +1,56 @@
+{
+  "decision": "D778",
+  "tier": "FULL interface",
+  "parent": "0a19bd2e7501a02e38ab39af55d26eca980df73c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "cd apps/cad-studio && D778_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-verified\" --cylinder-height",
+    "cd apps/cad-studio && D623_SOURCE_FROZEN=1 D623_LEGACY_CHECKPOINT=\"$LEGACY\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/width-regression\" --width",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d778-2026-11-12",
+    "receipts": {
+      "desktop-verified": {
+        "sha256": "a678b8c8e7c07164297921c680005a16f002131ba3969a09d5e99a8842c57c63",
+        "frozenSources": 876
+      },
+      "width-regression": {
+        "sha256": "fd0b07b296511558ff48a7b4721c113e011affe3887c79d13b95443cec7a1a22",
+        "frozenSources": 873
+      }
+    },
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 24,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 18,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "ignore-native-cylinder-radius",
+      "discard-stable-cylinder-wall-name"
+    ],
+    "nativeVolumeMm3": [
+      337.2732191485009,
+      393.4854223399177
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

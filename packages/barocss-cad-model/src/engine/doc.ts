@@ -1106,6 +1106,14 @@ export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectan
   }
 }
 
+/** Keep a Cylinder command's height in step with its extrusion. */
+export function withExtrusionHeight(node: Extract<ModelNode, { kind: 'extrude' }>, sketch: ModelNode | undefined, height: number): typeof node {
+  const { made } = node;
+  if (sketch?.kind === 'sketch' && sketch.profile === 'circle' && made?.command === 'cylinder')
+    return { ...node, height, made: { ...made, values: { ...made.values, h: height } } };
+  return { ...node, height };
+}
+
 /**
  * Nodes edited by hand (the feature editor, a feature's own fields): a shape's solid whose sketch or
  * itself changed is no longer what its shape values make, so it stops remembering them.

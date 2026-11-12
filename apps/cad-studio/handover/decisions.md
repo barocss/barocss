@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D778 — edit circular extrusion height in a local worker run](notes/local-circular-extrusion-height-2026-11-12/README.md).
 - [D777 — edit rectangle depth in a local worker run](notes/local-rectangle-depth-task-2026-11-12/README.md).
 - [D776 — verify CAD React failure recovery and frame retirement](notes/cad-react-worker-frame-retirement-2026-11-12/README.md).
 - [D775 — verify CAD React props and the returned Studio edit](notes/cad-react-props-viewer-studio-edit-2026-11-12/README.md).

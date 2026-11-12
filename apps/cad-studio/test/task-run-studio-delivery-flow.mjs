@@ -7,8 +7,8 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false }) {
-  const prefix = siblingDiameter ? 'd647' : 'd644';
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false }) {
+  const prefix = baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
   const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
   const firstHeights = [6, siblingDiameter ? 6 : 3], finalHeights = [6, siblingDiameter ? 6 : 4];
   const originalDimensions = [5, siblingBefore], finalDimensions = [6, siblingAfter];
@@ -69,6 +69,11 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   const originalEvidence = await checkDimensions(prefix + '-source', source, originalDimensions, 'fail');
   const first = await openCheckpoint(firstStatus, prefix + '-first', saved, firstHeights);
   const firstDoc = JSON.parse(first);
+  if (baseCylinder) {
+    const instances = structuredClone(source.instances);
+    instances[0].doc.nodes[1].height = 6;
+    assert.deepEqual(firstDoc.instances, instances);
+  }
   await f.snapshot('09-first-studio-checkpoint');
 
   f.phase = 'rebuild p2 from the first approved native model';
@@ -114,6 +119,7 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   const expected = structuredClone(firstDoc.instances);
   if (siblingDiameter) expected[1].doc.nodes[2].radius = 3;
   else expected[1].doc.nodes[1].height = siblingAfter;
+  if (baseCylinder) expected[1].doc.nodes[1].made.values.h = siblingAfter;
   assert.deepEqual(doc.instances, expected);
   await f.snapshot('11-both-studio-approved');
 
@@ -146,6 +152,43 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     const actual = await f.inspect(prefix + '-reopened-bore', reopened.doc, 'sibling-hole-native-evidence');
     assert.deepEqual([actual.face.kind, actual.face.outer, actual.face.radius], ['cylinder', false, 3]);
     assert.ok(Math.abs(actual.volumeMm3 - (1200 - 9 * Math.PI) * 6) < 1e-8);
+  }
+  if (baseCylinder) {
+    const cylinder = await f.inspect(prefix + '-approved-cylinder', reopened.doc, 'cylinder-native-evidence');
+    await f.runOracle({ cylinder, heightMm: 6 }, prefix + '-approved');
+
+    f.phase = 'read the reopened Cylinder command label and edit the tagged extrusion in Studio';
+    const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+    const instance = f.page.getByRole('complementary', { name: 'Instance', exact: true });
+    const enter = async (index, name) => {
+      await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: name }).click();
+      await button(instance, 'Edit part').click();
+      await banner.waitFor();
+      await f.same(doc.instances[index].doc);
+    };
+    await enter(1, 'Lid');
+    await button(f.page, 'Cylinder Ø6×4').waitFor();
+    await button(banner, 'Finish').click();
+    await banner.waitFor({ state: 'hidden' });
+    await f.same(doc);
+    await enter(0, 'Base');
+    await f.openFeatureEditor(1, 'approved circular extrusion');
+    const distance = f.editor().getByRole('spinbutton', { name: 'Distance', exact: true });
+    assert.equal(Number(await distance.inputValue()), 6);
+    await distance.fill('7');
+    await button(f.editor(), 'Apply').click();
+    const revised = structuredClone(doc.instances[0].doc);
+    revised.nodes[1].height = 7;
+    await f.same(revised);
+    await f.closeEditor();
+    await button(banner, 'Finish').click();
+    await banner.waitFor({ state: 'hidden' });
+    await bounds([7, 4]);
+    const edited = await f.snapshot('13-native-cylinder-height-edit');
+    assert.deepEqual(edited.doc.instances, [{ ...doc.instances[0], doc: revised }, doc.instances[1]]);
+    const changed = await f.inspect(prefix + '-edited-cylinder', edited.doc, 'cylinder-native-evidence');
+    await f.runOracle({ cylinder: changed, heightMm: 7 }, prefix + '-edited');
+    f.report.observations.push({ cylinderHeightMm: [5, 6, 7], radiusMm: 4.23, approved: cylinder, edited: changed, siblingLabel: 'Cylinder Ø6×4' });
   }
   assert.notEqual(finalEvidence, originalEvidence);
   assert.deepEqual(await savedBytes(), saved);

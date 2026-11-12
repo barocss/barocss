@@ -6,7 +6,7 @@ import type { StudioDoc } from '../engine/doc';
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
-import { frameGeometry, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
+import { frameGeometry, withExtrusionHeight, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { outlineOf } from '../sketch/loops';
 import { mainShape, resolveSketchDims } from '../sketch/reopen';
@@ -168,7 +168,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     case 'driven-sketch': case 'sketch': return sketchFields(nodes, i, '', parameters);
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
-      number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => ({ ...(n as typeof node), height: v }));
+      number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => withExtrusionHeight(n as typeof node, nodes[node.sketch], v));
       number('from', 'Start Z', 'mm', n => num((n as typeof node).from ?? 0), (n, v) => ({ ...(n as typeof node), from: v }));
       number('draft', 'Draft', '°', n => (n as typeof node).draft ?? 0, (n, v) => ({ ...(n as typeof node), draft: v }));
       break;
