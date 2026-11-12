@@ -1,0 +1,177 @@
+{
+  "decision": "D808",
+  "tier": "SMALL",
+  "parent": "43e871942d2a8a79bca63d79e7907aa3c2ff594c",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d808-feature-order",
+    "node --check apps/cad-studio/test/feature-order-project-browser.mjs",
+    "cd apps/cad-studio && D808_SOURCE_FROZEN=1 node test/feature-order-project-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d808-feature-order-checks",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test dependents versions driven-sketch-contract",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d808-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "5269cf7ac22a8c477d3cab5768df23243506b570d1089f919bebc6a54b4f3367",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "focused": {
+      "modelPass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "rootVisualReview": "PASS",
+    "observations": [
+      {
+        "label": "01-source",
+        "order": [
+          "n0",
+          "n1",
+          "n2",
+          "n3",
+          "n4"
+        ],
+        "native": [
+          {
+            "id": "n3",
+            "valid": true,
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "id": "n4",
+            "valid": true,
+            "volume": 4699.469035085131,
+            "centroid": [
+              15,
+              9.99999999999999,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "02-reordered",
+        "order": [
+          "n2",
+          "n3",
+          "n0",
+          "n1",
+          "n4"
+        ],
+        "native": [
+          {
+            "id": "n3",
+            "valid": true,
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "id": "n4",
+            "valid": true,
+            "volume": 4699.469035085131,
+            "centroid": [
+              15,
+              9.99999999999999,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "dependent-move-refused",
+        "refusal": "Cannot move Hole \u00d84It is built on the step before it: it cannot come first."
+      },
+      {
+        "label": "project-readback",
+        "bytes": 981,
+        "sha256": "23d84eedcfdf60a25ba38db599d75680af65d82247472ad8bf024fdc5eec423f"
+      },
+      {
+        "label": "04-reopened",
+        "order": [
+          "n2",
+          "n3",
+          "n0",
+          "n1",
+          "n4"
+        ],
+        "native": [
+          {
+            "id": "n3",
+            "valid": true,
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "id": "n4",
+            "valid": true,
+            "volume": 4699.469035085131,
+            "centroid": [
+              15,
+              9.99999999999999,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "05-reopened-source-edit",
+        "order": [
+          "n2",
+          "n3",
+          "n0",
+          "n1",
+          "n4"
+        ],
+        "native": [
+          {
+            "id": "n3",
+            "valid": true,
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "id": "n4",
+            "valid": true,
+            "volume": 5874.336293856413,
+            "centroid": [
+              15,
+              9.99999999999999,
+              5
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
