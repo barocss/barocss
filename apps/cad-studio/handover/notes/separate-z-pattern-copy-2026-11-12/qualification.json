@@ -1,0 +1,290 @@
+{
+  "decision": "D822",
+  "tier": "SMALL",
+  "parent": "fd42769d174a1ad98a7a134ad1bac6c9d91b89b4",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d822-z-pattern-separate",
+    "node --check apps/cad-studio/test/z-pattern-separate-browser.mjs",
+    "cd apps/cad-studio && D822_SOURCE_FROZEN=1 node test/z-pattern-separate-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d822-z-pattern-separate-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test circular-pattern editFields",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d822-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "519697d97b4c0f918ea2c22203be2a53282537be91e860e29fe8c3e7477217bf",
+      "frozenSources": 808,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "focused": {
+      "modelPass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "rootVisualReview": "PASS",
+    "observations": [
+      {
+        "label": "created-four",
+        "bodies": [
+          {
+            "key": "b1",
+            "angle": 0,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              52.00000000000008,
+              12.999999999999984,
+              4
+            ]
+          },
+          {
+            "key": "b4",
+            "angle": 40,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              36.85668923758034,
+              36.60590437553241,
+              4
+            ]
+          },
+          {
+            "key": "b7",
+            "angle": 80,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              10.082657329567374,
+              44.95514371949078,
+              4
+            ]
+          },
+          {
+            "key": "b10",
+            "angle": 120,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              -15.79422863405997,
+              34.14101615137763,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "02-middle-copy-height-10",
+        "bodies": [
+          {
+            "key": "b1",
+            "angle": 0,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              52.00000000000008,
+              12.999999999999984,
+              4
+            ]
+          },
+          {
+            "key": "b4",
+            "angle": 40,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              36.85668923758034,
+              36.60590437553241,
+              4
+            ]
+          },
+          {
+            "key": "b7",
+            "angle": 80,
+            "height": 10,
+            "volume": 240.00000000000028,
+            "centroid": [
+              10.082657329567375,
+              44.95514371949078,
+              5
+            ]
+          },
+          {
+            "key": "b10",
+            "angle": 120,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              -15.79422863405997,
+              34.14101615137763,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "retained-four",
+        "bodies": [
+          {
+            "key": "b1",
+            "angle": 0,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              52.00000000000008,
+              12.999999999999984,
+              4
+            ]
+          },
+          {
+            "key": "b4",
+            "angle": 40,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              36.85668923758034,
+              36.60590437553241,
+              4
+            ]
+          },
+          {
+            "key": "b7",
+            "angle": 80,
+            "height": 10,
+            "volume": 240.00000000000028,
+            "centroid": [
+              10.082657329567375,
+              44.95514371949078,
+              5
+            ]
+          },
+          {
+            "key": "b10",
+            "angle": 120,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              -15.79422863405997,
+              34.14101615137763,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "reopened-four",
+        "bodies": [
+          {
+            "key": "b1",
+            "angle": 0,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              52.00000000000008,
+              12.999999999999984,
+              4
+            ]
+          },
+          {
+            "key": "b4",
+            "angle": 40,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              36.85668923758034,
+              36.60590437553241,
+              4
+            ]
+          },
+          {
+            "key": "b7",
+            "angle": 80,
+            "height": 10,
+            "volume": 240.00000000000028,
+            "centroid": [
+              10.082657329567375,
+              44.95514371949078,
+              5
+            ]
+          },
+          {
+            "key": "b10",
+            "angle": 120,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              -15.79422863405997,
+              34.14101615137763,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "pattern-project-readback",
+        "bytes": 2123,
+        "sha256": "a1263046845404768c1a68c846129375f4a545b6f034ea4dee7bc7e98c1ea002"
+      },
+      {
+        "label": "04-reopened-middle-copy-height-12",
+        "bodies": [
+          {
+            "key": "b1",
+            "angle": 0,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              52.00000000000008,
+              12.999999999999984,
+              4
+            ]
+          },
+          {
+            "key": "b4",
+            "angle": 40,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              36.85668923758034,
+              36.60590437553241,
+              4
+            ]
+          },
+          {
+            "key": "b7",
+            "angle": 80,
+            "height": 12,
+            "volume": 288.00000000000034,
+            "centroid": [
+              10.082657329567374,
+              44.95514371949078,
+              6
+            ]
+          },
+          {
+            "key": "b10",
+            "angle": 120,
+            "height": 8,
+            "volume": 192.00000000000023,
+            "centroid": [
+              -15.79422863405997,
+              34.14101615137763,
+              4
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
