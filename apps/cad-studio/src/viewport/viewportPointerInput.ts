@@ -194,7 +194,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
     const print = propsRef.current.printDisplay;
     if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
-    return pickVertex(f, bi, mesh.edges, x, y, p => camera.current.project(p as Vec3, w, h), print?.printed ? print.top : undefined);
+    const view = viewState();
+    const native = !print && !propsRef.current.camActive && !propsRef.current.clip && !view.offsets.has(bi) && !view.transforms?.has(bi) && !view.ghostBodies.has(bi);
+    const source = native ? hit.edge ? { mesh, edge: hit.edge.edge } : hit.face ? { mesh, face: hit.face.face } : undefined : undefined;
+    return pickVertex(f, bi, mesh.edges, x, y, p => camera.current.project(p as Vec3, w, h), print?.printed ? print.top : undefined, source);
   };
   const drag = useRef<PointerDrag>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */

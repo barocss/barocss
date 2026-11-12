@@ -215,7 +215,8 @@ import { PreviewSection, type PreviewMode } from './layout/PreviewSection';
 import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
 import { sketchDxf } from '@barocss/cad-model/sketch/dxf';
 import { settleShape } from '@barocss/cad-model/sketch/settle';
-import { planeLabel, planeOfDisplayFace, xyPlane } from '@barocss/cad-model/sketch/plane';
+import { currentNativeVertexPoints } from './viewport/vertexPick';
+import { orderedVertexPlane, planeLabel, planeOfDisplayFace, xyPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeNode } from '@barocss/cad-model/sketch/loops';
 import { isSettled } from '@barocss/cad-model/sketch/rules';
 import { SketchHistory } from '@barocss/cad-model/sketch/history';
@@ -1331,8 +1332,19 @@ export function App() {
     const targets = cuttableOf(doc, instanceSel), boxes = targets.flatMap(t => (instanceBodies.get(t)?.bodies ?? []).map(b => b.mesh.bounds));
     setInstanceEdit(null); setCutDraft(cut ? draftOfCut(cut) : newCutDraft(targets, defaultCutAt(boxes)));
   }, [doc, instanceSel, instanceBodies]);
+  const nativeVertexReady = fresh && !busy && marker === null && !inPlace && !doc.instances?.length &&
+    !active && !rendering && !drawing && !section && previewMode === 'none';
   const start = useCallback((cmd: Command, initial?: Values) => {
     if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.action === 'assembly-cut' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
+    const vertexSelection = cmd.id === 'sketch' && selection.vertices?.length ? selection.vertices : undefined;
+    const vertexPoints = vertexSelection && nativeVertexReady &&
+      !selection.faces.length && !selection.edges.length && !selection.bodies.length && !selection.sketches?.length
+      ? currentNativeVertexPoints(doc, bodies, vertexSelection) : null;
+    const vertexPlane = vertexPoints ? orderedVertexPlane(vertexPoints) : null;
+    if (vertexSelection && !vertexPlane) {
+      setToast({ title: 'Sketch plane not set', hint: 'Select three distinct, non-collinear native vertices on the same current body.', detail: '' });
+      return;
+    }
     discardRouteRef.current(); setRoutePanelOpen(false);
     if (cmd.action !== 'assembly-cut') setCutDraft(null);
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
@@ -1346,13 +1358,13 @@ export function App() {
     if (cmd.action === 'sketch') {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
-      const plane = face ? planeOfDisplayFace(face) : xyPlane();
+      const plane = vertexPlane ?? (face ? planeOfDisplayFace(face) : xyPlane());
       if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face, or clear the selection to sketch on XY.', detail: '' }); return; }
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
       const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
       const linkSource = face && base && base.side === 'solid' && !doc.instances?.length ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.name } : undefined;
-      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}) } } : { kind: 'xy', offset: 0 };
+      const anchor: SketchAnchor = vertexPlane ? { kind: 'vertices', offset: 0, vertexPlane } : face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}) } } : { kind: 'xy', offset: 0 };
       discardFeatureDraft();
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
@@ -1387,7 +1399,7 @@ export function App() {
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, checkInterference]);
+  }, [ctx, doc, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1450,7 +1462,7 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
-  const { onPick, picking } = useViewportPicking({ doc, activeStore, setActive, onFilletPick: pickFillet, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, onFilletPick: pickFillet, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;

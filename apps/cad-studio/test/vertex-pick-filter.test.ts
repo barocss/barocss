@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pickVertex } from '../src/viewport/vertexPick';
+import { bindNativeVertexPick, currentNativeVertexPoints, pickVertex } from '../src/viewport/vertexPick';
+import { rectanglePart } from '@barocss/cad-model/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 
 // Same collision class as D539: a valid outer edge hit and a different inner
 // corner within the existing 7 px screen radius after zooming out.
@@ -36,4 +38,34 @@ test('D539: All preserves printed-layer exclusion and returns a copy of the sour
   assert.notEqual(hit!.at, inner.a);
   hit!.at[0] = -999; assert.equal(inner.a[0], 58, 'picking never edits source geometry');
   assert.equal(pickVertex('all', 0, edges, 104, 102, project, 1), null);
+});
+
+test('three native picks retain document and mesh identity and refuse overlapping endpoint IDs', () => {
+  const doc = rectanglePart(60, 30, 10), evaluated = evaluatePart(doc, 1);
+  assert.ok(evaluated.ok);
+  const mesh = evaluated.bodies[0].mesh;
+  const xy = (point: readonly number[]) => [point[0], point[1]];
+  const face = mesh.faces.find(face => face.normal[2] > 0.99)!.index;
+  const source = { mesh, face };
+  const picks = [[0, 0], [60, 0], [60, 30]].map(([x, y]) => {
+    const hit = pickVertex('all', 0, mesh.edges, x, y, xy, undefined, source);
+    assert.ok(hit);
+    bindNativeVertexPick(hit, doc);
+    return hit;
+  });
+  assert.deepEqual(currentNativeVertexPoints(doc, evaluated.bodies, picks), [[0, 0, 10], [60, 0, 10], [60, 30, 10]]);
+  assert.equal(currentNativeVertexPoints({ ...doc }, evaluated.bodies, picks), null);
+  assert.equal(currentNativeVertexPoints(doc, [{ ...evaluated.bodies[0], mesh: { ...mesh } }], picks), null);
+  assert.equal(currentNativeVertexPoints(doc, evaluated.bodies, [picks[0], picks[0], picks[2]]), null);
+
+  const overlapping = [...mesh.edges, { a: [0, 0, 10], b: [0, 30, 10], faces: [face], nativeVertices: ['separate', 'other'] as const }];
+  const hit = pickVertex('all', 0, overlapping, 0, 0, xy, undefined, source);
+  assert.ok(hit);
+  bindNativeVertexPick(hit, doc);
+  assert.equal(currentNativeVertexPoints(doc, evaluated.bodies, [hit, picks[1], picks[2]]), null);
+
+  const hidden = pickVertex('all', 0, mesh.edges, 0, 0, point => point[2] === 0 ? xy(point) : [point[0] + 10, point[1] + 10], undefined, source);
+  assert.deepEqual(hidden, { body: 0, at: [0, 0, 0] });
+  bindNativeVertexPick(hidden!, doc);
+  assert.equal(currentNativeVertexPoints(doc, evaluated.bodies, [hidden!, picks[1], picks[2]]), null);
 });

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { faceProfile } from '../src/app/faceProfile';
-import { rectanglePart, withNode } from '../src/engine/doc';
-import { evaluateDoc } from '../src/engine/evaluate';
-import type { Vec3 } from '../src/engine/mesh';
-import { isDefaultPlane, offsetPlane, planeLabel, planeOfDisplayFace, planeOfFace, standardPlane, tiltPlane, toLocal, toWorld, xyPlane, yAxisOf } from '../src/sketch/plane';
+import { cylinderPart, rectanglePart, withNode } from '../src/engine/doc';
+import { evaluateDoc, partBreps } from '../src/engine/evaluate';
+import { bodyMesh, type Vec3 } from '../src/engine/mesh';
+import { isDefaultPlane, offsetPlane, orderedVertexPlane, planeLabel, planeOfDisplayFace, planeOfFace, standardPlane, tiltPlane, toLocal, toWorld, xyPlane, yAxisOf } from '../src/sketch/plane';
 
 const near = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) <= 1e-12, `${actual} != ${expected}`);
 const nearPoint = (actual: readonly number[], expected: readonly number[]) => actual.forEach((v, i) => near(v, expected[i]));
@@ -60,6 +60,56 @@ test('the tilted face origin satisfies the independent plane equation', () => {
   assert.equal(tilted.origin, plane.origin);
   near(dot(tilted.normal, tilted.xAxis), 0);
   near(Math.hypot(...tilted.normal), 1);
+});
+
+test('three ordered native vertices set the sketch origin and right-handed axes', () => {
+  const a: Vec3 = [2.125, 3.25, 0], b: Vec3 = [14.125, 12.25, 0], c: Vec3 = [2.125, 12.25, 10];
+  const plane = orderedVertexPlane([a, b, c]), reversed = orderedVertexPlane([a, c, b]);
+  assert.ok(plane && reversed);
+  assert.deepEqual(plane.origin, a);
+  assert.notEqual(plane.origin, a);
+  nearPoint(plane.xAxis, [4 / 5, 3 / 5, 0]);
+  nearPoint(plane.normal, [15, -20, 18].map(value => value / Math.sqrt(949)));
+  nearPoint(reversed.normal, plane.normal.map(value => -value));
+  nearPoint(toLocal(plane, b), [15, 0]);
+  nearPoint(toLocal(plane, c), [27 / 5, 2 * Math.sqrt(949) / 5]);
+  for (const point of [a, b, c]) nearPoint(toWorld(plane, toLocal(plane, point)), point);
+});
+
+test('ordered vertices refuse missing precision, degeneracy and points outside modeling range', () => {
+  const a: Vec3 = [0, 0, 0], b: Vec3 = [10000, 0, 0];
+  assert.equal(orderedVertexPlane([a, a, [0, 1, 0]]), null);
+  assert.equal(orderedVertexPlane([a, b, [1, 0, 0]]), null);
+  assert.equal(orderedVertexPlane([a, b, [1, 1e-8, 0]]), null);
+  assert.equal(orderedVertexPlane([a, b, [0, 10000, 1e-6]]), null);
+  assert.equal(orderedVertexPlane([a, b, [0, 10001, 0]]), null);
+  assert.equal(orderedVertexPlane([a, b, [0, 1, NaN]]), null);
+  const nearXY = orderedVertexPlane([a, [1, 0, 0], [0, 1, 1e-10]]);
+  assert.ok(nearXY);
+  assert.equal(isDefaultPlane(nearXY), false);
+});
+
+test('only single straight display edges retain their ordered native prism vertex IDs', () => {
+  const box = rectanglePart(12, 9, 10), [source] = partBreps(box);
+  const byName = new Map(source.brep.edges.map(edge => [edge.name ?? edge.id, edge]));
+  const byId = new Map(source.brep.vertices.map(vertex => [vertex.id, vertex.point]));
+  const mesh = bodyMesh(source.brep, 1);
+  assert.equal(mesh.edges.length, 12);
+  for (const edge of mesh.edges) {
+    const native = byName.get(edge.names[0]);
+    assert.ok(native && edge.nativeVertices);
+    assert.deepEqual(edge.nativeVertices, native.vertices);
+    assert.deepEqual([edge.a, edge.b], native.vertices.map(id => byId.get(id)));
+  }
+
+  const adjacent = withNode(box, { kind: 'sketch', profile: 'rectangle', min: [12, 0], max: [24, 9] });
+  const second = withNode(adjacent, { kind: 'extrude', sketch: 2, height: 10 });
+  const joined = withNode(second, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
+  const grouped = bodyMesh(partBreps(joined)[0].brep, 2).edges.filter(edge => edge.names.length > 1);
+  assert.ok(grouped.some(edge => edge.straight));
+  assert.ok(grouped.every(edge => edge.nativeVertices === undefined));
+  const curved = bodyMesh(partBreps(cylinderPart(5, 10))[0].brep, 3).edges.filter(edge => !edge.straight);
+  assert.ok(curved.length && curved.every(edge => edge.nativeVertices === undefined));
 });
 
 test('face profiles prefer the native plane and keep its origin finer than local outline precision', () => {

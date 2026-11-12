@@ -11,6 +11,7 @@ import type { Active } from '../app/commandState';
 import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
+import { bindNativeVertexPick } from './vertexPick';
 import type { ScenePickingActions } from './SceneViewport';
 
 export interface ViewportMenu {
@@ -19,11 +20,11 @@ export interface ViewportMenu {
   title: string;
 }
 
-export function useViewportPicking({ doc, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+export function useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
   setDirectSel, setMeasure, pickFilterRef, onFilletPick, scene }: {
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
-  doc: StudioDoc; activeStore: ReturnType<typeof createValueStore<Active | null>>;
+  doc: StudioDoc; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
   sectionRef: RefObject<Section | null>; sectionFacePickRef: RefObject<number | null>; viewBodiesRef: RefObject<BodyResult[]>;
   sectionBoxRef: RefObject<{ min: Vec3; max: Vec3 }>; setSection: Dispatch<SetStateAction<Section | null>>;
@@ -88,7 +89,7 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
       setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
     }
     // A corner: picked on its own (Shift adds or takes back another).
-    if (hit.vertex) { const v = hit.vertex; setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
+    if (hit.vertex) { const v = hit.vertex; if (nativeVertexReady) bindNativeVertexPick(v, doc); setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       // Bodies only: the body under the click (Shift adds or takes it back).
@@ -105,7 +106,7 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, assembly, doc.instances, onFilletPick]);
+  }, [activeStore, measure, assembly, doc, nativeVertexReady, onFilletPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {

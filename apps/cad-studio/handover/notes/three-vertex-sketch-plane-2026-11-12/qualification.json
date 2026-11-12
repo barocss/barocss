@@ -1,0 +1,134 @@
+{
+  "decision": "D792",
+  "tier": "FEATURE",
+  "parent": "62bb0599963f0f0a2ef110ae48b7ad9afe25d1b7",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/three-vertex-sketch-browser.mjs",
+    "cd apps/cad-studio && D792_SOURCE_FROZEN=1 node test/three-vertex-sketch-browser.mjs \"$EVIDENCE/desktop-before\"",
+    "cd apps/cad-studio && D792_SOURCE_FROZEN=1 node test/three-vertex-sketch-browser.mjs \"$EVIDENCE/desktop-after\"",
+    "cd apps/cad-studio && D792_SOURCE_FROZEN=1 node test/three-vertex-sketch-browser.mjs \"$EVIDENCE/desktop-after-2\"",
+    "cd apps/cad-studio && D792_SOURCE_FROZEN=1 node test/three-vertex-sketch-browser.mjs \"$EVIDENCE/desktop-final-perspective\"",
+    "cd apps/cad-studio && D792_SOURCE_FROZEN=1 D792_ORTHO=1 node test/three-vertex-sketch-browser.mjs \"$EVIDENCE/desktop-final-ortho\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sketch-plane-precision plane",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test vertex-pick-filter",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d792-three-vertex-sketch",
+    "evidenceFolder": "d792-2026-11-12",
+    "attempts": [
+      {
+        "folder": "desktop-before",
+        "status": "FAIL",
+        "sha256": "85eec5dd327f16e0caf5c64b5bd343b97f60a3c86a356883c12848d3fe7dce16",
+        "detail": "Three selected corners still opened the XY Sketch plane."
+      },
+      {
+        "folder": "desktop-after",
+        "status": "FAIL",
+        "sha256": "e4ab588b6a1f23f5c6fbedb8c193e79c9a63417ca46a52243821cc2e2616f0a4",
+        "detail": "The driver called arrayBuffer before reading the OPFS file."
+      },
+      {
+        "folder": "desktop-after-2",
+        "status": "PASS",
+        "sha256": "be388699d5bedc15af5a6db3f10a9707a0526f77461190bfd5939d65f5c2a9d6",
+        "detail": "First perspective lifecycle passes before hit-incidence hardening."
+      },
+      {
+        "folder": "desktop-final-perspective",
+        "status": "PASS",
+        "sha256": "32a6d1c61ac996a880282da54015009da813f3e918a5d660cc465e13a13aa223",
+        "detail": "Final perspective with hidden endpoint refusal."
+      },
+      {
+        "folder": "desktop-final-ortho",
+        "status": "PASS",
+        "sha256": "b585722d6b3c3d094369b9cb200e46f3b2f4640a5cd66ee7a04825f63b1ada00",
+        "detail": "Final orthographic lifecycle with the same saved bytes."
+      }
+    ],
+    "perspective": {
+      "status": "PASS",
+      "projection": "perspective",
+      "sha256": "32a6d1c61ac996a880282da54015009da813f3e918a5d660cc465e13a13aa223",
+      "frozenSources": 798,
+      "sourceSaveBytes": 1430,
+      "sourceSaveSHA256": "641f460c47fc34d145a661ced613d1a5305f4cfb502a11349917f5741917e412",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "errors": 0,
+      "downloads": 0
+    },
+    "orthographic": {
+      "status": "PASS",
+      "projection": "orthographic",
+      "sha256": "b585722d6b3c3d094369b9cb200e46f3b2f4640a5cd66ee7a04825f63b1ada00",
+      "frozenSources": 798,
+      "sourceSaveBytes": 1430,
+      "sourceSaveSHA256": "641f460c47fc34d145a661ced613d1a5305f4cfb502a11349917f5741917e412",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "errors": 0,
+      "downloads": 0
+    },
+    "preparedInputSHA256": "49d387bdcc1d762e01270cecaa4bcb73e1450299802b65937322737bf6806e44",
+    "model": {
+      "pass": 38,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "independentSourceReview": "PASS for one ordinary convex native prism after the hit-incidence and mode guards",
+    "orderedPointsMm": [
+      [
+        0,
+        0,
+        10
+      ],
+      [
+        60,
+        30,
+        10
+      ],
+      [
+        60,
+        0,
+        0
+      ]
+    ],
+    "xAxis": "[2, 1, 0] / sqrt(5)",
+    "normal": "[-1, 2, -6] / sqrt(41)",
+    "localRectangleMm": [
+      [
+        30,
+        -16
+      ],
+      [
+        38,
+        -10
+      ]
+    ],
+    "depthMm": 2,
+    "volumeMm3": 96,
+    "stockWidthMm": [
+      60,
+      65
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

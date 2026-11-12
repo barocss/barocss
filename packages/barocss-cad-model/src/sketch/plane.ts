@@ -1,7 +1,8 @@
 // Sketch planes: where a sketch lies in the part (world, Z up, mm). A sketch's own coordinates (u, v) run
 // along xAxis and normal × xAxis from origin; its solids grow along the normal. Any flat face takes one.
+import { CadNumericPolicy } from '@barocss/cad';
 import type { DisplayFace, Vec3 } from '../engine/mesh';
-import { dot, cross } from '../engine/vec3';
+import { cross, dot, len, sub, unit } from '../engine/vec3';
 
 export interface SketchPlane { origin: Vec3; normal: Vec3; xAxis: Vec3 }
 
@@ -28,7 +29,8 @@ export function tiltPlane(p: SketchPlane, degrees: number): SketchPlane {
 }
 /** The XY plane at height z (the default sketch plane, z 0). */
 export const xyPlane = (z = 0): SketchPlane => ({ origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] });
-export const isDefaultPlane = (p: SketchPlane) => p.normal[2] === 1 && p.xAxis[0] === 1 && p.origin.every(c => c === 0);
+export const isDefaultPlane = (p: SketchPlane) => p.normal[0] === 0 && p.normal[1] === 0 && p.normal[2] === 1
+  && p.xAxis[0] === 1 && p.xAxis[1] === 0 && p.xAxis[2] === 0 && p.origin.every(c => c === 0);
 export const yAxisOf = (p: SketchPlane): Vec3 => clean(cross(p.normal, p.xAxis));
 
 /**
@@ -60,6 +62,23 @@ export const toLocal = (p: SketchPlane, w: Vec3): [number, number] => {
   const d: Vec3 = [w[0] - p.origin[0], w[1] - p.origin[1], w[2] - p.origin[2]];
   return [dot(d, p.xAxis), dot(d, yAxisOf(p))];
 };
+
+/** Three ordered native points set the origin, positive X and positive Y half-plane. */
+export function orderedVertexPlane(points: readonly [Vec3, Vec3, Vec3]): SketchPlane | null {
+  const { coordinateAbs, linearTolerance, relativeLinearTolerance } = CadNumericPolicy;
+  if (points.some(point => point.length !== 3 || point.some(value => !Number.isFinite(value) || Math.abs(value) > coordinateAbs))) return null;
+  const [origin, second, third] = points;
+  const ab = sub(second, origin), ac = sub(third, origin), bc = sub(third, second);
+  const lengths = [len(ab), len(ac), len(bc)], span = Math.max(...lengths);
+  const tolerance = Math.max(linearTolerance, relativeLinearTolerance * span);
+  const normal = cross(ab, ac);
+  // Dividing the cross product length by the longest side gives the shortest altitude in millimetres.
+  if (Math.min(...lengths) <= tolerance || len(normal) <= tolerance * span) return null;
+  const plane: SketchPlane = { origin: [...origin], xAxis: unit(ab), normal: unit(normal) };
+  // Check the existing sketch coordinate mapping, including its near-axis cleanup.
+  return points.every(point => len(sub(toWorld(plane, toLocal(plane, point)), point)) <= tolerance) ? plane : null;
+}
+
 /** Where a ray meets the plane, in the plane's coordinates (null behind the ray or edge-on). */
 export function rayOnPlane(p: SketchPlane, origin: Vec3, dir: Vec3): [number, number] | null {
   const denom = dot(dir, p.normal); if (Math.abs(denom) < 1e-6) return null;

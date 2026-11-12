@@ -62,7 +62,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
     if (!sketch) return;
     const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
-    const plane = offsetPlane(tiltPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), angle), offset);
+    const source = kind === 'vertices' ? sketch.anchor?.vertexPlane : kind === 'face' ? face?.plane ?? standardPlane('xy') : standardPlane(kind);
+    if (!source) return;
+    const plane = offsetPlane(tiltPlane(source, angle), offset);
     setSketch({ ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)), plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
     const [min, max] = sketchRegion(bodies, plane);
     viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);

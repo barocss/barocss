@@ -30,7 +30,10 @@ export function withoutNativeFaces(face: DisplayFace): DisplayFace {
   const { nativeFaces, ...display } = face;
   return nativeFaces ? display : face;
 }
-export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
+export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
+  /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
+  nativeVertices?: readonly [string, string];
+}
 export interface DisplayMesh {
   /** World XYZ millimetres: native bodyMesh retains doubles; legacy display generators can retain floats. */
   positions: Float32Array | Float64Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
@@ -183,14 +186,18 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   // (The display edges by the pair of faces they run between, in the order made: a piece's mate is looked for among its
   // pair's alone — the first that fits, as a walk over all of them finds it; PERF3 C17.)
   const edges: DisplayEdge[] = [], lines: number[] = [], segmentEdge: number[] = [], byPair = new Map<number, DisplayEdge[]>(), F = brep.faces.length + 1;
-  const curves = new Map(brep.edges.map(e => [e.id, e.curve])), edgeName = new Map(brep.edges.map(e => [e.id, e.name ?? e.id]));
+  const nativeEdges = new Map(brep.edges.map(e => [e.id, e]));
+  const nativePrism = brep.source.family === 'prismatic-solid' && brep.bodies.length === 1 && brep.bodies[0].kind === 'solid'
+    && brep.shells.length === 1 && brep.shells[0].closed && brep.bodies[0].shells.length === 1
+    && brep.bodies[0].shells[0] === brep.shells[0].id && brep.faces.every(face => face.surface.kind === 'surface');
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
     for (let k = 0; k < e.points.length; k += 3) pts.push([e.points[k], e.points[k + 1], e.points[k + 2]]);
     if (fs.length !== 2 || find(fs[0]) === find(fs[1])) continue; // a seam, or between merged coplanar faces
     const mid = pts[Math.floor(pts.length / 2)], na = normalAt(fs[0], mid), nb = normalAt(fs[1], mid);
     if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint
-    const curve = curves.get(e.edgeId)!, straight = curve.degree === 1 && curve.controlPoints.length === 2;
+    const source = nativeEdges.get(e.edgeId)!, name = source.name ?? source.id;
+    const straight = source.curve.degree === 1 && source.curve.controlPoints.length === 2;
     const a = pts[0], z = pts[pts.length - 1], dir = norm(sub(z, a)), fa = displayOf.get(fs[0])!, fb = displayOf.get(fs[1])!;
     // Pieces between the same two faces show as one edge: collinear straight pieces (grid vertices split
     // them), and curved pieces joined end to end (a circle in halves).
@@ -207,13 +214,16 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
         const ends = [mate.a, mate.b, a, z].filter((p, k, all) => all.filter(q => near(p, q)).length === 1);
         if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
       }
-      mate.names.push(edgeName.get(e.edgeId)!);
+      delete mate.nativeVertices;
+      mate.names.push(name);
       for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
       continue;
     }
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
     const index = edges.length;
-    const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [edgeName.get(e.edgeId)!] };
+    const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [name] };
+    // The tessellator replaces its first and last samples with the two native vertices in this order.
+    if (nativePrism && straight && source.vertices[0] !== source.vertices[1] && dir.some(Boolean)) made.nativeVertices = [...source.vertices];
     edges.push(made); if (same) same.push(made); else byPair.set(key, [made]);
     for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(index, index); }
   }
