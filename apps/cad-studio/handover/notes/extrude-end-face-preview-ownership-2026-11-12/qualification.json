@@ -1,0 +1,45 @@
+{
+  "decision": "D845",
+  "tier": "SMALL",
+  "parent": "87a26fdf18d6860fdffb29ff574d3078decb10d7",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d845-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d845-end-face-ownership",
+    "node --check apps/cad-studio/test/extrude-end-face-preview-ownership-browser.mjs",
+    "cd apps/cad-studio && D845_SOURCE_FROZEN=1 node test/extrude-end-face-preview-ownership-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "gate.sh acquire heavy 600 d845-end-face-ownership-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick preview project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "exit": 1,
+    "sha256": "9b2a59c783427898fce60faa79a611ad7199fbedc720f6fdbc9d83db98b14d96",
+    "failure": "The driver grouped the expected current preview tint with accepted body state."
+  },
+  "desktop": {
+    "status": "PASS",
+    "renderer": "WebGPU",
+    "exit": 0,
+    "sha256": "224eca38500704603ebb1af8c9f2dacea3091252e3bf403b52c7583523481b1d",
+    "frozenSources": 816,
+    "successfulRepliesHeld": 4,
+    "control": { "target": "n1.bottom", "heightMm": 20, "extrusionVolumeMm3": 2000, "nativeCorners": 24 },
+    "repick": { "target": "n3.bottom", "heightMm": 30, "extrusionVolumeMm3": 3000, "nativeCorners": 24, "sampledFrames": 8, "shownVolumesMm3": [6500, 9500] },
+    "cancel": { "acceptedExact": true, "sampledFrames": 7, "shownVolumesMm3": [6500] },
+    "sameIdOpen": { "acceptedExact": true, "sampledFrames": 5, "shownVolumesMm3": [6500], "replacementCapZ": [42, 55] },
+    "nativeComparisonAbsoluteTolerance": 1e-8,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 11, "studioPass": 50, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS"
+}
