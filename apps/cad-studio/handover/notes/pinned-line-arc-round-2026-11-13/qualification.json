@@ -1,0 +1,162 @@
+{
+  "decision": "D890",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "6199e134f9dbefc5833cdf1b11cf8eaf3b6ac42f",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D890_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/baseline04",
+    "D890_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/fixed05 --fixed",
+    "D890_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/straight-regression-final02",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist-shared",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/{corner.ts,rules.ts,internal/pinnedLineArcRound.ts} packages/barocss-cad-model/test/corner.test.ts apps/cad-studio/src/ui/{ConstraintTools,SketchPanel}.tsx apps/cad-studio/src/app/sketchControls.ts apps/cad-studio/src/sketch/useSketchActions.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 60,
+    "studioPass": 45,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "8610d430bfb4cf5e7da05186b1f043146b7b637c94315b6dc34c83d8a446a662"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Sol High finite-branch and native geometry proof. Separate source audit of held Enter, persisted attached context, maximum safe fillet ID and actual Finish join/ID allocation."
+  },
+  "baselines": [
+    {
+      "run": "baseline",
+      "status": "FAIL",
+      "kind": "driver",
+      "reason": "Inspector package import did not resolve.",
+      "receiptSHA256": "9b0b46a06df180af6c56e56d752d9743116929023cd32190203920d5608e042a"
+    },
+    {
+      "run": "baseline02",
+      "status": "FAIL",
+      "kind": "driver",
+      "reason": "Inspector used the wrong native cylinder radius field.",
+      "receiptSHA256": "963465c56082af12c69527a20927db12876a752282ffb3ba4d9f3427ed5149ad"
+    },
+    {
+      "run": "baseline03",
+      "status": "FAIL",
+      "kind": "driver",
+      "reason": "First Escape cleared the selected point and left the draft open.",
+      "receiptSHA256": "640babd484c0368f82f925ac7ad1a72f4676d7f5bb3a5606029fb477c18d7593"
+    },
+    {
+      "run": "baseline04",
+      "status": "PASS",
+      "reason": "Parent unpinned line-arc refusal and straight corner control.",
+      "receiptSHA256": "9dcfa8d040329a49d8cfc5d68b8b03a0002ea495f6e39066d71dcf342918ce86",
+      "frozenFiles": 840,
+      "snapshots": 3
+    },
+    {
+      "run": "fixed01",
+      "status": "FAIL",
+      "kind": "driver",
+      "reason": "Reopened dimension locator retained the closed page.",
+      "receiptSHA256": "5a8970e147c83bb5a9df2aafcf782e1fd97cd0785c7a03c13bd7caa72c3afbc5"
+    },
+    {
+      "run": "fixed02-keyboard-baseline",
+      "status": "FAIL",
+      "kind": "product",
+      "reason": "Repeated Enter committed the new draft after its Round button unmounted.",
+      "receiptSHA256": "62da13c5be25da323a0d7baef931e83053c46897613f8be303755464890e7e0e"
+    },
+    {
+      "run": "initial-focused-radius-edit",
+      "status": "FAIL",
+      "kind": "product",
+      "reason": "Generic solve accepted exact-limit R10 with a spurious retained arc.",
+      "retainedArcLengthMm": 0.001674,
+      "retainedArcBulge": 0.0000209249999542
+    }
+  ],
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "ce013c6dbfd3b5ce7ee93f0d41b4f2dc55b0e96e1927ce659844bde92139b965",
+    "sourceManifestSHA256": "38f74b050dcfa508559273c08c0cd2bf494d1e7b4c252faec6c99ca15021a53e",
+    "frozenFiles": 841,
+    "snapshots": 8,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "heldEnter": "PASS",
+    "oversizedCreation": "PASS",
+    "exactLimitEdit": "PASS",
+    "storedAttachedRefusal": "PASS",
+    "constructionIdExhaustion": "PASS",
+    "joinedConstructionIdExhaustion": "PASS",
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "sourceSHA256": "9312344d8af695222261cb8f89fbe57d638b59df9c7c677a45328242b36007ab",
+    "sourceBytes": 674,
+    "sourceVolumeMm3": 7141.5926535897925,
+    "sourceCircleMm": {
+      "center": [
+        20,
+        20
+      ],
+      "radius": 20
+    },
+    "radiiMm": [
+      3,
+      4,
+      5
+    ],
+    "expectedVolumesMm3": [
+      7116.460269574863,
+      7091.948937557186,
+      7054.301379805951
+    ],
+    "volumesMm3": [
+      7116.460269574863,
+      7091.948937557187,
+      7054.301379805951
+    ],
+    "sourceAndFilletSideTags": [
+      "e1",
+      "e5",
+      "e2",
+      "e3",
+      "e4"
+    ],
+    "coordinateToleranceMm": 1e-8,
+    "volumeToleranceMm3": 1e-7,
+    "savedBytes": 2293,
+    "savedSHA256": "1a97523076b4390319bbe7fad4aa9425c0890279f71db78b69f2b00471e549cc"
+  },
+  "straightRegression": {
+    "status": "PASS",
+    "receiptSHA256": "b892917f9743859c25c904bcf7c47b420e577c7e37a3f5d8f9fbac8866c8d90f",
+    "frozenFiles": 841,
+    "snapshots": 3,
+    "volumeMm3": 11133.00858012569
+  },
+  "notRun": [
+    "other orientations",
+    "clockwise and incoming arc corners",
+    "changed source-carrier constraints",
+    "broad sketch and solid fillet families",
+    "full suites",
+    "mobile"
+  ]
+}

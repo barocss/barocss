@@ -1,0 +1,17 @@
+# D890 — Round a finite pinned line–arc corner
+
+P1, rows 09 and 16. FEATURE qualification for [#2282](https://github.com/barocss/barocss/issues/2282). The Model adds one line–arc case to the existing Round action. The first profile is an independent closed convex outline with four sides. Its first horizontal line runs east into one counterclockwise minor arc. The existing anchor, horizontal and vertical rules, fixed retained endpoint, tangent joint and source radius determine the carriers. The source must have four distinct side IDs.
+
+The planner intersects the inward offset line with the concentric circle of radius R − r. It admits one interior contact pair, retains the original source circle and direction, and verifies both tangents and the settled geometry. The existing constraint and schema fields identify the same pinned branch after reopen. Both the panel and inline radius edits reach the same finite check. Studio uses the shared Finish preparation to check side ID allocation, including joined construction chains.
+
+| Result | Check |
+| --- | --- |
+| PASS | Parent desktop confirmed the existing unpinned line–arc refusal and a straight–straight R2 control on the same outline. The current desktop regression retains both. The control produces 11,133.00858012569 mm³. |
+| PASS | Actual desktop Studio created R3, changed it to R4, saved and reopened the 2,293-byte project document, then changed it to R5. Independent line/arc integration predicts 7,116.460269574863, 7,091.948937557186 and 7,054.301379805951 mm³. Native results match within 1e-7 mm³. The saved profile and strict native cylindrical walls match the analytic contacts, centers and radii within 1e-8 mm. |
+| PASS | The original R20 circle, fixed endpoint, retained tangents, side IDs e1/e2/e3/e4 and existing Extrude remain. The new fillet uses e5. Each accepted operation has one exact document Undo/Redo. Focused tests also preserve an unrelated tagged construction shape and an off-grid 3.0000004 mm radius. |
+| FAIL → PASS | The generic solver accepted exact-limit R10 with a spurious 0.001674 mm source-arc remainder. The shared finite guard now refuses R10 in both radius paths, and actual Studio keeps the accepted R4 after the refusal. Oversized creation refuses. |
+| FAIL → PASS | Before the button guard, held Enter completed the new draft after the Round button unmounted. The current action keeps repeated Enter in the draft until explicit Finish. Stored body-attached outlines refuse. The current desktop also refuses ID exhaustion with both an IDless construction segment and a fully tagged construction chain that loses its tags when Finish joins it. |
+| PASS | Independent high-reasoning geometry and separate source audit, focused tests, Model and Studio type checks, Studio production build, scoped lint, driver syntax and diff check. |
+| NOT_RUN | Other line orientations, clockwise or incoming source arcs, changed source-carrier constraints, broad sketch and solid fillet families, full suites and mobile. Deliberate removal of a driving radius exits the pinned recipe. |
+
+Earlier driver runs exposed an inspector import path, the native radius field name, two-step Escape selection cancellation and a locator from a closed context. These were driver faults. The R10 and held-Enter failures were product faults. [#2282](https://github.com/barocss/barocss/issues/2282) remains open. Initial scenarios remain **8/10**. Whole CAD and core readiness remain **NOT_MEASURED**. [Commands and receipt digests](qualification.json).

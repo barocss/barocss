@@ -7,6 +7,7 @@ import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineCo
 import { edgeAngle, type SketchRule } from './terms';
 import { circleRelation } from './loops';
 import { fixedTriangleLengthSeed } from './fixedTriangleLength';
+import { matchesPinnedRound, planPinnedLineArcRadiusEdit } from './internal/pinnedLineArcRound';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 /**
@@ -54,7 +55,15 @@ export type EditResult = { ok: true; shape: Polygon; report: SolveReport } | { o
  * more constraints redundant than `prev` had (`what` names the addition in the reason).
  */
 export function checkEdit(candidate: Polygon, prev: Polygon | null, what = 'That'): EditResult {
-  return checkedEdit(candidate, prev, what, solveShape(candidate));
+  const round = prev && planPinnedLineArcRadiusEdit(candidate, prev);
+  if (!round) return checkedEdit(candidate, prev, what, solveShape(candidate));
+  if ('error' in round) return { ok: false, reason: `${what}: ${round.error}` };
+  const seeded = { ...candidate, points: round.plan.points, bulges: round.plan.bulges };
+  const edit = checkedEdit(seeded, prev, what, solveShape(seeded));
+  if (edit.ok && !matchesPinnedRound(edit.shape, round.plan)) {
+    return { ok: false, reason: `${what}: The settled round would change the source circle or lose tangency.` };
+  }
+  return edit;
 }
 
 function checkedEdit(candidate: Polygon, prev: Polygon | null, what: string, r: SolveResult): EditResult {

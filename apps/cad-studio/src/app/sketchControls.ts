@@ -15,6 +15,13 @@ export function sketchCutInputs(sketch: SketchState) {
   const protectedShapes = sketch.hideConstruction ? new Set(shapes.filter(shape => shape !== sketch.shape && shape.construction)) : undefined;
   return { shapes, protectedShapes };
 }
+/** The outline order and joined open chains that Finish will assign side IDs to. */
+export function sketchFinishInputs(sketch: SketchState) {
+  const { shapes: authored, protectedShapes } = sketchCutInputs(sketch);
+  const ready = authored.map(shape => shape.kind === 'polygon' && !shape.closed && !protectedShapes?.has(shape)
+    ? { ...shape, pending: false } : shape);
+  return { authored, protectedShapes, joined: joinOpen(ready, undefined, protectedShapes) };
+}
 /** A Bézier shape about to be shown (tool click or panel edit): refused with the reason when it makes no curve, else without `construction` (a Bézier is never one, D354). */
 export function bezierEdit(shape: Extract<SketchShape, { kind: 'bezier' }>): { shape: SketchShape } | { error: string } {
   const why = bezierError(shape.poles); if (why) return { error: why };

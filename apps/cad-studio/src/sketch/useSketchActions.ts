@@ -1,5 +1,5 @@
 import { emptyDirect } from '../app/directGeometry';
-import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs } from '../app/sketchControls';
+import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
 import { useCallback, useRef, useState } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -8,7 +8,7 @@ import { featureId } from '@barocss/cad-model/engine/ids';
 import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
-import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
+import { extendAt, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
 import { rebindDims, sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { bandMake } from '../app/bandControls';
 import { bandSketchNode } from '@barocss/cad-model/sketch/band';
@@ -220,8 +220,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
     // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
-    const { shapes: authored, protectedShapes } = sketchCutInputs(sketch);
-    const joined = joinOpen(authored.map(x => x.kind === 'polygon' && !x.closed && !protectedShapes?.has(x) ? { ...x, pending: false } : x), undefined, protectedShapes);
+    const { authored, protectedShapes, joined } = sketchFinishInputs(sketch);
     if (!sketch.band) {
       for (const shape of joined) {
         if (shape.kind !== 'polygon' || shape.construction || shape.points.length < 2 || (shape.closed && !shape.pending)) continue;

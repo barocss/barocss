@@ -1,7 +1,9 @@
 // The sketch panel's constraint section for a closed outline: what is picked, the constraints that can
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { roundCorner } from '@barocss/cad-model/sketch/corner';
+import { nextIdOf, withIds } from '@barocss/cad-model/sketch/entityIds';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintOptions, dimensionKey, isSettled, pointDimensionKeys,
   type ConstraintKind, type Polygon, type SketchPick,
@@ -10,6 +12,7 @@ import { settleShape } from '@barocss/cad-model/sketch/settle';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { clearConstraintInspection, keepsDimensionDraft, type ConstraintComparison, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
 import { useStoreValue } from '../state/valueStore';
+import { sketchFinishInputs } from '../app/sketchControls';
 import { ConstraintList } from './ConstraintList';
 import './constraints.css';
 
@@ -22,7 +25,7 @@ const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
 
 export function ConstraintTools({ shape: s, owner, documentScope, inspection, picked, onShape, onPicked, onEditDim }: {
-  shape: Polygon; owner: SketchState; documentScope: object; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
+  shape: Polygon; owner: SketchState; documentScope: StudioDoc; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
   onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string | null): void;
 }) {
   const [refused, setRefused] = useState<string | null>(null);
@@ -38,6 +41,34 @@ export function ConstraintTools({ shape: s, owner, documentScope, inspection, pi
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
   const canCompare = !owner.association && !owner.done?.length && !s.construction && !s.circles?.length &&
     !s.bulges?.some(Boolean) && picked.length === 2 && picked.every(p => p.kind === 'edge');
+  const round = (corner: number) => {
+    const previous = (corner - 1 + s.points.length) % s.points.length;
+    const meetsArc = s.bulges?.[previous] || s.bulges?.[corner];
+    const stored = owner.editNode === undefined ? undefined : documentScope.nodes[owner.editNode];
+    if (meetsArc && (owner.association || owner.base || (stored?.kind === 'sketch' && stored.on)
+      || owner.done?.some(shape => !shape.construction))) {
+      setRefused('Round a line and arc on one independent outline.');
+      return;
+    }
+    const result = roundCorner(s, corner, roundR);
+    if ('error' in result) { setRefused(result.error); return; }
+    const shape = result.shape;
+    if (meetsArc && shape.ids) {
+      const id = nextIdOf([shape, ...(owner.done ?? [])]);
+      const noIds = 'This sketch has no available side IDs for the round and its other shapes.';
+      if (!Number.isSafeInteger(id)) { setRefused(noIds); return; }
+      const tagged = { ...shape, ids: shape.ids.map((side, i) => i === corner ? `e${id}` : side) };
+      const { joined, protectedShapes } = sketchFinishInputs({ ...owner, shape: tagged });
+      const unsafeId = (id: string) => /^e\d+$/.test(id) && !Number.isSafeInteger(Number(id.slice(1)));
+      if (withIds(joined, undefined, protectedShapes).some(item =>
+        item.ids?.some(unsafeId) || (item.kind === 'polygon' && item.circleIds?.some(unsafeId)))) {
+        setRefused(noIds);
+        return;
+      }
+      onShape(tagged);
+    } else onShape(shape);
+    onPicked([]);
+  };
   const compare = (kind: ConstraintKind, input: ConstraintInspection['input']) => {
     if (!canCompare || options[kind] || (kind !== 'parallel' && kind !== 'perpendicular' && kind !== 'equal')) return;
     const cache = cached.current?.owner === owner ? cached.current : { owner, results: new Map<ConstraintKind, ConstraintComparison>() };
@@ -99,7 +130,7 @@ export function ConstraintTools({ shape: s, owner, documentScope, inspection, pi
     {picked.length === 1 && point && <div className="sk-offset" role="group" aria-label="Round the corner">
       <span className="muted">Round corner</span>
       <span className="num"><input aria-label="Corner radius" type="number" step="any" min={0.1} value={roundR} onChange={e => setRoundR(Number(e.target.value))} /><em>mm</em></span>
-      <button className="ghost" aria-label="Round the corner" onClick={() => { const r = roundCorner(s, point.i, roundR); if ('error' in r) { setRefused(r.error); return; } onShape(r.shape); onPicked([]); }}>Round</button>
+      <button type="button" data-sketch-action className="ghost" aria-label="Round the corner" onClick={() => round(point.i)}>Round</button>
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
     <ConstraintList shape={s} owner={owner} documentScope={documentScope} inspection={inspection}

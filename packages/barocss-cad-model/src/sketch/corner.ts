@@ -1,7 +1,7 @@
-// Rounding a corner of a sketch outline, as sketchers' fillet does: the corner between two straight edges
-// becomes an arc of radius r tangent to both, its ends where the edges are cut back. The outline's
-// constraints follow the new numbering: the cut edges keep their direction rules (H/V, parallel, angle) but
-// lose their length locks; the arc gets the radius lock and tangent joints.
+// Round a sketch corner with a circular arc tangent to the two trimmed sides. Straight-edge rounds carry
+// direction rules and drop trimmed length locks. The bounded line–arc round requires pinned carriers.
+import { matchesPinnedRound, preparePinnedLineArcRound } from './internal/pinnedLineArcRound';
+import { settleShape } from './settle';
 import type { SketchShape } from './types';
 import type { SketchRule } from './terms';
 import { r6Signed as r6 } from '../util/round';
@@ -9,13 +9,23 @@ import { r6Signed as r6 } from '../util/round';
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 type P2 = [number, number];
 
+function roundLineArc(s: Polygon, i: number, r: number): { shape: Polygon } | { error: string } {
+  const prepared = preparePinnedLineArcRound(s, i, r);
+  if ('error' in prepared) return prepared;
+  const { shape, error } = settleShape(prepared.shape, s);
+  if (error || shape?.kind !== 'polygon' || !matchesPinnedRound(shape, prepared.plan)) {
+    return { error: error ?? 'The settled round would change the source circle or lose tangency.' };
+  }
+  return { shape };
+}
+
 /** The outline with corner `i` rounded to radius `r`, or why it cannot be. */
 export function roundCorner(s: Polygon, i: number, r: number): { shape: Polygon } | { error: string } {
   const n = s.points.length, bulges = s.bulges ?? s.points.map(() => 0);
   if (!s.closed && (i === 0 || i === n - 1)) return { error: 'Pick a corner between two edges.' };
   if (!(r > 0)) return { error: 'Give the round a radius.' };
   const prev = (i - 1 + n) % n;
-  if (bulges[prev] || bulges[i]) return { error: 'Round corners between two straight edges (this one has an arc).' };
+  if (bulges[prev] || bulges[i]) return roundLineArc(s, i, r);
   const p = s.points[i], a = s.points[prev], b = s.points[(i + 1) % n];
   const la = Math.hypot(a[0] - p[0], a[1] - p[1]), lb = Math.hypot(b[0] - p[0], b[1] - p[1]);
   const ua: P2 = [(a[0] - p[0]) / la, (a[1] - p[1]) / la], ub: P2 = [(b[0] - p[0]) / lb, (b[1] - p[1]) / lb];
