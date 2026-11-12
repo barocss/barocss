@@ -1,0 +1,194 @@
+{
+  "decision": "D811",
+  "tier": "SMALL",
+  "parent": "ed028afee17d09645cb1b2b3beaf0833141f75b6",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d811-selective-regeneration",
+    "node --check apps/cad-studio/test/selective-regeneration-browser.mjs",
+    "cd apps/cad-studio && D811_SOURCE_FROZEN=1 node test/selective-regeneration-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d811-selective-regeneration-checks",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test o10-rebuild rebuild-time",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d811-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "5b97978b907e4e69358876de97e79a48e5cc058b2fc3c5c966e271dab4565e1c",
+      "frozenSources": 342,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "focused": {
+      "modelPass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "rootVisualReview": "PASS",
+    "observations": [
+      {
+        "label": "initial-report",
+        "totals": "Evaluation 3 (last evaluation), revision 0b2c610417ab357c \u00b7 3 built in 1.0 ms \u00b7 0 reused \u00b7 9.4 ms in all",
+        "rows": {
+          "n0": "input",
+          "n1": "built",
+          "n2": "input",
+          "n3": "built",
+          "n4": "built"
+        }
+      },
+      {
+        "label": "initial-bodies",
+        "depth": 8,
+        "bodies": [
+          {
+            "key": "b3",
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "key": "b4",
+            "volume": 4699.469035085131,
+            "centroid": [
+              15,
+              9.99999999999999,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "accepted-report",
+        "totals": "Evaluation 4 (last evaluation), revision e26203e577cdedf6 \u00b7 2 built in 1.0 ms \u00b7 1 reused \u00b7 5.9 ms in all",
+        "rows": {
+          "n0": "input",
+          "n1": "built",
+          "n2": "input",
+          "n3": "reused",
+          "n4": "built"
+        }
+      },
+      {
+        "label": "edited-bodies",
+        "depth": 10,
+        "bodies": [
+          {
+            "key": "b3",
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "key": "b4",
+            "volume": 5874.336293856413,
+            "centroid": [
+              15,
+              9.99999999999999,
+              5
+            ]
+          }
+        ]
+      },
+      {
+        "label": "after-refusal-bodies",
+        "depth": 10,
+        "bodies": [
+          {
+            "key": "b3",
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "key": "b4",
+            "volume": 5874.336293856413,
+            "centroid": [
+              15,
+              9.99999999999999,
+              5
+            ]
+          }
+        ]
+      },
+      {
+        "label": "refused-report",
+        "refusal": "Parameters not changedThe accepted part and its references are unchanged.Detailsheight must not be zero",
+        "totals": "Evaluation 4 (last evaluation), revision e26203e577cdedf6 \u00b7 2 built in 1.0 ms \u00b7 1 reused \u00b7 5.9 ms in all",
+        "rows": {
+          "n0": "input",
+          "n1": "built",
+          "n2": "input",
+          "n3": "reused",
+          "n4": "built"
+        }
+      },
+      {
+        "label": "undo-bodies",
+        "depth": 8,
+        "bodies": [
+          {
+            "key": "b3",
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "key": "b4",
+            "volume": 4699.469035085131,
+            "centroid": [
+              15,
+              9.99999999999999,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "label": "redo-bodies",
+        "depth": 10,
+        "bodies": [
+          {
+            "key": "b3",
+            "volume": 471.23889803846885,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              2.9999999999999996
+            ]
+          },
+          {
+            "key": "b4",
+            "volume": 5874.336293856413,
+            "centroid": [
+              15,
+              9.99999999999999,
+              5
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
