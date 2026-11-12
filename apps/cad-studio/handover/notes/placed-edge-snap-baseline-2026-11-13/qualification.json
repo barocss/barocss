@@ -1,0 +1,47 @@
+{
+  "decision": "D881",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "c3c57ba81ff42edc5870ef51807164bddb61d320",
+  "issue": 2333,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D881_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/studio-run01",
+    "cd packages/barocss-cad-model && node scripts/test.mjs osnap",
+    "cd apps/cad-studio && node scripts/test.mjs instance.test instance-looks.test sketch-framing object-snap-kinds",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 9,
+    "studioPass": 14,
+    "logSHA256": "2e935beb08a25d7c82258af045750b1161b38c489db80db9aedba1349408863b"
+  },
+  "studio": {
+    "status": "PASS",
+    "rootEnd": "PASS",
+    "rootMiddle": "PASS",
+    "placedEnd": "FAIL",
+    "placedMiddle": "FAIL",
+    "placedCandidateRepair": "NOT_RUN",
+    "receiptSHA256": "075b334eeaa357067e0da026370f0bca2ec907f4b5d2939d1d8d37ef973d830b",
+    "sourceManifestSHA256": "dc4b68672bb267a147785cdd39d2e41e52a0c10bfd21b4ee0f4dddd04a111e06",
+    "runnerSHA256": "8750ad72bab4167743b4589c00bf3c8d7b6eac5788decbe8fc16916a1336a22c",
+    "frozenFiles": 838,
+    "snapshots": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "fixtureBytes": 1110,
+    "fixtureSHA256": "d41e4162744c9d4b17c85d28a213de4d90bc9375bd108698d8a5db0c286563a6",
+    "wantedCornersMm": [[10.25, 14.25], [65.75, 34.25]],
+    "storedCornersMm": [[10, 14], [66, 34]],
+    "wantedVolumeMm3": 2220,
+    "storedVolumeMm3": 2240,
+    "nativeTolerance": 1e-8
+  }
+}
