@@ -1,0 +1,117 @@
+{
+  "decision": "D823",
+  "tier": "FEATURE",
+  "parent": "8cabc71d58350149ea918044b68c6576010e01c4",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d823-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d823-z-pattern-separate-count",
+    "node --check apps/cad-studio/test/z-pattern-separate-count-browser.mjs",
+    "cd apps/cad-studio && D823_SOURCE_FROZEN=1 node test/z-pattern-separate-count-browser.mjs \"$EVIDENCE/parent\"",
+    "cd apps/cad-studio && D823_SOURCE_FROZEN=1 node test/z-pattern-separate-count-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d823-z-pattern-count-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test circular-pattern editFields feature-handles api-verbs",
+    "pnpm --dir packages/barocss-cad-model exec tsc --noEmit",
+    "pnpm --dir apps/cad-studio exec tsc --noEmit",
+    "gate.sh acquire heavy 600 d823-z-pattern-count-studio-build",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test command preview pattern project-open-ownership",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/test/circular-pattern-count.test.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "parent": {
+      "status": "FAIL",
+      "sha256": "a64a88e5910fa0e0122c8105e7b2f0fa2dc2366b98eba1c53703f72f01c1919a",
+      "frozenSources": 341,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "invalid-count-accepted",
+          "value": "2.5",
+          "outputs": [
+            "b1",
+            "b4",
+            "b7"
+          ],
+          "angles": [
+            80,
+            160
+          ]
+        }
+      ]
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "sha256": "0cd55f7c4b6ab6621574c44a47b51d3f0c560e28546824f30d221f11709459ad",
+      "frozenSources": 341,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "count-refused",
+          "value": "2.5",
+          "output": "b1",
+          "volume": 216
+        },
+        {
+          "label": "count-refused",
+          "value": "0",
+          "output": "b1",
+          "volume": 216
+        },
+        {
+          "label": "count-refused",
+          "value": "1",
+          "output": "b1",
+          "volume": 216
+        },
+        {
+          "label": "count-refused",
+          "value": "37",
+          "output": "b1",
+          "volume": 216
+        },
+        {
+          "label": "valid-count-accepted",
+          "count": 2,
+          "outputs": [
+            "b1",
+            "b4"
+          ],
+          "volumeEach": 216,
+          "angle": 120,
+          "pivot": [
+            12,
+            4,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "focused": {
+    "modelPass": 47,
+    "studioPass": 87,
+    "fail": 0,
+    "skip": 0
+  },
+  "types": "PASS",
+  "lint": "PASS",
+  "build": "PASS",
+  "rootVisualReview": "PASS"
+}

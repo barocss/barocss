@@ -48,6 +48,20 @@ test('axis-sensitive Count fields keep the raw values and the existing Z range a
   assert.deepEqual(result.pivot, [2, 3, 0]);
 });
 
+test('separate Z creation refuses invalid counts and accepts both field bounds', () => {
+  const ctx = setup(), before = structuredClone(ctx.doc);
+  for (const count of [0, 1, -4, 2.5, 37, Infinity, -Infinity, NaN, '', 'unknown']) {
+    assert.throws(() => command.build!(ctx, inputs(ctx, 'z', count, 'separate')),
+      error => isRefusal(error, 'VALUE') && /whole-number Count from 2 to 36/.test(error.message));
+    assert.deepEqual(ctx.doc, before);
+  }
+  for (const count of [2, 36]) {
+    const doc = command.build!(ctx, inputs(ctx, 'z', count, 'separate'));
+    assert.equal(Object.keys(doc.outputs).length, count);
+    assert.deepEqual(doc.nodes.slice(0, 2), before.nodes);
+  }
+});
+
 function corners(axis: typeof axes[number], count: number): Set<string> {
   const original: Point[] = [10, 14].flatMap(x => [20, 26].flatMap(y => [0, 8].map(z => [x, y, z] as Point)));
   let piece = original;

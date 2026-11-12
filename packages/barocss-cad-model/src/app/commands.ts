@@ -190,6 +190,7 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 }
 /** A pattern's copies: joined into one body (the kernel's pattern), or each a body of its own. */
 const RESULT: Field = { key: 'result', label: 'Result', kind: 'choice', options: [{ value: 'one', label: 'One body' }, { value: 'separate', label: 'Separate bodies' }] };
+const Z_CIRCULAR_COUNT_MAX = 36;
 /** The axis a mirror plane is across. */
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
 /** A hole's centre coordinates per axis (the kernel's order). */
@@ -893,7 +894,7 @@ const allCommands: Command[] = [
     id: 'circular-pattern', label: 'Circular pattern', icon: 'cad-pattern-circular', hint: 'Copies of a body round an axis', group: 'pattern', keywords: 'polar array',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: (_ctx, v) => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
-      { key: 'count', label: 'Count', kind: 'count', min: 2, max: v?.axis === 'x' || v?.axis === 'y' ? 4 : 36 },
+      { key: 'count', label: 'Count', kind: 'count', min: 2, max: v?.axis === 'x' || v?.axis === 'y' ? 4 : Z_CIRCULAR_COUNT_MAX },
       { key: 'span', label: 'Spread over', kind: 'deg', min: 1, max: 360, step: 5, when: v => v.axis === 'z' },
       { key: 'px', label: 'Axis at X', kind: 'mm', when: v => v.axis === 'z' }, { key: 'py', label: 'Axis at Y', kind: 'mm', when: v => v.axis === 'z' }, RESULT],
     defaults: () => ({ axis: 'z', count: 4, span: 360, px: 0, py: 0, result: 'one' }),
@@ -913,6 +914,9 @@ const allCommands: Command[] = [
       }
       const span = Number(v.span ?? 360), pivot: [number, number, number] = [Number(v.px ?? 0), Number(v.py ?? 0), 0];
       if (v.result === 'separate') {
+        if (z && (!Number.isInteger(n) || n < 2 || n > Z_CIRCULAR_COUNT_MAX)) {
+          throw refusal('VALUE', `Z circular patterns with separate bodies use a whole-number Count from 2 to ${Z_CIRCULAR_COUNT_MAX}, including the original.`);
+        }
         // Each copy a body of its own, turned about the axis by its share of the spread.
         const body = refOf(oneBody(ctx)!), step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
         let doc = ctx.doc;
