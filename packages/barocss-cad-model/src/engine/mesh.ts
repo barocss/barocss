@@ -8,6 +8,7 @@ export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
 import { nativeStraightEdgeMatches } from './nativeStraightEdge';
 import { nativeCircleOf, sameNativeCircle, type NativeCircle } from './nativeCircle';
+import { nativeCylinderAreaReader } from './nativeCylinderArea';
 
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from './vec3';
@@ -23,6 +24,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
   /** Diameter in millimetres, verified on the current group of native B-rep faces. */
   nativeBoreDiameter?: number;
+  /** Area in square millimetres of the full native source face, verified for one cylindrical member. */
+  nativeArea?: number;
   /** A curved face of constant curvature along its circles — a cylinder, sphere, cone or torus (A6.3: the edge-sag bound holds, O55). */
   analytic?: true;
   /** A freeform curved face (a NURBS or SubD patch, its curvature varying inside a triangle; O59): its B-rep faces, measured on request. */
@@ -107,6 +110,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   // Native member signatures must not depend on viewport quality.
   let native: Map<string, NativeDisplayFace> | undefined;
   let checkBore: ReturnType<typeof createCylindricalBoreCheck> | undefined;
+  let readCylinderArea: ReturnType<typeof nativeCylinderAreaReader> | undefined;
   const nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
   const P = mesh.positions, N = mesh.normals;
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
@@ -169,6 +173,11 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
         if (g.kind === 'cylinder') {
           radius = g.r;
           df.exact = { kind: 'cylinder', c: [...g.c], a: [...g.a], r: g.r };
+          if (members.length === 1) {
+            readCylinderArea ??= nativeCylinderAreaReader(brep);
+            const area = readCylinderArea(face);
+            if (area !== undefined) df.nativeArea = area;
+          }
           if (g.out === -1) {
             checkBore ??= createCylindricalBoreCheck(brep);
             const diameter = checkBore(members.map(id => faceById.get(id)!));

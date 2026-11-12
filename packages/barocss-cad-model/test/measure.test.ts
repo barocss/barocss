@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
+import { checkBrep } from '@barocss/cad';
+import { evaluateDoc, partBreps } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, rectanglePart, withNode } from '../src/engine/doc';
 import { measureBetween, measureItem } from '../src/app/measure';
-import type { DisplayMesh } from '../src/engine/mesh';
+import { bodyMesh, type DisplayMesh } from '../src/engine/mesh';
+import { nativeCylinderAreaReader } from '../src/engine/nativeCylinderArea';
 
 const meshOf = (doc: Parameters<typeof evaluateDoc>[0]): DisplayMesh => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies[0].mesh; };
 const faceBy = (m: DisplayMesh, pred: (n: [number, number, number]) => boolean) => m.faces.findIndex(f => f.kind === 'plane' && pred(f.normal));
@@ -27,11 +29,71 @@ test('measure: a cylinder face shows its radius, its rim an arc of that radius a
   const m = meshOf(cylinderPart(5, 10));
   const wall = m.faces.findIndex(f => f.kind === 'curved');
   assert.ok(near(m.faces[wall].radius!, 5), String(m.faces[wall].radius));
+  assert.ok((m.faces[wall].nativeFaces?.length ?? 0) > 1);
+  assert.equal(m.faces[wall].nativeArea, undefined);
+  assert.deepEqual(measureItem(m, { body: 0, face: wall }), {
+    label: 'Curved face', radius: m.faces[wall].radius, area: m.faces[wall].area, areaBasis: 'display mesh',
+  });
   const rim = m.edges.findIndex(x => !x.straight), it = measureItem(m, { body: 0, edge: rim });
   assert.equal(it.label, 'Arc', JSON.stringify(it));
   assert.ok(near(it.radius!, 5, 1e-3), String(it.radius));
   // The rim's length is the circle's (r·θ over its samples), not the shorter display polyline.
   assert.ok(near(it.length!, 2 * Math.PI * 5, 1e-5), String(it.length));
+});
+
+function pinnedRoundPrism(radius: number) {
+  const x = Math.sqrt(24 * (radius - 10));
+  const sketch = withNode(emptyDoc(), {
+    kind: 'sketch', profile: 'loop', sideTags: { outer: ['e1', 'e5', 'e2', 'e3', 'e4'] },
+    segments: [
+      { kind: 'line', start: [0, 0] },
+      { kind: 'arc', start: [20 + x, 0], center: [20 + x, 4], direction: 'ccw' },
+      { kind: 'arc', start: [20 + radius * x / (radius - 4), 20 - radius + radius * (radius - 16) / (radius - 4)],
+        center: [20, 20 - radius], direction: 'ccw' },
+      { kind: 'line', start: [20, 20] }, { kind: 'line', start: [0, 20] },
+    ],
+  });
+  const [{ brep }] = partBreps(withNode(sketch, { kind: 'extrude', sketch: 0, height: 10 }));
+  assert.equal(brep.source.family, 'prismatic-solid');
+  assert.ok(checkBrep(brep, { strict: true }).valid);
+  return brep;
+}
+
+test('measure: native quarter and non-quarter Round wall areas are independent of mesh quality', () => {
+  for (const radius of [16, 18, 20]) {
+    const brep = pinnedRoundPrism(radius), tilt = Math.atan2(radius - 16, Math.sqrt(24 * (radius - 10)));
+    const coarse = bodyMesh(brep, 1, 4), fine = bodyMesh(brep, 1, 16);
+    for (const [id, expected] of [['e5', 40 * (Math.PI / 2 + tilt)], ['e2', 10 * radius * (Math.PI / 2 - tilt)]] as const) {
+      const name = `n1.side[${id}]`;
+      const a = coarse.faces.find(f => f.name === name), b = fine.faces.find(f => f.name === name);
+      assert.ok(a && b);
+      assert.notEqual(a.area, b.area, name);
+      assert.equal(a.nativeArea, b.nativeArea, name);
+      for (const [mesh, face] of [[coarse, a], [fine, b]] as const) {
+        const item = measureItem(mesh, { body: 0, face: face.index });
+        assert.equal(item.areaBasis, 'native', name);
+        assert.ok(item.area !== undefined && near(item.area, expected, 1e-11), JSON.stringify(item));
+      }
+    }
+  }
+});
+
+test('measure: native cylinder area rejects incomplete and mismatched trims', () => {
+  const brep = pinnedRoundPrism(16);
+  const face = brep.faces.find(f => f.name === 'n1.side[e5]');
+  assert.ok(face);
+  assert.ok(nativeCylinderAreaReader(brep)(face));
+  const loop = brep.loops.find(l => l.id === face.loops[0]);
+  assert.ok(loop);
+  const id = loop.coedges[0];
+  const changed = { ...brep, coedges: brep.coedges.map(use => use.id === id ? { ...use, pcurve: null } : use) };
+  assert.equal(nativeCylinderAreaReader(changed)(face), undefined);
+  assert.equal(nativeCylinderAreaReader(brep)({ ...face, loops: [...face.loops, 'inner'] }), undefined);
+  const rim = brep.coedges.find(use => use.id === id);
+  assert.ok(rim);
+  const wrongRim = { ...brep, edges: brep.edges.map(edge => edge.id === rim.edge
+    ? { ...edge, curve: { ...edge.curve, weights: edge.curve.weights.map(w => w * 2) } } : edge) };
+  assert.equal(nativeCylinderAreaReader(wrongRim)(face), undefined);
 });
 
 test('errors: a too-steep draft and a zero angle name their cause', async () => {

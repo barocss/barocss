@@ -17,7 +17,7 @@ export interface MeasureResult {
   /** Between two round faces (cylinders): the angle between their axes and the distance between them. */
   axes?: { angle: number; offset: number; coaxial: boolean };
 }
-export interface MeasureItem { label: string; length?: number; area?: number; radius?: number }
+export interface MeasureItem { label: string; length?: number; area?: number; areaBasis?: 'native' | 'display mesh'; radius?: number }
 
 const at = (p: ArrayLike<number>, i: number): Vec3 => [p[3 * i], p[3 * i + 1], p[3 * i + 2]];
 
@@ -142,7 +142,12 @@ export function measureItem(mesh: DisplayMesh, pick: MeasurePick): MeasureItem {
   if (pick.vertex) return { label: `Point ${pick.vertex.map(v => Math.round(v * 1000) / 1000).join(', ')}` };
   if (pick.face !== undefined) {
     const f = mesh.faces[pick.face];
-    return { label: f.kind === 'plane' ? 'Planar face' : 'Curved face', area: f.area, ...(f.radius ? { radius: f.radius } : {}) };
+    const curved = f.kind === 'curved';
+    return {
+      label: curved ? 'Curved face' : 'Planar face', area: curved ? f.nativeArea ?? f.area : f.area,
+      ...(curved ? { areaBasis: f.nativeArea === undefined ? 'display mesh' : 'native' } : {}),
+      ...(f.radius ? { radius: f.radius } : {}),
+    };
   }
   const { segs } = primitives(mesh, pick), e = mesh.edges[pick.edge!];
   const length = segs.reduce((acc, [a, b]) => acc + len(sub(b, a)), 0);

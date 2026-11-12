@@ -15,7 +15,7 @@ export function MeasurementInspector({ bodies, measure, measured, setMeasure }: 
         {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
           <div className="kv">{k ? 'To' : 'From'} <b>{it.label}</b></div>
           {it.length !== undefined && <div className="kv">Length <b>{measureQuantityText(it.length, 2)} mm</b></div>}
-          {it.area !== undefined && <div className="kv">Area <b>{measureQuantityText(it.area, 2)} mm²</b></div>}
+          {it.area !== undefined && <div className="kv">Area <b>{measureQuantityText(it.area, 2)} mm²{it.areaBasis === 'display mesh' ? ' (mesh)' : ''}</b></div>}
           {it.radius !== undefined && <div className="kv">Radius <b>{measureQuantityText(it.radius, 3)} mm</b></div>}
         </div>; })}
         {measured && <>

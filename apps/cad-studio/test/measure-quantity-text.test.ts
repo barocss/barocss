@@ -31,7 +31,7 @@ test('Measure passes every scalar to the existing nonzero display policy before 
   };
   const before = structuredClone(measured), html = inspector(measured, [synthetic]);
   assert.match(html, /Length <b>4\.00e-3 mm<\/b>/);
-  assert.match(html, /Area <b>4\.00e-4 mm²<\/b>/);
+  assert.match(html, /Area <b>4\.00e-4 mm² \(mesh\)<\/b>/);
   assert.match(html, /Radius <b>4\.00e-4 mm<\/b>/);
   assert.match(html, /Distance <b>4\.00e-3 mm<\/b>/);
   assert.match(html, /Normal distance <b>4\.00e-4 mm<\/b>/);
@@ -39,6 +39,11 @@ test('Measure passes every scalar to the existing nonzero display policy before 
   assert.match(html, /Axes <b>4\.00e-4° apart, 4\.00e-3 mm off<\/b>/);
   assert.match(html, /ΔX ΔY ΔZ <b>-4\.00e-3, 4\.00e-3, 0<\/b>/);
   assert.deepEqual(measured, before);
+
+  const native = { ...synthetic, mesh: { ...synthetic.mesh,
+    faces: [{ ...synthetic.mesh.faces[0], nativeArea: 0.0005 }],
+  } };
+  assert.match(inspector(measured, [native]), /Area <b>5\.00e-4 mm²<\/b>/);
 });
 
 test('Measure keeps exact zeros, ordinary values, missing values and the coaxial decision', () => {

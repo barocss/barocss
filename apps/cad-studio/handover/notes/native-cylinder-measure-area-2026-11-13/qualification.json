@@ -1,0 +1,158 @@
+{
+  "decision": "D894",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "256a438df20f8a07bc95ac6ea39a94cecf261bb4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d894-studio-native-cylinder-area",
+    "D894_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/area --measure-area",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure corner cylindrical-wrap",
+    "cd apps/cad-studio && node scripts/test.mjs measure-quantity-text sketchIds",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/{nativeCylinderArea,mesh}.ts packages/barocss-cad-model/src/app/measure.ts packages/barocss-cad-model/test/measure.test.ts apps/cad-studio/src/ui/MeasurementInspector.tsx apps/cad-studio/test/measure-quantity-text.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "parentActual": {
+    "decision": "D893",
+    "status": "FAIL",
+    "scope": "The selected native cylindrical face areas used display triangles without a basis label.",
+    "receiptSHA256": "2e2c75b8c56a30067ad2efbab6b3ce399724cc920ca7392f6039abd651863723",
+    "studioR16Mm2": [
+      62.73,
+      250.92
+    ]
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 28,
+    "studioPass": 7,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "quality": [
+      4,
+      16
+    ],
+    "logSHA256": "53d4c66ab5bad377a7d7b453b9fd6444f28fae957a5fe95ebeba17520e4f7663"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "4d38468c1a52214f447f2284b30784f0f21610d7986691077a869817eeb219a3",
+    "sourceManifestSHA256": "8d9e8b5b01e3ccbc31f6fe3307a3cf9e53608c0ffea713ab484b7e34847d8854",
+    "frozenFiles": 844,
+    "snapshots": 12,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "nativeAreaToleranceMm2": 1e-08,
+    "displayRoundingToleranceMm2": 0.005,
+    "saved": [
+      {
+        "bytes": 2183,
+        "sha256": "3251d3dc3f9fd94c66b9e8f975b862281041b10e0ae8ea155369553e70dd8941"
+      }
+    ],
+    "measurements": [
+      {
+        "label": "source-R20-measure-e5",
+        "face": "n1.side[e5]",
+        "radiusMm": 4,
+        "expectedNativeAreaMm2": 72.93906327747902,
+        "nativeAreaMm2": 72.93906327747898,
+        "meshAreaMm2": 72.82527171119058,
+        "areaText": "72.94 mm²"
+      },
+      {
+        "label": "source-R20-measure-e2",
+        "face": "n1.side[e2]",
+        "radiusMm": 20,
+        "expectedNativeAreaMm2": 263.62321433056354,
+        "nativeAreaMm2": 263.62321433056354,
+        "meshAreaMm2": 263.22203181480154,
+        "areaText": "263.62 mm²"
+      },
+      {
+        "label": "source-R16-measure-e5",
+        "face": "n1.side[e5]",
+        "radiusMm": 4,
+        "expectedNativeAreaMm2": 62.83185307179586,
+        "nativeAreaMm2": 62.83185307179588,
+        "meshAreaMm2": 62.73096981091881,
+        "areaText": "62.83 mm²"
+      },
+      {
+        "label": "source-R16-measure-e2",
+        "face": "n1.side[e2]",
+        "radiusMm": 16,
+        "expectedNativeAreaMm2": 251.32741228718345,
+        "nativeAreaMm2": 251.3274122871835,
+        "meshAreaMm2": 250.92387924367506,
+        "areaText": "251.33 mm²"
+      },
+      {
+        "label": "reopened-source-R16-measure-e5",
+        "face": "n1.side[e5]",
+        "radiusMm": 4,
+        "expectedNativeAreaMm2": 62.83185307179586,
+        "nativeAreaMm2": 62.83185307179588,
+        "meshAreaMm2": 62.73096981091881,
+        "areaText": "62.83 mm²"
+      },
+      {
+        "label": "reopened-source-R16-measure-e2",
+        "face": "n1.side[e2]",
+        "radiusMm": 16,
+        "expectedNativeAreaMm2": 251.32741228718345,
+        "nativeAreaMm2": 251.3274122871835,
+        "meshAreaMm2": 250.92387924367506,
+        "areaText": "251.33 mm²"
+      },
+      {
+        "label": "source-R18-measure-e5",
+        "face": "n1.side[e5]",
+        "radiusMm": 4,
+        "expectedNativeAreaMm2": 68.56575582801048,
+        "nativeAreaMm2": 68.56575582801044,
+        "meshAreaMm2": 68.45996452600458,
+        "areaText": "68.57 mm²"
+      },
+      {
+        "label": "source-R18-measure-e2",
+        "face": "n1.side[e2]",
+        "radiusMm": 18,
+        "expectedNativeAreaMm2": 256.94077642011564,
+        "nativeAreaMm2": 256.94077642011547,
+        "meshAreaMm2": 256.54243191748793,
+        "areaText": "256.94 mm²"
+      },
+      {
+        "label": "merged-wall-mesh-area",
+        "face": "n1.side0",
+        "radiusMm": 5,
+        "meshAreaMm2": 313.65484905459385,
+        "areaText": "313.65 mm² (mesh)"
+      }
+    ]
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Full rectangular trim, ordered native rim and strut bindings, circle spans, provenance fallback and unchanged mesh signatures."
+  },
+  "notRun": [
+    "direct noncardinal recognition in Studio",
+    "native merged cylinder aggregation",
+    "native planar area",
+    "clipped mesh measurement",
+    "general trimmed faces",
+    "full suites",
+    "mobile"
+  ]
+}
