@@ -779,12 +779,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
     const sk = props.sketch;
-    const reference = props.twoPointSnap?.read();
+    const reference = props.sketchSnaps?.twoPoint.read();
+    const extension = props.sketchSnaps?.extension.read(sk);
     const referenceHit = reference?.preview ? { at: reference.preview, kind: 'calculated' as const }
       : reference?.picking && twoPointHover.current?.points === reference.points ? twoPointHover.current.hit : null;
     const editor = sk ? drawSketchOverlay({
       sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h,
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
+      extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;

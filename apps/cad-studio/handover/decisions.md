@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D799 — snap once to the circular extension of a construction arc](notes/arc-extension-snap-2026-11-12/README.md).
 - [D798 — clear the midpoint cue when a live arc changes](notes/live-arc-midpoint-cue-2026-11-12/README.md).
 - [D797 — verify arc midpoint ownership in desktop Studio](notes/arc-midpoint-ownership-2026-11-12/README.md).
 - [D796 — verify a clockwise arc midpoint after Trim](notes/arc-midpoint-after-trim-2026-11-12/README.md).

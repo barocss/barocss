@@ -28,6 +28,8 @@ import type { EdgeRef, FaceRef, SectionClip, ViewRenderer, ViewState } from './r
 import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
+import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
+import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
 import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
 import { pickVertex } from './vertexPick';
 import type { CageOverlay, Spot, ToolView, ViewportTool } from './Viewport';
@@ -47,7 +49,7 @@ export interface ViewportPointerProps {
   /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
   snapStep?: number;
   sketch: SketchState | null;
-  twoPointSnap?: TwoPointSnapInput;
+  sketchSnaps?: { twoPoint: TwoPointSnapInput; extension: ArcExtensionInput };
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
   handles?: FeatureHandle[];
@@ -236,16 +238,18 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
   const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
   const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
+  const extensionDraft = propsRef.current.sketchSnaps?.extension.read(sketch);
   const clearSketchSnap = useCallback(() => {
     const draft = sketchDraft.current;
     if (!draft.snap) return;
     draft.snap = null;
     draft.cursor = null;
+    draft.extension = false;
     livePolygonMiddle.current = false;
     propsRef.current.onCursor(null);
     requestRef.current();
   }, [propsRef, requestRef]);
-  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.done, sketch?.hideConstruction, sketch?.tool]);
+  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft]);
   useLayoutEffect(() => {
     const snap = sketchDraft.current.snap;
     if (!livePolygonMiddle.current || !snap) return;
@@ -264,16 +268,22 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (snap && cached.points.includes(snap)) clearSketchSnap();
   }, [snapBodies, snapHidden, snapPlaneKey, clearSketchSnap]);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
-  const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null; liveMiddle?: boolean } => {
+  const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null; liveMiddle?: boolean; extension?: boolean; terminal?: boolean } => {
     const { bodies, hiddenBodies } = propsRef.current;
     const model = modelSnapCache.current = modelSketchSnaps(modelSnapCache.current, bodies, hiddenBodies, sk.plane);
     const live = liveShape.current;
     const livePoints = live ? shapeSnaps(live, drafting.current) : [];
     const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints];
-    const hit = nearestSnap(points, q => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; }, [x, y]);
+    const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
+    const ordinary = nearestSnap(points, project, [x, y]);
+    const guide = propsRef.current.sketchSnaps?.extension.read(sk);
+    const extensionPoint = !ordinary && guide?.stage === 'guide' ? arcExtensionPoint(guide.arc, p) : null;
+    const extension = extensionPoint && nearestSnap([{ at: extensionPoint, kind: 'calculated' }], project, [x, y]);
+    const hit = ordinary ?? extension;
     return hit ? {
       at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4],
-      snap: hit, liveMiddle: live?.kind === 'polygon' && hit.kind === 'mid' && livePoints.includes(hit),
+      snap: hit, liveMiddle: live?.kind === 'polygon' && hit.kind === 'mid' && livePoints.includes(hit), extension: !!extension,
+      terminal: guide?.stage === 'end' && uniqueArcTerminal(guide.arc.end, ordinary, points, project, [x, y]),
     } : { at: [snap(p[0]), snap(p[1])], snap: null };
   };
   /** Plane coordinates of the sketch → canvas pixels. */
@@ -594,7 +604,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
-      const reference = propsRef.current.twoPointSnap?.read();
+      const reference = propsRef.current.sketchSnaps?.twoPoint.read();
       if (reference) {
         twoPointHover.current = { points: reference.points, hit: reference.picking ? referenceSnap(reference.points, sk.plane, x, y) : null };
         request();
@@ -602,6 +612,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) && !banding(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
       sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
+      sketchDraft.current.extension = !!at?.extension;
       livePolygonMiddle.current = !!at?.liveMiddle;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
@@ -709,10 +720,17 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     const sk = propsRef.current.sketch;
     if (sk) {
-      const input = propsRef.current.twoPointSnap, reference = input?.read();
+      const snaps = propsRef.current.sketchSnaps, input = snaps?.twoPoint, reference = input?.read();
       if (input && reference) { input.pick(referenceSnap(reference.points, sk.plane, x, y)); return; }
+      const guide = snaps?.extension.read(sk);
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
-      const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
+      const target = picking(sk) ? null : sketchSnap(x, y, w, h, sk, p);
+      if (guide?.stage === 'end') {
+        if (target?.terminal) snaps?.extension.arm(sk);
+        return;
+      }
+      const c: [number, number] = target?.at ?? [snap(p[0]), snap(p[1])];
+      if (guide?.stage === 'guide') snaps?.extension.consume(sk);
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }

@@ -22,7 +22,8 @@ import { ModelTools } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useTwoPointSnap } from './sketch/useTwoPointSnap';
-import { TwoPointSnapControls } from './sketch/TwoPointSnapControls';
+import { useArcExtensionSnap } from './sketch/useArcExtensionSnap';
+import { SketchSnapControls } from './sketch/SketchSnapControls';
 import { useSketchActions } from './sketch/useSketchActions';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
@@ -1450,6 +1451,7 @@ export function App() {
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError: sketchFinishError } = sketchActions;
   const twoPointSnap = useTwoPointSnap(doc, sketch, docNow, sketchGeneration, viewport);
+  const arcExtensionSnap = useArcExtensionSnap(doc, sketch, docNow, sketchGeneration);
   const sketchViewportActions = studioSketchViewportActions({ liveShape, setSketch, setSketchError, updateShape, trimSketch });
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
@@ -1847,6 +1849,7 @@ export function App() {
       if (undoKey) {
         e.preventDefault();
         twoPointSnap.cancel();
+        arcExtensionSnap.cancel();
         // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
         const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
         if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...detachSketchLink(s), shape: back, picked: [], editDim: null }); return; }
@@ -1879,8 +1882,8 @@ export function App() {
         return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
-      if (e.key === 'Escape' && twoPointSnap.cancel()) { e.preventDefault(); return; }
-      if (e.key === 'Enter' && twoPointSnap.input.read()) { e.preventDefault(); return; }
+      if (e.key === 'Escape' && (twoPointSnap.cancel() || arcExtensionSnap.cancel())) { e.preventDefault(); return; }
+      if (e.key === 'Enter' && (twoPointSnap.input.read() || arcExtensionSnap.input.read(sketch))) { e.preventDefault(); return; }
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
@@ -2242,7 +2245,7 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} twoPointSnap={<TwoPointSnapControls snap={twoPointSnap} />} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+      {sketch && <SketchPanel sketch={sketch} snapControls={<SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} />} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
@@ -2489,7 +2492,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} twoPointSnap={twoPointSnap.input} onCursor={onCursor}
+        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input }} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
