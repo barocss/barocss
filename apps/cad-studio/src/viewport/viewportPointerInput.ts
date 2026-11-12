@@ -28,6 +28,7 @@ import type { EdgeRef, FaceRef, SectionClip, ViewRenderer, ViewState } from './r
 import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
+import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
 import { pickVertex } from './vertexPick';
 import type { CageOverlay, Spot, ToolView, ViewportTool } from './Viewport';
 
@@ -46,6 +47,7 @@ export interface ViewportPointerProps {
   /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
   snapStep?: number;
   sketch: SketchState | null;
+  twoPointSnap?: TwoPointSnapInput;
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
   handles?: FeatureHandle[];
@@ -220,11 +222,16 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   // Keep the emitted shape current until the app sends a different shape.
   const liveShape = useRef<SketchShape | null>(sketch?.shape ?? null), seenShape = useRef(sketch?.shape);
-  if (sketch?.shape !== seenShape.current) { seenShape.current = sketch?.shape; liveShape.current = sketch?.shape ?? null; }
+  if (sketch?.shape !== seenShape.current) {
+    seenShape.current = sketch?.shape;
+    liveShape.current = sketch?.shape ?? null;
+    if (!sketch?.shape) { drafting.current = false; slotStage.current = 0; }
+  }
   const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
+  const twoPointHover = useRef<{ points: readonly SnapPoint[]; hit: SnapPoint | null } | null>(null);
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
   const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
   const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
@@ -251,6 +258,17 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
+  const referenceSnap = (points: readonly SnapPoint[], plane: SketchPlane, x: number, y: number) => {
+    const project = sketchProject(plane);
+    return nearestSnap(points, ([u, v]) => { const [sx, sy] = project(u, v); return [sx, sy]; }, [x, y]);
+  };
+  const startRectangleAt = (owner: SketchState, at: [number, number]) => {
+    if (propsRef.current.sketch !== owner || owner.tool !== 'rectangle' || drafting.current) return false;
+    drafting.current = true;
+    emit({ kind: 'rectangle', a: at, b: at }, true);
+    request();
+    return true;
+  };
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const cancelGizmo = (reason: GizmoCancelReason, pointerId?: number) => {
@@ -490,7 +508,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   /** A cancelled or lost pointer ends its own armed or active spline drag only. */
   const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
   /** A tool change or the end of the sketch cancels the drag and clears the drafts. */
-  const resetSketchTool = () => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; };
+  const resetSketchTool = () => { drafting.current = false; slotStage.current = 0; splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; };
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     if (drag.current.mode === 'gizmo') return;
@@ -556,6 +574,12 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
+      const reference = propsRef.current.twoPointSnap?.read();
+      if (reference) {
+        twoPointHover.current = { points: reference.points, hit: reference.picking ? referenceSnap(reference.points, sk.plane, x, y) : null };
+        request();
+        return;
+      }
       const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) && !banding(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
       sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
@@ -616,6 +640,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
 
   /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
   const onPointerLeave = () => {
+    if (twoPointHover.current) { twoPointHover.current = null; request(); }
     const r = renderer.current, prev = hover.current;
     if (!r || drag.current.mode || (!prev.face && !prev.edge && !prev.vertex)) return;
     hover.current = { face: null, edge: null, vertex: null }; r.setState(viewState()); request();
@@ -662,6 +687,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     const sk = propsRef.current.sketch;
     if (sk) {
+      const input = propsRef.current.twoPointSnap, reference = input?.read();
+      if (input && reference) { input.pick(referenceSnap(reference.points, sk.plane, x, y)); return; }
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
       const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
       const s = liveShape.current;
@@ -716,7 +743,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         request(); return;
       }
       if (sk.tool === 'rectangle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
+        if (!drafting.current) startRectangleAt(sk, c);
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
       } else if (sk.tool === 'circle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }, true); }
@@ -827,7 +854,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   return {
     canvasHandlers: { onPointerDown, onPointerMove, onPointerLeave, onPointerUp, onPointerCancel, onLostPointerCapture, onDoubleClick, onWheel, onContextMenu },
     placementHandlers: { onDragOver, onDrop },
-    overlay: { drag, gizmoHot, valueBox, sketchDraft, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector },
-    cancelGizmo, listenForSketchKeys, resetSketchTool,
+    overlay: { drag, gizmoHot, valueBox, sketchDraft, twoPointHover, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector },
+    cancelGizmo, listenForSketchKeys, resetSketchTool, startRectangleAt,
   };
 }

@@ -32,6 +32,7 @@ import { recordCanvas } from './recordVideo';
 import { drawSketchOverlay, fmtLen, type SketchBandCache } from './sketchOverlay';
 import { banding, cutting, picking, useViewportPointerInput, type ViewportHover, type ViewportPointerProps } from './viewportPointerInput';
 
+import type { SketchState } from '@barocss/cad-model/sketch/types';
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
 export { DRAG_TYPE, instancePickFields } from './viewportPointerInput';
@@ -40,6 +41,7 @@ export interface ViewportHandle {
   /** Frames everything, or the box given (the picked bodies). */
   fit(box?: { min: Vec3; max: Vec3 }): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
   /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
+  startRectangleAt(owner: SketchState, at: [number, number]): boolean;
   frameSketch(min: [number, number], max: [number, number], plane: SketchPlane, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
@@ -429,7 +431,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
-  const { drag, gizmoHot, valueBox, sketchDraft, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector } = input.overlay;
+  const { drag, gizmoHot, valueBox, sketchDraft, twoPointHover, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector } = input.overlay;
   const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
   useEffect(() => {
     const d = drag.current;
@@ -713,6 +715,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
+    startRectangleAt: input.startRectangleAt,
     fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) fitBounds(b); request(); },
     setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) fitBounds(b); request(); },
     frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
@@ -776,9 +779,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
     const sk = props.sketch;
+    const reference = props.twoPointSnap?.read();
+    const referenceHit = reference?.preview ? { at: reference.preview, kind: 'calculated' as const }
+      : reference?.picking && twoPointHover.current?.points === reference.points ? twoPointHover.current.hit : null;
     const editor = sk ? drawSketchOverlay({
       sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h,
-      draft: sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
+      draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;

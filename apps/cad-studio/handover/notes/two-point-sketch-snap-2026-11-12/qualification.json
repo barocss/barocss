@@ -1,0 +1,90 @@
+{
+  "decision": "D793",
+  "tier": "FEATURE",
+  "parent": "99566d16e7e677f0c9e5be7235fe5494cbdf04cc",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/two-point-snap-browser.mjs",
+    "cd apps/cad-studio && D793_SOURCE_FROZEN=1 node test/two-point-snap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D793_SOURCE_FROZEN=1 node test/two-point-snap-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "cd apps/cad-studio && D793_SOURCE_FROZEN=1 node test/two-point-snap-browser.mjs \"$EVIDENCE/desktop-3\"",
+    "cd apps/cad-studio && D793_SOURCE_FROZEN=1 node test/two-point-snap-browser.mjs \"$EVIDENCE/desktop-4\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test osnap",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d793-two-point-snap",
+    "evidenceFolder": "d793-2026-11-12",
+    "attempts": [
+      {
+        "folder": "desktop-1",
+        "status": "FAIL",
+        "sha256": "d8247863430cddcb0d2f8685ac6d98c5ac3e0a28f1f09b3c17ab60e7b48c9a39",
+        "detail": "The chosen second-corner screen position intercepted a dimension control."
+      },
+      {
+        "folder": "desktop-2",
+        "status": "FAIL",
+        "sha256": "6b0ec09320eb7e16c19e7cbaae657ffc61e15d836ac30962a0981b054be8569a",
+        "detail": "The driver expected the current project entry to be a button."
+      },
+      {
+        "folder": "desktop-3",
+        "status": "PASS",
+        "sha256": "0244853f6af987b010d684c0d10f32e511ed4a5d6bb71e5dd46ceaacc0558cb7",
+        "detail": "Browser lifecycle passed; subsequent Studio type check found the missing local SketchState import."
+      },
+      {
+        "folder": "desktop-4",
+        "status": "PASS",
+        "sha256": "ff214f5f0a57027e3c74675a32c93a9a362971edb7b2ca142fe4880fb983bdf3",
+        "detail": "Final browser lifecycle with pending-rectangle tool switch and project reopen."
+      }
+    ],
+    "desktop": {
+      "status": "PASS",
+      "sha256": "ff214f5f0a57027e3c74675a32c93a9a362971edb7b2ca142fe4880fb983bdf3",
+      "frozenSources": 799,
+      "savedBytes": 1054,
+      "savedSHA256": "8d89f31d0736e26881e227dcf857a30d160efba72db38a91ce8e7157419a04d0",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "errors": 0,
+      "downloads": 0
+    },
+    "model": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "independentSourceReview": "PASS for the declared XY construction-line and rectangle path after corrections",
+    "endpointsMm": [
+      [
+        0,
+        0
+      ],
+      [
+        31,
+        13
+      ]
+    ],
+    "ratio": 0.25,
+    "calculatedMm": [
+      7.75,
+      3.25
+    ],
+    "ordinaryMidpointMm": [
+      15.5,
+      6.5
+    ],
+    "gridMm": 1,
+    "depthMm": 2,
+    "volumeMm3": 50.375
+  }
+}

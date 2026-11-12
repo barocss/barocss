@@ -2,12 +2,13 @@
 // centres and quarter points of what is drawn, to the corners, edge middles and circle centres of the
 // model where they lie in the sketch plane, and to the origin — the nearest within a few pixels on
 // screen; else the 1 mm grid takes it.
+import { CadNumericPolicy } from '@barocss/cad';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { wellFormedBezier } from './bezier';
 import { toLocal, type SketchPlane } from './plane';
 
 type XY = [number, number];
-export type SnapKind = 'end' | 'mid' | 'centre' | 'quadrant' | 'origin';
+export type SnapKind = 'end' | 'mid' | 'centre' | 'quadrant' | 'origin' | 'calculated';
 export interface SnapPoint { at: XY; kind: SnapKind }
 /** The shapes the snaps come from (SketchShape, as far as its points go). */
 export type SnapShape =
@@ -81,4 +82,17 @@ export function nearestSnap(points: readonly SnapPoint[], screen: (p: XY) => XY,
   let best: SnapPoint | null = null, d0 = px;
   for (const p of points) { const s = screen(p.at), d = Math.hypot(s[0] - pointer[0], s[1] - pointer[1]); if (d < d0) { d0 = d; best = p; } }
   return best;
+}
+
+/** A temporary sketch point along the ordered line from A to B. */
+export function pointAlongSnap(a: XY, b: XY, mode: 'ratio' | 'distance', value: number): XY | null {
+  const { coordinateAbs, linearTolerance } = CadNumericPolicy;
+  if (!Number.isFinite(value) || (mode === 'distance' && Math.abs(value) > coordinateAbs)) return null;
+  const inRange = (point: XY) => point.every(c => Number.isFinite(c) && Math.abs(c) <= coordinateAbs);
+  if (!inRange(a) || !inRange(b)) return null;
+  const x = b[0] - a[0], y = b[1] - a[1], length = Math.hypot(x, y);
+  if (length <= linearTolerance) return null;
+  const t = mode === 'ratio' ? value : value / length;
+  const point: XY = [a[0] + t * x, a[1] + t * y];
+  return inRange(point) ? point : null;
 }

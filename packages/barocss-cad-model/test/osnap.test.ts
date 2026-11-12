@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, withNode } from '../src/engine/doc';
-import { modelSnaps, nearestSnap, shapeSnaps } from '../src/sketch/osnap';
+import { pointAlongSnap, modelSnaps, nearestSnap, shapeSnaps } from '../src/sketch/osnap';
 import { planeOfFace } from '../src/sketch/plane';
 
 test('sketch snaps: a rectangle’s corners, middles and centre; a drafting one only its first corner', () => {
@@ -23,4 +23,19 @@ test('model snaps on a face: its corners, edge middles and a hole’s centre; th
   const screen = (p: [number, number]): [number, number] => [p[0] * 10, p[1] * 10];
   assert.deepEqual(nearestSnap(pts, screen, [122, 92])?.at, [12, 9]);
   assert.equal(nearestSnap(pts, screen, [300, 150]), null);
+});
+
+test('two-point snaps preserve direction, extrapolation, and coordinate limits', () => {
+  assert.deepEqual(pointAlongSnap([0, 0], [12, 0], 'ratio', 1 / 3), [4, 0]);
+  assert.deepEqual(pointAlongSnap([0, 0], [12, 0], 'ratio', 1.5), [18, 0]);
+  assert.deepEqual(pointAlongSnap([0, 0], [12, 0], 'ratio', -0.5), [-6, 0]);
+  assert.deepEqual(pointAlongSnap([0, 0], [6, 8], 'distance', 5), [3, 4]);
+  assert.deepEqual(pointAlongSnap([0, 0], [6, 8], 'distance', -5), [-3, -4]);
+  assert.deepEqual(pointAlongSnap([6, 8], [0, 0], 'distance', 2.5), [4.5, 6]);
+  assert.deepEqual(pointAlongSnap([0, 0], [10, 4], 'ratio', 0.25), [2.5, 1]);
+  assert.equal(pointAlongSnap([1, 2], [1, 2], 'ratio', 0.5), null);
+  assert.equal(pointAlongSnap([0, 0], [1e-9, 0], 'distance', 5), null);
+  assert.equal(pointAlongSnap([0, 0], [6, 8], 'ratio', Infinity), null);
+  assert.equal(pointAlongSnap([0, 0], [6, 8], 'ratio', Number.MAX_VALUE), null);
+  assert.equal(pointAlongSnap([10000, 0], [9999, 0], 'distance', -1), null);
 });

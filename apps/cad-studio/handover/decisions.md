@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D793 — place one rectangle corner with a two-point sketch snap](notes/two-point-sketch-snap-2026-11-12/README.md).
 - [D792 — start a Sketch on three selected native vertices](notes/three-vertex-sketch-plane-2026-11-12/README.md).
 - [D791 — refuse a Shell when its Split cap has two native faces](notes/split-cap-ambiguity-2026-11-12/README.md).
 - [D790 — preserve the generated Split cap on edit and File Open](notes/split-cap-reference-2026-11-12/README.md).
