@@ -213,7 +213,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
 }
 
 /** Nodes that place a body elsewhere: a feature before one is no longer where its own dimensions say. */
-const PLACING = new Set(['translate', 'rotate', 'scale', 'mirror', 'linear-pattern', 'circular-pattern']);
+const PLACING = new Set(['translate', 'rotate', 'scale', 'mirror', 'linear-pattern', 'linear-span-pattern', 'circular-pattern']);
 /**
  * The feature a picked face or edge belongs to (the newest one its persistent names come from: a hole's
  * wall, the box's top), so picking it edits that feature, and not only the body's last one. Null when

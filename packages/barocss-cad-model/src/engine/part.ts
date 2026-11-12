@@ -1,6 +1,7 @@
 import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
+import { linearSpanPatternInput, linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
@@ -145,6 +146,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     }
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
+    case 'linear-span-pattern': {
+      const result = linearSpanPatternInput(node, index);
+      if ('code' in result) throw coded(result.code, result.message);
+      return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: result.spacing, count: node.count };
+    }
     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'fill-feature-pattern': return { ...at, kind: 'fill-feature-pattern', target: ref(node.parent), region: node.region, anchor: node.anchor, spacing: node.spacing, count: node.count, spacing2: node.spacing2, count2: node.count2 };
     case 'curve-feature-pattern': return { ...at, kind: 'curve-feature-pattern', target: ref(node.parent), path: resolveCurveFeaturePatternPath(curvePathDoc, node.path), spacing: node.spacing, count: node.count };
@@ -514,6 +520,8 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPa
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
+  const linearSpanProblem = linearSpanPatternProblem(doc);
+  if (linearSpanProblem) throw coded(linearSpanProblem.code, linearSpanProblem.message);
   const fillProblem = fillPatternDocumentProblem(doc);
   if (fillProblem) throw coded(fillProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', fillProblem);
   const curveProblem = curvePatternDocumentProblem(doc);

@@ -1,0 +1,84 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { featureOfPick } from '../src/app/editCommand';
+import { editFields } from '../src/app/editFields';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '../src/engine/evaluate';
+import { readStudioDoc } from '../src/engine/migrate';
+import { toPartDocument } from '../src/engine/part';
+
+const seed = rectanglePart(10, 6, 8);
+const parent = { node: 1, side: 'solid' } as const;
+const recipe = { kind: 'linear-span-pattern', parent, axis: 'x', span: 90, count: 4 } as const;
+
+test('fixed span lowers to the same native feature, geometry and names as its derived pitch', () => {
+  for (const [axis, span, count, spacing] of [
+    ['x', 90, 4, 30],
+    ['x', 90, 6, 18],
+    ['y', 25, 3, 12.5],
+    ['z', 100, 7, 100 / 6],
+  ] as const) {
+    const fixed = withNode(seed, { ...recipe, axis, span, count });
+    const legacy = withNode(seed, { kind: 'linear-pattern', parent, axis, count, spacing });
+    const compiled = toPartDocument(fixed), same = toPartDocument(legacy);
+    assert.deepEqual(compiled, same);
+    const [body] = evaluateCadPart(compiled).outputs;
+    const [control] = evaluateCadPart(same).outputs;
+    assert.ok(checkOutput(body).valid);
+    assert.equal(body.bodyCount, count);
+    assert.deepEqual(body.brep, control.brep);
+    assert.ok(Math.abs(massPropertiesOf(body).volume - 480 * count) < 1e-8);
+    const opened = readStudioDoc(JSON.stringify(fixed));
+    assert.ok('doc' in opened);
+    assert.deepEqual(opened.doc, fixed);
+  }
+});
+
+test('fixed span rejects malformed authority, values and references before read or evaluation', () => {
+  for (const [patch, expected] of [
+    [{ spacing: 30 }, /unknown field/i],
+    [{ count: 1 }, /whole-number Count/i],
+    [{ count: 2.5 }, /whole-number Count/i],
+    [{ count: 65 }, /whole-number Count/i],
+    [{ count: { parameter: 'p' } }, /whole-number Count/i],
+    [{ span: 0 }, /finite positive/i],
+    [{ span: -1 }, /finite positive/i],
+    [{ span: Infinity }, /finite positive/i],
+    [{ span: { parameter: 'p' } }, /finite positive/i],
+    [{ span: Number.MIN_VALUE, count: 6 }, /Derived spacing/i],
+    [{ span: 20001, count: 3 }, /Derived spacing/i],
+    [{ axis: 'u' }, /direction X, Y or Z/i],
+    [{ parent: { node: 2, side: 'solid' } }, /preceding body/i],
+    [{ parent: { node: 1, side: 'near' } }, /preceding body/i],
+  ] as const) {
+    const fixed = withNode(seed, recipe);
+    const bad = { ...fixed, nodes: [...fixed.nodes.slice(0, 2), { ...fixed.nodes[2], ...patch, suppressed: true } as ModelNode] };
+    const opened = readStudioDoc(JSON.stringify(bad));
+    assert.ok('error' in opened);
+    assert.match(opened.error, expected);
+    assert.throws(() => toPartDocument(bad), expected);
+  }
+  const max = withNode(seed, { ...recipe, span: 630000, count: 64 });
+  const [compiled] = toPartDocument(max).features.slice(-1);
+  assert.ok(compiled.kind === 'linear-pattern');
+  assert.equal(compiled.spacing, 10000);
+  const nested = { ...seed, instances: [{ doc: withNode(seed, { ...recipe, span: -1 }) }] } as StudioDoc;
+  assert.throws(() => toPartDocument(nested), /finite positive/i);
+});
+
+test('fixed-span editor changes count without binding it and keeps copy picks out of seed editing', () => {
+  const fixed = withNode(seed, recipe);
+  const fields = editFields(fixed.nodes, 2, { p: 90 });
+  const count = fields.find(field => field.key === 'count');
+  const span = fields.find(field => field.key === 'span');
+  assert.ok(count?.kind === 'number' && span?.kind === 'number');
+  assert.ok(!('bind' in count) && !('bind' in span));
+  const nodes = count.set(fixed.nodes, 6);
+  assert.deepEqual(nodes[2], { ...fixed.nodes[2], count: 6 });
+  const result = evaluateDoc({ ...fixed, nodes }, 1);
+  assert.ok(result.ok);
+  const face = result.bodies[0].mesh.faces.find(face => face.name.startsWith('n1.') && face.name.includes('@1'));
+  assert.ok(face);
+  assert.equal(featureOfPick({ faces: [{ body: 0, face: face.index }], edges: [], bodies: [] }, result.bodies, nodes), null);
+});

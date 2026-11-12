@@ -1,0 +1,72 @@
+{
+  "decision": "D834",
+  "tier": "FULL",
+  "parent": "ab78256dbd2be674404cccd63a5ef267f1a9fb3a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d834-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d834-linear-span-model-first",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "gate.sh acquire heavy 600 d834-linear-span-pattern",
+    "node --check apps/cad-studio/test/linear-span-pattern-browser.mjs",
+    "cd apps/cad-studio && D834_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d834-linear-span-full",
+    "cd apps/cad-studio && D832_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/legacy-regression\" --edit-count",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern migrate.test circular-pattern-span feature-handles editFields api-verbs",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test pattern project-open-ownership",
+    "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE/mutations\"",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/editCommand.ts packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/src/engine/doc.ts packages/barocss-cad-model/src/engine/migrate.ts packages/barocss-cad-model/src/engine/part.ts packages/barocss-cad-model/src/engine/linearSpanPattern.ts packages/barocss-cad-model/test/linear-span-pattern.test.ts apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/ui/featureIcon.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "exit": 1,
+    "logSha256": "6e797ebb274bb95f078a896d3990dd69065eaaf8272bb45e75f3eb71cfa7e06c",
+    "failure": "NODE_EXTRA_FIELDS was read during cyclic module initialization."
+  },
+  "desktop": {
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "9c6fa114a387841a41f8436c64956c6fea39119be4cbeef68f3d0ed34d2c3d4e",
+      "frozenSources": 814,
+      "refusedCount": 1,
+      "refusedFileField": "spacing",
+      "firstUndoCount": 4,
+      "firstRedoCount": 6,
+      "nativeComparisonAbsoluteTolerance": 1e-8,
+      "checkpoints": [
+        { "count": 4, "pitch": 30, "span": 90, "outerWidth": 100, "volume": 1920, "corners": 32 },
+        { "count": 6, "pitch": 18, "span": 90, "outerWidth": 100, "volume": 2880, "corners": 48 },
+        { "count": 6, "pitch": 18, "span": 90, "outerWidth": 102, "volume": 3456, "corners": 48 },
+        { "count": 5, "pitch": 22.5, "span": 90, "outerWidth": 102, "volume": 2880, "corners": 40 }
+      ],
+      "savedBytes": 674,
+      "savedSha256": "23cd8843428bde31ed4af3b0322a5334c73ec88784d9f6e221a6632a8f7243bc"
+    },
+    "legacy-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "39df90ebecf4644fbaaf6e51d4442b65377e87c8b96256c3221e7c0688f079f2",
+      "frozenSources": 815
+    }
+  },
+  "allDesktopRuns": { "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 47, "studioPass": 48, "fail": 0, "skip": 0 },
+  "mutations": {
+    "control": "PASS",
+    "mutantsKilled": 6,
+    "runnerSha256": "314c5682423caf6855d4aaa57ff3c0350fca99cd9b1f7fe4fd6fc3358ce3429b",
+    "receiptSha256": "ae871420b3d0f5cf24f41dc1cbb21b6ecf50b40b61e3be0009bda0da20bbbd3e",
+    "singleSourceChanges": ["divide by count", "allow stored spacing", "bypass reader validation", "bypass suppressed document validation", "enable parameter binding", "remove pattern from placing features"]
+  },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "highNativeReview": "PASS",
+  "rootVisualReview": "PASS"
+}

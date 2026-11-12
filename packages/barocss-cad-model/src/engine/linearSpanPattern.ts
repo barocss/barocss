@@ -1,0 +1,47 @@
+import { CadPartLimits } from '@barocss/cad';
+import { NODE_EXTRA_FIELDS } from './doc';
+
+const fields = new Set(['kind', 'parent', 'axis', 'span', 'count']);
+const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
+type Input = { spacing: number } | { code: 'VALUE' | 'BAD_REFERENCE'; message: string };
+
+/** Total span is the only authored distance. Reuse the native pitch and copy limits. */
+export function linearSpanPatternInput(node: Record<string, unknown>, index: number): Input {
+  if (Object.keys(node).some(key => !fields.has(key) && !(NODE_EXTRA_FIELDS as readonly string[]).includes(key))) {
+    return { code: 'VALUE', message: 'Linear pattern total span has an unknown field.' };
+  }
+  const { parent, axis, span, count } = node;
+  if (!record(parent) || Object.keys(parent).some(key => key !== 'node' && key !== 'side')
+    || typeof parent.node !== 'number' || !Number.isInteger(parent.node) || parent.node < 0 || parent.node >= index
+    || typeof parent.side !== 'string' || !/^(solid|negative|positive|instance[123]|part\d+)$/.test(parent.side)) {
+    return { code: 'BAD_REFERENCE', message: 'Linear pattern total span needs a preceding body.' };
+  }
+  if (axis !== 'x' && axis !== 'y' && axis !== 'z') return { code: 'VALUE', message: 'Linear pattern total span needs direction X, Y or Z.' };
+  if (typeof count !== 'number' || !Number.isInteger(count) || count < 2 || count > CadPartLimits.copies) {
+    return { code: 'VALUE', message: `Linear pattern total span requires a whole-number Count from 2 to ${CadPartLimits.copies}.` };
+  }
+  if (typeof span !== 'number' || !Number.isFinite(span) || span <= 0) return { code: 'VALUE', message: 'Total span must be a finite positive distance.' };
+  const spacing = span / (count - 1);
+  if (spacing <= 0 || spacing > CadPartLimits.length) {
+    return { code: 'VALUE', message: `Derived spacing must be positive and at most ${CadPartLimits.length} mm.` };
+  }
+  return { spacing };
+}
+
+/** Check stored recipes, including suppressed and nested source definitions, before evaluation. */
+export function linearSpanPatternProblem(input: unknown): Extract<Input, { code: string }> | null {
+  const stack: unknown[] = [input], seen = new Set<object>();
+  while (stack.length) {
+    const doc = stack.pop();
+    if (!record(doc) || seen.has(doc)) continue;
+    seen.add(doc);
+    if (Array.isArray(doc.nodes)) for (const [index, node] of doc.nodes.entries()) {
+      if (!record(node) || node.kind !== 'linear-span-pattern') continue;
+      const result = linearSpanPatternInput(node, index);
+      if ('code' in result) return result;
+    }
+    if (Array.isArray(doc.instances)) for (const instance of doc.instances) if (record(instance)) stack.push(instance.doc);
+    if (record(doc.pendingParts)) for (const pending of Object.values(doc.pendingParts)) if (record(pending)) stack.push(pending.doc);
+  }
+  return null;
+}

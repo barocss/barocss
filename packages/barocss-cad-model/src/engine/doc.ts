@@ -405,6 +405,7 @@ type ModelNodeBase = DrivenSketchNode | SketchNode | TextNode | TextReliefNode |
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  | { kind: 'linear-span-pattern'; parent: BodyRef; axis: Axis; span: number; count: number }
   /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
   | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   | { kind: 'fill-feature-pattern'; parent: BodyRef; region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: number; spacing2: Dim; count2: number }
@@ -1196,6 +1197,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'mirror': return `${node.keep === false ? 'Reflect' : 'Mirror'} ${node.plane.toUpperCase()}`;
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
+    case 'linear-span-pattern': return `Pattern ×${node.count} · span ${n(node.span)}`;
     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
     case 'fill-feature-pattern': return `Fill cut pattern ${node.count} × ${node.count2}`;
     case 'curve-feature-pattern': return `Path cut pattern ×${node.count}`;
