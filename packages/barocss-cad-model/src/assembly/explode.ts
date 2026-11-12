@@ -27,6 +27,8 @@ export function movedBody(b: BodyResult, d: Vec3): BodyResult {
   for (let i = 0; i < P.length; i++) P[i] += d[i % 3];
   for (let i = 0; i < L.length; i++) L[i] += d[i % 3];
   const add = (p: readonly number[]): Vec3 => [p[0] + d[0], p[1] + d[1], p[2] + d[2]];
-  const mesh: DisplayMesh = { ...m, positions: P, edgeLines: L, faces: m.faces.map(f => ({ ...withoutNativeFaces(f), centroid: add(f.centroid) })), edges: m.edges.map(e => ({ ...e, a: add(e.a), b: add(e.b) })), bounds: { min: add(m.bounds.min), max: add(m.bounds.max) } };
+  const edges = m.edges.map(edge => ({ ...edge, a: add(edge.a), b: add(edge.b),
+    ...(edge.nativeCircle ? { nativeCircle: { ...edge.nativeCircle, centre: add(edge.nativeCircle.centre) } } : {}) }));
+  const mesh: DisplayMesh = { ...m, positions: P, edgeLines: L, faces: m.faces.map(f => ({ ...withoutNativeFaces(f), centroid: add(f.centroid) })), edges, bounds: { min: add(m.bounds.min), max: add(m.bounds.max) } };
   return { ...b, mesh, ...(b.centroid ? { centroid: add(b.centroid) } : {}) };
 }

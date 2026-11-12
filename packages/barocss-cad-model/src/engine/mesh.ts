@@ -6,6 +6,7 @@
 import { closestPointOnSurface, createCylindricalBoreCheck, faceGeometry, pointTriangleDistance2, revolutionOf, surfaceDomain, surfaceEvaluator, surfaceSeedGrid, tessellateBrep, type Brep, type BrepFace, type BrepMesh, type SurfaceSeedGrid } from '@barocss/cad';
 export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
+import { nativeCircleOf, sameNativeCircle, type NativeCircle } from './nativeCircle';
 
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from './vec3';
@@ -33,6 +34,8 @@ export function withoutNativeFaces(face: DisplayFace): DisplayFace {
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
   nativeVertices?: readonly [string, string];
+  /** Circular support shared by every native curve in this display edge. */
+  nativeCircle?: NativeCircle;
 }
 export interface DisplayMesh {
   /** World XYZ millimetres: native bodyMesh retains doubles; legacy display generators can retain floats. */
@@ -198,6 +201,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint
     const source = nativeEdges.get(e.edgeId)!, name = source.name ?? source.id;
     const straight = source.curve.degree === 1 && source.curve.controlPoints.length === 2;
+    const nativeCircle = straight ? undefined : nativeCircleOf(source.curve);
     const a = pts[0], z = pts[pts.length - 1], dir = norm(sub(z, a)), fa = displayOf.get(fs[0])!, fb = displayOf.get(fs[1])!;
     // Pieces between the same two faces show as one edge: collinear straight pieces (grid vertices split
     // them), and curved pieces joined end to end (a circle in halves).
@@ -215,13 +219,14 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
         if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
       }
       delete mate.nativeVertices;
+      if (!nativeCircle || !mate.nativeCircle || !sameNativeCircle(mate.nativeCircle, nativeCircle)) delete mate.nativeCircle;
       mate.names.push(name);
       for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
       continue;
     }
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
     const index = edges.length;
-    const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [name] };
+    const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [name], ...(nativeCircle ? { nativeCircle } : {}) };
     // The tessellator replaces its first and last samples with the two native vertices in this order.
     if (nativePrism && straight && source.vertices[0] !== source.vertices[1] && dir.some(Boolean)) made.nativeVertices = [...source.vertices];
     edges.push(made); if (same) same.push(made); else byPair.set(key, [made]);

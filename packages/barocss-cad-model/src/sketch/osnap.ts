@@ -4,6 +4,7 @@
 // screen; else the 1 mm grid takes it.
 import { CadNumericPolicy } from '@barocss/cad';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { cross, len } from '../engine/vec3';
 import { wellFormedBezier } from './bezier';
 import { toLocal, type SketchPlane } from './plane';
 import { arcOf } from './profile';
@@ -64,35 +65,29 @@ export function shapeSnaps(s: SnapShape, moving = false): SnapPoint[] {
   }
 }
 
-/** The circle through three points (null when in a line). */
-function centre3(a: XY, b: XY, c: XY): XY | null {
-  const d = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])); if (Math.abs(d) < 1e-9) return null;
-  const q = (p: XY) => p[0] * p[0] + p[1] * p[1];
-  return [(q(a) * (b[1] - c[1]) + q(b) * (c[1] - a[1]) + q(c) * (a[1] - b[1])) / d, (q(a) * (c[0] - b[0]) + q(b) * (a[0] - c[0]) + q(c) * (b[0] - a[0])) / d];
-}
 /**
  * The model's snap points in the sketch plane: the ends and middles of edges lying in it (to `tol` mm)
- * and the centres of its curved ones, in plane coordinates.
+ * and the centres of its native circular edges, in plane coordinates.
  */
 export function modelSnaps(meshes: readonly DisplayMesh[], plane: SketchPlane, tol = 1e-3): SnapPoint[] {
   const out: SnapPoint[] = [], n = plane.normal, o = plane.origin;
   const off = (p: readonly number[]) => (p[0] - o[0]) * n[0] + (p[1] - o[1]) * n[1] + (p[2] - o[2]) * n[2];
   const round = (p: XY): XY => [Math.round(p[0] * 1e4) / 1e4, Math.round(p[1] * 1e4) / 1e4];
   for (const m of meshes) {
-    // Each edge's polyline (its display segments).
-    const pts = new Map<number, Vec3[]>();
-    for (let s = 0; s < m.edgeOfSegment.length; s += 2) {
-      const e = m.edgeOfSegment[s], L = m.edgeLines, k = s * 3;
-      const list = pts.get(e) ?? []; list.push([L[k], L[k + 1], L[k + 2]]); pts.set(e, list);
+    // CPU clipping can retain an edge's identity and a zero-length segment at a tangent.
+    const visible = new Set<number>(), lines = m.edgeLines;
+    for (let i = 0; i < lines.length; i += 6) {
+      if (lines[i] !== lines[i + 3] || lines[i + 1] !== lines[i + 4] || lines[i + 2] !== lines[i + 5]) visible.add(m.edgeOfSegment[i / 3]);
     }
     for (const e of m.edges) {
       if (Math.abs(off(e.a)) > tol || Math.abs(off(e.b)) > tol) continue;
       const a = toLocal(plane, [...e.a] as Vec3), b = toLocal(plane, [...e.b] as Vec3);
       if (e.straight) { out.push({ at: round(a), kind: 'end' }, { at: round(b), kind: 'end' }, { at: round(mid(a, b)), kind: 'mid' }); continue; }
-      const poly = pts.get(e.index) ?? [];
-      if (poly.length >= 3 && poly.every(p => Math.abs(off(p)) < tol * 10)) {
-        const q = [poly[0], poly[Math.floor(poly.length / 3)], poly[Math.floor(2 * poly.length / 3)]].map(p => toLocal(plane, p));
-        const c = centre3(q[0], q[1], q[2]); if (c) out.push({ at: round(c), kind: 'centre' });
+      const circle = e.nativeCircle;
+      if (circle && visible.has(e.index) && circle.radius > 0 && Math.abs(len(circle.normal) - 1) <= 1e-9
+        && Math.abs(off(circle.centre)) + circle.radius * len(cross(n, circle.normal)) <= tol) {
+        const centre = toLocal(plane, circle.centre);
+        if (inRange(centre)) out.push({ at: round(centre), kind: 'centre' });
       }
       if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 1e-6) out.push({ at: round(a), kind: 'end' }, { at: round(b), kind: 'end' });
     }
