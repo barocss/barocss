@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D768 — restore the prior recovery after a failed autosave](notes/autosave-write-denial-and-restore-2026-11-12/README.md).
 - [D767 — verify an edit during a pending version operation](notes/project-version-concurrent-edit-2026-11-12/README.md).
 - [D766 — verify late branch receipts after a project owner change](notes/project-branch-receipt-owner-2026-11-12/README.md).
 - [D765 — verify branch switch, compatible merge and conflict refusal](notes/project-branch-merge-and-conflict-2026-11-12/README.md).

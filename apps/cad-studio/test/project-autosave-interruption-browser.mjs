@@ -4,7 +4,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-const project = 'D596 autosave interruption', file = 'D596-plate.bcad';
+const writeDenial = process.argv.includes('--with-write-denial');
+const project = writeDenial ? 'D768 autosave recovery' : 'D596 autosave interruption';
+const file = 'D596-plate.bcad';
 const original = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: { H: 10 },
   nodes: [
@@ -17,14 +19,19 @@ const pins = ['apps/cad-studio/test/project-autosave-interruption-browser.mjs', 
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/app/projectOpenFit.ts', 'apps/cad-studio/src/storage/useProject.ts',
   'apps/cad-studio/src/storage/project.ts', 'apps/cad-studio/src/storage/handleStore.ts'];
 const f = await createFlow({
-  name: 'project-autosave-interruption', envFrozen: 'D596_SOURCE_FROZEN', output,
-  qualification: 'Actual browser recovery when the first native autosave close is interrupted',
+  name: 'project-autosave-interruption', envFrozen: writeDenial ? 'D768_SOURCE_FROZEN' : 'D596_SOURCE_FROZEN', output,
+  qualification: writeDenial ? 'B08-05 native autosave interruption, denial and later Restore' :
+    'Actual browser recovery when the first native autosave close is interrupted',
   initialFiles: pins, requiredFrozen: pins,
-  limits: ['Desktop Chrome OPFS, one project, one part. Hold the real writable close until reload.'],
+  limits: ['Desktop Chrome OPFS, one project, one part. Hold the real writable close until reload.',
+    'Optional NotAllowedError injection affects one native autosave write.'],
   snapshotExtra: () => ({
     autosaveOffer: !!document.querySelector('[aria-label="Autosaved work"]'),
     interruptedClose: window.__d596.held,
     openReady: window.__d596.openReady,
+    rejectedWrites: window.__d596.rejected,
+    abortedWrites: window.__d596.aborted,
+    dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
   }),
 });
 
@@ -50,15 +57,31 @@ function installScheduler({ project, file }) {
     return handle;
   };
   const target = 'projects/' + project + '/.barocss/autosave/' + file;
-  const state = { armed: false, held: 0, committed: 0, openReady: 0 };
+  const state = { armed: false, held: 0, committed: 0, openReady: 0, denyWrite: false, rejected: 0, aborted: 0 };
   const nativeWritable = FileSystemFileHandle.prototype.createWritable;
   FileSystemFileHandle.prototype.createWritable = async function (...args) {
     const stream = await nativeWritable.apply(this, args);
     streams.set(stream, files.get(this));
     return stream;
   };
-  const nativeClose = FileSystemWritableFileStream.prototype.close;
-  FileSystemWritableFileStream.prototype.close = async function (...args) {
+  const stream = FileSystemWritableFileStream.prototype;
+  const nativeWrite = stream.write, nativeClose = stream.close, nativeAbort = stream.abort;
+  const rejected = new WeakSet();
+  stream.write = async function (...args) {
+    if (streams.get(this) === target && state.denyWrite) {
+      state.denyWrite = false;
+      state.rejected++;
+      rejected.add(this);
+      throw new DOMException('Injected autosave write denial', 'NotAllowedError');
+    }
+    return nativeWrite.apply(this, args);
+  };
+  stream.abort = async function (...args) {
+    const result = await nativeAbort.apply(this, args);
+    if (rejected.has(this)) state.aborted++;
+    return result;
+  };
+  stream.close = async function (...args) {
     if (streams.get(this) !== target) return nativeClose.apply(this, args);
     if (state.armed) {
       state.armed = false;
@@ -166,9 +189,23 @@ await f.run(async () => {
   const completed = await projectFiles();
   assert.deepEqual(JSON.parse(completed.recovery), newer.doc);
   assert.equal(completed.saved, initial.saved);
-  await f.page.evaluate(() => { window.__d596.armed = true; });
-  await f.setParameter('H', 12, '04-interrupted-overwrite');
-  await f.page.waitForFunction(() => window.__d596.held === 1);
+  if (writeDenial) {
+    await f.page.evaluate(() => { window.__d596.denyWrite = true; });
+    await f.setParameter('H', 12, '04-edit-with-denied-overwrite');
+    f.phase = 'verify current write-denial feedback and prior committed bytes';
+    await f.page.waitForFunction(() => window.__d596.aborted === 1);
+    const warning = await f.waitToast(/automatic recovery is unavailable/i);
+    assert.match(warning, /browser does not allow/i);
+    const state = await f.snapshot('04b-write-denial-feedback');
+    assert.equal(state.rejectedWrites, 1);
+    assert.equal(state.abortedWrites, 1);
+    assert.equal(state.dirty, true);
+    assert.equal(state.doc.parameters.H, 12);
+  } else {
+    await f.page.evaluate(() => { window.__d596.armed = true; });
+    await f.setParameter('H', 12, '04-interrupted-overwrite');
+    await f.page.waitForFunction(() => window.__d596.held === 1);
+  }
   f.phase = 'reopen with a previous committed autosave';
   assert.deepEqual(await projectFiles(), completed);
   await reopen(original);
@@ -177,6 +214,12 @@ await f.run(async () => {
   await f.snapshot('05-previous-autosave-offered');
   await offer().getByRole('button', { name: 'Restore autosaved work', exact: true }).click();
   await f.same(newer.doc);
+  if (writeDenial) {
+    const restored = await f.snapshot('05b-restored-prior-recovery');
+    assert.equal(restored.dirty, true);
+    assert.equal(restored.autosaveOffer, false);
+    assert.deepEqual(await projectFiles(), completed);
+  }
   await button('Save').click();
   await f.page.locator('[aria-label="Unsaved changes"]').waitFor({ state: 'hidden' });
   f.phase = 'reopen a saved-equal recovery and retain true corruption feedback';
