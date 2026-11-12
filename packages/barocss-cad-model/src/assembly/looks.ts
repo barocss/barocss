@@ -5,10 +5,10 @@
 // of the part: one whose body the revision no longer has is held (listed, never dropped, never aimed at another body).
 import type { BodyLook, InstanceLook, ModelNode, PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { lookKey, rootOf } from '../app/lookKey';
+import { bodyLookRef, lookKey } from '../app/lookKey';
 import { refOf } from '../app/bodyRef';
-import { bodyKeyFor, featureId, featureIdsOf, nodeIndexOf, serialOf } from '../engine/ids';
-import { leafBodies } from '../engine/doc';
+import { featureId, featureIdsOf, nodeIndexOf, serialOf } from '../engine/ids';
+import { bodyKey, leafBodies } from '../engine/doc';
 import { flatFaceOf, serialOriginOf, splitPart } from '../engine/occurrences';
 import { refusal } from '../engine/refusal';
 import { MATERIALS } from '../library/materials';
@@ -131,8 +131,8 @@ export interface LookTarget { path: string[]; key: string }
 export function lookTargetsOf(host: PartInstance, nodes: readonly ModelNode[], bodies: readonly BodyResult[]): LookTarget[] {
   return bodies.map(b => {
     if (!/^b\d+(_.+)?$/.test(b.key)) return { path: [], key: b.key };
-    const ref = refOf(b), root = rootOf(nodes, ref.node), s = serialOf(featureId(nodes, root));
-    const side = ref.side === 'negative' || ref.side.startsWith('part') ? ref.side : 'solid';
+    const { node, side } = bodyLookRef(nodes, refOf(b));
+    const s = serialOf(featureId(nodes, node));
     if (s < 0) return { path: [], key: lookKey(nodes, b) };
     const at = serialOriginOf(host.doc, s);
     return { path: at.path, key: `b${at.serial}${side === 'solid' ? '' : `_${side}`}` };
@@ -182,10 +182,7 @@ export function lookKeysOf(doc: StudioDoc): Set<string> {
   const out = new Set<string>();
   // (A suppressed feature neither consumes what it is built on nor makes a body: left in place by index, as a sketch is, which does neither.)
   const live = doc.nodes.map(n => n.suppressed ? { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [0, 0] } as unknown as typeof n : n);
-  for (const ref of leafBodies(live)) {
-    const root = rootOf(doc.nodes, ref.node);
-    out.add(bodyKeyFor(doc.nodes, root, ref.side === 'negative' || ref.side.startsWith('part') ? ref.side : 'solid'));
-  }
+  for (const ref of leafBodies(live)) out.add(bodyKey(bodyLookRef(doc.nodes, ref), doc.nodes));
   return out;
 }
 /** Whether a body key can name a body of the document: the feature it is first made by is there and is a solid. */

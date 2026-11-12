@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, placedBase, placedDoc, rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, placedBase, placedDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { lookKey } from '../src/app/bodies';
+import { lookKey, lookOf } from '../src/app/bodies';
 import { acceptRevision, makeIndependent, offerRevision } from '../src/assembly/definitions';
 import { addInstancePattern } from '../src/assembly/patterns';
-import { heldByRevision, heldLooks, instanceLookByKey, instanceLookOf, instanceLooksListing, looksDocOf, looksOf, looksOnFold, lookTargetsOf, resetInstanceLook, setInstanceLook } from '../src/assembly/looks';
+import { heldByRevision, heldLooks, instanceLookByKey, instanceLookOf, instanceLooksListing, looksDocOf, looksOf, looksOnFold, lookKeysOf, lookTargetsOf, resetInstanceLook, setInstanceLook } from '../src/assembly/looks';
 import { bomResult, freshnessOf, massResult } from '../src/team/freshness';
 import { materialsOf } from '../src/team/bundle';
 import { partsOf, robotViewOf } from '../src/robot/verbs';
@@ -145,6 +145,25 @@ test('a placed (moved) body finds its definition\'s look: the key of its last mo
   // The unplaced evaluation (placedBase) agrees.
   const base = evaluatePart(placedBase(i), 1); assert.ok(base.ok);
   assert.deepEqual(lookTargetsOf(i, placedBase(i).nodes, base.bodies)[0], t);
+});
+
+test('moving a Split side keeps the stored definition and occurrence look keys distinct', () => {
+  const split = withNode(rectanglePart(60, 30, 10), { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', at: 24 });
+  const moved = withNode(split, { kind: 'translate', parent: { node: 2, side: 'negative' }, offset: [0, 40, 0] });
+  const def: StudioDoc = { ...moved, bodies: { b1_negative: { material: 'steel', hidden: true }, b1: { material: 'abs' } } };
+  const bodies = bodiesOf(def);
+  const negative = bodies.find(b => b.key === 'b3')!, positive = bodies.find(b => b.key === 'b2_positive')!;
+  assert.deepEqual([lookOf(def, negative), lookOf(def, positive)], [{ material: 'steel', hidden: true }, { material: 'abs' }]);
+  assert.deepEqual(lookKeysOf(def), new Set(['b1', 'b1_negative']));
+
+  const i = at('p1', def, 45);
+  const placed = placedDoc(i, asm(i)), result = evaluatePart(placed, 1);
+  assert.ok(result.ok);
+  const targets = lookTargetsOf(i, placed.nodes, result.bodies);
+  assert.deepEqual(new Set(targets.map(target => target.key)), new Set(['b1', 'b1_negative']));
+  const looks = looksOf(i, targets);
+  const actual = new Map(targets.map((target, index) => [target.key, looks[index].material]));
+  assert.deepEqual(actual, new Map([['b1', 'abs'], ['b1_negative', 'steel']]));
 });
 
 // A part of two solids: b1 and b3. The revision keeps only the first.

@@ -1,0 +1,83 @@
+{
+  "decision": "D789",
+  "tier": "SMALL",
+  "parent": "17fcbce5985c359c3c9bcc39655f1109bca59965",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/split-side-material-browser.mjs",
+    "cd apps/cad-studio && D789_SOURCE_FROZEN=1 node test/split-side-material-browser.mjs \"$EVIDENCE/desktop-before\"",
+    "cd apps/cad-studio && D789_SOURCE_FROZEN=1 node test/split-side-material-browser.mjs \"$EVIDENCE/desktop-before-2\"",
+    "cd apps/cad-studio && D789_SOURCE_FROZEN=1 node test/split-side-material-browser.mjs \"$EVIDENCE/desktop-after\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test instance-looks bodies bom-base api-core-lookup team-freshness",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d789-split-material",
+    "evidenceFolder": "d789-2026-11-12",
+    "firstDesktop": {
+      "status": "FAIL",
+      "sha256": "d421c2a6c76fd74e1650de7bdfaa2cf1a5e9d8c0f22dfc0a57871b333e23670a",
+      "cause": "The driver looked for the BOM command while its Inspect group was collapsed."
+    },
+    "productBaseline": {
+      "status": "FAIL",
+      "sha256": "2b598c1625a0b489ea06e90812908363669128dbcd6d527fab839752d6bc62fe",
+      "materialsAfterMove": [
+        "abs",
+        "abs"
+      ],
+      "displayedMassG": 18.7,
+      "bothBodiesHidden": true
+    },
+    "desktop": {
+      "status": "PASS",
+      "sha256": "3fe38377f4c43e35a584bce9db70afd4be88acc92f92b903dff954163ffbe602",
+      "frozenSources": 338,
+      "preparedInputSHA256": "9e72137358a3caee4867621ca4fb78b81491778eb76dbbebe281da3328f89886",
+      "sourceSaveBytes": 1212,
+      "sourceSaveSHA256": "6121589b53444727804dd4e4e4dcc1c889d10acad7bf891639916a2f2b134910",
+      "materialsAfterMove": [
+        "steel",
+        "abs"
+      ],
+      "onlyMovedBodyHidden": true,
+      "displayedMassG": [
+        67.8,
+        80
+      ],
+      "errors": 0,
+      "downloads": 0
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 47,
+      "fail": 0,
+      "skip": 0
+    },
+    "cutsMm": [
+      24,
+      30
+    ],
+    "negativeMoveMm": [
+      0,
+      40,
+      0
+    ],
+    "densitiesGPerCm3": [
+      7.85,
+      1.04
+    ],
+    "analyticMassG": [
+      67.752,
+      80.01
+    ],
+    "independentVolumeAbsoluteToleranceMm3": 1e-08
+  }
+}
