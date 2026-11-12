@@ -133,14 +133,16 @@ function syncDirectory(path: string) {
 type PreparedHandoff = Awaited<ReturnType<typeof prepareTaskRunHandoff>>;
 
 function handoffRunKey({ config, tasks, replaces }: PreparedHandoff) {
-  return digestOf({ source: config.sourceSHA256, occurrences: tasks.map(task => task.id).sort(), ...(replaces && { replaces }) });
+  const retainedBoxes = config.plan.tasks.filter(task => task.retainBoxCommand).map(task => task.id).sort();
+  return digestOf({ source: config.sourceSHA256, occurrences: tasks.map(task => task.id).sort(),
+    ...(retainedBoxes.length && { retainedBoxes }), ...(replaces && { replaces }) });
 }
 
 function inspectHandoffRun(directory: string, runKey: string, { config, tasks, replaces }: PreparedHandoff, reused: boolean): TaskRunLaunch {
   const record = TaskRunStore.inspect(directory);
   const source = record.commits[0]?.from ?? record.accepted;
-  const scopes = (plan: typeof config.plan) => plan.tasks.map(({ id, occurrence, feature, capability, units, frame }) =>
-    ({ id, occurrence, feature, capability, units, frame })).sort((a, b) => a.id.localeCompare(b.id));
+  const scopes = (plan: typeof config.plan) => plan.tasks.map(({ id, occurrence, feature, capability, units, frame, retainBoxCommand }) =>
+    ({ id, occurrence, feature, capability, units, frame, ...(retainBoxCommand && { retainBoxCommand }) })).sort((a, b) => a.id.localeCompare(b.id));
   if ((replaces && source.sha256 !== config.sourceSHA256) || source.modelDigest !== config.modelDigest
     || digestOf(record.replacement?.previous ?? null) !== digestOf(replaces ?? null)
     || digestOf(record.state.plan.identity) !== digestOf(config.plan.identity)
@@ -171,7 +173,8 @@ async function verifyReplacement(root: string, { replaces, doc, offer }: Prepare
   if ('error' in original || original.notes.length || digestOf(original.doc) !== baselineDigest)
     throw new LocalRunRequestError(409, 'The original local run baseline cannot be verified.');
   try {
-    if (digestOf(planWorkingTaskReplacement(original.doc, doc, replaces.pin)) !== digestOf(offer))
+    const retainScalarBoxes = offer.targets.some(target => target.retainBoxCommand);
+    if (digestOf(planWorkingTaskReplacement(original.doc, doc, replaces.pin, retainScalarBoxes)) !== digestOf(offer))
       throw new Error('The replacement targets do not match the revised model.');
   } catch (error) {
     throw new LocalRunRequestError(409, error instanceof Error ? error.message : 'The replacement plan is invalid.');

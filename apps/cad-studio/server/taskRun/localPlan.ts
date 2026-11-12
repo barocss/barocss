@@ -7,8 +7,8 @@ import type { RunLimits } from './store';
 const FORMAT = 'barocss-local-height-plan';
 const DIMENSION_FORMAT = 'barocss-local-dimension-plan';
 
-export function deriveLocalRunPlan(doc: StudioDoc, source: string, sourceSHA256: string, occurrences: readonly string[]) {
-  const inspection = inspectLocalHeightPlan(doc, occurrences, { projectId: 'local-native', documentId: digestOf(source) });
+export function deriveLocalRunPlan(doc: StudioDoc, source: string, sourceSHA256: string, occurrences: readonly string[], retainScalarBoxes = true) {
+  const inspection = inspectLocalHeightPlan(doc, occurrences, { projectId: 'local-native', documentId: digestOf(source) }, { retainScalarBoxes });
   if ('error' in inspection) throw new Error(inspection.error.message);
   const { request, plan, targets, issues } = inspection;
   if (issues.length) throw new Error(issues[0].message);
@@ -27,5 +27,6 @@ export function localRunPlanInputs(value: unknown) {
     if (!isObj(task) || typeof task.occurrence !== 'string') throw new Error('Expected the plan occurrence IDs.');
     return task.occurrence;
   });
-  return { source: value.source, sourceSHA256: value.sourceSHA256, occurrences };
+  return { source: value.source, sourceSHA256: value.sourceSHA256, occurrences,
+    retainScalarBoxes: value.plan.tasks.some(task => isObj(task) && task.retainBoxCommand === true) };
 }

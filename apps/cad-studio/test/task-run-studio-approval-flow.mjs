@@ -7,7 +7,7 @@ const base = '/api/chat/task-runs/';
 const matches = action => response => new URL(response.url()).pathname === base + action && response.request().method() === 'POST';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 
-export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver, siblingDiameter = false, baseFootprint = false }) {
+export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved, bytes, openFile, deliver, siblingDiameter = false, baseFootprint = false, boxScalarAxis }) {
   const run = launch.directory, file = join(run, 'run.json');
   const durable = async () => ({ bytes: await readFile(file), entries: (await readdir(run)).sort() });
   const review = f.page.getByRole('region', { name: 'Worker candidate review', exact: true });
@@ -19,7 +19,8 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
     const [response] = await Promise.all([f.page.waitForResponse(matches('review')), button(row, 'Review candidate ' + id).click()]);
     assert.equal(response.status(), 200);
     const envelope = await response.json(), { receipt, digest } = JSON.parse(envelope.review);
-    const dimension = baseFootprint && id === 'p1' ? 'Width × Depth' : siblingDiameter && id === 'p2' ? 'Diameter' : 'Height';
+    const dimension = id === 'p1' && baseFootprint ? 'Width × Depth' : id === 'p1' && boxScalarAxis
+      ? (boxScalarAxis === 'width' ? 'Width' : 'Depth') : siblingDiameter && id === 'p2' ? 'Diameter' : 'Height';
     await review.getByText(dimension + ' · ' + before + ' mm → ' + after + ' mm', { exact: true }).waitFor();
     assert.equal(await button(review, 'Approve candidate').isEnabled(), true);
     assert.equal(receipt.submission.taskId, id);
@@ -31,13 +32,17 @@ export async function taskRunStudioApprovalFlow({ f, row, launch, source, saved,
   const retired = await readReview('p2', ...(siblingDiameter ? [4, 6] : [3, 4]));
   await button(review, 'Show accepted model').click();
   assert.equal(await button(review, 'Approve candidate').isDisabled(), true);
-  const request = baseFootprint ? await readReview('p1', '20 × 10', '24 × 14') : await readReview('p1', 5, 6);
-  if (baseFootprint) {
-    await review.getByText('Volume change · +680 mm³', { exact: true }).waitFor();
-    await f.page.waitForFunction(() => {
+  const request = baseFootprint ? await readReview('p1', '20 × 10', '24 × 14')
+    : boxScalarAxis === 'width' ? await readReview('p1', 20, 24)
+    : boxScalarAxis === 'depth' ? await readReview('p1', 10, 14) : await readReview('p1', 5, 6);
+  if (baseFootprint || boxScalarAxis) {
+    const change = boxScalarAxis === 'width' ? 200 : boxScalarAxis === 'depth' ? 400 : 680;
+    const max = boxScalarAxis === 'width' ? '27,7,5' : boxScalarAxis === 'depth' ? '23,11,5' : '27,11,5';
+    await review.getByText('Volume change · +' + change + ' mm³', { exact: true }).waitFor();
+    await f.page.waitForFunction(max => {
       const base = window.__studioInstanceBounds?.().find(row => row.id === 'p1');
-      return base && base.min.join(',') === '3,-3,0' && base.max.join(',') === '27,11,5';
-    });
+      return base && base.min.join(',') === '3,-3,0' && base.max.join(',') === max;
+    }, max);
   }
   await f.same(source);
   await f.snapshot('07-studio-review-before-approval');

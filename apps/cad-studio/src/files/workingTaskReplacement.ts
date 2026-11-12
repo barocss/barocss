@@ -21,7 +21,7 @@ function criterion(req: Requirement, { field, feature }: TaskRunReplanPin): bool
 }
 
 /** Preserve the accepted geometry and history while replanning the selected occurrence's edited requirements. */
-export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioDoc, pin: TaskRunReplanPin): TaskRunOffer {
+export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioDoc, pin: TaskRunReplanPin, retainScalarBoxes = true): TaskRunOffer {
   const strip = (doc: StudioDoc) => ({
     ...doc, history: undefined, proposals: undefined,
     instances: doc.instances?.map(part => part.id === pin.occurrence
@@ -49,7 +49,7 @@ export function planWorkingTaskReplacement(baseline: StudioDoc, working: StudioD
     throw new Error('Save a changed stated dimension for this occurrence before replanning.');
 
   const occurrences = [pin.occurrence];
-  const inspection = inspectLocalHeightPlan(working, occurrences, { projectId: 'studio', documentId: 'working-model' });
+  const inspection = inspectLocalHeightPlan(working, occurrences, { projectId: 'studio', documentId: 'working-model' }, { retainScalarBoxes });
   if ('error' in inspection) throw new Error(inspection.error.message);
   if (inspection.issues.length) throw new Error(inspection.issues[0].message);
   const { targets } = inspection, [task] = inspection.plan.tasks, [target] = targets;

@@ -7,13 +7,16 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false }) {
-  const prefix = boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false, boxScalarAxis }) {
+  const prefix = boxScalarAxis ? 'd781-' + boxScalarAxis : boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
   const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
-  const baseHeight = baseFootprint ? 5 : 6;
+  const rectangle = baseFootprint || !!boxScalarAxis, standardBox = boxFootprint || !!boxScalarAxis;
+  const approvedSize = [boxScalarAxis === 'depth' ? 20 : 24, boxScalarAxis === 'width' ? 10 : 14];
+  const editedSize = [boxScalarAxis === 'depth' ? 20 : 25, boxScalarAxis === 'width' ? 10 : 15];
+  const baseHeight = rectangle ? 5 : 6;
   const firstHeights = [baseHeight, siblingDiameter ? 6 : 3], finalHeights = [baseHeight, siblingDiameter ? 6 : 4];
-  const originalDimensions = [baseFootprint ? [20, 10] : [5], [siblingBefore]];
-  const finalDimensions = [baseFootprint ? [24, 14] : [6], [siblingAfter]];
+  const originalDimensions = [baseFootprint ? [20, 10] : boxScalarAxis === 'width' ? [20] : boxScalarAxis === 'depth' ? [10] : [5], [siblingBefore]];
+  const finalDimensions = [baseFootprint ? [24, 14] : boxScalarAxis === 'width' ? [24] : boxScalarAxis === 'depth' ? [14] : [6], [siblingAfter]];
   const directory = launch.directory, runFile = join(directory, 'run.json');
   const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   const files = () => versions().getByRole('list', { name: 'Project documents', exact: true });
@@ -76,11 +79,11 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   const originalEvidence = await checkDimensions(prefix + '-source', source, originalDimensions, 'fail');
   const first = await openCheckpoint(firstStatus, prefix + '-first', saved, firstHeights);
   const firstDoc = JSON.parse(first);
-  if (baseCylinder || baseFootprint) {
+  if (baseCylinder || rectangle) {
     const instances = structuredClone(source.instances);
-    if (baseFootprint) instances[0].doc.nodes[0].max = [27, 11];
+    if (rectangle) instances[0].doc.nodes[0].max = [3 + approvedSize[0], -3 + approvedSize[1]];
     else instances[0].doc.nodes[1].height = 6;
-    if (boxFootprint) Object.assign(instances[0].doc.nodes[1].made.values, { w: 24, d: 14 });
+    if (standardBox) Object.assign(instances[0].doc.nodes[1].made.values, { w: approvedSize[0], d: approvedSize[1] });
     assert.deepEqual(firstDoc.instances, instances);
   }
   await f.snapshot('09-first-studio-checkpoint');
@@ -163,20 +166,21 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     assert.deepEqual([actual.face.kind, actual.face.outer, actual.face.radius], ['cylinder', false, 3]);
     assert.ok(Math.abs(actual.volumeMm3 - (1200 - 9 * Math.PI) * 6) < 1e-8);
   }
-  if (baseFootprint) {
+  if (rectangle) {
     const footprint = await f.inspect(prefix + '-approved-footprint', reopened.doc, 'footprint-native-evidence');
-    await f.runOracle({ footprint, edited: false }, prefix + '-approved');
+    await f.runOracle({ footprint, edited: false, axis: boxScalarAxis }, prefix + '-approved');
 
-    f.phase = 'edit both extents of the approved native rectangle in Studio';
+    f.phase = 'edit the approved native rectangle in Studio';
     await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Base' }).click();
     await button(f.page.getByRole('complementary', { name: 'Instance', exact: true }), 'Edit part').click();
     const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
     await banner.waitFor();
     await f.same(doc.instances[0].doc);
-    if (boxFootprint) {
-      await button(f.page, 'Box 24×14×5').waitFor();
+    const boxLabel = 'Box ' + approvedSize.join('×') + '×5';
+    if (standardBox) {
+      await button(f.page, boxLabel).waitFor();
       await f.openFeatureEditor(1, 'approved Box');
-      const handle = f.page.locator('g.gizmo-handle[data-handle="d"]');
+      const handle = f.page.locator('g.gizmo-handle[data-handle="' + (boxScalarAxis === 'depth' ? 'w' : 'd') + '"]');
       await handle.waitFor();
       const [head, tail] = await Promise.all([handle.locator('polygon').boundingBox(), handle.locator('circle').boundingBox()]);
       assert.ok(head && tail);
@@ -190,10 +194,11 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
       await f.page.mouse.up();
       const hud = f.page.getByRole('dialog', { name: 'Edit Box', exact: true });
       await hud.waitFor();
-      for (const [label, value] of [['Width X', 24], ['Height Z', 5], ['At X', 3], ['At Y', -3], ['At Z', 0]])
+      const untouched = boxScalarAxis === 'depth' ? ['Depth Y', approvedSize[1]] : ['Width X', approvedSize[0]];
+      for (const [label, value] of [untouched, ['Height Z', 5], ['At X', 3], ['At Y', -3], ['At Z', 0]])
         assert.equal(Number(await hud.getByLabel(label, { exact: true }).inputValue()), value);
-      await hud.getByLabel('Width X', { exact: true }).fill('25');
-      await hud.getByLabel('Depth Y', { exact: true }).fill('15');
+      await hud.getByLabel('Width X', { exact: true }).fill(String(editedSize[0]));
+      await hud.getByLabel('Depth Y', { exact: true }).fill(String(editedSize[1]));
       await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent?.trim() === 'preview');
       await button(hud, 'Apply').click();
       await hud.waitFor({ state: 'hidden' });
@@ -207,8 +212,8 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
       await button(f.editor(), 'Apply').click();
     }
     const revised = structuredClone(doc.instances[0].doc);
-    revised.nodes[0].max = [28, 12];
-    if (boxFootprint) Object.assign(revised.nodes[1].made.values, { w: 25, d: 15 });
+    revised.nodes[0].max = [3 + editedSize[0], -3 + editedSize[1]];
+    if (standardBox) Object.assign(revised.nodes[1].made.values, { w: editedSize[0], d: editedSize[1] });
     await f.same(revised);
     await f.closeEditor();
     await button(banner, 'Finish').click();
@@ -217,8 +222,8 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     const edited = await f.snapshot('13-native-footprint-edit');
     assert.deepEqual(edited.doc.instances, [{ ...doc.instances[0], doc: revised }, doc.instances[1]]);
     const changed = await f.inspect(prefix + '-edited-footprint', edited.doc, 'footprint-native-evidence');
-    await f.runOracle({ footprint: changed, edited: true }, prefix + '-edited');
-    if (boxFootprint) {
+    await f.runOracle({ footprint: changed, edited: true, axis: boxScalarAxis }, prefix + '-edited');
+    if (standardBox) {
       f.phase = 'save and reopen the second Box edit';
       const dirty = f.page.locator('.doc-tab [aria-label="Unsaved changes"]');
       await dirty.waitFor();
@@ -237,8 +242,8 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
       assert.deepEqual(await savedBytes(name), projectBytes);
       await f.snapshot('14-box-reedited-project-open');
     }
-    f.report.observations.push({ footprintMm: [[20, 10], [24, 14], [25, 15]], approved: footprint, edited: changed,
-      ...(boxFootprint ? { reopenedBoxLabel: 'Box 24×14×5', boxHudEditedAndSaved: true } : {}) });
+    f.report.observations.push({ footprintMm: [[20, 10], approvedSize, editedSize], approved: footprint, edited: changed,
+      ...(standardBox ? { reopenedBoxLabel: boxLabel, boxHudEditedAndSaved: true } : {}) });
   }
   if (baseCylinder) {
     const cylinder = await f.inspect(prefix + '-approved-cylinder', reopened.doc, 'cylinder-native-evidence');

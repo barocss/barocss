@@ -371,6 +371,74 @@ test('D780 Box footprint approval preserves the editable command and exact check
   refuses(compileTaskPlan(stale, planInputs.request), 'UNSUPPORTED_PROFILE');
 });
 
+for (const axis of ['width', 'depth'] as const) test(`D781 retains the Box after a scalar ${axis} approval and keeps legacy replay`, async () => {
+  const doc = assembly(), [base, lid] = doc.instances!;
+  delete doc.interfaces;
+  const values = { w: '20', d: '10', h: 5, x: 0.13, y: 0.13, z: 0, up: '+z' };
+  const box = commandById('box')!.build!({ doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } }, values);
+  const requirement = height(axis, 1);
+  requirement.check.query = { fn: 'bbox', axis: axis === 'width' ? 'x' : 'y' };
+  base.doc = { ...box, requirements: [requirement] };
+  lid.doc = { ...rectanglePart(12, 8, 3), requirements: [height('lid-height', 3)] };
+
+  const expectedValues = { ...values, [axis === 'width' ? 'w' : 'd']: 1 };
+  const [sketch, extrusion] = box.nodes;
+  assert.ok(sketch.kind === 'sketch' && sketch.profile === 'rectangle' && extrusion.kind === 'extrude' && extrusion.made);
+  const max = [...sketch.max];
+  max[axis === 'width' ? 0 : 1] = 0.13 + 1;
+  const expectedSketch = { ...sketch, max };
+  const expectedExtrusion = { ...extrusion, made: { ...extrusion.made, values: expectedValues } };
+  const current = inspectLocalHeightPlan(doc, ['p1'], identity);
+  const legacy = inspectLocalHeightPlan(doc, ['p1'], identity, { retainScalarBoxes: false });
+  assert.ok(!('error' in current) && !('error' in legacy));
+  assert.deepEqual([current.issues, legacy.issues], [[], []]);
+  assert.equal(current.targets[0].retainBoxCommand, true);
+  assert.equal(legacy.targets[0].retainBoxCommand, undefined);
+  assert.notEqual(current.plan.tasks[0].inputDigest, legacy.plan.tasks[0].inputDigest);
+
+  for (const inspected of [current, legacy]) {
+    const retained: boolean = inspected === current;
+    const { plan, state, context } = setup(doc, { ...inspected.request, policyRevision });
+    const [task] = plan.tasks;
+    assert.equal(task.retainBoxCommand, retained ? true : undefined);
+    const worker = { ...context, worker: task.holder };
+    const submission = taskSubmissionForDimension({ taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest }, axis, 1);
+    const candidate = await buildTaskCandidate(plan, state, submission, worker, evaluate);
+    assert.ok(!('error' in candidate), JSON.stringify(candidate));
+    assert.ok(Math.abs(candidate.geometry.volumeMm3 - (axis === 'width' ? 50 : 100)) < 1e-8);
+    const decision = bindTaskDecision(candidate, true, userToken(at));
+    assert.ok(!('error' in decision));
+    const result = await applyTaskDecision(decision, state, worker, evaluate);
+    assert.ok(!('error' in result), JSON.stringify(result));
+    const accepted = result.doc.instances![0].doc;
+    assert.deepEqual(accepted.nodes, [expectedSketch, retained ? expectedExtrusion : extrusion]);
+    assert.deepEqual(result.doc.instances![1], lid);
+    const before = taskTarget(doc, task), after = taskTarget(result.doc, task);
+    assert.ok(!('error' in before) && !('error' in after));
+    const reconstructed = taskDimensionEdit(doc, task, before, after.value);
+    assert.ok(!('error' in reconstructed));
+    assert.equal('retainBoxCommand' in reconstructed.args, retained);
+    assert.deepEqual(reconstructed.local.nodes, accepted.nodes);
+    assert.equal(digestOf(state.doc), plan.baselineDigest);
+    if (retained) assert.equal(editCommand(1, accepted.nodes)?.label, 'Edit Box');
+    else {
+      const revised = structuredClone(result.doc);
+      revised.instances![0].doc.requirements![0].check.value = 2;
+      const repaired = inspectLocalHeightPlan(revised, ['p1'], identity);
+      assert.ok(!('error' in repaired), JSON.stringify(repaired));
+      assert.deepEqual(repaired.issues, []);
+      assert.equal(repaired.targets[0].retainBoxCommand, undefined);
+    }
+  }
+
+  const small = structuredClone(doc);
+  small.instances![0].doc.requirements![0].check.value = 0.5;
+  const refused = inspectLocalHeightPlan(small, ['p1'], identity);
+  assert.ok(!('error' in refused));
+  assert.equal(refused.issues[0]?.code, 'TASK_VALUE');
+  assert.match(refused.issues[0]?.message ?? '', /Box command/);
+});
+
 for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778 a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {
   const doc = assembly(), [base, lid] = doc.instances!;
   delete doc.interfaces;

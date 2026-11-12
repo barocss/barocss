@@ -244,9 +244,9 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   const grossArea = circle ? Math.PI * circle.radius ** 2 : shape.width * shape.depth;
   const holeArea = hole ? Math.PI * hole.radius ** 2 : 0;
   const area = grossArea - holeArea, volume = area * height;
-  const paired = task.writes.field === 'footprint';
+  const nativeRectangle = task.writes.field === 'footprint' || task.retainBoxCommand;
   const centre = [shape.minX + shape.width / 2, shape.minY + shape.depth / 2, height / 2] as const;
-  const centroid = paired ? centre : circle ? [...circle.center, height / 2] as const : [
+  const centroid = nativeRectangle ? centre : circle ? [...circle.center, height / 2] as const : [
     (centre[0] * grossArea - (hole?.x ?? 0) * holeArea) / area,
     (centre[1] * grossArea - (hole?.y ?? 0) * holeArea) / area,
     height / 2,
@@ -255,11 +255,11 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
     && Math.abs(actual - want) <= task.verification.relativeTolerance * Math.max(1, scale);
   const { min, max } = body.mesh.bounds;
   const simpleSolid = body.family === 'upright' && body.massMethod === 'closed-form' && (body.pieces ?? 1) === 1 && body.innerShells === 0;
-  const boundsMatch = paired ? simpleSolid && footprintBoundaryMatches(result, local, shape, height, close)
+  const boundsMatch = nativeRectangle ? simpleSolid && footprintBoundaryMatches(result, local, shape, height, close)
     : circle ? simpleSolid && cylinderBoundaryMatches(result, task.feature, circle, height, close)
     : [shape.minX, shape.minY, 0].every((v, i) => close(min[i], v)) && size.every((v, i) => close(max[i] - min[i], v));
   if (body.volume === null || (circle && body.volume <= 0) || !close(body.volume, volume) || !body.centroid
-      || !boundsMatch || !centroid.every((v, i) => close(body.centroid![i], v, paired ? size[i] : i < 2 ? circle?.radius : undefined)))
+      || !boundsMatch || !centroid.every((v, i) => close(body.centroid![i], v, nativeRectangle ? size[i] : i < 2 ? circle?.radius : undefined)))
     return failure('TASK_ORACLE_MISMATCH', circle ? 'native cylinder boundary or mass properties differ from the independent cylinder calculation'
       : 'native volume, bounds or centroid differs from the independent prism calculation');
 

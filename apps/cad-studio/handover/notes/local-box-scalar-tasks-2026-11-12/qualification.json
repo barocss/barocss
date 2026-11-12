@@ -1,0 +1,84 @@
+{
+  "decision": "D781",
+  "tier": "FULL interface",
+  "parent": "547edd63566da427bc6a59023c807cc408c2318e",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution proposal",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff task-run-host",
+    "cd apps/cad-studio && node \"$EVIDENCE/legacy-verify.mjs\"",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "node apps/cad-studio/scripts/cad-cli.mjs task-run start <run-directory> --plan <archived-or-current-plan>",
+    "node apps/cad-studio/scripts/cad-cli.mjs task-run refresh <copied-historical-run> <operation> <task>",
+    "cd apps/cad-studio && D781_SOURCE_FROZEN=1 D781_LEGACY=\"$EVIDENCE/legacy-width\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-width\" --box-width",
+    "cd apps/cad-studio && D781_SOURCE_FROZEN=1 D781_LEGACY=\"$EVIDENCE/legacy-depth\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-depth\" --box-depth",
+    "cd apps/cad-studio && D780_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/paired-regression\" --box-footprint",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d781-2026-11-12",
+    "receipts": {
+      "desktop-width": {
+        "sha256": "55d90154880eabb7081a1a5a68fc21e8c4051a19f61ecda8960829354229e5b4",
+        "frozenSources": 880,
+        "nativeVolumeMm3": [
+          1200,
+          1250
+        ]
+      },
+      "desktop-depth": {
+        "sha256": "0189f6b587069b2d83dba0d84e829e0c75dda51e9d8461c64f52340efc9186fc",
+        "frozenSources": 880,
+        "nativeVolumeMm3": [
+          1400.0000000000002,
+          1500.000000000001
+        ]
+      },
+      "paired-regression": {
+        "sha256": "ea32fd6cf98a9c642aff82d821a2d3d36f3f454f19570c75372acd7e482f2ea8",
+        "frozenSources": 879,
+        "nativeVolumeMm3": [
+          1680.0000000000002,
+          1875.0000000000005
+        ]
+      }
+    },
+    "historical": {
+      "width": {
+        "handoff": "831ee0d7bdae07b00ada928a4d28351175bbb37f59cf6892f72c2bfb4c4ec479",
+        "candidate": "bb336e0465f30bf176f193a547eed2c770a9211dfc4622412156bae7af017787",
+        "checkpoint": "04d91b86e607449c17f9118b20a922d81e7173fb64b6e87b32af3471ac2da105"
+      },
+      "depth": {
+        "handoff": "5b9d3461e49304e5c3dab9313e8ad20e79e280f0ad9055ba5a4f2f34f35c73a4",
+        "candidate": "12c7c629bd7ca2622ef0d8ada5eef713c59a45ed8332a3aca5eaa63f78c309da",
+        "checkpoint": "0c253210d8e9a6cc9883a5ceaa9cabc8398709efe200c8656e8525480816827c"
+      }
+    },
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 54,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "rewrite-legacy-box-metadata",
+      "rewrite-the-untouched-depth-field"
+    ],
+    "independentAbsoluteTolerance": 1e-8
+  }
+}

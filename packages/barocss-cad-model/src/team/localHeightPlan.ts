@@ -1,3 +1,4 @@
+import { isEditableBox } from '../app/editCommand';
 import { holeDiameterRequirementMm, meets } from '../chat/spec';
 import type { StudioDoc } from '../engine/doc';
 import type { Predicate } from '../engine/schema/spec';
@@ -11,10 +12,10 @@ interface LocalHeightIssue {
 }
 
 type ScalarTaskTarget = { id: string; requirementId: string; toleranceMm: number; footprintMm?: never } & (
-  { currentHeightMm: number; heightMm: number; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
-  { currentWidthMm: number; widthMm: number; currentHeightMm?: never; heightMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
-  { currentDepthMm: number; depthMm: number; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
-  { currentDiameterMm: number; diameterMm: number; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never }
+  { currentHeightMm: number; heightMm: number; retainBoxCommand?: never; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
+  { currentWidthMm: number; widthMm: number; retainBoxCommand?: true; currentHeightMm?: never; heightMm?: never; currentDepthMm?: never; depthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
+  { currentDepthMm: number; depthMm: number; retainBoxCommand?: true; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDiameterMm?: never; diameterMm?: never } |
+  { currentDiameterMm: number; diameterMm: number; retainBoxCommand?: never; currentHeightMm?: never; heightMm?: never; currentWidthMm?: never; widthMm?: never; currentDepthMm?: never; depthMm?: never }
 );
 export type FootprintTaskTarget = {
   id: string; currentFootprintMm: RectangleFootprint; footprintMm: RectangleFootprint;
@@ -31,7 +32,8 @@ const isExtent = (check: Predicate, axis: 'x' | 'y' | 'z' | undefined) => check?
 export const isLocalTaskCount = (count: number) => count === 1 || count === 2 || count === 3;
 
 /** Inspect the bounded local profile without evaluating, dispatching, or changing the model. */
-export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly string[], identity: TaskPlanRequest['identity']): LocalHeightInspection {
+export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly string[], identity: TaskPlanRequest['identity'],
+  { retainScalarBoxes = true }: { retainScalarBoxes?: boolean } = {}): LocalHeightInspection {
   if (!isLocalTaskCount(occurrences.length) || new Set(occurrences).size !== occurrences.length)
     return { error: { code: 'BAD_PLAN', message: 'Select one to three distinct occurrence IDs.' } };
   const draft: TaskPlanRequest = {
@@ -66,8 +68,11 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
       const useDepth = !useDiameter && (depthOnlyFailure || (!useWidth && depthChanges && !heightChanges));
       const feature = useDiameter ? hole : footprint || useWidth || useDepth ? sketch : extrusion;
       const capability = useDiameter ? 'hole-diameter' : footprint ? 'rectangle-footprint' : useWidth ? 'rectangle-width' : useDepth ? 'rectangle-depth' : 'extrusion-height';
+      const retainBoxCommand = retainScalarBoxes && part?.nodes.length === 2
+        && (capability === 'rectangle-width' || capability === 'rectangle-depth') && isEditableBox(part.nodes, 0);
       return { id: occurrence, holder: `local-worker-${index + 1}`, occurrence, feature: feature?.id ?? '',
-        capability, units: 'mm', frame: footprint && !useDiameter ? 'part-local-xy' : useWidth ? 'part-local-x' : useDepth ? 'part-local-y' : 'part-local-z' };
+        capability, units: 'mm', frame: footprint && !useDiameter ? 'part-local-xy' : useWidth ? 'part-local-x' : useDepth ? 'part-local-y' : 'part-local-z',
+        ...(retainBoxCommand && { retainBoxCommand: true as const }) };
     }),
   };
   const protectedOccurrences = occurrences.length === 1 ? (doc.instances ?? [])
@@ -120,8 +125,9 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
     const id = task.id, requirementId = target.id, toleranceMm = diameter?.toleranceMm ?? target.check.tol ?? 0;
     const base = { id, requirementId, toleranceMm };
     if (dimension === 'diameter') return [{ ...base, currentDiameterMm: current.value, diameterMm: value }];
-    if (dimension === 'width') return [{ ...base, currentWidthMm: current.value, widthMm: value }];
-    if (dimension === 'depth') return [{ ...base, currentDepthMm: current.value, depthMm: value }];
+    const box = task.retainBoxCommand ? { retainBoxCommand: true as const } : {};
+    if (dimension === 'width') return [{ ...base, currentWidthMm: current.value, widthMm: value, ...box }];
+    if (dimension === 'depth') return [{ ...base, currentDepthMm: current.value, depthMm: value, ...box }];
     return [{ ...base, currentHeightMm: current.value, heightMm: value }];
 
   });

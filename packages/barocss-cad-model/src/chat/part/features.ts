@@ -211,7 +211,7 @@ async function editFeatureTool(state: ChatState, args: Record<string, unknown>, 
     next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
     if (retainBox) {
       const updated = updateBoxFootprint(nodes, next, index);
-      if (updated === next) return fail(state, 'Change both Box extents while retaining its minimum corner and command limits.');
+      if (updated === next) return fail(state, 'Change a Box extent while retaining its minimum corner and command limits.');
       next = updated;
     }
   } else {

@@ -252,21 +252,23 @@ function readTarget(value: unknown, occurrence: string): TaskRunTarget | null {
   if (typeof value.requirementId !== 'string' || !value.requirementId
     || !number(value.toleranceMm) || value.toleranceMm < 0) return null;
   const { requirementId, currentHeightMm, heightMm, currentWidthMm, widthMm, currentDepthMm, depthMm, currentDiameterMm, diameterMm, toleranceMm } = value;
+  if (Object.hasOwn(value, 'retainBoxCommand') && value.retainBoxCommand !== true) return null;
+  const box = value.retainBoxCommand === true ? { retainBoxCommand: true as const } : {};
   const shared = { id: occurrence, requirementId, toleranceMm };
   const hasHeight = currentHeightMm !== undefined || heightMm !== undefined;
   const hasWidth = currentWidthMm !== undefined || widthMm !== undefined;
   const hasDepth = currentDepthMm !== undefined || depthMm !== undefined;
   const hasDiameter = currentDiameterMm !== undefined || diameterMm !== undefined;
-  if (!hasWidth && !hasDepth && !hasDiameter
+  if (!box.retainBoxCommand && !hasWidth && !hasDepth && !hasDiameter
     && number(currentHeightMm) && currentHeightMm > 0 && number(heightMm) && heightMm > 0)
     return { ...shared, currentHeightMm, heightMm };
   if (!hasHeight && !hasDepth && !hasDiameter
     && number(currentWidthMm) && currentWidthMm > 0 && number(widthMm) && widthMm > 0)
-    return { ...shared, currentWidthMm, widthMm };
+    return { ...shared, currentWidthMm, widthMm, ...box };
   if (!hasHeight && !hasWidth && !hasDiameter
     && number(currentDepthMm) && currentDepthMm > 0 && number(depthMm) && depthMm > 0)
-    return { ...shared, currentDepthMm, depthMm };
-  if (!hasHeight && !hasWidth && !hasDepth
+    return { ...shared, currentDepthMm, depthMm, ...box };
+  if (!box.retainBoxCommand && !hasHeight && !hasWidth && !hasDepth
     && number(currentDiameterMm) && currentDiameterMm > 0 && number(diameterMm) && diameterMm > 0)
     return { ...shared, currentDiameterMm, diameterMm };
   return null;

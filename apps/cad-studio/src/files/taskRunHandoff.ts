@@ -17,7 +17,8 @@ async function verifySource(offer: TaskRunOffer, bytes: Uint8Array) {
   if ('error' in opened) throw new Error(opened.error);
   if (opened.notes.length || digestOf(opened.doc) !== offer.revision)
     throw new Error('The saved model differs from the reviewed plan. Save and inspect it again.');
-  const result = inspectLocalHeightPlan(opened.doc, offer.occurrences, { projectId: 'studio', documentId: 'working-model' });
+  const result = inspectLocalHeightPlan(opened.doc, offer.occurrences, { projectId: 'studio', documentId: 'working-model' },
+    { retainScalarBoxes: offer.targets.some(target => target.retainBoxCommand) });
   if ('error' in result || result.issues.length || canonical(result.targets) !== canonical(offer.targets))
     throw new Error('The reviewed targets do not match an executable local plan.');
   return opened.doc;

@@ -21,6 +21,7 @@ export interface TaskRequest {
   readonly units: 'mm';
   readonly frame: 'part-local-z' | 'part-local-x' | 'part-local-y' | 'part-local-xy';
   readonly dependsOn?: readonly string[];
+  readonly retainBoxCommand?: true;
 }
 export interface TaskPlanRequest {
   readonly identity: TaskIdentity;
@@ -124,7 +125,7 @@ function boreFits(shape: TaskShape, x: number, y: number, radius: number): boole
     && radius < y - shape.minY && radius < shape.minY + shape.depth - y;
 }
 
-export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' | 'feature'> & Partial<Pick<TaskRequest, 'capability'>>):
+export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' | 'feature'> & Partial<Pick<TaskRequest, 'capability' | 'retainBoxCommand'>>):
   TaskTarget | TaskPlanError {
   const matches = (doc.instances ?? []).filter(i => i.id === task.occurrence);
   if (task.occurrence === 'base' || matches.length !== 1) return error('WRONG_TARGET', `${task.occurrence} must name one placed occurrence.`);
@@ -176,6 +177,8 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   } else {
     return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a solid literal circle for a height task.`);
   }
+  if (task.retainBoxCommand && ((dimension !== 'width' && dimension !== 'depth') || nodes.length !== 2 || !isEditableBox(nodes, 0)))
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a standard upright Box to retain the Box command.`);
   if (dimension === 'footprint' && ((extrusion.made && !isEditableBox(nodes, 0)) || checkNode(sketch, [], part.parameters)))
     return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a standard upright Box for a footprint task.`);
   const area = shape.circle ? Math.PI * shape.circle.radius ** 2 : shape.width * shape.depth;
@@ -255,9 +258,10 @@ function editRectangleExtents(doc: StudioDoc, task: BoundTask, target: TaskTarge
   const reason = checkNode(feature, [], instance.doc.parameters);
   if (reason) return error('UNSUPPORTED_PROFILE', reason);
   const before = instance.doc.nodes, after = before.map((node, at) => at === index ? feature : node);
-  const nodes = updateBoxFootprint(before, after, index);
   const extrusion = before[index + 1];
-  if (task.writes.field === 'footprint' && extrusion?.kind === 'extrude' && extrusion.made && nodes === after)
+  const retainBox = task.retainBoxCommand || (task.writes.field === 'footprint' && extrusion?.kind === 'extrude' && !!extrusion.made);
+  const nodes = retainBox ? updateBoxFootprint(before, after, index) : after;
+  if (retainBox && nodes === after)
     return error('TASK_VALUE', 'The requested extents must retain the Box command and its dimension limits.');
   const local = { ...instance.doc, nodes };
   return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
@@ -406,9 +410,9 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
       range.hard = true;
       if (p.op === '==') {
         range.exact++;
-        if (dimension === 'footprint' && (!positive(p.value) || (req.basis === 'stated'
+        if ((dimension === 'footprint' || request.retainBoxCommand) && (!positive(p.value) || (req.basis === 'stated'
           ? !req.source.trim() : req.basis !== 'assumed' && req.basis !== 'ambiguous')))
-          return error('BAD_REQUIREMENT', `${req.id} needs a positive footprint extent and a stated source.`);
+          return error('BAD_REQUIREMENT', `${req.id} needs a positive extent and a stated source.`);
       }
     }
     if (req.basis === 'assumed' || req.basis === 'ambiguous') {
@@ -430,7 +434,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
   if (dimension === 'diameter' && diameterChecks !== 1)
     return error('MISSING_REQUIRED_CHECK', `${instance.id} needs one hard exact diameter requirement for the through hole in mm or in.`);
   for (const [axis, range] of axes) {
-    if (dimension === 'footprint' && range.exact !== 1)
+    if ((dimension === 'footprint' || request.retainBoxCommand) && range.exact !== 1)
       return error('MISSING_REQUIRED_CHECK', `${instance.id} needs one hard exact local ${axis.toUpperCase()} requirement in mm.`);
     if (!range.hard) return error('MISSING_REQUIRED_CHECK', `${instance.id} needs a hard check of local ${axis.toUpperCase()} ${dimension} in mm.`);
     if (range.low > range.high || range.high <= 0) return error('CONFLICTING_REQUIREMENT', `${instance.id} has incompatible ${dimension} requirements.`);
@@ -449,6 +453,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
       occurrenceMaterials: Object.fromEntries(Object.entries(instance.looks ?? {}).filter(([, l]) => l.material !== undefined).map(([id, l]) => [id, l.material])),
       process: part.process, printer: part.printer, print: part.print, mould: part.mould, machining: part.machining, casting: part.casting },
     brief: { assembly: briefFields(rootBrief), part: briefFields(partBrief) }, checks, blockers,
+    ...(request.retainBoxCommand && { retainBoxCommand: true }),
     interfaces: { holePatterns, envelopes, references: doc.references },
   };
   const reads = {
@@ -459,6 +464,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
   return {
     id: request.id, holder: request.holder, occurrence: request.occurrence, feature: request.feature,
     capability: request.capability, units: request.units, frame: request.frame, dependsOn: request.dependsOn ?? [],
+    ...(request.retainBoxCommand && { retainBoxCommand: true }),
     reads, writes: { occurrence: instance.id, feature: request.feature, field: dimension },
     verification: { native: 'requirements', oracle: shape.circle ? 'circular-cylinder' : 'rectangular-prism', relativeTolerance: 1e-8 },
     checks, blockers, inputs,
@@ -480,10 +486,13 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
     return error('TASK_BUDGET', 'Supply the last admitted logical sequence for this plan.');
   const tasks = new Map<string, TaskRequest>(), owned = new Set<string>();
   for (const task of request.tasks) {
-    if (!isObj(task) || !only(task, ['id', 'holder', 'occurrence', 'feature', 'capability', 'units', 'frame', 'dependsOn'])
+    if (!isObj(task) || !only(task, ['id', 'holder', 'occurrence', 'feature', 'capability', 'units', 'frame', 'dependsOn', 'retainBoxCommand'])
       || !name(task.id) || !name(task.holder) || !name(task.occurrence) || !name(task.feature)) return error('BAD_TASK', 'Supply task, holder, occurrence, and feature IDs.');
     if (!isTaskCapability(task.capability))
       return error('UNSUPPORTED_CAPABILITY', `${task.id} must use extrusion-height, rectangle-width, rectangle-depth, rectangle-footprint, or hole-diameter.`);
+    if (Object.hasOwn(task, 'retainBoxCommand') && (task.retainBoxCommand !== true ||
+        (task.capability !== 'rectangle-width' && task.capability !== 'rectangle-depth')))
+      return error('BAD_TASK', 'Only scalar width or depth tasks can opt into retaining the Box command.');
     if (task.units !== 'mm') return error('WRONG_UNIT', `${task.id} must use mm.`);
     const requiredFrame = taskCapabilities[task.capability].frame;
     if (task.frame !== requiredFrame) return error('WRONG_FRAME', `${task.id} must use ${requiredFrame}.`);
@@ -494,7 +503,8 @@ export function compileTaskPlan(doc: StudioDoc, request: TaskPlanRequest): TaskP
       return error('BAD_DEPENDENCY', `${task.id} must list distinct prerequisite task IDs.`);
     }
     const { id, holder, occurrence, feature, capability, units } = task;
-    tasks.set(id, { id, holder, occurrence, feature, capability, units, frame: requiredFrame, dependsOn: deps });
+    tasks.set(id, { id, holder, occurrence, feature, capability, units, frame: requiredFrame, dependsOn: deps,
+      ...(task.retainBoxCommand === true ? { retainBoxCommand: true as const } : {}) });
     owned.add(task.occurrence);
   }
   for (const task of tasks.values()) for (const dep of task.dependsOn ?? []) {

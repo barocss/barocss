@@ -149,21 +149,23 @@ export function isEditableBox(nodes: readonly ModelNode[], sketchIndex: number):
   return shapeEdit(sketchIndex + 1, nodes, {}) !== null;
 }
 
-/** Retain the Box command after changing both extents of its original sketch. */
+/** Retain the Box command after changing the extents of its original sketch. */
 export function updateBoxFootprint(before: readonly ModelNode[], after: ModelNode[], index: number): ModelNode[] {
   const original = before[index], sketch = after[index], extrusion = before[index + 1];
   if (original?.kind !== 'sketch' || original.profile !== 'rectangle' || sketch?.kind !== 'sketch' || sketch.profile !== 'rectangle'
       || extrusion?.kind !== 'extrude' || extrusion.made?.command !== 'box' || after[index + 1] !== extrusion
       || !Array.isArray(sketch.min) || !Array.isArray(sketch.max) || sketch.max.length !== 2
-      || sketch.max[0] === original.max[0] || sketch.max[1] === original.max[1]
+      || (sketch.max[0] === original.max[0] && sketch.max[1] === original.max[1])
       || canonical({ ...sketch, max: original.max }) !== canonical(original)
       || !isEditableBox(before, index)) return after;
   const [x, y] = sketch.min, [maxX, maxY] = sketch.max;
   if (typeof x !== 'number' || typeof y !== 'number' || typeof maxX !== 'number' || typeof maxY !== 'number') return after;
   // A 1 mm input can subtract to slightly less than 1 mm at a decimal origin.
-  const w = Math.max(1, maxX - x), d = Math.max(1, maxY - y);
-  if (x + w !== maxX || y + d !== maxY) return after;
-  const next = [...after], { made } = extrusion;
+  const { made } = extrusion;
+  const w = maxX === original.max[0] ? made.values.w : Math.max(1, maxX - x);
+  const d = maxY === original.max[1] ? made.values.d : Math.max(1, maxY - y);
+  if (x + Number(w) !== maxX || y + Number(d) !== maxY) return after;
+  const next = [...after];
   next[index] = { ...original, max: sketch.max };
   next[index + 1] = { ...extrusion, made: { ...made, values: { ...made.values, w, d } } };
   return isEditableBox(next, index) ? next : after;

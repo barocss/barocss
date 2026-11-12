@@ -68,7 +68,7 @@ function readDecisionReview(file: string): CandidateReviewReceipt {
   return review;
 }
 
-async function localPlan(sourcePath: string, occurrences: readonly string[], expectedSHA256?: string) {
+async function localPlan(sourcePath: string, occurrences: readonly string[], expectedSHA256?: string, retainScalarBoxes = true) {
   const why = notLocalModel(sourcePath);
   if (why) throw new Error(why);
   const source = resolve(sourcePath), bytes = readLocalFile(source, 16 * 1024 * 1024, 'native plan source');
@@ -78,7 +78,7 @@ async function localPlan(sourcePath: string, occurrences: readonly string[], exp
   const model = await readStudioFile(bytes);
   if ('error' in model) throw new Error(model.error);
   if (model.notes.length) throw new Error('Save the native source in Studio before planning: ' + model.notes.join(', '));
-  return { doc: model.doc, plan: deriveLocalRunPlan(model.doc, source, sourceSHA256, occurrences) };
+  return { doc: model.doc, plan: deriveLocalRunPlan(model.doc, source, sourceSHA256, occurrences, retainScalarBoxes) };
 }
 
 async function readStart(args: readonly string[]) {
@@ -86,7 +86,7 @@ async function readStart(args: readonly string[]) {
     const bytes = readLocalFile(args[1], 128 * 1024, 'local run plan');
     const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     const inputs = localRunPlanInputs(value);
-    const { doc, plan } = await localPlan(inputs.source, inputs.occurrences, inputs.sourceSHA256);
+    const { doc, plan } = await localPlan(inputs.source, inputs.occurrences, inputs.sourceSHA256, inputs.retainScalarBoxes);
     if (canonical(plan) !== canonical(value)) throw new Error('The plan differs from the authored source and local run limits. Generate and review it again.');
     return { doc, config: plan, tasks: localRunTargets(plan.targets) };
   }

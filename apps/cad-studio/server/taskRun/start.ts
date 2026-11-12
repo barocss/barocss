@@ -36,7 +36,7 @@ export async function prepareTaskRunHandoff(bytes: Uint8Array) {
   const { doc, offer, sourceSHA256, replaces } = await readTaskRunHandoff(bytes);
   if (replaces && sha256Hex(encodeStudioFile(doc)) !== sourceSHA256)
     throw new Error('Save the exact native model again before starting the replacement.');
-  const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences);
+  const config = deriveLocalRunPlan(doc, 'handoff:' + sourceSHA256, sourceSHA256, offer.occurrences, offer.targets.some(target => target.retainBoxCommand));
   return { doc, config, offer, replaces, tasks: localRunTargets(config.targets) };
 }
 

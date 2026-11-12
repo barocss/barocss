@@ -33,9 +33,9 @@ const READ: Record<string, JsonSchema | null> = {
     targets: { type: 'array', items: { oneOf: [
       o({ id: str, requirementId: str, currentHeightMm: num, heightMm: num, toleranceMm: num },
         ['id', 'requirementId', 'currentHeightMm', 'heightMm', 'toleranceMm']),
-      o({ id: str, requirementId: str, currentWidthMm: num, widthMm: num, toleranceMm: num },
+      o({ id: str, requirementId: str, currentWidthMm: num, widthMm: num, toleranceMm: num, retainBoxCommand: { type: 'boolean', const: true } },
         ['id', 'requirementId', 'currentWidthMm', 'widthMm', 'toleranceMm']),
-      o({ id: str, requirementId: str, currentDepthMm: num, depthMm: num, toleranceMm: num },
+      o({ id: str, requirementId: str, currentDepthMm: num, depthMm: num, toleranceMm: num, retainBoxCommand: { type: 'boolean', const: true } },
         ['id', 'requirementId', 'currentDepthMm', 'depthMm', 'toleranceMm']),
       o({ id: str, requirementId: str, currentDiameterMm: num, diameterMm: num, toleranceMm: num },
         ['id', 'requirementId', 'currentDiameterMm', 'diameterMm', 'toleranceMm']),
