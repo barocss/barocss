@@ -27,6 +27,7 @@ import { mountCommand } from './mounts';
 import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
+import { linearSpanPatternInput, linearSpanSpacing } from '../engine/linearSpanPattern';
 import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
@@ -191,6 +192,7 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 /** A pattern's copies: joined into one body (the kernel's pattern), or each a body of its own. */
 const RESULT: Field = { key: 'result', label: 'Result', kind: 'choice', options: [{ value: 'one', label: 'One body' }, { value: 'separate', label: 'Separate bodies' }] };
 const LINEAR_PATTERN_COUNT = { min: 2, max: 24 };
+const usesLinearSpan = (values: Values) => values.result !== 'separate' && values.distanceMode === 'span';
 const Z_CIRCULAR_COUNT_MAX = 36;
 /** The axis a mirror plane is across. */
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
@@ -873,19 +875,45 @@ const allCommands: Command[] = [
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: (_ctx, v) => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
-      { key: 'spacing', label: 'Spacing', kind: 'mm', min: v?.result === 'separate' ? undefined : 1 },
+      { key: 'distanceMode', label: 'Distance mode', kind: 'choice', options: [{ value: 'spacing', label: 'Spacing' }, { value: 'span', label: 'Total span' }], when: values => values.result !== 'separate' },
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: v?.result === 'separate' ? undefined : 1, when: values => !usesLinearSpan(values) },
+      { key: 'span', label: 'Total span', kind: 'mm', when: usesLinearSpan },
       { key: 'count', label: 'Count', kind: 'count', ...LINEAR_PATTERN_COUNT }, RESULT],
-    defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', spacing: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 8) : 20, count: 3, result: 'one' }; },
+    defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', distanceMode: 'spacing', spacing: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 8) : 20, count: 3, result: 'one' }; },
+    derive: (_ctx, v, changed) => {
+      const intervals = Number(v.count) - 1;
+      if (changed.includes('distanceMode') && usesLinearSpan(v) && !changed.includes('span')) {
+        return { ...v, span: intervals > 0 ? Number(v.spacing) * intervals : '' };
+      }
+      const leavingSpan = changed.includes('result') && v.result === 'separate' && v.distanceMode === 'span';
+      if (leavingSpan || (changed.includes('distanceMode') && v.distanceMode === 'spacing' && v.span !== undefined)) {
+        return { ...v, distanceMode: 'spacing', spacing: changed.includes('spacing') ? v.spacing : intervals > 0 ? Number(v.span) / intervals : '' };
+      }
+      return v;
+    },
     // Spacing: an arrow at the second copy; count: one past the last (each spacing dragged adds a copy).
     handles: (ctx, v) => {
       const b = oneBody(ctx); if (!b) return [];
       const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
       const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
       const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
+      if (usesLinearSpan(v)) {
+        const span = Number(v.span), input = linearSpanSpacing(span, n, LINEAR_PATTERN_COUNT.max);
+        if (k < 0 || 'code' in input) return [];
+        return [{ key: 'span', at: at(c[k] + span), dir }, { key: 'count', at: at(max[k] + span), dir,
+          scale: 1 / Math.max(1, input.spacing), ...LINEAR_PATTERN_COUNT, unit: '' }];
+      }
       return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
     },
     build: (ctx, v) => {
       const body = refOf(oneBody(ctx)!), k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count);
+      if (v.distanceMode === 'span') {
+        if (v.result === 'separate') throw refusal('VALUE', 'Total span requires One body.');
+        const node = { kind: 'linear-span-pattern', parent: body, axis: v.axis as Axis, span: Number(v.span), count: n } as const;
+        const input = linearSpanPatternInput(node, ctx.doc.nodes.length, LINEAR_PATTERN_COUNT.max);
+        if ('code' in input) throw refusal(input.code, input.message);
+        return withNode(ctx.doc, node);
+      }
       if (v.result !== 'separate') return withNode(ctx.doc, { kind: 'linear-pattern', parent: body, axis: v.axis as Axis, spacing: s, count: n });
       const { min, max } = LINEAR_PATTERN_COUNT;
       if (!Number.isInteger(n) || n < min || n > max) {

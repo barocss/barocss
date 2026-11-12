@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
+const creationMode = process.argv[3] === '--create';
 const pins = [
   'apps/cad-studio/test/linear-span-pattern-browser.mjs',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
+  'apps/cad-studio/src/ui/Hud.tsx',
+  'apps/cad-studio/src/ui/LinearSpanSpacing.tsx',
+  'packages/barocss-cad-model/src/app/commands.ts',
   'packages/barocss-cad-model/src/app/editFields.ts',
   'packages/barocss-cad-model/src/engine/linearSpanPattern.ts',
   'packages/barocss-cad-model/src/engine/migrate.ts',
@@ -12,8 +17,9 @@ const pins = [
   'packages/barocss-cad/src/part/part-transform.ts',
 ];
 const f = await createFlow({
-  name: 'linear-span-pattern', output: process.argv[2], envFrozen: 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Open and edit a fixed-span row, preserve its extent across Count and source width changes, and reopen the saved project.',
+  name: 'linear-span-pattern', output: process.argv[2], envFrozen: creationMode ? 'D835_SOURCE_FROZEN' : 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: creationMode ? 'Author fixed span in the actual command, switch modes, and verify preview refusal and the accepted native result.'
+    : 'Open and edit a fixed-span row, preserve its extent across Count and source width changes, and reopen the saved project.',
   limits: ['One moved 10 × 6 × 8 mm rectangular seed. X direction, numeric 90 mm span, disjoint solids.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -69,7 +75,10 @@ const open = async (name, doc) => {
 
 async function verify(label, width, offsets, pitch) {
   const doc = documentAt(width, offsets.length);
-  await f.same(doc);
+  if (creationMode) {
+    await f.ready();
+    assert.deepEqual(await f.doc(), doc);
+  } else await f.same(doc);
   const native = await f.inspect(label, doc, pitch);
   assert.ok(native.valid);
   assert.equal(native.id, 'n2');
@@ -103,7 +112,82 @@ async function attachProject() {
   await field(versions(), 'Project').waitFor();
 }
 
+async function createFixedSpan() {
+  const recipe = documentAt(10, 4);
+  const seed = { ...recipe, nodes: recipe.nodes.slice(0, 2), outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 };
+  const hud = () => f.page.getByRole('dialog', { name: 'Linear pattern', exact: true });
+  const value = name => field(hud(), name);
+  const apply = () => button(hud(), 'Apply');
+  const state = label => f.page.waitForFunction(label => document.querySelector('.hud .status')?.textContent.trim() === label, label);
+  f.phase = 'start a new row in the default spacing mode';
+  await f.newPage();
+  await open('D835-seed.bcad', seed);
+  await f.same(seed);
+  await f.page.locator('.outliner .ol-row > button.ol').click();
+  await clickModelCommand(f.page, 'Pattern', 'Linear pattern');
+  assert.equal(await value('Distance mode').inputValue(), 'spacing');
+  await value('Count').fill('4');
+  await value('Spacing').fill('30');
+  await state('preview');
+  const accepted = await f.snapshot('before-mode-switch');
+
+  f.phase = 'switch to span and back with the same preview placement';
+  await value('Distance mode').selectOption('span');
+  assert.equal(await value('Total span').inputValue(), '90');
+  assert.equal(await value('Spacing').textContent(), '30 mm');
+  await state('preview');
+  await value('Distance mode').selectOption('spacing');
+  assert.equal(await value('Spacing').inputValue(), '30');
+  await state('preview');
+  await value('Distance mode').selectOption('span');
+  await value('Count').fill('6');
+  assert.equal(await value('Total span').inputValue(), '90');
+  assert.equal(await value('Spacing').textContent(), '18 mm');
+  await state('preview');
+  await value('Result').selectOption('separate');
+  assert.equal(await value('Distance mode').count(), 0);
+  assert.equal(await value('Spacing').inputValue(), '18');
+  await state('preview');
+  await value('Result').selectOption('one');
+  assert.equal(await value('Distance mode').inputValue(), 'spacing');
+  await value('Distance mode').selectOption('span');
+  assert.equal(await value('Total span').inputValue(), '90');
+  await state('preview');
+
+  f.phase = 'retire the prior preview when count or span is invalid';
+  for (const [name, bad, restored, reason] of [
+    ['Count', '1', '6', /whole-number Count from 2 to 24/],
+    ['Count', '25', '6', /whole-number Count from 2 to 24/],
+    ['Total span', '0', '90', /Total span must be a finite positive distance/],
+  ]) {
+    await value(name).fill(bad);
+    await state('refused');
+    assert.match(await hud().locator('.hud-error').textContent(), reason);
+    assert.ok(await apply().isDisabled());
+    await value(name).press('Enter');
+    const after = await f.snapshot('refused-' + name.replace(' ', '-') + '-' + bad);
+    for (const key of ['doc', 'history', 'historyControls', 'dirty', 'selection']) assert.deepEqual(after[key], accepted[key], key);
+    assert.deepEqual(after.bodies.bodies, accepted.bodies.bodies);
+    assert.deepEqual(after.bodies.colored, []);
+    await value(name).fill(restored);
+    await state('preview');
+  }
+  f.phase = 'apply a new six-copy row at a fixed 90 mm span';
+  await apply().click();
+  await hud().waitFor({ state: 'hidden' });
+  const expectedOffsets = [0, 18, 36, 54, 72, 90];
+  await verify('authored-six', 10, expectedOffsets, 18);
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.snapshot('authored-six-framed');
+  await f.undo();
+  await f.same(seed);
+  await f.redo();
+  await verify('first-redo', 10, expectedOffsets, 18);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
+  if (creationMode) { await createFixedSpan(); return; }
   const four = documentAt(10, 4), six = documentAt(10, 6), wider = documentAt(12, 6);
   const offsets4 = [0, 30, 60, 90], offsets6 = [0, 18, 36, 54, 72, 90], offsets5 = [0, 22.5, 45, 67.5, 90];
   f.phase = 'Open a fixed-span model and edit Count without changing span';

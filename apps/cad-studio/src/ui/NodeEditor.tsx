@@ -1,14 +1,14 @@
 import { nodeFilletType } from '../app/filletFamily';
 import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { fmt, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { linearSpanPatternInput } from '@barocss/cad-model/engine/linearSpanPattern';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
+import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
 export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
@@ -26,7 +26,6 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
   };
   const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const node = draft[index];
-  const spanPattern = node?.kind === 'linear-span-pattern' ? linearSpanPatternInput(node, index) : null;
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
   const apply = () => {
@@ -72,9 +71,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
             : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.checked)); }} />}
         </div>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
-      {spanPattern && <div className="field"><span>Spacing</span><output aria-label="Spacing">
-        {'spacing' in spanPattern ? `${fmt(spanPattern.spacing)} mm` : '—'}
-      </output></div>}
+      {node?.kind === 'linear-span-pattern' && <LinearSpanSpacing span={node.span} count={node.count} />}
       {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={remove}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}

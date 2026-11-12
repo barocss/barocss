@@ -13,6 +13,7 @@ import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { HolePresets } from './HolePresets';
+import { LinearSpanSpacing } from './LinearSpanSpacing';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
@@ -70,6 +71,8 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       <div className="hud-fields">
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}
         {fields.map(renderField)}
+        {active.cmd.id === 'linear-pattern' && active.values.result !== 'separate' && active.values.distanceMode === 'span'
+          && <LinearSpanSpacing span={Number(active.values.span)} count={Number(active.values.count)} />}
       </div>
       {active.cmd.id === 'hole' ? <HolePresets key={activeKey(active, active.values)} values={active.values}
         onUse={options => onHoleOptions(active, options)} onReset={() => {

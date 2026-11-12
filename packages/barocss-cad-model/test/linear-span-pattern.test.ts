@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { commands, patchValues, type Ctx } from '../src/app/commands';
 import { featureOfPick } from '../src/app/editCommand';
 import { editFields } from '../src/app/editFields';
+import { runTool, type ChatState } from '../src/chat/tools';
 import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -81,4 +83,45 @@ test('fixed-span editor changes count without binding it and keeps copy picks ou
   const face = result.bodies[0].mesh.faces.find(face => face.name.startsWith('n1.') && face.name.includes('@1'));
   assert.ok(face);
   assert.equal(featureOfPick({ faces: [{ body: 0, face: face.index }], edges: [], bodies: [] }, result.bodies, nodes), null);
+});
+
+test('linear pattern creation switches authority while keeping the current placement', () => {
+  const result = evaluateDoc(seed, 1);
+  assert.ok(result.ok);
+  const ctx: Ctx = { doc: seed, bodies: result.bodies, selection: { faces: [], edges: [], bodies: [0] } };
+  const linear = commands.find(command => command.id === 'linear-pattern')!;
+  const initial = { ...linear.defaults!(ctx), spacing: 30, count: 4 };
+  const fixed = patchValues(linear, ctx, initial, { distanceMode: 'span' });
+  assert.equal(fixed.span, 90);
+  assert.deepEqual(toPartDocument(linear.build!(ctx, fixed)), toPartDocument(linear.build!(ctx, initial)));
+  const denser = patchValues(linear, ctx, fixed, { count: 6 });
+  const created = linear.build!(ctx, denser);
+  assert.deepEqual(created.nodes[2], { ...recipe, count: 6, id: 'n2' });
+  const handles = linear.handles!(ctx, denser);
+  assert.deepEqual(handles.map(handle => [handle.key, handle.at[0]]), [['span', 95], ['count', 100]]);
+  assert.equal(handles[1].scale, 1 / 18);
+  const back = patchValues(linear, ctx, denser, { distanceMode: 'spacing' });
+  assert.equal(back.spacing, 18);
+  assert.deepEqual(toPartDocument(linear.build!(ctx, back)), toPartDocument(created));
+  const separate = patchValues(linear, ctx, denser, { result: 'separate' });
+  assert.equal(separate.distanceMode, 'spacing');
+  assert.equal(separate.spacing, 18);
+  assert.throws(() => linear.build!(ctx, { ...denser, result: 'separate' }), /requires One body/);
+  assert.throws(() => linear.build!(ctx, { ...denser, count: 25 }), /whole-number Count from 2 to 24/);
+});
+
+test('the existing agent command can author the same fixed-span feature', async () => {
+  const result = evaluateDoc(seed, 1);
+  assert.ok(result.ok);
+  const state: ChatState = { doc: seed, bodies: result.bodies };
+  const previous = process.env.CAD_AUTONOMY;
+  process.env.CAD_AUTONOMY = '3';
+  try {
+    const response = await runTool(state, 'run_command', { command: 'linear-pattern', bodies: ['b1'], values: { distanceMode: 'span', span: 90, count: 4 } }, async doc => evaluateDoc(doc, 1));
+    assert.equal(response.isError, false, response.summary);
+    assert.deepEqual(response.state.doc.nodes[2], { ...recipe, id: 'n2' });
+  } finally {
+    if (previous === undefined) delete process.env.CAD_AUTONOMY;
+    else process.env.CAD_AUTONOMY = previous;
+  }
 });

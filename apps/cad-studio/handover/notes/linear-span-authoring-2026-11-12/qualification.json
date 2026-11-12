@@ -1,0 +1,72 @@
+{
+  "decision": "D835",
+  "tier": "FULL",
+  "parent": "bed6f220edb131aa2aa0c9618c8483af83426a7b",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d835-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d835-linear-span-pattern",
+    "node --check apps/cad-studio/test/linear-span-pattern-browser.mjs",
+    "cd apps/cad-studio && D835_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-1\" --create",
+    "cd apps/cad-studio && D835_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-2\" --create",
+    "gate.sh acquire heavy 600 d835-linear-span-authoring-full",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern migrate.test circular-pattern-span feature-handles editFields api-verbs",
+    "cd apps/cad-studio && D834_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/editor-regression\"",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/separate-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test command preview pattern project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE/mutations\"",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/src/chat/part/features.ts packages/barocss-cad-model/src/engine/linearSpanPattern.ts packages/barocss-cad-model/test/linear-span-pattern.test.ts apps/cad-studio/src/ui/Hud.tsx apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/ui/LinearSpanSpacing.tsx",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "1736e131ec9f5908705079654948735404bb9157d3cfb328c9826c6a64f486a7",
+      "scope": "Initial authoring test before count refusal wording was unified."
+    },
+    "desktop-2": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "bef3347573c91999f3735a12be25ed4820a436cd03c4444ce38ab365e968abbb",
+      "refusedCounts": [1, 25],
+      "refusedTotalSpan": 0,
+      "appliedCount": 6,
+      "pitchMm": 18,
+      "spanMm": 90,
+      "outerWidthMm": 100,
+      "volumeMm3": 2880,
+      "nativeCorners": 48,
+      "nativeComparisonAbsoluteTolerance": 1e-8
+    },
+    "editor-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "4f709444d989229c8c094275be3c755e2eaa38a1ed9e91f2e053b47d62d8366a"
+    },
+    "separate-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "cc7488408b8bc668ef4ff876e0d846d16e9e5b6b5cba354eee1214e886607703"
+    }
+  },
+  "allDesktopRuns": { "frozenSources": 816, "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 49, "studioPass": 87, "fail": 0, "skip": 0 },
+  "mutations": {
+    "control": "PASS",
+    "mutantsKilled": 5,
+    "runnerSha256": "d556a9b3173792616398289c3ad416d895681ecd8929665832abfc37e094679e",
+    "receiptSha256": "8ee54311013aef8f918b5d589b66bd1274bf6653f376488e525880174cbda183",
+    "singleSourceChanges": ["skip spacing to span conversion", "skip span to spacing conversion", "keep span mode when choosing separate bodies", "persist the hidden spacing as span", "omit the authoring count limit"]
+  },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "driverSyntax": "PASS",
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "localAgentCommand": "PASS",
+  "rootVisualReview": "PASS"
+}

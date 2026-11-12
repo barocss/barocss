@@ -6,7 +6,7 @@ const record = (value: unknown): value is Record<string, unknown> => value !== n
 type Input = { spacing: number } | { code: 'VALUE' | 'BAD_REFERENCE'; message: string };
 
 /** Total span is the only authored distance. Reuse the native pitch and copy limits. */
-export function linearSpanPatternInput(node: Record<string, unknown>, index: number): Input {
+export function linearSpanPatternInput(node: Record<string, unknown>, index: number, maxCount: number = CadPartLimits.copies): Input {
   if (Object.keys(node).some(key => !fields.has(key) && !(NODE_EXTRA_FIELDS as readonly string[]).includes(key))) {
     return { code: 'VALUE', message: 'Linear pattern total span has an unknown field.' };
   }
@@ -17,8 +17,12 @@ export function linearSpanPatternInput(node: Record<string, unknown>, index: num
     return { code: 'BAD_REFERENCE', message: 'Linear pattern total span needs a preceding body.' };
   }
   if (axis !== 'x' && axis !== 'y' && axis !== 'z') return { code: 'VALUE', message: 'Linear pattern total span needs direction X, Y or Z.' };
-  if (typeof count !== 'number' || !Number.isInteger(count) || count < 2 || count > CadPartLimits.copies) {
-    return { code: 'VALUE', message: `Linear pattern total span requires a whole-number Count from 2 to ${CadPartLimits.copies}.` };
+  return linearSpanSpacing(span, count, maxCount);
+}
+
+export function linearSpanSpacing(span: unknown, count: unknown, maxCount: number = CadPartLimits.copies): Input {
+  if (typeof count !== 'number' || !Number.isInteger(count) || count < 2 || count > maxCount) {
+    return { code: 'VALUE', message: `Linear pattern total span requires a whole-number Count from 2 to ${maxCount}.` };
   }
   if (typeof span !== 'number' || !Number.isFinite(span) || span <= 0) return { code: 'VALUE', message: 'Total span must be a finite positive distance.' };
   const spacing = span / (count - 1);
