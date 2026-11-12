@@ -7,6 +7,7 @@ import { editFields } from '../src/app/editFields';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
+import { convertLinearPatternDistance } from '../src/engine/linearSpanPattern';
 import { readStudioDoc } from '../src/engine/migrate';
 import { toPartDocument } from '../src/engine/part';
 
@@ -123,5 +124,27 @@ test('the existing agent command can author the same fixed-span feature', async 
   } finally {
     if (previous === undefined) delete process.env.CAD_AUTONOMY;
     else process.env.CAD_AUTONOMY = previous;
+  }
+});
+
+test('history conversion keeps native placement and refuses to detach a named spacing', () => {
+  const legacy = { kind: 'linear-pattern', parent, axis: 'x', count: 4, spacing: 30, id: 'n2', bought: true } as const;
+  const converted = convertLinearPatternDistance(legacy, 'span', 2);
+  assert.ok('node' in converted);
+  assert.deepEqual(converted.node, { ...recipe, id: 'n2', bought: true });
+  assert.deepEqual(toPartDocument(withNode(seed, converted.node)), toPartDocument(withNode(seed, legacy)));
+  const six = { ...recipe, count: 6, id: 'n2', bought: true };
+  const back = convertLinearPatternDistance(six, 'spacing', 2);
+  assert.ok('node' in back);
+  assert.deepEqual(back.node, { ...legacy, count: 6, spacing: 18 });
+  assert.deepEqual(toPartDocument(withNode(seed, back.node)), toPartDocument(withNode(seed, six)));
+  for (const [patch, expected] of [
+    [{ spacing: { parameter: 'pitch' } }, /Unbind Spacing/i],
+    [{ spacing: -30 }, /finite positive/i],
+    [{ count: 1 }, /whole-number Count/i],
+  ] as const) {
+    const refused = convertLinearPatternDistance({ ...legacy, ...patch }, 'span', 2);
+    assert.ok('message' in refused);
+    assert.match(refused.message, expected);
   }
 });

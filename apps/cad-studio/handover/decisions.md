@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D836 — switch distance mode in linear pattern history](notes/linear-span-history-conversion-2026-11-12/README.md).
 - [D835 — create a linear pattern with a fixed total span](notes/linear-span-authoring-2026-11-12/README.md).
 - [D834 — store and edit a fixed linear pattern span](notes/linear-span-model-and-editor-2026-11-12/README.md).
 - [D833 — qualify the old reader boundary for a fixed linear pattern span](notes/linear-pattern-span-compatibility-2026-11-12/README.md).

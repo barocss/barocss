@@ -1,0 +1,73 @@
+{
+  "decision": "D836",
+  "tier": "FEATURE",
+  "parent": "52dbcec14fe671dcf8c639562b01f35c1e7d03c1",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d836-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d836-linear-span-pattern",
+    "node --check apps/cad-studio/test/linear-span-pattern-browser.mjs",
+    "cd apps/cad-studio && D836_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-1\" --convert",
+    "cd apps/cad-studio && D836_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-2\" --convert",
+    "cd apps/cad-studio && D836_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-3\" --convert",
+    "cd apps/cad-studio && D836_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-4\" --convert",
+    "gate.sh acquire heavy 600 d836-linear-span-history-feature",
+    "cd apps/cad-studio && D834_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/editor-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern migrate.test circular-pattern-span feature-handles editFields api-verbs",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test pattern project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/linearSpanPattern.ts packages/barocss-cad-model/test/linear-span-pattern.test.ts apps/cad-studio/src/ui/NodeEditor.tsx",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "fcf93dd58f6ae09ed2458941f9025e443e60600cc159abb5c48a0cf2fe1052b4",
+      "failure": "The driver sampled mass before the accepted document was ready."
+    },
+    "desktop-2": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "84ed703f45b6954d61569c5bd2fb4232a50d74c9f18430af622523e966a79f2a",
+      "failure": "The distance mode selector needed an exact accessible label."
+    },
+    "desktop-3": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "24b44c4a79dc2cf40d91cb566d4f1dd1eacc846ba61040819728abc477892065",
+      "failure": "The driver raced the editor's automatic dismissal after a successful Count 6 Apply."
+    },
+    "desktop-4": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "da690830d327cba35e7cdc825a51fb036b5642b79e8f4d4910bbdf7e85bdbd77",
+      "nativeComparisonAbsoluteTolerance": 1e-8,
+      "checkpoints": [
+        { "mode": "spacing", "count": 4, "spacing": 30, "distance": 90, "volume": 1920, "corners": 32 },
+        { "mode": "span", "count": 4, "spacing": 30, "distance": 90, "volume": 1920, "corners": 32 },
+        { "mode": "span", "count": 6, "spacing": 18, "distance": 90, "volume": 2880, "corners": 48 },
+        { "mode": "spacing", "count": 6, "spacing": 18, "distance": 90, "volume": 2880, "corners": 48 },
+        { "mode": "spacing", "count": 5, "spacing": 18, "distance": 72, "volume": 2400, "corners": 40 }
+      ],
+      "retainedBoundSpacing": { "parameter": "pitch", "value": 30, "count": 4 },
+      "firstUndoCountAfterBoundRefusal": 5,
+      "firstRedoCountAfterBoundRefusal": 4
+    },
+    "editor-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "d967ee4aae3553dfbff731b7c3f5001287774aedd29e2d528fe121193fdbcc5c"
+    }
+  },
+  "allDesktopRuns": { "frozenSources": 816, "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 50, "studioPass": 48, "fail": 0, "skip": 0 },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "driverSyntax": "PASS",
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "rootVisualReview": "PASS"
+}

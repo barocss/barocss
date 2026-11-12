@@ -1,9 +1,28 @@
 import { CadPartLimits } from '@barocss/cad';
-import { NODE_EXTRA_FIELDS } from './doc';
+import { NODE_EXTRA_FIELDS, type ModelNode } from './doc';
 
 const fields = new Set(['kind', 'parent', 'axis', 'span', 'count']);
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 type Input = { spacing: number } | { code: 'VALUE' | 'BAD_REFERENCE'; message: string };
+export type LinearPatternNode = Extract<ModelNode, { kind: 'linear-pattern' | 'linear-span-pattern' }>;
+export type LinearPatternDistanceMode = 'spacing' | 'span';
+
+export function convertLinearPatternDistance(node: LinearPatternNode, mode: LinearPatternDistanceMode, index: number):
+  { node: LinearPatternNode } | { message: string } {
+  if (node.kind === 'linear-pattern') {
+    if (mode === 'spacing') return { node };
+    const { spacing, ...rest } = node;
+    if (typeof spacing !== 'number') return { message: 'Unbind Spacing before switching to Total span.' };
+    const next = { ...rest, kind: 'linear-span-pattern', span: spacing * (node.count - 1) } as const;
+    const result = linearSpanPatternInput(next, index);
+    return 'code' in result ? result : { node: next };
+  }
+  if (mode === 'span') return { node };
+  const { span, ...rest } = node;
+  const result = linearSpanPatternInput({ ...rest, span }, index);
+  if ('code' in result) return result;
+  return { node: { ...rest, kind: 'linear-pattern', spacing: result.spacing } };
+}
 
 /** Total span is the only authored distance. Reuse the native pitch and copy limits. */
 export function linearSpanPatternInput(node: Record<string, unknown>, index: number, maxCount: number = CadPartLimits.copies): Input {

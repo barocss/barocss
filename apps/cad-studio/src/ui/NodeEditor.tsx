@@ -2,6 +2,7 @@ import { nodeFilletType } from '../app/filletFamily';
 import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import { convertLinearPatternDistance, type LinearPatternDistanceMode } from '@barocss/cad-model/engine/linearSpanPattern';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
 import { ToolIconButton } from '@/components/ui/tool-button';
@@ -15,21 +16,39 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
+  const [modeProblem, setModeProblem] = useState<string | null>(null);
   const request = useRef<object | null>(null);
   const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure } | null>(null);
   useLayoutEffect(() => () => { request.current = null; }, [nodes, index]);
-  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); }, [nodes, index]);
+  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); }, [nodes, index]);
   const current = evaluation?.nodes === nodes && evaluation.index === index ? evaluation : null;
   const retireEvaluation = () => {
     request.current = null;
     setEvaluation(null);
+    setModeProblem(null);
   };
   const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const node = draft[index];
+  const linearPattern = node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern' ? node : null;
+  const changeDistanceMode = (mode: LinearPatternDistanceMode) => {
+    if (!linearPattern) return;
+    retireEvaluation();
+    const conversion = convertLinearPatternDistance(linearPattern, mode, index);
+    if ('message' in conversion) { setModeProblem(conversion.message); return; }
+    if (conversion.node === linearPattern) return;
+    setDraft(draft.map((node, i) => i === index ? conversion.node : node));
+    setTyped(values => {
+      const next = { ...values };
+      delete next.spacing;
+      delete next.span;
+      return next;
+    });
+  };
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
   const apply = () => {
     if (!changed || pending || request.current) return;
+    setModeProblem(null);
     const ticket = {};
     request.current = ticket;
     const ownsDraft = () => request.current === ticket;
@@ -53,6 +72,14 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <ToolIconButton size="tiny" aria-label="Close editor" onClick={close}><Icon name="close" small /></ToolIconButton></div>
       {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={() => { retireEvaluation(); onEditSketch(); }}><Icon name="draw" small /> Edit sketch</button>}
+      {linearPattern && <div className="field"><span>Distance mode</span>
+        <select aria-label="Distance mode" value={linearPattern.kind === 'linear-pattern' ? 'spacing' : 'span'} disabled={pending}
+          onChange={event => changeDistanceMode(event.target.value as LinearPatternDistanceMode)}>
+          <option value="spacing">Spacing</option>
+          <option value="span">Total span</option>
+        </select>
+      </div>}
+      {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
           {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={pending || !!(f as BindableField).param?.(draft)} onChange={e => { retireEvaluation(); const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}

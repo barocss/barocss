@@ -4,6 +4,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const creationMode = process.argv[3] === '--create';
+const conversionMode = process.argv[3] === '--convert';
 const pins = [
   'apps/cad-studio/test/linear-span-pattern-browser.mjs',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
@@ -17,8 +18,9 @@ const pins = [
   'packages/barocss-cad/src/part/part-transform.ts',
 ];
 const f = await createFlow({
-  name: 'linear-span-pattern', output: process.argv[2], envFrozen: creationMode ? 'D835_SOURCE_FROZEN' : 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: creationMode ? 'Author fixed span in the actual command, switch modes, and verify preview refusal and the accepted native result.'
+  name: 'linear-span-pattern', output: process.argv[2], envFrozen: conversionMode ? 'D836_SOURCE_FROZEN' : creationMode ? 'D835_SOURCE_FROZEN' : 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: conversionMode ? 'Switch the stored distance authority in history, retain native placement, and refuse implicit unbinding.'
+    : creationMode ? 'Author fixed span in the actual command, switch modes, and verify preview refusal and the accepted native result.'
     : 'Open and edit a fixed-span row, preserve its extent across Count and source width changes, and reopen the saved project.',
   limits: ['One moved 10 × 6 × 8 mm rectangular seed. X direction, numeric 90 mm span, disjoint solids.'],
   inspectorSource: `
@@ -73,11 +75,10 @@ const open = async (name, doc) => {
   await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
 };
 
-async function verify(label, width, offsets, pitch) {
-  const doc = documentAt(width, offsets.length);
-  if (creationMode) {
-    await f.ready();
+async function verify(label, width, offsets, pitch, doc = documentAt(width, offsets.length)) {
+  if (creationMode || conversionMode) {
     assert.deepEqual(await f.doc(), doc);
+    await f.ready();
   } else await f.same(doc);
   const native = await f.inspect(label, doc, pitch);
   assert.ok(native.valid);
@@ -94,7 +95,8 @@ async function verify(label, width, offsets, pitch) {
     assert.equal(piece.corners.length, 8);
     assert.ok(corners.every(corner => piece.corners.some(point => point.every((value, axis) => near(value, corner[axis])))));
   }
-  const volume = offsets.length * width * 48, centroid = [75 + width / 2, 13, 4];
+  const distance = offsets.at(-1);
+  const volume = offsets.length * width * 48, centroid = [30 + (distance + width) / 2, 13, 4];
   const { fresh, massReady, bodies } = await f.bodies();
   assert.ok(fresh && massReady);
   assert.deepEqual(bodies.map(body => body.key), ['b2']);
@@ -102,7 +104,7 @@ async function verify(label, width, offsets, pitch) {
     assert.ok(near(result.volume, volume));
     assert.ok(result.centroid.every((value, axis) => near(value, centroid[axis])));
   }
-  f.report.observations.push({ label, count: offsets.length, pitch, offsets, width: width + 90, volume, centroid, corners: offsets.length * 8 });
+  f.report.observations.push({ label, count: offsets.length, pitch, offsets, width: width + distance, volume, centroid, corners: offsets.length * 8 });
 }
 
 async function attachProject() {
@@ -186,8 +188,87 @@ async function createFixedSpan() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function convertDistanceMode() {
+  const four = documentAt(10, 4), six = documentAt(10, 6);
+  const legacy = (doc, spacing) => {
+    const { span, ...node } = doc.nodes[2];
+    assert.equal(span, 90);
+    return { ...doc, nodes: [...doc.nodes.slice(0, 2), { ...node, kind: 'linear-pattern', spacing }] };
+  };
+  const initial = legacy(four, 30), spacingSix = legacy(six, 18), spacingFive = legacy(documentAt(10, 5), 18);
+  const offsets4 = [0, 30, 60, 90], offsets6 = [0, 18, 36, 54, 72, 90], offsets5 = [0, 18, 36, 54, 72];
+  const input = name => field(f.editor(), name);
+  const mode = () => input('Distance mode');
+  const commitEdit = async label => {
+    f.phase = 'apply ' + label;
+    const accepted = await f.doc();
+    await button(f.editor(), 'Apply').click();
+    await f.changed(accepted);
+    await f.editor().waitFor({ state: 'hidden' });
+    await f.snapshot(label);
+  };
+  f.phase = 'convert a saved spacing row to Total span through History';
+  await f.newPage();
+  await open('D836-spacing.bcad', initial);
+  await f.same(initial);
+  await verify('legacy-four', 10, offsets4, 30, initial);
+  await f.openFeatureEditor(2, 'legacy mode');
+  assert.equal(await mode().inputValue(), 'spacing');
+  await mode().selectOption('span');
+  assert.equal(await input('Total span').inputValue(), '90');
+  assert.equal(await input('Spacing').textContent(), '30 mm');
+  await f.same(initial);
+  await commitEdit('converted-to-span');
+  await verify('converted-to-span', 10, offsets4, 30, four);
+  await f.undo();
+  await verify('undo-mode', 10, offsets4, 30, initial);
+  await f.redo();
+  await verify('redo-mode', 10, offsets4, 30, four);
+  await f.openFeatureEditor(2, 'six fixed-span copies');
+  await input('Count').fill('6');
+  await commitEdit('count-six-in-span');
+  await verify('count-six-in-span', 10, offsets6, 18, six);
+
+  f.phase = 'switch back to spacing and keep the six-copy placement';
+  await f.openFeatureEditor(2, 'fixed mode');
+  assert.equal(await mode().inputValue(), 'span');
+  await mode().selectOption('spacing');
+  assert.equal(await input('Spacing').inputValue(), '18');
+  assert.equal(await input('Total span').count(), 0);
+  await commitEdit('converted-to-spacing');
+  await verify('converted-to-spacing', 10, offsets6, 18, spacingSix);
+  await f.openFeatureEditor(2, 'five fixed-spacing copies');
+  await input('Count').fill('5');
+  await commitEdit('count-five-in-spacing');
+  await verify('count-five-in-spacing', 10, offsets5, 18, spacingFive);
+
+  f.phase = 'refuse conversion of a parameter-bound legacy spacing';
+  const bound = { ...legacy(four, { parameter: 'pitch' }), parameters: { pitch: 30 } };
+  await open('D836-bound-spacing.bcad', bound);
+  await f.same(bound);
+  await f.openFeatureEditor(2, 'bound spacing');
+  const before = await f.snapshot('bound-before');
+  assert.equal(await input('Spacing parameter').inputValue(), 'pitch');
+  await mode().selectOption('span');
+  assert.equal(await mode().inputValue(), 'spacing');
+  assert.equal(await input('Spacing parameter').inputValue(), 'pitch');
+  assert.ok(await input('Spacing').isDisabled());
+  await f.editor().getByRole('status').getByText('Unbind Spacing before switching to Total span.').waitFor();
+  assert.ok(await button(f.editor(), 'Apply').isDisabled());
+  await mode().press('Enter');
+  const after = await f.snapshot('bound-conversion-refused');
+  for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection']) assert.deepEqual(after[key], before[key], key);
+  await f.closeEditor();
+  await f.undo();
+  await verify('first-undo-after-bound-refusal', 10, offsets5, 18, spacingFive);
+  await f.redo();
+  await verify('first-redo-after-bound-refusal', 10, offsets4, 30, bound);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   if (creationMode) { await createFixedSpan(); return; }
+  if (conversionMode) { await convertDistanceMode(); return; }
   const four = documentAt(10, 4), six = documentAt(10, 6), wider = documentAt(12, 6);
   const offsets4 = [0, 30, 60, 90], offsets6 = [0, 18, 36, 54, 72, 90], offsets5 = [0, 22.5, 45, 67.5, 90];
   f.phase = 'Open a fixed-span model and edit Count without changing span';
