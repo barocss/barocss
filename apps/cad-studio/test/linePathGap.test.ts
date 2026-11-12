@@ -12,7 +12,7 @@ test('a slanted 30 mm segment loses exactly 4 mm and keeps its direction', () =>
   const shape = line([20, 20], [44, 38]);
   const source = preparePathGap(shape);
   assert.ok(source);
-  assert.equal(source.arc, null);
+  assert.equal(source.kind, 'line');
   assert.equal(source.shape, shape);
   const plan = planPathGap(source, [32.3, 28.6], 4);
   assert.ok(plan);

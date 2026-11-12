@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { nextIdOf } from '@barocss/cad-model/sketch/entityIds';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { detachSketchLink, switchTool } from '../app/sketchControls';
 import { preparePathGap, type PathGapPlan, type PreparedPathGap } from './pathGap';
@@ -19,6 +20,10 @@ interface OwnedDraft extends PathGapDraft {
 export interface PathGapInput {
   read(owner: SketchState | null): PathGapDraft | null;
   apply(owner: SketchState, draft: PathGapDraft, plan: PathGapPlan | null): void;
+}
+
+function constructionFragment(a: P2, b: P2, bulge: number, ids: [string, string]): SketchShape {
+  return { kind: 'polygon', points: [a, b], bulges: [bulge, 0], closed: false, pending: false, construction: true, ids };
 }
 
 export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>,
@@ -45,17 +50,24 @@ export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: R
     apply(owner, expected, plan) {
       const value = read(owner);
       if (!value || value !== expected) return;
-      if (!plan) { change({ ...value, notice: value.source.arc ? 'The gap must fit inside the arc.' : 'The gap must fit inside the line.' }); return; }
-      const shape = value.source.shape;
-      const done = owner.done ?? [], index = done.indexOf(shape);
+      if (!plan) { change({ ...value, notice: `The gap must fit inside the ${value.source.kind}.` }); return; }
+      const source = value.source;
+      const done = owner.done ?? [], index = done.indexOf(source.shape);
       if (index < 0) return;
-      const [a, b] = shape.points, [startId, endId] = shape.ids;
       const next = nextIdOf(done);
-      const first: SketchShape = { kind: 'polygon', points: [a, plan.cutA], bulges: [plan.bulges[0], 0],
-        closed: false, pending: false, construction: true, ids: [startId, `e${next}`] };
-      const last: SketchShape = { kind: 'polygon', points: [plan.cutB, b], bulges: [plan.bulges[1], 0],
-        closed: false, pending: false, construction: true, ids: [`e${next + 1}`, endId] };
-      const replacement = [...done.slice(0, index), first, last, ...done.slice(index + 1)];
+      const firstCutId = `e${next}`, secondCutId = `e${next + 1}`;
+      let fragments: SketchShape[];
+      if (source.kind === 'circle' && plan.kind === 'circle') {
+        // A closed circle has no old endpoints. Retire its ID and identify both new ends.
+        fragments = [constructionFragment(plan.cutB, plan.cutA, plan.bulges[0], [secondCutId, firstCutId])];
+      } else if (source.kind !== 'circle' && plan.kind === 'segment') {
+        const [a, b] = source.shape.points, [startId, endId] = source.shape.ids;
+        fragments = [
+          constructionFragment(a, plan.cutA, plan.bulges[0], [startId, firstCutId]),
+          constructionFragment(plan.cutB, b, plan.bulges[1], [secondCutId, endId]),
+        ];
+      } else return;
+      const replacement = [...done.slice(0, index), ...fragments, ...done.slice(index + 1)];
       change(null);
       setSketch(ownerNow => ownerNow === owner
         ? switchTool({ ...detachSketchLink(ownerNow), done: replacement }, 'select')
@@ -63,7 +75,7 @@ export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: R
     },
   };
   return {
-    input, visible, kind: source ? (source.arc ? 'arc' : 'line') : null,
+    input, visible, kind: source?.kind ?? null,
     toggle() {
       if (read(sketch)) { change(null); return; }
       if (source && sketch && docNow.current === doc && generation.current === renderedGeneration)

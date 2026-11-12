@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D804 — cut a path-length gap in one construction circle](notes/construction-circle-path-gap-2026-11-12/README.md).
 - [D803 — cut a path-length gap in one construction line](notes/construction-line-path-gap-2026-11-12/README.md).
 - [D802 — cut a path-length gap in one construction arc](notes/construction-arc-path-gap-2026-11-12/README.md).
 - [D801 — reacquire circular extension after Trim](notes/arc-extension-source-edit-2026-11-12/README.md).
