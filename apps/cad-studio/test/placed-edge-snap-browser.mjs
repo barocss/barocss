@@ -6,6 +6,7 @@ const mode = process.argv[3];
 const fixed = mode === '--fixed';
 const quarterTurn = mode === '--quarter-turn' || mode === '--quarter-turn-baseline';
 const quarterTurnFixed = mode === '--quarter-turn';
+const sourceRevision = mode === '--source-revision';
 
 const pins = [
   'apps/cad-studio/test/placed-edge-snap-browser.mjs',
@@ -15,20 +16,24 @@ const pins = [
   'packages/barocss-cad-model/src/engine/doc.ts',
   'packages/barocss-cad-model/src/engine/evaluate.ts',
   'packages/barocss-cad-model/src/sketch/osnap.ts',
-  ...(fixed || quarterTurn ? [
+  ...(fixed || quarterTurn || sourceRevision ? [
     'apps/cad-studio/src/viewport/placedBoxSnap.ts',
     'apps/cad-studio/src/viewport/placedSketchSnaps.ts',
     'apps/cad-studio/src/viewport/SceneViewport.tsx',
     'apps/cad-studio/test/placed-worker-reply-scheduler.mjs',
   ] : []),
+  ...(sourceRevision ? ['packages/barocss-cad-model/src/assembly/definitions.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'placed-edge-snap', output: process.argv[2], envFrozen: quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
+  name: 'placed-edge-snap', output: process.argv[2],
+  envFrozen: sourceRevision ? 'D884_SOURCE_FROZEN' : quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: quarterTurn ? 'Check +90 degree Z placed box End and Middle against independent world coordinates.'
+  qualification: sourceRevision ? 'Check placed snap ownership through an accepted source revision with the same occurrence and body keys.'
+    : quarterTurn ? 'Check +90 degree Z placed box End and Middle against independent world coordinates.'
     : fixed ? 'Consume current translated box endpoints and midpoints with stale and hidden occurrence controls.'
     : 'Measure placed edge snap availability and the accepted root sketch coordinates.',
-  limits: [quarterTurn
+  limits: [sourceRevision ? 'One revised native box and one independent sibling in desktop Studio.'
+    : quarterTurn
     ? 'A +90 degree Z box and an unrotated sibling sharing one native definition in desktop Studio.'
     : 'Two top-level static translated native boxes with a shared source and a separate native root box in desktop Studio.'],
   inspectorSource: `
@@ -343,6 +348,122 @@ async function checkQuarterTurn() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkSourceRevision() {
+  const left = { ...instances[0], part: { id: 'left-definition', rev: 'A' } };
+  const right = { ...instances[1], part: { id: 'right-definition', rev: 'A' } };
+  const doc = { ...root, instances: [left, right] };
+  const wider = part([0, 0], [34, 12]), file = 'left-revision-B.bcad';
+  const bytes = Buffer.from(JSON.stringify(wider));
+  const oldEnd = [30.25, 14.25], newEnd = [44.25, 14.25], newMid = [27.25, 14.25];
+  const pointer = ([x, y]) => [x + 0.05, y + 0.05];
+  const points = [[-24.75, -9.5], pointer(oldEnd), pointer(newEnd), pointer(newMid), secondPointer];
+  const original = await f.inspect('revision-A-native', doc);
+  checkInstances(original.placed);
+  await f.newPage();
+  await open(doc);
+  f.report.observations.push({ label: 'revision-fixtures', assemblySHA256: sha256(Buffer.from(JSON.stringify(doc))),
+    revisionBytes: bytes.length, revisionSHA256: sha256(bytes), oldEnd, newEnd, newMid });
+
+  async function offer() {
+    const panel = await occurrenceControls();
+    await panel.getByLabel('New revision file', { exact: true }).setInputFiles({ name: file, mimeType: 'application/json', buffer: bytes });
+    const waiting = panel.getByRole('status', { name: 'Revision waiting', exact: true });
+    await button(waiting, 'Accept Rev B').waitFor();
+    const pending = await f.doc();
+    assert.deepEqual(pending.instances, [left, right]);
+    assert.deepEqual(pending.nodes, doc.nodes);
+    assert.deepEqual(pending.pendingParts['left-definition'].doc, wider);
+    return { panel, waiting, pending };
+  }
+
+  f.phase = 'offer a new revision and keep the accepted A source';
+  const { waiting, pending } = await offer();
+  await begin();
+  await f.frame(points);
+  await hover(pointer(oldEnd), 'End', 'left');
+  await markAt(oldEnd);
+  await hover(pointer(newEnd), null);
+  await hover(secondPointer, 'Middle', 'right');
+  await f.same(pending);
+  await f.snapshot('01-offered-revision-keeps-A-snaps');
+  await cancel();
+  await occurrenceControls();
+  await button(waiting, 'Keep Rev A').click();
+  await f.same(doc);
+
+  f.phase = 'accept B while holding its genuine placed Worker reply';
+  const offered = await offer();
+  await f.page.evaluate(() => window.__d523Placed.arm({ onlyPlaced: true }));
+  await button(offered.waiting, 'Accept Rev B').click();
+  await f.page.waitForFunction(() => window.__studioDoc.instances[0].part.rev === 'B');
+  await f.page.waitForFunction(() => {
+    const run = window.__d523Placed.snapshot();
+    return run.claimed && run.events.some(event => event.kind === 'native-event-held' && event.id === run.claimed.id && event.resultOK);
+  });
+  const claim = await f.page.evaluate(() => {
+    const run = window.__d523Placed.snapshot();
+    return { id: run.claimed.id, translation: run.claimed.place.t };
+  });
+  assert.deepEqual(claim.translation, left.position);
+  const revised = await f.doc();
+  assert.deepEqual(revised.instances[0], { ...left, doc: wider, part: { ...left.part, rev: 'B', source: file } });
+  assert.deepEqual(revised.instances[1], right);
+  assert.deepEqual(revised.nodes, doc.nodes);
+  assert.equal(revised.pendingParts, undefined);
+  await f.ready();
+  await begin();
+  await f.frame(points);
+  await hover(pointer(oldEnd), null);
+  await hover(pointer(newEnd), null);
+  await hover(secondPointer, 'Middle', 'right');
+  const stale = await f.snapshot('02-accepted-B-with-A-mesh-still-visible');
+  assert.equal(stale.instanceBounds.find(item => item.id === 'left')?.max[0], oldEnd[0]);
+  await f.page.mouse.click(...await hover(pointer(oldEnd), null));
+  const pendingCorner = await draftCorner();
+  assert.deepEqual(pendingCorner, [30, 14]);
+  await f.same(revised);
+  f.report.observations.push({ label: 'held-revision-B-worker-reply', ...claim, oldDisplayedEnd: oldEnd, pendingCorner });
+  await cancel();
+
+  f.phase = 'release B and consume only its current coordinates';
+  await f.page.evaluate(() => window.__d523Placed.release());
+  await f.page.waitForFunction(() => window.__studioInstanceBounds?.().find(item => item.id === 'left')?.max[0] === 44.25);
+  await begin();
+  await f.frame(points);
+  await hover(pointer(oldEnd), null);
+  await hover(pointer(newMid), 'Middle', 'left');
+  await markAt(newMid);
+  await f.snapshot('03-revision-B-middle');
+  const first = await hover(pointer(newEnd), 'End', 'left');
+  await markAt(newEnd);
+  await f.snapshot('04-revision-B-end');
+  await f.page.mouse.click(...first);
+  await f.page.mouse.click(...await hover(secondPointer, 'Middle', 'right'));
+  const sketched = (await f.finishSketch('05-revision-B-rectangle')).doc;
+  assert.deepEqual(sketched.nodes.at(-1).min, newEnd);
+  assert.deepEqual(sketched.nodes.at(-1).max, middleAt);
+  assert.deepEqual(sketched.instances, revised.instances);
+  await f.openExtrudeHud();
+  const solid = (await f.applyExtrude({ distance: 2, previous: sketched, label: '06-revision-B-consumer' })).doc;
+  const result = await f.inspect('revision-B-native', solid);
+  checkBox(result.placed[0].bodies[0], left.position, [44.25, 26.25, 6], 2448);
+  assert.deepEqual(result.placed[1], original.placed[1]);
+  assert.deepEqual(result.root.find(body => body.id === 'n1'), original.root[0]);
+  checkBox(result.root.find(body => body.id === 'n3'), [...newEnd, 0], [...middleAt, 2], 860);
+  assert.deepEqual(solid.instances, revised.instances);
+  f.report.observations.push({ label: 'revision-B-consumer', storedCornersMm: [newEnd, middleAt], volumeMm3: 860 });
+  await f.undo();
+  await f.same(sketched);
+  await f.redo();
+  await f.same(solid);
+  const saved = await save(solid);
+  await f.newPage();
+  await open(solid, saved);
+  assert.deepEqual(await f.inspect('revision-B-reopened-native', solid), result);
+  await f.snapshot('07-revision-B-fresh-open');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -354,10 +475,14 @@ await f.run(async () => {
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
       return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
     });
-    if (fixed) await context.addInitScript(installD523PlacedReplyScheduler);
+    if (fixed || sourceRevision) await context.addInitScript(installD523PlacedReplyScheduler);
     return context;
   };
 
+  if (sourceRevision) {
+    await checkSourceRevision();
+    return;
+  }
   if (quarterTurn) {
     await checkQuarterTurn();
     return;

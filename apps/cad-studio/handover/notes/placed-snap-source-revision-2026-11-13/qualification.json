@@ -1,0 +1,86 @@
+{
+  "decision": "D884",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "b7bf4fd93008b0e698cd98285035cd8bd33933bc",
+  "issue": 2333,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D884_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/studio-run01 --source-revision",
+    "cd packages/barocss-cad-model && node scripts/test.mjs definitions.test osnap",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership instance.test instance-looks.test",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 15,
+    "studioPass": 20,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "541a80c32d4be65642f51d9cb29531a6901375f63447af9ba47c0316c0c9c2b2"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Native coordinate and volume oracle, same keys, genuine Worker hold and release attribution."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "2846bb6c454d7c4f09823a637899603404d8253d730a5fa7384f9fcadf529989",
+    "sourceManifestSHA256": "f21459b6e48b65f287f180eb7e28d3f24a299acc4bb745967412089cd9cab7b3",
+    "frozenFiles": 841,
+    "snapshots": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "offeredRevision": "PASS",
+    "keepOriginal": "PASS",
+    "heldReplyId": 6,
+    "heldClick": "PASS",
+    "siblingCurrent": "PASS",
+    "releasedRevision": "PASS",
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "oldEndMm": [
+      30.25,
+      14.25
+    ],
+    "pendingGridMm": [
+      30,
+      14
+    ],
+    "newEndMm": [
+      44.25,
+      14.25
+    ],
+    "newMiddleMm": [
+      27.25,
+      14.25
+    ],
+    "rightMiddleMm": [
+      65.75,
+      34.25
+    ],
+    "revisionVolumeMm3": 2448,
+    "consumerVolumeMm3": 860,
+    "nativeTolerance": 1e-8,
+    "assemblyFixtureSHA256": "6e7068be9948a9256729cdecaf91220a9f03237c2c5f79eca5fc35b6fb5c0b23",
+    "revisionFixtureBytes": 304,
+    "revisionFixtureSHA256": "7265e59a0b322efcd27f84fc2e22918212e45df1bd529122c29aeb3881a2992f",
+    "savedBytes": 3350,
+    "savedSHA256": "f6ade4b7c289dd37af80518822971ff9f57cc59e265f92fb7d7b9cc01388f0e5"
+  },
+  "notRun": [
+    "failed placed Worker reply",
+    "effective per-body hiding and removal",
+    "reused IDs across New/Open",
+    "duplicate Finish",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

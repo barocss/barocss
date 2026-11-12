@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D884 — verify placed snaps through a source revision](notes/placed-snap-source-revision-2026-11-13/README.md).
 - [D883 — snap to a native box after a Z quarter-turn](notes/placed-box-quarter-turn-snaps-2026-11-13/README.md).
 - [D882 — snap a root rectangle to current placed box edges](notes/placed-static-box-snaps-2026-11-13/README.md).
 - [D881 — measure the placed edge snap baseline](notes/placed-edge-snap-baseline-2026-11-13/README.md).
