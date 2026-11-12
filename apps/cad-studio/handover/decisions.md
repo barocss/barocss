@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D807 — cut a path-length gap in an ordinary arc](notes/ordinary-arc-path-gap-2026-11-12/README.md).
+
 - [D806 — close and extrude an ordinary circle after a gap](notes/ordinary-circle-gap-close-2026-11-12/README.md).
 - [D805 — keep an ordinary line gap through Finish and Make curves](notes/ordinary-line-path-gap-2026-11-12/README.md).
 - [D804 — cut a path-length gap in one construction circle](notes/construction-circle-path-gap-2026-11-12/README.md).

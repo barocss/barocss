@@ -75,3 +75,14 @@ test('only a completed identified construction arc with independent geometry is 
   assert.equal(preparePathGap(source([30, 20], [30, 20], 1)), null);
   assert.equal(preparePathGap(source([9899, 0], [9999, -100], Math.SQRT2 - 1)), null);
 });
+
+test('an ordinary arc requires the independent draft opt-in and preserves its role', () => {
+  const shape = { ...source([30, 20], [10, 20], 1), construction: undefined };
+  assert.equal(preparePathGap(shape), null);
+  const prepared = preparePathGap(shape, true);
+  assert.equal(prepared?.kind, 'arc');
+  assert.equal(prepared.shape, shape);
+  assert.ok(planPathGap(prepared, [20, 30], 4));
+  assert.equal(preparePathGap({ ...shape, radii: { 0: 10 } }, true), null);
+  assert.equal(preparePathGap({ ...shape, fromSpline: true }, true), null);
+});

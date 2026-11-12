@@ -46,6 +46,5 @@ test('an ordinary line requires the explicit draft scope', () => {
   assert.ok(source);
   assert.equal(source.shape.construction, undefined);
   assert.ok(planPathGap(source, [32, 29], 4));
-  assert.equal(preparePathGap({ ...shape, bulges: [1, 0] }, true), null);
   assert.equal(preparePathGap({ ...shape, closed: true }, true), null);
 });

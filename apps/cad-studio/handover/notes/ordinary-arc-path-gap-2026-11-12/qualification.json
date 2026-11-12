@@ -1,0 +1,186 @@
+{
+  "decision": "D807",
+  "tier": "FEATURE",
+  "parent": "f23c2849736c5ced199c02c43b072342a75a9ad9",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d807-ordinary-arc-path-gap",
+    "node --check apps/cad-studio/test/ordinary-arc-path-gap-browser.mjs",
+    "cd apps/cad-studio && D807_BASELINE=1 D807_SOURCE_FROZEN=1 node test/ordinary-arc-path-gap-browser.mjs \"$EVIDENCE/baseline-1\" (original reader) and \"$EVIDENCE/baseline-2\" (point evaluation)",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test PathGap",
+    "cd apps/cad-studio && D807_SOURCE_FROZEN=1 node test/ordinary-arc-path-gap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D805_SOURCE_FROZEN=1 node test/ordinary-path-gap-browser.mjs \"$EVIDENCE/ordinary-line-regression\"",
+    "cd apps/cad-studio && D806_SOURCE_FROZEN=1 node test/ordinary-circle-gap-close-browser.mjs \"$EVIDENCE/circle-regression\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d807-2026-11-12",
+    "firstFailure": "Baseline reader requested D2 at a knot without guaranteed C2 continuity. Corrected the reader before changing the product.",
+    "focused": {
+      "studioPass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "studioBuild": "PASS",
+    "independentSourceReview": "PASS",
+    "rootVisualReview": "PASS",
+    "runs": {
+      "baseline-1": {
+        "status": "FAIL",
+        "sha256": "45740c20f04c6bdab5bb46d51df10953179f244ecb3ff9f7f7d288fdde7e694d",
+        "frozenSources": 706,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      },
+      "baseline-2": {
+        "status": "PASS",
+        "sha256": "f942dea2af9faaf4ff11c482975c1fee1cef65ec2135f6e21ba4c0c647e76c59",
+        "frozenSources": 706,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "measurements": [
+          {
+            "label": "ordinary-arc-path",
+            "baseline": true,
+            "finish": "REFUSED",
+            "native": [
+              {
+                "ends": [
+                  [
+                    30,
+                    20,
+                    0
+                  ],
+                  [
+                    10,
+                    20,
+                    0
+                  ]
+                ],
+                "length": 31.415925759652087,
+                "radii": [
+                  9.999999999547361,
+                  10
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "4b58d72da4ba6baa879b8ac0a95beb6fe8bb85163567fe36418a2ff1c3a6d7d5",
+        "frozenSources": 706,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "measurements": [
+          {
+            "label": "ordinary-arc-path",
+            "baseline": false,
+            "finish": "REFUSED",
+            "native": [
+              {
+                "ends": [
+                  [
+                    30,
+                    20,
+                    0
+                  ],
+                  [
+                    21.986695,
+                    29.800666,
+                    0
+                  ]
+                ],
+                "length": 13.707962012803103,
+                "radii": [
+                  10,
+                  10.000000553329036
+                ]
+              },
+              {
+                "ends": [
+                  [
+                    18.013308,
+                    29.800666,
+                    0
+                  ],
+                  [
+                    10,
+                    20,
+                    0
+                  ]
+                ],
+                "length": 13.707964505202062,
+                "radii": [
+                  9.999999957320998,
+                  10
+                ]
+              }
+            ]
+          },
+          {
+            "label": "ordinary-arc-project",
+            "measuredGapMm": 4.000000391910905,
+            "bytes": 883,
+            "sha256": "00c6728ed4f31a6905430893d5d80c3c86606eefd2b69f3066350bc98308a318"
+          }
+        ]
+      },
+      "ordinary-line-regression": {
+        "status": "PASS",
+        "sha256": "8a17616ff57b1dd3ab0b68bb2134fbbf249652c73a359cacf1b70aee0cf1ffcc",
+        "frozenSources": 706,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      },
+      "circle-regression": {
+        "status": "PASS",
+        "sha256": "e5ab4e035ce0e3a54b248f17ee4b77376849ecf0867ddfff3ab3f2e26169db27",
+        "frozenSources": 805,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "tolerancesMm": {
+      "ends": 3e-06,
+      "length": 1e-05,
+      "radius": 2e-05
+    }
+  }
+}
