@@ -1,0 +1,73 @@
+{
+  "decision": "D782",
+  "tier": "FULL interface",
+  "parent": "dfa91f74ee7c6739af9de38dfa0f7e969438ab6e",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution proposal",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff task-run-host",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "cd apps/cad-studio && D782_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-named-height\" --named-height",
+    "cd apps/cad-studio && D781_SOURCE_FROZEN=1 D781_LEGACY=\"$D781_EVIDENCE/legacy-width\" node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-scalar-regression\" --box-width",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d782-2026-11-12",
+    "receipts": {
+      "desktop-named-height": {
+        "sha256": "4b10580010ec186441a2524f8447ea1b2577b8f03bc16441a1039e2303911d77",
+        "frozenSources": 880,
+        "parameterMm": [
+          5,
+          6,
+          7
+        ],
+        "nativeVolumeMm3": [
+          1200,
+          1400
+        ],
+        "nativeCentroidMm": [
+          [
+            12.999999999999996,
+            2.0000000000000004,
+            3
+          ],
+          [
+            12.999999999999998,
+            2.0000000000000004,
+            3.5
+          ]
+        ]
+      },
+      "desktop-scalar-regression": {
+        "sha256": "baa71375bbdc75feb2f4ed2603f3a67efa22d5f4a7f3bb4f02c74bb8b4cf413e",
+        "frozenSources": 883
+      }
+    },
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 56,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "replace-binding-with-a-literal",
+      "allow-configuration-owned-height"
+    ],
+    "independentAbsoluteTolerance": 1e-8
+  }
+}

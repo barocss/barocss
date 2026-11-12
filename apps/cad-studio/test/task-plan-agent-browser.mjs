@@ -43,7 +43,8 @@ const boxScalarAxis = mode === '--box-width' ? 'width' : mode === '--box-depth' 
 const legacyBoxDirectory = boxScalarAxis && process.env.D781_LEGACY;
 if (boxScalarAxis) assert.ok(legacyBoxDirectory, 'D781_LEGACY must select the original scalar Box artifacts.');
 const cylinderHeightMode = mode === '--cylinder-height';
-const reopenedStopMode = mode === '--reopened-stop', studioDeliveryMode = mode === '--studio-delivery' || mixedDiameterMode || cylinderHeightMode || footprintMode || !!boxScalarAxis;
+const namedHeightMode = mode === '--named-height';
+const reopenedStopMode = mode === '--reopened-stop', studioDeliveryMode = mode === '--studio-delivery' || mixedDiameterMode || cylinderHeightMode || namedHeightMode || footprintMode || !!boxScalarAxis;
 const studioApprovalMode = mode === '--studio-approval' || studioDeliveryMode, studioRejectionMode = mode === '--studio-rejection';
 const reopenMode = mode === '--reopen' || baselineMode || reopenedStopMode;
 const repairMode = mode === '--repair';
@@ -101,15 +102,19 @@ const pins = [
     'packages/barocss-cad-model/src/chat/part/proposals.ts', 'apps/cad-studio/src/state/useProposalPreview.ts',
     'apps/cad-studio/src/viewport/useCommandGizmos.ts'] : []),
   ...(boxScalarAxis ? ['apps/cad-studio/src/files/workingTaskReplacement.ts', 'packages/barocss-cad-model/test/task-execution.test.ts'] : []),
+  ...(namedHeightMode ? ['apps/cad-studio/src/files/taskCheckpoint.ts', 'apps/cad-studio/src/ui/ParametersPanel.tsx',
+    'apps/cad-studio/src/ui/NodeEditor.tsx', 'packages/barocss-cad-model/src/engine/parameters.ts',
+    'packages/barocss-cad-model/test/task-execution.test.ts'] : []),
   ...((liveStartMode || liveStopMode) ? ['apps/cad-studio/test/fixtures/task-run-worker-barrier.mjs'] : []),
 ];
 const f = await createFlow({
-  name: 'task-plan-agent', envFrozen: boxScalarAxis ? 'D781_SOURCE_FROZEN' : boxFootprintMode ? 'D780_SOURCE_FROZEN' : footprintMode ? 'D779_SOURCE_FROZEN' : cylinderHeightMode ? 'D778_SOURCE_FROZEN' : depthMode ? 'D777_SOURCE_FROZEN' : inchDiameterMode ? 'D648_SOURCE_FROZEN' : mixedDiameterMode ? 'D647_SOURCE_FROZEN' : diameterMode ? 'D646_SOURCE_FROZEN' : studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'task-plan-agent', envFrozen: namedHeightMode ? 'D782_SOURCE_FROZEN' : boxScalarAxis ? 'D781_SOURCE_FROZEN' : boxFootprintMode ? 'D780_SOURCE_FROZEN' : footprintMode ? 'D779_SOURCE_FROZEN' : cylinderHeightMode ? 'D778_SOURCE_FROZEN' : depthMode ? 'D777_SOURCE_FROZEN' : inchDiameterMode ? 'D648_SOURCE_FROZEN' : mixedDiameterMode ? 'D647_SOURCE_FROZEN' : diameterMode ? 'D646_SOURCE_FROZEN' : studioRejectionMode ? 'D645_SOURCE_FROZEN' : studioDeliveryMode ? 'D644_SOURCE_FROZEN' : studioApprovalMode ? 'D643_SOURCE_FROZEN' : reopenedStopMode ? 'D642_SOURCE_FROZEN' : liveStopMode ? 'D641_SOURCE_FROZEN' : liveStartMode ? 'D640_SOURCE_FROZEN' : stoppedFindingMode ? 'D639_SOURCE_FROZEN' : sharedHoleDeliveryMode ? 'D638_SOURCE_FROZEN' : sharedHoleRepairMode ? 'D637_SOURCE_FROZEN' : agentFindingMode ? 'D636_SOURCE_FROZEN' : findingMode ? 'D635_SOURCE_FROZEN' : interfaceMode ? 'D634_SOURCE_FROZEN' : provenanceMode ? 'D633_SOURCE_FROZEN' : replanMode ? 'D632_SOURCE_FROZEN' : rebuildMode ? 'D631_SOURCE_FROZEN' : baselineMode ? 'D630_SOURCE_FROZEN' : reopenMode ? 'D629_SOURCE_FROZEN' : repairMode ? 'D627_SOURCE_FROZEN' : prepareRepairMode ? 'D628_SOURCE_FROZEN' : workingMode ? 'D626_SOURCE_FROZEN' : historyMode ? 'D625_SOURCE_FROZEN' : threeMode ? 'D624_SOURCE_FROZEN' : widthMode ? 'D623_SOURCE_FROZEN' : checkpointMode ? 'D622_SOURCE_FROZEN' : statusMode ? 'D621_SOURCE_FROZEN' : reviewMode ? 'D620_SOURCE_FROZEN' : startMode ? 'D619_SOURCE_FROZEN' : handoffMode ? 'D618_SOURCE_FROZEN' : 'D617_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `import { readFileSync } from 'node:fs';
 import { digestOf, requirementEvidenceRevision } from '@barocss/cad-model/util/digest';
 import { commandById } from '@barocss/cad-model/app/commands';
 import { emptyDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { bindParameter } from '@barocss/cad-model/engine/parameters';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
@@ -175,6 +180,15 @@ else {
     const lid = doc.instances[1].doc, made = commandById('cylinder').build(
       { doc: emptyDoc(), selection: { bodies: [], edges: [], faces: [] }, bodies: [] }, { r: 3, h: 3, x: 0, y: 0, z: 0 });
     doc.instances[1].doc = { ...made, brief: lid.brief, requirements: lid.requirements };
+  } else if (${namedHeightMode}) {
+    const [base, lid] = doc.instances;
+    const sketch = base.doc.nodes[0];
+    sketch.min = [3, -3];
+    sketch.max = [23, 7];
+    base.doc = bindParameter({ ...base.doc, parameters: { Thickness: 5, Spare: 9 } },
+      { feature: 'n1', value: 'h', parameter: 'Thickness' });
+    doc.parameters.Thickness = 42;
+    lid.doc.parameters.Thickness = 11;
   } else if (${depthMode}) {
     const [sketch] = doc.instances[0].doc.nodes;
     sketch.min = [0, -3];
@@ -194,9 +208,14 @@ if 'footprint' in d:
     g = d['footprint']
     lo = [3,-3,0]
     axis = d.get('axis')
-    x = 23 if axis == 'depth' else (28 if d['edited'] else 27)
-    y = 7 if axis == 'width' else (12 if d['edited'] else 11)
-    hi = [x,y,5]
+    if 'namedHeight' in d:
+        height = 7 if d['edited'] else 6
+        assert d['namedHeight'] == height
+        hi = [23,7,height]
+    else:
+        x = 23 if axis == 'depth' else (28 if d['edited'] else 27)
+        y = 7 if axis == 'width' else (12 if d['edited'] else 11)
+        hi = [x,y,5]
     size = [b-a for a,b in zip(lo, hi)]
     corners = sorted((x,y,z) for x in [lo[0],hi[0]] for y in [lo[1],hi[1]] for z in [lo[2],hi[2]])
     def close(actual, expected):
@@ -265,10 +284,10 @@ for doc, report, want in zip(d['documents'], d['reports'], ([6,4],[6],[6,5]), st
 assert d['reports'][1]['issues'][0]['inputs'] == ['requirement:check_spec:ambiguous']
 print(json.dumps({'status':'PASS','targetHeights':[[6,4],[6],[6,5]],'productImports':0}))
 `,
-  qualification: boxScalarAxis ? 'Approve one Box dimension and open the original scalar checkpoint' : boxFootprintMode ? 'Approve a standard Box footprint and reopen its native Edit Box command' : footprintMode ? 'Approve width and depth together and verify the saved native Studio result' : cylinderHeightMode ? 'Approve the height of a plain circular extrusion and edit it after native Studio Save and Open' : depthMode ? 'Approve an authored rectangle depth and sibling height, then reopen the saved native assembly' : inchDiameterMode ? 'Normalize an authored inch diameter and tolerance in an approved native Studio run' : mixedDiameterMode ? 'Approve height and rebuilt through-hole diameter, then save and reopen the assembly' : diameterMode ? 'Approve a native through-hole diameter and refuse a shared pattern in Studio' : studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
+  qualification: namedHeightMode ? 'Approve a named extrusion height and edit its parameter after native Studio Save and Open' : boxScalarAxis ? 'Approve one Box dimension and open the original scalar checkpoint' : boxFootprintMode ? 'Approve a standard Box footprint and reopen its native Edit Box command' : footprintMode ? 'Approve width and depth together and verify the saved native Studio result' : cylinderHeightMode ? 'Approve the height of a plain circular extrusion and edit it after native Studio Save and Open' : depthMode ? 'Approve an authored rectangle depth and sibling height, then reopen the saved native assembly' : inchDiameterMode ? 'Normalize an authored inch diameter and tolerance in an approved native Studio run' : mixedDiameterMode ? 'Approve height and rebuilt through-hole diameter, then save and reopen the assembly' : diameterMode ? 'Approve a native through-hole diameter and refuse a shared pattern in Studio' : studioRejectionMode ? 'Reject one reviewed candidate and approve the sibling in Studio' : studioDeliveryMode ? 'Approve both tasks in Studio and reopen the exact saved assembly' : studioApprovalMode ? 'Approve the reviewed candidate directly from Studio and reopen the checkpoint' : reopenedStopMode ? 'Stop a reopened run and preserve the approved checkpoint' : liveStopMode ? 'Stop the live Studio run and reopen its accepted baseline' : liveStartMode ? 'Show a durable run while its initial native workers remain active' : stoppedFindingMode ? 'Stop a failed shared hole run and reopen its exact baseline in Studio' : sharedHoleDeliveryMode ? 'Deliver both height edits from the explicitly repaired shared hole through Studio project Save and Open' : sharedHoleRepairMode ? 'Repair a shared hole through an explicitly accepted Studio proposal and recheck the exact saved assembly' : agentFindingMode ? 'Read selected native evidence in Studio chat and refuse a different working revision' : findingMode ? 'Read host-confirmed native failure details on a durable task' : interfaceMode ? 'Protect the approved two-part assembly when the shared hole interface conflicts' : provenanceMode ? 'Reopen the durable provenance of a replacement run' : replanMode ? 'Replace a stale candidate from revised saved requirements' : rebuildMode ? 'Rebuild a stale independent candidate from Studio without approving it' : baselineMode ? 'Open the verified native run baseline and retire stale reads' : reopenMode ? 'Reopen the same started run in fresh Studio contexts' : repairMode ? 'Repair one failed occurrence on the saved working model' : prepareRepairMode ? 'Prepare and explicitly start a repair from a saved working failure' : workingMode ? 'Compare historical approval with current occurrence checks and retire late replies' : historyMode ? 'Inspect all published task checks without replacing the working model' : threeMode ? 'Review and publish three independent tasks from one Studio run' : widthMode ? 'Deliver one rectangular width edit and one extrusion-height edit from the same Studio run' : checkpointMode ? 'Open both terminal-approved checkpoints directly from the owned Studio run' : statusMode ? 'Refresh a local run across terminal approval, sibling rebuild and final checkpoint delivery' : reviewMode ? 'Review both held candidates directly in desktop Studio and refuse a retired attempt' : startMode ? 'Start a verified local run from Studio and return the terminal-approved checkpoint' : handoffMode ? 'Export a reviewed Studio plan and exact native bytes to the local worker and return the approved checkpoint' :
     'Studio chat reads the same authored task plan as the CLI and detects a changed turn model',
   limits: ['Controlled local tool calls use the real Studio, chat server and stdio MCP.',
-    boxScalarAxis ? 'One standard Box scalar edit, its legacy run and checkpoint, and one independent sibling height.' : boxFootprintMode ? 'One standard Box with a nonzero sketch origin and one sibling height task.' : footprintMode ? 'One tagged rectangle with unequal X and Y targets, and one sibling height task.' : cylinderHeightMode ? 'One circular extrusion with a decimal centre and radius and one sibling made by the Cylinder command.' : depthMode ? 'One local Y edit on a native rectangle with a nonzero Y origin and one independent height edit.' : inchDiameterMode ? 'One explicitly authored inch diameter with a protected sibling and ambiguous-unit, radius and shared-pattern refusal controls.' : mixedDiameterMode ? 'One native through-hole diameter and one sibling extrusion height in a single saved Studio run.' : diameterMode ? 'One independent native through-hole and one protected sibling, with a shared-pattern refusal control.' : sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
+    namedHeightMode ? 'One named height bound to a plain rectangle and one independent literal height task.' : boxScalarAxis ? 'One standard Box scalar edit, its legacy run and checkpoint, and one independent sibling height.' : boxFootprintMode ? 'One standard Box with a nonzero sketch origin and one sibling height task.' : footprintMode ? 'One tagged rectangle with unequal X and Y targets, and one sibling height task.' : cylinderHeightMode ? 'One circular extrusion with a decimal centre and radius and one sibling made by the Cylinder command.' : depthMode ? 'One local Y edit on a native rectangle with a nonzero Y origin and one independent height edit.' : inchDiameterMode ? 'One explicitly authored inch diameter with a protected sibling and ambiguous-unit, radius and shared-pattern refusal controls.' : mixedDiameterMode ? 'One native through-hole diameter and one sibling extrusion height in a single saved Studio run.' : diameterMode ? 'One independent native through-hole and one protected sibling, with a shared-pattern refusal control.' : sharedHoleDeliveryMode ? 'One shared hole repair and two extrusion-height publications in a desktop Studio project.' : sharedHoleRepairMode ? 'One hole diameter repair on two plates and two unpublished extrusion-height candidates.' : repairMode ? 'One extrusion-height repair in a three-occurrence assembly.' : threeMode ? 'One rectangular width and two extrusion-height tasks.' : widthMode ? 'One width task on a solid rectangle and one height task on its sibling.' : 'Two existing extrusion-height occurrences.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -279,7 +298,7 @@ async function bounds(p1, p2) {
     return rows?.length === 2 && rows.find(row => row.id === 'p1')?.max[2] === p1 && rows.find(row => row.id === 'p2')?.max[2] === p2;
   }, [p1, p2]);
 }
-const project = boxScalarAxis ? 'D781 Box ' + boxScalarAxis : boxFootprintMode ? 'D780 Box footprint' : footprintMode ? 'D779 rectangle footprint' : cylinderHeightMode ? 'D778 circular height' : depthMode ? 'D777 rectangle depth' : inchDiameterMode ? 'D648 inch bore diameter' : mixedDiameterMode ? 'D647 mixed dimension delivery' : diameterMode ? 'D646 through-hole diameter' : studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
+const project = namedHeightMode ? 'D782 named height' : boxScalarAxis ? 'D781 Box ' + boxScalarAxis : boxFootprintMode ? 'D780 Box footprint' : footprintMode ? 'D779 rectangle footprint' : cylinderHeightMode ? 'D778 circular height' : depthMode ? 'D777 rectangle depth' : inchDiameterMode ? 'D648 inch bore diameter' : mixedDiameterMode ? 'D647 mixed dimension delivery' : diameterMode ? 'D646 through-hole diameter' : studioDeliveryMode ? 'D644 Studio approval delivery' : interfaceMode ? 'D634 shared hole interface' : replanMode ? 'D632 replacement plan' : rebuildMode ? 'D631 rebuild stale candidate' : reopenMode ? 'D629 reopen local run' : repairMode ? 'D627 scoped repair' : threeMode ? 'D624 three local tasks' : widthMode ? 'D623 width task' : checkpointMode ? 'D622 local checkpoint' : statusMode ? 'D621 local run status' : reviewMode ? 'D620 local review' : startMode ? 'D619 local start' : handoffMode ? 'D618 local handoff' : 'D617 plan query';
 const readySummary = `${occurrences.length} local ${widthMode || depthMode || footprintMode || boxScalarAxis || diameterMode || mixedDiameterMode ? 'dimension' : 'height'} target${occurrences.length === 1 ? '' : 's'} ready`;
 const call = (extra = {}) => ({ tool: 'requirements', args: { action: 'plan_tasks', occurrences, ...extra } });
 async function openFile(name, buffer) {
@@ -466,7 +485,7 @@ process.exitCode = code ?? 1;
         { occurrence: 'p2', feature: 'n1', field: 'height' },
       ]);
     }
-    if (cylinderHeightMode) {
+    if (cylinderHeightMode || namedHeightMode) {
       assert.deepEqual(cliPlan.targets, [
         { id: 'p1', requirementId: 'height', currentHeightMm: 5, heightMm: 6, toleranceMm: 0.001 },
         { id: 'p2', requirementId: 'check_spec', currentHeightMm: 3, heightMm: 4, toleranceMm: 0.001 },
@@ -475,6 +494,7 @@ process.exitCode = code ?? 1;
         { occurrence: 'p1', feature: 'n1', field: 'height' },
         { occurrence: 'p2', feature: 'n1', field: 'height' },
       ]);
+      if (namedHeightMode) assert.equal(cliPlan.plan.tasks[0].capability, 'extrusion-height');
     }
     if (depthMode) {
       assert.deepEqual(cliPlan.targets, [
@@ -659,7 +679,7 @@ process.exitCode = code ?? 1;
         }
         if (studioApprovalMode) {
           const deliver = studioDeliveryMode ? values => taskRunStudioDeliveryFlow({ f, row, launch: firstLaunch, source, saved,
-            project, savedBytes, turn, siblingDiameter: mixedDiameterMode, baseCylinder: cylinderHeightMode, baseFootprint: footprintMode, boxFootprint: boxFootprintMode, boxScalarAxis, ...values }) : undefined;
+            project, savedBytes, turn, siblingDiameter: mixedDiameterMode, baseCylinder: cylinderHeightMode, baseFootprint: footprintMode, boxFootprint: boxFootprintMode, boxScalarAxis, namedHeight: namedHeightMode, ...values }) : undefined;
           await taskRunStudioApprovalFlow({ f, row, launch: firstLaunch, source, saved, bytes, openFile, deliver, siblingDiameter: mixedDiameterMode, baseFootprint: footprintMode, boxScalarAxis });
           if (legacyBoxDirectory) {
             f.phase = 'replay the original handoff and checkpoint alongside the current Box task';

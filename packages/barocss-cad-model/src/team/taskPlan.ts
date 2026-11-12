@@ -5,6 +5,7 @@ import { unitAssumptions, unconfirmed } from '../chat/drafts';
 import { checkNode } from '../chat/features';
 import { checkRequirement, holeDiameterRequirementMm, meets, meetsHoleDiameterMm } from '../chat/spec';
 import { bodyKey, withExtrusionHeight, type BodyRef, type PartInstance, type StudioDoc } from '../engine/doc';
+import { PARAMETER_NAME, parameterUses, withParameters } from '../engine/parameters';
 import { BRIEF_FIELDS, type Brief } from '../engine/schema/brief';
 import type { Predicate, Requirement } from '../engine/schema/spec';
 import { digestOf } from '../util/digest';
@@ -38,7 +39,7 @@ export type TaskValue = number | RectangleFootprint;
 export interface BoundTask extends TaskRequest {
   readonly dependsOn: readonly string[];
   readonly inputDigest: string;
-  readonly reads: Readonly<{ occurrence: string; requirements: readonly string[]; interfaces: readonly string[]; holeFace?: string }>;
+  readonly reads: Readonly<{ occurrence: string; requirements: readonly string[]; interfaces: readonly string[]; holeFace?: string; heightParameter?: string }>;
   readonly writes: Readonly<{ occurrence: string; feature: string; field: TaskDimension }>;
   readonly verification: Readonly<{ native: 'requirements'; oracle: 'rectangular-prism' | 'circular-cylinder'; relativeTolerance: number }>;
   readonly checks: readonly Requirement[];
@@ -106,6 +107,14 @@ const xy = (v: unknown): v is [number, number] => Array.isArray(v) && v.length =
 const only = (value: object, keys: readonly string[]) => (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
   && Reflect.ownKeys(value).every(key => typeof key === 'string' && keys.includes(key)
     && Object.hasOwn(Object.getOwnPropertyDescriptor(value, key)!, 'value'));
+
+/** Read one positive, directly bound length from the occurrence's own parameter table. */
+export function taskHeightParameter(height: unknown, parameters: StudioDoc['parameters']) {
+  if (!isObj(height) || !only(height, ['parameter']) || !Object.hasOwn(height, 'parameter') ||
+      typeof height.parameter !== 'string' || !PARAMETER_NAME.test(height.parameter) || !Object.hasOwn(parameters, height.parameter)) return;
+  const value = parameters[height.parameter];
+  if (positive(value)) return { name: height.parameter, value };
+}
 const byId = <T extends { id: string }>(a: T, b: T) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 const featureId = (id: unknown): id is string => typeof id === 'string' && /^n(?:0|[1-9]\d*)$/.test(id);
 function freeze<T>(value: T): T {
@@ -117,7 +126,7 @@ function freeze<T>(value: T): T {
 }
 
 interface TaskTarget {
-  instance: PartInstance; index: number; shape: TaskShape; height: number; value: TaskValue; body: string; holeFace?: string;
+  instance: PartInstance; index: number; shape: TaskShape; height: number; value: TaskValue; body: string; holeFace?: string; heightParameter?: string;
 }
 
 function boreFits(shape: TaskShape, x: number, y: number, radius: number): boolean {
@@ -153,9 +162,18 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
     || new Set(nodes.map(n => n.id)).size !== nodes.length
     || sketch?.kind !== 'sketch'
     || sketch.association || sketch.plane || sketch.regions?.length || sketch.holes?.length || sketch.outline || sketch.on
-    || extrusion.kind !== 'extrude' || extrusion.sketch !== 0 || !positive(extrusion.height)
+    || extrusion.kind !== 'extrude' || extrusion.sketch !== 0
     || (extrusion.from !== undefined && extrusion.from !== 0) || (extrusion.draft !== undefined && extrusion.draft !== 0)) {
-    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain supported sketch with a positive literal extrusion along local +Z.`);
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain supported sketch with a positive extrusion along local +Z.`);
+  }
+  const parameter = dimension === 'height' ? taskHeightParameter(extrusion.height, part.parameters) : undefined;
+  const height = parameter?.value ?? extrusion.height;
+  if (!positive(height))
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a positive literal extrusion height or an admitted local height parameter.`);
+  if (parameter && (nodes.length !== 2 || sketch.profile !== 'rectangle' || extrusion.made || part.variability
+      || Object.values(part.configurations ?? {}).some(config => Object.hasOwn(config, parameter.name))
+      || parameterUses([sketch, { ...extrusion, height: 0 }], parameter.name))) {
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs one plain rectangular extrusion with a parameter that controls only its height.`);
   }
   let shape: TaskShape;
   if (sketch.profile === 'rectangle' && xy(sketch.min) && xy(sketch.max)) {
@@ -182,7 +200,7 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   if (dimension === 'footprint' && ((extrusion.made && !isEditableBox(nodes, 0)) || checkNode(sketch, [], part.parameters)))
     return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a standard upright Box for a footprint task.`);
   const area = shape.circle ? Math.PI * shape.circle.radius ** 2 : shape.width * shape.depth;
-  if (!positive(shape.width) || !positive(shape.depth) || !positive(area * extrusion.height)) {
+  if (!positive(shape.width) || !positive(shape.depth) || !positive(area * height)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} has nonfinite volume.`);
   }
   if (planar && hole) return error('UNSUPPORTED_PROFILE', `${instance.id} needs a solid rectangle without holes for a ${dimension} task.`);
@@ -204,8 +222,9 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
     return error('UNSUPPORTED_PROFILE', `${instance.id} must expose its final solid as the only output.`);
   }
   const value = dimension === 'footprint' ? { widthMm: shape.width, depthMm: shape.depth }
-    : planar ? shape[dimension] : dimension === 'diameter' ? 2 * shape.hole!.radius : extrusion.height;
-  return { instance, index, shape, height: extrusion.height, value, body: key, ...(hole && { holeFace: `${hole.id}.side0` }) };
+    : planar ? shape[dimension] : dimension === 'diameter' ? 2 * shape.hole!.radius : height;
+  return { instance, index, shape, height, value, body: key, ...(hole && { holeFace: `${hole.id}.side0` }),
+    ...(parameter && { heightParameter: parameter.name }) };
 }
 
 /** Reconstruct the one authored change and the existing tool operation that produces it. */
@@ -217,8 +236,20 @@ export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclu
     return editRectangleExtents(doc, task, target, [['width', footprint.widthMm], ['depth', footprint.depthMm]]);
   }
   if (!positive(value) || value === target.value) return error('TASK_VALUE', 'The task must change its admitted dimension to a positive finite value in mm.');
-  if (field === 'height') return { ...taskHeightEdit(doc, instance, index, value),
-    args: { index, values: { h: value } }, shape, height: value };
+  if (field === 'height') {
+    if (target.heightParameter !== task.reads.heightParameter)
+      return error('TASK_SCOPE_CHANGED', 'The extrusion height parameter differs from the task plan.');
+    if (target.heightParameter !== undefined) {
+      if (!positive(shape.width * shape.depth * value))
+        return error('TASK_VALUE', 'The requested height must produce a positive finite volume.');
+      const set = { [target.heightParameter]: value };
+      const local = withParameters(instance.doc, set);
+      return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
+        op: { tool: 'set_parameters', args: { set } }, shape, height: value };
+    }
+    return { ...taskHeightEdit(doc, instance, index, value),
+      op: { tool: 'edit_feature', args: { index, values: { h: value } } }, shape, height: value };
+  }
   const node = instance.doc.nodes[index];
   if (field === 'diameter') {
     const hole = shape.hole, radius = value / 2;
@@ -230,7 +261,7 @@ export function taskDimensionEdit(doc: StudioDoc, task: BoundTask, target: Exclu
       return error('TASK_REQUIRED_CHECK', 'The requested diameter must satisfy the bound hole diameter requirement.');
     const local = { ...instance.doc, nodes: instance.doc.nodes.map((n, at) => at === index ? { ...node, radius } : n) };
     return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
-      args: { index, values: { dia: value } }, shape: { ...shape, hole: { ...hole, radius } }, height: target.height };
+      op: { tool: 'edit_feature', args: { index, values: { dia: value } } }, shape: { ...shape, hole: { ...hole, radius } }, height: target.height };
   }
   return editRectangleExtents(doc, task, target, [[field, value]]);
 }
@@ -265,7 +296,7 @@ function editRectangleExtents(doc: StudioDoc, task: BoundTask, target: TaskTarge
     return error('TASK_VALUE', 'The requested extents must retain the Box command and its dimension limits.');
   const local = { ...instance.doc, nodes };
   return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
-    args: { index, feature, ...(nodes !== after && { retainBoxCommand: true }) }, shape: editedShape, height: target.height };
+    op: { tool: 'edit_feature', args: { index, feature, ...(nodes !== after && { retainBoxCommand: true }) } }, shape: editedShape, height: target.height };
 }
 
 const briefFields = (brief: Brief | undefined) => Object.fromEntries(BRIEF_FIELDS
@@ -460,6 +491,7 @@ function readTask(doc: StudioDoc, request: TaskRequest): Omit<BoundTask, 'inputD
     occurrence: instance.id, requirements: checks.map(r => r.id),
     interfaces: [...holePatterns.map(p => `pattern:${p.id}`), ...envelopes.map(e => `envelope:${e.id}`)].sort(),
     ...(diameterChecks && { holeFace: target.holeFace }),
+    ...(target.heightParameter !== undefined && { heightParameter: target.heightParameter }),
   };
   return {
     id: request.id, holder: request.holder, occurrence: request.occurrence, feature: request.feature,

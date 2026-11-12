@@ -244,7 +244,7 @@ export async function verifyTaskGeometry(local: StudioDoc, shape: TaskShape,
   const grossArea = circle ? Math.PI * circle.radius ** 2 : shape.width * shape.depth;
   const holeArea = hole ? Math.PI * hole.radius ** 2 : 0;
   const area = grossArea - holeArea, volume = area * height;
-  const nativeRectangle = task.writes.field === 'footprint' || task.retainBoxCommand;
+  const nativeRectangle = task.writes.field === 'footprint' || task.retainBoxCommand || task.reads.heightParameter !== undefined;
   const centre = [shape.minX + shape.width / 2, shape.minY + shape.depth / 2, height / 2] as const;
   const centroid = nativeRectangle ? centre : circle ? [...circle.center, height / 2] as const : [
     (centre[0] * grossArea - (hole?.x ?? 0) * holeArea) / area,
@@ -322,8 +322,8 @@ export async function buildTaskCandidate(
     const holeFace = verifyHoleFace(before, target.shape, target.height, task);
     if (holeFace) return holeFace;
   }
-  const { args, doc: expected, local, shape, height } = edit;
-  const patch = { id: task.id, by: task.holder, part: task.occurrence, contract: interfacesRevision(doc), ops: [{ tool: 'edit_feature', args }] };
+  const { op, doc: expected, local, shape, height } = edit;
+  const patch = { id: task.id, by: task.holder, part: task.occurrence, contract: interfacesRevision(doc), ops: [op] };
   const staged = await integratePart(own, patch, context.leases, evaluate, context.sequence, { requireCompleteAssembly: true });
   if (staged.trace.decision !== 'applied') return nativeGateError(staged.trace);
   const candidate = staged.state.doc;
@@ -339,7 +339,7 @@ export async function buildTaskCandidate(
 
   const proposal = await runTool(own, 'proposals', {
     action: 'propose', title: `Task ${task.id}`,
-    ops: [{ tool: 'features', args: { action: 'edit', part: task.occurrence, ...args } }],
+    ops: [{ ...op, args: { part: task.occurrence, ...op.args } }],
   }, evaluate);
   if (proposal.isError) return failure('TASK_PROPOSAL_REFUSED', proposal.summary);
   const id = proposal.state.doc.proposals?.at(-1)?.id;

@@ -2,7 +2,7 @@ import { isEditableBox } from '../app/editCommand';
 import { holeDiameterRequirementMm, meets } from '../chat/spec';
 import type { StudioDoc } from '../engine/doc';
 import type { Predicate } from '../engine/schema/spec';
-import { compileTaskPlan, taskAxis, taskDimensionEdit, taskTarget, type RectangleFootprint, type TaskPlan, type TaskPlanRequest } from './taskPlan';
+import { compileTaskPlan, taskAxis, taskDimensionEdit, taskHeightParameter, taskTarget, type RectangleFootprint, type TaskPlan, type TaskPlanRequest } from './taskPlan';
 
 interface LocalHeightIssue {
   code: string;
@@ -48,7 +48,9 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
         return typeof min === 'number' && typeof max === 'number' ? max - min : undefined;
       };
       const width = rectangleExtent(0), depth = rectangleExtent(1);
-      const height = extrusion?.kind === 'extrude' && typeof extrusion.height === 'number' ? extrusion.height : undefined;
+      const authoredHeight = extrusion?.kind === 'extrude' ? extrusion.height : undefined;
+      const height = typeof authoredHeight === 'number' ? authoredHeight
+        : part && taskHeightParameter(authoredHeight, part.parameters)?.value;
       const hasExactChange = (axis: 'x' | 'y' | 'z', value: number | undefined) => value !== undefined &&
         checks.some(req => isExtent(req.check, axis) && req.check.op === '==' && req.check.value !== value);
       const hasFailedCheck = (axis: 'x' | 'y' | 'z', value: number | undefined) =>
@@ -118,7 +120,7 @@ export function inspectLocalHeightPlan(doc: StudioDoc, occurrences: readonly str
     if (dimension !== 'diameter' && hardAxis.some(req => !meets(value, req.check).ok))
       return blocked('CONFLICTING_REQUIREMENT', `${task.id}'s stated ${dimension} does not satisfy its other hard ${dimension} checks.`);
     if (typeof current.value !== 'number' || value === current.value) return blocked('TASK_VALUE', `${task.id} is already at its stated ${dimension}.`);
-    if (dimension !== 'height') {
+    if (dimension !== 'height' || task.reads.heightParameter !== undefined) {
       const edit = taskDimensionEdit(doc, task, current, value);
       if ('error' in edit) return blocked(edit.error.code, edit.error.message);
     }

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D782 — approve a parameter-driven extrusion height](notes/local-named-height-task-2026-11-12/README.md).
 - [D781 — keep Box editable after a width or depth task](notes/local-box-scalar-tasks-2026-11-12/README.md).
 - [D780 — keep Box editable after paired footprint approval](notes/local-box-footprint-task-2026-11-12/README.md).
 - [D779 — approve rectangle width and depth together](notes/local-rectangle-footprint-task-2026-11-12/README.md).

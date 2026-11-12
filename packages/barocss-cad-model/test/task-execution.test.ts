@@ -8,6 +8,7 @@ import { acceptProposal, runTool, type ChatState } from '../src/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { cylinderPart, emptyDoc, featureLabel, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { evaluatePart } from '../src/engine/evaluate';
+import { bindParameter, withParameters } from '../src/engine/parameters';
 import type { Question } from '../src/engine/schema/questions';
 import type { Requirement } from '../src/engine/schema/spec';
 import { decideEcr, openEcr, userToken } from '../src/team/ecr';
@@ -322,9 +323,9 @@ test('D780 Box footprint approval preserves the editable command and exact check
   const original = taskDimensionEdit(doc, bound, target, { widthMm: 1, depthMm: 14 });
   const replay = taskDimensionEdit(doc, bound, target, next.value);
   assert.ok(!('error' in original) && !('error' in replay));
-  assert.deepEqual(replay.args, original.args);
+  assert.deepEqual(replay.op, original.op);
   assert.deepEqual(replay.local.nodes, accepted.nodes);
-  assert.ok('retainBoxCommand' in replay.args && replay.args.retainBoxCommand === true);
+  assert.ok('retainBoxCommand' in replay.op.args && replay.op.args.retainBoxCommand === true);
 
   const localState = { doc: base.doc, bodies: [] };
   const legacy = await runTool(localState, 'propose', {
@@ -339,7 +340,7 @@ test('D780 Box footprint approval preserves the editable command and exact check
   const acceptedSketch = accepted.nodes[0];
   assert.ok(acceptedSketch.kind === 'sketch' && acceptedSketch.profile === 'rectangle');
   const { max, ...rest } = acceptedSketch;
-  const marked = { tool: 'edit_feature', args: { ...replay.args, feature: { max, ...rest } } };
+  const marked = { ...replay.op, args: { ...replay.op.args, feature: { max, ...rest } } };
   const retained = await runTool(localState, 'propose', {
     title: 'Retained Box footprint', ops: [marked],
   }, evaluate);
@@ -417,7 +418,7 @@ for (const axis of ['width', 'depth'] as const) test(`D781 retains the Box after
     assert.ok(!('error' in before) && !('error' in after));
     const reconstructed = taskDimensionEdit(doc, task, before, after.value);
     assert.ok(!('error' in reconstructed));
-    assert.equal('retainBoxCommand' in reconstructed.args, retained);
+    assert.equal('retainBoxCommand' in reconstructed.op.args, retained);
     assert.deepEqual(reconstructed.local.nodes, accepted.nodes);
     assert.equal(digestOf(state.doc), plan.baselineDigest);
     if (retained) assert.equal(editCommand(1, accepted.nodes)?.label, 'Edit Box');
@@ -437,6 +438,65 @@ for (const axis of ['width', 'depth'] as const) test(`D781 retains the Box after
   assert.ok(!('error' in refused));
   assert.equal(refused.issues[0]?.code, 'TASK_VALUE');
   assert.match(refused.issues[0]?.message ?? '', /Box command/);
+});
+
+test('D782 a height task changes the named value and preserves the raw extrusion binding', async () => {
+  const doc = assembly(), [base, lid] = doc.instances!;
+  delete doc.interfaces;
+  doc.parameters.Thickness = 42;
+  base.doc = bindParameter({
+    ...rectanglePart(20, 10, 5), parameters: { Thickness: 5, Spare: 9 }, requirements: [height('base-height', 6)],
+  }, { feature: 'n1', value: 'h', parameter: 'Thickness' });
+  lid.doc = { ...rectanglePart(12, 8, 3), parameters: { Thickness: 11 }, requirements: [height('lid-height', 3)] };
+  const inspection = inspectLocalHeightPlan(doc, ['p1'], identity);
+  assert.ok(!('error' in inspection), JSON.stringify(inspection));
+  assert.deepEqual(inspection.issues, []);
+  assert.deepEqual(inspection.targets, [{ id: 'p1', requirementId: 'base-height', toleranceMm: 0.001, currentHeightMm: 5, heightMm: 6 }]);
+  const { plan, state, context } = setup(doc, { ...inspection.request, policyRevision });
+  const [task] = plan.tasks, worker = { ...context, worker: task.holder };
+  assert.equal(task.reads.heightParameter, 'Thickness');
+  const pin = { taskId: task.id, specRevision: plan.specRevision, inputDigest: task.inputDigest };
+  const candidate = await buildTaskCandidate(plan, state, { ...pin, heightMm: 6 }, worker, evaluate);
+  assert.ok(!('error' in candidate), JSON.stringify(candidate));
+  assert.equal(candidate.geometry.volumeMm3, 1200);
+  const decision = bindTaskDecision(candidate, true, userToken(at));
+  assert.ok(!('error' in decision));
+  const accepted = await applyTaskDecision(decision, state, worker, evaluate);
+  assert.ok(!('error' in accepted), JSON.stringify(accepted));
+  const expected = withParameters(base.doc, { Thickness: 6 });
+  assert.deepEqual(accepted.doc.instances, [{ ...base, doc: expected }, lid]);
+  assert.deepEqual(accepted.doc.parameters, { Thickness: 42 });
+  assert.deepEqual(accepted.doc.proposals?.at(-1)?.ops, [{ tool: 'set_parameters', args: { part: 'p1', set: { Thickness: 6 } } }]);
+  assert.equal(digestOf(doc), plan.baselineDigest);
+  const before = taskTarget(doc, task), after = taskTarget(accepted.doc, task);
+  assert.ok(!('error' in before) && !('error' in after));
+  const replay = taskDimensionEdit(doc, task, before, after.value);
+  assert.ok(!('error' in replay));
+  assert.deepEqual(replay.local, expected);
+  const reopened = await readStudioFile(encodeStudioFile(accepted.doc));
+  assert.ok(!('error' in reopened));
+  assert.deepEqual(reopened.doc.instances![0].doc.nodes, base.doc.nodes);
+  assert.deepEqual(reopened.doc.instances![0].doc.parameters, { Thickness: 6, Spare: 9 });
+});
+
+test('D782 refuses a missing, nonpositive, shared or configuration-owned height parameter', () => {
+  const doc = assembly(), [base] = doc.instances!;
+  delete doc.interfaces;
+  base.doc = bindParameter({
+    ...rectanglePart(20, 10, 5), parameters: { Thickness: 5 }, requirements: [height('base-height', 6)],
+  }, { feature: 'n1', value: 'h', parameter: 'Thickness' });
+  for (const change of [
+    (part: StudioDoc) => { delete part.parameters.Thickness; },
+    (part: StudioDoc) => { part.parameters.Thickness = 0; },
+    (part: StudioDoc) => { Object.assign(part.nodes[0], { max: [{ parameter: 'Thickness' }, 10] }); },
+    (part: StudioDoc) => { part.configurations = { Thin: { Thickness: 2 } }; },
+    (part: StudioDoc) => { Object.assign(part.nodes[1], { from: { parameter: 'Thickness' } }); },
+    (part: StudioDoc) => { Object.assign(part, plate(20, 10, 5, 'base-height', 6), { parameters: { Thickness: 5 } }); Object.assign(part.nodes[1], { height: { parameter: 'Thickness' } }); },
+  ]) {
+    const altered = structuredClone(doc);
+    change(altered.instances![0].doc);
+    refuses(compileTaskPlan(altered, request()), 'UNSUPPORTED_PROFILE');
+  }
 });
 
 for (const source of ['positional', 'tagged', 'remembered'] as const) test(`D778 a ${source} circular extrusion height task preserves the authored profile and protected sibling`, async () => {
@@ -819,7 +879,7 @@ test('D648 keeps the inch requirement while the native bore task consumes millim
   for (const diameterMm of [6.3246, 6.3754]) {
     const edit = taskDimensionEdit(doc, bound, current, diameterMm);
     assert.ok(!('error' in edit), JSON.stringify(edit));
-    assert.deepEqual(edit.args, { index: 2, values: { dia: diameterMm } });
+    assert.deepEqual(edit.op, { tool: 'edit_feature', args: { index: 2, values: { dia: diameterMm } } });
   }
 
   const baseline = await requirementEvidenceOf(doc, 'p1', evaluate);

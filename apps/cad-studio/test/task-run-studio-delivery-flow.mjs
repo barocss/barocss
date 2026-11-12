@@ -7,8 +7,8 @@ const base = '/api/chat/task-runs/';
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const parts = ['p1', 'p2'];
 
-export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false, boxScalarAxis }) {
-  const prefix = boxScalarAxis ? 'd781-' + boxScalarAxis : boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
+export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved, project, savedBytes, turn, firstStatus, firstRecord, readReview, retired, siblingDiameter = false, baseCylinder = false, baseFootprint = false, boxFootprint = false, boxScalarAxis, namedHeight = false }) {
+  const prefix = namedHeight ? 'd782' : boxScalarAxis ? 'd781-' + boxScalarAxis : boxFootprint ? 'd780' : baseFootprint ? 'd779' : baseCylinder ? 'd778' : siblingDiameter ? 'd647' : 'd644';
   const [siblingBefore, siblingAfter] = siblingDiameter ? [4, 6] : [3, 4];
   const rectangle = baseFootprint || !!boxScalarAxis, standardBox = boxFootprint || !!boxScalarAxis;
   const approvedSize = [boxScalarAxis === 'depth' ? 20 : 24, boxScalarAxis === 'width' ? 10 : 14];
@@ -79,12 +79,17 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   const originalEvidence = await checkDimensions(prefix + '-source', source, originalDimensions, 'fail');
   const first = await openCheckpoint(firstStatus, prefix + '-first', saved, firstHeights);
   const firstDoc = JSON.parse(first);
-  if (baseCylinder || rectangle) {
+  if (baseCylinder || rectangle || namedHeight) {
     const instances = structuredClone(source.instances);
     if (rectangle) instances[0].doc.nodes[0].max = [3 + approvedSize[0], -3 + approvedSize[1]];
+    else if (namedHeight) instances[0].doc.parameters.Thickness = 6;
     else instances[0].doc.nodes[1].height = 6;
     if (standardBox) Object.assign(instances[0].doc.nodes[1].made.values, { w: approvedSize[0], d: approvedSize[1] });
     assert.deepEqual(firstDoc.instances, instances);
+    if (namedHeight) {
+      assert.deepEqual(firstDoc.parameters, source.parameters);
+      assert.deepEqual(firstDoc.proposals.at(-1).ops, [{ tool: 'set_parameters', args: { part: 'p1', set: { Thickness: 6 } } }]);
+    }
   }
   await f.snapshot('09-first-studio-checkpoint');
 
@@ -144,15 +149,30 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
   assert.deepEqual(await savedBytes(), saved);
   await writeFile(join(f.output, name), native);
 
+  const reopenProject = async expected => {
+    await f.page.reload();
+    await f.page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
+    await f.ready();
+    assert.notDeepEqual(await f.doc(), expected);
+    if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
+    await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+    await button(versions(), 'Project in this browser').click();
+    await button(files(), 'Open ' + name).click();
+  };
+  const saveCurrentEdit = async edited => {
+    const dirty = f.page.locator('.doc-tab [aria-label="Unsaved changes"]');
+    await dirty.waitFor();
+    await button(f.page, 'Save').click();
+    await dirty.waitFor({ state: 'hidden' });
+    const persisted = await savedBytes(name);
+    assert.deepEqual(JSON.parse(persisted), edited);
+    await reopenProject(edited);
+    await f.same(edited);
+    assert.deepEqual(await savedBytes(name), persisted);
+    return persisted;
+  };
   f.phase = 'reopen the native project document in a fresh page and check both requirements';
-  await f.page.reload();
-  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
-  await f.ready();
-  assert.notDeepEqual(await f.doc(), doc);
-  if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
-  await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
-  await button(versions(), 'Project in this browser').click();
-  await button(files(), 'Open ' + name).click();
+  await reopenProject(doc);
   await f.same(doc);
   await bounds(finalHeights);
   const reopened = await f.snapshot('12-fresh-project-open');
@@ -225,21 +245,7 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     await f.runOracle({ footprint: changed, edited: true, axis: boxScalarAxis }, prefix + '-edited');
     if (standardBox) {
       f.phase = 'save and reopen the second Box edit';
-      const dirty = f.page.locator('.doc-tab [aria-label="Unsaved changes"]');
-      await dirty.waitFor();
-      await button(f.page, 'Save').click();
-      await dirty.waitFor({ state: 'hidden' });
-      projectBytes = await savedBytes(name);
-      assert.deepEqual(JSON.parse(projectBytes), edited.doc);
-      await f.page.reload();
-      await f.page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 });
-      await f.ready();
-      if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
-      await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
-      await button(versions(), 'Project in this browser').click();
-      await button(files(), 'Open ' + name).click();
-      await f.same(edited.doc);
-      assert.deepEqual(await savedBytes(name), projectBytes);
+      projectBytes = await saveCurrentEdit(edited.doc);
       await f.snapshot('14-box-reedited-project-open');
     }
     f.report.observations.push({ footprintMm: [[20, 10], approvedSize, editedSize], approved: footprint, edited: changed,
@@ -281,6 +287,48 @@ export async function taskRunStudioDeliveryFlow({ f, row, launch, source, saved,
     const changed = await f.inspect(prefix + '-edited-cylinder', edited.doc, 'cylinder-native-evidence');
     await f.runOracle({ cylinder: changed, heightMm: 7 }, prefix + '-edited');
     f.report.observations.push({ cylinderHeightMm: [5, 6, 7], radiusMm: 4.23, approved: cylinder, edited: changed, siblingLabel: 'Cylinder Ø6×4' });
+  }
+  if (namedHeight) {
+    const approved = await f.inspect(prefix + '-approved-height', reopened.doc, 'footprint-native-evidence');
+    await f.runOracle({ footprint: approved, namedHeight: 6, edited: false }, prefix + '-approved');
+
+    f.phase = 'verify the binding and edit the named parameter in Studio';
+    await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Base' }).click();
+    await button(f.page.getByRole('complementary', { name: 'Instance', exact: true }), 'Edit part').click();
+    const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+    await banner.waitFor();
+    await f.same(doc.instances[0].doc);
+    await f.openFeatureEditor(1, 'approved bound extrusion');
+    const distance = f.editor().getByRole('spinbutton', { name: 'Distance', exact: true });
+    assert.equal(await distance.inputValue(), '6');
+    assert.equal(await distance.isDisabled(), true);
+    assert.equal(await f.editor().getByLabel('Distance parameter', { exact: true }).inputValue(), 'Thickness');
+    await f.closeEditor();
+    await button(f.page, 'Parameters').click();
+    const panel = f.page.getByRole('complementary', { name: 'Parameters panel', exact: true });
+    const field = panel.getByRole('spinbutton', { name: 'Value of Thickness', exact: true });
+    assert.equal(await field.inputValue(), '6');
+    await field.fill('7');
+    await field.press('Enter');
+    const revised = structuredClone(doc.instances[0].doc);
+    revised.parameters.Thickness = 7;
+    await f.same(revised);
+    await button(panel, 'Close parameters').click();
+    await button(banner, 'Finish').click();
+    await banner.waitFor({ state: 'hidden' });
+    await bounds([7, 4]);
+    const edited = await f.snapshot('13-native-parameter-edit');
+    assert.deepEqual(edited.doc.instances, [{ ...doc.instances[0], doc: revised }, doc.instances[1]]);
+    assert.deepEqual(edited.doc.parameters, doc.parameters);
+
+    f.phase = 'save and reopen the manual parameter edit';
+    projectBytes = await saveCurrentEdit(edited.doc);
+    await bounds([7, 4]);
+    const after = await f.snapshot('14-parameter-reedited-project-open');
+    const changed = await f.inspect(prefix + '-edited-height', after.doc, 'footprint-native-evidence');
+    await f.runOracle({ footprint: changed, namedHeight: 7, edited: true }, prefix + '-edited');
+    f.report.observations.push({ parameter: 'Thickness', valueMm: [5, 6, 7], binding: revised.nodes[1].height,
+      approved, edited: changed, manualEditSavedAndReopened: true });
   }
   assert.notEqual(finalEvidence, originalEvidence);
   assert.deepEqual(await savedBytes(), saved);

@@ -119,7 +119,7 @@ export async function readTaskCheckpoint(bytes: Uint8Array, current: () => boole
   if ('error' in previous || 'error' in next) return refusal('The worker checkpoint target is outside the supported task scope.');
   const edit = taskDimensionEdit(before.doc, task, previous, next.value);
   if ('error' in edit) return refusal(edit.error.message);
-  const expected = edit.doc, operation = [{ tool: 'edit_feature', args: { part, ...edit.args } }];
+  const expected = edit.doc, operation = [{ ...edit.op, args: { part, ...edit.op.args } }];
   if (proposal.title !== 'Task ' + receipt.taskId || proposal.decided?.model_hash !== modelHash(accepted.doc) ||
       canonical(proposal.ops) !== canonical(operation) || digestOf(expected) !== receipt.candidateDigest ||
       requirementEvidenceRevision(expected) !== comparison.revisions.after)
