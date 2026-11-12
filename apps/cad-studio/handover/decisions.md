@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D775 — verify CAD React props and the returned Studio edit](notes/cad-react-props-viewer-studio-edit-2026-11-12/README.md).
 - [D774 — measure Studio drag cadence and retained geometry](notes/studio-drag-cadence-and-resources-2026-11-12/README.md).
 - [D773 — verify Viewer resize and resource lifetime](notes/viewer-resize-and-resource-lifetime-2026-11-12/README.md).
 - [D772 — verify Studio section clipping and occurrence picks](notes/studio-section-occurrence-picking-2026-11-12/README.md).

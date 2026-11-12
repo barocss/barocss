@@ -17,7 +17,7 @@ Rows [05](../roadmap-rows/05.md), [06](../roadmap-rows/06.md), [15](../roadmap-r
 - Interop owns copied native/display packets and bounded optional Three/Babylon/Pixi adapters. [Interop exports](../../../../packages/barocss-cad-interop/package.json) and [GPU exports](../../../../packages/barocss-gpu/package.json) are public surfaces with source/compiled consumer paths, not proof of all package combinations.
 - Source units, Z-up/Y-up conversion, transform ownership and approximate-pick authority must remain explicit. Unsupported native Face/UV queries from display meshes must refuse rather than invent source authority.
 
-[B10 v1 evidence ledger](17-b10-evidence-ledger.md) records the seven desktop Studio, Viewer and CAD React groups. B10-01 through B10-05 qualify current geometry, picks, Studio clipping, Viewer ownership and one measured desktop workload.
+[B10 v1 evidence ledger](17-b10-evidence-ledger.md) records the seven desktop Studio, Viewer and CAD React groups. B10-01 through B10-06 qualify current graphics, one desktop measurement and CAD React props with an editable Studio return.
 
 ### Acceptance queue
 
