@@ -457,7 +457,9 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
     // (The axis an edge runs along, as the mesh reads it: a unit direction within 1e-9 of one.)
     const axis: DisplayEdge['axis'] = e.straight ? (Math.abs(Math.abs(d[0] / l) - 1) < 1e-9 ? 'x' : Math.abs(Math.abs(d[1] / l) - 1) < 1e-9 ? 'y' : Math.abs(Math.abs(d[2] / l) - 1) < 1e-9 ? 'z' : null) : null;
     const circle = e.nativeCircle;
-    return { ...e, a, b: z, axis, ...(circle ? { nativeCircle: { centre: move(m, t, circle.centre), normal: turn(m, circle.normal), radius: circle.radius } } : {}) };
+    const placed = { ...e, a, b: z, axis, ...(circle ? { nativeCircle: { centre: move(m, t, circle.centre), normal: turn(m, circle.normal), radius: circle.radius } } : {}) };
+    delete placed.nativeLine;
+    return placed;
   });
   const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };
   const element = b.element?.kind === 'weld-bead' ? { ...b.element, report: { ...b.element.report,

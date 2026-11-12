@@ -2167,6 +2167,10 @@ export function App() {
   const sewCandidateShown = !!previewBodies?.length && shownBodies === previewBodies && !cageEd.session;
   const viewportDirect = useMemo(() => sewPreviewDirect(directShown, active?.cmd.id, active?.ctx, sewCandidateShown), [directShown, active?.cmd.id, active?.ctx, sewCandidateShown]);
   viewBodiesRef.current = viewBodies;
+  const crossingBodies = sketch?.tool === 'rectangle' && fresh && !busy && shownDoc === doc && marker === null && !inPlace && !doc.instances?.length
+    && !active && !rendering && !drawing && !section && previewMode === 'none' && !cageEd.session && !skel.session
+    && !bodyDrag && !ghost && !workingComparison && shownBodies === drawnBodies
+    ? drawnBodies : undefined;
   const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...ghostExtra.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, ghostExtra]);
   const commandGizmos = useCommandGizmos({ model: { doc, evaluated, bodies, selection, marker, editNode }, command: { active, ctx, setActive, handleDrag, previewFor },
     context: { sketch, rendering, drawing, measure, assemblyDraft: assembly.draft, instanceCount: instanceSel.length, snapStep }, drag: { bodyDrag, setBodyDrag } });
@@ -2729,7 +2733,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input }} onCursor={onCursor}
+        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies }} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;

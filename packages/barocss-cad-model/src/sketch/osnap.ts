@@ -5,13 +5,14 @@
 import { CadNumericPolicy } from '@barocss/cad';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { cross, len } from '../engine/vec3';
+import { edgePlaneCrossing } from './edgePlaneCrossing';
 import { wellFormedBezier } from './bezier';
 import { toLocal, type SketchPlane } from './plane';
 import { arcOf } from './profile';
 import type { SketchShape } from './types';
 
 type XY = [number, number];
-export type SnapKind = 'end' | 'mid' | 'centre' | 'quadrant' | 'origin' | 'calculated';
+export type SnapKind = 'end' | 'mid' | 'centre' | 'quadrant' | 'origin' | 'calculated' | 'crossing';
 export interface SnapPoint { at: XY; kind: SnapKind }
 /** The shapes the snaps come from (SketchShape, as far as its points go). */
 export type SnapShape =
@@ -22,6 +23,7 @@ export type SnapShape =
   | { kind: 'bezier'; poles: XY[] };
 
 const mid = (a: XY, b: XY): XY => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+const roundModelSnap = (point: XY): XY => [Math.round(point[0] * 1e4) / 1e4, Math.round(point[1] * 1e4) / 1e4];
 const inRange = (point: XY) => point.every(c => Number.isFinite(c) && Math.abs(c) <= CadNumericPolicy.coordinateAbs);
 
 function arcMiddle(a: XY, b: XY, bulge: number): XY | null {
@@ -72,7 +74,6 @@ export function shapeSnaps(s: SnapShape, moving = false): SnapPoint[] {
 export function modelSnaps(meshes: readonly DisplayMesh[], plane: SketchPlane, tol = 1e-3): SnapPoint[] {
   const out: SnapPoint[] = [], n = plane.normal, o = plane.origin;
   const off = (p: readonly number[]) => (p[0] - o[0]) * n[0] + (p[1] - o[1]) * n[1] + (p[2] - o[2]) * n[2];
-  const round = (p: XY): XY => [Math.round(p[0] * 1e4) / 1e4, Math.round(p[1] * 1e4) / 1e4];
   for (const m of meshes) {
     // CPU clipping can retain an edge's identity and a zero-length segment at a tangent.
     const visible = new Set<number>(), lines = m.edgeLines;
@@ -82,17 +83,28 @@ export function modelSnaps(meshes: readonly DisplayMesh[], plane: SketchPlane, t
     for (const e of m.edges) {
       if (Math.abs(off(e.a)) > tol || Math.abs(off(e.b)) > tol) continue;
       const a = toLocal(plane, [...e.a] as Vec3), b = toLocal(plane, [...e.b] as Vec3);
-      if (e.straight) { out.push({ at: round(a), kind: 'end' }, { at: round(b), kind: 'end' }, { at: round(mid(a, b)), kind: 'mid' }); continue; }
+      if (e.straight) { out.push({ at: roundModelSnap(a), kind: 'end' }, { at: roundModelSnap(b), kind: 'end' }, { at: roundModelSnap(mid(a, b)), kind: 'mid' }); continue; }
       const circle = e.nativeCircle;
       if (circle && visible.has(e.index) && circle.radius > 0 && Math.abs(len(circle.normal) - 1) <= 1e-9
         && Math.abs(off(circle.centre)) + circle.radius * len(cross(n, circle.normal)) <= tol) {
         const centre = toLocal(plane, circle.centre);
-        if (inRange(centre)) out.push({ at: round(centre), kind: 'centre' });
+        if (inRange(centre)) out.push({ at: roundModelSnap(centre), kind: 'centre' });
       }
-      if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 1e-6) out.push({ at: round(a), kind: 'end' }, { at: round(b), kind: 'end' });
+      if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 1e-6) out.push({ at: roundModelSnap(a), kind: 'end' }, { at: roundModelSnap(b), kind: 'end' });
     }
   }
   return out;
+}
+
+/** Interior crossings from certified native lines of the caller's current visible root bodies. */
+export function modelCrossingSnaps(meshes: readonly DisplayMesh[], plane: SketchPlane): SnapPoint[] {
+  const points: SnapPoint[] = [];
+  for (const mesh of meshes) for (const edge of mesh.edges) {
+    if (!edge.nativeLine) continue;
+    const at = edgePlaneCrossing(edge.a, edge.b, plane);
+    if (at) points.push({ at: roundModelSnap(at), kind: 'crossing' });
+  }
+  return points;
 }
 
 /** The snap nearest the pointer on screen within `px`, given each point's screen position. */

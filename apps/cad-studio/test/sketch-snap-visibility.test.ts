@@ -31,3 +31,24 @@ test('model snap candidates follow visible body indices and retire on visibility
   assert.deepEqual(doc, before);
   assert.deepEqual(bodies.map(body => body.key), ['b1', 'b3']);
 });
+
+test('native crossings require the accepted visible root mesh at the displayed index', () => {
+  const root = rectanglePart(8, 6, 10);
+  const result = evaluateDoc(root, 1);
+  assert.ok(result.ok);
+  const [body] = result.bodies;
+  const reference = { ...body, key: 'reference' };
+  const shown = [body, reference], original = [body], plane = xyPlane(3);
+  const visible = new Set<number>();
+  const cache = modelSketchSnaps(null, shown, visible, plane, original);
+  assert.equal(cache.points.length, 0);
+  assert.equal(cache.crossings.length, 4);
+  assert.ok(cache.crossings.every(point => point.kind === 'crossing'));
+  assert.equal(modelSketchSnaps(cache, shown, visible, plane, original), cache);
+  assert.equal(currentModelSketchSnaps(cache, shown, visible, JSON.stringify(plane)), false);
+  assert.deepEqual(modelSketchSnaps(cache, shown, visible, plane).crossings, []);
+  assert.deepEqual(modelSketchSnaps(cache, shown, new Set([0]), plane, original).crossings, []);
+  assert.deepEqual(modelSketchSnaps(cache, [reference], visible, plane, original).crossings, []);
+  assert.deepEqual(modelSketchSnaps(cache, [reference, body], visible, plane, original).crossings, []);
+  assert.deepEqual(modelSketchSnaps(cache, shown, visible, xyPlane(10), original).crossings, []);
+});

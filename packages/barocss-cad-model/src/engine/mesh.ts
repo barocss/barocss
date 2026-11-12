@@ -6,6 +6,7 @@
 import { closestPointOnSurface, createCylindricalBoreCheck, faceGeometry, pointTriangleDistance2, revolutionOf, surfaceDomain, surfaceEvaluator, surfaceSeedGrid, tessellateBrep, type Brep, type BrepFace, type BrepMesh, type SurfaceSeedGrid } from '@barocss/cad';
 export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
+import { nativeStraightEdgeMatches } from './nativeStraightEdge';
 import { nativeCircleOf, sameNativeCircle, type NativeCircle } from './nativeCircle';
 
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
@@ -36,6 +37,8 @@ export function withoutNativeFaces(face: DisplayFace): DisplayFace {
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
   nativeVertices?: readonly [string, string];
+  /** Both display endpoints are exact native line poles and vertices on one unmerged prism edge. */
+  nativeLine?: true;
   /** Circular support shared by every native curve in this display edge. */
   nativeCircle?: NativeCircle;
 }
@@ -196,6 +199,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   const nativePrism = brep.source.family === 'prismatic-solid' && brep.bodies.length === 1 && brep.bodies[0].kind === 'solid'
     && brep.shells.length === 1 && brep.shells[0].closed && brep.bodies[0].shells.length === 1
     && brep.bodies[0].shells[0] === brep.shells[0].id && brep.faces.every(face => face.surface.kind === 'surface');
+  const nativePoints = nativePrism ? new Map(brep.vertices.map(vertex => [vertex.id, vertex.point])) : null;
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
     for (let k = 0; k < e.points.length; k += 3) pts.push([e.points[k], e.points[k + 1], e.points[k + 2]]);
@@ -222,6 +226,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
         if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
       }
       delete mate.nativeVertices;
+      delete mate.nativeLine;
       if (!nativeCircle || !mate.nativeCircle || !sameNativeCircle(mate.nativeCircle, nativeCircle)) delete mate.nativeCircle;
       mate.names.push(name);
       for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
@@ -231,7 +236,12 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     const index = edges.length;
     const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [name], ...(nativeCircle ? { nativeCircle } : {}) };
     // The tessellator replaces its first and last samples with the two native vertices in this order.
-    if (nativePrism && straight && source.vertices[0] !== source.vertices[1] && dir.some(Boolean)) made.nativeVertices = [...source.vertices];
+    if (nativePrism && straight && source.vertices[0] !== source.vertices[1] && dir.some(Boolean)) {
+      made.nativeVertices = [...source.vertices];
+      const p = nativePoints?.get(source.vertices[0]), q = nativePoints?.get(source.vertices[1]);
+      if (p && q && a.every((value, axis) => value === p[axis]) && z.every((value, axis) => value === q[axis])
+        && nativeStraightEdgeMatches(source.curve, a, z)) made.nativeLine = true;
+    }
     edges.push(made); if (same) same.push(made); else byPair.set(key, [made]);
     for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(index, index); }
   }
