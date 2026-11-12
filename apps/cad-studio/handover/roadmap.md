@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-13 · Priority authority: D520 · Latest delivery: D856 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-13 · Priority authority: D520 · Latest delivery: D857 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** D856 shows the entities of an existing sketch constraint from its row. Desktop Studio verifies pointer and keyboard inspection, dimension draft ownership, removal, history and native reopen. [D856](notes/constraint-row-inspection-2026-11-13/README.md).
-- **Next MAIN:** D857 / P1, rows 09 and 16. Measure the current response to a large edit of an existing driving line length. Look for an independently solvable branch where direct editing refuses and bounded steps help. Decide the evidence gap before considering any solver change. [#2394](https://github.com/barocss/barocss/issues/2394).
+- **Current position:** D857 reproduces a feasible large driving line edit that refuses in one step and passes on the original branch in two manual inputs. The exact authored profile and Extrude survive Save/Open. [D857](notes/large-sketch-length-measurement-2026-11-13/README.md).
+- **Next MAIN:** D858 / P1, rows 09 and 16. Qualify one bounded recovery attempt for the verified fixed-two-vertex triangle after a native local refusal. Require unchanged direct successes, strict final residuals, branch preservation and one visible edit. Keep other profiles and named bindings on their current paths. [#2394](https://github.com/barocss/barocss/issues/2394).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

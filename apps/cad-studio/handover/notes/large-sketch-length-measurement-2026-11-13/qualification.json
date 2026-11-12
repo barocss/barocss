@@ -1,0 +1,85 @@
+{
+  "decision": "D857",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "048584778aa68f0fd6516cbe36ce1160a257a545",
+  "issue": 2394,
+  "node": "22.19.0",
+  "commands": [
+    "D857_WORKTREE=$PWD node --disable-warning=ExperimentalWarning --experimental-transform-types <external-evidence>/geometry/triangle.mjs",
+    "D857_WORKTREE=$PWD node --disable-warning=ExperimentalWarning --experimental-transform-types <external-evidence>/geometry/simple.mjs",
+    "D857_WORKTREE=$PWD node --disable-warning=ExperimentalWarning --experimental-transform-types <external-evidence>/geometry/confirm.mjs",
+    "gate.sh acquire heavy 600 d857-studio-joined01",
+    "D857_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/studio-joined01",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-profile-precision sketch-conflict-proof sketch-outline-field-identity",
+    "pnpm -C apps/cad-studio run test constraints sketch-edit-identity",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/large-sketch-length-browser.mjs",
+    "git diff --check"
+  ],
+  "externalGeometry": {
+    "loaderSHA256": "a255a753451dd96a82c1b282b6a797c7e2e740fdf76f355b1e55ddb44404a708",
+    "triangle": {
+      "scriptSHA256": "2ba4211027c1df033a294f195abfcfc5497bee57d8c099c3aba05de34c2cdb5e",
+      "planSHA256": "3123c4350e4194da8ac8d7d5ea7c407f2e7556697867eca38f57e0fb5d2a8f74",
+      "resultsSHA256": "b1b58f78e21143a592e183dea1f21e0aec6425c0ddcc564b4b6c57b5512d8d2b",
+      "grid": 750, "excluded": 158, "directAccepted": 522, "directNonconvergence": 70,
+      "twoStepAccepted": 30, "noTestedSubdivisionAccepted": 40, "completedStagedBranchFlips": 0
+    },
+    "simple": {
+      "scriptSHA256": "b256f5d0cb06b71cad6900f7033c9521b902f07994d0daf5e438659d6a012388",
+      "planSHA256": "eea9d3eee873d4522bb09007215a9be6d9e170e706393916e71d2860da92f0da",
+      "resultsSHA256": "8d48c88cdb4c0bd68e24eae2d7259c6d9f8625c3d2f2f1ad7c517df5e7df9967",
+      "tested": 40, "directAccepted": 34, "twoStepAndReeditAccepted": 6
+    },
+    "confirm": {
+      "scriptSHA256": "3f23124fcc9586e314c33724b75d4c54df4ee79956af02867aceb4c20bb19a22",
+      "planSHA256": "8a2dc2e96e362773cd4f001e9d84bcc4d35ffb91a4997e8d7879c63ed69c7929",
+      "resultsSHA256": "99f3f0f65a502cec220255254364f44dcd17c8bb1ba2fd2dddf926e47eaa731e",
+      "nativeIterations": [49, 75, 10],
+      "nativeEvaluations": [71, 108, 12],
+      "modelTimingsMedianMs": { "directRefusal": 1.691, "impossible": 1.377, "midpoint": 1.105, "targetFromMidpoint": 1.388, "reedit": 0.542 }
+    }
+  },
+  "studio": {
+    "driverStatus": "PASS",
+    "currentFeasibleDirectEdit": "FAIL",
+    "manualStagedEdit": "PASS",
+    "runnerSHA256": "38efc7d682974fce9eb78f8b2e05ca0339435c48809523f1182aabfdf053b57e",
+    "receiptSHA256": "bdfeda925a84e0eaba76f4f243a3ff71f1af632f3bd21b9f4dc56acd8f7808e5",
+    "sourceManifestSHA256": "87478046f15fcbfa877ab23bc49a1746169783d7b4a9841eff7ec5143bfd4468",
+    "frozenFilesBeforeAfterAndAfterCleanup": 822,
+    "snapshots": 12,
+    "pageErrors": 0, "consoleErrors": 0, "downloads": 0,
+    "witness": {
+      "sourceSHA256": "e94cdcf19b3c5c3c865d31797a9f770e8f3d07b4f1c99ab1d480c3d3e1fdb939",
+      "originalLengthMm": 131.95, "intermediateMm": 128, "targetMm": 124.05, "impossibleMm": 132.05,
+      "finalC": [-122.4496872861341, 19.861434600744865],
+      "finalLinearResidualMm": 1.8164598714065505e-9,
+      "finalVolumeMm3": 238.33721520883537,
+      "reeditLengthMm": 124.04,
+      "reeditLinearResidualMm": 4.8363379137344494e-9,
+      "reeditVolumeMm3": 213.3008746067119,
+      "savedBytes": 1395,
+      "savedSHA256": "8af35d74495dd8b24fe10ac3be927f45a9d73e8dac18b504e08eaa3d90055d2c",
+      "inputToResultMs": { "directRefusal": 27.625208, "impossible": 32.211584, "midpoint": 25.607292, "targetFromMidpoint": 25.188167, "reedit": 20.795 }
+    },
+    "positiveControl": {
+      "sourceSHA256": "abb9c62c83932d243160264960e3dfbbf453d061658a3872c5cd1cc0b2a0e32c",
+      "savedBytes": 1384,
+      "savedSHA256": "ac9ced9f763503479084c0588d853987fc881eac6a312f3a646354773a51dd65",
+      "separatePassingControlReceiptSHA256": "7c0b0568b24c549e10c5e16873e6ad1eddf05d4be31bac02201baf220ee44ae3"
+    }
+  },
+  "retainedFailures": [
+    { "scope": "Dimension rect locator was behind its text", "sha256": "aea29e79d593ff3f57a63e95865fe01f97fa52d1de90e456f97e11fabe727b58" },
+    { "scope": "Early oracle used nominal instead of actual profile coordinates for native volume", "sha256": "e246dbe14100b8a64c226549e6542581c3fd7d63d1ace7fcc207981ba779bffa" }
+  ],
+  "modelFocused": { "pass": 25, "fail": 0 },
+  "studioFocused": { "pass": 56, "fail": 0 },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS"
+}
