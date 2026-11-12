@@ -1,0 +1,90 @@
+{
+  "decision": "D784",
+  "tier": "SMALL evidence",
+  "parent": "1e92a0c980df25c6a89f961e2c6ba1a78e2dcc58",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/fill-cut-tool-lifecycle-browser.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test api-fill-feature-pattern fill-feature-pattern-holes api-linear-feature-pattern",
+    "cd apps/cad-studio && D784_SOURCE_FROZEN=1 node test/fill-cut-tool-lifecycle-browser.mjs \"$EVIDENCE/desktop-tool-edit\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d784-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "sha256": "cb74a99c089367ec0e2d4c87ff672bdc1efdcc444065b8f362d76f86ff4de62f",
+      "frozenSources": 798,
+      "nativeAndIndependentReads": 6,
+      "preparedInputSHA256": "8919b49b3b826d20bf5515eee373c741b9ba7e7c5c1147a281bde940c136fc51",
+      "sourceSaveBytes": 2162,
+      "sourceSaveSHA256": "5d142ffc07a0e86830ca56410abb3b6c0ff29039892c2fb12fc96c386201f173"
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 18,
+      "fail": 0,
+      "skip": 0
+    },
+    "nativeRefusal": {
+      "code": "PARAMETER",
+      "feature": "n2"
+    },
+    "cutCells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "nativeVolumeMm3": [
+      17039.999999999967,
+      16559.999999999975,
+      16079.999999999996
+    ],
+    "independentCentroidMm": [
+      [
+        29.92488262910798,
+        14.906103286384976,
+        5
+      ],
+      [
+        29.797101449275363,
+        14.855072463768115,
+        5
+      ],
+      [
+        29.601990049751244,
+        14.800995024875622,
+        5
+      ]
+    ],
+    "independentAbsoluteTolerance": 1e-8
+  }
+}
