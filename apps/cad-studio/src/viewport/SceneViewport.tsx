@@ -73,5 +73,13 @@ export const SceneViewport = forwardRef<ViewportHandle, SceneViewportProps>(func
   const dragged = useStoreValue(liveSection?.store ?? NO_SECTION);
   const handles = dragged && liveSection ? liveSection.handles(dragged) : null;
   const live = dragged && liveSection ? { clip: liveSection.clip(dragged), ...(handles?.length ? { handles } : {}) } : null;
-  return <Viewport ref={ref} {...props} {...picking} {...sketchActions} {...live} frames={frames} frameSize={frameSize} instanceTransforms={poses.cpuInstanceSection ? undefined : poseMap} />;
+  const placed = props.sketchSnaps?.placed;
+  const placedSnaps = placed && explode === 0 && !poses.jointTree && !dragged && !poses.cpuInstanceSection
+    && !props.clip && !props.instancePreview && !props.isolatedInstances ? {
+      sources: placed.sources,
+      current: () => placed.current() && poses.explodeStore.get() === 0 && !liveSection?.store.get(),
+    } : undefined;
+  const sketchSnaps = props.sketchSnaps && { ...props.sketchSnaps, placed: placedSnaps };
+  return <Viewport ref={ref} {...props} {...picking} {...sketchActions} {...live} sketchSnaps={sketchSnaps}
+    frames={frames} frameSize={frameSize} instanceTransforms={poses.cpuInstanceSection ? undefined : poseMap} />;
 });

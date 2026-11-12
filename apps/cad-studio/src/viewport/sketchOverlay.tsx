@@ -276,7 +276,8 @@ export function drawSketchOverlay({
     const p = P(cur[0], cur[1]), r = 6, mark = sn.kind === 'end' || sn.kind === 'origin' || sn.kind === 'calculated' ? <rect x={p[0] - r} y={p[1] - r} width={2 * r} height={2 * r} />
       : sn.kind === 'mid' ? <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1] + r} ${p[0] - r - 1},${p[1] + r}`} />
       : sn.kind === 'centre' ? <circle cx={p[0]} cy={p[1]} r={r} /> : <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1]} ${p[0]},${p[1] + r + 1} ${p[0] - r - 1},${p[1]}`} />;
-    items.push(<g key="osnap" className="sk-osnap">{mark}<text x={p[0] + 11} y={p[1] - 9}>{draft.extension ? 'Extension' : ({ end: 'End', mid: 'Middle', centre: 'Centre', quadrant: 'Quadrant', origin: 'Origin', calculated: 'Calculated', crossing: 'Crossing' } as const)[sn.kind]}</text></g>);
+    const occurrence = 'occurrenceId' in sn && typeof sn.occurrenceId === 'string' ? sn.occurrenceId : undefined;
+    items.push(<g key="osnap" className="sk-osnap" data-snap-occurrence={occurrence}>{mark}<text x={p[0] + 11} y={p[1] - 9}>{draft.extension ? 'Extension' : ({ end: 'End', mid: 'Middle', centre: 'Centre', quadrant: 'Quadrant', origin: 'Origin', calculated: 'Calculated', crossing: 'Crossing' } as const)[sn.kind]}</text></g>);
   }
   return editor;
 }

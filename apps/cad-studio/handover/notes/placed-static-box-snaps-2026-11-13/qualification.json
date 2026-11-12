@@ -1,0 +1,140 @@
+{
+  "decision": "D882",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "34a3650c458e4663e5e5dd38413436acb73f2841",
+  "issue": 2333,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D882_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/studio-run04 --fixed",
+    "D799_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/arc-extension-snap-browser.mjs <external-evidence>/arc-extension-regression",
+    "D872_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/root-snap-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs osnap",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership instance.test instance-looks.test sketch-framing object-snap-kinds arc-extension",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist-final",
+    "pnpm exec eslint apps/cad-studio/src/viewport/{placedBoxSnap,placedSketchSnaps,viewportPointerInput}.ts apps/cad-studio/src/viewport/{SceneViewport,sketchOverlay}.tsx apps/cad-studio/test/{placed-box-snap,placed-sketch-snap-ownership}.test.ts",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 9,
+    "studioPass": 20,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "driverSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "04bc9af0d0a4ad61fac92df0c7018ce8095207316b0c13b647238ab5560b3cb5"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "firstFinding": "Placed candidates could block Arc Extension terminal acquisition or continuation.",
+    "repair": "Keep placed points out of both dedicated Arc Extension stages."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "attempts": [
+      {
+        "run": 1,
+        "status": "FAIL",
+        "fault": "Driver measured the midpoint symbol bounding box rather than its anchor.",
+        "receiptSHA256": "6c40d27d111f26d369670959c38a6d338134a585861e002979b7227fc2caf82f"
+      },
+      {
+        "run": 2,
+        "status": "PASS",
+        "scope": "Before the Arc Extension guard and held click assertion.",
+        "receiptSHA256": "e1c7087757142e59db5b127ad44858c544c5c4ef4fdfaa3579a3a4e5bd02dc75"
+      },
+      {
+        "run": 3,
+        "status": "FAIL",
+        "fault": "Driver field lookup omitted the unit from the accessible name.",
+        "receiptSHA256": "bc67b0d668fcaafd7514d99f00b55db1b923a9c8484e331825d9b1d9602046f8"
+      }
+    ],
+    "receiptSHA256": "86e4e657f91455b9709c8fc9b045ea28b49d681aa0a7eba5af20526176bf9140",
+    "sourceManifestSHA256": "058961f5e9770a55ff45f8b3b9991a1364e66ca91a5e3028b79191a55cfb8fc7",
+    "frozenFiles": 841,
+    "snapshots": 13,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "visualReview": "PASS",
+    "rootEnd": "PASS",
+    "rootMiddle": "PASS",
+    "placedEnd": "PASS",
+    "placedMiddle": "PASS",
+    "staleHover": "PASS",
+    "staleClick": "PASS",
+    "nativeExtrude": "PASS",
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "storedCornersMm": [
+      [
+        10.25,
+        14.25
+      ],
+      [
+        65.75,
+        34.25
+      ]
+    ],
+    "volumeMm3": 2220,
+    "pendingGridMm": [
+      10,
+      14
+    ],
+    "movedCornersMm": [
+      [
+        35.25,
+        14.25
+      ],
+      [
+        65.75,
+        34.25
+      ]
+    ],
+    "movedVolumeMm3": 1220,
+    "fixtureBytes": 1110,
+    "fixtureSHA256": "d41e4162744c9d4b17c85d28a213de4d90bc9375bd108698d8a5db0c286563a6",
+    "savedBytes": 3153,
+    "savedSHA256": "eed81b6731c3c6c3551eafa3ad9823bcc4b2fd9d43520c8f321acb50d8300a51",
+    "planeToleranceMm": 0.001,
+    "pointPrecisionMm": 0.0001,
+    "anchorToleranceCssPx": 0.02,
+    "nativeTolerance": 1e-8
+  },
+  "desktopRegressions": [
+    {
+      "flow": "Object snap kinds before the Arc Extension guard",
+      "status": "PASS",
+      "snapshots": 9,
+      "frozenFiles": 367,
+      "receiptSHA256": "5275c7b4595dc48595f5750ebed6a09f54c31c598f5e6f9c67d46919a418c1"
+    },
+    {
+      "flow": "Arc Extension after the guard",
+      "status": "PASS",
+      "snapshots": 6,
+      "frozenFiles": 840,
+      "volumeMm3": 106.41648958,
+      "receiptSHA256": "ae7f713ed565a5f69125c414781026cea6e2549c28b853a33bc5324c541d9d29"
+    }
+  ],
+  "notRun": [
+    "desktop Arc Extension with co-located placed endpoint",
+    "rotated placements",
+    "other source shapes",
+    "source revision replacement",
+    "broader occurrence lifecycle",
+    "full suites",
+    "mobile"
+  ]
+}

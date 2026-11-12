@@ -36,6 +36,8 @@ import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
 import type { CircleChordDraft, CircleChordInput } from '../sketch/useCircleFromChord';
 import type { PathGapDraft, PathGapInput } from '../sketch/usePathGap';
 import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
+import { placedBoxSnapPoints, type PlacedBoxSnapPoint } from './placedBoxSnap';
+import type { PlacedSketchSnapInput, PlacedSketchSnapSource } from './placedSketchSnaps';
 import { pickVertex } from './vertexPick';
 import type { CageOverlay, Spot, ToolView, ViewportTool } from './Viewport';
 
@@ -54,7 +56,7 @@ export interface ViewportPointerProps {
   /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
   snapStep?: number;
   sketch: SketchState | null;
-  sketchSnaps?: { twoPoint: TwoPointSnapInput; extension: ArcExtensionInput; crossingBodies?: readonly BodyResult[]; objectKinds?: ObjectSnapKinds };
+  sketchSnaps?: { twoPoint: TwoPointSnapInput; extension: ArcExtensionInput; crossingBodies?: readonly BodyResult[]; placed?: PlacedSketchSnapInput; objectKinds?: ObjectSnapKinds };
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
   handles?: FeatureHandle[];
@@ -275,9 +277,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const livePolygonMiddle = useRef(false);
   const twoPointHover = useRef<{ points: readonly SnapPoint[]; hit: SnapPoint | null } | null>(null);
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
+  const placedSnapCache = useRef<{ sources: readonly PlacedSketchSnapSource[]; plane: SketchState['plane']; points: PlacedBoxSnapPoint[] } | null>(null);
   const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
   const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
-  const { crossingBodies, objectKinds } = propsRef.current.sketchSnaps ?? {};
+  const { crossingBodies, objectKinds, placed } = propsRef.current.sketchSnaps ?? {};
+  const placedSources = placed?.current() ? placed.sources : undefined;
   const extensionDraft = propsRef.current.sketchSnaps?.extension.read(sketch);
   const clearSketchSnap = useCallback(() => {
     const draft = sketchDraft.current;
@@ -307,6 +311,22 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const snap = sketchDraft.current.snap;
     if (snap && (cached.points.includes(snap) || cached.crossings.includes(snap))) clearSketchSnap();
   }, [snapBodies, snapHidden, snapPlaneKey, crossingBodies, clearSketchSnap]);
+  useLayoutEffect(() => {
+    const cached = placedSnapCache.current;
+    if (!cached || (cached.sources === placedSources && cached.plane === sketch?.plane)) return;
+    placedSnapCache.current = null;
+    const snap = sketchDraft.current.snap;
+    if (snap && cached.points.some(point => point === snap)) clearSketchSnap();
+  }, [placedSources, sketch?.plane, clearSketchSnap]);
+  const currentPlacedPoints = (sketch: SketchState): readonly PlacedBoxSnapPoint[] => {
+    const input = propsRef.current.sketchSnaps?.placed;
+    if (sketch.tool !== 'rectangle' || !input?.current()) return [];
+    const { sources } = input, { plane } = sketch, cached = placedSnapCache.current;
+    if (cached?.sources === sources && cached.plane === plane) return cached.points;
+    const points = sources.flatMap(({ instance, body }) => placedBoxSnapPoints(instance, body, plane));
+    placedSnapCache.current = { sources, plane, points };
+    return points;
+  };
   /** The sketch point for the pointer: an eligible object snap within 8 px, then grid fallback. */
   const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null; liveMiddle?: boolean; extension?: boolean; terminal?: boolean } => {
     const { bodies, hiddenBodies, sketchSnaps } = propsRef.current;
@@ -314,9 +334,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const live = liveShape.current;
     const livePoints = live ? shapeSnaps(live, drafting.current) : [];
     const guide = sketchSnaps?.extension.read(sk);
-    // Arc Extension resolves its endpoint against the existing snap set.
+    // Arc Extension keeps its existing endpoint and continuation candidates.
     const crossings = guide ? [] : model.crossings;
-    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings];
+    const placed = guide ? [] : currentPlacedPoints(sk);
+    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings, ...placed];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
     const candidates = guide ? points : enabledObjectSnaps(points, sketchSnaps?.objectKinds);
     const ordinary = nearestSnap(candidates, project, [x, y]);

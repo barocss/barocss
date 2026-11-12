@@ -87,6 +87,7 @@ import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
+import { acceptedPlacedSketchSnaps } from './viewport/placedSketchSnaps';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
@@ -2316,6 +2317,15 @@ export function App() {
   const previewTint = placedCandidate ? WORKER_CANDIDATE_TINT : undefined;
   const viewportInstances = useMemo(() => withPlacedProposalBodies(instancesStepped, placedProposal, previewTint), [instancesStepped, placedProposal, previewTint]);
   const viewportPlacements = useMemo(() => withPlacedProposalBodies(instancesPlaced, placedProposal, previewTint), [instancesPlaced, placedProposal, previewTint]);
+  const placedSnapsEligible = sketch?.tool === 'rectangle' && sketch.editNode === undefined && !sketch.base
+    && fresh && !busy && shownDoc === doc && marker === null && !inPlace && !active && !rendering && !drawing
+    && !section && previewMode === 'none' && !cageEd.session && !skel.session && !bodyDrag && !ghost && !workingComparison
+    && !cutDraft && !doc.assemblyCuts?.length && !assembly.draft && !instDrag && !stepsDisp && !isolatedInstances && !placedProposal;
+  const placedSketchSnaps = useMemo(() => placedSnapsEligible && viewportInstances.length ? {
+    sources: acceptedPlacedSketchSnaps(doc, instanceBodies, instanceSources, viewportInstances),
+    current: () => docNow.current === doc && workerSessionNow.current === workerSession,
+  } : undefined, [placedSnapsEligible, viewportInstances, doc, instanceBodies, instanceSources, workerSession]);
+
   // CPU sections and previews can replace the displayed bodies without setting a GPU clip plane.
   const meshBoxCrossing = viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
     && !active && !sketch && !drawing && !section && !measure && !inPlace && !assembly.draft
@@ -2808,7 +2818,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, objectKinds: objectSnapKinds }} onCursor={onCursor}
+        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, placed: placedSketchSnaps, objectKinds: objectSnapKinds }} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
