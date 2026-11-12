@@ -4,8 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { qualifyMovedFlange } from './sheet-move-flange.mjs';
 import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
+import { qualifyMirrorBoundary } from './sheet-mirror-study.mjs';
 
-const mode = process.argv[3];
+const mode = process.argv[3], mirrorStudy = mode === '--mirror-study';
 const baseline = mode === '--baseline', flange = mode === '--flange';
 const rotateBaseline = mode === '--rotate-baseline', rotateFlange = mode === '--rotate-flange';
 const rotate = rotateBaseline || rotateFlange || mode === '--rotate';
@@ -21,16 +22,19 @@ const pins = [
   fixture, canonical,
   ...(flange || rotateFlange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
   ...(rotate ? ['apps/cad-studio/test/sheet-rotate-flow.mjs'] : []),
+  ...(mirrorStudy ? ['apps/cad-studio/test/sheet-mirror-study.mjs'] : []),
 ];
 const f = await createFlow({
-  name: rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
-  envFrozen: rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  name: mirrorStudy ? 'sheet-mirror-boundary' : rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
+  envFrozen: mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
+  qualification: mirrorStudy ? 'Compare the legacy Studio Mirror and a native single-body reflection with an asymmetric hole.' :
+    rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
     rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
     flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
     'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
-  limits: [rotate ? 'One single-body L-bracket with two through holes, explicit K, and Rotate 30° about X at the origin.' :
+  limits: [mirrorStudy ? 'One asymmetric L-bracket, YZ at the origin, and the current legacy Mirror plus a native control.' :
+    rotate ? 'One single-body L-bracket with two through holes, explicit K, and Rotate 30° about X at the origin.' :
     'One single-body L-bracket with two through holes, explicit K, and Move by (7, -3, 11) mm.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -39,7 +43,7 @@ import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { emptyDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { checkOutput, evaluateCadPart, flatPatternOf, massPropertiesOf } from '@barocss/cad';
+import { checkOutput, evaluateCadPart, faceGeometry, flatPattern, flatPatternOf, massPropertiesOf } from '@barocss/cad';
 const args = JSON.parse(process.argv[3]);
 if (args.fixture) {
   const { calls } = JSON.parse(readFileSync(args.fixture, 'utf8'));
@@ -54,12 +58,25 @@ if (args.fixture) {
   console.log(JSON.stringify(state.doc));
 } else {
   const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-  const [output, ...others] = evaluateCadPart(toPartDocument(doc)).outputs;
+  const part = toPartDocument(doc);
+  const last = part.features.at(-1);
+  if (args.reflectOnly) {
+    assert.equal(last.kind, 'mirror');
+    assert.equal(last.keep, true);
+    part.features = [...part.features.slice(0, -1), { ...last, keep: false }];
+  }
+  const [output, ...others] = evaluateCadPart(part).outputs;
   assert.equal(others.length, 0);
   let flat = null, flatError = null;
   try { flat = flatPatternOf(output); }
   catch (error) { flatError = { code: error.code, message: error.message }; }
+  const fixedFace = args.mirror ? output.brep.faces.find(face => face.name === 'n0.leg0.a') : undefined;
+  const manualFlat = args.reflectOnly ? flatPattern(output.brep, {
+    thickness: 1.5, kFactor: 0.44, fixedFace: 'n0.leg0.a',
+    bendNames: [{ name: 'n0.bend1', faces: ['n0.bend1.inner', 'n0.bend1.outer'] }],
+  }) : undefined;
   console.log(JSON.stringify({
+    ...(args.mirror ? { feature: part.features.at(-1), fixedFace: fixedFace && faceGeometry(fixedFace), manualFlat } : {}),
     id: output.id, valid: checkOutput(output).valid, bodyCount: output.bodyCount,
     points: output.brep.vertices.map(vertex => vertex.point),
     faces: output.brep.faces.map(face => face.name), edges: output.brep.edges.map(edge => edge.name), sheet: output.sheet ?? null,
@@ -91,8 +108,8 @@ const button = (parent, name) => parent.getByRole('button', { name, exact: true 
 const flatDialog = () => f.page.getByRole('dialog', { name: 'Flat pattern', exact: true });
 const flatButton = () => button(f.page, 'Show the flat pattern');
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = (rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
-const name = rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
+const project = (mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
+const name = mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} differs from ${b} (tolerance ${tolerance})`);
 function vectorNear(a, b, tolerance) {
   assert.equal(a.length, b.length);
@@ -205,6 +222,11 @@ await f.run(async () => {
   });
   const bytes = Buffer.from(JSON.stringify(seed));
   assert.equal(sha256(bytes), 'e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab');
+  if (mirrorStudy) {
+    await qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name, mimeType: 'application/json', buffer: bytes });

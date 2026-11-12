@@ -1,0 +1,204 @@
+{
+  "decision": "D816",
+  "tier": "SMALL",
+  "parent": "ccdbda0fb3a100552813b32fcd95ddc6519fc938",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d816-sheet-mirror-boundary",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-mirror-study.mjs",
+    "cd apps/cad-studio && D816_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --mirror-study",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d816-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "6d89eca9876106b7dd9e27599af1ec84ab0a400de7fd6cb6be4e8b5e956ca8c9",
+      "frozenSources": 1006,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "rootVisualReview": "PASS",
+    "sourceReview": "PASS_SOL_HIGH_INDEPENDENT_ORACLE",
+    "retainedFocusedEvidence": "D814 on the unchanged CAD, Model and Studio product sources",
+    "observations": [
+      {
+        "label": "native-mirror-contrast",
+        "originalFlat": {
+          "area": 1974.2710130907635,
+          "box": {
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              30,
+              67.39292006587698
+            ]
+          },
+          "holes": [
+            [
+              14.999999999999996,
+              10.000000000000004
+            ],
+            [
+              18.000000000000018,
+              52.39292006587698
+            ]
+          ],
+          "bend": {
+            "name": "n0.bend1",
+            "direction": "down",
+            "angle": 89.99999999999993,
+            "radius": 1.5000000000000004,
+            "kFactor": 0.44,
+            "allowance": 3.392920065876975,
+            "centre": [
+              [
+                30,
+                28.696460032938486
+              ],
+              [
+                0,
+                28.696460032938486
+              ]
+            ],
+            "tangents": [
+              [
+                [
+                  30,
+                  27
+                ],
+                [
+                  0,
+                  27
+                ]
+              ],
+              [
+                [
+                  30,
+                  30.392920065876975
+                ],
+                [
+                  0,
+                  30.392920065876975
+                ]
+              ]
+            ],
+            "faces": [
+              "n0.bend1.outer"
+            ]
+          }
+        },
+        "reflectedFlat": {
+          "area": 1974.2710130907633,
+          "box": {
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              30,
+              67.39292006587698
+            ]
+          },
+          "holes": [
+            [
+              17.999999999999964,
+              15.000000000000021
+            ],
+            [
+              14.999999999999996,
+              57.392920065876964
+            ]
+          ],
+          "bend": {
+            "name": "n0.bend1",
+            "direction": "down",
+            "angle": 89.99999999999993,
+            "radius": 1.5000000000000004,
+            "kFactor": 0.44,
+            "allowance": 3.392920065876975,
+            "centre": [
+              [
+                30,
+                38.69646003293849
+              ],
+              [
+                0,
+                38.69646003293849
+              ]
+            ],
+            "tangents": [
+              [
+                [
+                  30,
+                  40.39292006587698
+                ],
+                [
+                  0,
+                  40.39292006587698
+                ]
+              ],
+              [
+                [
+                  30,
+                  37
+                ],
+                [
+                  0,
+                  37
+                ]
+              ]
+            ],
+            "faces": [
+              "n0.bend1.outer"
+            ]
+          }
+        },
+        "reflectedVolume": 2967.7682447596635,
+        "reflectedCentroid": [
+          -12.141098054079878,
+          14.963975514199518,
+          7.007842511441268
+        ],
+        "reflectedNormal": [
+          1,
+          0,
+          -6.123233995736767e-17
+        ],
+        "reflectedReport": null,
+        "reflectedNativeFlatError": {
+          "code": "CAPABILITY",
+          "message": "n7: not made as sheet metal: give its thickness and K-factor to the kernel's flatPattern"
+        }
+      },
+      {
+        "label": "studio-legacy-mirror",
+        "keep": true,
+        "bodyCount": 1,
+        "volume": 5935.536489519336,
+        "centroid": [
+          -2.7860020251956967e-14,
+          14.96397551419944,
+          7.007842511441475
+        ],
+        "flatError": {
+          "code": "CAPABILITY",
+          "message": "n7: not made as sheet metal: give its thickness and K-factor to the kernel's flatPattern"
+        },
+        "bytes": 2280,
+        "sha256": "88ac9fbd91a1f06d6916aeed23608d6b04ed7d08882993f4f39ed3cf60148a9a"
+      }
+    ]
+  }
+}
