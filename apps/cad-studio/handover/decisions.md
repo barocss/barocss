@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D815 — flange the rotated sheet on its persistent edge](notes/sheet-flange-after-rotate-2026-11-12/README.md).
+
 - [D814 — retain the flat pattern after rotating a sheet body](notes/sheet-rotate-flat-retention-2026-11-12/README.md).
 
 - [D813 — flange the translated sheet on its persistent edge](notes/sheet-flange-after-move-2026-11-12/README.md).

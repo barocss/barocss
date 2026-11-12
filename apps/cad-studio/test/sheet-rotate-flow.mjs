@@ -3,7 +3,7 @@ import { sha256 } from './flow-helper.mjs';
 
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const c = Math.sqrt(3) / 2, s = 1 / 2;
-const rotation = ([x, y, z]) => [x, c * y - s * z, s * y + c * z];
+export const rotation = ([x, y, z]) => [x, c * y - s * z, s * y + c * z];
 const originalCenter = [12.141098054079956, 15, 7.007842511441414];
 const volume = 2967.768244759665;
 const width = 30, thickness = 1.5, radius = 1.5, k = 0.44, holeRadius = 2.75;
@@ -18,7 +18,8 @@ function pointNear(actual, expected, tolerance = 1e-9) {
   assert.equal(actual.length, expected.length);
   actual.forEach((value, axis) => near(value, expected[axis], tolerance));
 }
-function alignedFlat(flat) {
+export function alignSheetRectangle(flat, width, length, holeRadius, targetHoles) {
+  const flatTolerance = 1e-12 * length;
   const [outer, ...others] = flat.loops.filter(loop => loop.outer);
   assert.ok(outer && !others.length && outer.segments.length === 4 && outer.segments.every(edge => edge.kind === 'line'));
   const corners = outer.segments.map(edge => edge.a);
@@ -32,7 +33,6 @@ function alignedFlat(flat) {
   });
   assert.equal(holes.length, 2);
 
-  const targetHoles = [[15, 10], [15, length - 15]];
   for (const [index, origin] of corners.entries()) {
     const vectors = [corners[(index + 3) % 4], corners[(index + 1) % 4]]
       .map(point => point.map((value, axis) => value - origin[axis])).sort((a, b) => Math.hypot(...a) - Math.hypot(...b));
@@ -65,7 +65,7 @@ function checkRotatedFlat(native) {
   pointNear(bend.axis.direction, rotation([0, -1, 0]));
   near(bend.allowance, allowance);
   near(flat.area, area, 1e-12 * area);
-  const aligned = alignedFlat(flat);
+  const aligned = alignSheetRectangle(flat, width, length, holeRadius, [[15, 10], [15, length - 15]]);
   assert.equal(flat.bends.length, 1);
   assert.equal(flat.fixedFace, sheet.fixedFace);
   const [developed] = flat.bends;
@@ -145,4 +145,5 @@ export async function qualifySheetRotation(f, seed, original, { selectBody, show
   f.report.observations.push({ label: 'reopened-aligned-flat', ...checkRotatedFlat(reopened), bytes: bytes.length, sha256: sha256(bytes) });
   await selectBody();
   await showFlat('05-reopened-rotated-flat');
+  return { doc: rotated, native: reopened };
 }

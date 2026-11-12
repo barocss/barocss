@@ -7,7 +7,8 @@ import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
 
 const mode = process.argv[3];
 const baseline = mode === '--baseline', flange = mode === '--flange';
-const rotateBaseline = mode === '--rotate-baseline', rotate = rotateBaseline || mode === '--rotate';
+const rotateBaseline = mode === '--rotate-baseline', rotateFlange = mode === '--rotate-flange';
+const rotate = rotateBaseline || rotateFlange || mode === '--rotate';
 const fixture = 'packages/barocss-cad-model/test/fixtures/sheet-l-bracket.calls.json';
 const canonical = 'packages/barocss-cad/conformance/r12/accept-l-bracket.json';
 const repo = new URL('../../../', import.meta.url);
@@ -18,14 +19,15 @@ const pins = [
   'packages/barocss-cad/src/part/part-transform.ts',
   'packages/barocss-cad/src/part/part-model.ts',
   fixture, canonical,
-  ...(flange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
+  ...(flange || rotateFlange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
   ...(rotate ? ['apps/cad-studio/test/sheet-rotate-flow.mjs'] : []),
 ];
 const f = await createFlow({
   name: rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
-  envFrozen: rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  envFrozen: rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
+  qualification: rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
+    rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
     flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
     'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
   limits: [rotate ? 'One single-body L-bracket with two through holes, explicit K, and Rotate 30° about X at the origin.' :
@@ -212,7 +214,8 @@ await f.run(async () => {
   await selectBody();
   await showFlat('01-original-flat');
   if (rotate) {
-    await qualifySheetRotation(f, seed, original, { selectBody, showFlat, projectRoundTrip, baseline: rotateBaseline });
+    const result = await qualifySheetRotation(f, seed, original, { selectBody, showFlat, projectRoundTrip, baseline: rotateBaseline });
+    if (rotateFlange) await qualifyMovedFlange(f, result.doc, result.native, { selectBody, showFlat, projectRoundTrip, rotated: true });
     assert.deepEqual(f.report.downloads, []);
     return;
   }

@@ -1,0 +1,258 @@
+{
+  "decision": "D815",
+  "tier": "SMALL",
+  "parent": "1f76e959b95297899af5e8eb1e1a0cb367aef310",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d815-sheet-flange-after-rotate",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-rotate-flow.mjs",
+    "node --check apps/cad-studio/test/sheet-move-flange.mjs",
+    "cd apps/cad-studio && D815_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --rotate-flange",
+    "gate.sh acquire heavy 600 d815-translated-flange-regression",
+    "cd apps/cad-studio && D813_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/move-regression\" --flange",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d815-2026-11-12",
+    "runs": {
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "7d70da54a489c7725c9d3632d5127991a71fc44de249de4d800e5be935185501",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "flanged-native",
+            "thickness": 1.5,
+            "volume": 3756.811372847611,
+            "centroid": [
+              17.829364946235167,
+              11.25432267067391,
+              10.506941329618458
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -16.021469970012113
+            ],
+            "max": [
+              40,
+              35.23076211353316,
+              40.98076211353316
+            ],
+            "axis": {
+              "origin": [
+                37,
+                26.73076211353316,
+                13.70096189432334
+              ],
+              "direction": [
+                0,
+                0.8660254037844387,
+                0.4999999999999999
+              ]
+            },
+            "length": 84.78584013175396,
+            "rawBox": {
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                68.37368217941014,
+                88.42669143530509
+              ]
+            },
+            "area": 2496.0586150670742,
+            "holes": [
+              [
+                15.000000000000004,
+                9.999999999999998
+              ],
+              [
+                14.999999999999924,
+                52.39292006587705
+              ]
+            ],
+            "bends": [
+              [
+                "n0.bend1",
+                "down"
+              ],
+              [
+                "n8.bend",
+                "up"
+              ]
+            ]
+          },
+          {
+            "label": "flange-project-readback",
+            "bytes": 2837,
+            "sha256": "f31642b6ddcfa6baad1b86826c07bae86616d9f836b1844cc846932a560501ac"
+          },
+          {
+            "label": "reopened-flange-native",
+            "thickness": 1.5,
+            "volume": 3756.811372847611,
+            "centroid": [
+              17.829364946235167,
+              11.25432267067391,
+              10.506941329618458
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -16.021469970012113
+            ],
+            "max": [
+              40,
+              35.23076211353316,
+              40.98076211353316
+            ],
+            "axis": {
+              "origin": [
+                37,
+                26.73076211353316,
+                13.70096189432334
+              ],
+              "direction": [
+                0,
+                0.8660254037844387,
+                0.4999999999999999
+              ]
+            },
+            "length": 84.78584013175396,
+            "rawBox": {
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                68.37368217941014,
+                88.42669143530509
+              ]
+            },
+            "area": 2496.0586150670742,
+            "holes": [
+              [
+                15.000000000000004,
+                9.999999999999998
+              ],
+              [
+                14.999999999999924,
+                52.39292006587705
+              ]
+            ],
+            "bends": [
+              [
+                "n0.bend1",
+                "down"
+              ],
+              [
+                "n8.bend",
+                "up"
+              ]
+            ]
+          },
+          {
+            "label": "reopened-flange-thickness2",
+            "thickness": 2,
+            "volume": 4936.20572026735,
+            "centroid": [
+              17.82529976181367,
+              11.123219153874558,
+              10.734019281765978
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -15.588457268119893
+            ],
+            "max": [
+              40,
+              34.98076211353316,
+              40.98076211353316
+            ],
+            "axis": {
+              "origin": [
+                36.5,
+                26.73076211353316,
+                13.70096189432334
+              ],
+              "direction": [
+                0,
+                0.8660254037844386,
+                0.4999999999999999
+              ]
+            },
+            "length": 83.4769905155437,
+            "rawBox": {
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                67.719257371305,
+                87.29319441793349
+              ]
+            },
+            "area": 2456.793126580765,
+            "holes": [
+              [
+                15.000000000000004,
+                9.999999999999996
+              ],
+              [
+                15.000000000000036,
+                51.73849525777183
+              ]
+            ],
+            "bends": [
+              [
+                "n0.bend1",
+                "down"
+              ],
+              [
+                "n8.bend",
+                "up"
+              ]
+            ]
+          }
+        ]
+      },
+      "move-regression": {
+        "status": "PASS",
+        "sha256": "58b48dd4fe12ee9e1945ec90c32f723d942a0fba7ca61553cf5d9b20324d07b7",
+        "frozenSources": 1006,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "rootVisualReview": "PASS",
+    "retainedFocusedEvidence": "D814 on the unchanged CAD, Model and Studio product sources",
+    "runnerCorrection": "The first regression invocation put the mode argument after the closing shell subshell. The shell did not start any test. The corrected invocation passed.",
+    "inputEdge": "n0.end|n0.leg1.a",
+    "pickMm": [
+      40,
+      12.990381056766578,
+      7.5
+    ],
+    "flangeLengthMm": 20,
+    "angleDeg": 90
+  }
+}
