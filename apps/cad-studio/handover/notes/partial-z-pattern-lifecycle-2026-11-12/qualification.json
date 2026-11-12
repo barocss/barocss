@@ -1,0 +1,158 @@
+{
+  "decision": "D821",
+  "tier": "SMALL",
+  "parent": "b803d3c7e1aeaeb108fbab472e58bc686ac4c875",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d821-z-pattern-lifecycle",
+    "node --check apps/cad-studio/test/z-pattern-lifecycle-browser.mjs",
+    "cd apps/cad-studio && D821_SOURCE_FROZEN=1 node test/z-pattern-lifecycle-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d821-z-pattern-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test circular-pattern editFields",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d821-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "ada722761762b8868bef477bb10f0ee2f0856908b5bdea75081e601c91354e69",
+      "frozenSources": 808,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "focused": {
+      "modelPass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "rootVisualReview": "PASS",
+    "observations": [
+      {
+        "label": "created-four",
+        "count": 4,
+        "step": 40,
+        "angles": [
+          0,
+          40,
+          80,
+          120
+        ],
+        "pivot": [
+          12,
+          4,
+          0
+        ],
+        "corners": 32,
+        "volume": 768.000000000001,
+        "centroid": [
+          20.786279483271926,
+          32.17551606160011,
+          4
+        ]
+      },
+      {
+        "label": "edited-three",
+        "count": 3,
+        "step": 60,
+        "angles": [
+          0,
+          60,
+          120
+        ],
+        "pivot": [
+          12,
+          4,
+          0
+        ],
+        "corners": 24,
+        "volume": 576.0000000000008,
+        "centroid": [
+          20.137180910626718,
+          30.09401076758499,
+          4
+        ]
+      },
+      {
+        "label": "retained-three",
+        "count": 3,
+        "step": 60,
+        "angles": [
+          0,
+          60,
+          120
+        ],
+        "pivot": [
+          12,
+          4,
+          0
+        ],
+        "corners": 24,
+        "volume": 576.0000000000008,
+        "centroid": [
+          20.137180910626718,
+          30.09401076758499,
+          4
+        ]
+      },
+      {
+        "label": "reopened-three",
+        "count": 3,
+        "step": 60,
+        "angles": [
+          0,
+          60,
+          120
+        ],
+        "pivot": [
+          12,
+          4,
+          0
+        ],
+        "corners": 24,
+        "volume": 576.0000000000008,
+        "centroid": [
+          20.137180910626718,
+          30.09401076758499,
+          4
+        ]
+      },
+      {
+        "label": "pattern-project-readback",
+        "bytes": 735,
+        "sha256": "457bf5eaab2ea17ebe92c1501b45c0d75de8f38ced4fe2e06beee5f1fdcd2e1d"
+      },
+      {
+        "label": "reopened-edited-five",
+        "count": 5,
+        "step": 30,
+        "angles": [
+          0,
+          30,
+          60,
+          90,
+          120
+        ],
+        "pivot": [
+          12,
+          4,
+          0
+        ],
+        "corners": 40,
+        "volume": 960.0000000000003,
+        "centroid": [
+          21.110511776651546,
+          33.215252187363,
+          4
+        ]
+      }
+    ]
+  }
+}
