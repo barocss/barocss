@@ -158,7 +158,7 @@ async function authorFaceEnd() {
   f.phase = 'refuse the upper cap in Studio and select the original lower cap';
   await pickCap('Top', [13, 13, 25]);
   await status('refused');
-  assert.match(await hud.locator('.hud-error').textContent(), /must face down along Z/i);
+  assert.match(await hud.locator('.hud-error').textContent(), /face normal must oppose the extrusion direction/i);
   assert.deepEqual(await f.doc(), initial);
   await pickCap('Bottom', [13, 13, 20]);
   await status('preview');

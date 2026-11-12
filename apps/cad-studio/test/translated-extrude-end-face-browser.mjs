@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const baseline = process.argv[3] === '--baseline';
+const baseline = process.argv.includes('--baseline'), rotated = process.argv.includes('--rotated');
+const decision = rotated ? 'D844' : 'D843';
+const frameName = rotated ? 'cardinal YZ' : 'translated XY';
 const pins = [
   'apps/cad-studio/test/translated-extrude-end-face-browser.mjs',
   'packages/barocss-cad-model/src/app/profileCommands.ts',
@@ -10,17 +12,18 @@ const pins = [
   'packages/barocss-cad-model/src/engine/part.ts',
 ];
 const f = await createFlow({
-  name: 'translated-extrude-end-face', output: process.argv[2], envFrozen: 'D843_SOURCE_FROZEN',
+  name: 'translated-extrude-end-face', output: process.argv[2], envFrozen: decision + '_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Measure the pre-extension command and Open behavior on a translated XY source.'
-    : 'Qualify a common XYZ translation of a literal XY profile and its native lower cap, including negative world Z.',
-  limits: ['One translated XY rectangle, positive travel, one current downward native rectangular cap, desktop WebGPU.'],
+  qualification: baseline ? `Measure the pre-extension command and Open behavior on a ${frameName} source.`
+    : `Qualify a literal rectangle in the ${frameName} frame and its original opposing native end face.`,
+  limits: [`One ${frameName} rectangle, positive travel, one current opposed native rectangular cap, desktop WebGPU.`],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
 import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
 const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const part = toPartDocument(doc), result = evaluateCadPart(part);
+const axis = doc.nodes[2].plane.normal.indexOf(1);
 console.log(JSON.stringify({
   extrusion: part.features.find(feature => feature.id === 'n3'),
   outputs: result.outputs.map(output => ({
@@ -29,7 +32,7 @@ console.log(JSON.stringify({
     faces: output.brep.faces.filter(face => face.name === output.id + (output.id === 'n1' ? '.bottom' : '.top'))
       .map(face => {
         const plane = faceGeometry(face);
-        return { name: face.name, normal: plane.kind === 'plane' ? plane.n : null, levels: face.surface.controlPoints.flat().map(point => point[2]) };
+        return { name: face.name, normal: plane.kind === 'plane' ? plane.n : null, levels: face.surface.controlPoints.flat().map(point => point[axis]) };
       }),
   })),
 }));
@@ -39,8 +42,14 @@ console.log(JSON.stringify({
     historyControls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
   }),
 });
-const offset = [12, -7, -100];
-const world = ([x, y, z]) => [x + offset[0], y + offset[1], z + offset[2]];
+const offset = rotated ? [-100, 12, -7] : [12, -7, -100], normalAxis = rotated ? 0 : 2;
+const normal = rotated ? [1, 0, 0] : [0, 0, 1], xAxis = rotated ? [0, 1, 0] : [1, 0, 0];
+const plane = { origin: offset, normal, xAxis };
+const world = ([x, y, z]) => rotated ? [z + offset[0], x + offset[1], y + offset[2]] : [x + offset[0], y + offset[1], z + offset[2]];
+const targetStart = travel => rotated ? travel : world([0, 0, travel])[2];
+const targetProfile = rotated
+  ? { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-5, -5], max: [15, 15], plane }
+  : { id: 'n0', kind: 'sketch', profile: 'rectangle', min: world([-5, -5, 0]).slice(0, 2), max: world([15, 15, 0]).slice(0, 2) };
 const recipe = {
   id: 'n3', kind: 'face-end-extrude', sketch: 2,
   target: { body: { node: 1, side: 'solid' }, feature: 'n1', face: 'n1.bottom' },
@@ -48,9 +57,9 @@ const recipe = {
 const sourceAt = (localZ, bound) => ({
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
-    { id: 'n0', kind: 'sketch', profile: 'rectangle', min: world([-5, -5, 0]).slice(0, 2), max: world([15, 15, 0]).slice(0, 2) },
-    { id: 'n1', kind: 'extrude', sketch: 0, from: world([0, 0, localZ])[2], height: 5 },
-    { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10], plane: { origin: offset, normal: [0, 0, 1], xAxis: [1, 0, 0] } },
+    targetProfile,
+    { id: 'n1', kind: 'extrude', sketch: 0, from: targetStart(localZ), height: 5 },
+    { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10], plane },
     ...(bound ? [recipe] : []),
   ],
   outputs: { b1: { node: 1, side: 'solid' }, ...(bound ? { b3: { node: 3, side: 'solid' } } : {}) }, nextId: bound ? 4 : 3,
@@ -58,7 +67,7 @@ const sourceAt = (localZ, bound) => ({
 const button = (panel, name) => panel.getByRole('button', { name, exact: true });
 const field = (panel, name) => panel.getByLabel(name, { exact: true });
 const near = (a, b) => Math.abs(a - b) < 1e-8;
-const name = 'D843-translated-face-end.bcad', project = 'D843 translated face end ' + randomUUID();
+const name = decision + '-face-end.bcad', project = decision + ' face end ' + randomUUID();
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
 
 async function open(file, doc) {
@@ -76,7 +85,7 @@ async function geometry(label, travel) {
   assert.ok(fresh && massReady);
   assert.deepEqual(bodies.map(body => body.key), ['b1', 'b3']);
   assert.equal(native.outputs.length, 2);
-  const targetZ = world([0, 0, travel])[2];
+  const targetExtent = world([0, 0, travel])[normalAxis];
   for (const [id, square, lo, hi, volume, centroid] of [
     ['n1', [-5, 15], travel, travel + 5, 2000, world([5, 5, travel + 2.5])],
     ['n3', [0, 10], 0, travel, 100 * travel, world([5, 5, travel / 2])],
@@ -87,23 +96,24 @@ async function geometry(label, travel) {
     const corners = square.flatMap(x => square.flatMap(y => [lo, hi].map(z => world([x, y, z]))));
     assert.ok(corners.every(point => exact.corners.some(corner => corner.every((value, i) => near(value, point[i])))));
     assert.equal(exact.faces.length, 1);
-    assert.ok(exact.faces[0].normal?.every((value, i) => near(value, [0, 0, id === 'n1' ? -1 : 1][i])));
-    assert.ok(exact.faces[0].levels.length >= 4 && exact.faces[0].levels.every(z => near(z, targetZ)));
+    assert.ok(exact.faces[0].normal?.every((value, i) => near(value, (id === 'n1' ? -1 : 1) * normal[i])));
+    assert.ok(exact.faces[0].levels.length >= 4 && exact.faces[0].levels.every(z => near(z, targetExtent)));
     for (const measured of [exact.mass, bodies.find(body => body.key === 'b' + id.slice(1))]) {
       assert.ok(near(measured.volume, volume));
       assert.ok(measured.centroid.every((value, i) => near(value, centroid[i])));
     }
   }
-  f.report.observations.push({ label, offset, sourceZ: offset[2], targetAndEndZ: targetZ, travel, extrusionVolumeMm3: 100 * travel, nativeCorners: 16 });
+  f.report.observations.push({ label, offset, normalAxis, sourceExtent: offset[normalAxis], targetAndEndExtent: targetExtent, travel, extrusionVolumeMm3: 100 * travel, nativeCorners: 16 });
 }
 
 async function pickLowerCap() {
   await button(f.page, 'View cube directions').click();
-  await f.page.getByRole('menuitem', { name: 'Bottom', exact: true }).click();
-  await f.page.waitForFunction(() => {
+  const view = rotated ? 'Left' : 'Bottom';
+  await f.page.getByRole('menuitem', { name: view, exact: true }).click();
+  await f.page.waitForFunction(name => {
     const labels = [...document.querySelectorAll('.view-cube .vc-label')];
-    return labels.length === 1 && labels[0].textContent === 'BOTTOM';
-  });
+    return labels.length === 1 && labels[0].textContent === name;
+  }, view.toUpperCase());
   const pixel = await f.page.evaluate(point => {
     const xy = window.__studioScreenOf(point);
     return xy && document.elementFromPoint(...xy)?.closest('.vp-canvas') ? xy : null;
@@ -112,10 +122,10 @@ async function pickLowerCap() {
   await f.page.mouse.click(...pixel);
 }
 
-async function setStartZ(z, expected) {
+async function setTargetStart(travel, expected) {
   await f.openFeatureEditor(1, 'target start Z');
   const before = await f.doc();
-  await field(f.editor(), 'Start Z').fill(String(z));
+  await field(f.editor(), 'Start Z').fill(String(targetStart(travel)));
   await button(f.editor(), 'Apply').click();
   if (expected) {
     await f.changed(before);
@@ -123,7 +133,7 @@ async function setStartZ(z, expected) {
   } else {
     const error = f.editor().locator('.hud-error');
     await error.waitFor();
-    assert.match(await error.textContent(), /positive Z/i);
+    assert.match(await error.textContent(), rotated ? /positive extrusion direction/i : /positive (Z|extrusion direction)/i);
     assert.deepEqual(await f.doc(), before);
     await f.closeEditor();
   }
@@ -147,8 +157,8 @@ await f.run(async () => {
     await button(hud, 'Cancel').click();
     await hud.waitFor({ state: 'hidden' });
     f.phase = 'the pre-extension Studio opens the authored recipe and cannot evaluate it';
-    await open('D843-translated-candidate.bcad', sourceAt(20, true));
-    const notice = await f.waitToast(/literal rectangle on the default XY plane/i);
+    await open(decision + '-unsupported-candidate.bcad', sourceAt(20, true));
+    const notice = await f.waitToast(/literal rectangle on (the default|a default or translated) XY plane/i);
     assert.deepEqual(await f.doc(), sourceAt(20, true));
     const failed = await f.snapshot('00-pre-extension-refusal');
     assert.equal(failed.bodies.fresh, false);
@@ -171,12 +181,12 @@ await f.run(async () => {
   const accepted = await f.snapshot('02-translated-accepted');
 
   f.phase = 'refuse zero and reverse travel in negative world coordinates';
-  await setStartZ(-100, false);
-  await setStartZ(-101, false);
+  await setTargetStart(0, false);
+  await setTargetStart(-1, false);
   const refused = await f.snapshot('03-travel-refused');
   for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection']) assert.deepEqual(refused[key], accepted[key], key);
-  await setStartZ(-70, true);
-  await geometry('negative-world-z-target-moved', 30);
+  await setTargetStart(30, true);
+  await geometry('negative-world-target-moved', 30);
   await f.undo();
   await geometry('translated-first-undo', 20);
   await f.redo();
@@ -210,7 +220,7 @@ await f.run(async () => {
   await button(versions(), 'Open ' + name).click();
   await f.same(edited);
   await geometry('translated-reopened', 30);
-  await setStartZ(-60, true);
+  await setTargetStart(40, true);
   await geometry('translated-post-open-target-moved', 40);
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   await f.snapshot('04-translated-post-open');

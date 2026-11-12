@@ -51,11 +51,11 @@ test('a saved target is one current exact rectangular cap that contains the sour
   const targetSketch = base.nodes[0];
   assert.ok(targetSketch.kind === 'sketch' && targetSketch.profile === 'rectangle');
   assert.throws(() => toPartDocument(edited(0, { ...targetSketch, max: [3, 15] })), /entire projected profile/i);
-  assert.throws(() => toPartDocument(documentAt(0)), /positive Z/i);
-  assert.throws(() => toPartDocument(documentAt(-20)), /positive Z/i);
+  assert.throws(() => toPartDocument(documentAt(0)), /positive extrusion direction/i);
+  assert.throws(() => toPartDocument(documentAt(-20)), /positive extrusion direction/i);
   assert.throws(() => toPartDocument(edited(3, { ...recipe, target: { ...recipe.target, face: 'n1.unknown' } })), /missing or ambiguous/i);
-  assert.throws(() => toPartDocument(edited(3, { ...recipe, target: { ...recipe.target, face: 'n1.top' } })), /face down/i);
-  assert.throws(() => toPartDocument(edited(3, { ...recipe, target: { ...recipe.target, face: 'n1.side0' } })), /horizontal plane/i);
+  assert.throws(() => toPartDocument(edited(3, { ...recipe, target: { ...recipe.target, face: 'n1.top' } })), /normal must oppose/i);
+  assert.throws(() => toPartDocument(edited(3, { ...recipe, target: { ...recipe.target, face: 'n1.side0' } })), /plane parallel to the sketch/i);
   assert.throws(() => toPartDocument(edited(1, { ...base.nodes[1], suppressed: true })), /missing or suppressed/i);
   const consumed: StudioDoc = { ...base, nodes: [...base.nodes.slice(0, 3),
     { id: 'n4', kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [0, 0, 5] }, recipe], nextId: 5 };
@@ -147,7 +147,7 @@ test('detaching keeps the exact current distance and the feature identity used b
   };
   assert.equal(currentFaceEndDistance(bound, 3), 30);
   assert.throws(() => currentFaceEndDistance(bound, 4), /active Extrude to face/i);
-  assert.throws(() => currentFaceEndDistance(documentAt(-20), 3), /positive Z/i);
+  assert.throws(() => currentFaceEndDistance(documentAt(-20), 3), /positive extrusion direction/i);
   assert.throws(() => detachFaceEndExtrude(recipe, NaN), /current exact distance/i);
   assert.throws(() => detachFaceEndExtrude(recipe, 0), /current exact distance/i);
   assert.throws(() => detachFaceEndExtrude({ ...recipe, suppressed: true }, 30), /current exact distance/i);
@@ -220,7 +220,7 @@ test('the translated end uses world trim, exact raw axes and positive local trav
     { ...plane, xAxis: [0, 1, 0] }, { ...plane, xAxis: [-1, 0, 0] }, { ...plane, xAxis: [2, 0, 0] },
     { ...plane, normal: [0, 0, -1] }, { ...plane, normal: [0, 1e-10, 1] },
   ] as (typeof plane)[]) assert.throws(() => toPartDocument(movedSource(next)), /translated XY plane/i);
-  for (const travel of [0, -10, 1e-8]) assert.throws(() => toPartDocument(translatedDocument([0, 0, 30], travel)), /positive Z/i);
+  for (const travel of [0, -10, 1e-8]) assert.throws(() => toPartDocument(translatedDocument([0, 0, 30], travel)), /positive extrusion direction/i);
 });
 
 test('a fractional translated source reaches the native cap within the linear tolerance', () => {
@@ -240,4 +240,68 @@ test('a fractional translated source reaches the native cap within the linear to
   };
   assert.ok(Math.abs(cap(outputs[0], 'n1.bottom') - cap(outputs[1], 'n3.top')) <= 1e-7);
   assert.ok(Math.abs(massPropertiesOf(outputs[1]).volume - 100 * travel) < 1e-8);
+});
+
+function cardinalDocument(travel: number): StudioDoc {
+  const doc = documentAt(travel), [targetProfile, target, source] = doc.nodes;
+  const plane = { origin: [-100, 12, -7], normal: [1, 0, 0], xAxis: [0, 1, 0] } as const;
+  assert.ok(targetProfile.kind === 'sketch' && targetProfile.profile === 'rectangle');
+  assert.ok(source.kind === 'sketch' && source.profile === 'rectangle');
+  const sketchPlane = { origin: [...plane.origin], normal: [...plane.normal], xAxis: [...plane.xAxis] } as NonNullable<typeof source.plane>;
+  return { ...doc, nodes: [{ ...targetProfile, plane: sketchPlane }, target, { ...source, plane: sketchPlane }, recipe] };
+}
+
+test('a common cardinal rotation preserves two strict native bodies and their opposing end faces', () => {
+  for (const travel of [20, 30, 40]) {
+    const doc = cardinalDocument(travel), part = toPartDocument(doc);
+    assert.deepEqual(part.features[3], { id: 'n3', kind: 'extrude', sketch: 'n2', height: travel });
+    assert.equal(currentFaceEndDistance(doc, 3), travel);
+    const { outputs } = evaluateCadPart(part);
+    assert.deepEqual(outputs.map(output => output.id), ['n1', 'n3']);
+    for (const [index, extent, lo, hi, volume, centerX, cap, sense] of [
+      [0, [-5, 15], travel, travel + 5, 2000, -100 + travel + 2.5, 'n1.bottom', -1],
+      [1, [0, 10], 0, travel, 100 * travel, -100 + travel / 2, 'n3.top', 1],
+    ] as const) {
+      const output = outputs[index], mass = massPropertiesOf(output);
+      assert.ok(checkOutput(output).valid);
+      assert.equal(output.brep.faces.length, 6);
+      assert.equal(output.brep.vertices.length, 8);
+      const points = extent.flatMap(y => extent.flatMap(z => [lo, hi].map(x => [x - 100, y + 12, z - 7])));
+      assert.ok(points.every(point => output.brep.vertices.some(vertex => vertex.point.every((v, i) => v === point[i]))));
+      const faces = output.brep.faces.filter(face => face.name === cap);
+      assert.equal(faces.length, 1);
+      const plane = faceGeometry(faces[0]);
+      assert.ok(plane.kind === 'plane');
+      assert.ok(Math.abs(plane.o[0] - (travel - 100)) < 1e-8);
+      assert.ok(plane.n.every((value, i) => Math.abs(value - (i === 0 ? sense : 0)) < 1e-8));
+      assert.ok(Math.abs(mass.volume - volume) < 1e-8);
+      assert.ok(mass.centroid.every((value, i) => Math.abs(value - [centerX, 17, -2][i]) < 1e-8));
+    }
+  }
+});
+
+test('the cardinal end maps asymmetric YZ trim and refuses wrong axes, faces and travel', () => {
+  const doc = cardinalDocument(20), target = doc.nodes[0], source = doc.nodes[2];
+  assert.ok(target.kind === 'sketch' && target.profile === 'rectangle');
+  assert.ok(source.kind === 'sketch' && source.profile === 'rectangle' && source.plane);
+  const plane = source.plane;
+  const changed = (index: number, next: ModelNode) => ({ ...doc, nodes: doc.nodes.map((node, i) => i === index ? next : node) });
+  for (const next of [
+    { ...plane, xAxis: [0, 0, 1] }, { ...plane, xAxis: [0, -1, 0] },
+    { ...plane, normal: [-1, 0, 0] }, { ...plane, normal: [1, 1e-13, 0] },
+  ] as (typeof plane)[]) assert.throws(() => toPartDocument(changed(2, { ...source, plane: next })), /supported \+X-normal YZ plane/i);
+  assert.throws(() => toPartDocument(changed(3, { ...recipe, target: { ...recipe.target, face: 'n1.top' } })), /normal must oppose/i);
+  assert.throws(() => toPartDocument(changed(3, { ...recipe, target: { ...recipe.target, face: 'n1.side0' } })), /plane parallel to the sketch/i);
+  for (const travel of [0, -10, 1e-8]) assert.throws(() => toPartDocument(cardinalDocument(travel)), /positive extrusion direction/i);
+
+  const asymmetric = {
+    ...doc,
+    nodes: doc.nodes.map((node, index): ModelNode => index === 0 ? { ...target, min: [-1, -1], max: [11, 7] }
+      : index === 2 ? { ...source, max: [10, 6] } : node),
+  };
+  const native = evaluateCadPart(toPartDocument(asymmetric)).outputs[1];
+  assert.ok(checkOutput(native).valid);
+  assert.ok(Math.abs(massPropertiesOf(native).volume - 1200) < 1e-8);
+  const narrow = { ...asymmetric, nodes: asymmetric.nodes.map((node, index): ModelNode => index === 0 ? { ...target, min: [-1, -1], max: [11, 5] } : node) };
+  assert.throws(() => toPartDocument(narrow), /entire projected profile/i);
 });

@@ -109,7 +109,7 @@ export const extrudeCommand: Command = {
     const steps = [{ label: 'Profile', text: !p ? 'pick a flat face or a finished sketch' : p.fresh ? 'the picked face' : `Sketch ${p.index + 1}`, done: !!p }];
     if (v.depth === 'to-face') {
       const target = extrudeEndFaceTarget(ctx, v);
-      steps.push({ label: 'End face', text: target?.face ?? 'Pick the lower face of a solid', done: !!target });
+      steps.push({ label: 'End face', text: target?.face ?? 'Pick a planar end face', done: !!target });
     }
     return steps;
   },
