@@ -1,0 +1,229 @@
+{
+  "decision": "D901",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2449f89d8c3262ed88a6cef422ef01a212d7dfd4",
+  "issue": 2285,
+  "issueDisposition": "PENDING_EVIDENCE_COMMENT_AND_CLOSURE",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d901-studio-fillet-chain03",
+    "D901_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/chain03",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-chain filletNames feature-handles",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family",
+    "node --check apps/cad-studio/test/fillet-chain-selection-browser.mjs",
+    "git diff --check"
+  ],
+  "firstDriverRun": {
+    "status": "FAIL",
+    "reason": "Two inspector package specifiers omitted the package namespace separator.",
+    "receiptSHA256": "2a5d45a2c0fcc7f859c23aba02a4f29eb06e2c0eef443e69cb0c483e0840e06e"
+  },
+  "initialStudio": {
+    "status": "PASS",
+    "scope": "Original independent mass and two R1 cylinders before adding explicit torus checks and tighter mass bounds.",
+    "receiptSHA256": "1171025d0afe2ebff8aed3e8918b645793dde6660fdd565e981d560f96c5709e"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 16,
+    "studioPass": 14,
+    "logSHA256": "f63a06eec86b9f0d530fe7a746b1f5dbea0b79098a2cc7876fb5ebc1887783f0"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Native tangent extension, quarter-disk corner integrals, and two straight and two rotational fillet patches."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "58a119e43f993bc1fabdc348f986a954bd209e0574584b4e9a57815fc19894f8",
+    "sourceManifestSHA256": "c1108cb638fe1e7c7d47d14f56aa7cd832a73a6cb50af306b9cf5f53f08eda42",
+    "frozenFiles": 844,
+    "snapshots": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "isolatedStraightHypothesisMm3": 1257.300858012569,
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "saved": [
+      {
+        "bytes": 2241,
+        "sha256": "3dfe07add83e342180eccc5993a1d7ff94f6335ecb036a9882fd422c282b251d"
+      }
+    ],
+    "observations": [
+      {
+        "label": "single-edge",
+        "world": [
+          10,
+          -4,
+          6
+        ],
+        "pixel": [
+          597.755564340326,
+          518.9496171838226
+        ],
+        "indices": [
+          1
+        ],
+        "selected": [
+          "n1.side[e1]|n1.top"
+        ]
+      },
+      {
+        "label": "single-edge",
+        "storedEdges": [
+          "n1.side[e1]|n1.top"
+        ],
+        "generatedFaces": [
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ],
+        "nativeVolumeMm3": 1247.9164744094264,
+        "workerVolumeMm3": 1247.9164744094262,
+        "expectedVolumeMm3": 1247.9164744094167,
+        "nativeCentroidMm": [
+          10,
+          1.1943261309057176e-14,
+          2.9695921169949107
+        ],
+        "expectedCentroidMm": [
+          10,
+          0,
+          2.9695921169948343
+        ],
+        "nativeFaceNames": [
+          "n1.side[e1]",
+          "n1.side[e2]",
+          "n1.side[e3]",
+          "n1.side[e4]",
+          "n1.bottom",
+          "n1.top",
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ]
+      },
+      {
+        "label": "tangent-chain",
+        "world": [
+          10,
+          -4,
+          6
+        ],
+        "pixel": [
+          597.755564340326,
+          518.9496171838226
+        ],
+        "indices": [
+          1,
+          3,
+          5,
+          7
+        ],
+        "selected": [
+          "n1.side[e1]|n1.top",
+          "n1.side[e2]|n1.top",
+          "n1.side[e3]|n1.top",
+          "n1.side[e4]|n1.top"
+        ]
+      },
+      {
+        "label": "tangent-chain",
+        "storedEdges": [
+          "n1.side[e1]|n1.top",
+          "n1.side[e4]|n1.top",
+          "n1.side[e2]|n1.top",
+          "n1.side[e3]|n1.top"
+        ],
+        "generatedFaces": [
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ],
+        "nativeVolumeMm3": 1247.9164744094264,
+        "workerVolumeMm3": 1247.9164744094262,
+        "expectedVolumeMm3": 1247.9164744094167,
+        "nativeCentroidMm": [
+          10,
+          1.1943261309057176e-14,
+          2.9695921169949107
+        ],
+        "expectedCentroidMm": [
+          10,
+          0,
+          2.9695921169948343
+        ],
+        "nativeFaceNames": [
+          "n1.side[e1]",
+          "n1.side[e2]",
+          "n1.side[e3]",
+          "n1.side[e4]",
+          "n1.bottom",
+          "n1.top",
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ]
+      },
+      {
+        "label": "tangent-chain-fresh-open",
+        "storedEdges": [
+          "n1.side[e1]|n1.top",
+          "n1.side[e4]|n1.top",
+          "n1.side[e2]|n1.top",
+          "n1.side[e3]|n1.top"
+        ],
+        "generatedFaces": [
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ],
+        "nativeVolumeMm3": 1247.9164744094264,
+        "workerVolumeMm3": 1247.9164744094262,
+        "expectedVolumeMm3": 1247.9164744094167,
+        "nativeCentroidMm": [
+          10,
+          1.1943261309057176e-14,
+          2.9695921169949107
+        ],
+        "expectedCentroidMm": [
+          10,
+          0,
+          2.9695921169948343
+        ],
+        "nativeFaceNames": [
+          "n1.side[e1]",
+          "n1.side[e2]",
+          "n1.side[e3]",
+          "n1.side[e4]",
+          "n1.bottom",
+          "n1.top",
+          "n2.face#2",
+          "n2.face#1",
+          "n2.face#4",
+          "n2.face#3"
+        ]
+      }
+    ]
+  },
+  "notRun": [
+    "other radii and chains",
+    "general move, delete, or replace face",
+    "new associative Offset face node",
+    "end-on Fillet handle interaction",
+    "full suites",
+    "mobile"
+  ]
+}
