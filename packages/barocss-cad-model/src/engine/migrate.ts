@@ -60,6 +60,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   const unknown = [...new Set((o.nodes as Record<string, unknown>[]).map(n => String(n?.kind)).filter(k => !KINDS.has(k)))];
   if (unknown.length) return { error: `This model has features this cad-studio does not know: ${unknown.join(', ')}.` };
+  const perpendicularProblem = savedPerpendicularProblem(o.nodes);
+  if (perpendicularProblem) return { error: refusal('BAD_REFERENCE', perpendicularProblem).message };
   if (o.units !== undefined && o.units !== 'mm') return { error: `This model is in ${String(o.units)}: only millimetre models are read.` };
   if (o.units === undefined) notes.push('no units given: read as millimetres');
   const parameters = o.parameters && typeof o.parameters === 'object' ? o.parameters as Record<string, number> : (notes.push('no parameters list: started empty'), {});
@@ -99,6 +101,30 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
 
 // Raw skeleton structure only: no solving, defaults or coordinate changes.
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
+/** The stored Perpendicular rule is defined only for two distinct straight edges. */
+function savedPerpendicularProblem(nodes: readonly unknown[]): string | null {
+  for (const [sketch, node] of nodes.entries()) {
+    if (!record(node) || node.kind !== 'sketch' || !record(node.outline) || !Array.isArray(node.outline.rules)) continue;
+    const { outline } = node;
+    const count = Array.isArray(outline.points) ? outline.points.length : 0;
+    const straight = (index: unknown): boolean => {
+      if (typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= count) return false;
+      if (outline.bulges != null && (!Array.isArray(outline.bulges) || (outline.bulges[index] ?? 0) !== 0)) return false;
+      if (node.profile === 'loop') {
+        const segment: unknown = Array.isArray(node.segments) ? node.segments[index] : undefined;
+        return record(segment) && segment.kind === 'line';
+      }
+      if (node.profile === 'rectangle') return index < 4;
+      return node.profile === 'polygon' && Array.isArray(node.points) && index < node.points.length;
+    };
+    for (const [index, rule] of node.outline.rules.entries()) {
+      if (record(rule) && rule.kind === 'perpendicular' && (rule.a === rule.b || !straight(rule.a) || !straight(rule.b)))
+        return `Sketch ${sketch + 1}, perpendicular constraint ${index + 1} needs two different straight edges.`;
+    }
+  }
+  return null;
+}
+
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const SKELETON_FIELDS = new Set(['kind', 'points', 'segments', 'name', 'constraints']);
 const FRAME_SEGMENT_FIELDS = new Set(['from', 'to', 'through', 'center']);

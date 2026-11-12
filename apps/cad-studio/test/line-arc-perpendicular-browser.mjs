@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output] = process.argv.slice(2);
+const [output, mode] = process.argv.slice(2);
+const refuseSavedRule = mode === '--refuse-saved-rule';
 const name = 'line-arc-perpendicular';
 const project = 'D859 line arc constraint';
 const pins = [
@@ -14,8 +15,9 @@ const pins = [
   'packages/barocss-cad-model/src/engine/migrate.ts',
 ];
 const f = await createFlow({
-  name, output, envFrozen: 'D859_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Measure the current shared-endpoint line and arc perpendicular selection boundary',
+  name, output, envFrozen: refuseSavedRule ? 'D860_SOURCE_FROZEN' : 'D859_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: refuseSavedRule ? 'Refuse a stored perpendicular arc reference without changing the accepted part'
+    : 'Measure the current shared-endpoint line and arc perpendicular selection boundary',
   limits: ['One clockwise R8 circular arc in a closed XY outline. Current Studio admission, line–line control and native file ownership.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -46,10 +48,9 @@ if (process.argv[3] === '"legacy"') {
   const doc = withNode(withNode(emptyDoc(),built.node),{kind:'extrude',sketch:0,height:6});
   const bytes = encodeStudioFile(doc);
   const loaded = await readStudioFile(bytes);
-  assert.ok(!('error' in loaded));
   const solved = solveShape(shape);
   assert.ok(solved.ok);
-  console.log(JSON.stringify({doc:loaded.doc, bytes:Buffer.from(bytes).toString('base64'), dof:solved.dof}));
+  console.log(JSON.stringify({doc:loaded.doc, error:loaded.error, bytes:Buffer.from(bytes).toString('base64'), dof:solved.dof}));
   process.exit(0);
 }
 const shape: Polygon = { kind:'polygon', closed:true, points:[[0,0],[12,0],[20,8],[0,8]],
@@ -85,9 +86,9 @@ const button = (scope, label) => scope.getByRole('button', { name: label, exact:
 const near = (actual, expected, tolerance) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} vs ${expected}`);
 const volume = 6 * (160 - 16 * Math.PI);
 
-async function open(bytes) {
+async function open(bytes, filename = name + '.bcad') {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
-  await chooser.setFiles({ name: name + '.bcad', mimeType: 'application/json', buffer: bytes });
+  await chooser.setFiles({ name: filename, mimeType: 'application/json', buffer: bytes });
 }
 async function edit() {
   await f.openFeatureEditor(1);
@@ -209,17 +210,47 @@ await f.run(async () => {
   await f.same(source);
   await f.redo();
   await f.same(accepted.doc);
+
+  if (refuseSavedRule) {
+    f.phase = 'refuse the exact legacy bytes while retaining the current dirty draft and history';
+    const legacy = await f.inspect('synthetic-arc-rule', {}, 'legacy');
+    const synthetic = Buffer.from(legacy.bytes, 'base64');
+    assert.equal(sha256(synthetic), 'efddc24c79d2c0c9e163699d79ba406e265c85c095f31a4c49cd8f79dc52bed2');
+    assert.match(legacy.error, /^\[BAD_REFERENCE\] Sketch 1, perpendicular constraint 1 needs two different straight edges/);
+    await edit();
+    await pickPair(line, arc, 'Picked edge 1, arc 2');
+    const before = await f.snapshot('06-before-refused-open');
+    assert.equal(before.dirty, true);
+    await open(synthetic, 'inert-perpendicular.bcad');
+    const notice = await f.waitToast(/Could not open this file.*two different straight edges/);
+    assert.match(notice, /BAD_REFERENCE/);
+    await f.same(accepted.doc);
+    const after = await f.snapshot('07-stored-arc-rule-refused');
+    for (const field of ['doc', 'bodies', 'history', 'dirty', 'picked', 'solver', 'constraintRows']) {
+      assert.deepEqual(after[field], before[field], field);
+    }
+    await f.dismissToasts();
+    await f.page.keyboard.press('Escape');
+    await f.page.keyboard.press('Escape');
+    await f.sketchPanel().waitFor({ state: 'hidden' });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(accepted.doc);
+  }
+
   const saved = await save();
 
   await f.newPage();
   await open(saved);
   await f.same(accepted.doc);
-  validateGeometry(await f.snapshot('06-fresh-open'), source, true);
+  validateGeometry(await f.snapshot(refuseSavedRule ? '08-fresh-open' : '06-fresh-open'), source, true);
   await edit();
   await remove().waitFor();
   await pickPair(line, arc, 'Picked edge 1, arc 2');
   assert.equal(await perpendicular().isDisabled(), true);
-  await f.snapshot('07-reopen-line-arc-boundary');
+  await f.snapshot(refuseSavedRule ? '09-reopen-line-arc-boundary' : '07-reopen-line-arc-boundary');
+  if (refuseSavedRule) return;
 
   f.phase = 'observe current reader behavior on a synthetic stored arc reference';
   const legacy = await f.inspect('synthetic-arc-rule', {}, 'legacy');

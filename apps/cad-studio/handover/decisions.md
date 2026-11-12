@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D860 — refuse an inert saved perpendicular constraint](notes/saved-perpendicular-reference-admission-2026-11-13/README.md).
 - [D859 — measure the shared-endpoint line–arc perpendicular boundary](notes/line-arc-perpendicular-boundary-2026-11-13/README.md).
 - [D858 — recover one fixed-triangle driving length](notes/fixed-triangle-length-recovery-2026-11-13/README.md).
 - [D857 — measure a large edit of an existing driving line length](notes/large-sketch-length-measurement-2026-11-13/README.md).
