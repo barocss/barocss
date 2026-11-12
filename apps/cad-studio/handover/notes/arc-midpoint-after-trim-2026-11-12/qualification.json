@@ -1,0 +1,70 @@
+{
+  "decision": "D796",
+  "tier": "SMALL",
+  "parent": "7d3b3705c6dd9cf86b90d7afbea1b9ed318ec8d5",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-midpoint-after-trim-browser.mjs",
+    "cd apps/cad-studio && D796_SOURCE_FROZEN=1 node test/arc-midpoint-after-trim-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d796-arc-midpoint-after-trim",
+    "evidenceFolder": "d796-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "090e056c252ed99dc76182b4d022c1add4d2fd1e3ebfa46ea3eaab69ffdf2661",
+      "frozenSources": 800,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 3056,
+      "savedSHA256": "b35146db4c642c854d0365fd7835671e7784460094a49e05dc54900c011a5279",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "planeWorldYMm": -7,
+    "depthMm": 2,
+    "oldArcSweepDegrees": -270,
+    "newArcBulge": -0.72075922,
+    "oldArcMiddleMm": [
+      17.071067811865476,
+      17.071067811865476
+    ],
+    "newArcMiddleMm": [
+      19.486832980505138,
+      6.83772233983162
+    ],
+    "oldStoredCornerMm": [
+      17.0711,
+      17.0711
+    ],
+    "newStoredCornerMm": [
+      19.4868,
+      6.8377
+    ],
+    "trimmedArcEndpointsMm": [
+      [
+        16,
+        18
+      ],
+      [
+        10,
+        0
+      ]
+    ],
+    "trimmedArcIds": [
+      "e13",
+      "e6"
+    ],
+    "volumeMm3": 145.87429514,
+    "vertices": 24
+  }
+}
