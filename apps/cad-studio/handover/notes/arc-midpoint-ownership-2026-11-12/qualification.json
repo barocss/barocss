@@ -1,0 +1,97 @@
+{
+  "decision": "D797",
+  "tier": "SMALL",
+  "parent": "bdc9a47ab4513d64118fbc4f20f1cb5420881bb6",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-midpoint-ownership-browser.mjs",
+    "D797_SOURCE_FROZEN=1 node test/arc-midpoint-ownership-browser.mjs \"$EVIDENCE/desktop-1\" through desktop-7 from apps/cad-studio",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d797-arc-midpoint-ownership; 600-second retry for desktop-7",
+    "evidenceFolder": "d797-2026-11-12",
+    "attempts": [
+      {
+        "folder": "desktop-1",
+        "status": "FAIL",
+        "sha256": "489ed350e9f69466e970496c5a43177c823895cfa524d4bff2b70fe0557edb40",
+        "detail": "The initial demo and first fixture shared n0."
+      },
+      {
+        "folder": "desktop-2",
+        "status": "FAIL",
+        "sha256": "7f0748b86e51e96169005148b84048e35cae9b6ee83e84c6e05433c9891269b3",
+        "detail": "The regenerated arc centre was 1.78e-15 mm from the exact Y value."
+      },
+      {
+        "folder": "desktop-3",
+        "status": "FAIL",
+        "sha256": "cef87cc84997fd123b8b8afc2065c344d9e03ab5e04c6487afcfcd81f26c7479",
+        "detail": "The pointer-authored sagitta differed from the analytic aim by 6.11e-6 mm."
+      },
+      {
+        "folder": "desktop-4",
+        "status": "FAIL",
+        "sha256": "1b5bfbbe2f05d2e72f9d2ceab90654dac6cee9bb6e01a80e5762db48ee09d502",
+        "detail": "The driver searched for Close instead of the Close project accessible name."
+      },
+      {
+        "folder": "desktop-5",
+        "status": "PASS",
+        "sha256": "3ed96845f56d43e389aa4409a919dfa1e7aef27dbf286dd5464cd8b1ebdcb233",
+        "detail": "Initial project lifecycle and isolated Trim pass."
+      },
+      {
+        "folder": "desktop-6",
+        "status": "NOT_RUN",
+        "sha256": null,
+        "detail": "Gate expired after 182 seconds before launching Studio."
+      },
+      {
+        "folder": "desktop-7",
+        "status": "PASS",
+        "sha256": "6e5de155478f46a8706df3948f215819fbf3b0b168cda3ea231bc397a38ba020",
+        "detail": "Additional live radius and translation edits, then exact project lifecycle."
+      }
+    ],
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-7",
+      "sha256": "6e5de155478f46a8706df3948f215819fbf3b0b168cda3ea231bc397a38ba020",
+      "frozenSources": 799,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 1747,
+      "savedSHA256": "d307c228541b4490f4b954f4e358f6497355c90911bf8f9765e2219a599f3fbd",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "closingArcMiddleMm": [
+      15,
+      22
+    ],
+    "newArcMiddleMm": [
+      12,
+      -14
+    ],
+    "pointerAuthoredSagittaMm": 5.999993890950107,
+    "changedRadiusMm": 17,
+    "changedRadiusMiddleMm": [
+      53,
+      -10
+    ],
+    "translatedMiddleMm": [
+      53,
+      -7
+    ],
+    "volumeMm3": 110
+  }
+}
