@@ -1,0 +1,73 @@
+{
+  "decision": "D843",
+  "tier": "FULL",
+  "parent": "d4fa9d78b3eb6f2637d3fccf6ad89a1f79a8529b",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d843-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d843-translated-end-face",
+    "node --check apps/cad-studio/test/translated-extrude-end-face-browser.mjs",
+    "cd apps/cad-studio && D843_SOURCE_FROZEN=1 node test/translated-extrude-end-face-browser.mjs \"$EVIDENCE/baseline-2\" --baseline",
+    "gate.sh acquire heavy 600 d843-translated-end-face-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude",
+    "cd apps/cad-studio && D843_SOURCE_FROZEN=1 node test/translated-extrude-end-face-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d843-translated-end-face-full",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude face-commands engine editFields references referencesCopy profiles-parameters api-studio-commands draft-command-pull",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick command preview project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/faceEndExtrude.ts packages/barocss-cad-model/test/face-end-extrude.test.ts",
+    "gate.sh acquire heavy 600 d843-translated-end-face-final",
+    "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE/mutations-2\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "firstFailures": [
+    { "status": "FAIL", "exit": 1, "sha256": "95d6f1eb7c465a259a8b33b547cbd188e939987c26cd68449a112ad84d3d37c8", "failure": "The initial driver used an incorrect Model import specifier." },
+    { "status": "FAIL", "exit": 1, "sha256": "774a1640437d5192f19b89d6d51763ecfe4e56c9b8877c77c4720d76e58e72fd", "failure": "The parent accepts the authored file but refuses evaluation. The assertion incorrectly expected Open to retain the old document." },
+    { "status": "FAIL", "exit": 1, "sha256": "7c5ea483a9b48dac137d4031d781352b23d97cdbd3be5692b14cf87d67cba237", "failure": "The first mutation runner accepted only assertion errors and rejected the expected native trim refusal." }
+  ],
+  "desktop": {
+    "renderer": "WebGPU",
+    "baseline-2": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "4e014d49d1227ba2778bff0ee2540959aebeb5fab745b89ea4a152c6482ce629",
+      "frozenSources": 816,
+      "distancePreviewMm": 8,
+      "authoredOpen": "ADMITTED",
+      "evaluation": "REFUSED_DEFAULT_XY_REQUIRED",
+      "geometryFresh": false,
+      "undoRestoredSeed": true
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "c9eb5c31b2ddbad16ff573459bcdc11f939fa8881bad54b6ce6e81a7114d5265",
+      "frozenSources": 816,
+      "sourceOrigin": [12, -7, -100],
+      "targetAndEndZ": [-80, -70, -60],
+      "travelMm": [20, 30, 40],
+      "dependentVolumeMm3": [2000, 3000, 4000],
+      "targetVolumeMm3": 2000,
+      "refusedTargetZ": [-100, -101],
+      "opposedNativeCapNormals": true,
+      "nativeCorners": 16,
+      "nativeComparisonAbsoluteTolerance": 1e-8,
+      "firstUndoTargetZ": -80,
+      "firstRedoTargetZ": -70,
+      "savedBytes": 1194,
+      "savedSha256": "48989b75a525830b18c632d6c5b8740a725c0184ab73bcabfcaa13539152dfcf"
+    },
+    "allRuns": { "downloads": 0, "pageErrors": 0, "consoleErrors": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] }
+  },
+  "focused": { "modelPass": 133, "studioPass": 76, "fail": 0, "skip": 0 },
+  "mutations": { "control": "PASS", "mutantsKilled": 8, "runnerSha256": "b0c5d2120e9fb9bbb0049fe55e3984b0f336a8911e8011ab4022dc43de7420a9", "receiptSha256": "a4b5f8167c742cd3a750d817f073e430fb3e28596e369da25902d1646d8c1ae2" },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "scopedLint": "PASS",
+  "driverSyntax": "PASS",
+  "productionBuild": "PASS",
+  "highNativeReview": "PASS",
+  "rootVisualReview": "PASS"
+}

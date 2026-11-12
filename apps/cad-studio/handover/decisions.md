@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D843 — resolve an Extrude to face in a translated XY plane](notes/translated-extrude-end-face-2026-11-12/README.md).
 - [D842 — detach a saved Extrude to face in History](notes/extrude-end-face-history-detach-2026-11-12/README.md).
 - [D841 — author an Extrude to face in Studio](notes/studio-extrude-end-face-authoring-2026-11-12/README.md).
 - [D840 — resolve an Extrude end to a preceding native face](notes/associative-extrude-end-face-2026-11-12/README.md).

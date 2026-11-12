@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { patchValues, shownFields, type Ctx } from '../src/app/commands';
 import { extrudeCommand } from '../src/app/profileCommands';
 import { evaluateDoc } from '../src/engine/evaluate';
@@ -161,4 +161,83 @@ test('detaching keeps the exact current distance and the feature identity used b
   assert.deepEqual(part.features[3], { id: 'n3', kind: 'extrude', sketch: 'n2', height: 30 });
   assert.equal(outputs.find(output => output.id === 'n4')?.brep.vertices.length, 8);
   assert.ok(Math.abs(massPropertiesOf(outputs.find(output => output.id === 'n4')!).volume - 3000) < 1e-8);
+});
+
+function translatedDocument(origin: [number, number, number], travel: number): StudioDoc {
+  const [x, y, z] = origin, doc = documentAt(z + travel);
+  const [targetProfile, target, source] = doc.nodes;
+  assert.ok(targetProfile.kind === 'sketch' && targetProfile.profile === 'rectangle');
+  assert.ok(source.kind === 'sketch' && source.profile === 'rectangle');
+  return {
+    ...doc,
+    nodes: [
+      { ...targetProfile, min: [x - 5, y - 5], max: [x + 15, y + 15] }, target,
+      { ...source, plane: { origin, normal: [0, 0, 1], xAxis: [1, 0, 0] } }, recipe,
+    ],
+  };
+}
+
+test('a common XY-plane translation preserves signed travel and the two native box oracles', () => {
+  for (const origin of [[0, 0, 0], [12, -7, -100], [-25, 19, 15], [12, -7, -20]] as [number, number, number][]) {
+    for (const travel of [20, 30]) {
+      const [x, y, z] = origin, doc = translatedDocument(origin, travel), part = toPartDocument(doc);
+      assert.deepEqual(part.features[3], { id: 'n3', kind: 'extrude', sketch: 'n2', height: travel });
+      assert.equal(currentFaceEndDistance(doc, 3), travel);
+      const { outputs } = evaluateCadPart(part);
+      assert.deepEqual(outputs.map(output => output.id), ['n1', 'n3']);
+      for (const [index, extent, lo, hi, volume, centerZ, cap, normalZ] of [
+        [0, [-5, 15], travel, travel + 5, 2000, z + travel + 2.5, 'n1.bottom', -1],
+        [1, [0, 10], 0, travel, 100 * travel, z + travel / 2, 'n3.top', 1],
+      ] as const) {
+        const output = outputs[index], mass = massPropertiesOf(output);
+        assert.ok(checkOutput(output).valid);
+        assert.equal(output.brep.faces.length, 6);
+        assert.equal(output.brep.vertices.length, 8);
+        const points = extent.flatMap(dx => extent.flatMap(dy => [lo, hi].map(dz => [x + dx, y + dy, z + dz])));
+        assert.ok(points.every(point => output.brep.vertices.some(vertex => vertex.point.every((v, i) => v === point[i]))));
+        const faces = output.brep.faces.filter(face => face.name === cap);
+        assert.equal(faces.length, 1);
+        const plane = faceGeometry(faces[0]);
+        assert.ok(plane.kind === 'plane');
+        assert.ok(Math.abs(plane.o[2] - (z + travel)) < 1e-8);
+        assert.ok(Math.abs(plane.n[0]) < 1e-8 && Math.abs(plane.n[1]) < 1e-8 && Math.abs(plane.n[2] - normalZ) < 1e-8);
+        assert.ok(Math.abs(mass.volume - volume) < 1e-8);
+        assert.ok(mass.centroid.every((value, i) => Math.abs(value - [x + 5, y + 5, centerZ][i]) < 1e-8));
+      }
+    }
+  }
+});
+
+test('the translated end uses world trim, exact raw axes and positive local travel', () => {
+  const doc = translatedDocument([0, 0, 30], 20), source = doc.nodes[2];
+  assert.ok(source.kind === 'sketch' && source.profile === 'rectangle' && source.plane);
+  const plane = source.plane;
+  const movedSource = (next: typeof plane) => ({ ...doc, nodes: doc.nodes.map((node, i) => i === 2 ? { ...source, plane: next } : node) });
+  assert.throws(() => toPartDocument(movedSource({ ...plane, origin: [25, 0, 30] })), /entire projected profile/i);
+  assert.throws(() => toPartDocument(movedSource({ ...plane, origin: [9998, 0, 30] })), /native coordinate range/i);
+  assert.throws(() => toPartDocument(movedSource({ ...plane, origin: [10001, 0, 30] })), /translated XY plane/i);
+  for (const next of [
+    { ...plane, xAxis: [0, 1, 0] }, { ...plane, xAxis: [-1, 0, 0] }, { ...plane, xAxis: [2, 0, 0] },
+    { ...plane, normal: [0, 0, -1] }, { ...plane, normal: [0, 1e-10, 1] },
+  ] as (typeof plane)[]) assert.throws(() => toPartDocument(movedSource(next)), /translated XY plane/i);
+  for (const travel of [0, -10, 1e-8]) assert.throws(() => toPartDocument(translatedDocument([0, 0, 30], travel)), /positive Z/i);
+});
+
+test('a fractional translated source reaches the native cap within the linear tolerance', () => {
+  const origin: [number, number, number] = [12.125, -7.25, -73.4], travel = 23.7;
+  const doc = translatedDocument(origin, travel), part = toPartDocument(doc);
+  const lowered = part.features[3];
+  assert.ok(lowered.kind === 'extrude' && typeof lowered.height === 'number');
+  assert.ok(Math.abs(lowered.height - travel) <= 1e-7);
+  assert.ok(Math.abs(origin[2] + lowered.height - (origin[2] + travel)) <= 1e-7);
+  const { outputs } = evaluateCadPart(part);
+  assert.ok(outputs.every(output => checkOutput(output).valid));
+  const cap = (output: typeof outputs[number], name: string) => {
+    const face = output.brep.faces.find(face => face.name === name)!;
+    const plane = faceGeometry(face);
+    assert.ok(plane.kind === 'plane');
+    return plane.o[2];
+  };
+  assert.ok(Math.abs(cap(outputs[0], 'n1.bottom') - cap(outputs[1], 'n3.top')) <= 1e-7);
+  assert.ok(Math.abs(massPropertiesOf(outputs[1]).volume - 100 * travel) < 1e-8);
 });

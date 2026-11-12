@@ -1,0 +1,15 @@
+# D843 — Resolve an Extrude to face in a translated XY plane
+
+P1, rows 07, 08 and 16. FULL for one rigid translation of the D840 geometry. An explicit sketch plane can now have a finite XYZ origin and the exact positive Z normal and positive X axis. The resolver projects the literal rectangle into world XY before checking full containment in the current native trim. The extent is the target elevation minus the source elevation. Positive local travel can start and end at negative world coordinates. The authored sketch keeps its plane and the recipe keeps its target identity. The native extrusion receives the derived local height.
+
+| Result | Check |
+| --- | --- |
+| PASS | At the parent, Distance previews at 8 mm and To face is absent for the translated sketch. Opening the structurally valid recipe loads its document but the evaluator reports the old source-plane refusal. The old visible body is marked noncurrent. Undo restores the source exactly. |
+| PASS | Current desktop WebGPU creates the bound extrusion from the finished rectangle at origin (12, −7, −100) mm and the actual original lower cap. At target elevations −80, −70 and −60 mm, the exact native top matches the target cap, the normals oppose and the extrusion has 20, 30 and 40 mm travel and 2000, 3000 and 4000 mm³ volume. The target retains 2000 mm³. Both bodies retain eight native corners. |
+| PASS | A zero or negative local extent is refused. The accepted document, bodies, selection, dirty flag and history stay exact. First Undo and Redo restore the −80 and −70 mm targets. The 1194-byte project reopens after reload, then a new target edit still drives the extrusion. |
+| PASS | Model tests verify identity and volume under positive and negative XYZ translations and at a zero target elevation. They use opposite cap normals, exact integer corners and an independent box oracle. Fractional coordinates meet the 1e−7 mm linear tolerance. World trim, coordinate range, near-axis, reverse and too-small travel cases refuse. Sol High reviewed the frame placement and numeric admission. |
+| PASS | Model 133/133 and Studio 76/76, both type checks, scoped lint, driver syntax, production build and diff check pass. The mutation control passes and all eight single-source mutants fail in their designated tests. |
+| FAIL | An initial driver import used the wrong workspace specifier. A second baseline assertion expected a structurally admitted file to remain unopened when only its evaluation failed. The corrected baseline records both the authored Open and failed evaluation, including Undo. The first mutation runner also expected an assertion error where the deliberate mutant triggered the specified native trim refusal. |
+| NOT_RUN | General rotated or reflected planes, reverse extrusion direction, independent STEP, full suites, mobile and other browsers. |
+
+[Issue #2308](https://github.com/barocss/barocss/issues/2308) remains open. D844 qualifies one common cardinal rotation onto a +X-normal sketch plane. Initial scenarios remain 8/10. Whole CAD and core readiness are **NOT_MEASURED**. [Commands and receipt digests](qualification.json).

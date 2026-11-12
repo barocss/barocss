@@ -1,5 +1,5 @@
 import { CadNumericPolicy, CadPartLimits, checkOutput, coedgeVertices, evaluateCadPart, faceGeometry, type Brep, type BrepFace, type CadPartFeature, type Point } from '@barocss/cad';
-import { NODE_EXTRA_FIELDS, type FaceEndExtrudeNode, type ModelNode, type NodeExtras, type SketchNode, type StudioDoc } from './doc';
+import { NODE_EXTRA_FIELDS, type DocPlane, type FaceEndExtrudeNode, type ModelNode, type NodeExtras, type SketchNode, type StudioDoc } from './doc';
 import { refusal } from './refusal';
 
 const recipeFields = new Set(['kind', 'sketch', 'target']);
@@ -99,8 +99,15 @@ function targetRectangle(brep: Brep, face: BrepFace) {
 
 type LiteralRectangle = Extract<SketchNode, { profile: 'rectangle' }> & { min: [number, number]; max: [number, number] };
 
+function translatedXY(plane: DocPlane | undefined): boolean {
+  if (plane === undefined) return true;
+  return Array.isArray(plane?.origin) && plane.origin.length === 3 && plane.origin.every(finiteCoordinate)
+    && Array.isArray(plane.normal) && plane.normal.length === 3 && plane.normal[0] === 0 && plane.normal[1] === 0 && plane.normal[2] === 1
+    && Array.isArray(plane.xAxis) && plane.xAxis.length === 3 && plane.xAxis[0] === 1 && plane.xAxis[1] === 0 && plane.xAxis[2] === 0;
+}
+
 export function isFaceEndExtrudeSketch(sketch: ModelNode | undefined): sketch is LiteralRectangle {
-  return sketch?.kind === 'sketch' && sketch.profile === 'rectangle' && !sketch.suppressed && !sketch.plane && !sketch.on
+  return sketch?.kind === 'sketch' && sketch.profile === 'rectangle' && !sketch.suppressed && translatedXY(sketch.plane) && !sketch.on
     && !sketch.association && !sketch.regions?.length && !sketch.holes?.length
     && Array.isArray(sketch.min) && sketch.min.length === 2 && sketch.min.every(finiteCoordinate)
     && Array.isArray(sketch.max) && sketch.max.length === 2 && sketch.max.every(finiteCoordinate);
@@ -109,8 +116,11 @@ export function isFaceEndExtrudeSketch(sketch: ModelNode | undefined): sketch is
 /** Resolve from the live preceding native results. A consumed target has no eligible output. */
 export function faceEndExtrudeHeight(doc: StudioDoc, node: FaceEndExtrudeNode, prefix: readonly CadPartFeature[]): number {
   const sketch = doc.nodes[node.sketch];
-  if (!isFaceEndExtrudeSketch(sketch)) throw invalid('the source needs a literal rectangle on the default XY plane.');
-  const [x0, y0] = sketch.min, [x1, y1] = sketch.max;
+  if (!isFaceEndExtrudeSketch(sketch)) throw invalid('the source needs a literal rectangle on a default or translated XY plane.');
+  const [originX, originY, originZ] = sketch.plane?.origin ?? [0, 0, 0];
+  const x0 = originX + sketch.min[0], y0 = originY + sketch.min[1];
+  const x1 = originX + sketch.max[0], y1 = originY + sketch.max[1];
+  if (![x0, y0, x1, y1].every(finiteCoordinate)) throw invalid('the projected source is outside the native coordinate range.');
   if (x0 >= x1 || y0 >= y1) throw invalid('the source rectangle needs a positive width and height.');
   const target = doc.nodes[node.target.body.node];
   if (!target || target.suppressed) throw missing('the target body is missing or suppressed.');
@@ -123,6 +133,8 @@ export function faceEndExtrudeHeight(doc: StudioDoc, node: FaceEndExtrudeNode, p
   if (faces.length !== 1) throw missing('the named target face is missing or ambiguous.');
   const box = targetRectangle(brep, faces[0]);
   if (x0 < box.min[0] || y0 < box.min[1] || x1 > box.max[0] || y1 > box.max[1]) throw invalid('the target face must contain the entire projected profile.');
-  if (box.z <= CadNumericPolicy.linearTolerance || box.z > CadPartLimits.length) throw invalid('the target must be ahead of the source in positive Z.');
-  return box.z;
+  const height = box.z - originZ;
+  if (height <= CadNumericPolicy.linearTolerance || height > CadPartLimits.length) throw invalid('the target must be ahead of the source in positive Z.');
+  if (!withinTolerance(originZ + height, box.z)) throw invalid('the reconstructed end is outside the native linear tolerance.');
+  return height;
 }
