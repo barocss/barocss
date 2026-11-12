@@ -1,0 +1,316 @@
+{
+  "decision": "D812",
+  "tier": "FULL",
+  "parent": "5de139fc8c2d110018725fe926482565ef972664",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d812-sheet-move",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check packages/barocss-cad/test/r12-3.test.mjs",
+    "cd apps/cad-studio && D812_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/baseline-1\" --baseline",
+    "pnpm --dir packages/barocss-cad type-check",
+    "node packages/barocss-cad/scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/r12-s0.test.mjs test/r12-1.test.mjs test/r12-2.test.mjs test/r12-3.test.mjs test/r12-4.test.mjs",
+    "cd packages/barocss-cad && node --test --test-name-pattern='^conformance r12-' test/conformance.test.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sheet.test sheet-acceptance",
+    "cd apps/cad-studio && D812_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d812-2026-11-12",
+    "baselineProduct": "FAIL_FLAT_PATTERN_LOSS",
+    "sourceSHA256": "e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab",
+    "runs": {
+      "baseline-1": {
+        "status": "PASS",
+        "sha256": "e3241265b0011dd6bbc76a36310772bbe3a063f95a2ed92c1dcc7a8ef3864720",
+        "frozenSources": 1005,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "original-native",
+            "id": "n6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441254
+            ],
+            "sheet": {
+              "thickness": 1.5,
+              "bendRadius": 1.5,
+              "kFactor": 0.44,
+              "fixedFace": "n0.leg0.a",
+              "bends": [
+                {
+                  "name": "n0.bend1",
+                  "inner": "n0.bend1.inner",
+                  "outer": "n0.bend1.outer",
+                  "radius": 1.5,
+                  "angle": 90,
+                  "axis": {
+                    "origin": [
+                      3,
+                      30,
+                      2.9999999999999996
+                    ],
+                    "direction": [
+                      0,
+                      -1,
+                      0
+                    ]
+                  },
+                  "allowance": 3.392920065876977,
+                  "setback": 2.9999999999999996,
+                  "deduction": 2.607079934123022,
+                  "kFactor": 0.44
+                }
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907633,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "loopCount": 3
+            },
+            "flatError": null
+          },
+          {
+            "label": "moved-native",
+            "id": "n7",
+            "volume": 2967.768244759667,
+            "centroid": [
+              19.14109805407998,
+              11.999999999999998,
+              18.007842511441257
+            ],
+            "sheet": null,
+            "flat": null,
+            "flatError": {
+              "code": "CAPABILITY",
+              "message": "n7: not made as sheet metal: give its thickness and K-factor to the kernel's flatPattern"
+            }
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "2ace83bcea0d532fd830f5375ce844c45f016ac8cd6f328ceb24891158f3e335",
+        "frozenSources": 1005,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "original-native",
+            "id": "n6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441254
+            ],
+            "sheet": {
+              "thickness": 1.5,
+              "bendRadius": 1.5,
+              "kFactor": 0.44,
+              "fixedFace": "n0.leg0.a",
+              "bends": [
+                {
+                  "name": "n0.bend1",
+                  "inner": "n0.bend1.inner",
+                  "outer": "n0.bend1.outer",
+                  "radius": 1.5,
+                  "angle": 90,
+                  "axis": {
+                    "origin": [
+                      3,
+                      30,
+                      2.9999999999999996
+                    ],
+                    "direction": [
+                      0,
+                      -1,
+                      0
+                    ]
+                  },
+                  "allowance": 3.392920065876977,
+                  "setback": 2.9999999999999996,
+                  "deduction": 2.607079934123022,
+                  "kFactor": 0.44
+                }
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907633,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "loopCount": 3
+            },
+            "flatError": null
+          },
+          {
+            "label": "moved-native",
+            "id": "n7",
+            "volume": 2967.768244759667,
+            "centroid": [
+              19.14109805407998,
+              11.999999999999998,
+              18.007842511441257
+            ],
+            "sheet": {
+              "thickness": 1.5,
+              "bendRadius": 1.5,
+              "kFactor": 0.44,
+              "fixedFace": "n0.leg0.a",
+              "bends": [
+                {
+                  "name": "n0.bend1",
+                  "inner": "n0.bend1.inner",
+                  "outer": "n0.bend1.outer",
+                  "radius": 1.5,
+                  "angle": 90,
+                  "axis": {
+                    "origin": [
+                      10,
+                      27,
+                      14
+                    ],
+                    "direction": [
+                      0,
+                      -1,
+                      0
+                    ]
+                  },
+                  "allowance": 3.392920065876977,
+                  "setback": 2.9999999999999996,
+                  "deduction": 2.607079934123022,
+                  "kFactor": 0.44
+                }
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907635,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "loopCount": 3
+            },
+            "flatError": null
+          },
+          {
+            "label": "reopened-native",
+            "id": "n7",
+            "volume": 2967.768244759667,
+            "centroid": [
+              19.14109805407998,
+              11.999999999999998,
+              18.007842511441257
+            ],
+            "sheet": {
+              "thickness": 1.5,
+              "bendRadius": 1.5,
+              "kFactor": 0.44,
+              "fixedFace": "n0.leg0.a",
+              "bends": [
+                {
+                  "name": "n0.bend1",
+                  "inner": "n0.bend1.inner",
+                  "outer": "n0.bend1.outer",
+                  "radius": 1.5,
+                  "angle": 90,
+                  "axis": {
+                    "origin": [
+                      10,
+                      27,
+                      14
+                    ],
+                    "direction": [
+                      0,
+                      -1,
+                      0
+                    ]
+                  },
+                  "allowance": 3.392920065876977,
+                  "setback": 2.9999999999999996,
+                  "deduction": 2.607079934123022,
+                  "kFactor": 0.44
+                }
+              ]
+            },
+            "flat": {
+              "area": 1974.2710130907635,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "loopCount": 3
+            },
+            "flatError": null
+          },
+          {
+            "label": "project-readback",
+            "bytes": 2323,
+            "sha256": "dd64fcdf10221bfc6e0ba140d3c2b545d2f258d09ff517586e8f261a487f1c25"
+          }
+        ]
+      }
+    },
+    "focused": {
+      "cadR12Pass": 28,
+      "r12ConformancePass": 20,
+      "modelPass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "cadBuild": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

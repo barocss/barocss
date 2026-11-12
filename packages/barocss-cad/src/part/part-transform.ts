@@ -1,7 +1,11 @@
-// Transform and pattern operation cases, moved unchanged from part-model.ts. Shared geometry/state stays with its owner.
+// Transform and pattern operation cases. Shared geometry/state stays with part-model.ts.
 import { fillCutSnapshot, fillCutPlacements } from '../features/fill-cut-pattern.js';
 import { curveCutOffsets } from '../features/curve-cut-pattern.js';
+import { faceGeometry } from '../brep/analytic-boolean.js';
+import type { Brep, BrepFace } from '../brep/brep-core.js';
 import type { BrepAffine } from '../brep/brep-transform.js';
+import { add } from '../core/vec3.js';
+import type { SheetReport } from '../frame-sheet/sheet-metal.js';
 import type { Point } from '../types.js';
 import type { CadPartAxis, CadPartDim, CadPartFeature, CadPartPoint3, Part, Result, Solid } from './part-types.js';
 import type { Tools } from './part-model.js';
@@ -12,12 +16,36 @@ interface TransformHelpers {
   readonly affine: (s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: ((n: string) => string) | string) => Solid;
   readonly rotation: (axis: CadPartAxis, deg: number, pivot: Point) => { m: BrepAffine['matrix']; o: Point };
   readonly moveAll: (parts: readonly Part[], m: BrepAffine['matrix'], o: Point, preserveNativeSI?: boolean) => Result;
+  readonly brepOf: (part: Part, id: string) => Brep;
   readonly unionAll: (list: Solid[], at: string) => Solid;
   readonly rotate: (s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?: (n: string) => string) => Solid;
   readonly CadPartLimits: { readonly copies: number; readonly length: number };
 }
 const one = (s: Solid): Result => ({ kind: 'solid', parts: [{ solid: s }] });
 const many = (parts: Solid[]): Result => ({ kind: 'solid', parts: parts.map(solid => ({ solid })) });
+
+/** Resolve each sheet face uniquely using the same piece suffix convention as the unfolder. */
+function hasSheetFaces(brep: Brep, sheet: SheetReport): boolean {
+  if (brep.bodies.length !== 1 || brep.bodies[0].kind !== 'solid') return false;
+  const baseName = (name: string) => name.replace(/#\d+$/, '');
+  const bendFaces = sheet.bends.flatMap(bend => [baseName(bend.inner), baseName(bend.outer)]);
+  const fixed = baseName(sheet.fixedFace);
+  const names = new Set([fixed, ...bendFaces]);
+  if (names.size !== bendFaces.length + 1) return false;
+  const faces = new Map<string, BrepFace>();
+  for (const face of brep.faces) {
+    if (!face.name) continue;
+    const name = baseName(face.name);
+    if (!names.has(name)) continue;
+    if (faces.has(name) || face.surface.kind === 'facets') return false;
+    faces.set(name, face);
+  }
+  const fixedFace = faces.get(fixed);
+  return fixedFace !== undefined && faceGeometry(fixedFace).kind === 'plane' && bendFaces.every(name => {
+    const face = faces.get(name);
+    return face !== undefined && faceGeometry(face).kind === 'cylinder';
+  });
+}
 
 /** Resolve the same inputs now and return the same deferred operation closure. */
 export function transformOperation(f: CadPartFeature & Record<string, unknown>, t: Tools, k: TransformHelpers): () => Result {
@@ -26,7 +54,18 @@ export function transformOperation(f: CadPartFeature & Record<string, unknown>, 
   switch (f.kind) {
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
-      return () => moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, true);
+      return () => {
+        const moved = moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, true);
+        const source = target[0], sheet = source?.sheet;
+        if (target.length !== 1 || !sheet || moved.kind !== 'solid' || moved.parts.length !== 1) return moved;
+        const part = moved.parts[0];
+        const sourceBrep = source.brep ?? k.brepOf({ solid: source.solid }, at);
+        if (!hasSheetFaces(sourceBrep, sheet) || !hasSheetFaces(k.brepOf(part, at), sheet)) return moved;
+        const bends = sheet.bends.map(bend => ({
+          ...bend, axis: { origin: add(bend.axis.origin, o), direction: [...bend.axis.direction] as Point },
+        }));
+        return { kind: 'solid', parts: [{ ...part, sheet: { ...sheet, bends } }] };
+      };
     }
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angle as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');

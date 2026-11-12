@@ -12,6 +12,8 @@ import { add, cross, dot, len, scale, sub } from '../core/vec3.js';
 import type { CadPartDim, CadPartPoint2, CadPartSketchPlane, Result, Solid, CadPartFeature, Tools, PartHelpers, Part } from './part-model.js';
 import { affine, boolean, brepOf, exactVolume, faceVertices } from './part-model.js';
 
+const noSheet = '[NOT_A_SHEET] the target is not sheet metal. Select a body with a retained sheet report.';
+
 /** A sheet-metal feature's evaluation (part-model.ts's operation() for these kinds). */
 export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: Tools, k: PartHelpers): () => Result {
   const { dim, xy, xyz, solids, ref, fail, at } = t;
@@ -53,7 +55,7 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
       const parts = solids(f.target, 'target');
       if (parts.length !== 1) fail('SELECTION', 'a corner relief takes one sheet body');
       const p = parts[0];
-      if (!p.sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
+      if (!p.sheet) return fail('CAPABILITY', noSheet);
       if (f.shape !== 'square' && f.shape !== 'round') fail('INPUT', 'shape must be square or round');
       if (typeof f.corner !== 'string') fail('INPUT', 'corner must name the edge of the corner (between its two thickness faces)');
       const size = dim(f.size as CadPartDim, 'size', true);
@@ -63,7 +65,7 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
       const parts = solids(f.target, 'target');
       if (parts.length !== 1) fail('SELECTION', 'a flange takes one sheet body');
       const p = parts[0], sheet = p.sheet;
-      if (!sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
+      if (!sheet) return fail('CAPABILITY', noSheet);
       const T = sheet.thickness, R = f.bendRadius === undefined ? sheet.bendRadius : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
       const deg = f.angle === undefined ? 90 : f.angle;
       if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angle must be a number');

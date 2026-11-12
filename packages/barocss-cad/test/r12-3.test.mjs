@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, flatPattern, checkOutput, flatPatternOf, massPropertiesOf } from '../dist/index.js';
+import { evaluateCadPart, flatPattern, checkOutput, flatPatternOf, massPropertiesOf, reevaluate } from '../dist/index.js';
 
 // R12.3a (D118): edge flanges and their end reliefs. Oracles from the definitions, not the construction:
 // - where the outer virtual sharp lands: on the edge (material inside), T·tan(θ/2) past it (material outside: the inner
@@ -101,25 +101,84 @@ test('R12.3a refusals: flanges running into each other at a corner (FLANGES_COLL
   refused([...narrow, flange()], 'PARAMETER', /\[BEND_DOES_NOT_FIT\] the sheet is 2 mm deep behind b\.side1\|b\.top; the bend takes 3 mm of it/);
 });
 
-test('R12.3a the sheet\'s report is dropped, never carried stale, past a move, a turn, a mirror, a pattern or a union: the flat then needs T and K, and a flange refuses', () => {
-  const base = [...plate, flange()], ref = out(base), area = flatPatternOf(ref).area;
-  const after = [
-    { id: 'm', kind: 'translate', target: 'fl', offset: [7, -3, 11] },
+test('R12.3a sheet Translate keeps named bends, table provenance, a flat and a subsequent flange', () => {
+  const bendTable = { id: 'test-table', sources: [{ id: 'coupon', label: 'Test coupon' }],
+    rows: [{ thickness: T, radius: R, angle: 90, kFactor: K, source: 'coupon' }] };
+  const { kFactor: _, ...sheetBase } = plate[1];
+  const base = [plate[0], { ...sheetBase, bendTable }, flange()];
+  const before = evaluateCadPart(D(base)), original = before.outputs[0], originalReport = structuredClone(original.sheet);
+  const offset = [7, -3, 11], move = { id: 'm', kind: 'translate', target: 'fl', offset };
+  const after = reevaluate(before, { document: D([...base, move]) }), translated = after.outputs[0];
+  assert.deepEqual(after.recomputation.reused, ['b', 'fl']);
+  assert.equal(translated.bodyCount, 1);
+  assert.equal(checkOutput(translated).valid, true);
+  assert.notEqual(translated.sheet, original.sheet);
+  assert.notEqual(translated.sheet.bends[0].axis, original.sheet.bends[0].axis);
+  const bend = originalReport.bends[0];
+  assert.deepEqual(bend.table, { table: 'test-table', rows: [0], how: 'exact', estimate: false });
+  assert.deepEqual(translated.sheet, {
+    ...originalReport, bends: [{ ...bend, axis: { ...bend.axis, origin: bend.axis.origin.map((x, i) => x + offset[i]) } }],
+  });
+  assert.deepEqual(original.sheet, originalReport);
+
+  const flat = flatPatternOf(translated), originalFlat = flatPatternOf(original);
+  assert.equal(flat.fixedFace, originalFlat.fixedFace);
+  assert.equal(flat.loops.length, 1);
+  assert.deepEqual(flat.bends.map(b => [b.name, b.direction, b.table]), [['fl.bend', 'up', bend.table]]);
+  close(flat.area, originalFlat.area, 1e-11, 'translated flat area');
+  close(flat.box.max[0], A + 20 - BD(Math.PI / 2), 1e-11, 'translated flat length');
+  close(flat.box.max[1], B, 1e-11, 'translated flat width');
+  const mass = massPropertiesOf(translated), originalMass = massPropertiesOf(original);
+  close(mass.volume, originalMass.volume, 1e-11, 'translated volume');
+  mass.centroid.forEach((x, i) => close(x, originalMass.centroid[i] + offset[i], 1e-11, 'translated centroid'));
+
+  const second = { ...flange({ edge: 'b.side3|b.top', length: 10 }), id: 'f2', target: 'm' };
+  const next = reevaluate(after, { document: D([...base, move, second]) }).outputs[0];
+  assert.equal(checkOutput(next).valid, true);
+  assert.deepEqual(next.sheet.bends.map(b => b.name), ['fl.bend', 'f2.bend']);
+  assert.deepEqual(flatPatternOf(next).bends.map(b => b.name).sort(), ['f2.bend', 'fl.bend']);
+  assert.deepEqual(original.sheet, originalReport);
+});
+
+test('R12.3a sheet Translate drops the report for ambiguous fixed faces or more than one native solid', () => {
+  // A shallow slot splits the named top into two while a full-depth slot also splits the solid.
+  for (const [z, bodyCount] of [[0.75, 1], [-1, 2]]) {
+    const tool = [
+      { id: 'slot', kind: 'sketch', profile: 'rectangle', min: [39, -1], max: [41, 51],
+        plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } },
+      { id: 'cut', kind: 'extrude', sketch: 'slot', height: 3 },
+      { id: 'split', kind: 'difference', target: 'b', tool: 'cut' },
+    ];
+    const base = [...plate, ...tool], source = out(base);
+    assert.equal(source.bodyCount, bodyCount);
+    assert.equal(source.sheet.fixedFace, 'b.top');
+    assert.deepEqual(source.brep.faces.map(f => f.name).filter(n => n?.startsWith('b.top')).sort(), ['b.top#1', 'b.top#2']);
+    const moved = out([...base, { id: 'm', kind: 'translate', target: 'split', offset: [7, -3, 11] }]);
+    assert.equal(moved.bodyCount, bodyCount);
+    assert.equal(moved.sheet, undefined);
+    assert.throws(() => flatPatternOf(moved), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message));
+  }
+});
+
+test('R12.3a a turn, mirror, scale, pattern or union drops the sheet report and a subsequent flange refuses', () => {
+  const base = [...plate, flange()], area = flatPatternOf(out(base)).area;
+  const transforms = [
     { id: 'm', kind: 'rotate', target: 'fl', axis: 'x', angle: 30 },
     { id: 'm', kind: 'mirror', target: 'fl', plane: 'yz', keep: false },
+    { id: 'm', kind: 'scale', target: 'fl', factor: 1 },
     { id: 'm', kind: 'linear-pattern', target: 'fl', axis: 'x', spacing: 200, count: 2 },
-    { id: 'q', kind: 'sketch', profile: 'rectangle', min: [200, 0], max: [210, 10] }, { id: 'qe', kind: 'extrude', sketch: 'q', height: 5 },
   ];
-  for (const op of [after[0], after[1], after[2], after[3]]) {
+  for (const op of transforms) {
     const o = out([...base, op]);
     assert.equal(o.sheet, undefined, op.kind);
     assert.throws(() => flatPatternOf(o), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message), op.kind);
     refused([...base, op, { id: 'f2', kind: 'sheet-flange', target: 'm', edge: 'b.side3|b.top', length: 10 }], 'CAPABILITY', /\[NOT_A_SHEET\] the target is not sheet metal/);
   }
-  // Moved or turned, the body unfolds again from its own B-rep with T and K given: the same flat.
-  for (const op of [after[0], after[1]]) close(flatPattern(out([...base, op]).brep, { thickness: T, kFactor: K }).area, area, 1e-11, `${op.kind} then unfolded`);
+  // Turned, the body unfolds again from its own B-rep with T and K given: the same flat.
+  close(flatPattern(out([...base, transforms[0]]).brep, { thickness: T, kFactor: K }).area, area, 1e-11, 'rotated then unfolded');
   // A union with another body: no report either.
-  const u = out([...base, after[4], after[5], { id: 'u', kind: 'union', target: 'fl', tool: 'qe' }]);
+  const u = out([...base, { id: 'q', kind: 'sketch', profile: 'rectangle', min: [200, 0], max: [210, 10] },
+    { id: 'qe', kind: 'extrude', sketch: 'q', height: 5 }, { id: 'u', kind: 'union', target: 'fl', tool: 'qe' }]);
   assert.equal(u.sheet, undefined);
 });
 

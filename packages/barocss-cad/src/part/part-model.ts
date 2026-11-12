@@ -1057,7 +1057,7 @@ const HELPERS = Object.freeze({ isRecord, brepOf, CadPartLimits, stepSizeProblem
 export type PartHelpers = typeof HELPERS;
 
 // Captured only after this module's constants initialize; original functions retain their shared runtime state.
-const TRANSFORM_HELPERS = Object.freeze({ boolean, affine, rotation, moveAll, unionAll, rotate, CadPartLimits });
+const TRANSFORM_HELPERS = Object.freeze({ boolean, affine, rotation, moveAll, brepOf, unionAll, rotate, CadPartLimits });
 
 // Captured only after this module's constants initialize; original functions retain their shared runtime state.
 const PRISMATIC_DETAIL_HELPERS = Object.freeze({ CadPartLimits, lineOnly, brepOf, boxSolid, boolean, empty, exactVolume });
