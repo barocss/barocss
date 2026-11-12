@@ -1,0 +1,73 @@
+{
+  "decision": "D873",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "77a3a1c3625bf9949d49852de5e4da861e536634",
+  "issue": 2328,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d873-trim-draft-baseline-final",
+    "D873_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/studio-run03",
+    "cd apps/cad-studio && node scripts/test.mjs trim sketch-cut-visibility constraints",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 33,
+    "modelTypeCheck": "PASS",
+    "logSHA256": "867f22a10f66e38c12b7779602ad766b05b235c92dd8fc7441b7fa9a5cde56aa"
+  },
+  "studio": {
+    "firstDriver": {
+      "status": "FAIL",
+      "receiptSHA256": "f8792a393ed05a80babfda74d85c075d6f94461f90baf1fba880f6b9d0bb5865",
+      "sourceManifestSHA256": "c28e0af3bb670b01a466ba2a1817edf0179a01ff2d2f41d1ba8bd976b42a857e",
+      "frozenFiles": 357,
+      "snapshots": 1,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "secondDriver": {
+      "status": "FAIL",
+      "receiptSHA256": "d0c0dd5310b97ccfa853b569d2e048958c5271881b73b0ae19488e87f88c37c7",
+      "sourceManifestSHA256": "c28e0af3bb670b01a466ba2a1817edf0179a01ff2d2f41d1ba8bd976b42a857e",
+      "frozenFiles": 357,
+      "snapshots": 5,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "baseline": {
+      "status": "PASS",
+      "receiptSHA256": "e6f42dc0d81ee2c046fabe75ae739bc2f1f1c4fc7add824ff112b492fb10e7c5",
+      "sourceManifestSHA256": "c28e0af3bb670b01a466ba2a1817edf0179a01ff2d2f41d1ba8bd976b42a857e",
+      "frozenFiles": 357,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "runnerSHA256": "3ffc8bf9ceed8ae4e62ec1ad94f0f7018a3c9567267463fbea9dd3d9e65b90b0",
+    "fixtureBytes": 547,
+    "fixtureSHA256": "03b67d63bfa8680d0a14fae3206f65cbbfc49128966927743b91169a5e95329b",
+    "removedMm": [
+      [
+        10,
+        0
+      ],
+      [
+        30,
+        0
+      ]
+    ],
+    "currentBodyVolumeMm3": 1600,
+    "draftUndo": "FAIL",
+    "draftRedo": "NOT_AVAILABLE",
+    "finishRefusal": "PASS",
+    "projectionTolerancePx": 0.02
+  }
+}
