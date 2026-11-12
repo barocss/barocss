@@ -29,6 +29,7 @@ import type { Selection } from '@barocss/cad-model/app/commands';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import type { ViewportHandle, SketchState } from '../viewport/Viewport';
 import type { EngineClient } from '../engine/client';
+import type { DragTrimOwner, DragTrimPlan } from '../viewport/dragTrimStroke';
 import { preserveConstruction } from './preserveConstruction';
 interface SketchActionOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null };
@@ -114,21 +115,27 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
   };
+  const ownsSketch = () => docNow.current === doc && sketchGeneration.current === sketchRenderGeneration;
+  const commitTrimDraft = (before: SketchState, shapes: SketchShape[]) => {
+    const next: SketchState = { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null };
+    setSketch(next);
+    recordTrim?.(before, next);
+  };
+  const dragTrim = (source: DragTrimOwner, plan: DragTrimPlan) => {
+    if (source.sketch !== sketch || source.doc !== doc || source.scope !== acceptanceScope || !ownsSketch()) return;
+    if ('error' in plan) { setToast({ title: 'Could not trim the stroke', hint: plan.error, detail: '' }); return; }
+    if (plan.intervals.length) commitTrimDraft(source.sketch, plan.shapes);
+  };
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
     const ownedTrim = op === 'trim' && recordTrim;
-    if (ownedTrim && (docNow.current !== doc || sketchGeneration.current !== sketchRenderGeneration)) return;
+    if (ownedTrim && !ownsSketch()) return;
     const { shapes, protectedShapes } = sketchCutInputs(sketch);
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    if (ownedTrim) {
-      const next: SketchState = { ...detachSketchLink(sketch), shape: null, done: r.shapes, picked: [], editDim: null };
-      setSketch(next);
-      ownedTrim(sketch, next);
-      return;
-    }
+    if (ownedTrim) { commitTrimDraft(sketch, r.shapes); return; }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
@@ -269,5 +276,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
 }

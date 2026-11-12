@@ -12,6 +12,7 @@ import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
 import type { OrbitCamera } from './camera';
+import type { DragTrimPreview } from './dragTrimStroke';
 import type { PathGapDraft } from '../sketch/usePathGap';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
@@ -55,6 +56,7 @@ interface SketchOverlayInputs {
   extensionGuide?: readonly P2[];
   pathGap?: PathGapDraft;
   overlaidLine?: OverlaidLine;
+  dragTrim?: DragTrimPreview | null;
   inspected?: readonly SketchPick[];
   constraintComparison?: Polygon;
   bandCache: RefObject<SketchBandCache | null>;
@@ -67,7 +69,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, dragTrim, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -244,6 +246,16 @@ export function drawSketchOverlay({
     const p = P(...point);
     items.push(<circle key={'gap-end-' + index} cx={p[0]} cy={p[1]} r={4} className="sk-split sk-path-gap-end" />);
   });
+  if (dragTrim) {
+    const points = (path: readonly P2[]) => path.map(point => {
+      const [x, y] = P(...point);
+      return x + ',' + y;
+    }).join(' ');
+    items.push(<g key="drag-trim" className="sk-drag-trim">
+      <polyline className="sk-guide sk-drag-trim-path" fill="none" points={points(dragTrim.path)} />
+      {dragTrim.intervals.map((interval, i) => <polyline key={i} className="sk-trim sk-drag-trim-interval" points={points(interval)} />)}
+    </g>);
+  }
   if (overlaidLine) {
     const a = P(...overlaidLine.start), b = P(...overlaidLine.end);
     items.push(<g key="overlaid-line" className="sk-overlaid-line" data-shape={overlaidLine.shape + 1} data-side={overlaidLine.side + 1} data-id={overlaidLine.id}>

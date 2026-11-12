@@ -1,0 +1,79 @@
+{
+  "decision": "D876",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "6eec9bd275a50ec5ff50b5061c6170054cbaf0fc",
+  "issue": 2328,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D876_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/studio-run01",
+    "D876_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/studio-run02",
+    "D876_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/studio-run03",
+    "D874_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/click-regression --fixed",
+    "D805_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/ordinary-path-gap-browser.mjs <external-evidence>/path-gap-regression",
+    "cd apps/cad-studio && node scripts/test.mjs drag-trim-plan drag-trim-stroke draft-sketch-history trim.test sketch-cut-visibility constraints sketchIds",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/app/sketchControls.ts apps/cad-studio/src/sketch/{useSketchActions,dragTrimPlan}.ts apps/cad-studio/src/viewport/{SceneViewport.tsx,Viewport.tsx,sketchOverlay.tsx,viewportPointerInput.ts,dragTrimStroke.ts} apps/cad-studio/test/{drag-trim-plan,drag-trim-stroke}.test.ts",
+    "node --check apps/cad-studio/test/drag-trim-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 52,
+    "typeChecks": "PASS",
+    "scopedLint": "PASS",
+    "studioBuild": "PASS",
+    "logSHA256": "5ae42fc62854286eeaf9e1a89cedd3a586562aff04b05dcb02758f5646b20f09"
+  },
+  "studio": {
+    "run01": {
+      "status": "FAIL",
+      "firstFailure": "Projection depth emitted as an SVG coordinate",
+      "receiptSHA256": "470d4f9277668e7b8ffadf93868a5e8703bcaefb5854b7138457fbe7052e19cd",
+      "sourceManifestSHA256": "55891bf22950c62a92c58c802277308428725055f7dc7e97436c2c20f6e3c78f",
+      "frozenFiles": 831
+    },
+    "run02": {
+      "status": "FAIL",
+      "firstFailure": "Driver did not account for existing Finish normalization of open construction",
+      "receiptSHA256": "e0656a9910c92a36bb073d4010da3852aa8f5bd5dcdda1f46933235081b7ce44",
+      "sourceManifestSHA256": "f9083404c4e756e17d49224748fa0cd6d9bbad2105702c9aeeeeb1d53c8c5a54",
+      "frozenFiles": 831
+    },
+    "run03": {
+      "status": "PASS",
+      "receiptSHA256": "5331e499ecff6743b155443af80675c43b0efdcb564734e8c493e26c41661c3f",
+      "sourceManifestSHA256": "97802214f5dbaa1f41ca933148d7ebeb2eb739482b0551bf3125aec80855078e",
+      "frozenFiles": 831,
+      "snapshots": 13,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "clickRegression": {
+      "status": "PASS",
+      "receiptSHA256": "7bb467b67818cb6611f758d926c6c675d30db6a9e751824298737daceaf91a6a",
+      "sourceManifestSHA256": "767b71fb7befe40e9e4d36c2bf841cda2d50b27eb90ee4831b6754522ceb4606",
+      "frozenFiles": 362,
+      "snapshots": 9
+    },
+    "pathGapRegression": {
+      "status": "PASS",
+      "receiptSHA256": "2181857122dac16220fba9b0411abebc7f2ec9b7871fff6a879e1c851649dce9",
+      "sourceManifestSHA256": "17bad792083abdee36d1bd6d598ccd5a638291a5f430fe9ed31a9625b772c681",
+      "frozenFiles": 727,
+      "snapshots": 4
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "aafc194100407e80e4978b8ceba91ddb449dcba524ad884cfbb294a4a9c55b49",
+    "projectionTolerancePx": 0.02,
+    "bodyVolumeMm3": 800,
+    "volumeToleranceMm3": 1e-8,
+    "projectBytes": 4053,
+    "projectSHA256": "b78e55da5214a2aaacc4b1e570b9aa0ce9e9acd288426ddaf1ab3da5aac97d7d"
+  }
+}

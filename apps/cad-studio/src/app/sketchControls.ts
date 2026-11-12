@@ -32,7 +32,7 @@ export const TOOLS: { tool: SketchTool; key: string; label: string; icon: string
   { tool: 'spline', key: 'P', label: 'Spline', icon: 'cad-sk-spline', hint: 'Click points the curve runs smoothly through · click the first point to close it · it is kept as tangent arcs' },
   { tool: 'bezier', key: 'B', label: 'Bézier', icon: 'cad-sk-spline', hint: 'Click control points: three make a quadratic, a fourth a cubic; the curve does not pass through the middle points' },
   { tool: 'band', key: 'M', label: 'Band', icon: 'cad-sk-band', hint: 'Click closed shapes (construction circles, slots, polygons) to pick them, then Make band · one outline wraps them all; it follows when they move' },
-  { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
+  { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click to trim one piece, or drag across up to three straight lines' },
   { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
   { tool: 'split', key: 'K', label: 'Split', icon: 'cad-sk-split', hint: 'Click a line, arc or circle to split it in two there (a new point to constrain or trim to)' },
   { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },

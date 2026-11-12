@@ -798,6 +798,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
       overlaidLine: props.overlaidLine,
+      dragTrim: input.dragTrimPreview(),
       inspected: inspection?.target === 'row' ? inspection.entry.involves
         : inspection?.target === 'mobility' ? [inspection.entity] : undefined,
       constraintComparison: inspection?.target === 'comparison' && inspection.result.ok ? inspection.result.display : undefined,

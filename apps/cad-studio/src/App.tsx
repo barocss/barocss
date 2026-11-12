@@ -1559,7 +1559,7 @@ export function App() {
     },
   }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const finishSketch = () => {
     clearConstraintInspection(constraintInspection, sketch);
     sketchActions.finishSketch();
@@ -1569,7 +1569,7 @@ export function App() {
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }),
-    pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
+    dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
