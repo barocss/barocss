@@ -1,0 +1,106 @@
+{
+  "decision": "D891",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "4e90c9c8b2855159460ecdaf956efaf8e5ca6250",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D891_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/baseline02 --mirrored-baseline",
+    "D891_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/fixed --mirrored",
+    "D890_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/ccw-regression --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 61,
+    "studioPass": 45,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "0af1cf63c9bea64bbf65d30d3440fb235341e239eb04996ebb942e1a17819f1a"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Finite reflected branch, constraint and side identity, CCW equivalence, strict XZ native geometry, and mixed-winding refusal."
+  },
+  "baselineDriver": {
+    "status": "FAIL",
+    "reason": "The mirrored dispatch ran inside the fixed-flow function instead of the top-level flow.",
+    "receiptSHA256": "728bfb79eaed79a9cdedde01d2ef4e42780b760af2a502b06a17e65cdeb24a6f"
+  },
+  "baseline": {
+    "status": "PASS",
+    "productOutcome": "REFUSED",
+    "receiptSHA256": "9b4a785396921c3cf701cce19c86c90382da833346d23de742df17c260bf2027",
+    "sourceManifestSHA256": "14056528fa398f26b4740c92fc851e2bdb99fe5d8d0f429ed78d41f6d63a0142",
+    "sourceVolumeMm3": 7141.592653589795
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "receiptSHA256": "c9ed63e7a863a80b852745f879ecbfa080aa79fb53fcce858107b6df8f7908c1",
+    "sourceManifestSHA256": "acf4a1327a7fec9156a91111982285bc53dbb6e42933f1d5e49dc440c0c699f2",
+    "frozenFiles": 841,
+    "visualReview": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "undoRedo": "PASS",
+    "exactLimitRefusal": "PASS",
+    "freshOpen": "PASS",
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "capYmm": [
+      5,
+      -5
+    ],
+    "sideTags": [
+      "e1",
+      "e5",
+      "e2",
+      "e3",
+      "e4"
+    ],
+    "radiiMm": [
+      3,
+      4,
+      5
+    ],
+    "expectedVolumesMm3": [
+      7116.460269574863,
+      7091.948937557186,
+      7054.301379805951
+    ],
+    "volumesMm3": [
+      7116.4602695748645,
+      7091.948937557187,
+      7054.301379805949
+    ],
+    "savedBytes": 2536,
+    "savedSHA256": "142c23e9a90f6fea2ed8ac33bfca2057b98210765159a2f70a34b862dcd73ca5"
+  },
+  "ccwRegression": {
+    "status": "PASS",
+    "receiptSHA256": "1bd6801ac823317d62e53ecd93c4058c91d6954ca6823693906b471ab783227f"
+  },
+  "notRun": [
+    "arbitrary line angles",
+    "incoming arc corners",
+    "changed source-carrier dimensions",
+    "broad fillet family",
+    "full suites",
+    "mobile"
+  ]
+}

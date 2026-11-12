@@ -3,7 +3,8 @@ import { arcOf, type Arc, type P2 } from '../profile';
 import type { SketchShape } from '../types';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
-type Carrier = { anchor: P2; corner: P2; end: P2; last: P2; source: Arc };
+type Direction = 1 | -1;
+type Carrier = { anchor: P2; corner: P2; end: P2; last: P2; source: Arc; direction: Direction };
 type Plan = { points: P2[]; bulges: number[]; center: P2; carrier: Carrier; radius: number };
 const arcRefusal = 'Round corners between two straight edges (this one has an arc).';
 const tolerance = CadNumericPolicy.linearTolerance;
@@ -11,11 +12,14 @@ const minimumSegment = 0.001; // The native numerical sketch solver's minimum se
 const angularTolerance = 1e-9;
 const delta = (a: P2, b: P2): P2 => [a[0] - b[0], a[1] - b[1]];
 const distance = (a: P2, b: P2) => Math.hypot(...delta(a, b));
-const left = ([x, y]: P2): P2 => [-y, x];
+const tangent = ([x, y]: P2, direction: Direction): P2 => [-direction * y, direction * x];
 const turn = (a: P2, b: P2) => Math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]);
 const inRange = (v: number) => Number.isFinite(v) && Math.abs(v) <= CadNumericPolicy.coordinateAbs;
 const pointInRange = (p: P2) => inRange(p[0]) && inRange(p[1]);
-const minorCCW = (bulge: number) => bulge > 0 && bulge < 1;
+const minorDirection = (bulge: number): Direction | null =>
+  Math.abs(bulge) > 0 && Math.abs(bulge) < 1 ? (bulge > 0 ? 1 : -1) : null;
+// Negation reflects a clockwise outline into the CCW calculation and exactly back.
+const reflected = (p: P2, direction: Direction): P2 => direction === 1 ? p : [p[0], -p[1]];
 const near = (a: number, b: number) => Math.abs(a - b) <= tolerance;
 const at = (a: P2, b: P2) => distance(a, b) <= tolerance;
 const atTangent = (a: P2, b: P2) => Math.abs(turn(a, b)) <= angularTolerance;
@@ -47,7 +51,8 @@ function supportedPins(s: Polygon, endIndex: number) {
 }
 
 /** The authored pins determine the two carriers and the finite original corner. */
-function carrierOf(anchor: P2, end: P2, radius: number): Carrier | null {
+function carrierOf(a: P2, b: P2, radius: number, direction: Direction): Carrier | null {
+  const anchor = reflected(a, direction), end = reflected(b, direction);
   if (!validRadius(radius) || !pointInRange(end) || end[0] - anchor[0] <= minimumSegment
     || end[1] - anchor[1] <= minimumSegment) return null;
   const center: P2 = [end[0], end[1] - radius], dy = anchor[1] - center[1];
@@ -58,11 +63,11 @@ function carrierOf(anchor: P2, end: P2, radius: number): Carrier | null {
   const start = Math.atan2(dy, dx), sweep = Math.PI / 2 - start;
   if (!pointInRange(corner) || !(sweep > angularTolerance && Math.PI - sweep > angularTolerance)
     || corner[0] - anchor[0] <= minimumSegment) return null;
-  return { anchor, corner, end, last, source: { center, radius, start, sweep } };
+  return { anchor, corner, end, last, source: { center, radius, start, sweep }, direction };
 }
 
 function planRound(carrier: Carrier, radius: number): Plan | null {
-  const { anchor, corner, end, last, source } = carrier;
+  const { anchor, corner, end, last, source, direction } = carrier;
   const centerY = anchor[1] + radius, dy = centerY - source.center[1], innerRadius = source.radius - radius;
   // The inward offset line intersects the concentric circle of radius R − r.
   const margin = innerRadius - Math.abs(dy);
@@ -84,34 +89,40 @@ function planRound(carrier: Carrier, radius: number): Plan | null {
       || roundSweep <= angularTolerance || Math.PI - roundSweep <= angularTolerance
       || distance(lineTouch, arcTouch) <= minimumSegment || distance(arcTouch, end) <= minimumSegment) return [];
     return [{
-      points: [anchor, lineTouch, arcTouch, end, last],
-      bulges: [0, Math.tan(roundSweep / 4), Math.tan(remainingSweep / 4), 0, 0],
-      center, carrier, radius,
+      points: [anchor, lineTouch, arcTouch, end, last].map(p => reflected(p, direction)),
+      bulges: [0, direction * Math.tan(roundSweep / 4), direction * Math.tan(remainingSweep / 4), 0, 0],
+      center: reflected(center, direction), carrier, radius,
     }];
   });
   return candidates.length === 1 ? candidates[0] : null;
 }
 
-function roundBulges(b?: number[]): b is number[] {
-  return b?.length === 5 && b[0] === 0 && minorCCW(b[1]) && minorCCW(b[2]) && b[3] === 0 && b[4] === 0;
+function roundDirection(b?: number[]): Direction | null {
+  if (b?.length !== 5 || b[0] !== 0 || b[3] !== 0 || b[4] !== 0) return null;
+  const direction = minorDirection(b[1]);
+  return direction === minorDirection(b[2]) ? direction : null;
 }
 
 /** Check the solved coefficients and forward tangents against the same finite branch. */
 export function matchesPinnedRound(s: Polygon, plan: Plan): boolean {
-  if (s.points.length !== 5 || !roundBulges(s.bulges) || !s.points.every((p, k) => at(p, plan.points[k]))) return false;
+  const { direction, source } = plan.carrier, bulges = s.bulges;
+  if (s.points.length !== 5 || !bulges || roundDirection(bulges) !== direction
+    || !s.points.every((p, k) => at(p, plan.points[k]))) return false;
   const [a, p, q, b, d] = s.points;
-  const round = arcOf(p, q, s.bulges[1]), retained = arcOf(q, b, s.bulges[2]);
-  return at(round.center, plan.center) && at(retained.center, plan.carrier.source.center)
-    && near(round.radius, plan.radius) && near(retained.radius, plan.carrier.source.radius)
-    && atTangent(delta(p, a), left(delta(p, round.center)))
-    && atTangent(left(delta(q, round.center)), left(delta(q, retained.center)))
-    && atTangent(left(delta(b, retained.center)), delta(d, b));
+  const round = arcOf(p, q, bulges[1]), retained = arcOf(q, b, bulges[2]);
+  const alongArc = (point: P2, center: P2) => tangent(delta(point, center), direction);
+  return at(round.center, plan.center) && at(retained.center, reflected(source.center, direction))
+    && near(round.radius, plan.radius) && near(retained.radius, source.radius)
+    && atTangent(delta(p, a), alongArc(p, round.center))
+    && atTangent(alongArc(q, round.center), alongArc(q, retained.center))
+    && atTangent(alongArc(b, retained.center), delta(d, b));
 }
 
 export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number): { shape: Polygon; plan: Plan } | { error: string } {
   const bulges = s.bulges;
+  const direction = minorDirection(bulges?.[1] ?? 0);
   if (i !== 1 || !ordinaryOutline(s, 4) || bulges?.length !== 4
-    || bulges[0] !== 0 || !minorCCW(bulges[1]) || bulges[2] !== 0 || bulges[3] !== 0) return { error: arcRefusal };
+    || bulges[0] !== 0 || !direction || bulges[2] !== 0 || bulges[3] !== 0) return { error: arcRefusal };
   if (s.lengths?.[0] !== undefined) return { error: 'Remove the trimmed line’s length lock before rounding this corner.' };
   if (s.rules?.some(rule => rule.kind === 'fix' && rule.point === i)) {
     return { error: 'Remove the fixed point at the corner before rounding it.' };
@@ -121,14 +132,15 @@ export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number)
     || !validRadius(s.radii[1])) return { error: 'This line–arc round requires pinned supports and no other constraints.' };
   if (!s.ids || !supportedIds(s.ids, 4)) return { error: 'This line–arc round requires four distinct side IDs.' };
   const [a, p, b, d] = s.points;
-  const carrier = carrierOf(a, fix.at, s.radii[1]);
+  const carrier = carrierOf(a, fix.at, s.radii[1], direction);
   if (!carrier || a[1] !== p[1] || d[0] !== a[0] || d[1] !== b[1]
-    || !at(p, carrier.corner) || !at(b, carrier.end) || !at(d, carrier.last)) {
+    || !at(reflected(p, direction), carrier.corner) || !at(reflected(b, direction), carrier.end)
+    || !at(reflected(d, direction), carrier.last)) {
     return { error: 'This line–arc round requires a convex outline with horizontal sides.' };
   }
   const source = arcOf(p, b, bulges[1]);
-  if (!at(source.center, carrier.source.center) || !near(source.radius, carrier.source.radius)
-    || !atTangent(left(delta(b, source.center)), delta(d, b))) {
+  if (!at(reflected(source.center, direction), carrier.source.center) || !near(source.radius, carrier.source.radius)
+    || !atTangent(tangent(delta(b, source.center), direction), delta(d, b))) {
     return { error: 'This line–arc round requires a convex arc tangent to the retained horizontal side.' };
   }
   if (!validRadius(radius)) return { error: badRadius };
@@ -144,21 +156,23 @@ export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number)
 }
 
 function roundRecipe(s: Polygon) {
-  if (!ordinaryOutline(s, 5) || !roundBulges(s.bulges) || !supportedIds(s.ids, 5)
+  if (!ordinaryOutline(s, 5) || !supportedIds(s.ids, 5)
     || s.tangents?.length !== 3 || ![1, 2, 3].every(j => s.tangents!.includes(j))
     || !s.radii || Object.keys(s.radii).length !== 2 || typeof s.radii[1] !== 'number' || !validRadius(s.radii[2])) return null;
   const fix = supportedPins(s, 3);
-  return fix ? { end: fix.at, radius: s.radii[1], sourceRadius: s.radii[2] } : null;
+  return fix ? { end: fix.at, radius: s.radii[1], sourceRadius: s.radii[2], direction: roundDirection(s.bulges) } : null;
 }
 
 /** Recognize the persisted pinned geometry before guarding a radius-only edit. */
 export function planPinnedLineArcRadiusEdit(candidate: Polygon, prev: Polygon): { plan: Plan } | { error: string } | null {
   if (candidate.radii?.[1] === prev.radii?.[1] || !candidate.ids?.every((id, i) => id === prev.ids?.[i])) return null;
   const old = roundRecipe(prev), next = roundRecipe(candidate);
-  if (!old || !next || next.sourceRadius !== old.sourceRadius || distance(next.end, old.end) !== 0 || !validRadius(old.radius)) return null;
-  const carrier = carrierOf(prev.points[0], old.end, old.sourceRadius);
+  if (!old?.direction || !next || next.sourceRadius !== old.sourceRadius || distance(next.end, old.end) !== 0
+    || !validRadius(old.radius)) return null;
+  const carrier = carrierOf(prev.points[0], old.end, old.sourceRadius, old.direction);
   const current = carrier && planRound(carrier, old.radius);
   if (!current || !matchesPinnedRound(prev, current)) return null;
+  if (next.direction !== old.direction) return { error: 'The radius edit must keep both arcs in their original direction.' };
   if (!validRadius(next.radius)) return { error: badRadius };
   const plan = planRound(current.carrier, next.radius);
   if (!plan) return { error: noFit(next.radius) };

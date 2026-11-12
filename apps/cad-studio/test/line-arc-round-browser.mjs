@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const fixed = process.argv[3] === '--fixed';
+const mode = process.argv[3], fixed = mode === '--fixed';
+const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline';
+const mirroredBaseline = mode === '--mirrored-baseline';
 const pins = [
   'apps/cad-studio/test/line-arc-round-browser.mjs',
   'apps/cad-studio/src/ui/ConstraintTools.tsx',
@@ -13,13 +15,16 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
-  ...(fixed ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(fixed || mirrored ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'line-arc-round', output: process.argv[2], envFrozen: 'D890_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
+  name: 'line-arc-round', output: process.argv[2], envFrozen: mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
+  initialFiles: pins, requiredFrozen: pins,
+  qualification: mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
+    : fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
     : 'Measure the finite line–circular-arc Round boundary and the existing straight-corner control.',
-  limits: ['One convex closed XY outline with one native R20 quarter arc and a 10 mm Extrude. The admitted fixture pins both carriers.'],
+  limits: [mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
+    : 'One convex closed XY outline with one native R20 quarter arc and a 10 mm Extrude. The admitted fixture pins both carriers.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -27,15 +32,18 @@ import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { partSnapshot } from '@barocss/cad-model/engine/part';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
-if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
-  const pinned = process.argv[3] === '"pinned"';
+if (['"fixture"', '"pinned"', '"mirrored"'].includes(process.argv[3])) {
+  const reflected = process.argv[3] === '"mirrored"', pinned = process.argv[3] !== '"fixture"';
+  const points = reflected ? [[0,20],[40,20],[20,0],[0,0]] : [[0,pinned ? 20 : 0],[40,20],[20,40],[0,40]];
   const profile = profileOf([{
-    kind: 'polygon', closed: true, points: [[0,pinned ? 20 : 0],[40,20],[20,40],[0,40]],
-    bulges: [0, Math.SQRT2 - 1, 0, 0], radii: {1:20}, tangents:[2], hv:{h:pinned ? [0,2] : [2],v:[3]}, ids: ['e1','e2','e3','e4'],
-    ...(pinned ? { rules: [{ kind:'fix', point:2, at:[20,40] }] } : {}),
+    kind: 'polygon', closed: true, points,
+    bulges: [0, (reflected ? -1 : 1) * (Math.SQRT2 - 1), 0, 0], radii: {1:20}, tangents:[2], hv:{h:pinned ? [0,2] : [2],v:[3]}, ids: ['e1','e2','e3','e4'],
+    ...(pinned ? { rules: [{ kind:'fix', point:2, at:points[2] }] } : {}),
   }]);
   assert.ok('node' in profile);
-  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), {kind:'extrude',sketch:0,height:10})));
+  const plane = { origin:[0,5,0],normal:[0,-1,0],xAxis:[1,0,0] };
+  const sketch = reflected ? { ...profile.node, plane } : profile.node;
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), sketch), {kind:'extrude',sketch:0,height:10})));
   process.exit(0);
 }
 const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
@@ -46,7 +54,8 @@ const cylinders = output.brep.faces.flatMap(face => {
   const g = faceGeometry(face);
   return g.kind === 'cylinder' ? [{ name: face.name, ...g }] : [];
 });
-console.log(JSON.stringify({ volume: massPropertiesOf(output).volume, faces: output.brep.faces.map(face => face.name), cylinders }));
+console.log(JSON.stringify({ volume: massPropertiesOf(output).volume, faces: output.brep.faces.map(face => face.name), cylinders,
+  vertices: output.brep.vertices.map(vertex => vertex.point) }));
 `,
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -58,6 +67,9 @@ const file = 'D890-line-arc-round.bcad';
 const button = (scope, label) => scope.getByRole('button', { name: label, exact: true });
 const near = (actual, expected, tolerance = 1e-8) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} vs ${expected}`);
 const outlinePoints = [[0, 0], [40, 20], [20, 40], [0, 40]];
+const workingPlane = { origin: [0, 5, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
+const reflect = ([x, y]) => [x, 40 - y];
+const toWorld = ([x, y]) => [x, 5, y];
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -70,11 +82,18 @@ async function edit(node = 1) {
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();
   await f.tool('Select', 's');
-  await f.frame(outlinePoints);
+  if (!mirrored) await f.frame(outlinePoints);
 }
 
 async function applyRound(corner, radius) {
-  await f.worldClick(corner);
+  if (mirrored) {
+    const hit = await f.page.evaluate(point => {
+      const pixel = window.__studioScreenOf(point);
+      return pixel && document.elementFromPoint(...pixel)?.closest('canvas.vp-canvas') ? pixel : null;
+    }, toWorld(corner));
+    assert.ok(hit, JSON.stringify(corner));
+    await f.page.mouse.click(...hit);
+  } else await f.worldClick(corner);
   await setRoundRadius(radius);
 }
 
@@ -126,33 +145,102 @@ function independentRound(radius) {
 async function checkRound(label, doc, original, radius) {
   const expected = independentRound(radius);
   const sketch = doc.nodes[0];
+  const local = mirrored ? reflect : point => point;
   assert.deepEqual(doc.nodes.slice(1), original.nodes.slice(1));
   assert.deepEqual(doc.outputs, original.outputs);
   assert.deepEqual(sketch.sideTags.outer, ['e1', 'e5', 'e2', 'e3', 'e4']);
   assert.deepEqual(sketch.outline.radii, { 1: radius, 2: 20 });
   assert.deepEqual(sketch.outline.tangents, [1, 2, 3]);
   assert.deepEqual(sketch.outline.hv, { h: [0, 3], v: [4] });
-  assert.deepEqual(sketch.outline.rules, [{ kind: 'fix', point: 3, at: [20, 40] }]);
+  assert.deepEqual(sketch.outline.rules, [{ kind: 'fix', point: 3, at: local([20, 40]) }]);
   const point = (actual, wanted) => wanted.forEach((value, i) => near(actual[i], value));
   assert.equal(sketch.segments.length, 5);
-  sketch.segments.forEach((segment, i) => point(segment.start, expected.polygon[i]));
+  sketch.segments.forEach((segment, i) => point(segment.start, local(expected.polygon[i])));
   const native = await f.inspect(label, doc);
   for (const [i, tag, center, r] of [[1, 'e5', expected.fillet, radius], [2, 'e2', expected.source, 20]]) {
     assert.equal(sketch.segments[i].kind, 'arc');
-    assert.equal(sketch.segments[i].direction, 'ccw');
-    point(sketch.segments[i].center, center);
+    assert.equal(sketch.segments[i].direction, mirrored ? 'cw' : 'ccw');
+    point(sketch.segments[i].center, local(center));
     const cylinder = native.cylinders.find(face => face.name === `n1.side[${tag}]`);
     assert.ok(cylinder);
-    point(cylinder.c, center);
+    if (mirrored) {
+      near(cylinder.c[0], center[0]);
+      near(cylinder.c[2], local(center)[1]);
+    } else point(cylinder.c, center);
     near(cylinder.r, r);
-    assert.deepEqual(cylinder.a, [0, 0, 1]);
+    point(cylinder.a, mirrored ? [0, 1, 0] : [0, 0, 1]);
+  }
+  if (mirrored) {
+    assert.deepEqual(sketch.plane, workingPlane);
+    for (const [x, z] of expected.polygon.map(local)) {
+      for (const y of [-5, 5]) assert.ok(native.vertices.some(v => Math.hypot(v[0] - x, v[1] - y, v[2] - z) < 1e-8));
+    }
   }
   assert.ok(['e1', 'e3', 'e4'].every(tag => native.faces.includes(`n1.side[${tag}]`)));
   near(native.volume, expected.volume, 1e-7);
   near((await f.bodies()).bodies[0].volume, expected.volume, 1e-7);
   f.report.observations.push({ label, radiusMm: radius, expectedVolumeMm3: expected.volume, volumeMm3: native.volume,
-    sideTags: sketch.sideTags.outer, nativeCylinders: native.cylinders, lineContactMm: expected.polygon[1], sourceContactMm: expected.polygon[2] });
+    sideTags: sketch.sideTags.outer, nativeCylinders: native.cylinders, lineContactMm: local(expected.polygon[1]), sourceContactMm: local(expected.polygon[2]) });
   return native;
+}
+
+async function checkMirrored() {
+  const doc = await f.inspect('mirrored-source-fixture', {}, 'mirrored');
+  const bytes = Buffer.from(JSON.stringify(doc));
+  assert.deepEqual(doc.nodes[0].plane, workingPlane);
+  assert.equal(doc.nodes[0].segments[1].direction, 'cw');
+  const original = await f.inspect('mirrored-source-native', doc);
+  near(original.volume, 10 * (400 + 100 * Math.PI));
+  assert.equal(original.cylinders.length, 1);
+  near(original.cylinders[0].r, 20);
+  f.report.observations.push({ label: 'mirrored-source', bytes: bytes.length, sha256: sha256(bytes), volumeMm3: original.volume, plane: workingPlane });
+  await f.newPage();
+  await open(doc, bytes);
+  await edit();
+  f.phase = 'apply the pinned clockwise Round on the XZ plane';
+  await applyRound([40, 20], 3);
+  if (mirroredBaseline) {
+    await f.sketchPanel().getByRole('alert').waitFor();
+    await f.same(doc);
+    const refused = await f.snapshot('01-clockwise-round-refused');
+    f.report.observations.push({ label: 'mirrored-baseline', refusal: refused.roundError });
+    await cancel();
+    await f.same(doc);
+    return;
+  }
+  await f.sketchPanel().getByLabel('Arc 3 radius', { exact: true }).waitFor();
+  assert.equal(await f.sketchPanel().getByRole('alert').count(), 0);
+  const r3 = (await f.finishSketch('01-clockwise-R3')).doc;
+  await checkRound('clockwise-R3-native', r3, doc, 3);
+  const radius = () => f.sketchPanel().getByLabel('Arc 2 radius', { exact: true });
+  await edit();
+  await radius().fill('4');
+  await radius().press('Enter');
+  assert.equal(await radius().inputValue(), '4');
+  const r4 = (await f.finishSketch('02-clockwise-R4')).doc;
+  const nativeR4 = await checkRound('clockwise-R4-native', r4, doc, 4);
+  await f.undo();
+  await f.same(r3);
+  await f.redo();
+  await f.same(r4);
+
+  f.phase = 'save and reopen the clockwise branch, then test refusal and a valid edit';
+  const saved = await save(r4);
+  await f.newPage();
+  await open(r4, saved);
+  assert.deepEqual(await checkRound('clockwise-R4-reopened-native', r4, doc, 4), nativeR4);
+  await edit();
+  await radius().fill('10');
+  await f.sketchPanel().getByRole('alert').waitFor();
+  assert.equal(await radius().inputValue(), '4');
+  await f.same(r4);
+  await f.snapshot('03-clockwise-exact-limit-refused');
+  await radius().fill('5');
+  await radius().press('Enter');
+  assert.equal(await radius().inputValue(), '5');
+  const r5 = (await f.finishSketch('04-clockwise-R5')).doc;
+  await checkRound('clockwise-R5-native', r5, doc, 5);
+  assert.deepEqual(f.report.downloads, []);
 }
 
 async function checkFixed() {
@@ -278,6 +366,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (mirrored) {
+    await checkMirrored();
+    return;
+  }
   if (fixed) {
     await checkFixed();
     return;
