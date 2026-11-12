@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D771 — verify same-ID native Viewer source replacement](notes/viewer-native-source-replacement-2026-11-12/README.md).
 - [D770 — qualify Studio geometry and selection after a same-body edit](notes/studio-current-mesh-and-selection-2026-11-12/README.md).
 - [D769 — open the saved part when recovery data cannot be read](notes/project-recovery-read-and-restore-2026-11-12/README.md).
 - [D768 — restore the prior recovery after a failed autosave](notes/autosave-write-denial-and-restore-2026-11-12/README.md).
