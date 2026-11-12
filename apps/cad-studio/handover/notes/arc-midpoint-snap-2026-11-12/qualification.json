@@ -1,0 +1,102 @@
+{
+  "decision": "D795",
+  "tier": "FEATURE",
+  "parent": "b2d3a0b78ca896d83f852687e36708d09b65dc8a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-midpoint-snap-browser.mjs",
+    "cd apps/cad-studio && D795_BASELINE=1 D795_SOURCE_FROZEN=1 node test/arc-midpoint-snap-browser.mjs \"$EVIDENCE/baseline-1\"",
+    "cd apps/cad-studio && D795_BASELINE=1 D795_SOURCE_FROZEN=1 node test/arc-midpoint-snap-browser.mjs \"$EVIDENCE/baseline-2\"",
+    "cd apps/cad-studio && D795_SOURCE_FROZEN=1 node test/arc-midpoint-snap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D795_SOURCE_FROZEN=1 node test/arc-midpoint-snap-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "cd apps/cad-studio && D795_SOURCE_FROZEN=1 node test/arc-midpoint-snap-browser.mjs \"$EVIDENCE/desktop-3\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test osnap",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d795-arc-midpoint",
+    "evidenceFolder": "d795-2026-11-12",
+    "attempts": [
+      {
+        "folder": "baseline-1",
+        "status": "FAIL",
+        "sha256": "d3eef202238ae140529449664b619a995ba161f65794318c2dd65264da165bc7",
+        "detail": "Standalone sketch history item has no feature index attribute."
+      },
+      {
+        "folder": "baseline-2",
+        "status": "FAIL",
+        "sha256": "0ac69dd69dfc1ef36eabf1df9f9dddee5af346df4e438af233dea9061e397884",
+        "detail": "Grid placement recorded; fixture assertion rejected Studio's normalized pending field."
+      },
+      {
+        "folder": "desktop-1",
+        "status": "FAIL",
+        "sha256": "27f815a9f4789ffe4a9efda550e2bb74e7826661e1280b188b716a2f2a1db995",
+        "detail": "Stationary tool change kept the prior Middle cue."
+      },
+      {
+        "folder": "desktop-2",
+        "status": "PASS",
+        "sha256": "087421d846030f99f35ba76b1f9dd31057c4b99587125af08f370acd0f759a65",
+        "detail": "Desktop passes. Subsequent Model type check rejects test-only contextual typing."
+      },
+      {
+        "folder": "desktop-3",
+        "status": "PASS",
+        "sha256": "087421d846030f99f35ba76b1f9dd31057c4b99587125af08f370acd0f759a65",
+        "detail": "Same desktop receipt; corrected test type, focused tests and build pass."
+      }
+    ],
+    "desktop": {
+      "status": "PASS",
+      "sha256": "087421d846030f99f35ba76b1f9dd31057c4b99587125af08f370acd0f759a65",
+      "frozenSources": 799,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 1740,
+      "savedSHA256": "53b2422d1ff5a396e4dc53c1560c38efb350e5a112a04713abee0a209dee36e4",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "model": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "warnings": [
+        "INEFFECTIVE_DYNAMIC_IMPORT"
+      ]
+    },
+    "exactArcMiddleMm": [
+      0,
+      -9.96875
+    ],
+    "storedRectangleCornerMm": [
+      0,
+      -9.9687
+    ],
+    "baselineRectangleCornerMm": [
+      1,
+      -10
+    ],
+    "oppositeCornerMm": [
+      6,
+      -4
+    ],
+    "nearOffsetPx": 4.466801267117876,
+    "outsideOffsetPx": 12,
+    "volumeMm3": 131.6244,
+    "absoluteVolumeToleranceMm3": 1e-8
+  }
+}

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D795 — snap to the midpoint of an authored sketch arc](notes/arc-midpoint-snap-2026-11-12/README.md).
 - [D794 — verify signed sketch snapping on an offset XZ plane](notes/signed-sketch-snap-offset-plane-2026-11-12/README.md).
 - [D793 — place one rectangle corner with a two-point sketch snap](notes/two-point-sketch-snap-2026-11-12/README.md).
 - [D792 — start a Sketch on three selected native vertices](notes/three-vertex-sketch-plane-2026-11-12/README.md).

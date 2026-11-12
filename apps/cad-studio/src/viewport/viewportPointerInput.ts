@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type DragEvent, type MouseEvent, type PointerEvent, type RefObject, type WheelEvent } from 'react';
+import { useCallback, useLayoutEffect, useRef, type DragEvent, type MouseEvent, type PointerEvent, type RefObject, type WheelEvent } from 'react';
 import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -235,18 +235,22 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
   const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
   const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
+  const clearSketchSnap = useCallback(() => {
+    const draft = sketchDraft.current;
+    if (!draft.snap) return;
+    draft.snap = null;
+    draft.cursor = null;
+    propsRef.current.onCursor(null);
+    requestRef.current();
+  }, [propsRef, requestRef]);
+  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.done, sketch?.hideConstruction, sketch?.tool]);
   useLayoutEffect(() => {
     const cached = modelSnapCache.current;
     if (!cached || currentModelSketchSnaps(cached, snapBodies, snapHidden, snapPlaneKey)) return;
     modelSnapCache.current = null;
-    const draft = sketchDraft.current;
-    if (draft.snap && cached.points.includes(draft.snap)) {
-      draft.snap = null;
-      draft.cursor = null;
-      propsRef.current.onCursor(null);
-      requestRef.current();
-    }
-  }, [snapBodies, snapHidden, snapPlaneKey, propsRef, requestRef]);
+    const snap = sketchDraft.current.snap;
+    if (snap && cached.points.includes(snap)) clearSketchSnap();
+  }, [snapBodies, snapHidden, snapPlaneKey, clearSketchSnap]);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
   const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null } => {
     const { bodies, hiddenBodies } = propsRef.current;
@@ -640,6 +644,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
 
   /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
   const onPointerLeave = () => {
+    clearSketchSnap();
     if (twoPointHover.current) { twoPointHover.current = null; request(); }
     const r = renderer.current, prev = hover.current;
     if (!r || drag.current.mode || (!prev.face && !prev.edge && !prev.vertex)) return;

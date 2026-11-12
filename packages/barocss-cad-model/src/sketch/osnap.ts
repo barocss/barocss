@@ -6,6 +6,8 @@ import { CadNumericPolicy } from '@barocss/cad';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { wellFormedBezier } from './bezier';
 import { toLocal, type SketchPlane } from './plane';
+import { arcOf } from './profile';
+import type { SketchShape } from './types';
 
 type XY = [number, number];
 export type SnapKind = 'end' | 'mid' | 'centre' | 'quadrant' | 'origin' | 'calculated';
@@ -19,6 +21,19 @@ export type SnapShape =
   | { kind: 'bezier'; poles: XY[] };
 
 const mid = (a: XY, b: XY): XY => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+const inRange = (point: XY) => point.every(c => Number.isFinite(c) && Math.abs(c) <= CadNumericPolicy.coordinateAbs);
+
+function arcMiddle(a: XY, b: XY, bulge: number): XY | null {
+  if (!Number.isFinite(bulge) || !inRange(a) || !inRange(b)) return null;
+  const x = b[0] - a[0], y = b[1] - a[1];
+  if (Math.hypot(x, y) <= CadNumericPolicy.linearTolerance) return null;
+  if (!Number.isFinite(arcOf(a, b, bulge).radius)) return null;
+  // The signed sagitta is half the chord times the bulge, toward the right of A→B.
+  // This gives the half-sweep point without subtracting a large centre and radius.
+  const [u, v] = mid(a, b);
+  const at: XY = [u + y * bulge / 2, v - x * bulge / 2];
+  return inRange(at) ? at : null;
+}
 
 /** A shape's snap points. `moving`: leave out the point the pointer is placing (a rectangle's far corner). */
 export function shapeSnaps(s: SnapShape, moving = false): SnapPoint[] {
@@ -34,8 +49,16 @@ export function shapeSnaps(s: SnapShape, moving = false): SnapPoint[] {
     // (A Bézier curve snaps to its end poles, not to the middle ones it does not pass through.)
     case 'bezier': return wellFormedBezier(s) ? [{ at: s.poles[0], kind: 'end' }, { at: s.poles[s.poles.length - 1], kind: 'end' }] : [];
     case 'polygon': {
-      const out: SnapPoint[] = s.points.map(at => ({ at, kind: 'end' as const })), n = s.points.length;
-      for (let i = 0; i < (s.closed ? n : n - 1); i++) if (!s.bulges?.[i]) out.push({ at: mid(s.points[i], s.points[(i + 1) % n]), kind: 'mid' });
+      const polygon: Extract<SketchShape, { kind: 'polygon' }> = s;
+      const authored = !polygon.fromSpline && !polygon.spline && !polygon.fromEllipse && !polygon.ellipse;
+      const out: SnapPoint[] = s.points.map(at => ({ at, kind: 'end' }));
+      const n = s.points.length, segments = s.closed ? n : n - 1;
+      for (let i = 0; i < segments; i++) {
+        if (polygon.pending && i === segments - 1) continue;
+        const a = s.points[i], b = s.points[(i + 1) % n], bulge = s.bulges?.[i] ?? 0;
+        const at = bulge === 0 ? mid(a, b) : authored ? arcMiddle(a, b, bulge) : null;
+        if (at) out.push({ at, kind: 'mid' });
+      }
       return out;
     }
   }
@@ -88,7 +111,6 @@ export function nearestSnap(points: readonly SnapPoint[], screen: (p: XY) => XY,
 export function pointAlongSnap(a: XY, b: XY, mode: 'ratio' | 'distance', value: number): XY | null {
   const { coordinateAbs, linearTolerance } = CadNumericPolicy;
   if (!Number.isFinite(value) || (mode === 'distance' && Math.abs(value) > coordinateAbs)) return null;
-  const inRange = (point: XY) => point.every(c => Number.isFinite(c) && Math.abs(c) <= coordinateAbs);
   if (!inRange(a) || !inRange(b)) return null;
   const x = b[0] - a[0], y = b[1] - a[1], length = Math.hypot(x, y);
   if (length <= linearTolerance) return null;

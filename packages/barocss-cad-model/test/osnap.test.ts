@@ -4,6 +4,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, withNode } from '../src/engine/doc';
 import { pointAlongSnap, modelSnaps, nearestSnap, shapeSnaps } from '../src/sketch/osnap';
 import { planeOfFace } from '../src/sketch/plane';
+import type { SketchShape } from '../src/sketch/types';
 
 test('sketch snaps: a rectangle’s corners, middles and centre; a drafting one only its first corner', () => {
   const r = shapeSnaps({ kind: 'rectangle', a: [0, 0], b: [10, 4] });
@@ -38,4 +39,45 @@ test('two-point snaps preserve direction, extrapolation, and coordinate limits',
   assert.equal(pointAlongSnap([0, 0], [6, 8], 'ratio', Infinity), null);
   assert.equal(pointAlongSnap([0, 0], [6, 8], 'ratio', Number.MAX_VALUE), null);
   assert.equal(pointAlongSnap([10000, 0], [9999, 0], 'distance', -1), null);
+});
+
+const middles = (shape: SketchShape) => shapeSnaps(shape).filter(point => point.kind === 'mid').map(point => point.at);
+const arc = (a: [number, number], b: [number, number], bulge: number): Extract<SketchShape, { kind: 'polygon' }> =>
+  ({ kind: 'polygon', points: [a, b], closed: false, bulges: [bulge] });
+
+test('authored arc middles bisect signed sweeps, including a major arc', () => {
+  assert.deepEqual(middles(arc([-10, 0], [10, 0], 1)), [[0, -10]]);
+  assert.deepEqual(middles(arc([-10, 0], [10, 0], -1)), [[0, 10]]);
+  const quarter = 5 * Math.SQRT2;
+  for (const [bulge, expected] of [[Math.SQRT2 - 1, quarter], [1 + Math.SQRT2, 10 + quarter]]) {
+    const [[x, y]] = middles(arc([10, 0], [0, 10], bulge));
+    assert.ok(Math.hypot(x - expected, y - expected) < 1e-12);
+    assert.deepEqual(middles(arc([0, 10], [10, 0], -bulge)), [[x, y]]);
+  }
+  assert.deepEqual(middles(arc([3, 2], [3, 12], 1)), [[8, 7]]);
+  assert.deepEqual(middles(arc([-10, 0], [10, 0], 1e-12)), [[0, -1e-11]]);
+});
+
+test('arc snap admission keeps existing endpoints and straight middles', () => {
+  const shape: Extract<SketchShape, { kind: 'polygon' }> = {
+    kind: 'polygon', points: [[-10, 0], [10, 0], [10, 20]], closed: true, bulges: [1, 0, -1],
+  };
+  const open = { ...shape, closed: false, bulges: [1, -1] };
+  assert.deepEqual(middles(shape), [[0, -10], [10, 10], [10, 0]]);
+  assert.deepEqual(middles({ ...shape, pending: true }), [[0, -10], [10, 10]]);
+  assert.deepEqual(middles(open), [[0, -10], [0, 10]]);
+  assert.deepEqual(middles({ ...open, pending: true }), [[0, -10]]);
+  assert.deepEqual(middles({ ...open, pending: true, bulges: [1, 0] }), [[0, -10]]);
+  const spline: typeof shape = { ...shape, fromSpline: true, spline: { fit: shape.points, closed: true } };
+  const ellipse: typeof shape = { ...shape, fromEllipse: true };
+  assert.deepEqual(middles(spline), [[10, 10]]);
+  assert.deepEqual(middles(ellipse), [[10, 10]]);
+  assert.deepEqual(middles(arc([-10, 0], [10, 0], 0)), [[0, 0]]);
+  for (const bulge of [NaN, Infinity, Number.MIN_VALUE, Number.MAX_VALUE, 1001]) {
+    const points = shapeSnaps(arc([-10, 0], [10, 0], bulge));
+    assert.deepEqual(points.map(point => point.kind), ['end', 'end']);
+  }
+  assert.deepEqual(middles(arc([1, 2], [1, 2], 1)), []);
+  assert.deepEqual(middles(arc([0, 0], [1e-8, 0], 1)), []);
+  assert.deepEqual(middles(arc([0, 0], [10001, 0], 1)), []);
 });
