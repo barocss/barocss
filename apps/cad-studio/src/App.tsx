@@ -28,6 +28,7 @@ import { usePathGap } from './sketch/usePathGap';
 import { PathGapControls } from './sketch/PathGapControls';
 import { useOverlaidLines } from './sketch/useOverlaidLines';
 import { OverlaidLinesControls } from './ui/OverlaidLinesControls';
+import { useMidpointSketch } from './sketch/useMidpointSketch';
 import { useSketchActions } from './sketch/useSketchActions';
 import { clearConstraintInspection, createConstraintInspection } from './sketch/constraintInspection';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
@@ -52,6 +53,7 @@ import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from '.
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
@@ -146,6 +148,7 @@ import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ShortcutHelp } from './ui/ShortcutHelp';
+import { MidpointSketchReview } from './ui/MidpointSketchReview';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, keepRecovery, offerRecovery, settleRecovery, type Recovery } from './app/recovery';
@@ -266,22 +269,25 @@ export function App() {
   // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
   const saveDocumentToken = useRef<object>({});
   const openIntent = useRef<OpenScope>({});
+  const midpointSketch = useMidpointSketch();
+  const cancelMidpointSketch = midpointSketch.cancel;
   const discardDirectCandidateRef = useRef<() => void>(() => {});
   const cancelStepExportRef = useRef<() => void>(() => {});
   const cancelStlExportRef = useRef<() => void>(() => {});
-  const beginOpenIntent = useCallback((): OpenScope => { discardDirectCandidateRef.current(); cancelStepExportRef.current(); const scope = {}; openIntent.current = scope; return scope; }, []);
+  const beginOpenIntent = useCallback((): OpenScope => { cancelMidpointSketch(); discardDirectCandidateRef.current(); cancelStepExportRef.current(); const scope = {}; openIntent.current = scope; return scope; }, [cancelMidpointSketch]);
   const currentOpenScope = useCallback(() => openIntent.current, []);
   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
   useEffect(() => () => { openIntent.current = {}; }, []);
   const saveAcceptanceScope = saveDocumentToken.current;
   const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
+    cancelMidpointSketch();
     saveDocumentToken.current = {};
     openIntent.current = {};
     cancelStepExportRef.current();
     setCandidateReview(null);
     if (typeof update === 'function') setDocStateRaw(update);
     else { docNow.current = update; setDocStateRaw(update); }
-  }, []);
+  }, [cancelMidpointSketch]);
   const discardRouteRef = useRef<() => void>(() => {});
   const routeAcceptedHandoff = useRef<{ doc: StudioDoc; identity: string; evaluatedIdentity: string; revision: number; result: Extract<EvalResult, { ok: true }> } | null>(null);
   const workOwnership = useRef(createWorkOwnership<StudioDoc, StudioDoc>());
@@ -375,7 +381,7 @@ export function App() {
   // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
   const sketchGeneration = useRef(0);
   const footprintRequest = useRef(0);
-  const footprintState = useRef<{ ready: boolean; selection: Selection | null }>({ ready: false, selection: null });
+  const footprintState = useRef<{ ready: boolean; midpointReady: boolean; selection: Selection | null }>({ ready: false, midpointReady: false, selection: null });
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
   const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => activeStore.get()?.ctx ?? null);
   const sketchModeButton = useRef<HTMLButtonElement>(null);
@@ -1365,6 +1371,38 @@ export function App() {
     !active && !rendering && !drawing && !section && previewMode === 'none';
   const start = useCallback((cmd: Command, initial?: Values) => {
     const request = ++footprintRequest.current;
+    cancelMidpointSketch();
+    if (cmd.id === SKETCH_AT_MIDPOINT.id) {
+      setPalette(false);
+      const target = midpointFaces(ctx, doc);
+      const refuse = (hint: string) => setToast({ title: 'Midpoint sketch not started', hint, detail: '' });
+      if (!target) { refuse(midpointSelectionHint); return; }
+      if (!footprintState.current.midpointReady) {
+        refuse('Close other tools and wait for the current part in Model.');
+        return;
+      }
+      if (!canChangeDocument()) return;
+      const open = openIntent.current, worker = workerSessionNow.current, work = workOwnership.current;
+      const sketchRevision = sketchGeneration.current;
+      midpointSketch.start({
+        faces: target.faces,
+        current: () => open === openIntent.current && worker === workerSessionNow.current &&
+          work.generation === workOwnership.current.generation && work.scope === workOwnership.current.scope &&
+          sketchRevision === sketchGeneration.current && docNow.current === doc && evaluatedRef.current === evaluated &&
+          footprintState.current.selection === selection && footprintState.current.midpointReady && !activeStore.get(),
+        read: () => engine.midpointPlane(evaluated, target.key, target.faces),
+        refuse,
+        adopt: plane => {
+          if (!canChangeDocument()) return;
+          discardFeatureDraft();
+          setSketch({ plane, anchor: { kind: 'midpoint', offset: 0, midpointPlane: plane }, tool: 'rectangle', shape: null, base: null });
+          setPreviewBodies(null);
+          const [min, max] = sketchRegion(bodies, plane);
+          viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+        },
+      });
+      return;
+    }
     if (cmd.id === PROJECT_TO_SKETCH.id) {
       setPalette(false);
       const key = footprintBody(ctx);
@@ -1455,7 +1493,7 @@ export function App() {
       : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference]);
+  }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference, midpointSketch.start, cancelMidpointSketch]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1463,6 +1501,7 @@ export function App() {
     const index = Number(raw), node = doc.nodes[index];
     if (!Number.isInteger(index) || index < 0 || !node) return;
     footprintRequest.current++;
+    cancelMidpointSketch();
     setInstanceSel([]); setDirectSel([]); assembly.cancel();
     if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'band-surface') {
       const command = editCommand(index, doc.nodes, doc);
@@ -1473,7 +1512,7 @@ export function App() {
       }
     }
     setEditNode(index);
-  }, [doc, assembly]);
+  }, [doc, assembly, cancelMidpointSketch]);
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
   useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
@@ -1552,7 +1591,7 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
-  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, midpointPickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -1639,21 +1678,23 @@ export function App() {
     } else setToast({ title: 'Stopped', hint: 'The computation was stopped; no unrelated change was taken back.', detail: 'The document is unchanged. The view is not up to date.' });
   };
   const doUndo = useCallback(() => {
+    cancelMidpointSketch();
     if (!undo.length) return; const last = undo[undo.length - 1];
     invalidateDocumentWork();
     const redoEntry = reverseHistoryEntry(last, doc, marker);
     setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1));
     restoreHistoryEntry(last);
-  }, [undo, doc, marker, restoreHistoryEntry, reverseHistoryEntry]);
+  }, [undo, doc, marker, restoreHistoryEntry, reverseHistoryEntry, cancelMidpointSketch]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
+    cancelMidpointSketch();
     if (!redo.length) return; const last = redo[redo.length - 1];
     invalidateDocumentWork();
     const undoEntry = reverseHistoryEntry(last, doc, marker);
     setUndo(u => [...u, undoEntry]); setRedo(r => r.slice(0, -1));
     restoreHistoryEntry(last);
-  }, [redo, doc, marker, restoreHistoryEntry, reverseHistoryEntry]);
+  }, [redo, doc, marker, restoreHistoryEntry, reverseHistoryEntry, cancelMidpointSketch]);
 
   const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
     changes: { canChangeDocument, commit, setSelection }, onNotice: setToast });
@@ -1842,7 +1883,7 @@ export function App() {
   const { ghost, proposalOverlay, proposalBusy, evidenceRevision, isStale, partEval, acceptIt, rejectIt } = proposals;
   const [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   routeContext.current = { blocked: busy || !fresh || !!parameterEdit || marker !== null || !!shownVariant.current || !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!ghost };
-  footprintState.current = { ready: nativeVertexReady && !routeContext.current.blocked && !routePanelOpen && !bodyDrag && editNode === null, selection };
+  const footprintReady = nativeVertexReady && !routeContext.current.blocked && !routePanelOpen && !bodyDrag && editNode === null;
   useEffect(() => routeEditor.discardBlocked(), [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
   useEffect(() => proposals.resetForModelChange(), [doc.nodes, doc.parameters, evidenceRevision]);
   useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
@@ -1917,6 +1958,10 @@ export function App() {
   cancelStepExportRef.current = modelExports.clearStepAsk;
   cancelStlExportRef.current = modelExports.cancelStlExport;
   const { stepAsk, stlAsk, askStlExport, exportStepFile, exportQuote, exportThreeMf, clearStepAsk } = modelExports;
+  footprintState.current = { ready: footprintReady, selection,
+    midpointReady: footprintReady && !workingComparison && !instanceSel.length && !previewBodies && !routePreviewBodies
+      && !stepAsk && !stlAsk && !meshAsk && !repairAsk && !cascade && !workerFailure && stage === null,
+  };
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
   // cube in the layout step. The recovery card is only hidden, its copy kept; a question's toast closed is cancelled.)
@@ -1933,7 +1978,7 @@ export function App() {
   const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   const dismissInspectionRef = useRef<() => boolean>(() => false);
   dismissInspectionRef.current = () => !help && !palette && !stepAsk && !workspaceModeExit.pending
-    && clearConstraintInspection(constraintInspection, sketch);
+    && (cancelMidpointSketch() || clearConstraintInspection(constraintInspection, sketch));
   useEffect(() => {
     const listen = (e: KeyboardEvent) => onKeyRef.current(e);
     let dismissed = false;
@@ -2334,7 +2379,8 @@ export function App() {
   const dockEdge = dockDocked ? 0 : CHAT_STRIP + (layout.dockSheet ? layout.dockWidth : 0);
   useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + dockEdge), [chatColumnShown, dockEdge]);
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
-  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen || stepAsk)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, stepAsk, layout.setDockSheet]);
+  const midpointReview = midpointSketch.currentReview();
+  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen || stepAsk || midpointReview)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, stepAsk, midpointReview, layout.setDockSheet]);
   // Reference decisions stay in the existing Browser panel. Preview never commits a candidate.
   const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0)
     ? <ReferenceDecisions doc={doc} referenceLabels={referenceLabels} refMarks={refMarks} refProblems={refProblems} refChoices={refChoices}
@@ -2381,6 +2427,7 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
+      {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelMidpointSketch} adopt={midpointSketch.adopt} />}
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
@@ -2786,7 +2833,7 @@ export function App() {
       </div>}
       </div>
       </div>
-      <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={open => { if (!open) cancelLocalCandidateReview(); layout.setDockSheet(open); }}>
+      <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={open => { if (!open) { cancelLocalCandidateReview(); cancelMidpointSketch(); } layout.setDockSheet(open); }}>
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
         {stepAsk ? <StepExportPanel controller={modelExports} /> : routePanelOpen ? <RouteBundlePanel doc={routeViewDoc ?? doc} directSelection={directSel} busy={routeContext.current.blocked || routePhase === 'preview' || routePhase === 'validating'} phase={routePhase}

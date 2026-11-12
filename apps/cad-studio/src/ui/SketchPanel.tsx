@@ -87,6 +87,7 @@ export function SketchPanel({ sketch, constraintInspection, toolLabel, error, to
             <NativeSelect className={CONTROL} aria-label="Sketch plane" value={anchor.kind} onChange={e => onPlace(e.target.value as SketchAnchor['kind'], anchor.offset, anchor.angle)}>
               {anchor.face && <option value="face">Selected face</option>}
               {anchor.vertexPlane && <option value="vertices">Selected vertices</option>}
+              {anchor.midpointPlane && <option value="midpoint">Face midpoint</option>}
               <option value="xy">XY (top)</option><option value="xz">XZ (front)</option><option value="yz">YZ (right)</option>
             </NativeSelect></label>
           <label className={FIELD}><span>Offset</span>

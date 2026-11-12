@@ -19,9 +19,12 @@ import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
 import { Lanes, type LaneReply } from './lanes';
 import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
+import type { SketchPlane } from '@barocss/cad-model/sketch/plane';
+import type { NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
 import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
 export type FaceEndDistanceReply = { distance: number } | { error: string };
+export type MidpointPlaneReply = { plane: SketchPlane } | { error: string };
 export type FootprintReply = { sketch: SketchNode } | { error: string };
 export type VolumeReply = VolumeEvaluation | { ok: false; error: 'stopped' };
 
@@ -199,6 +202,14 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve(data as FaceEndDistanceReply));
       this.post(id, () => ({ type: 'faceEndDistance', id, doc: this.wire!.pack(doc), index }));
+    });
+  }
+
+  midpointPlane(doc: StudioDoc, key: string, faces: readonly [NativeMidpointFace, NativeMidpointFace]): Promise<MidpointPlaneReply> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve(data as MidpointPlaneReply));
+      this.post(id, () => ({ type: 'midpointPlane', id, doc: this.wire!.pack(doc), key, faces }));
     });
   }
 
