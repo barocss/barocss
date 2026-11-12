@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D798 — clear the midpoint cue when a live arc changes](notes/live-arc-midpoint-cue-2026-11-12/README.md).
 - [D797 — verify arc midpoint ownership in desktop Studio](notes/arc-midpoint-ownership-2026-11-12/README.md).
 - [D796 — verify a clockwise arc midpoint after Trim](notes/arc-midpoint-after-trim-2026-11-12/README.md).
 - [D795 — snap to the midpoint of an authored sketch arc](notes/arc-midpoint-snap-2026-11-12/README.md).

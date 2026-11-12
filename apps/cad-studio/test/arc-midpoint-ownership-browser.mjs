@@ -172,13 +172,20 @@ await f.run(async () => {
   await atMiddle(isolatedMiddle, isolatedAim);
   // The half chord is 8 mm. At radius 17 mm the sagitta is 17 - sqrt(289 - 64) = 2 mm.
   const radiusMiddle = [53, -10], radiusAim = [53.7, -10];
+  f.phase = 'retire the cue after a stationary radius edit';
   await f.sketchPanel().getByLabel('Arc 1 radius', { exact: true }).fill('17');
+  await settle();
+  await f.snapshot('07a-stationary-radius-edit');
+  assert.equal(await mark().count(), 0);
   await hover(isolatedAim);
   assert.equal(await mark().count(), 0);
   await atMiddle(radiusMiddle, radiusAim);
   const movedMiddle = [53, -7], movedAim = [53.7, -7];
+  f.phase = 'retire the cue after a stationary position edit';
   await f.sketchPanel().getByLabel('Point 1 Y', { exact: true }).fill('-5');
   await f.sketchPanel().getByLabel('Point 2 Y', { exact: true }).fill('-5');
+  await settle();
+  assert.equal(await mark().count(), 0);
   await hover(radiusAim);
   assert.equal(await mark().count(), 0);
   await atMiddle(movedMiddle, movedAim);

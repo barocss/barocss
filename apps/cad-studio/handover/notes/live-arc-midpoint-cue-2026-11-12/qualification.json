@@ -1,0 +1,60 @@
+{
+  "decision": "D798",
+  "tier": "SMALL",
+  "parent": "73d21c7538aa24b02c868815ba438d763b770233",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/arc-midpoint-ownership-browser.mjs",
+    "cd apps/cad-studio && D797_SOURCE_FROZEN=1 node test/arc-midpoint-ownership-browser.mjs \"$EVIDENCE/before\"",
+    "cd apps/cad-studio && D797_SOURCE_FROZEN=1 node test/arc-midpoint-ownership-browser.mjs \"$EVIDENCE/after\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test osnap",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d798-live-arc-midpoint",
+    "evidenceFolder": "d798-2026-11-12",
+    "baseline": {
+      "status": "FAIL",
+      "folder": "before",
+      "sha256": "b88fdc933b8f7b0e3114ebe40048dede2fc3e32b4c40490367a94d756890faca",
+      "stationaryMiddleMarks": 1
+    },
+    "desktop": {
+      "status": "PASS",
+      "folder": "after",
+      "sha256": "17dfaf99a3cb383a19ccedf01bd471d328dbd6d763dc2626078899302fcf87f5",
+      "frozenSources": 799,
+      "stationaryMiddleMarksAfterRadiusAndPosition": [
+        0,
+        0
+      ],
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 1747,
+      "savedSHA256": "d307c228541b4490f4b954f4e358f6497355c90911bf8f9765e2219a599f3fbd",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "model": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "radiusMiddleMm": [
+      53,
+      -10
+    ],
+    "translatedMiddleMm": [
+      53,
+      -7
+    ],
+    "volumeMm3": 110
+  }
+}
