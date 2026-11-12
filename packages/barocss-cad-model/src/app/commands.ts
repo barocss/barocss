@@ -39,6 +39,7 @@ import { isHollowed, planLattice } from '../print/lattice';
 import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
 import { coded, refusal } from '../engine/refusal';
+import { mirrorReplacementPlane } from '../engine/mirrorReplacement';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -744,10 +745,18 @@ const allCommands: Command[] = [
   {
     id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a plane: click a flat face for its plane, or drag the arrow', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to mirror.'),
-    fields: () => [{ key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ (across X)' }, { value: 'xz', label: 'XZ (across Y)' }, { value: 'xy', label: 'XY (across Z)' }] },
-      { key: 'at', label: 'Plane at', kind: 'mm' }],
+    fields: ctx => [
+      { key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ (across X)' }, { value: 'xz', label: 'XZ (across Y)' }, { value: 'xy', label: 'XY (across Z)' }] },
+      { key: 'at', label: 'Plane at', kind: 'mm' },
+      ...(oneBody(ctx)?.sheet ? [{ key: 'result', label: 'Result', kind: 'choice' as const, options: [
+        { value: 'combined', label: 'Original and reflection' }, { value: 'reflected', label: 'Reflected body only' },
+      ] }] : []),
+    ],
     // Across its own +X face by default: the copy lands beside it, touching.
-    defaults: ctx => { const b = oneBody(ctx); return { plane: 'yz', at: b ? r1(b.mesh.bounds.max[0]) : 0 }; },
+    defaults: ctx => {
+      const b = oneBody(ctx);
+      return { plane: 'yz', at: b ? r1(b.mesh.bounds.max[0]) : 0, ...(b?.sheet ? { result: 'combined' } : {}) };
+    },
     derive: (ctx, v, changed) => { const b = oneBody(ctx); if (!b || !changed.includes('plane')) return v; return { ...v, at: r1(b.mesh.bounds.max[MIRROR_AXIS[String(v.plane)]]) }; },
     steps: (_, v) => [{ label: 'Plane', text: `${String(v.plane).toUpperCase()} at ${'XYZ'[MIRROR_AXIS[String(v.plane)]]} ${String(v.at)} — or click a flat face`, done: true }],
     onPick: (ctx, v, hit) => {
@@ -764,7 +773,13 @@ const allCommands: Command[] = [
     },
     // The kernel mirrors across planes through the origin: a plane elsewhere is reached by a move there and back.
     build: (ctx, v) => {
-      const body = refOf(oneBody(ctx)!), k = MIRROR_AXIS[String(v.plane)], at = Number(v.at) || 0;
+      const selected = oneBody(ctx)!;
+      const body = refOf(selected), k = MIRROR_AXIS[String(v.plane)], at = Number(v.at) || 0;
+      if (v.result === 'reflected') {
+        if (!selected.sheet) throw refusal('SHEET_PICK', 'Select a sheet-metal body for Reflected body only.');
+        if (v.plane !== 'yz' || Number(v.at) !== 0) throw refusal('SHEET_VALUE', mirrorReplacementPlane);
+        return withNode(ctx.doc, { kind: 'mirror', parent: body, plane: 'yz', keep: false });
+      }
       if (!at) return withNode(ctx.doc, { kind: 'mirror', parent: body, plane: v.plane as 'yz' });
       const shift = (d: number): [number, number, number] => { const o: [number, number, number] = [0, 0, 0]; o[k] = d; return o; };
       let doc = withNode(ctx.doc, { kind: 'translate', parent: body, offset: shift(-at) });

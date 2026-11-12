@@ -6,7 +6,8 @@ import { qualifyMovedFlange } from './sheet-move-flange.mjs';
 import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
 import { qualifyMirrorBoundary } from './sheet-mirror-study.mjs';
 
-const mode = process.argv[3], mirrorStudy = mode === '--mirror-study';
+const mode = process.argv[3], mirrorReplacement = mode === '--mirror-replacement';
+const mirrorStudy = mode === '--mirror-study' || mirrorReplacement;
 const baseline = mode === '--baseline', flange = mode === '--flange';
 const rotateBaseline = mode === '--rotate-baseline', rotateFlange = mode === '--rotate-flange';
 const rotate = rotateBaseline || rotateFlange || mode === '--rotate';
@@ -26,9 +27,10 @@ const pins = [
 ];
 const f = await createFlow({
   name: mirrorStudy ? 'sheet-mirror-boundary' : rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
-  envFrozen: mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  envFrozen: mirrorReplacement ? 'D817_SOURCE_FROZEN' : mirrorStudy ? 'D816_SOURCE_FROZEN' : rotateFlange ? 'D815_SOURCE_FROZEN' : rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: mirrorStudy ? 'Compare the legacy Studio Mirror and a native single-body reflection with an asymmetric hole.' :
+  qualification: mirrorReplacement ? 'Apply and reopen the single reflected sheet and verify legacy Mirror.' :
+    mirrorStudy ? 'Compare the legacy Studio Mirror and a native single-body reflection with an asymmetric hole.' :
     rotateFlange ? 'Pick and apply a flange on the reopened rotated L-bracket, save, and edit the sheet source.' :
     rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
     flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
@@ -108,8 +110,8 @@ const button = (parent, name) => parent.getByRole('button', { name, exact: true 
 const flatDialog = () => f.page.getByRole('dialog', { name: 'Flat pattern', exact: true });
 const flatButton = () => button(f.page, 'Show the flat pattern');
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = (mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
-const name = mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
+const project = (mirrorReplacement ? 'D817 reflected sheet ' : mirrorStudy ? 'D816 sheet Mirror ' : rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
+const name = mirrorReplacement ? 'D817-sheet.bcad' : mirrorStudy ? 'D816-sheet.bcad' : rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} differs from ${b} (tolerance ${tolerance})`);
 function vectorNear(a, b, tolerance) {
   assert.equal(a.length, b.length);
@@ -223,7 +225,7 @@ await f.run(async () => {
   const bytes = Buffer.from(JSON.stringify(seed));
   assert.equal(sha256(bytes), 'e399b53950bf73dd5eb3e148013c6190169187dd5918e84194c8bacac44c01ab');
   if (mirrorStudy) {
-    await qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip });
+    await qualifyMirrorBoundary(f, seed, { name, selectBody, showFlat, projectRoundTrip, replacement: mirrorReplacement });
     assert.deepEqual(f.report.downloads, []);
     return;
   }

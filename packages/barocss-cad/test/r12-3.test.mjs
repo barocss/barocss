@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, flatPattern, checkOutput, flatPatternOf, massPropertiesOf, reevaluate } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { evaluateCadPart, flatPattern, checkOutput, faceGeometry, flatPatternOf, massPropertiesOf, reevaluate } from '../dist/index.js';
 
 // R12.3a (D118): edge flanges and their end reliefs. Oracles from the definitions, not the construction:
 // - where the outer virtual sharp lands: on the edge (material inside), T·tan(θ/2) past it (material outside: the inner
@@ -171,7 +172,67 @@ test('R12.3a sheet Rotate about a nonzero pivot carries the named bend and fixed
   mass.centroid.forEach((value, i) => close(value, expectedCentroid[i], 1e-9, 'rotated centroid'));
 });
 
-test('R12.3a sheet Translate and Rotate drop the report for ambiguous fixed faces or more than one native solid', () => {
+test('R12.3a single YZ reflection carries the fixed skin, bend and asymmetric holes', () => {
+  const { input: { partDocument } } = JSON.parse(readFileSync(new URL('../conformance/r12/accept-l-bracket.json', import.meta.url), 'utf8'));
+  const base = partDocument.features.map(feature => feature.id === 'n1' ? { ...feature, center: [25, 18] } : feature);
+  const before = evaluateCadPart(D(base)), original = before.outputs[0], originalReport = structuredClone(original.sheet);
+  const mirror = { id: 'm', kind: 'mirror', target: 'n6', plane: 'yz', keep: false };
+  const reflected = reevaluate(before, { document: D([...base, mirror]) }).outputs[0];
+  assert.equal(reflected.bodyCount, 1);
+  assert.equal(checkOutput(reflected).valid, true);
+  assert.deepEqual(reflected.brep.faces.map(face => face.name), original.brep.faces.map(face => face.name));
+  assert.notEqual(reflected.sheet, original.sheet);
+  assert.notEqual(reflected.sheet.bends[0].axis, original.sheet.bends[0].axis);
+  const [bend] = reflected.sheet.bends, [originalBend] = originalReport.bends;
+  assert.deepEqual({ ...reflected.sheet, bends: [{ ...bend, axis: originalBend.axis }] }, originalReport);
+  bend.axis.origin.forEach((value, i) => close(value, [-3, 30, 3][i], 1e-12, 'reflected bend origin'));
+  bend.axis.direction.forEach((value, i) => close(value, [0, -1, 0][i], 1e-12, 'reflected bend direction'));
+  assert.deepEqual(original.sheet, originalReport);
+
+  const checkNormal = (output, expected) => {
+    const fixed = output.brep.faces.filter(face => face.name === 'n0.leg0.a');
+    assert.equal(fixed.length, 1);
+    const geometry = faceGeometry(fixed[0]);
+    assert.equal(geometry.kind, 'plane');
+    geometry.n.forEach((value, i) => close(value, expected[i], 1e-12, 'fixed skin normal'));
+  };
+  checkNormal(original, [-1, 0, 0]);
+  checkNormal(reflected, [1, 0, 0]);
+  const width = 30, holeRadius = 2.75, allowance = Math.PI / 2 * (R + K * T), length = 64 + allowance;
+  const flat = flatPatternOf(reflected);
+  assert.equal(flat.fixedFace, 'n0.leg0.a');
+  close(flat.box.max[0], width, 1e-12, 'reflected flat width');
+  close(flat.box.max[1], length, 1e-12, 'reflected flat length');
+  close(flat.area, width * length - 2 * Math.PI * holeRadius ** 2, 1e-12, 'reflected flat area');
+  assert.equal(flat.loops.filter(loop => loop.outer && loop.area > 0).length, 1);
+  const holes = flat.loops.filter(loop => !loop.outer).map(loop => {
+    close(loop.area, -Math.PI * holeRadius ** 2, 1e-12, 'clockwise hole area');
+    assert.equal(loop.segments.length, 1);
+    const [arc] = loop.segments;
+    assert.equal(arc.kind, 'arc');
+    assert.equal(arc.ccw, false);
+    close(arc.radius, holeRadius, 1e-12, 'reflected hole radius');
+    return arc.center;
+  }).sort((a, b) => a[1] - b[1]);
+  assert.equal(holes.length, 2);
+  const expectedHoles = [[18, 15], [15, length - 10]];
+  holes.forEach((point, i) => point.forEach((value, j) => close(value, expectedHoles[i][j], 1e-12, 'reflected hole centre')));
+  assert.deepEqual(flat.bends.map(b => [b.name, b.direction]), [['n0.bend1', 'down']]);
+  close(flat.bends[0].allowance, allowance, 1e-12, 'reflected bend allowance');
+  flat.bends[0].centre.forEach(point => close(point[1], length - 27 - allowance / 2, 1e-12, 'reflected bend centre'));
+
+  const originalMass = massPropertiesOf(original), mass = massPropertiesOf(reflected);
+  close(mass.volume, originalMass.volume, 1e-9, 'reflected volume');
+  mass.centroid.forEach((value, i) => close(value, (i === 0 ? -1 : 1) * originalMass.centroid[i], 1e-9, 'reflected centroid'));
+  const combined = reevaluate(before, { document: D([...base, { ...mirror, keep: true }]) }).outputs[0];
+  assert.equal(checkOutput(combined).valid, true);
+  close(massPropertiesOf(combined).volume, 2 * originalMass.volume, 1e-9, 'legacy combined volume');
+  assert.equal(combined.sheet, undefined);
+  assert.throws(() => flatPatternOf(combined), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  assert.deepEqual(original.sheet, originalReport);
+});
+
+test('R12.3a sheet Translate, Rotate and single YZ reflection drop ambiguous or multi-body reports', () => {
   // A shallow slot splits the named top into two while a full-depth slot also splits the solid.
   for (const [z, bodyCount] of [[0.75, 1], [-1, 2]]) {
     const tool = [
@@ -187,6 +248,7 @@ test('R12.3a sheet Translate and Rotate drop the report for ambiguous fixed face
     const transforms = [
       { id: 'm', kind: 'translate', target: 'split', offset: [7, -3, 11] },
       { id: 'm', kind: 'rotate', target: 'split', axis: 'x', angle: 30, pivot: [5, 7, 11] },
+      { id: 'm', kind: 'mirror', target: 'split', plane: 'yz', keep: false },
     ];
     for (const op of transforms) {
       const moved = out([...base, op]);
@@ -197,10 +259,22 @@ test('R12.3a sheet Translate and Rotate drop the report for ambiguous fixed face
   }
 });
 
-test('R12.3a a mirror, scale, pattern or union drops the sheet report and a subsequent flange refuses', () => {
+test('R12.3a single YZ reflection still moves an ordinary solid without making it sheet metal', () => {
+  const ordinary = [plate[0], { id: 'b', kind: 'extrude', sketch: 's', height: T }];
+  const reflected = out([...ordinary, { id: 'm', kind: 'mirror', target: 'b', plane: 'yz', keep: false }]);
+  assert.equal(checkOutput(reflected).valid, true);
+  assert.equal(reflected.sheet, undefined);
+  const mass = massPropertiesOf(reflected);
+  close(mass.volume, A * B * T, 1e-12, 'reflected ordinary solid volume');
+  close(mass.centroid[0], -A / 2, 1e-12, 'reflected ordinary solid centroid X');
+});
+
+test('R12.3a an unqualified mirror, scale, pattern or union drops the sheet report and a subsequent flange refuses', () => {
   const base = [...plate, flange()];
   const transforms = [
-    { id: 'm', kind: 'mirror', target: 'fl', plane: 'yz', keep: false },
+    { id: 'm', kind: 'mirror', target: 'fl', plane: 'yz' },
+    { id: 'm', kind: 'mirror', target: 'fl', plane: 'xz', keep: false },
+    { id: 'm', kind: 'mirror', target: 'fl', plane: 'xy', keep: false },
     { id: 'm', kind: 'scale', target: 'fl', factor: 1 },
     { id: 'm', kind: 'linear-pattern', target: 'fl', axis: 'x', spacing: 200, count: 2 },
   ];

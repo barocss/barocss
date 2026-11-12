@@ -17,6 +17,7 @@ import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
 import { checkBearingHousingRef } from '../engine/bearingContext';
 import { firstProblem, isRefusal } from '../engine/refusal';
+import { mirrorReplacementProblem } from '../engine/mirrorReplacement';
 import { isObj, isVec3 } from '../util/guards';
 
 type Spec = Record<string, string>;
@@ -30,7 +31,7 @@ const SPECS: Record<string, Spec> = {
   loft: { sections: 'sections', 'smooth?': 'bool', 'guide?': 'loft-guide' },
   translate: { parent: 'ref', offset: 'dim3' },
   rotate: { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', 'pivot?': 'dim3' },
-  mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
+  mirror: { parent: 'ref', plane: 'enum:xy|xz|yz', 'keep?': 'bool' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'fill-feature-pattern': { parent: 'ref', region: 'any', anchor: 'any', spacing: 'dim', count: 'positive-index', spacing2: 'dim', count2: 'positive-index' },
@@ -192,6 +193,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     if (why) return `${kind}.${key}: ${why}`;
   }
   if ((kind === 'fillet' || kind === 'chamfer') && (node.edges as string[]).some(e => ellipseSideEdge(nodes, e))) return `${kind}.edges: ${ELLIPSE_SIDE_EDGE_REFUSAL}`;
+  if (kind === 'mirror') return mirrorReplacementProblem(node);
   if (kind === 'sew') return sewNodeProblem(node);
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
   if (kind === 'text') return textNodeProblem(node, parameters);

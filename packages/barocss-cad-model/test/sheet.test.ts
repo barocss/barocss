@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { commands } from '../src/app/commands';
+import { commands, type Ctx } from '../src/app/commands';
 import { profilePath } from '../src/app/sheetCommands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, withNode, type StudioDoc } from '../src/engine/doc';
@@ -8,6 +8,8 @@ import { readStudioDoc } from '../src/engine/migrate';
 import { personFile } from './person-file';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editFields } from '../src/app/editFields';
+import { toPartDocument } from '../src/engine/part';
+import { checkNode } from '../src/chat/features';
 
 // R12.1 (D116): sheet metal in the studio — a plate from a sketch and a bent profile from the palette, their rules and
 // bends in the body's panel (the K-factor's prefill said to be an estimate), and the agent's commands and raw nodes.
@@ -201,4 +203,34 @@ test('D120 a sheet on a bend table: its notes name the table and each bend\'s ro
   const l = await dispatchTool(a.state, 'load_rows', { kind: 'bend', file: shop.file, feature: 0 }, evaluate);
   assert.ok(!l.isError, l.content);
   assert.ok(Math.abs(l.state.bodies[0].flat!.box.max[0] - 80.8) < 1e-9 && l.state.bodies[0].sheet!.bendTable === 'shop-2mm');
+});
+
+
+test('a sheet Mirror has an explicit origin-YZ replacement and preserves the legacy lowering', () => {
+  const sheet = commands.find(command => command.id === 'sheet-profile')!;
+  const mirror = commands.find(command => command.id === 'mirror')!;
+  const empty: Ctx = { doc: emptyDoc(), bodies: [], selection: none };
+  const doc = sheet.build!(empty, { ...sheet.defaults!(empty), shape: 'l' });
+  const ctx: Ctx = { doc, bodies: bodiesOf(doc), selection: { ...none, bodies: [0] } };
+  assert.equal(mirror.fields!(ctx).some(field => field.key === 'result'), true);
+  const defaults = mirror.defaults!(ctx);
+  assert.equal(defaults.result, 'combined');
+  const legacy = mirror.build!(ctx, { ...defaults, at: 0 });
+  const reflected = mirror.build!(ctx, { ...defaults, at: 0, result: 'reflected' });
+  const combinedFeature = toPartDocument(legacy).features.at(-1);
+  const reflectedFeature = toPartDocument(reflected).features.at(-1);
+  assert.equal(combinedFeature?.kind === 'mirror' && combinedFeature.keep, true);
+  assert.equal(reflectedFeature?.kind === 'mirror' && reflectedFeature.keep, false);
+  const last = reflected.nodes.at(-1);
+  assert.ok(last?.kind === 'mirror' && last.keep === false);
+  assert.equal(checkNode(last, doc.nodes, doc.parameters), null);
+  const opened = readStudioDoc(JSON.stringify(reflected));
+  assert.ok('doc' in opened, JSON.stringify(opened));
+  assert.deepEqual(opened.doc, reflected);
+
+  const invalid = { ...last, plane: 'xy' as const };
+  assert.match(checkNode(invalid, doc.nodes, doc.parameters) ?? '', /YZ plane at X = 0/);
+  assert.throws(() => toPartDocument({ ...reflected, nodes: [...doc.nodes, invalid] }), /YZ plane at X = 0/);
+  assert.throws(() => mirror.build!(ctx, { ...defaults, at: 1, result: 'reflected' }), /YZ plane at X = 0/);
+  assert.throws(() => mirror.build!(ctx, { ...defaults, plane: 'xz', at: 0, result: 'reflected' }), /YZ plane at X = 0/);
 });

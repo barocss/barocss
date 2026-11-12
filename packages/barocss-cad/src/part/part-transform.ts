@@ -48,7 +48,7 @@ function hasSheetFaces(brep: Brep, sheet: SheetReport): boolean {
   });
 }
 
-/** Preserve sheet metadata after an explicit rigid Translate or Rotate. */
+/** Preserve sheet metadata after an admitted whole-body isometry. */
 function carryRigidSheet(result: Result, brepOf: TransformHelpers['brepOf'], at: string): Result {
   if (result.kind !== 'solid' || result.parts.length !== 1) return result;
   const [part] = result.parts, move = part.moved, sheet = move?.from.sheet;
@@ -91,6 +91,7 @@ export function transformOperation(f: CadPartFeature & Record<string, unknown>, 
       const target = solids(f.target, 'target'), plane = f.plane;
       if (plane !== 'xy' && plane !== 'xz' && plane !== 'yz') fail('INPUT', 'plane must be xy, xz or yz');
       const m: BrepAffine['matrix'] = plane === 'xy' ? [1, 0, 0, 0, 1, 0, 0, 0, -1] : plane === 'xz' ? [1, 0, 0, 0, -1, 0, 0, 0, 1] : [-1, 0, 0, 0, 1, 0, 0, 0, 1];
+      if (f.keep === false && plane === 'yz') return () => carryRigidSheet(moveAll(target, m, [0, 0, 0]), brepOf, at);
       if (!f.keep) return () => moveAll(target, m, [0, 0, 0]);
       return () => many(target.map(p => boolean(p.solid, affine(p.solid, m, [0, 0, 0], n => n + '@m'), 'union', at)));
     }

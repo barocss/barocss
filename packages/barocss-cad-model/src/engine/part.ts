@@ -27,6 +27,7 @@ import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
 import { coded, isRefusal, refusal } from './refusal';
+import { mirrorReplacementProblem } from './mirrorReplacement';
 import { assertRouteBundleDocument } from './routeBundle';
 import { bodyMesh } from './mesh';
 import { faceProfile } from '../app/faceProfile';
@@ -137,8 +138,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
     case 'translate': return { ...at, kind: 'translate', target: ref(node.parent), offset: node.offset };
     case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angle: node.angle, ...(node.pivot ? { pivot: node.pivot } : {}) };
-    // Studio mirrors keep the original, as a mirror copy beside it.
-    case 'mirror': return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: true };
+    case 'mirror': {
+      const problem = mirrorReplacementProblem(node);
+      if (problem) throw refusal('SHEET_VALUE', problem);
+      return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: node.keep ?? true };
+    }
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };

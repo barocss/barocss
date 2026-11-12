@@ -1,0 +1,186 @@
+{
+  "decision": "D817",
+  "tier": "FULL",
+  "parent": "f8862459ac2cbfff8ad66cb4e78309b52c3190be",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d817-sheet-mirror-replacement",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-mirror-study.mjs",
+    "node --check packages/barocss-cad/test/r12-3.test.mjs",
+    "pnpm --dir packages/barocss-cad type-check",
+    "node packages/barocss-cad/scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/r12-s0.test.mjs test/r12-1.test.mjs test/r12-2.test.mjs test/r12-3.test.mjs test/r12-4.test.mjs test/brep-mass-translation.test.mjs",
+    "cd packages/barocss-cad && node --test --test-name-pattern='^conformance r12-' test/conformance.test.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check (failed first attempt; reran on corrected Model source)",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sheet.test sheet-acceptance cad-mass-provenance",
+    "cd apps/cad-studio && D817_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --mirror-replacement",
+    "cd apps/cad-studio && D815_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/flange-regression\" --rotate-flange",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "gate.sh acquire heavy 600 d817-mirror-api-regression",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test api-studio-commands api-part",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d817-2026-11-12",
+    "firstFailure": "Model type-check refused a kernel-only code and an unnarrowed file-reader result.",
+    "runs": {
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "396f3a540827dce69ae8ec7b81ee7a35a8e7c6de442afc1eb863e3bbd60c16ba",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "studio-legacy-mirror",
+            "keep": true,
+            "bodyCount": 1,
+            "volume": 5935.536489519336,
+            "centroid": [
+              -2.7860020251956967e-14,
+              14.96397551419944,
+              7.007842511441475
+            ],
+            "flatError": {
+              "code": "CAPABILITY",
+              "message": "n7: not made as sheet metal: give its thickness and K-factor to the kernel's flatPattern"
+            },
+            "bytes": 2280,
+            "sha256": "88ac9fbd91a1f06d6916aeed23608d6b04ed7d08882993f4f39ed3cf60148a9a"
+          },
+          {
+            "label": "studio-reflected-only",
+            "keep": false,
+            "bodyCount": 1,
+            "volume": 2967.7682447596635,
+            "centroid": [
+              -12.141098054079878,
+              14.963975514199518,
+              7.007842511441268
+            ],
+            "axis": {
+              "origin": [
+                -3,
+                30,
+                2.9999999999999996
+              ],
+              "direction": [
+                0,
+                -1,
+                0
+              ]
+            },
+            "fixedNormal": [
+              1,
+              0,
+              -6.123233995736767e-17
+            ],
+            "flat": {
+              "area": 1974.2710130907633,
+              "box": {
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  30,
+                  67.39292006587698
+                ]
+              },
+              "holes": [
+                [
+                  17.999999999999964,
+                  15.000000000000021
+                ],
+                [
+                  14.999999999999996,
+                  57.392920065876964
+                ]
+              ],
+              "bend": {
+                "name": "n0.bend1",
+                "direction": "down",
+                "angle": 89.99999999999993,
+                "radius": 1.5000000000000004,
+                "kFactor": 0.44,
+                "allowance": 3.392920065876975,
+                "centre": [
+                  [
+                    30,
+                    38.69646003293849
+                  ],
+                  [
+                    0,
+                    38.69646003293849
+                  ]
+                ],
+                "tangents": [
+                  [
+                    [
+                      30,
+                      40.39292006587698
+                    ],
+                    [
+                      0,
+                      40.39292006587698
+                    ]
+                  ],
+                  [
+                    [
+                      30,
+                      37
+                    ],
+                    [
+                      0,
+                      37
+                    ]
+                  ]
+                ],
+                "faces": [
+                  "n0.bend1.outer"
+                ]
+              }
+            },
+            "bytes": 2301,
+            "sha256": "105926ebdd42b7a492ab9ff80daef8f6833df79c20c1a2feefc3a902c7fa0521"
+          }
+        ]
+      },
+      "flange-regression": {
+        "status": "PASS",
+        "sha256": "d583d3b38c4cb36b78afb91ee3792da24e4d70f1d6eff295f56004f3c81bbf17",
+        "frozenSources": 1008,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "focused": {
+      "cadPass": 45,
+      "r12ConformancePass": 20,
+      "modelPass": 14,
+      "modelApiPass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "cadBuild": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

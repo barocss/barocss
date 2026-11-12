@@ -598,9 +598,12 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       if (node.pivot) [0, 1, 2].forEach(k => number('p' + k, 'Pivot ' + 'XYZ'[k], 'mm', n => num((n as typeof node).pivot![k]), (n, v) => { const p = [...(n as typeof node).pivot!] as [Dim, Dim, Dim]; p[k] = v; return { ...(n as typeof node), pivot: p }; }));
       break;
-    case 'mirror':
-      out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
+    case 'mirror': {
+      const options = node.keep === false ? [{ value: 'yz', label: 'YZ' }] :
+        [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }];
+      out.push({ kind: 'choice', key: 'plane', label: 'Plane', options, get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
+    }
     case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
     case 'fill-feature-pattern':
       out.push({ kind: 'choice', key: 'region', label: 'Region snapshot', options: [{ value: '', label: 'Current region snapshot' }, ...eligibleFillPatternRegions({ nodes: [...nodes], parameters })], get: () => '', set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), region: fillRegionSnapshot({ nodes: [...n], parameters }, Number(v)) }) });

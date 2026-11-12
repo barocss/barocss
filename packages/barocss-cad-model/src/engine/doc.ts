@@ -401,7 +401,7 @@ type ModelNodeBase = DrivenSketchNode | SketchNode | TextNode | TextReliefNode |
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim]; made?: Made }
-  | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
+  | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz'; keep?: boolean }
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
@@ -1193,7 +1193,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'rectangular-relief': return node.mode === 'emboss' ? 'Rectangular emboss' : 'Rectangular engrave';
     case 'translate': return 'Move';
     case 'rotate': return `Rotate ${node.angle}°`;
-    case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;
+    case 'mirror': return `${node.keep === false ? 'Reflect' : 'Mirror'} ${node.plane.toUpperCase()}`;
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
