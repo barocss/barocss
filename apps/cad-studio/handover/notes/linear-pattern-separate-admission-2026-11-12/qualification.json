@@ -1,0 +1,81 @@
+{
+  "decision": "D831",
+  "tier": "FEATURE",
+  "parent": "b95ccec487fdd2445e291b9aa1d41037fd170220",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d831-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d831-linear-pattern-admission",
+    "node --check apps/cad-studio/test/linear-pattern-admission-browser.mjs",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/baseline\" --baseline",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/baseline-2\" --baseline",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "cd apps/cad-studio && D831_SOURCE_FROZEN=1 node test/linear-pattern-admission-browser.mjs \"$EVIDENCE/desktop-3\"",
+    "gate.sh acquire heavy 600 d831-linear-pattern-feature",
+    "cd apps/cad-studio && D823_SOURCE_FROZEN=1 node test/z-pattern-separate-count-browser.mjs \"$EVIDENCE/z-pattern-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test circular-pattern editFields feature-handles api-verbs",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test command preview pattern project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/test/feature-handles.test.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "6b4a035ba479d2f3c3f69b9e66139d9c8b123ecffdda4aacf17d9c418e9531e7",
+      "firstFailure": "Driver expected a Studio body key from the native feature ID field."
+    },
+    "baseline-2": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "577d2d9228ab9b82fafafe632745fa660d0d4c065110de51bca30e749f06bc8e",
+      "fractionalCountOffsetsX": [0, 14, 28],
+      "zeroSpacingOffsetsX": [0, 0],
+      "volumeEach": 216
+    },
+    "desktop-1": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "58f93b06647174431f0a98a16bfef288614e93f1538cc32329cbd698259cbb7d",
+      "firstFailure": "Driver compared the open command state with a capture made before opening it."
+    },
+    "desktop-2": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "9b0c7ae8b0f54fec10179855168720c2876d5f15475fe6703fe65de102af08d9",
+      "firstFailure": "Driver expected preview color to remain after the refusal."
+    },
+    "desktop-3": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "65975b74e098e314f30f4bc87de969012292ea3f9dd2a4c465483f8754059a65",
+      "refusedCounts": [2.5, 1, 25],
+      "refusedSpacing": 0,
+      "firstUndoVolume": 192,
+      "firstRedoVolume": 216,
+      "acceptedOffsetsX": [0, -16],
+      "volumeEach": 216,
+      "nativeCorners": 16,
+      "nativeComparisonAbsoluteTolerance": 1e-8
+    },
+    "z-pattern-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "223a9ef5a3b404cb51901d3a2df7f5315d6d5bdc4a4167a9d970bf6750bfd208",
+      "frozenSources": 346
+    }
+  },
+  "allDesktopRuns": { "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "linearPatternFrozenSources": 813,
+  "focused": { "modelPass": 48, "studioPass": 87, "fail": 0, "skip": 0 },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "driverSyntax": "PASS",
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "rootVisualReview": "PASS"
+}

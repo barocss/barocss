@@ -78,6 +78,23 @@ test('Patterns can make separate bodies instead of one', () => {
   assert.ok(ring.every(b => Math.abs(b.volume! - 1000) < 1e-6));
 });
 
+test('Separate linear pattern validates the inputs before copying and preserves signed spacing', () => {
+  const ctx = picked(rectanglePart(10, 10, 10));
+  const linear = cmd('linear-pattern'), defaults = linear.defaults!(ctx);
+  const separate = { ...defaults, result: 'separate', spacing: -16, count: 2 };
+  for (const count of [0, 1, 2.5, 25, NaN, Infinity]) {
+    assert.throws(() => linear.build!(ctx, { ...separate, count }), /whole-number Count from 2 to 24/);
+  }
+  for (const spacing of [0, -0, '', NaN, Infinity, -Infinity]) {
+    assert.throws(() => linear.build!(ctx, { ...separate, spacing }), /finite nonzero distance/);
+  }
+  const row = bodiesOf(linear.build!(ctx, separate));
+  assert.deepEqual(row.map(body => body.mesh.bounds.min[0]), [0, -16]);
+  assert.equal(Object.keys(linear.build!(ctx, { ...separate, count: 24 }).outputs!).length, 24);
+  const [single] = bodiesOf(linear.build!(ctx, { ...defaults, count: 1, spacing: -16 }));
+  assert.ok(Math.abs(single.volume! - 1000) < 1e-6);
+});
+
 test('Hole types: to a depth, and counterbored (a wider hole to its depth on the same centre)', () => {
   const doc = rectanglePart(40, 20, 10), bodies = bodiesOf(doc), top = bodies[0].mesh.faces.findIndex(f => f.normal[2] > 0.99);
   const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face: top }], edges: [], bodies: [] } }, hole = cmd('hole');

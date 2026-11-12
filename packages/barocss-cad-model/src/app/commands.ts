@@ -190,6 +190,7 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 }
 /** A pattern's copies: joined into one body (the kernel's pattern), or each a body of its own. */
 const RESULT: Field = { key: 'result', label: 'Result', kind: 'choice', options: [{ value: 'one', label: 'One body' }, { value: 'separate', label: 'Separate bodies' }] };
+const LINEAR_PATTERN_COUNT = { min: 2, max: 24 };
 const Z_CIRCULAR_COUNT_MAX = 36;
 /** The axis a mirror plane is across. */
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
@@ -871,8 +872,9 @@ const allCommands: Command[] = [
   {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
-    fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
-      { key: 'spacing', label: 'Spacing', kind: 'mm', min: 1 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 24 }, RESULT],
+    fields: (_ctx, v) => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: v?.result === 'separate' ? undefined : 1 },
+      { key: 'count', label: 'Count', kind: 'count', ...LINEAR_PATTERN_COUNT }, RESULT],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', spacing: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 8) : 20, count: 3, result: 'one' }; },
     // Spacing: an arrow at the second copy; count: one past the last (each spacing dragged adds a copy).
     handles: (ctx, v) => {
@@ -880,11 +882,16 @@ const allCommands: Command[] = [
       const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
       const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
       const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
-      return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), min: 2, max: 24, unit: '' }].filter(() => max[k] > min[k] - 1);
+      return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
     },
     build: (ctx, v) => {
       const body = refOf(oneBody(ctx)!), k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count);
       if (v.result !== 'separate') return withNode(ctx.doc, { kind: 'linear-pattern', parent: body, axis: v.axis as Axis, spacing: s, count: n });
+      const { min, max } = LINEAR_PATTERN_COUNT;
+      if (!Number.isInteger(n) || n < min || n > max) {
+        throw refusal('VALUE', `Separate linear patterns use a whole-number Count from ${min} to ${max}, including the original.`);
+      }
+      if (!Number.isFinite(s) || s === 0) throw refusal('VALUE', 'Spacing must be a finite nonzero distance.');
       let doc = ctx.doc;
       for (let c = 1; c < n; c++) { const o: [number, number, number] = [0, 0, 0]; o[k] = s * c; doc = duplicateBody(doc, body, o).doc; }
       return doc;

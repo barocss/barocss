@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D831 — validate separate-body linear pattern inputs before copying](notes/linear-pattern-separate-admission-2026-11-12/README.md).
 - [D830 — retire overlaid line diagnostics during spline drag](notes/overlaid-line-spline-drag-2026-11-12/README.md).
 - [D829 — verify stored side identity in overlaid sketch lines](notes/overlaid-line-source-identity-2026-11-12/README.md).
 - [D828 — find exact overlaid straight sketch segments](notes/overlaid-sketch-lines-2026-11-12/README.md).
