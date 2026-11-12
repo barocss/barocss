@@ -30,7 +30,8 @@ import { useSketchActions } from './sketch/useSketchActions';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
-import { carryHistorySketchSelection, useFeatureHistory } from './state/useFeatureHistory';
+import { useFeatureHistory } from './state/useFeatureHistory';
+import { carrySketchSelection } from './state/profileSelection';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
@@ -943,8 +944,18 @@ export function App() {
     pushUndo();
     if (!setDoc(next, whole)) return false;
     setMarker(null); setDirty(true); setEditNode(null);
-    // An empty document has no bodies; clear them now so defaults are not computed from the old model.
-    if (!Object.keys(next.outputs).length) { setBodies([]); claimBodies.current = true; setSelection(emptySel); }
+    const hasBodies = Object.keys(next.outputs).length > 0;
+    if (!hasBodies) { setBodies([]); claimBodies.current = true; }
+    if (whole) {
+      if (!hasBodies) setSelection(emptySel);
+    } else {
+      setSelection(current => {
+        const carried = carrySketchSelection(current, doc, next);
+        if (hasBodies) return carried;
+        const { sketches } = carried;
+        return sketches?.length ? { ...emptySel, sketches } : emptySel;
+      });
+    }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
     return true;
   }, [doc, marker, bodies, acceptanceScope]);
@@ -1525,7 +1536,7 @@ export function App() {
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
     const previous = docNow.current;
     if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); }
-    else setSelection(selection => carryHistorySketchSelection(selection, previous, entry.doc));
+    else setSelection(selection => carrySketchSelection(selection, previous, entry.doc));
     setDocState(entry.doc);
     setMarker(entry.marker);
     if (entry.documentIdentity) {

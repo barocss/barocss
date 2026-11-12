@@ -1,0 +1,218 @@
+{
+  "decision": "D810",
+  "tier": "SMALL",
+  "parent": "43065301064a85a20ab880d20c826ee617e85793",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d810-deleted-profile-selection",
+    "node --check apps/cad-studio/test/deleted-profile-selection-browser.mjs",
+    "cd apps/cad-studio && D810_SOURCE_FROZEN=1 node test/deleted-profile-selection-browser.mjs \"$EVIDENCE/baseline-1\" --baseline",
+    "cd apps/cad-studio && D810_SOURCE_FROZEN=1 node test/deleted-profile-selection-browser.mjs \"$EVIDENCE/baseline-2\" --baseline (includes deleting the last solid)",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test dependents versions driven-sketch-contract",
+    "cd apps/cad-studio && D810_SOURCE_FROZEN=1 node test/deleted-profile-selection-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D809_SOURCE_FROZEN=1 node test/reordered-profile-selection-browser.mjs \"$EVIDENCE/reorder-regression\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d810-2026-11-12",
+    "baselineProduct": "FAIL_STALE_PROFILE_SELECTION",
+    "runs": {
+      "baseline-1": {
+        "status": "PASS",
+        "sha256": "96f4dd8379d94f3b8ed08b23e719d7f6160000bf70933b19d2e089ba212fd2a1",
+        "frozenSources": 340,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      },
+      "baseline-2": {
+        "status": "PASS",
+        "sha256": "e1f8e90de21141e26a300e2037192032df3f8d09bc3a382cd1993077af7376d6",
+        "frozenSources": 340,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "01-delete-earlier",
+            "picked": [
+              4
+            ],
+            "id": "n5"
+          },
+          {
+            "label": "04-extrude-after-delete",
+            "profile": "n5",
+            "volume": 100.53096491487342,
+            "centroid": [
+              64.99999999999999,
+              9.999999999999991,
+              1
+            ]
+          },
+          {
+            "label": "05-cancel-cascade",
+            "picked": [
+              4
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "06-confirm-cascade",
+            "picked": [
+              4
+            ],
+            "id": null
+          },
+          {
+            "label": "08-delete-picked-sketch",
+            "picked": [
+              4
+            ],
+            "id": "n5"
+          },
+          {
+            "label": "09-delete-only-solid",
+            "picked": [],
+            "id": null
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "994e42d7684217d7cd6df8c166eaafcb7a61b9813de897aa3bc39a1a98b8544d",
+        "frozenSources": 341,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "01-delete-earlier",
+            "picked": [
+              3
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "02-undo-delete",
+            "picked": [
+              4
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "03-redo-delete",
+            "picked": [
+              3
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "04-extrude-after-delete",
+            "profile": "n4",
+            "volume": 56.54866776461632,
+            "centroid": [
+              45.999999999999886,
+              9.999999999999991,
+              1
+            ]
+          },
+          {
+            "label": "05-cancel-cascade",
+            "picked": [
+              4
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "06-confirm-cascade",
+            "picked": [
+              1
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "07-extrude-after-cascade",
+            "profile": "n4",
+            "volume": 56.54866776461632,
+            "centroid": [
+              45.999999999999886,
+              9.999999999999991,
+              1
+            ]
+          },
+          {
+            "label": "08-delete-picked-sketch",
+            "picked": [],
+            "id": null
+          },
+          {
+            "label": "09-delete-only-solid",
+            "picked": [
+              1
+            ],
+            "id": "n4"
+          },
+          {
+            "label": "10-extrude-after-last-solid",
+            "profile": "n4",
+            "volume": 56.54866776461632,
+            "centroid": [
+              45.999999999999886,
+              9.999999999999991,
+              1
+            ]
+          }
+        ]
+      },
+      "reorder-regression": {
+        "status": "PASS",
+        "sha256": "97cdfaa2b8c3d418f76262cedea9822c7ce593ea09d8c7d18b034c2f974215e3",
+        "frozenSources": 342,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "focused": {
+      "modelPass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

@@ -1,7 +1,6 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { featureLabel, parentsOf, prefixDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { featureId } from '@barocss/cad-model/engine/ids';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { refOf, type Selection } from '@barocss/cad-model/app/commands';
 import { featureOfPick } from '@barocss/cad-model/app/editCommand';
@@ -14,21 +13,6 @@ interface FeatureHistoryOptions {
   changes: { canChangeDocument(): boolean; commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>> };
   onNotice(notice: FriendlyError): void;
 }
-/** Keep the picked profiles attached to their feature IDs when history changes their indices. */
-export function carryHistorySketchSelection(selection: Selection, from: StudioDoc, to: StudioDoc): Selection {
-  const { sketches } = selection;
-  if (!sketches?.length || from.nodes === to.nodes) return selection;
-  const indices = new Map(to.nodes.flatMap((node, index) =>
-    node.kind === 'sketch' || node.kind === 'driven-sketch' ? [[featureId(to.nodes, index), index] as const] : []));
-  const picked = sketches.flatMap(index => {
-    const node = from.nodes[index];
-    if (node?.kind !== 'sketch' && node?.kind !== 'driven-sketch') return [];
-    const next = indices.get(featureId(from.nodes, index));
-    return next === undefined ? [] : [next];
-  });
-  return picked.length === sketches.length && picked.every((index, i) => index === sketches[i]) ? selection : { ...selection, sketches: picked };
-}
-
 /** Feature history operations retain their original validation and central acceptance callbacks. */
 export function useFeatureHistory({ model, worker, changes, onNotice: setToast }: FeatureHistoryOptions) {
   const { doc, marker, bodies, selection } = model;
@@ -72,7 +56,7 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
     engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), nextRevision()).then(e => {
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot move ${label} there: ${e.error.title}` }); return; }
-      if (commit(r.doc)) setSelection(selection => carryHistorySketchSelection(selection, doc, r.doc));
+      commit(r.doc);
     });
   };
   /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
