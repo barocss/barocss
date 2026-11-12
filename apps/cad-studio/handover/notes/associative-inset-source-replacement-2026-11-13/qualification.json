@@ -1,0 +1,86 @@
+{
+  "decision": "D870",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "7237785a8a3dfcbd4de4bc1367b718fc7d6e8a7a",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d870-desktop-01",
+    "D870_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/studio-run01 --relink",
+    "gate.sh acquire heavy 600 d870-desktop-02",
+    "D870_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/studio-run02 --relink",
+    "D868_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/open-regression --fixed",
+    "gate.sh acquire heavy 600 d870-feature-checks-final",
+    "node packages/barocss-cad-model/scripts/test.mjs associative-inset-relink sketch-associative-inset drawing-associative-sketch native-midpoint-plane",
+    "cd apps/cad-studio && node scripts/test.mjs midpoint-sketch document-file sketch-edit-identity",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/app/midpointSketch.ts apps/cad-studio/src/engine/client.ts apps/cad-studio/src/engine/engine.worker.ts apps/cad-studio/src/sketch/useInsetRelink.ts apps/cad-studio/src/ui/InsetSourceReview.tsx apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/viewport/useViewportPicking.ts packages/barocss-cad-model/src/app/associativeInsetRelink.ts packages/barocss-cad-model/test/associative-inset-relink.test.ts",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 28,
+    "studioPass": 46,
+    "typeChecks": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "appLint": "NOT_RUN",
+    "logSHA256": "64a31a49d4871d80f38134991d4e6d60d754666ecc10c597812275ad042f8052",
+    "firstStudioTypeCheck": "FAIL: TS18047 on nullable body volume"
+  },
+  "studio": {
+    "firstRun": {
+      "status": "FAIL",
+      "receiptSHA256": "3f1263de2bc3d6dbd638b0bba8429d3cd8bcbbed59dd9bd0fd9fc05f31ec654f",
+      "sourceManifestSHA256": "6b34f3f9e95efbc0086221de2ebfe893de9a5d8e215e2c026451ae077d405084",
+      "frozenFiles": 829,
+      "snapshots": 12,
+      "pageErrors": 1,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "firstFailure": "The unrelated end-face button accessed the undefined replacement review when editing the new source width."
+    },
+    "replacement": {
+      "status": "PASS",
+      "receiptSHA256": "85b2552a97dce6407570966b0dd45a7d5bf61330b786c30030dfa3e41315440c",
+      "sourceManifestSHA256": "61d5f623d9e1df7645b5add7d0ee622c869cfe14f7006d66a8cac5e591666a14",
+      "frozenFiles": 829,
+      "snapshots": 13,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "invalidOpenRegression": {
+      "status": "PASS",
+      "receiptSHA256": "12c77ab3b610eef2eb9bbc9acf97905575f0ccd1dad1bf5de1a156ebfb052352",
+      "sourceManifestSHA256": "9be8a8244920bfe5a905ef09a040b2543043fba1e58b92e0f635438bbd23685c",
+      "frozenFiles": 828,
+      "snapshots": 11,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "0ca337f60de122a78f6846cf8d3a924dd04ec7114605ac90849945d4a7654193",
+    "sourceBefore": "n1.top",
+    "sourceAfter": "n3.top",
+    "target": "n1",
+    "insetMm": 2,
+    "extrusionMm": 4,
+    "volumeMm3": [
+      960.0000000000016,
+      1280.0000000000011,
+      1343.9999999999977
+    ],
+    "previewPixels": 11076,
+    "previewCenterAlpha": 0,
+    "projectBytes": 2581,
+    "projectSHA256": "8501b280484c6617768763c24d94692b024d0c3709d22a9644c48dfd7ec21c8d",
+    "independentTolerance": 1e-08
+  }
+}

@@ -22,12 +22,12 @@ export interface ViewportMenu {
   title: string;
 }
 
-export function useViewportPicking({ doc, nativeVertexReady, midpointPickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
   setDirectSel, setMeasure, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
-  midpointPickState: RefObject<{ midpointReady: boolean }>;
+  nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
   doc: StudioDoc; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
   sectionRef: RefObject<Section | null>; sectionFacePickRef: RefObject<number | null>; viewBodiesRef: RefObject<BodyResult[]>;
@@ -95,7 +95,7 @@ export function useViewportPicking({ doc, nativeVertexReady, midpointPickState, 
     }
     // A corner: picked on its own (Shift adds or takes back another).
     if (hit.vertex) { const v = hit.vertex; if (nativeVertexReady) bindNativeVertexPick(v, doc); setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
-    if (hit.face && midpointPickState.current.midpointReady) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
+    if (hit.face && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       // Bodies only: the body under the click (Shift adds or takes it back).
@@ -112,7 +112,7 @@ export function useViewportPicking({ doc, nativeVertexReady, midpointPickState, 
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, assembly, doc, nativeVertexReady, midpointPickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, assembly, doc, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {
@@ -151,7 +151,7 @@ export function useViewportPicking({ doc, nativeVertexReady, midpointPickState, 
     },
     onContextMenu(at, hit) {
       if (scene.active || scene.sketch) return;
-      if (hit.face && !hit.edge && midpointPickState.current.midpointReady) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
+      if (hit.face && !hit.edge && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
       const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }
         : hit.face ? { faces: [hit.face], edges: [], bodies: [] }
         : scene.selection;

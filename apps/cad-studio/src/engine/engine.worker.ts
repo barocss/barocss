@@ -3,6 +3,9 @@ import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evalu
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { currentFaceEndDistance, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
+import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
+import { planeOf, profileRings } from '@barocss/cad-model/app/profiles';
+import { toLocal } from '@barocss/cad-model/sketch/plane';
 import { nativeMidpointPlane, type NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
 import { projectMaterialFootprint } from '@barocss/cad-model/engine/materialFootprint';
 import { projectViews } from '@barocss/cad-model/drawing/project';
@@ -27,6 +30,7 @@ export type WorkerRequest =
   | { type: 'volumes'; id: number; doc: WireDoc; intersection: number }
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
+  | { type: 'insetRelink'; id: number; doc: WireDoc; index: number; pick: Parameters<typeof relinkAssociativeInset>[2]; revision: number }
   | { type: 'verifyStoredInsets'; id: number; doc: WireDoc }
   | { type: 'faceEndDistance'; id: number; doc: WireDoc; index: number }
   | { type: 'midpointPlane'; id: number; doc: WireDoc; key: string; faces: readonly [NativeMidpointFace, NativeMidpointFace] }
@@ -109,6 +113,22 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const doc = wire.unpack(event.data.doc), base = event.data.type === 'placed' ? wire.unpack(event.data.base) : null;
   const proposed = event.data.type === 'proposalDiff' ? wire.unpack(event.data.proposed) : null;
   const request = { ...event.data, doc };
+  if (request.type === 'insetRelink') {
+    try {
+      const candidate = relinkAssociativeInset(doc, request.index, request.pick);
+      const evaluated = evaluatePart(candidate.doc, request.revision, 8, 'check');
+      if (!evaluated.ok) { post({ id: request.id, error: evaluated.error.detail || evaluated.error.hint || evaluated.error.title }); return; }
+      const volume = evaluated.bodies.find(body => body.key === candidate.outputKey)?.volume;
+      const association = candidate.resolved.association;
+      if (!association || typeof volume !== 'number' || !Number.isFinite(volume) || volume <= 0) {
+        throw new Error('The replacement extrusion did not produce a solid.');
+      }
+      const plane = planeOf(candidate.resolved);
+      const rings = profileRings(candidate.resolved, candidate.doc.parameters).map(ring => ring.map(point => toLocal(plane, point)));
+      post({ id: request.id, preview: { association, plane, rings, volume } });
+    } catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    return;
+  }
   if (request.type === 'verifyStoredInsets') {
     try {
       for (const [index, node] of doc.nodes.entries()) {

@@ -11,7 +11,7 @@ export interface ProposalOverlay {
   why: string | null;
 }
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import type { SketchNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { PlanarFaceOutlineInsetAssociation, SketchNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { stepMetadata } from './stepMetadata';
@@ -20,9 +20,17 @@ import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/
 import { Lanes, type LaneReply } from './lanes';
 import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import type { SketchPlane } from '@barocss/cad-model/sketch/plane';
+import type { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
 import type { NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
 import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
+export interface InsetRelinkPreview {
+  association: PlanarFaceOutlineInsetAssociation;
+  plane: SketchPlane;
+  rings: [number, number][][];
+  volume: number;
+}
+export type InsetRelinkReply = { preview: InsetRelinkPreview } | { error: string };
 export type StoredInsetReply = { ok: true } | { error: string };
 export type FaceEndDistanceReply = { distance: number } | { error: string };
 export type MidpointPlaneReply = { plane: SketchPlane } | { error: string };
@@ -195,6 +203,14 @@ export class EngineClient {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'preview');
       this.post(id, () => ({ type: 'preview', id, doc: this.wire!.pack(doc), revision }));
+    });
+  }
+
+  previewInsetRelink(doc: StudioDoc, index: number, pick: Parameters<typeof relinkAssociativeInset>[2], revision: number): Promise<InsetRelinkReply> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve(data as InsetRelinkReply));
+      this.post(id, () => ({ type: 'insetRelink', id, doc: this.wire!.pack(doc), index, pick, revision }));
     });
   }
 

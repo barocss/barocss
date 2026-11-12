@@ -13,7 +13,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -26,6 +26,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
   useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); setReadingEnd(false); }, [nodes, index]);
   const current = evaluation?.nodes === nodes && evaluation.index === index ? evaluation : null;
   const retireEvaluation = () => {
+    onRelinkInset?.cancel();
     request.current = null;
     setReadingEnd(false);
     setEvaluation(null);
@@ -68,6 +69,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
   };
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
+  const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
   const apply = () => {
     if (!changed || pending || request.current) return;
     setModeProblem(null);
@@ -94,6 +96,8 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <ToolIconButton size="tiny" aria-label="Close editor" onClick={close}><Icon name="close" small /></ToolIconButton></div>
       {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={() => { retireEvaluation(); onEditSketch(); }}><Icon name="draw" small /> Edit sketch</button>}
+      {onRelinkInset && <button className="ghost" type="button" disabled={pending || changed || hasInsetDraft || onRelinkInset.reviewing}
+        onClick={() => { retireEvaluation(); onRelinkInset.start(); }}>Replace inset source</button>}
       {linearPattern && <div className="field"><span>Distance mode</span>
         <select aria-label="Distance mode" value={linearPattern.kind === 'linear-pattern' ? 'spacing' : 'span'} disabled={pending}
           onChange={event => changeDistanceMode(event.target.value as LinearPatternDistanceMode)}>
@@ -133,7 +137,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={remove}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={!changed || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); }}>Reset</button></div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );
 }

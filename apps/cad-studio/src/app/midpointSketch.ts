@@ -14,23 +14,24 @@ export function bindMidpointPick(pick: FacePick, doc: StudioDoc, body: BodyResul
 
 export const midpointSelectionHint = 'Select two distinct native planar faces on one visible solid.';
 
+export function currentNativePlanePick(ctx: Ctx, pick: FacePick, doc = ctx.doc): { bodyKey: string; face: NativeMidpointFace } | null {
+  const body = ctx.bodies[pick.body];
+  const ref = body?.ref, output = body && ctx.doc.outputs[body.key];
+  if (!ref || !output || output.node !== ref.node || output.side !== ref.side || lookOf(doc, body).hidden) return null;
+  const owner = pickedOn.get(pick), face = body.mesh.faces[pick.face];
+  if (owner?.doc !== doc || owner.mesh !== body.mesh || face?.kind !== 'plane' || face.facet || !face.nativePlaneName) return null;
+  return { bodyKey: body.key, face: { id: face.id, name: face.nativePlaneName } };
+}
+
 export function midpointFaces(ctx: Ctx, doc = ctx.doc) {
   const { faces, edges, bodies, sketches, vertices } = ctx.selection;
   if (faces.length !== 2 || edges.length || bodies.length || sketches?.length || vertices?.length
     || ctx.direct?.length || doc.instances?.length) return null;
   const [a, b] = faces;
   if (a.body !== b.body || a.face === b.face) return null;
-  const body = ctx.bodies[a.body];
-  const ref = body?.ref, output = body && ctx.doc.outputs[body.key];
-  if (!ref || !output || output.node !== ref.node || output.side !== ref.side || lookOf(doc, body).hidden) return null;
-  const identify = (pick: FacePick): NativeMidpointFace | null => {
-    const owner = pickedOn.get(pick), face = body.mesh.faces[pick.face];
-    if (owner?.doc !== doc || owner.mesh !== body.mesh || face?.kind !== 'plane' || face.facet || !face.nativePlaneName) return null;
-    return { id: face.id, name: face.nativePlaneName };
-  };
-  const first = identify(a), second = identify(b);
-  if (!first || !second || first.id === second.id) return null;
-  return { key: body.key, faces: [first, second] as const };
+  const first = currentNativePlanePick(ctx, a, doc), second = currentNativePlanePick(ctx, b, doc);
+  if (!first || !second || first.face.id === second.face.id) return null;
+  return { key: first.bodyKey, faces: [first.face, second.face] as const };
 }
 
 export const SKETCH_AT_MIDPOINT: Command = {
