@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D849 — change a saved bound extrusion’s end face](notes/extrude-change-end-face-history-2026-11-12/README.md).
 - [D848 — bind a saved Distance extrusion to an end face](notes/extrude-distance-bind-history-2026-11-12/README.md).
 - [D847 — qualify existing Extrude modes after To face](notes/extrude-legacy-modes-2026-11-12/README.md).
 - [D846 — export and reopen one bound-end extrusion as STEP](notes/extrude-end-face-step-roundtrip-2026-11-12/README.md).

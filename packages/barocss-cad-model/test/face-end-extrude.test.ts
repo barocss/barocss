@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { patchValues, shownFields, type Ctx } from '../src/app/commands';
-import { bindDistanceExtrudeCommand, canBindDistanceExtrude } from '../src/app/extrudeEndFaceEdit';
+import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '../src/app/extrudeEndFaceEdit';
 import { extrudeCommand } from '../src/app/profileCommands';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { bodyNodes, duplicateBody, moveFeature, renumber } from '../src/chat/features';
@@ -315,7 +315,7 @@ test('a saved Distance converts in place to an earlier current end face and keep
     ...bound, nodes: [...bound.nodes.slice(0, 3), fixed, translate],
     outputs: { b1: bound.outputs.b1, b4: { node: 4, side: 'solid' } }, nextId: 5,
   };
-  const command = bindDistanceExtrudeCommand(doc, 3);
+  const command = editSavedExtrudeEndFaceCommand(doc, 3);
   assert.ok(command && command.onPick && command.build && command.defaults);
   const result = evaluateDoc(doc, 0);
   assert.ok(result.ok);
@@ -330,7 +330,7 @@ test('a saved Distance converts in place to an earlier current end face and keep
   assert.match(String(command.onPick(ctx, defaults, pick(1, downstreamFace.name))?.error), /earlier current solid/i);
   const picked = command.onPick(ctx, defaults, pick(0, 'n1.bottom'));
   assert.ok(picked && !('error' in picked));
-  assert.throws(() => command.build!({ ...ctx, doc: { ...doc } }, picked), /current Distance feature/i);
+  assert.throws(() => command.build!({ ...ctx, doc: { ...doc } }, picked), /current extrusion feature/i);
   const candidate = command.build(ctx, picked);
   assert.deepEqual(candidate.nodes[3], { ...recipe, bought: false });
   assert.equal(candidate.nodes[4], translate);
@@ -347,10 +347,55 @@ test('saved Distance conversion requires a plain non-drafted, unshifted literal 
   const bound = documentAt(20);
   const fixed: ModelNode = { kind: 'extrude', id: 'n3', sketch: 2, height: 12 };
   const draft = (node: ModelNode) => ({ ...bound, nodes: [...bound.nodes.slice(0, 3), node] });
-  assert.equal(canBindDistanceExtrude(draft(fixed), 3), true);
-  assert.equal(canBindDistanceExtrude(draft(fixed), 1), false);
+  assert.equal(canEditSavedExtrudeEndFace(draft(fixed), 3), true);
+  assert.equal(canEditSavedExtrudeEndFace(draft(fixed), 1), false);
   for (const node of [
     { ...fixed, height: { parameter: 'Height' } }, { ...fixed, draft: 5 }, { ...fixed, from: 1 },
     { ...fixed, from: { parameter: 'Start' } }, { ...fixed, suppressed: true },
-  ] as ModelNode[]) assert.equal(bindDistanceExtrudeCommand(draft(node), 3), null);
+  ] as ModelNode[]) assert.equal(editSavedExtrudeEndFaceCommand(draft(node), 3), null);
+});
+
+test('an existing bound end changes its sole target dependency without replacing its feature identity', () => {
+  const first = documentAt(20);
+  const targetA = recipe.target;
+  const targetB = { body: { node: 3, side: 'solid' }, feature: 'n3', face: 'n3.bottom' } as const;
+  const doc: StudioDoc = {
+    ...first,
+    nodes: [
+      ...first.nodes.slice(0, 2),
+      { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [-10, -10], max: [20, 20] },
+      { id: 'n3', kind: 'extrude', sketch: 2, from: 30, height: 5 },
+      { id: 'n4', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] },
+      { id: 'n5', kind: 'face-end-extrude', sketch: 4, target: targetA },
+    ],
+    outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' }, b5: { node: 5, side: 'solid' } }, nextId: 6,
+  };
+  const command = editSavedExtrudeEndFaceCommand(doc, 5);
+  assert.ok(command?.build && command.onPick && command.defaults);
+  assert.equal(command.label, 'Change end face');
+  const evaluated = evaluateDoc(doc, 0);
+  assert.ok(evaluated.ok);
+  const ctx: Ctx = { doc, bodies: evaluated.bodies, selection: { faces: [], edges: [], bodies: [] } };
+  const defaults = command.defaults(ctx);
+  const face = (body: number, name: string) => ({ body, face: ctx.bodies[body].mesh.faces.find(face => face.name === name)!.index });
+  const previous = command.onPick(ctx, defaults, { face: face(0, 'n1.bottom'), edge: null });
+  assert.match(String(previous?.error), /already the end face/i);
+  assert.throws(() => command.build!(ctx, { ...defaults, endBody: 0, endFace: 'n1.bottom' }), /already the end face/i);
+  const picked = command.onPick(ctx, defaults, { face: face(1, 'n3.bottom'), edge: null });
+  assert.ok(picked && !('error' in picked));
+  const changed = command.build(ctx, picked);
+  assert.deepEqual(changed.nodes[5], { id: 'n5', kind: 'face-end-extrude', sketch: 4, target: targetB });
+  assert.deepEqual(usesOf(changed.nodes[5]), [4, 3]);
+  assert.equal(changed.outputs, doc.outputs);
+  assert.equal(changed.nextId, 6);
+  assert.equal(currentFaceEndDistance(changed, 5), 30);
+  const move = (source: StudioDoc, index: number, from: number): StudioDoc => ({
+    ...source, nodes: source.nodes.map((node, i) => i === index && node.kind === 'extrude' ? { ...node, from } : node),
+  });
+  assert.equal(currentFaceEndDistance(move(changed, 1, 24), 5), 30);
+  const moved = move(changed, 3, 40);
+  assert.equal(currentFaceEndDistance(moved, 5), 40);
+  const output = evaluateCadPart(toPartDocument(moved)).outputs.find(output => output.id === 'n5');
+  assert.ok(output && checkOutput(output).valid);
+  assert.ok(Math.abs(massPropertiesOf(output).volume - 4000) < 1e-8);
 });

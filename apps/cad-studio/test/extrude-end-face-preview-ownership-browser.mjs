@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { createFlow } from './flow-helper.mjs';
+import { randomUUID } from 'node:crypto';
+import { createFlow, sha256 } from './flow-helper.mjs';
 
+const changeSaved = process.argv[3] === '--change-saved';
 const pins = [
   'apps/cad-studio/test/extrude-end-face-preview-ownership-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -8,12 +10,14 @@ const pins = [
   'apps/cad-studio/src/state/useCommandPreview.ts',
   'apps/cad-studio/src/state/previewLifetime.ts',
   'packages/barocss-cad-model/src/app/profileCommands.ts',
+  ...(changeSaved ? ['packages/barocss-cad-model/src/app/extrudeEndFaceEdit.ts', 'apps/cad-studio/src/ui/NodeEditor.tsx'] : []),
   'packages/barocss-cad-model/src/engine/faceEndExtrude.ts',
 ];
 const f = await createFlow({
-  name: 'extrude-end-face-preview-ownership', output: process.argv[2], envFrozen: 'D845_SOURCE_FROZEN',
+  name: 'extrude-end-face-preview-ownership', output: process.argv[2], envFrozen: changeSaved ? 'D849_SOURCE_FROZEN' : 'D845_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Deliver real held Worker results after an unchanged Enter, a target re-pick, Cancel and same-ID Open.',
+  qualification: changeSaved ? 'Replace one saved bound end with another original earlier target and verify both dependencies through History and Open.'
+    : 'Deliver real held Worker results after an unchanged Enter, a target re-pick, Cancel and same-ID Open.',
   limits: ['Desktop WebGPU with two separately selectable native XY target caps and one literal rectangle.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -46,6 +50,16 @@ const seed = {
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 5,
 };
+const targetsAt = (a, b) => ({
+  ...seed,
+  nodes: seed.nodes.map(node => node.id === 'n1' ? { ...node, from: a } : node.id === 'n3' ? { ...node, from: b } : node),
+});
+const boundTo = (source, index) => ({
+  ...source,
+  nodes: [...source.nodes, { id: 'n5', kind: 'face-end-extrude', sketch: 4,
+    target: { body: { node: index, side: 'solid' }, feature: 'n' + index, face: 'n' + index + '.bottom' } }],
+  outputs: { ...source.outputs, b5: { node: 5, side: 'solid' } }, nextId: 6,
+});
 const replacement = {
   ...seed,
   nodes: seed.nodes.map(node => node.id === 'n1' ? { ...node, from: 42 } : node.id === 'n3' ? { ...node, from: 55 } : node),
@@ -164,19 +178,17 @@ async function checkFrames(permitted) {
   return { frames: frames.length, volumes: [...new Set(frames.map(frame => Math.round(frame.volume)))] };
 }
 
-async function verify(label, index, height) {
+async function verify(label, index, height, source = seed) {
   await f.ready();
   const doc = await f.doc(), feature = 'n' + index;
-  assert.deepEqual(doc.nodes.slice(0, 5), seed.nodes);
-  assert.deepEqual(doc.nodes[5], { id: 'n5', kind: 'face-end-extrude', sketch: 4,
-    target: { body: { node: index, side: 'solid' }, feature, face: feature + '.bottom' } });
-  assert.deepEqual(doc.outputs, { ...seed.outputs, b5: { node: 5, side: 'solid' } });
+  assert.deepEqual(doc, boundTo(source, index));
   const native = await f.inspect(label, doc);
   assert.deepEqual(native.feature, { id: 'n5', kind: 'extrude', sketch: 'n4', height });
   assert.deepEqual(native.outputs.map(output => output.id), ['n1', 'n3', 'n5']);
+  const firstZ = source.nodes[1].from, secondZ = source.nodes[3].from;
   for (const [i, bounds, z, top, volume, centroid] of [
-    [0, [-5, 15], 20, 25, 2000, [5, 5, 22.5]],
-    [1, [-10, 20], 30, 35, 4500, [5, 5, 32.5]],
+    [0, [-5, 15], firstZ, firstZ + 5, 2000, [5, 5, firstZ + 2.5]],
+    [1, [-10, 20], secondZ, secondZ + 5, 4500, [5, 5, secondZ + 2.5]],
     [2, [0, 10], 0, height, 100 * height, [5, 5, height / 2]],
   ]) {
     const output = native.outputs[i];
@@ -190,6 +202,104 @@ async function verify(label, index, height) {
   return { label, target: feature + '.bottom', height, extrusionVolumeMm3: 100 * height, nativeCorners: 24 };
 }
 
+async function changeSavedTarget() {
+  const original = boundTo(seed, 1), name = 'D849-change-end-face.bcad';
+  const project = 'D849 change end face ' + randomUUID();
+  const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  const hud = f.page.getByRole('dialog', { name: 'Change end face', exact: true });
+  const editor = f.editor();
+  const status = value => hud.locator('.status').filter({ hasText: new RegExp('^' + value + '$') }).waitFor();
+  await open(name, original);
+  f.report.observations.push(await verify('original-bound-target', 1, 20));
+  const ortho = button(f.page, 'Ortho');
+  if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+  assert.equal(await ortho.getAttribute('aria-pressed'), 'true');
+  const begin = async () => {
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    await f.openFeatureEditor(5, 'saved bound target');
+    await editor.getByText('n1.bottom', { exact: true }).waitFor();
+    await button(editor, 'Change end face').click();
+    await status('pick face');
+    await bottomView();
+  };
+
+  f.phase = 'refuse the identical target and cancel a valid change';
+  await begin();
+  const before = await f.snapshot('01-saved-before-change');
+  await pick(targetA);
+  await f.waitToast(/already the end face/);
+  await status('pick face');
+  assert.equal(await button(hud, 'Apply').isDisabled(), true);
+  await pick(targetB);
+  await status('preview');
+  await hud.getByText('n3.bottom', { exact: true }).waitFor();
+  assert.deepEqual(await f.doc(), original);
+  await button(hud, 'Cancel').click();
+  await hud.waitFor({ state: 'hidden' });
+  sameAccepted(await f.snapshot('02-saved-cancelled'), before);
+
+  f.phase = 'apply the different end face once with stable history and outputs';
+  await begin();
+  await pick(targetB);
+  await status('preview');
+  await button(hud, 'Apply').click();
+  await f.changed(original);
+  await hud.waitFor({ state: 'hidden' });
+  f.report.observations.push(await verify('changed-bound-target', 3, 30));
+  await f.undo();
+  f.report.observations.push(await verify('first-undo-old-target', 1, 20));
+  await f.redo();
+  f.report.observations.push(await verify('first-redo-new-target', 3, 30));
+
+  async function moveTarget(index, from) {
+    await f.openFeatureEditor(index, 'move target ' + index);
+    const before = await f.doc();
+    await editor.getByLabel('Start Z', { exact: true }).fill(String(from));
+    await button(editor, 'Apply').click();
+    await f.changed(before);
+    await editor.waitFor({ state: 'hidden' });
+  }
+  await moveTarget(1, 24);
+  f.report.observations.push(await verify('old-target-moved-independent', 3, 30, targetsAt(24, 30)));
+  await moveTarget(3, 40);
+  f.report.observations.push(await verify('new-target-moved-associative', 3, 40, targetsAt(24, 40)));
+
+  async function attachProject() {
+    if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
+    await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+    await button(versions(), 'Project in this browser').click();
+    await versions().getByLabel('Project', { exact: true }).waitFor();
+  }
+  f.phase = 'save the new target, reopen and verify both edited bodies';
+  await attachProject();
+  const accepted = await f.doc();
+  await button(f.page, 'Save').click();
+  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const root = await navigator.storage.getDirectory(), projects = await root.getDirectoryHandle('projects');
+    const directory = await projects.getDirectoryHandle(project), file = await (await directory.getFileHandle(name)).getFile();
+    return Array.from(new Uint8Array(await file.arrayBuffer()));
+  }, [project, name]));
+  assert.deepEqual(JSON.parse(bytes), accepted);
+  f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
+  await button(versions(), 'Close project').click();
+  await versions().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await f.ready();
+  await attachProject();
+  await button(versions(), 'Open ' + name).click();
+  await f.same(accepted);
+  await moveTarget(1, 22);
+  f.report.observations.push(await verify('reopened-old-target-independent', 3, 40, targetsAt(22, 40)));
+  await moveTarget(3, 45);
+  f.report.observations.push(await verify('reopened-new-target-associative', 3, 45, targetsAt(22, 45)));
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.snapshot('03-saved-new-target-after-open');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
@@ -198,6 +308,7 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
+  if (changeSaved) { await changeSavedTarget(); return; }
   await open('D845-seed.bcad', seed);
 
   f.phase = 'control: a held preview with an unchanged target commits exactly once on queued Enter';

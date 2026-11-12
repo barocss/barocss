@@ -49,7 +49,7 @@ import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
-import { bindDistanceExtrudeCommand, canBindDistanceExtrude } from '@barocss/cad-model/app/extrudeEndFaceEdit';
+import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
@@ -2471,13 +2471,13 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onBindEndFace={canBindDistanceExtrude(doc, editNode) ? () => {
+        })()} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
           if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
             || !fresh || busy || !canChangeDocument()) {
             setToast({ title: 'End face not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
             return;
           }
-          const cmd = bindDistanceExtrudeCommand(commandDoc, editNode);
+          const cmd = editSavedExtrudeEndFaceCommand(commandDoc, editNode);
           if (!cmd) return;
           discardFeatureDraft();
           setEditNode(null);
