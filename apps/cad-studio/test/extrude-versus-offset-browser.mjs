@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const capReference = process.argv[3] === '--cap-reference';
 const producers = [
   'apps/cad-studio/test/extrude-versus-offset-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -11,11 +12,14 @@ const producers = [
   'packages/barocss-cad-model/src/app/editCommand.ts',
   'packages/barocss-cad-model/src/app/profileCommands.ts',
   'packages/barocss-cad-model/src/app/nativeOffsetFace.ts',
+  ...(capReference ? ['apps/cad-studio/src/files/documentFile.ts',
+    'packages/barocss-cad-model/src/engine/references.ts', 'packages/barocss-cad/src/part/part-shell.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'extrude-versus-offset', output: process.argv[2], envFrozen: 'D895_SOURCE_FROZEN',
+  name: 'extrude-versus-offset', output: process.argv[2], envFrozen: capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
   initialFiles: producers, requiredFrozen: producers,
-  qualification: 'Compare a picked Extrude driver edit with an explicit native cap Offset face.',
+  qualification: capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
+    : 'Compare a picked Extrude driver edit with an explicit native cap Offset face.',
   limits: ['One native 20 × 10 mm axis-aligned prism and one positive cap.', 'Real face and handle pointers, field values and UI history.',
     'Analytic box volume, centroid and support planes, independent of display bounds.', 'No export, downloads, mobile or arbitrary direct-edit admission.'],
   inspectorSource: `
@@ -40,7 +44,19 @@ assert.equal(brep.shells.length, 1);
 assert.ok(brep.shells[0].closed);
 console.log(JSON.stringify({
   mass: massPropertiesOf(output),
-  faces: brep.faces.map(face => ({ name: face.name, geometry: faceGeometry(face) })),
+  faces: brep.faces.map(face => ({
+    name: face.name, geometry: faceGeometry(face),
+    ...(process.argv[3] === '"face-loops"' ? { loops: face.loops.map(id => {
+      const loop = brep.loops.find(loop => loop.id === id);
+      return { kind: loop.kind, vertices: loop.coedges.map(id => {
+        const use = brep.coedges.find(use => use.id === id);
+        const edge = brep.edges.find(edge => edge.id === use.edge);
+        assert.equal(edge.curve.degree, 1);
+        const start = edge.vertices[use.sense === 'forward' ? 0 : 1];
+        return brep.vertices.find(vertex => vertex.id === start).point;
+      }) };
+    }) } : {}),
+  })),
   vertices: brep.vertices.map(vertex => vertex.point),
   displayFaces: bodyMesh(brep, 0).faces.map(({ index, name, normal }) => ({ index, name, normal })),
 }));
@@ -160,6 +176,98 @@ async function apply(previous, label) {
   return (await f.snapshot(label)).doc;
 }
 
+async function checkCapShell(label, doc, parent, height, wall) {
+  await f.same(doc);
+  const shell = doc.nodes.at(-1), name = 'n3.top';
+  assert.equal(shell.kind, 'shell');
+  assert.deepEqual(shell.parent, { node: 4, side: 'solid' });
+  assert.deepEqual(shell.open, [name]);
+  assert.ok(shell.sigs?.[name]);
+  assert.equal(shell.held, undefined);
+  assert.equal(shell.suppressed, undefined);
+  assert.equal(shell.rematched, undefined);
+  const source = await f.inspect(`${label}-cap-native`, parent);
+  const cap = source.faces.find(face => face.name === name);
+  assert.equal(cap?.geometry.kind, 'plane');
+  near(cap.geometry.o[2], height);
+  assert.deepEqual(cap.geometry.n, [0, 0, 1]);
+  const result = await f.inspect(`${label}-shell-native`, doc, 'face-loops');
+  const stock = 200 * height, cavity = (20 - 2 * wall) * (10 - 2 * wall) * (height - wall);
+  const volume = stock - cavity, z = (stock * height / 2 - cavity * (height + wall) / 2) / volume;
+  for (const solid of [result.mass, (await f.bodies()).bodies[0]]) {
+    near(solid.volume, volume);
+    solid.centroid.forEach((value, i) => near(value, [10, 5, z][i]));
+  }
+  const rim = result.faces.find(face => face.name === name);
+  assert.equal(rim?.geometry.kind, 'plane');
+  assert.deepEqual(rim.loops.map(loop => loop.kind), ['outer', 'inner']);
+  for (const { kind, vertices } of rim.loops) {
+    const inset = kind === 'outer' ? 0 : wall;
+    assert.equal(vertices.length, 4);
+    vertices.forEach(([x, y, z]) => {
+      assert.ok([inset, 20 - inset].some(expected => Math.abs(x - expected) <= 1e-7));
+      assert.ok([inset, 10 - inset].some(expected => Math.abs(y - expected) <= 1e-7));
+      near(z, height);
+    });
+    assert.equal(new Set(vertices.map(([x, y]) => `${Math.round(x)},${Math.round(y)}`)).size, 4);
+  }
+  assert.ok(result.faces.some(face => face.geometry.kind === 'plane' && face.geometry.n[2] > 0.999999
+    && Math.abs(face.geometry.o[2] - wall) <= 1e-7), 'The native cavity floor is at the wall depth.');
+  f.report.observations.push({ label, sourceHeightMm: parent.nodes[1].height, storedPlane: parent.nodes[2].plane,
+    nativeCap: cap, rimLoops: rim.loops, open: shell.open, parent: shell.parent, sig: shell.sigs[name], volumeMm3: result.mass.volume,
+    expectedVolumeMm3: volume, centroidMm: result.mass.centroid, wallMm: wall });
+  await f.snapshot(label);
+}
+
+async function checkCapReference() {
+  const seed = await f.inspect('seed', {}, 'seed');
+  await f.newPage();
+  await open(seed);
+  const initial = await box('source-5', seed, 5);
+  await pickCap('01-cap-for-offset', initial, 5);
+  await clickModelCommand(f.page, 'Modify', 'Offset face');
+  await hud().getByLabel('Offset', { exact: true }).fill('2');
+  await status('preview');
+  const extended = await apply(seed, '02-appended-offset');
+  const native = await box('offset-parent', extended, 7);
+  f.phase = 'use a real pick on the new cap as the Shell opening';
+  const cap = await pickCap('03-cap-for-shell', native, 7);
+  assert.equal(cap.name, 'n3.top');
+  await clickModelCommand(f.page, 'Modify', 'Shell');
+  await hud().getByLabel('Wall', { exact: true }).fill('1');
+  await status('preview');
+  const shelled = await apply(extended, '04-shell-applied');
+  assert.deepEqual(shelled.nodes.slice(0, 5), extended.nodes);
+  await checkCapShell('05-shell-from-offset-cap', shelled, extended, 7, 1);
+
+  f.phase = 'edit the original Extrude while retaining the Offset cap and Shell opening';
+  await f.openFeatureEditor(1);
+  await f.editor().getByLabel('Distance', { exact: true }).fill('6');
+  const edited = (await f.applyEditor(shelled, '06-source-edited')).doc;
+  const updatedParent = { ...extended, nodes: [extended.nodes[0], { ...extended.nodes[1], height: 6 }, ...extended.nodes.slice(2)] };
+  assert.deepEqual(edited.nodes.slice(0, 5), updatedParent.nodes);
+  await checkCapShell('07-shell-after-source-edit', edited, updatedParent, 7, 1);
+  await f.undo();
+  await f.same(shelled);
+  await f.redo();
+  await f.same(edited);
+  const saved = await save(edited, 'D896 offset cap reference');
+  await f.newPage();
+  await open(edited, saved);
+  await checkCapShell('08-shell-fresh-open', edited, updatedParent, 7, 1);
+
+  f.phase = 'edit the reopened Shell wall while retaining the cap reference';
+  await f.openFeatureEditor(5);
+  await f.editor().getByLabel('Wall', { exact: true }).fill('2');
+  const thicker = (await f.applyEditor(edited, '09-wall-edited')).doc;
+  assert.deepEqual(thicker.nodes.slice(0, 5), updatedParent.nodes);
+  await checkCapShell('10-shell-wall-2', thicker, updatedParent, 7, 2);
+  await f.undo();
+  await f.same(edited);
+  await f.redo();
+  await f.same(thicker);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -173,6 +281,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (capReference) {
+    await checkCapReference();
+    return;
+  }
   const seed = await f.inspect('seed', {}, 'seed');
   await f.newPage();
   await open(seed);
