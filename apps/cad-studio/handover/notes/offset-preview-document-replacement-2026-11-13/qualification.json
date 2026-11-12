@@ -1,0 +1,353 @@
+{
+  "decision": "D897",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "a83ea0a7c7f7c49d77ce52461c11e8c9d06bd4f7",
+  "issue": 2285,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d897-studio-offset-replacement02",
+    "D897_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/extrude-versus-offset-browser.mjs <external-evidence>/replacement02 --replacement",
+    "gate.sh acquire heavy 600 d897-affected-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-offset-face native-offset-result",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family document-file",
+    "node --check apps/cad-studio/test/extrude-versus-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstStudio": {
+    "status": "PASS",
+    "scope": "Same-name replacement and retry, before adding the no-replacement pending Enter control.",
+    "receiptSHA256": "399936240bffcdde81d90176ce333443af3348331e1f9c699f6159e08b11bdbd"
+  },
+  "initialFocused": {
+    "status": "FAIL",
+    "studioPass": 25,
+    "studioFail": 1,
+    "reason": "The existing Fillet viewport hook fixture did not supply the required onExtrudeTargetPick callback.",
+    "logSHA256": "b099049610a2f97602d9dd49d7bed37e05e9ed0202a6f982d938bc3799da61ca"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 23,
+    "studioPass": 26,
+    "logSHA256": "2685e5d8913db1aba9aa8eb0ea1d205783e9bb086c1406201b6aeefa5bdbbb23"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "50fab7830d7a9851ce112856cacfe25fb4331bc7147b80e6a4644c45a594e3ff",
+    "sourceManifestSHA256": "93be6b6ad80a251dacf761002bc52a1c0f31e5beeccf9623209da00263bd3954",
+    "frozenFiles": 845,
+    "snapshots": 8,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "toleranceMm": 1e-07,
+    "toleranceMm3": 1e-07,
+    "observations": [
+      {
+        "label": "old-source-5",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1000.0000000000001,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          2.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            5
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "real-late-preview",
+        "reply": {
+          "id": 4,
+          "revision": 4,
+          "nodes": [
+            {
+              "id": "n2",
+              "kind": "sketch"
+            },
+            {
+              "id": "n3",
+              "kind": "extrude",
+              "height": 2
+            },
+            {
+              "id": "n4",
+              "kind": "union"
+            }
+          ],
+          "ok": true,
+          "resultRevision": 4,
+          "bodies": [
+            {
+              "key": "b4",
+              "volume": null,
+              "bounds": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  20,
+                  10,
+                  7
+                ]
+              }
+            }
+          ]
+        },
+        "currentHeightMm": 9,
+        "history": [
+          "Extrude 9"
+        ]
+      },
+      {
+        "label": "current-height-9",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1800.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          4.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            9
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "current-offset-height-10",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 2000.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            10
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "control-queued-height-11",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 2200.0000000000005,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          5.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            11
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "queued-apply-control",
+        "reply": {
+          "id": 13,
+          "revision": 13,
+          "nodes": [
+            {
+              "id": "n2",
+              "kind": "sketch"
+            },
+            {
+              "id": "n3",
+              "kind": "extrude",
+              "height": 2
+            },
+            {
+              "id": "n4",
+              "kind": "union"
+            }
+          ],
+          "ok": true,
+          "resultRevision": 13,
+          "bodies": [
+            {
+              "key": "b4",
+              "volume": null,
+              "bounds": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  20,
+                  10,
+                  11
+                ]
+              }
+            }
+          ]
+        },
+        "resultHeightMm": 11
+      }
+    ]
+  },
+  "notRun": [
+    "Project Open replacement",
+    "failure reply timing",
+    "all preview commands",
+    "new project persistence in this item",
+    "full suites",
+    "mobile"
+  ]
+}

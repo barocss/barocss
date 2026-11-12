@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D897 — retire a pending Offset preview on document replacement](notes/offset-preview-document-replacement-2026-11-13/README.md).
 - [D896 — retain the Offset cap reference through Shell](notes/offset-cap-shell-reference-2026-11-13/README.md).
 - [D895 — compare selected Extrude editing with Offset face](notes/selected-extrude-versus-offset-2026-11-13/README.md).
 - [D894 — measure native cylindrical wall area](notes/native-cylinder-measure-area-2026-11-13/README.md).

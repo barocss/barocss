@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const capReference = process.argv[3] === '--cap-reference';
+const replacementFlow = process.argv[3] === '--replacement';
 const producers = [
   'apps/cad-studio/test/extrude-versus-offset-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -14,11 +15,15 @@ const producers = [
   'packages/barocss-cad-model/src/app/nativeOffsetFace.ts',
   ...(capReference ? ['apps/cad-studio/src/files/documentFile.ts',
     'packages/barocss-cad-model/src/engine/references.ts', 'packages/barocss-cad/src/part/part-shell.ts'] : []),
+  ...(replacementFlow ? ['apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
+    'apps/cad-studio/src/state/previewLifetime.ts', 'apps/cad-studio/src/files/useStudioDocumentFiles.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'extrude-versus-offset', output: process.argv[2], envFrozen: capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
+  name: 'extrude-versus-offset', output: process.argv[2],
+  envFrozen: replacementFlow ? 'D897_SOURCE_FROZEN' : capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
   initialFiles: producers, requiredFrozen: producers,
-  qualification: capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
+  qualification: replacementFlow ? 'Retire a real pending Offset preview and queued Apply when the source file is replaced.'
+    : capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
     : 'Compare a picked Extrude driver edit with an explicit native cap Offset face.',
   limits: ['One native 20 × 10 mm axis-aligned prism and one positive cap.', 'Real face and handle pointers, field values and UI history.',
     'Analytic box volume, centroid and support planes, independent of display bounds.', 'No export, downloads, mobile or arbitrary direct-edit admission.'],
@@ -268,12 +273,152 @@ async function checkCapReference() {
   await f.same(thicker);
 }
 
+function holdOffsetPreview() {
+  const worker = Worker.prototype;
+  const post = worker.postMessage;
+  const handler = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  if (!handler?.set) throw new Error('Worker onmessage setter required');
+  let armed = false, request = null, held = null;
+  worker.postMessage = function (message, ...args) {
+    if (armed && message?.type === 'preview') {
+      armed = false;
+      request = { worker: this, id: message.id, revision: message.revision,
+        nodes: (message.doc?.added ?? []).map(([, node]) => ({ id: node.id, kind: node.kind, height: node.height })) };
+    }
+    return Reflect.apply(post, this, [message, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true,
+    get: handler.get,
+    set(callback) {
+      handler.set.call(this, callback && function (event) {
+        if (request?.worker === this && request.id === event.data?.id && event.data.result) {
+          const { id, revision, nodes } = request, result = event.data.result;
+          held = { read: { id, revision, nodes, ok: result.ok, resultRevision: result.revision,
+            bodies: result.bodies?.map(body => ({ key: body.key, volume: body.volume, bounds: body.mesh.bounds })) },
+          deliver: () => callback.call(this, event) };
+          request = null;
+          return;
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+  const notices = [];
+  const watch = () => new MutationObserver(() => {
+    for (const toast of document.querySelectorAll('.toast')) {
+      if (!notices.includes(toast.textContent)) notices.push(toast.textContent);
+    }
+  }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  if (document.body) watch(); else document.addEventListener('DOMContentLoaded', watch, { once: true });
+  window.__d897 = {
+    arm() { if (armed || held || request) throw new Error('One real preview may be held'); armed = true; },
+    held: () => held?.read ?? null,
+    notices: () => notices,
+    release() {
+      if (!held) throw new Error('No real preview is held');
+      const reply = held;
+      held = null;
+      reply.deliver();
+      return reply.read.id;
+    },
+  };
+}
+
+async function checkReplacement() {
+  const seed = await f.inspect('seed', {}, 'seed');
+  const current = { ...seed, nodes: [seed.nodes[0], { ...seed.nodes[1], height: 9 }] };
+  await f.newPage();
+  await open(seed);
+  const native = await box('old-source-5', seed, 5);
+  await pickCap('01-old-cap', native, 5);
+  const tab = f.page.locator('.doc-tab input');
+  const tabName = await tab.inputValue();
+  await f.page.evaluate(() => window.__d897.arm());
+  f.phase = 'hold a real Offset +2 reply and request Apply while it is pending';
+  await clickModelCommand(f.page, 'Modify', 'Offset face');
+  await status('evaluating…');
+  const reply = await (await f.page.waitForFunction(() => window.__d897.held())).jsonValue();
+  assert.equal(reply.ok, true);
+  assert.equal(reply.resultRevision, reply.revision);
+  assert.deepEqual(reply.nodes.slice(-3).map(node => node.kind), ['sketch', 'extrude', 'union']);
+  assert.equal(reply.nodes.at(-2).height, 2);
+  assert.equal(reply.bodies.length, 1);
+  near(reply.bodies[0].bounds.max[2], 7);
+  const offset = hud().getByLabel('Offset', { exact: true });
+  assert.equal(await offset.inputValue(), '2');
+  assert.ok(await button(hud(), 'Apply').isDisabled());
+  await offset.press('Enter');
+  await status('evaluating…');
+  await f.same(seed);
+  await f.snapshot('02-queued-apply-before-replacement');
+
+  f.phase = 'open a replacement with the same file name and feature IDs';
+  await open(current);
+  await hud().waitFor({ state: 'hidden' });
+  assert.equal(await tab.inputValue(), tabName);
+  assert.equal(await f.page.getByLabel('Unsaved changes', { exact: true }).count(), 0);
+  const before = await f.snapshot('03-current-before-old-reply');
+  f.phase = 'deliver the superseded Offset reply';
+  assert.equal(await f.page.evaluate(() => window.__d897.release()), reply.id);
+  const after = await f.snapshot('04-current-after-old-reply');
+  await f.same(current);
+  for (const field of ['doc', 'history', 'selection', 'bodies', 'hud', 'notices']) {
+    assert.deepEqual(after[field], before[field], field);
+  }
+  assert.equal(await f.page.getByLabel('Unsaved changes', { exact: true }).count(), 0);
+  assert.ok(!(await f.page.evaluate(() => window.__d897.notices())).some(notice => /Source changed|Offset face/.test(notice)));
+  f.report.observations.push({ label: 'real-late-preview', reply, currentHeightMm: 9, history: after.history });
+  const currentNative = await box('current-height-9', current, 9);
+
+  f.phase = 'retry Offset explicitly on the current cap';
+  await pickCap('05-current-cap', currentNative, 9);
+  await clickModelCommand(f.page, 'Modify', 'Offset face');
+  await hud().getByLabel('Offset', { exact: true }).fill('1');
+  await status('preview');
+  const next = await apply(current, '06-current-offset-applied');
+  assert.deepEqual(next.nodes.slice(0, 2), current.nodes);
+  assert.equal(next.nodes[2].plane.origin[2], 9);
+  assert.equal(next.nodes[3].height, 1);
+  await box('current-offset-height-10', next, 10);
+  await f.undo();
+  await f.same(current);
+  await f.redo();
+  await f.same(next);
+
+  f.phase = 'control: pending Enter applies when the same source stays current';
+  await f.undo();
+  await f.same(current);
+  await pickCap('07-control-current-cap', currentNative, 9);
+  await f.page.evaluate(() => window.__d897.arm());
+  await clickModelCommand(f.page, 'Modify', 'Offset face');
+  const controlReply = await (await f.page.waitForFunction(() => window.__d897.held())).jsonValue();
+  assert.equal(controlReply.ok, true);
+  near(controlReply.bodies[0].bounds.max[2], 11);
+  await status('evaluating…');
+  assert.ok(await button(hud(), 'Apply').isDisabled());
+  await hud().getByLabel('Offset', { exact: true }).press('Enter');
+  await f.same(current);
+  assert.equal(await f.page.evaluate(() => window.__d897.release()), controlReply.id);
+  await f.changed(current);
+  await hud().waitFor({ state: 'hidden' });
+  const queued = (await f.snapshot('08-control-queued-apply')).doc;
+  assert.deepEqual(queued.nodes.slice(0, 2), current.nodes);
+  assert.equal(queued.nodes[2].plane.origin[2], 9);
+  assert.equal(queued.nodes[3].height, 2);
+  await box('control-queued-height-11', queued, 11);
+  await f.undo();
+  await f.same(current);
+  f.report.observations.push({ label: 'queued-apply-control', reply: controlReply, resultHeightMm: 11 });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    if (replacementFlow) await context.addInitScript(holdOffsetPreview);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -281,6 +426,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (replacementFlow) {
+    await checkReplacement();
+    return;
+  }
   if (capReference) {
     await checkCapReference();
     return;
