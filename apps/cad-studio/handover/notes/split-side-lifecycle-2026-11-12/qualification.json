@@ -1,0 +1,72 @@
+{
+  "decision": "D788",
+  "tier": "SMALL evidence",
+  "parent": "4f04b50784beb99e7376ba037ccb665eedf5e30e",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/split-side-lifecycle-browser.mjs",
+    "cd apps/cad-studio && D788_SOURCE_FROZEN=1 node test/split-side-lifecycle-browser.mjs \"$EVIDENCE/desktop-split-sides\"",
+    "cd apps/cad-studio && D788_SOURCE_FROZEN=1 node test/split-side-lifecycle-browser.mjs \"$EVIDENCE/desktop-split-sides-2\"",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test api-verbs split-bed editFields",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 d788-split-side",
+    "evidenceFolder": "d788-2026-11-12",
+    "firstDesktop": {
+      "status": "FAIL",
+      "phase": "author the interior X Split",
+      "sha256": "ec99797e3ce01f978667f0dab6d5cf023a2a0f7c811cb800a9c5cbcdeaa210bd",
+      "cause": "The driver opened Split with no selected body."
+    },
+    "desktop": {
+      "status": "PASS",
+      "sha256": "b013025064470122c0f1c11398e535a7a6a8b89c0bd2e16839f1b04b63e0ee93",
+      "frozenSources": 800,
+      "independentChecks": 7,
+      "preparedInputSHA256": "49d387bdcc1d762e01270cecaa4bcb73e1450299802b65937322737bf6806e44",
+      "sourceSaveBytes": 1075,
+      "sourceSaveSHA256": "2d6d2066f54f03e6759dfc8d5f057e2a7385e654461b533ce30b6546d7c006cc",
+      "errors": 0,
+      "downloads": 0
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 25,
+      "fail": 0,
+      "skip": 0
+    },
+    "nativeRefusal": {
+      "code": "SELECTION",
+      "feature": "n2",
+      "cutMm": 60
+    },
+    "cutsMm": [
+      24,
+      30,
+      36
+    ],
+    "negativeVolumeMm3": [
+      7200,
+      9000,
+      10800
+    ],
+    "positiveVolumeMm3": [
+      10800,
+      9000,
+      7200
+    ],
+    "positiveMoveMm": [
+      0,
+      40,
+      0
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}
