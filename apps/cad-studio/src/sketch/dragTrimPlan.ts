@@ -1,5 +1,5 @@
 import { CadNumericPolicy } from '@barocss/cad';
-import { cornersOf } from '@barocss/cad-model/sketch/entityIds';
+import { cornersOf, nextIdOf, withIds } from '@barocss/cad-model/sketch/entityIds';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
 import { trimAt, trimPreview } from '@barocss/cad-model/sketch/trim';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
@@ -16,6 +16,7 @@ const ambiguous = 'Drag Trim needs an unambiguous crossing away from line ends a
 const unsupported = 'Drag Trim supports independent straight open lines without dimensions or constraints.';
 const twoBoundaries = 'Drag Trim needs two distinct cutting boundaries inside each crossed line.';
 const budget = 'Drag Trim supports up to three intervals in a bounded straight sketch.';
+const sideIds = 'Drag Trim needs unique sketch side IDs.';
 
 type OpenLine = Extract<SketchShape, { kind: 'polygon' }>;
 type Interval = readonly [P2, P2];
@@ -85,9 +86,17 @@ function isTarget(shape: SketchShape): shape is OpenLine {
 
 function idsOf(shapes: readonly SketchShape[]): Set<string> | null {
   const ids = new Set<string>();
-  for (const shape of shapes) for (const id of [...(shape.ids ?? []), ...(shape.kind === 'polygon' ? shape.circleIds ?? [] : [])]) {
-    if (!/^e(?:0|[1-9]\d*)$/.test(id) || Number(id.slice(1)) > Number.MAX_SAFE_INTEGER - 2 * maxCuts - 1 || ids.has(id)) return null;
-    ids.add(id);
+  for (const shape of shapes) {
+    const circles = shape.kind === 'polygon' ? shape.circleIds : undefined;
+    for (const list of [shape.ids, circles]) {
+      if (list === undefined) continue;
+      if (!Array.isArray(list)) return null;
+      for (const id of list) {
+        if (typeof id !== 'string' || !/^e(?:0|[1-9]\d*)$/.test(id)
+          || Number(id.slice(1)) > Number.MAX_SAFE_INTEGER - 2 * maxCuts - 1 || ids.has(id)) return null;
+        ids.add(id);
+      }
+    }
   }
   return ids;
 }
@@ -183,40 +192,57 @@ export function planDragTrim(shapes: SketchShape[], path: readonly P2[], protect
   hits.sort((a, b) => a.travel - b.travel);
   if (hits.some((hit, i) => i > 0 && hit.line.shape !== hits[i - 1].line.shape && hit.travel - hits[i - 1].travel <= linearTolerance)) return failure(ambiguous);
 
-  const ids = idsOf(shapes), visited = new Set<string>();
-  if (!ids) return failure('Drag Trim needs unique sketch side IDs.');
+  const ids = idsOf(shapes), visited = new Set<OpenLine>();
+  if (!ids) return failure(sideIds);
+  if (new Set(shapes).size !== shapes.length) return failure(ambiguous);
   const cuts: { hit: Hit; target: OpenLine; interval: Interval }[] = [];
   for (const hit of hits) {
     const target = hit.line.shape;
     if (!isTarget(target)) return failure(unsupported);
-    if (target.ids?.length !== 2) return failure('Drag Trim needs a saved side ID for each crossed line.');
-    if (visited.has(target.ids[0])) continue;
-    visited.add(target.ids[0]);
+    if (target.ids !== undefined && target.ids.length !== 2) return failure(sideIds);
+    if (visited.has(target)) continue;
+    visited.add(target);
     if (visited.size > maxCuts) return failure(budget);
     const interval = intervalOf(hit, lines);
     if ('error' in interval) return interval;
     cuts.push({ hit, target, interval });
   }
 
+  // Each cut needs two endpoint IDs. A fresh target needs two more for its original ends.
+  const requiredIds = cuts.reduce((count, { target }) => count + (target.ids === undefined ? 4 : 2), 0);
+  if (nextIdOf(shapes) > Number.MAX_SAFE_INTEGER - requiredIds) return failure(sideIds);
+
   let draft = shapes;
   for (const { hit, target, interval } of cuts) {
+    const index = draft.indexOf(target);
+    if (index < 0) return failure(ambiguous);
     const current = linesOf(draft);
     if ('error' in current) return current;
     const witness = intervalOf(hit, current);
     if ('error' in witness || !sameInterval(interval, witness)) return failure(twoBoundaries);
 
+    // Seed only the crossed fresh target, so Model Trim allocates its cut IDs after the inherited ends.
+    const editable = target.ids === undefined ? withIds([target], nextIdOf(draft))[0] : target;
+    const ends = editable.ids;
+    if (!ends || ends.length !== 2) return failure(sideIds);
+    if (editable !== target) {
+      if (ends[0] === ends[1] || ends.some(id => ids.has(id))) return failure(sideIds);
+      ends.forEach(id => ids.add(id));
+      draft = draft.map((shape, i) => i === index ? editable : shape);
+    }
+
     // Other shapes still supply crossing boundaries. They cannot be picked, joined, or assigned IDs.
-    const locked = new Set(draft.filter(shape => shape !== target));
+    const locked = new Set(draft.filter(shape => shape !== editable));
     const query = at(hit.line, hit.station), preview = trimPreview(draft, query, linearTolerance, locked);
     if (!preview || !sameInterval(interval, preview)) return failure(ambiguous);
     const result = trimAt(draft, query, linearTolerance, locked);
     if ('error' in result) return result;
-    const index = draft.indexOf(target), [head, tail] = result.shapes.slice(index, index + 2);
-    if (index < 0 || result.shapes.length !== draft.length + 1
+    const [head, tail] = result.shapes.slice(index, index + 2);
+    if (result.shapes.length !== draft.length + 1
       || draft.some((shape, i) => i !== index && result.shapes[i + Number(i > index)] !== shape)
       || !head || !tail || !isRetained(head, hit.line.a, interval[0], !!target.construction)
       || !isRetained(tail, interval[1], hit.line.b, !!target.construction)
-      || head.ids![0] !== target.ids![0] || tail.ids![1] !== target.ids![1]
+      || head.ids![0] !== ends[0] || tail.ids![1] !== ends[1]
       || ids.has(head.ids![1]) || ids.has(tail.ids![0]) || head.ids![1] === tail.ids![0]) return failure(ambiguous);
     ids.add(head.ids![1]); ids.add(tail.ids![0]);
     draft = result.shapes;

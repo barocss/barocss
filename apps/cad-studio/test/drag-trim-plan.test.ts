@@ -87,7 +87,7 @@ test('the entire plan refuses unsupported, ambiguous and over-budget strokes', (
   const withTargets = [a, b, c, lower, upper], before = structuredClone(withTargets);
   const stroke: P2[] = [[-2, 5], [22, 5]];
   refused(planDragTrim([a, b, { ...c, lengths: { 0: 20 } }, lower, upper], stroke));
-  refused(planDragTrim([a, b, { ...c, ids: undefined }, lower, upper], stroke));
+  refused(planDragTrim([a, b, { ...c, ids: ['e7'] }, lower, upper], stroke));
   refused(planDragTrim([a, b, { ...c, ids: a.ids }, lower, upper], stroke));
   refused(planDragTrim([a, b, c, d, lower, upper], [[-2, 5], [32, 5]]));
   refused(planDragTrim(withTargets, [[-2, 5], [14, 5], [NaN, 5]]));
@@ -138,4 +138,72 @@ test('translated oblique crossings are stable under path subdivision and shallow
   assert.deepEqual(dense, sparse);
   assert.deepEqual(sparse.intervals, [0, 10, 20].map(x => [move([x, 0]), move([x, 10])]));
   refused(planDragTrim(local, [[-1e-8, 3], [1e-8, 7]]));
+});
+
+test('a fresh material line gains four unique IDs only in the successful candidate', () => {
+  const stock: SketchShape = { kind: 'rectangle', a: [-10, -10], b: [45, 45], ids: ['e1', 'e2', 'e3', 'e4'] };
+  const lower = { ...open([0, 15], [20, 15], 21), construction: true as const };
+  const upper = { ...open([0, 25], [20, 25], 33), construction: true as const };
+  const target = open([10, 5], [10, 35]);
+  const untouched = open([40, 5], [40, 35]);
+  const shapes = [stock, lower, target, untouched, upper], protectedShapes = new Set([lower, upper]);
+  const before = structuredClone(shapes);
+  const start: P2 = [5, 20], end: P2 = [15, 20];
+  const sparse = planDragTrim(shapes, [start, end], protectedShapes);
+  assert.ok('shapes' in sparse, JSON.stringify(sparse));
+  assert.deepEqual(sparse.intervals, [[[10, 15], [10, 25]]]);
+  assert.deepEqual(sparse.shapes.slice(2, 4).map(points), [[[10, 5], [10, 15]], [[10, 25], [10, 35]]]);
+  assert.deepEqual(sparse.shapes.slice(2, 4).map(shape => shape.ids), [['e35', 'e37'], ['e38', 'e36']]);
+  assert.ok(sparse.shapes.slice(2, 4).every(shape => !shape.construction));
+  assert.equal(sparse.shapes[0], stock);
+  assert.equal(sparse.shapes[1], lower);
+  assert.equal(sparse.shapes[4], untouched);
+  assert.equal(sparse.shapes[5], upper);
+  assert.deepEqual(planDragTrim(shapes, samples(start, end, 200), protectedShapes), sparse);
+  assert.deepEqual(planDragTrim(shapes, [start, end, start, end], protectedShapes), sparse);
+
+  const miss = planDragTrim(shapes, [[5, 20], [9, 20]], protectedShapes);
+  assert.ok('shapes' in miss);
+  assert.equal(miss.shapes, shapes);
+  assert.deepEqual(miss.intervals, []);
+  assert.equal(target.ids, undefined);
+  assert.equal(untouched.ids, undefined);
+  assert.deepEqual(shapes, before);
+});
+
+test('a mixed stroke preserves existing IDs and rejects malformed or repeated fresh ownership', () => {
+  const [a, , c] = columns([0, 10, 20]), fresh = open([10, -5], [10, 15]);
+  const [lower, upper] = boundaries(), stroke: P2[] = [[-2, 5], [22, 5]];
+  const shapes = [a, fresh, c, lower, upper];
+  const result = planDragTrim(shapes, stroke);
+  assert.ok('shapes' in result, JSON.stringify(result));
+  assert.deepEqual(result.shapes.slice(0, 6).map(shape => shape.ids), [
+    ['e1', 'e7'], ['e8', 'e2'], ['e9', 'e11'], ['e12', 'e10'], ['e5', 'e13'], ['e14', 'e6'],
+  ]);
+  assert.equal(fresh.ids, undefined);
+
+  for (const raw of [[], ['e9'], ['', 'e9'], ['e9', 'e9'], ['e1', 'e9'], ['bad', 'e9'], null, 3]) {
+    const invalid = { ...c, ids: raw as Polygon['ids'] }, before = structuredClone(invalid);
+    refused(planDragTrim([a, fresh, invalid, lower, upper], stroke));
+    assert.deepEqual(invalid, before);
+    assert.equal(fresh.ids, undefined);
+  }
+  refused(planDragTrim([a, fresh, fresh, c, lower, upper], stroke));
+});
+
+test('ID budget includes both original ends of a fresh target and preserves the old stored-ID limit', () => {
+  const [a, b, c] = columns([0, 10, 20]), [lower, upper] = boundaries();
+  const stroke: P2[] = [[-2, 5], [22, 5]];
+  const max = Number.MAX_SAFE_INTEGER;
+  const boundary = (id: number) => ({ ...upper, ids: ['e20', `e${id}`] });
+  const stored = planDragTrim([a, b, c, lower, boundary(max - 7)], stroke);
+  assert.ok('shapes' in stored, JSON.stringify(stored));
+  assert.equal(stored.shapes[5].ids?.[0], `e${max - 1}`);
+
+  const fresh = { ...b, ids: undefined };
+  refused(planDragTrim([a, fresh, c, lower, boundary(max - 7)], stroke));
+  const mixed = planDragTrim([a, fresh, c, lower, boundary(max - 9)], stroke);
+  assert.ok('shapes' in mixed, JSON.stringify(mixed));
+  assert.equal(mixed.shapes[5].ids?.[0], `e${max - 1}`);
+  assert.equal(fresh.ids, undefined);
 });

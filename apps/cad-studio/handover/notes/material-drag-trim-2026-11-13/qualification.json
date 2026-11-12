@@ -1,0 +1,66 @@
+{
+  "decision": "D877",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e60862eb5af86290df5eb4da4bf3059757476b45",
+  "issue": 2328,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D877_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/material-drag-trim-browser.mjs <external-evidence>/baseline-run01 --baseline",
+    "D877_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/material-drag-trim-browser.mjs <external-evidence>/fixed-run01",
+    "D876_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/d876-regression",
+    "cd apps/cad-studio && node scripts/test.mjs drag-trim-plan drag-trim-stroke draft-sketch-history trim.test sketch-cut-visibility constraints sketchIds",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/dragTrimPlan.ts apps/cad-studio/test/drag-trim-plan.test.ts",
+    "node --check apps/cad-studio/test/material-drag-trim-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 55,
+    "typeChecks": "PASS",
+    "scopedLint": "PASS",
+    "logSHA256": "aaaf2ba75b7d4679b31785c65d918a6b90318f4cc5631c4e9ed508ab3e63515f"
+  },
+  "studio": {
+    "baseline": {
+      "status": "PASS",
+      "materialDragTrim": "FAIL",
+      "firstFailure": "Drag Trim needs a saved side ID for each crossed line.",
+      "receiptSHA256": "39628f1fa602f7f5779de5dc8ec585f5b425d9ffd2d8dbe2d7cb0682b3861e2b",
+      "sourceManifestSHA256": "2f07ab4b80219bcc9c4984bba4bc4209987358d2a6b4efeedd6bcb71761e9fed",
+      "frozenFiles": 832,
+      "snapshots": 3
+    },
+    "fixed": {
+      "status": "PASS",
+      "receiptSHA256": "5570f7d89e2c731d29fc8a082400a078eaf54710775f726fc61ff548019db477",
+      "sourceManifestSHA256": "63ace97436b6ded6836d51b25e7f45e0a493b68a230932bbfd3a207d4c7ec47c",
+      "frozenFiles": 832,
+      "snapshots": 6
+    },
+    "constructionDragRegression": {
+      "status": "PASS",
+      "receiptSHA256": "5aed37543f1e31276bcb45d28ec6b06aa69a42de150fd76022eba772ab29f80c",
+      "sourceManifestSHA256": "09c739c91f7603ba02b6a7580cf99d16939a19006b529f6aae58570dd8e5222e",
+      "frozenFiles": 831,
+      "snapshots": 13
+    },
+    "visualReview": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "runnerSHA256": "8fd2d86a10728a490ae27e76485e34613682f6ddeb3d1548efc592f343b95d1c",
+    "fixtureBytes": 547,
+    "fixtureSHA256": "607b8a1363b0d075970c4c5363bb655cbf68fad01c4bbd8bca868b8065dbc465",
+    "projectionTolerancePx": 0.02,
+    "nativeTolerance": 1e-7,
+    "bodyVolumesMm3": [3200, 2100],
+    "rebuiltNativeCentroidMm": [19.642857142857135, 20, 1],
+    "projectBytes": 2721,
+    "projectSHA256": "5efaaaaf425632e668a50980e26f99e0095c96523ab20826af91b6f973350d9d"
+  }
+}
