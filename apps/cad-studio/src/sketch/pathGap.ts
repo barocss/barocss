@@ -32,8 +32,9 @@ function boundedCircle(center: P2, radius: number): boolean {
     center.every(value => Math.abs(value) + radius <= coordinateAbs);
 }
 
-export function preparePathGap(shape: SketchShape): PreparedPathGap | null {
-  if (!shape.construction) return null;
+export function preparePathGap(shape: SketchShape, ordinaryDraftLine = false): PreparedPathGap | null {
+  const straightDraft = ordinaryDraftLine && shape.kind === 'polygon' && (shape.bulges?.[0] ?? 0) === 0;
+  if (!shape.construction && !straightDraft) return null;
   if (shape.kind === 'circle') {
     if (shape.ids?.length !== 1 || typeof shape.ids[0] !== 'string' || !shape.ids[0] || !boundedCircle(shape.c, shape.r)) return null;
     return { kind: 'circle', shape: shape as Circle };

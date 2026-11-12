@@ -1,0 +1,122 @@
+{
+  "decision": "D805",
+  "tier": "FEATURE",
+  "parent": "cc43f7f47c0da8001fbe276975b3f1158d2ed97d",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/ordinary-path-gap-browser.mjs",
+    "cd apps/cad-studio && D805_SOURCE_FROZEN=1 node test/ordinary-path-gap-browser.mjs \"$EVIDENCE/baseline-1\" (before the feature; original driver hash in receipt)",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test PathGap",
+    "cd apps/cad-studio && D805_SOURCE_FROZEN=1 node test/ordinary-path-gap-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D804_SOURCE_FROZEN=1 node test/circle-path-gap-browser.mjs \"$EVIDENCE/circle-regression\"",
+    "cd apps/cad-studio && D803_SOURCE_FROZEN=1 node test/line-path-gap-browser.mjs \"$EVIDENCE/line-regression\"",
+    "cd apps/cad-studio && D802_SOURCE_FROZEN=1 node test/arc-path-gap-browser.mjs \"$EVIDENCE/arc-regression\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 600 d805-ordinary-path-gap",
+    "evidenceFolder": "d805-2026-11-12",
+    "baseline": {
+      "status": "PASS",
+      "folder": "baseline-1",
+      "sha256": "2932055fc14778adb1413d4f7442064d70fe976e7f38746cb4778e434ded2b39",
+      "frozenSources": 706,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "1442dffc9a6a05b99f8722f174849bbcb0ca06a8db75b4f990b75b8e2497783f",
+      "frozenSources": 706,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "savedBytes": 856,
+      "savedSHA256": "6a1fc63c7ba8292019494e431c67b240fa79b2837736b8ffbab120fc6cc18c85",
+      "ownedCleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "circleRegression": {
+      "status": "PASS",
+      "folder": "circle-regression",
+      "sha256": "1d6bcccab1796b78d2f228a27bcd04c82053614c186af4733e5f9c9783603225",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "lineRegression": {
+      "status": "PASS",
+      "folder": "line-regression",
+      "sha256": "06aa8dbbdf784fef02464aa2e99ab9eb902d8d156223313d6421bd4e50e2d10e",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "arcRegression": {
+      "status": "PASS",
+      "folder": "arc-regression",
+      "sha256": "b9ee4c72c092f8417de9f8be672c086f65982a6a9b27af8799e9ccccd2016833",
+      "frozenSources": 805,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "focused": {
+      "studioPass": 11,
+      "fail": 0,
+      "skip": 0
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "warnings": [
+        "INEFFECTIVE_DYNAMIC_IMPORT",
+        "MODULE_LEVEL_DIRECTIVE",
+        "PLUGIN_TIMINGS"
+      ]
+    },
+    "finish": "REFUSED",
+    "requestedGapMm": 4,
+    "measuredGapMm": 3.9999999999999982,
+    "curveLengthsMm": [
+      13.000001399999778,
+      12.999998600000032
+    ],
+    "nativeEndsMm": [
+      [
+        [
+          20,
+          20,
+          0
+        ],
+        [
+          30.400001,
+          27.800001,
+          0
+        ]
+      ],
+      [
+        [
+          33.600001,
+          30.200001,
+          0
+        ],
+        [
+          44,
+          38,
+          0
+        ]
+      ]
+    ]
+  }
+}

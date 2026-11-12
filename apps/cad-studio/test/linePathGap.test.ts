@@ -38,3 +38,14 @@ test('a straight gap refuses invalid length, ends and cuts that would rejoin', (
   assert.equal(planPathGap(source, [Infinity, 0], 4), null);
   assert.equal(preparePathGap(line([0, 0], [0, 0])), null);
 });
+
+test('an ordinary line requires the explicit draft scope', () => {
+  const shape = { ...line([20, 20], [44, 38]), construction: undefined };
+  assert.equal(preparePathGap(shape), null);
+  const source = preparePathGap(shape, true);
+  assert.ok(source);
+  assert.equal(source.shape.construction, undefined);
+  assert.ok(planPathGap(source, [32, 29], 4));
+  assert.equal(preparePathGap({ ...shape, bulges: [1, 0] }, true), null);
+  assert.equal(preparePathGap({ ...shape, closed: true }, true), null);
+});
