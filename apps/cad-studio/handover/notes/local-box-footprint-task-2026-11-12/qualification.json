@@ -1,0 +1,56 @@
+{
+  "decision": "D780",
+  "tier": "FULL interface",
+  "parent": "75882409f2933bbccd492f78db73aaf68403782d",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test task-plan task-execution proposal",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test task-run-cli task-plan-agent task-run-local-plan task-run-checkpoint task-run-handoff task-run-host",
+    "cd packages/barocss-cad-model && node \"$EVIDENCE/mutate.mjs\"",
+    "cd apps/cad-studio && D780_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/desktop-save-replay\" --box-footprint",
+    "cd apps/cad-studio && D779_SOURCE_FROZEN=1 node test/task-plan-agent-browser.mjs \"$EVIDENCE/footprint-regression\" --footprint",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d780-2026-11-12",
+    "receipts": {
+      "desktop-save-replay": {
+        "sha256": "117492410a94379c010c61a48da9167033dd648229d830736e8fbfad774c63b1",
+        "frozenSources": 879
+      },
+      "footprint-regression": {
+        "sha256": "0a9d460e722416df7ec4e86f604228dd35fde7b6a3a0b6496299057db45a3305",
+        "frozenSources": 876
+      }
+    },
+    "ownedCleanup": [
+      "CHAT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 52,
+      "fail": 0,
+      "skip": 0
+    },
+    "studio": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "mutantsKilled": [
+      "retain-obsolete-box-fields",
+      "skip-exact-box-command-rebuild"
+    ],
+    "nativeVolumeMm3": [
+      1680.0000000000002,
+      1875.0000000000005
+    ],
+    "independentAbsoluteTolerance": 1e-08
+  }
+}

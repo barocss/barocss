@@ -115,8 +115,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'edit_feature',
-    description: 'Changes an existing feature, as the feature editor does: "values" sets its editable dimensions by key (an extrude also edits its sketch: w, d, c0, c1 for a rectangle; dia, cc0, cc1 for a circle; h height; from; draft — a hole: dia, c0, c1, depth; fillet r; chamfer d; shell t; …). Call it with an index and no values to list the keys. Or pass a whole replacement "feature" node (same rules as add_features). Later features follow the edit.',
-    input_schema: { type: 'object', properties: { index: { type: 'integer' }, values: { type: 'object', additionalProperties: { type: ['number', 'string', 'boolean'] } }, feature: { type: 'object' } }, required: ['index'], additionalProperties: false },
+    description: 'Changes an existing feature, as the feature editor does: "values" sets its editable dimensions by key (an extrude also edits its sketch: w, d, c0, c1 for a rectangle; dia, cc0, cc1 for a circle; h height; from; draft — a hole: dia, c0, c1, depth; fillet r; chamfer d; shell t; …). Call it with an index and no values to list the keys. Or pass a whole replacement "feature" node (same rules as add_features). Use "retainBoxCommand": true to replace both extents of a standard Box sketch and retain the editable Box command. Later features follow the edit.',
+    input_schema: { type: 'object', properties: { index: { type: 'integer' }, values: { type: 'object', additionalProperties: { type: ['number', 'string', 'boolean'] } }, feature: { type: 'object' }, retainBoxCommand: { type: 'boolean', const: true } }, required: ['index'], additionalProperties: false },
   },
   {
     name: 'delete_feature',
@@ -362,7 +362,7 @@ export const TOOLS: ToolDefinition[] = [
   ...OUTPUT_TOOLS,
   {
     name: 'inspect_local_task_plan',
-    description: 'Reads a local dimension plan for one to three selected placed occurrences. A task changes the height of a supported straight extrusion, the width, depth, or both extents of a plain rectangle, or the diameter of one existing native through-hole. A plain circular extrusion supports height and local Z checks. For a hole diameter, author the requirement in mm or in. The plan reports the diameter and tolerance in mm. Use the occurrence IDs from assembly.get. Returns the exact model revision, feature scopes, authored targets in mm and issues that block the plan. A blocked plan cannot start. Pass the last returned revision as expectedRevision to detect changes. This call makes no edit or run.',
+    description: 'Reads a local dimension plan for one to three selected placed occurrences. A task changes the height of a supported straight extrusion, the width, depth, or both extents of a plain rectangle, both extents of a standard upright Box, or the diameter of one existing native through-hole. A plain circular extrusion supports height and local Z checks. For a hole diameter, author the requirement in mm or in. The plan reports the diameter and tolerance in mm. Use the occurrence IDs from assembly.get. Returns the exact model revision, feature scopes, authored targets in mm and issues that block the plan. A blocked plan cannot start. Pass the last returned revision as expectedRevision to detect changes. This call makes no edit or run.',
     input_schema: { type: 'object', properties: { occurrences: { ...nameList, minItems: 1, maxItems: 3, uniqueItems: true },
       expectedRevision: { type: 'string', pattern: '^[a-f0-9]{64}$' } }, required: ['occurrences'], additionalProperties: false },
   },

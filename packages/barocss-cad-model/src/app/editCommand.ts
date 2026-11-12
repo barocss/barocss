@@ -12,6 +12,7 @@ import { commands, type Command, type Ctx, type Field, type HandleSpec, type Sel
 import type { BodyResult } from '../engine/evaluate';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { refOf } from './bodyRef';
+import { canonical } from '../util/revision';
 import { boundsOf } from '../engine/bounds';
 import { textEditCommand } from './textCommand';
 import { cylindricalWrapEditCommand } from './cylindricalWrapCommand';
@@ -131,6 +132,41 @@ function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<Studio
   const probe: Ctx = { doc: { nodes: [...nodes], ...(rows.fastenerSizes ? { fastenerSizes: rows.fastenerSizes } : {}) } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   try { if (JSON.stringify(rebuild(probe, made.values).nodes.slice(start, index + 1)) !== JSON.stringify(nodes.slice(start, index + 1))) return null; } catch { return null; }
   return { ...cmd, id: 'edit', label: `Edit ${cmd.label}`, group: 'modify', available: () => ok, defaults: () => ({ ...made.values }), build: rebuild, place: undefined };
+}
+
+/** Check that Studio can rebuild these two authored nodes through the standard Box command. */
+export function isEditableBox(nodes: readonly ModelNode[], sketchIndex: number): boolean {
+  const extrusion = nodes[sketchIndex + 1];
+  if (extrusion?.kind !== 'extrude' || extrusion.made?.command !== 'box' || (extrusion.made.nodes ?? 2) !== 2) return false;
+  const values = extrusion.made.values;
+  if (!values || (values.up !== undefined && values.up !== '+z')) return false;
+  for (const key of ['w', 'd', 'h', 'x', 'y', 'z']) {
+    const value = values[key];
+    if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return false;
+    const n = Number(value);
+    if (!Number.isFinite(n) || (['w', 'd', 'h'].includes(key) && n < 1)) return false;
+  }
+  return shapeEdit(sketchIndex + 1, nodes, {}) !== null;
+}
+
+/** Retain the Box command after changing both extents of its original sketch. */
+export function updateBoxFootprint(before: readonly ModelNode[], after: ModelNode[], index: number): ModelNode[] {
+  const original = before[index], sketch = after[index], extrusion = before[index + 1];
+  if (original?.kind !== 'sketch' || original.profile !== 'rectangle' || sketch?.kind !== 'sketch' || sketch.profile !== 'rectangle'
+      || extrusion?.kind !== 'extrude' || extrusion.made?.command !== 'box' || after[index + 1] !== extrusion
+      || !Array.isArray(sketch.min) || !Array.isArray(sketch.max) || sketch.max.length !== 2
+      || sketch.max[0] === original.max[0] || sketch.max[1] === original.max[1]
+      || canonical({ ...sketch, max: original.max }) !== canonical(original)
+      || !isEditableBox(before, index)) return after;
+  const [x, y] = sketch.min, [maxX, maxY] = sketch.max;
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof maxX !== 'number' || typeof maxY !== 'number') return after;
+  // A 1 mm input can subtract to slightly less than 1 mm at a decimal origin.
+  const w = Math.max(1, maxX - x), d = Math.max(1, maxY - y);
+  if (x + w !== maxX || y + d !== maxY) return after;
+  const next = [...after], { made } = extrusion;
+  next[index] = { ...original, max: sketch.max };
+  next[index + 1] = { ...extrusion, made: { ...made, values: { ...made.values, w, d } } };
+  return isEditableBox(next, index) ? next : after;
 }
 
 /** The edit of feature `index`, or null when it has no dimension to drag; `rows`: the document's (a fastener's sizes, O7). */

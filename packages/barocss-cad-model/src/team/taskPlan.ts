@@ -1,4 +1,5 @@
 // D584: bind a bounded part task to the document and its authored design contract.
+import { isEditableBox, updateBoxFootprint } from '../app/editCommand';
 import { briefGaps, readBrief } from '../chat/brief';
 import { unitAssumptions, unconfirmed } from '../chat/drafts';
 import { checkNode } from '../chat/features';
@@ -175,8 +176,8 @@ export function taskTarget(doc: StudioDoc, task: Pick<TaskRequest, 'occurrence' 
   } else {
     return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a solid literal circle for a height task.`);
   }
-  if (dimension === 'footprint' && (extrusion.made || checkNode(sketch, [], part.parameters)))
-    return error('UNSUPPORTED_PROFILE', `${instance.id} needs an ordinary plain sketch and extrusion for a footprint task.`);
+  if (dimension === 'footprint' && ((extrusion.made && !isEditableBox(nodes, 0)) || checkNode(sketch, [], part.parameters)))
+    return error('UNSUPPORTED_PROFILE', `${instance.id} needs a plain rectangle or a standard upright Box for a footprint task.`);
   const area = shape.circle ? Math.PI * shape.circle.radius ** 2 : shape.width * shape.depth;
   if (!positive(shape.width) || !positive(shape.depth) || !positive(area * extrusion.height)) {
     return error('UNSUPPORTED_PROFILE', `${instance.id} has nonfinite volume.`);
@@ -253,9 +254,14 @@ function editRectangleExtents(doc: StudioDoc, task: BoundTask, target: TaskTarge
   const feature = { ...sketch, max };
   const reason = checkNode(feature, [], instance.doc.parameters);
   if (reason) return error('UNSUPPORTED_PROFILE', reason);
-  const local = { ...instance.doc, nodes: instance.doc.nodes.map((node, at) => at === index ? feature : node) };
+  const before = instance.doc.nodes, after = before.map((node, at) => at === index ? feature : node);
+  const nodes = updateBoxFootprint(before, after, index);
+  const extrusion = before[index + 1];
+  if (task.writes.field === 'footprint' && extrusion?.kind === 'extrude' && extrusion.made && nodes === after)
+    return error('TASK_VALUE', 'The requested extents must retain the Box command and its dimension limits.');
+  const local = { ...instance.doc, nodes };
   return { local, doc: { ...doc, instances: doc.instances!.map(part => part.id === instance.id ? { ...part, doc: local } : part) },
-    args: { index, feature }, shape: editedShape, height: target.height };
+    args: { index, feature, ...(nodes !== after && { retainBoxCommand: true }) }, shape: editedShape, height: target.height };
 }
 
 const briefFields = (brief: Brief | undefined) => Object.fromEntries(BRIEF_FIELDS

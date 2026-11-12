@@ -69,7 +69,7 @@ export function useProposalPreview({ model, worker, changes, chatRowFiles, onNot
   const tickPart = async (id: string, on: boolean) => {
     if (!ghost) return;
     const tools = await import('@barocss/cad-model/chat/tools'), leaveOut = tools.toggledLeaveOut(ghost.parts, ghost.leaveOut, id, on);
-    const partial = tools.partialDoc(doc, ghost.full, ghost.parts, leaveOut);
+    const partial = tools.partialDoc(doc, ghost.full, ghost.parts, leaveOut, doc.proposals?.find(p => p.id === ghost.id));
     if ('error' in partial) { setToast({ title: 'Cannot leave that out', hint: partial.error, detail: '' }); return; }
     setProposalBusy(true);
     const r = await partEval(partial.doc);

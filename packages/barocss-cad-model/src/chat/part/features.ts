@@ -1,6 +1,7 @@
 // The v2 `features` group's handlers (R3, moved verbatim from chat/tools.ts's runPartTool): the feature tree's
 // commands, raw nodes, edits and deletes, materials, and the person's rows (stock, frame stock, sections, welds).
 import { commandById, commands, givenValues, shownFields, type Ctx, type Values } from '../../app/commands';
+import { updateBoxFootprint } from '../../app/editCommand';
 import { editFields } from '../../app/editFields';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../../engine/doc';
 import { loadPersonRows } from '../rows';
@@ -199,12 +200,20 @@ async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, 
 async function editFeatureTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate, options: CallOptions): Promise<ToolOutcome> {
   const index = Number(args.index), nodes = state.doc.nodes;
   if (!Number.isInteger(index) || !nodes[index]) return fail(state, `There is no feature ${String(args.index)} (features 0–${nodes.length - 1}).`);
+  const retainBox = args.retainBoxCommand === true;
+  if (args.retainBoxCommand !== undefined && (!retainBox || args.feature === undefined || args.values !== undefined || nodes.length !== 2 || index !== 0))
+    return fail(state, 'Retaining the Box command requires a replacement sketch for one standard Box.');
   let next: ModelNode[];
   if (args.feature !== undefined) {
     const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters, state.doc.frames?.sections, state.partOf ? null : state.doc.instances ?? []);
     if (why) return fail(state, `Feature ${index}: ${why}`);
     // (The replacement is the same feature: it keeps its id, so the names of its faces stay.)
     next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
+    if (retainBox) {
+      const updated = updateBoxFootprint(nodes, next, index);
+      if (updated === next) return fail(state, 'Change both Box extents while retaining its minimum corner and command limits.');
+      next = updated;
+    }
   } else {
     // (O167, F6: a part-scoped edit offers what the bearing command offers — the draft's context and its fit tables.)
     const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits, doc: state.doc }), given = isObj(args.values) ? args.values : {};

@@ -162,7 +162,7 @@ export async function acceptProposalWith(dispatch: PartRun, state: ChatState, id
     const parts = proposalParts(state.doc, cur.doc), wrong = o.leaveOut.filter(x => !parts.some(q => q.id === x && q.kind !== 'deleted'));
     if (wrong.length) return { error: `${wrong.join(', ')}: not an added or changed feature of ${id} (${parts.filter(q => q.kind !== 'deleted').map(q => q.id).join(', ') || 'none'}).` };
     leftOut = leaveOutClosure(parts, o.leaveOut);
-    const partial = partialDoc(state.doc, cur.doc, parts, leftOut);
+    const partial = partialDoc(state.doc, cur.doc, parts, leftOut, p);
     if ('error' in partial) return partial;
     const r = await evaluate(partial.doc);
     if (!r) return { error: 'The evaluation was superseded; try again.' };
@@ -241,8 +241,15 @@ export function toggledLeaveOut(parts: readonly ProposalPart[], leaveOut: readon
  * What a proposal leaves without some of its parts: changed features put back as they were (their references
  * renumbered to where those features are now), added ones deleted with the sketches only they use.
  */
-export function partialDoc(base: StudioDoc, after: StudioDoc, parts: readonly ProposalPart[], leaveOut: readonly string[]): { doc: StudioDoc } | { error: string } {
-  const out = new Set(leaveOut), nodes = [...after.nodes];
+export function partialDoc(base: StudioDoc, after: StudioDoc, parts: readonly ProposalPart[], leaveOut: readonly string[],
+  proposal?: Pick<Proposal, 'ops' | 'orders'>): { doc: StudioDoc } | { error: string } {
+  const out = new Set(leaveOut), nodes = [...after.nodes], boxSketches = new Set<string>();
+  if (out.size && proposal) for (const [i, op] of proposal.ops.entries()) {
+    if (op.tool !== 'edit_feature' || op.args?.retainBoxCommand !== true || (op.args.part !== undefined && op.args.part !== 'base')) continue;
+    const sketch = proposal.orders?.[i]?.[0];
+    if (!sketch) return { error: 'The proposal has no saved sketch order for its Box edit.' };
+    boxSketches.add(sketch);
+  }
   const index = new Map(after.nodes.map((_, i) => [featureId(after.nodes, i), i])), baseIndex = new Map(base.nodes.map((_, i) => [featureId(base.nodes, i), i]));
   for (const q of parts) {
     if (!out.has(q.id) || q.kind !== 'changed') continue;
@@ -251,6 +258,10 @@ export function partialDoc(base: StudioDoc, after: StudioDoc, parts: readonly Pr
     const back = renumber(was, i => { const at = index.get(featureId(base.nodes, i)); if (at === undefined) missing = featureId(base.nodes, i); return at ?? i; });
     if (missing) return { error: `${q.id} cannot be put back as it was: it was built on ${missing}, which the proposal deletes.` };
     nodes[index.get(q.id)!] = { ...back, id: q.id } as ModelNode;
+    if (boxSketches.size && was.kind === 'extrude' && was.made?.command === 'box') {
+      const sketchId = featureId(base.nodes, was.sketch);
+      if (boxSketches.has(sketchId)) nodes[index.get(sketchId)!] = { ...base.nodes[was.sketch], id: sketchId };
+    }
   }
   const added = parts.filter(q => out.has(q.id) && q.kind === 'added').map(q => index.get(q.id)!);
   if (!added.length) return { doc: prefixDoc({ ...after, nodes }, nodes.length) };
