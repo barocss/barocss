@@ -10,6 +10,12 @@ const withinTolerance = (a: number, b: number) => Math.abs(a - b) <= CadNumericP
 const invalid = (message: string) => refusal('VALUE', `Extrude to face: ${message}`);
 const missing = (message: string) => refusal('BAD_REFERENCE', `Extrude to face: ${message}`);
 
+function targetDimension(value: unknown, parameters: unknown): number {
+  const resolved = record(value) && typeof value.parameter === 'string' && record(parameters)
+    && Object.hasOwn(parameters, value.parameter) ? parameters[value.parameter] : value;
+  return typeof resolved === 'number' && Number.isFinite(resolved) ? resolved : NaN;
+}
+
 /** Detaching drops the target and its reference metadata. The feature and source IDs stay in place. */
 export function detachFaceEndExtrude(node: FaceEndExtrudeNode & NodeExtras, distance: number): ModelNode {
   if (node.suppressed || !Number.isFinite(distance) || distance <= CadNumericPolicy.linearTolerance || distance > CadPartLimits.length) {
@@ -19,7 +25,7 @@ export function detachFaceEndExtrude(node: FaceEndExtrudeNode & NodeExtras, dist
   return { kind: 'extrude', sketch, height: distance, ...(id === undefined ? {} : { id }), ...(bought === undefined ? {} : { bought }) };
 }
 
-function recipeProblem(node: Record<string, unknown>, index: number, nodes: readonly unknown[]): string | null {
+function recipeProblem(node: Record<string, unknown>, index: number, nodes: readonly unknown[], parameters: unknown): string | null {
   if (Object.keys(node).some(key => !recipeFields.has(key) && !(NODE_EXTRA_FIELDS as readonly string[]).includes(key))) return 'the saved recipe has an unknown field.';
   const target = node.target;
   if (!previous(node.sketch, index) || !record(target) || Object.keys(target).some(key => key !== 'body' && key !== 'feature' && key !== 'face')) return 'the saved recipe needs a preceding sketch and target.';
@@ -30,7 +36,13 @@ function recipeProblem(node: Record<string, unknown>, index: number, nodes: read
     || source.id !== target.feature || nodes.filter(other => record(other) && other.id === target.feature).length !== 1) {
     return 'the target feature identity is missing, changed or ambiguous.';
   }
-  if (typeof target.face !== 'string' || !target.face || target.face.includes('+')) return 'one persistent native face name is required.';
+  if (typeof target.face !== 'string' || !target.face || target.face.includes('+') || /#\d+$/.test(target.face)) return 'one persistent native face name is required.';
+  // Native zero-draft prism names follow lower/upper geometry. A sign reversal can
+  // reuse the lower name for the other authored end even when the old start is unchanged.
+  if (node.suppressed !== true && source.kind === 'extrude' && !source.draft
+    && target.face === `${target.feature}.bottom` && !(targetDimension(source.height, parameters) > 0)) {
+    return 'the target extrusion must stay forward to preserve its authored start cap.';
+  }
   return null;
 }
 
@@ -42,7 +54,7 @@ export function faceEndExtrudeProblem(input: unknown): string | null {
     seen.add(doc);
     if (Array.isArray(doc.nodes)) for (const [index, node] of doc.nodes.entries()) {
       if (record(node) && node.kind === 'face-end-extrude') {
-        const problem = recipeProblem(node, index, doc.nodes);
+        const problem = recipeProblem(node, index, doc.nodes, doc.parameters);
         if (problem) return problem;
       }
     }

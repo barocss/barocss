@@ -1,0 +1,72 @@
+{
+  "decision": "D852",
+  "tier": "FULL",
+  "parent": "a87132e3b553428b45625cae4fa9e206cd224ea6",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d852-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d852-start-cap-baseline",
+    "cd apps/cad-studio && D852_SOURCE_FROZEN=1 node test/extrude-end-face-start-cap-browser.mjs \"$EVIDENCE/baseline-run01\" --baseline",
+    "gate.sh acquire heavy 600 d852-start-cap-final",
+    "cd apps/cad-studio && D852_SOURCE_FROZEN=1 node test/extrude-end-face-start-cap-browser.mjs \"$EVIDENCE/fixed-run02\"",
+    "cd apps/cad-studio && D850_SOURCE_FROZEN=1 node test/extrude-end-face-refusals-browser.mjs \"$EVIDENCE/refusal-final\"",
+    "cd apps/cad-studio && D844_SOURCE_FROZEN=1 node test/translated-extrude-end-face-browser.mjs \"$EVIDENCE/cardinal-final\" --rotated",
+    "gate.sh acquire heavy 600 d852-start-cap-final-full",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude face-commands engine editFields references referencesCopy profiles-parameters api-studio-commands draft-command-pull",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick command preview project-open-ownership failed-feature",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/faceEndExtrude.ts packages/barocss-cad-model/test/face-end-extrude.test.ts",
+    "node \"$EVIDENCE/mutations-final.mjs\" \"$PWD\" \"$EVIDENCE/mutations-final\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist-final\"",
+    "node --check apps/cad-studio/test/extrude-end-face-start-cap-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "productResult": "FAIL",
+    "reproductionExit": 0,
+    "receiptSha256": "b4bcaefbe0772691b95cfa201f2fe5b4ac9046642dba353a38f9c303704fe400",
+    "authoredStartZMm": 20,
+    "targetDistanceMm": [5, -5],
+    "dependentEndZMm": [20, 15],
+    "dependentVolumeMm3": [2000, 1500]
+  },
+  "desktop": {
+    "status": "PASS",
+    "exit": 0,
+    "renderer": "WebGPU",
+    "viewport": [1440, 1000],
+    "receiptSha256": "35ef88413dbc50518cef4d48de2f69932d9032e7f938b36d26852f7de1c1018d",
+    "frozenSources": 815,
+    "reversedEditAcceptedState": "EXACT",
+    "reversedFileAcceptedState": "EXACT",
+    "ordinarySignedControlBoundsZMm": [15, 20],
+    "ordinarySignedControlVolumeMm3": 2000,
+    "validMovedTargetEndMm": 30,
+    "validMovedDependentVolumeMm3": 3000,
+    "absoluteOracleBudget": 1e-7,
+    "undoRedo": "EXACT",
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "desktopRegressions": {
+    "d850RefusalsAndDelete": { "status": "PASS", "sha256": "deb39ae8bdf87f6fa4b8f98ac9bc0a48af6b03b6db7189d45f79e757effbda34" },
+    "d844CardinalYZ": { "status": "PASS", "sha256": "f9bc72070341823f40af1c9be5176951b205e478763130a3f64c64392c5ab602" }
+  },
+  "focused": { "modelPass": 142, "studioPass": 79, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "scopedLint": "PASS",
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS",
+  "studioBuild": "PASS",
+  "mutations": {
+    "control": "PASS",
+    "mutantsKilled": 5,
+    "runnerSha256": "90811a58e1b8b53071f62c6e9f73219f52d906740fe9bb1da660b9c9a46bc21b",
+    "receiptSha256": "25bba3c721d4debf483bc0bc0589aa574b673cae0d59531bcc30761967f65f94"
+  }
+}

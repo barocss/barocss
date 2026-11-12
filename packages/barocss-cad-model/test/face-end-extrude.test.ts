@@ -73,6 +73,7 @@ test('saved recipes refuse ambiguous identity and a second authored height', () 
     [{ ...recipe, target: { ...recipe.target, feature: 'n4' } }, /feature identity/i],
     [{ ...recipe, target: { ...recipe.target, body: { node: 3, side: 'solid' } } }, /preceding solid/i],
     [{ ...recipe, target: { ...recipe.target, face: 'n1.bottom+n1.top' } }, /persistent native face name/i],
+    [{ ...recipe, target: { ...recipe.target, face: 'n1.bottom#2' } }, /persistent native face name/i],
   ] as const) {
     const doc = { ...base, nodes: [...base.nodes.slice(0, 3), node] };
     const opened = readStudioDoc(JSON.stringify(doc));
@@ -82,6 +83,60 @@ test('saved recipes refuse ambiguous identity and a second authored height', () 
   }
   const duplicatedId = { ...base, nodes: [base.nodes[0], base.nodes[1], { ...base.nodes[2], id: 'n1' }, recipe] };
   assert.throws(() => toPartDocument(duplicatedId), /ambiguous/i);
+});
+
+test('a reversed target cannot give the binding to the other cap with the same native name', () => {
+  const base = documentAt(20), target = base.nodes[1];
+  assert.equal(target.kind, 'extrude');
+  const withTarget = (height: typeof target.height, parameters = {}): StudioDoc => ({
+    ...base, parameters, nodes: [base.nodes[0], { ...target, height }, ...base.nodes.slice(2)],
+  });
+  const reversed = withTarget(-5);
+  const unbound = prefixDoc(reversed, 2);
+  const [output] = evaluateCadPart(toPartDocument(unbound)).outputs;
+  assert.ok(checkOutput(output).valid);
+  assert.deepEqual([...new Set(output.brep.vertices.map(vertex => vertex.point[2]))].sort((a, b) => a - b), [15, 20]);
+  const bottom = output.brep.faces.find(face => face.name === 'n1.bottom');
+  assert.ok(bottom);
+  const plane = faceGeometry(bottom);
+  assert.ok(plane.kind === 'plane');
+  assert.equal(plane.o[2], 15);
+
+  for (const doc of [reversed, withTarget(0), withTarget({ parameter: 'pull' }, { pull: -5 })]) {
+    assert.throws(() => toPartDocument(doc), { code: 'BAD_REFERENCE', message: /must stay forward.*authored start cap/i });
+    const opened = readStudioDoc(JSON.stringify(doc));
+    assert.ok('error' in opened);
+    assert.match(opened.error, /\[BAD_REFERENCE\].*must stay forward.*authored start cap/i);
+  }
+  const forward = withTarget({ parameter: 'pull' }, { pull: 5 });
+  assert.equal(currentFaceEndDistance(forward, 3), 20);
+  assert.ok('doc' in readStudioDoc(JSON.stringify(forward)));
+});
+
+test('the direct lower cap guard preserves existing translated, drafted and rotated targets', () => {
+  const base = documentAt(20);
+  const translated = {
+    ...base,
+    nodes: [base.nodes[0], base.nodes[1], { kind: 'translate', id: 'n4', parent: { node: 1, side: 'solid' }, offset: [0, 0, 5] },
+      base.nodes[2], { ...recipe, sketch: 3, target: { ...recipe.target, body: { node: 2, side: 'solid' }, feature: 'n4' } }],
+    outputs: { b4: { node: 2, side: 'solid' }, b3: { node: 4, side: 'solid' } }, nextId: 5,
+  } satisfies StudioDoc;
+  const target = base.nodes[1];
+  assert.equal(target.kind, 'extrude');
+  const drafted = { ...base, nodes: [base.nodes[0], { ...target, draft: 5 }, base.nodes[2],
+    recipe] } satisfies StudioDoc;
+  const draftedReverse = { ...drafted, nodes: [base.nodes[0], { ...target, draft: 5, height: -5 }, base.nodes[2],
+    { ...recipe, target: { ...recipe.target, face: 'n1.top' } }] } satisfies StudioDoc;
+  const rotated = { ...base, nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-5, -15], max: [15, 5],
+      plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [0, 1, 0] } },
+    target, base.nodes[2], recipe,
+  ] } satisfies StudioDoc;
+  for (const [doc, index, height] of [[translated, 4, 25], [drafted, 3, 20], [draftedReverse, 3, 15], [rotated, 3, 20]] as const) {
+    const opened = readStudioDoc(JSON.stringify(doc));
+    assert.ok('doc' in opened);
+    assert.equal(currentFaceEndDistance(opened.doc, index), height);
+  }
 });
 
 test('the target is a history dependency and stays outside the new body ownership chain', () => {
