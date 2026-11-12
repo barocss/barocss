@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { installD523PlacedReplyScheduler } from './placed-worker-reply-scheduler.mjs';
 
-const fixed = process.argv[3] === '--fixed';
+const mode = process.argv[3];
+const fixed = mode === '--fixed';
+const quarterTurn = mode === '--quarter-turn' || mode === '--quarter-turn-baseline';
+const quarterTurnFixed = mode === '--quarter-turn';
 
 const pins = [
   'apps/cad-studio/test/placed-edge-snap-browser.mjs',
@@ -12,7 +15,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/doc.ts',
   'packages/barocss-cad-model/src/engine/evaluate.ts',
   'packages/barocss-cad-model/src/sketch/osnap.ts',
-  ...(fixed ? [
+  ...(fixed || quarterTurn ? [
     'apps/cad-studio/src/viewport/placedBoxSnap.ts',
     'apps/cad-studio/src/viewport/placedSketchSnaps.ts',
     'apps/cad-studio/src/viewport/SceneViewport.tsx',
@@ -20,11 +23,14 @@ const pins = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'placed-edge-snap', output: process.argv[2], envFrozen: fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
+  name: 'placed-edge-snap', output: process.argv[2], envFrozen: quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: fixed ? 'Consume current translated box endpoints and midpoints with stale and hidden occurrence controls.'
+  qualification: quarterTurn ? 'Check +90 degree Z placed box End and Middle against independent world coordinates.'
+    : fixed ? 'Consume current translated box endpoints and midpoints with stale and hidden occurrence controls.'
     : 'Measure placed edge snap availability and the accepted root sketch coordinates.',
-  limits: ['Two top-level static translated native boxes with a shared source and a separate native root box in desktop Studio.'],
+  limits: [quarterTurn
+    ? 'A +90 degree Z box and an unrotated sibling sharing one native definition in desktop Studio.'
+    : 'Two top-level static translated native boxes with a shared source and a separate native root box in desktop Studio.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
@@ -140,6 +146,11 @@ async function begin() {
   await f.tool('Rectangle', 'r');
 }
 
+async function draftCorner() {
+  return Promise.all(['x', 'y'].map(async axis =>
+    Number(await f.sketchPanel().locator(`#sk-${axis}`).inputValue())));
+}
+
 async function cancel() {
   await f.page.evaluate(() => document.activeElement?.blur());
   await f.page.keyboard.press('Escape');
@@ -205,8 +216,7 @@ async function movedOccurrence(solid) {
   const pending = await f.snapshot('08-pending-left-keeps-only-current-right');
   assert.equal(pending.instanceBounds.find(item => item.id === 'left')?.min[0], 10.25);
   await f.page.mouse.click(...await hover(firstPointer, null));
-  const pendingCorner = await Promise.all(['x', 'y'].map(async axis =>
-    Number(await f.sketchPanel().locator(`#sk-${axis}`).inputValue())));
+  const pendingCorner = await draftCorner();
   assert.deepEqual(pendingCorner, expectedGrid[0]);
   await f.same(moved);
   f.report.observations.push({ label: 'pending-left-grid-corner', at: pendingCorner });
@@ -247,6 +257,92 @@ async function movedOccurrence(solid) {
   await cancel();
 }
 
+async function checkQuarterTurn() {
+  const shared = part([0, 0], [10, 12]);
+  const placed = [
+    { ...instances[0], doc: shared, position: [20.25, 30.5, 0], rotation: [0, 0, 90] },
+    { ...instances[1], doc: shared, position: [55.75, 54.25, 0] },
+  ];
+  const doc = { ...root, instances: placed };
+  const fixture = Buffer.from(JSON.stringify(doc));
+  const a = [20.25, 30.5], b = [20.25, 40.5], mid = [20.25, 35.5], siblingMid = [60.75, 54.25];
+  const [aPointer, bPointer, midPointer, siblingPointer] = [a, b, mid, siblingMid].map(([x, y]) => [x + 0.05, y + 0.05]);
+  const bounds = [
+    { id: 'left', min: [8.25, 30.5, 0], max: [20.25, 40.5, 6] },
+    { id: 'right', min: [55.75, 54.25, 0], max: [65.75, 66.25, 6] },
+  ];
+  f.phase = 'read the rotated native box and check the independent world edge';
+  const original = await f.inspect('quarter-turn-source-native', doc);
+  assert.equal(original.placed.length, 2);
+  for (const [i, occurrence] of original.placed.entries()) {
+    assert.equal(occurrence.id, bounds[i].id);
+    assert.equal(occurrence.bodies.length, 1);
+    checkBox(occurrence.bodies[0], bounds[i].min, bounds[i].max, 720);
+  }
+  assert.ok(original.placed[0].bodies[0].edges.some(edge => [a, b].every(p => edge.some(q => close([...p, 0], q)))));
+  f.report.observations.push({ label: 'quarter-turn-fixture', bytes: fixture.length, sha256: sha256(fixture), localEdge: [[0, 0, 0], [10, 0, 0]], worldEdge: [a, b], worldMidpoint: mid });
+  await f.newPage();
+  await open(doc, fixture);
+  const before = await f.snapshot('01-quarter-turn-boxes');
+  assert.deepEqual(before.instanceBounds.map(({ id, min, max }) => ({ id, min, max })), bounds);
+
+  f.phase = 'consume the rotated midpoint as a temporary Rectangle corner';
+  const scenePoints = [[-24.75, -9.5], aPointer, bPointer, midPointer, siblingPointer];
+  await begin();
+  await f.frame(scenePoints);
+  await hover([-24.70, -9.45], 'End');
+  await hover(siblingPointer, 'Middle', 'right');
+  await hover(bPointer, quarterTurnFixed ? 'End' : null, quarterTurnFixed ? 'left' : null);
+  if (quarterTurnFixed) await markAt(b);
+  await f.snapshot('02-quarter-turn-far-end');
+  const middleHit = await hover(midPointer, quarterTurnFixed ? 'Middle' : null, quarterTurnFixed ? 'left' : null);
+  if (quarterTurnFixed) await markAt(mid);
+  await f.snapshot('03-quarter-turn-midpoint');
+  await f.page.mouse.click(...middleHit);
+  const middleCorner = await draftCorner();
+  assert.deepEqual(middleCorner, quarterTurnFixed ? mid : [20, 36]);
+  await f.same(doc);
+  await cancel();
+
+  f.phase = 'finish a root Rectangle from the rotated endpoint and sibling midpoint';
+  await begin();
+  await f.frame(scenePoints);
+  const endHit = await hover(aPointer, quarterTurnFixed ? 'End' : null, quarterTurnFixed ? 'left' : null);
+  if (quarterTurnFixed) await markAt(a);
+  await f.snapshot('04-quarter-turn-near-end');
+  await f.page.mouse.click(...endHit);
+  await f.page.mouse.click(...await hover(siblingPointer, 'Middle', 'right'));
+  const sketched = (await f.finishSketch('05-quarter-turn-rectangle')).doc;
+  const min = quarterTurnFixed ? a : [20, 31], max = siblingMid;
+  assert.deepEqual(sketched.nodes.at(-1).min, min);
+  assert.deepEqual(sketched.nodes.at(-1).max, max);
+  assert.deepEqual(sketched.nodes.slice(0, 2), root.nodes);
+  assert.deepEqual(sketched.instances, placed);
+  await f.openExtrudeHud();
+  const solid = (await f.applyExtrude({ distance: 2, previous: sketched, label: '06-quarter-turn-consumer' })).doc;
+  const result = await f.inspect('quarter-turn-consumer-native', solid);
+  const volume = quarterTurnFixed ? 1923.75 : 1894.875;
+  checkBox(result.root.find(body => body.id === 'n3'), [...min, 0], [...max, 2], volume);
+  assert.deepEqual(result.placed, original.placed);
+  assert.deepEqual(result.root.find(body => body.id === 'n1'), original.root[0]);
+  assert.deepEqual(solid.instances, placed);
+  assert.ok(Math.abs((await f.bodies()).bodies.find(body => body.key === 'b3').volume - volume) < 1e-8);
+  f.report.observations.push({ label: 'quarter-turn-consumer', rootEnd: 'PASS', siblingMiddle: 'PASS', rotatedEnd: quarterTurnFixed ? 'PASS' : 'FAIL',
+    rotatedMiddle: quarterTurnFixed ? 'PASS' : 'FAIL', storedMiddleMm: middleCorner, storedCornersMm: [min, max], volumeMm3: volume });
+  if (quarterTurnFixed) {
+    await f.undo();
+    await f.same(sketched);
+    await f.redo();
+    await f.same(solid);
+    const bytes = await save(solid);
+    await f.newPage();
+    await open(solid, bytes);
+    assert.deepEqual(await f.inspect('quarter-turn-reopened-native', solid), result);
+    await f.snapshot('07-quarter-turn-fresh-open');
+  }
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -261,6 +357,11 @@ await f.run(async () => {
     if (fixed) await context.addInitScript(installD523PlacedReplyScheduler);
     return context;
   };
+
+  if (quarterTurn) {
+    await checkQuarterTurn();
+    return;
+  }
 
   const fixture = Buffer.from(JSON.stringify(source));
   const original = await f.inspect('source-native', source);

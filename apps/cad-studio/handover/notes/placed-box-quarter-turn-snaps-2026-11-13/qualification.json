@@ -1,0 +1,165 @@
+{
+  "decision": "D883",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "565e4b0ccbf78e4811690f73e3b207376c009af3",
+  "issue": 2333,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D883_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/baseline --quarter-turn-baseline",
+    "D883_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/fixed --quarter-turn",
+    "D882_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/translated-regression --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs osnap",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership instance.test instance-looks.test sketch-framing object-snap-kinds",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/viewport/placedBoxSnap.ts apps/cad-studio/test/placed-box-snap.test.ts",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 9,
+    "studioPass": 23,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "driverSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "99977d01d13435cd6f665e852756116444b406e4a0f261b58fe52a32a2102db3"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Exact Z quarter-turn signed placement, authored face station mapping, retained zero-turn and ownership gates, independent desktop geometry oracle."
+  },
+  "fixture": {
+    "bytes": 1110,
+    "sha256": "184e950cab5368ca464595129dcab3ce209ee60d522b0951c6046589256e5750",
+    "angleZDegrees": 90,
+    "translationMm": [
+      20.25,
+      30.5,
+      0
+    ],
+    "localEdgeMm": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        10,
+        0,
+        0
+      ]
+    ],
+    "worldEdgeMm": [
+      [
+        20.25,
+        30.5,
+        0
+      ],
+      [
+        20.25,
+        40.5,
+        0
+      ]
+    ],
+    "worldMidpointMm": [
+      20.25,
+      35.5,
+      0
+    ]
+  },
+  "studio": [
+    {
+      "run": "baseline",
+      "runner": "PASS",
+      "rotatedEnd": "FAIL",
+      "rotatedMiddle": "FAIL",
+      "rootEnd": "PASS",
+      "siblingMiddle": "PASS",
+      "receiptSHA256": "1b2e127a9d52ec9b343fb3c756f541f386c957234d1b445f32c711bbb3297372",
+      "sourceManifestSHA256": "bc7905043d265732d9c1304fcffce4f54a2d8799e042f6f9fcabc75b8827285a",
+      "frozenFiles": 841,
+      "snapshots": 6,
+      "storedMidpointMm": [
+        20,
+        36
+      ],
+      "storedCornersMm": [
+        [
+          20,
+          31
+        ],
+        [
+          60.75,
+          54.25
+        ]
+      ],
+      "volumeMm3": 1894.875
+    },
+    {
+      "run": "fixed",
+      "runner": "PASS",
+      "backend": "webgpu",
+      "rotatedEnd": "PASS",
+      "rotatedMiddle": "PASS",
+      "rootEnd": "PASS",
+      "siblingMiddle": "PASS",
+      "undoRedo": "PASS",
+      "freshOpen": "PASS",
+      "visualReview": "PASS",
+      "receiptSHA256": "465333f4d3183015d17e92650956747b814b4ff55d914a094c9aa3fa970308ce",
+      "sourceManifestSHA256": "4a77ec3832de343daf3e75a70c86622a98c8b5f75d50f972dd77755947fd43a7",
+      "frozenFiles": 841,
+      "snapshots": 7,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "storedMidpointMm": [
+        20.25,
+        35.5
+      ],
+      "storedCornersMm": [
+        [
+          20.25,
+          30.5
+        ],
+        [
+          60.75,
+          54.25
+        ]
+      ],
+      "volumeMm3": 1923.75,
+      "savedBytes": 3152,
+      "savedSHA256": "3ca15bc26bcd65b153a0faebd236032c51b801eb30dc241f88022bb4724a9a88",
+      "anchorToleranceCssPx": 0.02,
+      "nativeTolerance": 1e-8
+    },
+    {
+      "run": "translated-regression",
+      "runner": "PASS",
+      "receiptSHA256": "39b48a5989231f844e44b4f84d1886b2df8043d42d935f4259f86cf328a9b08f",
+      "sourceManifestSHA256": "4a77ec3832de343daf3e75a70c86622a98c8b5f75d50f972dd77755947fd43a7",
+      "frozenFiles": 841,
+      "snapshots": 13,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "volumeMm3": 2220,
+      "movedVolumeMm3": 1220
+    }
+  ],
+  "notRun": [
+    "desktop angles beyond +90 degrees",
+    "source revision change",
+    "full occurrence lifecycle",
+    "other source shapes",
+    "full suites",
+    "mobile"
+  ]
+}

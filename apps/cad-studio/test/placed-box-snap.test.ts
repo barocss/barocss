@@ -126,3 +126,61 @@ test('source and body visibility, malformed placements and out-of-scope authored
   ]) assert.deepEqual(placedBoxSnapPoints(other, body, xyPlane()), []);
   assert.equal(placedBoxSnapPoints({ ...occurrence, doc: hiddenDoc, looks: { b1: { hidden: false } } }, body, xyPlane()).length, 8);
 });
+
+test('Z quarter-turns preserve the authored bottom edge and exact world snap coordinates', () => {
+  const doc = definition();
+  const cases: {
+    angle: number; position: PartInstance['position'];
+    lo: number[]; hi: number[]; ends: number[][]; middle: number[];
+  }[] = [
+    { angle: 90, position: [10.25, 14.25, 0], lo: [-1.75, 14.25, 0], hi: [10.25, 34.25, 6],
+      ends: [[10.25, 14.25], [10.25, 34.25]], middle: [10.25, 24.25] },
+    { angle: -90, position: [55.75, 34.25, 0], lo: [55.75, 14.25, 0], hi: [67.75, 34.25, 6],
+      ends: [[55.75, 34.25], [55.75, 14.25]], middle: [55.75, 24.25] },
+    { angle: 180, position: [10.25, 14.25, 0], lo: [-9.75, 2.25, 0], hi: [10.25, 14.25, 6],
+      ends: [[10.25, 14.25], [-9.75, 14.25]], middle: [0.25, 14.25] },
+  ];
+  const edgeName = 'n1.bottom|n1.side[e1]';
+  for (const { angle, position, lo, hi, ends, middle } of cases) {
+    const occurrence = instance(`turn-${angle}`, position, doc);
+    occurrence.rotation = [0, 0, angle];
+    const body = evaluated(occurrence);
+    assert.deepEqual(body.mesh.bounds, { min: lo, max: hi });
+    assert.ok(body.mesh.edges.every(edge => edge.nativeVertices?.every(id => /^n1_v[0-7]$/.test(id)) && !edge.nativeLine));
+
+    const snaps = placedBoxSnapPoints(occurrence, body, xyPlane());
+    assert.equal(snaps.length, 8, `rotation ${angle}`);
+    assert.ok(snaps.every(snap => snap.occurrenceId === occurrence.id && snap.bodyKey === 'b1'));
+    const hit = snaps.find(snap => snap.kind === 'mid' && snap.edgeName === edgeName);
+    assert.ok(hit);
+    assert.deepEqual(hit.at, middle);
+    for (const [x, y] of ends) assert.ok(snaps.some(snap => snap.kind === 'end' && snap.at[0] === x && snap.at[1] === y));
+
+    const [native] = partSnapshot(placedDoc(occurrence)).outputs;
+    assert.ok(checkBrep(native.brep, { strict: true }).valid);
+    const matching = native.brep.edges.filter(edge => edge.name === edgeName);
+    assert.equal(matching.length, 1);
+    assert.equal(matching[0].curve.degree, 1);
+    const nativeEnds = matching[0].vertices.map(id => native.brep.vertices.find(vertex => vertex.id === id)!.point);
+    assert.ok(ends.every(([x, y]) => nativeEnds.some(p => p[0] === x && p[1] === y && p[2] === 0)));
+  }
+});
+
+test('authored face stations still matter when differently rotated boxes have identical world bounds', () => {
+  const doc = definition();
+  const ordinary = instance('ordinary', [10.25, 14.25, 0], doc);
+  const rotated = instance('rotated', [30.25, 26.25, 0], doc);
+  rotated.rotation = [0, 0, 180];
+  const a = evaluated(ordinary), b = evaluated(rotated);
+  assert.deepEqual(a.mesh.bounds, b.mesh.bounds);
+  assert.equal(placedBoxSnapPoints(rotated, b, xyPlane()).length, 8);
+  assert.deepEqual(placedBoxSnapPoints(rotated, a, xyPlane()), []);
+});
+
+test('almost-quarter Z rotations and actual X/Y turns stay unavailable', () => {
+  const rotations: PartInstance['rotation'][] = [[0, 0, 89.999], [90, 0, 0], [0, 90, 0]];
+  for (const rotation of rotations) {
+    const occurrence = { ...instance('turn', [10.25, 14.25, 0]), rotation };
+    assert.deepEqual(placedBoxSnapPoints(occurrence, evaluated(occurrence), xyPlane()), []);
+  }
+});

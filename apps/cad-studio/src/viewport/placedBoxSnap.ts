@@ -4,6 +4,7 @@ import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { bodyKeyFor } from '@barocss/cad-model/engine/ids';
 import type { DisplayEdge, DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
+import { placementOf } from '@barocss/cad-model/engine/placement';
 import type { SnapPoint } from '@barocss/cad-model/sketch/osnap';
 import { isDefaultPlane, toLocal, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 
@@ -30,7 +31,8 @@ const cardinal = (v: Vec3) => axes.find(i => Math.abs(v[i]) === 1 && axes.every(
 function authoredBox(instance: PartInstance, body: BodyResult): Box | null {
   const doc = instance.doc;
   if (typeof instance.id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(instance.id) || instance.hidden || instance.pattern || instance.savedPlacement || instance.joints
-    || !point(instance.position) || !point(instance.rotation) || instance.rotation.some(value => value !== 0)
+    || !point(instance.position) || !point(instance.rotation)
+    || instance.rotation[0] !== 0 || instance.rotation[1] !== 0 || Math.abs(instance.rotation[2]) > 3600 || instance.rotation[2] % 90 !== 0
     || doc.format !== 'barocss-cad-model' || doc.schema !== 3 || doc.units !== 'mm' || doc.nodes.length !== 2
     || doc.instances?.length || doc.mates?.length || doc.instancePatterns?.length || doc.assemblyCuts?.length
     || doc.assemblySteps?.length || doc.robot || doc.variability || doc.configurations || doc.routeBundles || doc.direct) return null;
@@ -52,15 +54,26 @@ function authoredBox(instance: PartInstance, body: BodyResult): Box | null {
   if (!Array.isArray(sketch.min) || sketch.min.length !== 2 || !Array.isArray(sketch.max) || sketch.max.length !== 2) return null;
   const [x0, y0] = sketch.min, [x1, y1] = sketch.max, z0 = extrusion.from ?? 0;
   if (!coordinate(x0) || !coordinate(y0) || !coordinate(x1) || !coordinate(y1) || !coordinate(z0)) return null;
-  const [x, y, z] = instance.position;
-  const lo: Vec3 = [x0 + x, y0 + y, z0 + z], hi: Vec3 = [x1 + x, y1 + y, z0 + extrusion.height + z];
-  if (!point(lo) || !point(hi) || axes.some(i => hi[i] - lo[i] <= linearTolerance)) return null;
-
   const tags = sketch.sideTags?.outer;
   if (sketch.sideTags && (!Array.isArray(tags) || tags.length !== 4 || sketch.sideTags.holes?.length || sketch.sideTags.regions?.length
     || new Set(tags).size !== 4 || [...tags].some(tag => typeof tag !== 'string' || !/^e(?:0|[1-9]\d*)$/.test(tag)))) return null;
   const side = (i: number) => `${feature}.side${tags ? `[${tags[i]}]` : i}`;
-  return { lo, hi, feature, faceNames: [side(3), side(1), side(0), side(2), `${feature}.bottom`, `${feature}.top`] };
+  const authoredNames = [side(3), side(1), side(0), side(2), `${feature}.bottom`, `${feature}.top`];
+  const authoredLo: Vec3 = [x0, y0, z0], authoredHi: Vec3 = [x1, y1, z0 + extrusion.height];
+  const { m, t } = placementOf(instance);
+  const lo: Vec3 = [0, 0, 0], hi: Vec3 = [0, 0, 0], faceNames: string[] = [];
+  for (const world of axes) {
+    // A Z quarter-turn maps each world axis to one signed authored axis.
+    // Its lower/upper stations must carry the names of those original faces.
+    const local = axes.find(axis => m[3 * world + axis] !== 0);
+    if (local === undefined) return null;
+    const reversed = m[3 * world + local] === -1;
+    lo[world] = (reversed ? -authoredHi[local] : authoredLo[local]) + t[world];
+    hi[world] = (reversed ? -authoredLo[local] : authoredHi[local]) + t[world];
+    faceNames.push(authoredNames[2 * local + Number(reversed)], authoredNames[2 * local + Number(!reversed)]);
+  }
+  if (!point(lo) || !point(hi) || axes.some(i => hi[i] - lo[i] <= linearTolerance)) return null;
+  return { lo, hi, feature, faceNames };
 }
 
 function cornerOf(p: Vec3, box: Box): number {
