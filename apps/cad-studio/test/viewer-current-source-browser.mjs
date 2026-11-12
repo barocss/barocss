@@ -1,10 +1,13 @@
-// D771/B10-02: revisioned native Viewer replacement and the same authored Studio inputs.
+// D771/B10-02 and D773/B10-04: native Viewer revision, viewport and resource ownership.
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'esbuild';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const mode = process.argv[3] ?? 'source-replacement';
+assert.ok(['source-replacement', 'resize-lifetime'].includes(mode));
+const resizeLifetime = mode === 'resize-lifetime';
 const repo = resolve(import.meta.dirname, '../../..');
 const viewerEntry = await build({
   stdin: {
@@ -31,8 +34,9 @@ const docs = sources.map((source, i) => {
   };
 });
 const f = await createFlow({
-  name: 'viewer-current-source', envFrozen: 'D771_SOURCE_FROZEN', output: process.argv[2],
-  qualification: 'B10-02 same native Viewer IDs, exact source and revision, changed pixels and current pick',
+  name: 'viewer-current-source', envFrozen: resizeLifetime ? 'D773_SOURCE_FROZEN' : 'D771_SOURCE_FROZEN', output: process.argv[2],
+  qualification: resizeLifetime ? 'B10-04 Viewer resize, replacement, clear and disposal' :
+    'B10-02 same native Viewer IDs, exact source and revision, changed pixels and current pick',
   extraFrozen: browserPins,
   initialFiles: ['apps/cad-studio/test/flow-helper.mjs', 'apps/cad-studio/handover/roadmap-tracks/17-b10-evidence-ledger.md'],
   requiredFrozen: ['packages/barocss-viewer/src/index.ts', 'packages/barocss-cad-interop/src/document.ts'],
@@ -76,6 +80,7 @@ await f.run(async () => {
   page.on('pageerror', error => f.report.errors.push(error.stack ?? String(error)));
   page.on('console', message => { if (message.type() === 'error') f.report.consoleErrors.push(message.text()); });
   const selections = [];
+  const resources = [];
   try {
     f.phase = 'initialize a real WebGPU Viewer with its public API';
     await page.goto(origin + htmlPath);
@@ -141,6 +146,37 @@ await f.run(async () => {
       const base = Uint8Array.from(read.base), selected = Uint8Array.from(read.selected);
       await writeFile(join(f.output, label + '-base.png'), base);
       await writeFile(join(f.output, label + '-selected.png'), selected);
+      if (resizeLifetime) {
+        const resize = await page.evaluate(async () => {
+          const { viewer } = window.d771;
+          const core = viewer.presenter.core;
+          const retained = () => ({
+            active: core.meshList.length, retained: core.geometries.size,
+            resident: [...core.geometries].filter(geometry => geometry.gpu !== null).length,
+          });
+          const frames = [];
+          for (const [width, height] of [[320,240], [480,360], [320,240]]) {
+            viewer.resize(width, height);
+            const pixels = await viewer.readPixels();
+            const at = 4*(height/2*width + width/2);
+            frames.push({
+              width, height, length: pixels.length, centre: Array.from(pixels.slice(at, at+4)),
+              selected: viewer.getState().selected,
+              pick: viewer.pick(width/2, height/2),
+              resources: retained(),
+            });
+          }
+          return frames;
+        });
+        for (const frame of resize) {
+          assert.equal(frame.length, 4 * frame.width * frame.height);
+          assert.deepEqual(frame.centre, read.selectedCentre);
+          assert.deepEqual(frame.selected, read.ref);
+          assert.deepEqual(frame.pick, read.centre);
+          assert.deepEqual(frame.resources, { active: 1, retained: 1, resident: 1 });
+        }
+        resources.push({ revision: doc.revision, frames: resize });
+      }
       const { base: ignoredBase, selected: ignoredSelected, ...receipt } = read;
       selections.push({ ...receipt, baseSHA256: sha256(base), selectedSHA256: sha256(selected), sourceSHA256: sha256(doc.assets[0].source) });
       await f.runOracle({ halfWidth: doc.revision * 10, bounds: read.state.bounds,
@@ -149,6 +185,26 @@ await f.run(async () => {
     assert.deepEqual(selections[1].ref, selections[0].ref);
     assert.notEqual(selections[1].baseSHA256, selections[0].baseSHA256);
     f.report.observations.push(...selections);
+    if (resizeLifetime) {
+      f.phase = 'clear and dispose the current Viewer';
+      const result = await page.evaluate(async () => {
+        const { viewer } = window.d771;
+        const core = viewer.presenter.core;
+        viewer.clear();
+        const pixels = await viewer.readPixels();
+        const empty = { status: viewer.getState().status, selection: viewer.getState().selected,
+          hit: viewer.pick(160,120), retained: core.geometries.size, active: core.meshList.length,
+          uniform: pixels.every((value, i) => value === pixels[i%4]) };
+        viewer.dispose();
+        let refused = false;
+        try { await viewer.readPixels(); } catch (error) { refused = /disposed/i.test(String(error)); }
+        return { empty, disposed: { status: viewer.getState().status, retained: core.geometries.size,
+          active: core.meshList.length, refused } };
+      });
+      assert.deepEqual(result.empty, { status: 'empty', selection: null, hit: null, retained: 0, active: 0, uniform: true });
+      assert.deepEqual(result.disposed, { status: 'disposed', retained: 0, active: 0, refused: true });
+      f.report.observations.push({ resources, ...result });
+    }
   } finally {
     await page.evaluate(() => window.d771?.viewer.dispose());
     await page.close();
@@ -181,6 +237,31 @@ await f.run(async () => {
     assert.equal(side, i === 0 ? null : object.id);
     const studio = await f.snapshot('studio-revision-' + (i + 1));
     assert.equal(studio.doc.direct.sources[object.source], source);
+    if (resizeLifetime) {
+      const viewport = f.page.locator('.viewport[data-renderer="webgpu"] canvas');
+      const sizeBefore = await viewport.evaluate(canvas => [canvas.width, canvas.height]);
+      await f.page.setViewportSize({ width: 1200, height: 900 });
+      await f.page.waitForFunction(([width, height]) => {
+        const canvas = document.querySelector('.viewport[data-renderer="webgpu"] canvas');
+        return canvas && canvas.width !== width && canvas.height !== height;
+      }, sizeBefore);
+      const sizeAfter = await viewport.evaluate(canvas => [canvas.width, canvas.height]);
+      assert.ok(sizeBefore.every((value, index) => sizeAfter[index] < value));
+      await f.page.keyboard.press('Escape');
+      await selected.waitFor({ state: 'hidden' });
+      const resizedPoint = await f.page.evaluate(() => window.__studioScreenOf([0,0,0]));
+      await f.page.mouse.click(...resizedPoint);
+      await selected.waitFor();
+      const resized = await f.snapshot('studio-resized-revision-' + (i + 1));
+      assert.deepEqual(resized.doc, studio.doc);
+      assert.deepEqual(resized.history, studio.history);
+      f.report.observations.push({ revision: i + 1, studioCanvasBefore: sizeBefore, studioCanvasAfter: sizeAfter });
+      await f.page.setViewportSize({ width: 1440, height: 1000 });
+      await f.page.waitForFunction(([width, height]) => {
+        const canvas = document.querySelector('.viewport[data-renderer="webgpu"] canvas');
+        return canvas?.width === width && canvas?.height === height;
+      }, sizeBefore);
+    }
   }
   assert.deepEqual(f.report.downloads, []);
 });
