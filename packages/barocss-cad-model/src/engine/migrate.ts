@@ -2,6 +2,7 @@ import { assertDrivenSketchNode } from '../sketch/driven';
 import { MATERIALS } from '../library/materials';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
+import { faceEndExtrudeProblem } from './faceEndExtrude';
 import { linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 import { documentConnectorError } from '../assembly/connectors';
@@ -27,7 +28,7 @@ import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d'
 // Only schemas 3 and 4 are read; explicit route bundles require reader support for 4.
 export const SCHEMA = 3;
 const MAX_READ_SCHEMA = 4;
-const KINDS = new Set(['driven-sketch', 'skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-span-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'fill-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'band-surface', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
+const KINDS = new Set(['driven-sketch', 'skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'face-end-extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-span-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'fill-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'band-surface', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
   let raw: unknown;
@@ -84,6 +85,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (patternProblem) return { error: patternProblem };
   const circularProblem = circularPatternSpanProblem(o);
   if (circularProblem) return { error: circularProblem };
+  const faceEndProblem = faceEndExtrudeProblem(o);
+  if (faceEndProblem) return { error: refusal('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`).message };
   const linearSpanProblem = linearSpanPatternProblem(o);
   if (linearSpanProblem) return { error: refusal(linearSpanProblem.code, linearSpanProblem.message).message };
   const textProblem = textDocumentProblem({ ...o, parameters });

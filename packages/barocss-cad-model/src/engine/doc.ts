@@ -72,6 +72,11 @@ export type FrameAnchor = 'centroid' | 'origin' | 'bottom-left' | 'bottom' | 'bo
 /** `part<k>`: solid k of an imported STEP file that holds several (see the import node's `solids`). */
 export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' | `part${number}`;
 export interface BodyRef { node: number; side: Side }
+export interface FaceEndExtrudeNode {
+  kind: 'face-end-extrude';
+  sketch: number;
+  target: { body: BodyRef; feature: string; face: string };
+}
 
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
 /** A stock row (CNC7b): a block's three sides, or a bar's diameter (and the longest length it comes in), with its source (the shop's own, a page …). */
@@ -396,6 +401,7 @@ export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_F
 type ModelNodeBase = DrivenSketchNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
+  | FaceEndExtrudeNode
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
   | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
@@ -1006,7 +1012,8 @@ export interface RackMesh { gear: number; direction?: number; centerDistance?: D
 export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [node.gland] : node.kind === 'connector-body' ? [node.opening] : node.kind === 'gusset' || node.kind === 'end-cap' ? [node.frame] : node.kind === 'belt' ? [...node.wheels] : node.kind === 'bearing' ? [node.shaft, ...(node.housing !== undefined ? [node.housing] : [])] : node.kind === 'key' ? [node.shaft, ...(node.hub !== undefined ? [node.hub] : [])] : node.kind === 'retaining-ring' || node.kind === 'pin' ? [node.shaft]
   : (node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh ? [node.mesh.gear]
   // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
-  : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])] : parentsOf(node);
+  : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])]
+  : node.kind === 'face-end-extrude' ? [node.sketch, node.target.body.node] : parentsOf(node);
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
@@ -1017,7 +1024,7 @@ export function parentsOf(node: ModelNode): number[] {
       if (!a || a.kind !== 'planar-face-outline-inset' || a.version !== 1 || !a.source || !Number.isInteger(a.source.node) || a.source.node < 0 || a.source.side !== 'solid' || Object.keys(a.source).some(k => k !== 'node' && k !== 'side') || typeof a.sourceFeature !== 'string' || !a.sourceFeature || typeof a.face !== 'string' || !a.face || a.face.includes('+') || !Number.isFinite(a.insetMM) || a.insetMM <= 0) throw refusal('BAD_REFERENCE', 'Associative sketch: the stored recipe is malformed.');
       return [a.source.node];
     }
-    case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
+    case 'extrude': case 'face-end-extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
@@ -1036,6 +1043,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
+    if (node.kind === 'face-end-extrude') return; // The target is a reference, not a consumed body.
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
     if (node.kind === 'sketch' || node.kind === 'driven-sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
@@ -1165,6 +1173,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'driven-sketch': return 'Sketch · driven outline';
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
+    case 'face-end-extrude': return 'Extrude to face';
     case 'extrude': {
       const s = nodes[node.sketch];
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';

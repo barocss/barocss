@@ -53,6 +53,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
     case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
+    case 'face-end-extrude': throw refusal('BAD_REFERENCE', 'Extrude to face: flattening a placed recipe is not supported.');
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };

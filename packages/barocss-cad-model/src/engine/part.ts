@@ -1,6 +1,7 @@
 import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
+import { faceEndExtrudeHeight, faceEndExtrudeProblem } from './faceEndExtrude';
 import { linearSpanPatternInput, linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
@@ -123,6 +124,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, ...profile } as CadPartFeature;
     }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
+    case 'face-end-extrude': throw coded('BAD_REFERENCE', 'Extrude to face requires the current native document prefix.');
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
@@ -520,6 +522,8 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPa
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
+  const faceEndProblem = faceEndExtrudeProblem(doc);
+  if (faceEndProblem) throw coded('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`);
   const linearSpanProblem = linearSpanPatternProblem(doc);
   if (linearSpanProblem) throw coded(linearSpanProblem.code, linearSpanProblem.message);
   const fillProblem = fillPatternDocumentProblem(doc);
@@ -556,6 +560,13 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     prefixEnds.set(i, features.length);
     if (node.kind === 'driven-sketch') { features.push(...featuresOf(resolveDrivenSketch(node, params), i, CadPartLimits.features - features.length)); return; }
     if (node.kind === 'skeleton') return;
+    if (node.kind === 'face-end-extrude') {
+      if (node.suppressed) { gone.add(i); return; }
+      if (hasText) checkTextExpansion(features);
+      const height = faceEndExtrudeHeight(doc, node, features);
+      features.push(featureOf({ kind: 'extrude', sketch: node.sketch, height }, i));
+      return;
+    }
     if (node.kind === 'sketch') {
       // (B1: a band sketch is regenerated from its construction sources, parameters resolved, wherever it is evaluated.)
       if (node.profile === 'band') { features.push(...featuresOf(bandProfile(node, params, i), i, CadPartLimits.features - features.length)); return; }

@@ -1,0 +1,73 @@
+{
+  "decision": "D840",
+  "tier": "FULL",
+  "parent": "49b226056ff9d4b88cbab69c128034c250cf13f9",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d840-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d840-face-end-extrude",
+    "node --check apps/cad-studio/test/face-end-extrude-browser.mjs",
+    "cd apps/cad-studio && D840_SOURCE_FROZEN=1 node test/face-end-extrude-browser.mjs \"$EVIDENCE/baseline\" --baseline",
+    "gate.sh acquire heavy 600 d840-face-end-model-first",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude",
+    "cd apps/cad-studio && D840_SOURCE_FROZEN=1 node test/face-end-extrude-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d840-face-end-extrude-full",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude face-commands engine editFields references referencesCopy profiles-parameters migrate.test",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test command preview project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE/mutations\"",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/doc.ts packages/barocss-cad-model/src/engine/faceEndExtrude.ts packages/barocss-cad-model/src/engine/migrate.ts packages/barocss-cad-model/src/engine/part.ts packages/barocss-cad-model/src/engine/flatten.ts packages/barocss-cad-model/src/chat/features.ts packages/barocss-cad-model/test/face-end-extrude.test.ts apps/cad-studio/src/ui/featureIcon.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "firstFailures": [
+    { "status": "FAIL", "exit": 1, "sha256": "63c78897073498701470a956c23ed47411f41622d1fb4a27d6ef165438545584", "failure": "The test expected ascending ownership nodes; the actual API returns the body node first." },
+    { "status": "FAIL", "exit": 1, "sha256": "6a195dc793e4b48c861ae98cbcf8e1102df3a1d103a9cf2261fe9531a3f427b2", "failure": "The test expected a standalone sketch step; the history groups it with the bound feature and refuses the move." },
+    { "status": "FAIL", "exit": 2, "sha256": "041f145af9f8297e9ff30685ca59c06809a46a2e52f5aa9d1c2ef464939f988c", "failure": "TypeScript required the native point array type." }
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "61030f5e8baa84126c51bfff77c8d0dcaeefe1501493f4186204fb96742b3427",
+      "frozenSources": 814,
+      "targetMovedTo": 30,
+      "legacyEnd": 20,
+      "newKind": "REFUSED_UNKNOWN_KIND"
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "793ec36924ba85a946074a25fc3b5f2e6c9080c582c2af0c07e18a477ba89205",
+      "frozenSources": 815,
+      "targetFace": "n1.bottom",
+      "dependentFace": "n3.top",
+      "targetAndEndZ": [20, 30, 40],
+      "dependentVolumeMm3": [2000, 3000, 4000],
+      "targetVolumeMm3": 2000,
+      "cornersPerCheckpoint": 16,
+      "nativeComparisonAbsoluteTolerance": 1e-8,
+      "refusedTargetWidthMm": 8,
+      "firstUndoEndZ": 20,
+      "firstRedoEndZ": 30,
+      "savedBytes": 958,
+      "savedSha256": "806e115dfcb1cb720558c6b3d9bad6c4f120619dda08967b26a82390dc4423f6"
+    }
+  },
+  "allDesktopRuns": { "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 122, "studioPass": 75, "fail": 0, "skip": 0 },
+  "mutations": {
+    "control": "PASS",
+    "mutantsKilled": 7,
+    "runnerSha256": "112a2f266a6ac062c4f87b220d515e68f551d39030b5406278a958c1f2406db9",
+    "receiptSha256": "9fca9c8c247f6260bca73c71d686736ed5028d986dc4e5a791811e752fb3f9b8",
+    "singleSourceChanges": ["freeze end height", "ignore trim containment", "reuse consumed target", "accept hidden height", "consume target", "omit history dependency", "allow duplicate bound result"]
+  },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "highNativeReview": "PASS",
+  "rootVisualReview": "PASS"
+}

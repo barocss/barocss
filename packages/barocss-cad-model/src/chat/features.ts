@@ -16,7 +16,7 @@ import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
 import { checkBearingHousingRef } from '../engine/bearingContext';
-import { firstProblem, isRefusal } from '../engine/refusal';
+import { firstProblem, isRefusal, refusal } from '../engine/refusal';
 import { mirrorReplacementProblem } from '../engine/mirrorReplacement';
 import { isObj, isVec3 } from '../util/guards';
 
@@ -441,6 +441,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'loft') { (n as Extract<ModelNode, { kind: 'loft' }>).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if ((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if (n.kind === 'sketch' && n.association !== undefined) { parentsOf(n); n.association = { ...n.association, source: ref(n.association.source) }; }
+  if (n.kind === 'face-end-extrude') n.target = { ...n.target, body: ref(n.target.body) };
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   // (R12c.3b, D157: the shaft a key, ring or pin goes on, and a key's hub keyway.)
   if (n.kind === 'oring') (n as { gland: number }).gland = map(n.gland);
@@ -631,6 +632,7 @@ export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { do
 export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, number, number] | ((copy: BodyRef) => ModelNode)): { doc: StudioDoc; top: number } {
   const nodes = doc.nodes, chain = new Set<number>(), stack = [body.node];
   while (stack.length) { const i = stack.pop()!; if (chain.has(i) || !nodes[i]) continue; chain.add(i); stack.push(...parentsOf(nodes[i])); }
+  if ([...chain].some(i => nodes[i].kind === 'face-end-extrude')) throw refusal('BAD_REFERENCE', 'Extrude to face: duplicating a body with a bound end face is not supported.');
   const order = [...chain].sort((a, b) => a - b), at = new Map(order.map((old, k) => [old, nodes.length + k]));
   const map = (i: number) => at.get(i) ?? i;
   // The copies are new features: fresh ids, and the names inside them (a fillet's edges) renamed to the copies'.
