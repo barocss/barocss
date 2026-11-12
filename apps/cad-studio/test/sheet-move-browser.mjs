@@ -3,8 +3,11 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { qualifyMovedFlange } from './sheet-move-flange.mjs';
+import { qualifySheetRotation } from './sheet-rotate-flow.mjs';
 
-const baseline = process.argv[3] === '--baseline', flange = process.argv[3] === '--flange';
+const mode = process.argv[3];
+const baseline = mode === '--baseline', flange = mode === '--flange';
+const rotateBaseline = mode === '--rotate-baseline', rotate = rotateBaseline || mode === '--rotate';
 const fixture = 'packages/barocss-cad-model/test/fixtures/sheet-l-bracket.calls.json';
 const canonical = 'packages/barocss-cad/conformance/r12/accept-l-bracket.json';
 const repo = new URL('../../../', import.meta.url);
@@ -14,17 +17,21 @@ const pins = [
   'apps/cad-studio/src/ui/SelectionInspector.tsx',
   'packages/barocss-cad/src/part/part-transform.ts',
   'packages/barocss-cad/src/part/part-model.ts',
-  fixture, canonical, ...(flange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
+  fixture, canonical,
+  ...(flange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
+  ...(rotate ? ['apps/cad-studio/test/sheet-rotate-flow.mjs'] : []),
 ];
 const f = await createFlow({
-  name: 'sheet-move', output: process.argv[2], envFrozen: flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
+  name: rotate ? 'sheet-rotate' : 'sheet-move', output: process.argv[2],
+  envFrozen: rotate ? 'D814_SOURCE_FROZEN' : flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
+  qualification: rotate ? 'Rotate the D546 L-bracket about X and verify folded and aligned flat geometry.' :
+    flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
     'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
-  limits: ['One single-body L-bracket with two through holes, explicit K, and Move by (7, -3, 11) mm.'],
+  limits: [rotate ? 'One single-body L-bracket with two through holes, explicit K, and Rotate 30° about X at the origin.' :
+    'One single-body L-bracket with two through holes, explicit K, and Move by (7, -3, 11) mm.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { emptyDoc } from '@barocss/cad-model/engine/doc';
@@ -82,7 +89,8 @@ const button = (parent, name) => parent.getByRole('button', { name, exact: true 
 const flatDialog = () => f.page.getByRole('dialog', { name: 'Flat pattern', exact: true });
 const flatButton = () => button(f.page, 'Show the flat pattern');
 const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
-const project = 'D812 moved sheet ' + randomUUID(), name = 'D812-sheet.bcad';
+const project = (rotate ? 'D814 rotated sheet ' : 'D812 moved sheet ') + randomUUID();
+const name = rotate ? 'D814-sheet.bcad' : 'D812-sheet.bcad';
 const near = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} differs from ${b} (tolerance ${tolerance})`);
 function vectorNear(a, b, tolerance) {
   assert.equal(a.length, b.length);
@@ -203,6 +211,11 @@ await f.run(async () => {
   checkFlat(original, [3, 30, 3]);
   await selectBody();
   await showFlat('01-original-flat');
+  if (rotate) {
+    await qualifySheetRotation(f, seed, original, { selectBody, showFlat, projectRoundTrip, baseline: rotateBaseline });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'move the bracket and read the resulting folded shape and flat support';
   await f.page.evaluate(() => document.activeElement?.blur());

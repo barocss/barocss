@@ -23,6 +23,7 @@ interface TransformHelpers {
 }
 const one = (s: Solid): Result => ({ kind: 'solid', parts: [{ solid: s }] });
 const many = (parts: Solid[]): Result => ({ kind: 'solid', parts: parts.map(solid => ({ solid })) });
+const identity: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
 /** Resolve each sheet face uniquely using the same piece suffix convention as the unfolder. */
 function hasSheetFaces(brep: Brep, sheet: SheetReport): boolean {
@@ -47,30 +48,44 @@ function hasSheetFaces(brep: Brep, sheet: SheetReport): boolean {
   });
 }
 
+/** Preserve sheet metadata after an explicit rigid Translate or Rotate. */
+function carryRigidSheet(result: Result, brepOf: TransformHelpers['brepOf'], at: string): Result {
+  if (result.kind !== 'solid' || result.parts.length !== 1) return result;
+  const [part] = result.parts, move = part.moved, sheet = move?.from.sheet;
+  if (!move || !sheet) return result;
+  const { from, m, o } = move;
+  const sourceBrep = from.brep ?? brepOf({ solid: from.solid }, at);
+  if (!hasSheetFaces(sourceBrep, sheet) || !hasSheetFaces(brepOf(part, at), sheet)) return result;
+  // An identity linear map preserves the source components, including signed zero.
+  const orient = m.every((entry, index) => entry === identity[index])
+    ? (point: Point): Point => [...point]
+    : ([x, y, z]: Point): Point => [
+      m[0] * x + m[1] * y + m[2] * z,
+      m[3] * x + m[4] * y + m[5] * z,
+      m[6] * x + m[7] * y + m[8] * z,
+    ];
+  const bends = sheet.bends.map(bend => ({
+    ...bend, axis: { origin: add(orient(bend.axis.origin), o), direction: orient(bend.axis.direction) },
+  }));
+  return { kind: 'solid', parts: [{ ...part, sheet: { ...sheet, bends } }] };
+}
+
 /** Resolve the same inputs now and return the same deferred operation closure. */
 export function transformOperation(f: CadPartFeature & Record<string, unknown>, t: Tools, k: TransformHelpers): () => Result {
   const { dim, xyz, integer, axisOf, solids, fail, at } = t;
-  const { boolean, affine, rotation, moveAll, unionAll, rotate, CadPartLimits } = k;
+  const { boolean, affine, rotation, moveAll, brepOf, unionAll, rotate, CadPartLimits } = k;
   switch (f.kind) {
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
-      return () => {
-        const moved = moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, true);
-        const source = target[0], sheet = source?.sheet;
-        if (target.length !== 1 || !sheet || moved.kind !== 'solid' || moved.parts.length !== 1) return moved;
-        const part = moved.parts[0];
-        const sourceBrep = source.brep ?? k.brepOf({ solid: source.solid }, at);
-        if (!hasSheetFaces(sourceBrep, sheet) || !hasSheetFaces(k.brepOf(part, at), sheet)) return moved;
-        const bends = sheet.bends.map(bend => ({
-          ...bend, axis: { origin: add(bend.axis.origin, o), direction: [...bend.axis.direction] as Point },
-        }));
-        return { kind: 'solid', parts: [{ ...part, sheet: { ...sheet, bends } }] };
-      };
+      return () => carryRigidSheet(moveAll(target, identity, o, true), brepOf, at);
     }
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angle as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angle must be a finite number of degrees');
-      return () => { const { m, o } = rotation(axis, deg, pivot); return moveAll(target, m, o); };
+      return () => {
+        const { m, o } = rotation(axis, deg, pivot);
+        return carryRigidSheet(moveAll(target, m, o), brepOf, at);
+      };
     }
     case 'mirror': {
       const target = solids(f.target, 'target'), plane = f.plane;

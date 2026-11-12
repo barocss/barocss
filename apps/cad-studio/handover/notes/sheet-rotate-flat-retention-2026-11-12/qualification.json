@@ -1,0 +1,228 @@
+{
+  "decision": "D814",
+  "tier": "FULL",
+  "parent": "8cb32450430904ef9faf6b04352197f8b85d4b42",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d814-sheet-rotate",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-rotate-flow.mjs",
+    "node --check packages/barocss-cad/test/r12-3.test.mjs",
+    "cd apps/cad-studio && D814_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/baseline-1\" --rotate-baseline",
+    "pnpm --dir packages/barocss-cad type-check",
+    "node packages/barocss-cad/scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/r12-s0.test.mjs test/r12-1.test.mjs test/r12-2.test.mjs test/r12-3.test.mjs test/r12-4.test.mjs test/brep-mass-translation.test.mjs",
+    "cd packages/barocss-cad && node --test --test-name-pattern='^conformance r12-' test/conformance.test.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sheet.test sheet-acceptance cad-mass-provenance",
+    "cd apps/cad-studio && D814_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --rotate",
+    "cd apps/cad-studio && D813_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/flange-regression\" --flange",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d814-2026-11-12",
+    "baselineProduct": "FAIL_FLAT_PATTERN_LOSS",
+    "runs": {
+      "baseline-1": {
+        "status": "PASS",
+        "sha256": "2db7584e85f59550a35f701013020ed632aa9315bc5dfa05e900929f0bd9224b",
+        "frozenSources": 1006,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "rotated-native",
+            "volume": 2967.768244759698,
+            "centroid": [
+              12.141098054080244,
+              9.486459801045823,
+              13.568969640628872
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -3.845925372767128e-16
+            ],
+            "max": [
+              40,
+              25.98076211353316,
+              40.98076211353316
+            ],
+            "flatError": {
+              "code": "CAPABILITY",
+              "message": "n7: not made as sheet metal: give its thickness and K-factor to the kernel's flatPattern"
+            }
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "dd504c5c4d968590c472c02f3a8a5e8e30b18b20179c67a4681da835920eed4c",
+        "frozenSources": 1006,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "rotated-native",
+            "volume": 2967.768244759698,
+            "centroid": [
+              12.141098054080244,
+              9.486459801045823,
+              13.568969640628872
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -3.845925372767128e-16
+            ],
+            "max": [
+              40,
+              25.98076211353316,
+              40.98076211353316
+            ],
+            "flatError": null
+          },
+          {
+            "label": "aligned-flat",
+            "width": 30,
+            "length": 67.39292006587698,
+            "area": 1974.271013090765,
+            "holes": [
+              [
+                15.000000000000004,
+                10
+              ],
+              [
+                14.999999999999924,
+                52.39292006587705
+              ]
+            ],
+            "rawBox": {
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                59.67722214647164,
+                73.36398081226352
+              ]
+            },
+            "bendAxis": {
+              "origin": [
+                3,
+                24.48076211353316,
+                17.598076211353312
+              ],
+              "direction": [
+                0,
+                -0.8660254037844387,
+                -0.49999999999999994
+              ]
+            },
+            "direction": "down"
+          },
+          {
+            "label": "reopened-rotated-native",
+            "volume": 2967.768244759698,
+            "centroid": [
+              12.141098054080244,
+              9.486459801045823,
+              13.568969640628872
+            ],
+            "min": [
+              -1.83697019872103e-15,
+              -14.999999999999998,
+              -3.845925372767128e-16
+            ],
+            "max": [
+              40,
+              25.98076211353316,
+              40.98076211353316
+            ],
+            "flatError": null
+          },
+          {
+            "label": "reopened-aligned-flat",
+            "width": 30,
+            "length": 67.39292006587698,
+            "area": 1974.271013090765,
+            "holes": [
+              [
+                15.000000000000004,
+                10
+              ],
+              [
+                14.999999999999924,
+                52.39292006587705
+              ]
+            ],
+            "rawBox": {
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                59.67722214647164,
+                73.36398081226352
+              ]
+            },
+            "bendAxis": {
+              "origin": [
+                3,
+                24.48076211353316,
+                17.598076211353312
+              ],
+              "direction": [
+                0,
+                -0.8660254037844387,
+                -0.49999999999999994
+              ]
+            },
+            "direction": "down",
+            "bytes": 2355,
+            "sha256": "59ae1bd3a0897c8868bb1ba4264a454fdca926e6b6456261a042b6a77006720a"
+          }
+        ]
+      },
+      "flange-regression": {
+        "status": "PASS",
+        "sha256": "6f4f91d979ac4d9b1eb1a56265b977e6aa7fa728f1113fb59efe7f26b54d6db5",
+        "frozenSources": 1006,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "focused": {
+      "cadPass": 43,
+      "r12ConformancePass": 20,
+      "modelPass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "cadBuild": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

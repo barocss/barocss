@@ -140,7 +140,38 @@ test('R12.3a sheet Translate keeps named bends, table provenance, a flat and a s
   assert.deepEqual(original.sheet, originalReport);
 });
 
-test('R12.3a sheet Translate drops the report for ambiguous fixed faces or more than one native solid', () => {
+test('R12.3a sheet Rotate about a nonzero pivot carries the named bend and fixed skin', () => {
+  const base = [...plate, flange()];
+  const before = evaluateCadPart(D(base)), original = before.outputs[0], originalReport = structuredClone(original.sheet);
+  const pivot = [5, 7, 11], cos = Math.sqrt(3) / 2, sin = 1 / 2;
+  const turn = ([x, y, z]) => [x, cos * y - sin * z, sin * y + cos * z];
+  const turnPoint = point => turn(point.map((value, i) => value - pivot[i])).map((value, i) => value + pivot[i]);
+  const rotate = { id: 'm', kind: 'rotate', target: 'fl', axis: 'x', angle: 30, pivot };
+  const after = reevaluate(before, { document: D([...base, rotate]) }), rotated = after.outputs[0];
+  assert.deepEqual(after.recomputation.reused, ['b', 'fl']);
+  assert.equal(rotated.bodyCount, 1);
+  assert.equal(checkOutput(rotated).valid, true);
+  assert.notEqual(rotated.sheet, original.sheet);
+  assert.notEqual(rotated.sheet.bends[0].axis, original.sheet.bends[0].axis);
+  const [bend] = rotated.sheet.bends, [originalBend] = originalReport.bends;
+  assert.deepEqual({ ...rotated.sheet, bends: [{ ...bend, axis: originalBend.axis }] }, originalReport);
+  const expectedOrigin = turnPoint(originalBend.axis.origin), expectedDirection = turn(originalBend.axis.direction);
+  bend.axis.origin.forEach((value, i) => close(value, expectedOrigin[i], 1e-12, 'rotated bend axis origin'));
+  bend.axis.direction.forEach((value, i) => close(value, expectedDirection[i], 1e-12, 'rotated bend axis direction'));
+  assert.deepEqual(original.sheet, originalReport);
+
+  const flat = flatPatternOf(rotated), originalFlat = flatPatternOf(original);
+  assert.equal(flat.fixedFace, originalFlat.fixedFace);
+  assert.equal(flat.loops.length, 1);
+  assert.deepEqual(flat.bends.map(b => [b.name, b.direction]), [['fl.bend', 'up']]);
+  close(flat.area, originalFlat.area, 1e-11, 'rotated flat area');
+  close(flatPattern(rotated.brep, { thickness: T, kFactor: K }).area, flat.area, 1e-11, 'rotated flat with explicit rules');
+  const mass = massPropertiesOf(rotated), originalMass = massPropertiesOf(original), expectedCentroid = turnPoint(originalMass.centroid);
+  close(mass.volume, originalMass.volume, 1e-9, 'rotated volume');
+  mass.centroid.forEach((value, i) => close(value, expectedCentroid[i], 1e-9, 'rotated centroid'));
+});
+
+test('R12.3a sheet Translate and Rotate drop the report for ambiguous fixed faces or more than one native solid', () => {
   // A shallow slot splits the named top into two while a full-depth slot also splits the solid.
   for (const [z, bodyCount] of [[0.75, 1], [-1, 2]]) {
     const tool = [
@@ -153,17 +184,22 @@ test('R12.3a sheet Translate drops the report for ambiguous fixed faces or more 
     assert.equal(source.bodyCount, bodyCount);
     assert.equal(source.sheet.fixedFace, 'b.top');
     assert.deepEqual(source.brep.faces.map(f => f.name).filter(n => n?.startsWith('b.top')).sort(), ['b.top#1', 'b.top#2']);
-    const moved = out([...base, { id: 'm', kind: 'translate', target: 'split', offset: [7, -3, 11] }]);
-    assert.equal(moved.bodyCount, bodyCount);
-    assert.equal(moved.sheet, undefined);
-    assert.throws(() => flatPatternOf(moved), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message));
+    const transforms = [
+      { id: 'm', kind: 'translate', target: 'split', offset: [7, -3, 11] },
+      { id: 'm', kind: 'rotate', target: 'split', axis: 'x', angle: 30, pivot: [5, 7, 11] },
+    ];
+    for (const op of transforms) {
+      const moved = out([...base, op]);
+      assert.equal(moved.bodyCount, bodyCount, op.kind);
+      assert.equal(moved.sheet, undefined, op.kind);
+      assert.throws(() => flatPatternOf(moved), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message), op.kind);
+    }
   }
 });
 
-test('R12.3a a turn, mirror, scale, pattern or union drops the sheet report and a subsequent flange refuses', () => {
-  const base = [...plate, flange()], area = flatPatternOf(out(base)).area;
+test('R12.3a a mirror, scale, pattern or union drops the sheet report and a subsequent flange refuses', () => {
+  const base = [...plate, flange()];
   const transforms = [
-    { id: 'm', kind: 'rotate', target: 'fl', axis: 'x', angle: 30 },
     { id: 'm', kind: 'mirror', target: 'fl', plane: 'yz', keep: false },
     { id: 'm', kind: 'scale', target: 'fl', factor: 1 },
     { id: 'm', kind: 'linear-pattern', target: 'fl', axis: 'x', spacing: 200, count: 2 },
@@ -174,8 +210,6 @@ test('R12.3a a turn, mirror, scale, pattern or union drops the sheet report and 
     assert.throws(() => flatPatternOf(o), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message), op.kind);
     refused([...base, op, { id: 'f2', kind: 'sheet-flange', target: 'm', edge: 'b.side3|b.top', length: 10 }], 'CAPABILITY', /\[NOT_A_SHEET\] the target is not sheet metal/);
   }
-  // Turned, the body unfolds again from its own B-rep with T and K given: the same flat.
-  close(flatPattern(out([...base, transforms[0]]).brep, { thickness: T, kFactor: K }).area, area, 1e-11, 'rotated then unfolded');
   // A union with another body: no report either.
   const u = out([...base, { id: 'q', kind: 'sketch', profile: 'rectangle', min: [200, 0], max: [210, 10] },
     { id: 'qe', kind: 'extrude', sketch: 'q', height: 5 }, { id: 'u', kind: 'union', target: 'fl', tool: 'qe' }]);
