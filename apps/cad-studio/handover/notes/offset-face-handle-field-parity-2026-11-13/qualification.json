@@ -1,0 +1,351 @@
+{
+  "decision": "D898",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4a09e3803def0e40d7002fa8d55d096f44652746",
+  "issue": 2285,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d898-studio-offset-parity",
+    "D898_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/extrude-versus-offset-browser.mjs <external-evidence>/parity --handle-parity",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles native-offset-face native-offset-result",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family",
+    "node --check apps/cad-studio/test/extrude-versus-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 35,
+    "studioPass": 14,
+    "logSHA256": "19a7fc9f3a360d6c56000fa5ac8adf1764fc268995ea63ffc5ec5d40033e1158"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "projection": "orthographic",
+    "visualReview": "PASS",
+    "receiptSHA256": "103a48c10b63e07296709930b3803023189bda7de6a9c5705fd8e82471e09b49",
+    "sourceManifestSHA256": "bf29befc49cd4aefde5ea34705420add7778d841d935b5e5da318f5f63332afc",
+    "frozenFiles": 845,
+    "snapshots": 12,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "toleranceMm": 1e-07,
+    "toleranceMm3": 1e-07,
+    "observations": [
+      {
+        "label": "stock-height-5",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1000.0000000000001,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          2.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            5
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "outward-handle",
+        "targetMm": 3,
+        "startMm": 2,
+        "dragCssPx": [
+          0,
+          -29.513571547010315
+        ]
+      },
+      {
+        "label": "outward-handle-native",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1600.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          4
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            8
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "outward-field-native",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1600.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          4
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            8
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "outward-exact-graph",
+        "distanceMm": 3,
+        "candidateSHA256": "de1d0bdecf4c40b5318d35c601b4fa67a8c7b96d02e8c94566dbcaa838a0b9fe",
+        "exactEquality": true
+      },
+      {
+        "label": "inward-handle",
+        "targetMm": -1,
+        "startMm": 2,
+        "dragCssPx": [
+          0,
+          88.54071464103106
+        ]
+      },
+      {
+        "label": "inward-handle-native",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "difference"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 800.0000000000001,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          2
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            4
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.bottom"
+        ]
+      },
+      {
+        "label": "inward-field-native",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "difference"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 800.0000000000001,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          2
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            4
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.bottom"
+        ]
+      },
+      {
+        "label": "inward-exact-graph",
+        "distanceMm": -1,
+        "candidateSHA256": "18e1a975fba26232bb2a45d9afdab0f9992684ebbdd350e5816ec96c46a57808",
+        "exactEquality": true
+      }
+    ]
+  },
+  "notRun": [
+    "new Save cycle (D895/D896 retained)",
+    "end-on drag",
+    "tangent fillet chain comparison",
+    "missing or ambiguous Offset cap rematch",
+    "full suites",
+    "mobile"
+  ]
+}

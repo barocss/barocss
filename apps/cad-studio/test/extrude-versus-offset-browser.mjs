@@ -4,6 +4,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const capReference = process.argv[3] === '--cap-reference';
 const replacementFlow = process.argv[3] === '--replacement';
+const handleParity = process.argv[3] === '--handle-parity';
 const producers = [
   'apps/cad-studio/test/extrude-versus-offset-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -17,12 +18,16 @@ const producers = [
     'packages/barocss-cad-model/src/engine/references.ts', 'packages/barocss-cad/src/part/part-shell.ts'] : []),
   ...(replacementFlow ? ['apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
     'apps/cad-studio/src/state/previewLifetime.ts', 'apps/cad-studio/src/files/useStudioDocumentFiles.ts'] : []),
+  ...(handleParity ? ['apps/cad-studio/src/viewport/viewportPointerInput.ts', 'apps/cad-studio/src/viewport/gizmo.ts',
+    'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
   name: 'extrude-versus-offset', output: process.argv[2],
-  envFrozen: replacementFlow ? 'D897_SOURCE_FROZEN' : capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
+  envFrozen: handleParity ? 'D898_SOURCE_FROZEN' : replacementFlow ? 'D897_SOURCE_FROZEN'
+    : capReference ? 'D896_SOURCE_FROZEN' : 'D895_SOURCE_FROZEN',
   initialFiles: producers, requiredFrozen: producers,
-  qualification: replacementFlow ? 'Retire a real pending Offset preview and queued Apply when the source file is replaced.'
+  qualification: handleParity ? 'Compare real Offset handle and distance field commits for the same signed values.'
+    : replacementFlow ? 'Retire a real pending Offset preview and queued Apply when the source file is replaced.'
     : capReference ? 'Verify an open Shell on the native cap produced by Offset face.'
     : 'Compare a picked Extrude driver edit with an explicit native cap Offset face.',
   limits: ['One native 20 × 10 mm axis-aligned prism and one positive cap.', 'Real face and handle pointers, field values and UI history.',
@@ -412,6 +417,70 @@ async function checkReplacement() {
   f.report.observations.push({ label: 'queued-apply-control', reply: controlReply, resultHeightMm: 11 });
 }
 
+async function checkHandleParity() {
+  const seed = await f.inspect('seed', {}, 'seed');
+  await f.newPage();
+  await open(seed);
+  const native = await box('stock-height-5', seed, 5);
+  const field = () => hud().getByLabel('Offset', { exact: true });
+  const views = f.page.getByRole('group', { name: 'Views', exact: true });
+  const ortho = button(views, 'Ortho');
+  if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+  assert.equal(await ortho.getAttribute('aria-pressed'), 'true');
+  for (const [target, name] of [[3, 'outward'], [-1, 'inward']]) {
+    const accepted = [];
+    for (const input of ['handle', 'field']) {
+      const label = `${name}-${input}`;
+      f.phase = `${label}: start Offset on the same native cap`;
+      const cap = await pickCap(`${label}-picked`, native, 5);
+      assert.equal(cap.name, 'n1.top');
+      await clickModelCommand(f.page, 'Modify', 'Offset face');
+      await status('preview');
+      assert.equal(await field().inputValue(), '2');
+      if (input === 'handle') {
+        f.phase = `${label}: move the real handle along the cap normal`;
+        const arrow = f.page.locator('g.gizmo-handle[data-handle="d"] polygon');
+        await arrow.waitFor();
+        const head = await arrow.evaluate(polygon => {
+          const r = polygon.getBoundingClientRect();
+          return [r.x + r.width / 2, r.y + r.height / 2];
+        });
+        const [from, to] = await f.page.evaluate(distance => [
+          window.__studioScreenOf([10, 5, 5]),
+          window.__studioScreenOf([10, 5, 5 + distance]),
+        ], target - 2);
+        const delta = to.map((value, i) => value - from[i]);
+        assert.ok(Math.hypot(...delta) > 8);
+        await f.page.mouse.move(...head);
+        await f.page.mouse.down();
+        await f.page.mouse.move(...head.map((value, i) => value + delta[i]), { steps: 6 });
+        await f.page.mouse.up();
+        assert.equal(await field().inputValue(), String(target));
+        f.report.observations.push({ label, targetMm: target, startMm: 2, dragCssPx: delta });
+      } else {
+        await field().fill(String(target));
+      }
+      await status('preview');
+      assert.equal(await field().inputValue(), String(target));
+      await f.same(seed);
+      await f.snapshot(`${label}-preview`);
+      const doc = await apply(seed, `${label}-applied`);
+      assert.deepEqual(doc.nodes.slice(0, 2), seed.nodes);
+      assert.equal(doc.nodes[2].plane.origin[2], 5);
+      assert.equal(doc.nodes[3].height, Math.abs(target));
+      assert.equal(doc.nodes[3].from ?? 0, target < 0 ? target : 0);
+      assert.equal(doc.nodes[4].kind, target > 0 ? 'union' : 'difference');
+      await box(`${label}-native`, doc, 5 + target);
+      accepted.push(doc);
+      await f.undo();
+      await f.same(seed);
+    }
+    assert.deepEqual(...accepted);
+    f.report.observations.push({ label: `${name}-exact-graph`, distanceMm: target,
+      candidateSHA256: sha256(Buffer.from(JSON.stringify(accepted[0]))), exactEquality: true });
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -426,6 +495,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (handleParity) {
+    await checkHandleParity();
+    return;
+  }
   if (replacementFlow) {
     await checkReplacement();
     return;
