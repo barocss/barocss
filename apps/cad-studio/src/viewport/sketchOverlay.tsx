@@ -13,6 +13,8 @@ import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
 import type { OrbitCamera } from './camera';
 import type { DragTrimPreview } from './dragTrimStroke';
+import type { CircleChordDraft } from '../sketch/useCircleFromChord';
+import { CircleChordMarks } from './CircleChordMarks';
 import type { PathGapDraft } from '../sketch/usePathGap';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
@@ -55,6 +57,7 @@ interface SketchOverlayInputs {
   centreArc: CentreArcDraft | null;
   extensionGuide?: readonly P2[];
   pathGap?: PathGapDraft;
+  circleChord?: CircleChordDraft;
   overlaidLine?: OverlaidLine;
   dragTrim?: DragTrimPreview | null;
   inspected?: readonly SketchPick[];
@@ -69,7 +72,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, dragTrim, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, circleChord, overlaidLine, dragTrim, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -237,6 +240,7 @@ export function drawSketchOverlay({
       if (Math.abs(ca.sweep) > 1e-3) items.push(label(E[0] + 30, E[1] - 14, (Math.round(Math.abs(ca.sweep) * 1800 / Math.PI) / 10) + '°', 'live-carc-a'));
     }
   }
+  if (circleChord) items.push(<CircleChordMarks key="circle-chord" draft={circleChord} project={P} />);
   const trim = cutting && draft.trim?.owner === sk && draft.trim.gap === pathGap ? draft.trim : null;
   if (extensionGuide) items.push(<polyline key="arc-extension" className="sk-guide sk-arc-extension" fill="none"
     points={extensionGuide.map(point => { const q = P(...point); return q[0] + ',' + q[1]; }).join(' ')} />);

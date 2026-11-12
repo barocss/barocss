@@ -21,7 +21,7 @@ import { meshCrossesBox } from './boxSelectionCrossing';
 import { bodyEntirelyBehindEye } from './boxSelectionDepth';
 import type { OrbitCamera } from './camera';
 import { ellipseClick, type EllipseDraft } from './ellipseDraft';
-import { dragTrimFrame, DragTrimStroke, type DragTrimOwner, type DragTrimPlan } from './dragTrimStroke';
+import { DragTrimStroke, type DragTrimOwner, type DragTrimPlan } from './dragTrimStroke';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { pmiPick } from './pmiGeometry';
 import type { PrintDisplay } from './printDisplay';
@@ -33,6 +33,7 @@ import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
 import { enabledObjectSnaps, type ObjectSnapKinds } from '../sketch/objectSnapKinds';
 import { planPathGap } from '../sketch/pathGap';
 import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
+import type { CircleChordDraft, CircleChordInput } from '../sketch/useCircleFromChord';
 import type { PathGapDraft, PathGapInput } from '../sketch/usePathGap';
 import type { TwoPointSnapInput } from '../sketch/useTwoPointSnap';
 import { pickVertex } from './vertexPick';
@@ -85,6 +86,7 @@ export interface ViewportPointerProps {
   onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
   dragTrim?: Pick<DragTrimOwner, 'doc' | 'scope'> & { apply(owner: DragTrimOwner, plan: DragTrimPlan): void };
   pathGap?: PathGapInput;
+  circleChord?: CircleChordInput;
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
   pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -139,6 +141,7 @@ interface PointerDrag {
   y0?: number;
   pointerId?: number;
 
+  circleChord?: { pointer: number; draft: CircleChordDraft; frame: string };
   splineArm?: { hit: SplineHandleHit; pointerId: number };
   splineHit?: SplineHandleHit;
   splineStart?: SketchShape;
@@ -253,7 +256,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
   const [trimStroke] = useState(() => new DragTrimStroke());
-  const trimFrame = () => dragTrimFrame(camera.current, canvas.current!);
+  const pointerFrame = () => {
+    const cam = camera.current, rect = canvas.current!.getBoundingClientRect();
+    return [...cam.target, cam.distance, cam.yaw, cam.pitch, cam.fovY, cam.ortho,
+      cam.aspect, rect.left, rect.top, rect.width, rect.height].join(':');
+  };
   const trimOwner = (event?: { shiftKey: boolean; altKey: boolean }): DragTrimOwner | null => {
     const { sketch, dragTrim, pathGap } = propsRef.current;
     return !event?.shiftKey && !event?.altKey && sketch?.tool === 'trim' && dragTrim && !pathGap?.read(sketch)
@@ -600,6 +607,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const resetSketchTool = () => { cancelDragTrim(); drafting.current = false; slotStage.current = 0; splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; };
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
+    const held = drag.current;
+    if (held.circleChord && !held.moved && held.circleChord.pointer !== e.pointerId) { held.moved = true; return; }
     if (trimStroke.interceptDown(e.pointerId)) { sketchDraft.current.trim = null; request(); return; }
     if (drag.current.mode === 'gizmo') return;
     if (drag.current.splineArm || drag.current.mode === 'spline') return; // (another pointer while a spline drag is armed or active)
@@ -608,10 +617,15 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
     const tool = propsRef.current.tool;
     if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
+    const chord = e.button === 0 && !e.altKey ? propsRef.current.circleChord?.read(propsRef.current.sketch ?? null) : null;
+    if (chord) {
+      drag.current = { mode: null, x, y, moved: false, circleChord: { pointer: e.pointerId, draft: chord, frame: pointerFrame() } };
+      return;
+    }
     const trim = e.button === 0 ? trimOwner(e) : null;
     if (trim) {
       const point = sketchPoint(x, y, w, h, trim.sketch.plane);
-      if (point) trimStroke.begin(trim, e.pointerId, trimFrame(), [x, y], point);
+      if (point) trimStroke.begin(trim, e.pointerId, pointerFrame(), [x, y], point);
       else trimStroke.ignore(e.pointerId);
     }
     // (D353: a down on a closed spline's handle end or fit point arms a drag; a release before it starts is the ordinary click.)
@@ -641,9 +655,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const onPointerMove = (e: PointerEvent<HTMLCanvasElement>) => {
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
     const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
+    if (d.circleChord?.pointer === e.pointerId && (!(e.buttons & 1) || Math.hypot(x - d.x, y - d.y) > 5
+      || d.circleChord.frame !== pointerFrame())) d.moved = true;
     if (trimStroke.owns(e.pointerId)) {
       const owner = e.buttons === 1 ? trimOwner(e) : null;
-      if (trimStroke.advance(e.pointerId, owner, trimFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane))) {
+      if (trimStroke.advance(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane))) {
         sketchDraft.current.trim = null;
         request();
         return;
@@ -695,6 +711,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       sketchDraft.current.extension = !!at?.extension;
       livePolygonMiddle.current = !!at?.liveMiddle;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
+      if (propsRef.current.circleChord?.read(sk)) { request(); return; }
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
       if (sk.tool !== 'spline') splineFit.current = null;
@@ -765,7 +782,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const onPointerUp = (e: PointerEvent<HTMLCanvasElement>) => {
     if (trimStroke.owns(e.pointerId)) {
       const { x, y, w, h } = local(e), owner = e.button === 0 ? trimOwner(e) : null;
-      const result = trimStroke.release(e.pointerId, owner, trimFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane));
+      const result = trimStroke.release(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane));
       if (result.kind !== 'click') {
         sketchDraft.current.trim = null;
         if (result.kind === 'plan') propsRef.current.dragTrim?.apply(result.owner, result.plan);
@@ -775,9 +792,21 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
     if ((d.splineArm || d.mode === 'spline') && (d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
+    if (d.circleChord && d.circleChord.pointer !== e.pointerId) return;
     drag.current = { mode: null, x: 0, y: 0, moved: false };
     if (d.splineArm) propsRef.current.onSplineDragChange?.(false);
     const { x, y, w, h } = local(e);
+    if (d.circleChord) {
+      const { circleChord, sketch } = propsRef.current;
+      if (d.moved || e.button !== 0 || e.altKey || Math.hypot(x - d.x, y - d.y) > 5
+        || d.circleChord.frame !== pointerFrame() || !sketch || circleChord?.read(sketch) !== d.circleChord.draft) return;
+      const point = sketchPoint(x, y, w, h, sketch.plane);
+      if (!point) return;
+      const at = sketchSnap(x, y, w, h, sketch, point)?.at ?? [snap(point[0]), snap(point[1])];
+      circleChord.pick(sketch, d.circleChord.draft, at);
+      request();
+      return;
+    }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
     if (d.mode === 'spline') {
@@ -816,6 +845,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     const sk = propsRef.current.sketch;
     if (sk) {
+      if (propsRef.current.circleChord?.read(sk)) return;
       const snaps = propsRef.current.sketchSnaps, input = snaps?.twoPoint, reference = input?.read();
       if (input && reference) { input.pick(referenceSnap(reference.points, sk.plane, x, y)); return; }
       const guide = snaps?.extension.read(sk);
@@ -980,6 +1010,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
 
   const onWheel = (e: WheelEvent<HTMLCanvasElement>) => {
     cancelDragTrim();
+    if (drag.current.circleChord) drag.current.moved = true;
     const { x, y, w, h } = local(e);
     camera.current.zoom(Math.exp(e.deltaY * 0.0015), (x / w) * 2 - 1, 1 - (y / h) * 2); moving.current(); request();
   };
@@ -989,8 +1020,12 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     sketchDraft.current.trim = null;
     request();
   };
-  const onPointerCancel = (e: PointerEvent<HTMLCanvasElement>) => { endDragTrim(e.pointerId); splineCancelOf(e.pointerId); cancelGizmo('pointercancel', e.pointerId); };
-  const onLostPointerCapture = (e: PointerEvent<HTMLCanvasElement>) => { endDragTrim(e.pointerId); splineCancelOf(e.pointerId); cancelGizmo('lostpointercapture', e.pointerId); };
+  const cancelSketchPress = (pointer: number) => {
+    endDragTrim(pointer);
+    if (drag.current.circleChord?.pointer === pointer) drag.current.moved = true;
+  };
+  const onPointerCancel = (e: PointerEvent<HTMLCanvasElement>) => { cancelSketchPress(e.pointerId); splineCancelOf(e.pointerId); cancelGizmo('pointercancel', e.pointerId); };
+  const onLostPointerCapture = (e: PointerEvent<HTMLCanvasElement>) => { cancelSketchPress(e.pointerId); splineCancelOf(e.pointerId); cancelGizmo('lostpointercapture', e.pointerId); };
   const onDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
     if (p.cage) {
@@ -1019,6 +1054,6 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     placementHandlers: { onDragOver, onDrop },
     overlay: { drag, gizmoHot, valueBox, sketchDraft, twoPointHover, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector },
     cancelGizmo, listenForSketchKeys, resetSketchTool, startRectangleAt,
-    dragTrimPreview: () => canvas.current ? trimStroke.preview(trimOwner(), trimFrame) : null,
+    dragTrimPreview: () => canvas.current ? trimStroke.preview(trimOwner(), pointerFrame) : null,
   };
 }

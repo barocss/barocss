@@ -1,0 +1,168 @@
+{
+  "decision": "D878",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "b185ca91dfc165f0576d5c158f98ac7d73da191c",
+  "issue": 2318,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D878_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/studio-run08-controls-baseline --controls-baseline",
+    "D878_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/studio-run09",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/snap-regression",
+    "D877_SOURCE_FROZEN=1 node apps/cad-studio/test/material-drag-trim-browser.mjs <external-evidence>/trim-regression",
+    "D876_SOURCE_FROZEN=1 node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/frame-regression",
+    "D861_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-comparison-browser.mjs <external-evidence>/constraint-regression",
+    "cd apps/cad-studio && node scripts/test.mjs circle-from-chord object-snap-kinds drag-trim-stroke draft-sketch-history sketchIds trim.test",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-profile-precision sketch-reopen-side-ids sketch-rectangle-driving-retention",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist-final",
+    "pnpm exec eslint apps/cad-studio/src/sketch/{circleFromChord,useCircleFromChord}.ts apps/cad-studio/src/sketch/CircleChordControls.tsx apps/cad-studio/src/viewport/{CircleChordMarks,SceneViewport,Viewport,sketchOverlay}.tsx apps/cad-studio/src/viewport/{dragTrimStroke,viewportPointerInput}.ts apps/cad-studio/src/ui/ConstraintTools.tsx apps/cad-studio/test/circle-from-chord.test.ts",
+    "node --check apps/cad-studio/test/circle-from-chord-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 26,
+    "modelPass": 29,
+    "typeChecks": "PASS",
+    "scopedLint": "PASS",
+    "studioBuild": "PASS",
+    "independentSourceAudit": "PASS after repair",
+    "logSHA256": "200140b3d654c12bc2a297ba4ab83c7f8b118a0860ccca874dd45879b997d627"
+  },
+  "studio": {
+    "earlyDriverFailures": [
+      {
+        "run": 1,
+        "status": "FAIL",
+        "firstFailure": "Startup opens the example part",
+        "receiptSHA256": "b5e381e5595c7380ce60f0f3a7a9079432478728fe9619e8d9b61f29cab4081f"
+      },
+      {
+        "run": 2,
+        "status": "FAIL",
+        "firstFailure": "Native cylinder has four seam vertices",
+        "receiptSHA256": "048910aa72827f49501ad9f77048d56cb3551bf986dd4199989fc91b8639aa57"
+      },
+      {
+        "run": 3,
+        "status": "FAIL",
+        "firstFailure": "Project panel locator called as a function",
+        "receiptSHA256": "286ecfe07c07520c6668069ded10a634a051bc2a41a688ed281192d830c1e4ca"
+      },
+      {
+        "run": 4,
+        "status": "FAIL",
+        "firstFailure": "Another call of the same locator",
+        "receiptSHA256": "f7b3faa36a858652f8ebc5e76941debf9bc1647ca882aaeec225d184dfc6ae9c"
+      },
+      {
+        "run": 5,
+        "status": "FAIL",
+        "firstFailure": "Ordinary diameter label includes the unit",
+        "receiptSHA256": "193eb7b95f11a948cc2028eaf612abf46b4f061aa62a4d37e9927a7c1656b237"
+      },
+      {
+        "run": 6,
+        "status": "FAIL",
+        "firstFailure": "Ordinary diameter input has an ID and an implicit label",
+        "receiptSHA256": "bd55de57ed35187809a577d5763f6b19e7cc99ef6bef58d52964ea0d54cb217b"
+      }
+    ],
+    "earlierXY": {
+      "status": "PASS",
+      "receiptSHA256": "3664de80e996898fca6a9a5da24d4c29de6e9dc8625f7a4d613b1b79fe2027db",
+      "sourceManifestSHA256": "a89e23ffbaf326a795bd68022fbd0b255115ec93425dea7e607fd0a3d2849fa4",
+      "frozenFiles": 835,
+      "snapshots": 15,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "controlBaseline": {
+      "status": "PASS",
+      "receiptSHA256": "bae31d403b01ac0f98fbb93de0b83d28d441beb64dd7910fd75cca1fae76ba09",
+      "sourceManifestSHA256": "26936541cb2439056a61e7eaecdd8ebc92c069b15d48195179c4cffb0d414f55",
+      "frozenFiles": 835,
+      "snapshots": 3,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "resizedPress": "FAIL",
+      "heldEnterCancel": "FAIL"
+    },
+    "finalXY": {
+      "status": "PASS",
+      "receiptSHA256": "0761d7116c8d7285d3ebaf7d889cf1c89daa109f5ef2b710e76fd736c527d21c",
+      "sourceManifestSHA256": "e9e3b561c383e31c621a2823183b469295a21774f3b8affe9b2d37e06b6cfed8",
+      "frozenFiles": 835,
+      "snapshots": 19,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "preRepairSnapRegression": {
+      "status": "PASS",
+      "receiptSHA256": "4a1c7b685c400fe2ee0167f851e1055c3a182fe33316ce28bc0cf693583c7622",
+      "sourceManifestSHA256": "93867cc23ea3b4acea7277d03a5888fba20b19d4290d49e7763576d6eadd4dc1",
+      "frozenFiles": 363,
+      "snapshots": 9,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "preRepairMaterialTrimRegression": {
+      "status": "PASS",
+      "receiptSHA256": "8458d3a5ee9c4531406735feb6195aebed24beb5b4c6c9260ca561ce869d2387",
+      "sourceManifestSHA256": "bce89b56184b83512f0d0d6020fd8ba25c2fcca3e93cac732280988a635d0b63",
+      "frozenFiles": 836,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "finalFrameRegression": {
+      "status": "PASS",
+      "receiptSHA256": "b1fb364627f15c089736c3aea3f56027f0c04a23520131a71699172debd3bcd8",
+      "sourceManifestSHA256": "3800cbce3857766b82d661985c93279a67d39faf88c45efff079c36a4135b556",
+      "frozenFiles": 835,
+      "snapshots": 13,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "finalConstraintRegression": {
+      "status": "PASS",
+      "receiptSHA256": "3b713659e1174f86868cc9710d607afc0f5c6afe4e5b90ab74f6703b3b585216",
+      "sourceManifestSHA256": "3a1c9f42e44d2901e81d35baa453a9c6162859c60b32411045cd5870ae89f653",
+      "frozenFiles": 835,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "2bd0ea7f9d9b974c60f8b89cf67b57411d483c4bac00357dfe480f8b20d331c5",
+    "projectionTolerancePx": 0.02,
+    "nativeTolerance": 1e-07,
+    "radius5CentersMm": [
+      [
+        23,
+        16
+      ],
+      [
+        23,
+        24
+      ]
+    ],
+    "radius4CenterMm": [
+      22.5,
+      23.1224989991992
+    ],
+    "projectBytes": 512,
+    "projectSHA256": "d834ebf4e19b1934dd2f7d7b6657683ff7b3ea1c927817b60d62e1f1d32081ef"
+  }
+}

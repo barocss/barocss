@@ -22,6 +22,8 @@ import { ModelTools } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useTwoPointSnap } from './sketch/useTwoPointSnap';
+import { useCircleFromChord } from './sketch/useCircleFromChord';
+import { CircleChordControls } from './sketch/CircleChordControls';
 import { useArcExtensionSnap } from './sketch/useArcExtensionSnap';
 import { SketchSnapControls } from './sketch/SketchSnapControls';
 import { defaultObjectSnapKinds, toggleObjectSnapKind } from './sketch/objectSnapKinds';
@@ -1560,7 +1562,9 @@ export function App() {
   }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, updateShape);
   const finishSketch = () => {
+    if (circleChord.input.read(sketch)) return;
     clearConstraintInspection(constraintInspection, sketch);
     sketchActions.finishSketch();
   };
@@ -1569,7 +1573,7 @@ export function App() {
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }),
-    dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
+    dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
@@ -2007,6 +2011,7 @@ export function App() {
     twoPointSnap.cancel();
     arcExtensionSnap.cancel();
     pathGap.cancel();
+    circleChord.cancel();
     const current = draftHistoryState(doc, draft, pending ? pending.shape : liveShape.current);
     const step = forward ? sketchHistory.redo(current) : sketchHistory.undo(current);
     if (!step) return;
@@ -2023,27 +2028,27 @@ export function App() {
   useEffect(() => {
     const listen = (e: KeyboardEvent) => onKeyRef.current(e);
     let dismissed = false;
-    let constraintAction = false;
-    const constraintKeys = (e: KeyboardEvent) => {
+    let sketchAction = false;
+    const sketchActionKeys = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
       if (e.key === 'Escape') {
         if (!e.repeat) dismissed = dismissInspectionRef.current();
         if (!dismissed) return;
       } else if (e.key === 'Enter') {
         if (!e.repeat) {
-          constraintAction = e.target instanceof Element && e.target.hasAttribute('data-sketch-constraint-action');
+          sketchAction = e.target instanceof Element && e.target.hasAttribute('data-sketch-action');
           return;
         }
         // An action can disable or unmount its button. Its repeats must not finish the sketch.
-        if (!constraintAction) return;
+        if (!sketchAction) return;
       } else return;
       e.preventDefault();
       e.stopImmediatePropagation();
     };
-    window.addEventListener('keydown', constraintKeys, true);
+    window.addEventListener('keydown', sketchActionKeys, true);
     window.addEventListener('keydown', listen);
     return () => {
-      window.removeEventListener('keydown', constraintKeys, true);
+      window.removeEventListener('keydown', sketchActionKeys, true);
       window.removeEventListener('keydown', listen);
     };
   }, []);
@@ -2088,8 +2093,8 @@ export function App() {
         return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
-      if (e.key === 'Escape' && (overlaidLines.close() || twoPointSnap.cancel() || arcExtensionSnap.cancel() || pathGap.cancel())) { e.preventDefault(); return; }
-      if (e.key === 'Enter' && (twoPointSnap.input.read() || arcExtensionSnap.input.read(sketch) || pathGap.input.read(sketch))) { e.preventDefault(); return; }
+      if (e.key === 'Escape' && (circleChord.escape(e.repeat) || overlaidLines.close() || twoPointSnap.cancel() || arcExtensionSnap.cancel() || pathGap.cancel())) { e.preventDefault(); return; }
+      if (e.key === 'Enter' && (circleChord.input.read(sketch) || twoPointSnap.input.read() || arcExtensionSnap.input.read(sketch) || pathGap.input.read(sketch))) { e.preventDefault(); return; }
       if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { footprintRequest.current++; if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
@@ -2500,7 +2505,7 @@ export function App() {
       {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelNativeReview} adopt={midpointSketch.adopt} />}
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
         onToggleObjectKind={kind => setObjectSnapKinds(kinds => toggleObjectSnapKind(kinds, kind))}
-        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
@@ -2750,7 +2755,7 @@ export function App() {
         </div>
         {workspaceModeExit.dialog}
         <div className="grow" />
-        {sketch && <Button variant="default" size="default" className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></Button>}
+        {sketch && <Button variant="default" size="default" className="finish" disabled={!!circleChord.visible} onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></Button>}
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
         <ToolsTray items={[
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,

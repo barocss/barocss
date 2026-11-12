@@ -88,7 +88,7 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
     <div className="cons-tools" role="group" aria-label="Constraints for the selection" data-sketch-dimension-focus
       onBlur={e => { if (owner.editDim && !keepsDimensionDraft(e.relatedTarget)) onEditDim(null); }}>
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
-        data-sketch-constraint-action className={comparison?.kind === t.kind ? 'comparing' : undefined}
+        data-sketch-action className={comparison?.kind === t.kind ? 'comparing' : undefined}
         onPointerEnter={() => compare(t.kind, 'pointer')} onPointerLeave={() => stopComparing(t.kind, 'pointer')}
         onFocus={() => compare(t.kind, 'focus')} onBlur={() => stopComparing(t.kind, 'focus')}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}
@@ -126,7 +126,7 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
             if (e.target === e.currentTarget) e.preventDefault();
           }}>
           <div className="kv">{c.label}<b>{c.detail}</b></div>
-          <button type="button" data-sketch-constraint-action className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
+          <button type="button" data-sketch-action className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
             title={c.removable ? 'Remove this constraint' : undefined} onClick={() => onShape(removeConstraint(s, c.id))}>×</button>
         </div>;
       })}

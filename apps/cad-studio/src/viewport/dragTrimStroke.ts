@@ -3,7 +3,6 @@ import type { P2 } from '@barocss/cad-model/sketch/profile';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { sketchCutInputs } from '../app/sketchControls';
 import { DRAG_TRIM_MAX_PATH_POINTS, planDragTrim } from '../sketch/dragTrimPlan';
-import type { OrbitCamera } from './camera';
 
 const DRAG_PIXELS = 5;
 
@@ -23,12 +22,6 @@ type Stroke = {
 };
 export type DragTrimPreview = { path: readonly P2[]; intervals: readonly (readonly [P2, P2])[] };
 type Release = { kind: 'click' | 'discard' } | { kind: 'plan'; owner: DragTrimOwner; plan: DragTrimPlan };
-
-export function dragTrimFrame(camera: OrbitCamera, canvas: HTMLCanvasElement): string {
-  const rect = canvas.getBoundingClientRect();
-  return [...camera.target, camera.distance, camera.yaw, camera.pitch, camera.fovY, camera.ortho,
-    camera.aspect, rect.left, rect.top, rect.width, rect.height].join(':');
-}
 
 export class DragTrimStroke {
   private stroke: Stroke | null = null;

@@ -797,6 +797,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
+      circleChord: props.circleChord?.read(sk) ?? undefined,
       overlaidLine: props.overlaidLine,
       dragTrim: input.dragTrimPreview(),
       inspected: inspection?.target === 'row' ? inspection.entry.involves
