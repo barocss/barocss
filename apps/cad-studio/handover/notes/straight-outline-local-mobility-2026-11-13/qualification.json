@@ -1,0 +1,174 @@
+{
+  "decision": "D871",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "90969e7d264eeae725b05da4d5e20a7bea4f18a5",
+  "issue": 2330,
+  "issueDisposition": "ACCEPTANCE_MET_CLOSE_AFTER_PUSH",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d871-desktop-01",
+    "D871_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-local-mobility-browser.mjs <external-evidence>/studio-run01",
+    "gate.sh acquire heavy 600 d871-desktop-02",
+    "D871_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-local-mobility-browser.mjs <external-evidence>/studio-run02",
+    "gate.sh acquire heavy 600 d871-desktop-03",
+    "D871_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-local-mobility-browser.mjs <external-evidence>/studio-run03",
+    "gate.sh acquire heavy 600 d871-desktop-final",
+    "D871_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-local-mobility-browser.mjs <external-evidence>/studio-run04",
+    "D856_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-inspection-browser.mjs <external-evidence>/constraint-inspection",
+    "D861_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-comparison-browser.mjs <external-evidence>/constraint-comparison",
+    "gate.sh acquire heavy 600 d871-full-checks",
+    "pnpm exec tsc -p packages/barocss-cad/tsconfig.json --outDir <external-evidence>/cad-package/dist",
+    "cp packages/barocss-cad/package.json <external-evidence>/cad-package/package.json",
+    "cp packages/barocss-cad/test/xy-numerical-sketch-{mobility,equal-length}.test.mjs <external-evidence>/cad-package/test/",
+    "node --test --test-concurrency=1 <external-evidence>/cad-package/test/*.test.mjs",
+    "node packages/barocss-cad-model/scripts/test.mjs outline-mobility sketch-profile-precision sketch-rectangle-driving-retention sketch-outline-field-identity sketch-conflict-proof fixed-triangle",
+    "cd apps/cad-studio && node scripts/test.mjs constraints sketch-edit-identity fixed-triangle-inline-ownership viewport-sketch-overlay-band",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/{sketch/constraintInspection.ts,ui/SketchMobility.tsx,ui/SketchPanel.tsx,viewport/Viewport.tsx} packages/barocss-cad/src/{index.ts,sketch/xy-numerical-sketch.ts,sketch/xy-numerical-sketch-solver-internal.ts,sketch/xy-numerical-sketch-mobility-internal.ts} packages/barocss-cad-model/src/sketch/{profile,mobility}.ts packages/barocss-cad-model/test/outline-mobility.test.ts",
+    "gate.sh acquire heavy 600 d871-mutations-and-final-types",
+    "node <external-evidence>/mutations.mjs <worktree> <external-evidence>/mutation-run02",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node --check apps/cad-studio/test/sketch-local-mobility-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "emittedCadPass": 9,
+    "modelPass": 50,
+    "studioPass": 58,
+    "typeChecks": "PASS",
+    "productionBuild": "PASS",
+    "scopedLint": "PASS",
+    "logSHA256": "9338e72793c844ff4592fd380cf8ec9663575f8b698995e573dc4725c21bf1a5",
+    "finalLogSHA256": "cbcbc202f053989b5d2525397c8c6fcd50aa6b38c272d8a2ddf96cae27234234"
+  },
+  "mutations": {
+    "status": "PASS",
+    "control": "PASS",
+    "killed": 6,
+    "firstRunnerStatus": "FAIL",
+    "firstRunnerReason": "The residual mutation failed the expected test but its name did not match the runner pattern.",
+    "runnerSHA256": "8ed75806c00514240be4a501341ea16da02ac64be0369fddce835b2587f6eb42",
+    "receiptSHA256": "ac2b500d3773c6a49f91047a4bfdf1b1d29be8ec8314e3fa82f3c6ffa5ed4213"
+  },
+  "studio": {
+    "preparationFailure": {
+      "status": "FAIL",
+      "receiptSHA256": "9b74dd9d614f1b13a54358713e453255ad70e61b874c1ef937e1495c38e081c4",
+      "sourceManifestSHA256": null,
+      "frozenFiles": 0,
+      "snapshots": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "undoPointerFailure": {
+      "status": "FAIL",
+      "receiptSHA256": "1402bc8a9a36151fece6c3f97f81457365879a70992f0c3aefe0719881a76ce2",
+      "sourceManifestSHA256": "c68e4ae2bf709e1236b70e34380fb00c9c5db77ca9cdcd40cda6ee0b666a4aed",
+      "frozenFiles": 827,
+      "snapshots": 4,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "earlierPassingRun": {
+      "status": "PASS",
+      "receiptSHA256": "0a8ccc86a80789093f14e9a6dac2361b191743a42f6aba9decf9c1f345d8bf3e",
+      "sourceManifestSHA256": "cf93f48e727148fcfaf6d2b4916e164eeecfbc22ab645f8edf02275be09cd29f",
+      "frozenFiles": 827,
+      "snapshots": 7,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "finalRun": {
+      "status": "PASS",
+      "receiptSHA256": "08aad222286593ad02a1f67ddde0735aa227d8b48b3154d1ee8c63ddc15af8ac",
+      "sourceManifestSHA256": "cf93f48e727148fcfaf6d2b4916e164eeecfbc22ab645f8edf02275be09cd29f",
+      "frozenFiles": 827,
+      "snapshots": 8,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "rowRegression": {
+      "status": "PASS",
+      "receiptSHA256": "4ed717228744d9e44c03ea594a28abe8ca8306abd1f1feb897119baf4c888b0a",
+      "sourceManifestSHA256": "d4132fef24ad3738315bbaee73ded5b53e3fe3158d95c38504c8138a747d4888",
+      "frozenFiles": 826,
+      "snapshots": 10,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "comparisonRegression": {
+      "status": "PASS",
+      "receiptSHA256": "e442f7ecc65a0ad79056d829fdd3400e0a010a13010ba912969dcb9c5134e56b",
+      "sourceManifestSHA256": "4dddb3c90ed3d97cff96ea0f9f5d44a336f5366e3c72397e57e669007d9c4584",
+      "frozenFiles": 827,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "8227672072a854c115d571b4a0e4282b86f0e4ef7ea60514291b977eb82a71c1",
+    "ranks": [
+      6,
+      7,
+      8
+    ],
+    "dof": [
+      2,
+      1,
+      0
+    ],
+    "pointsByDof": {
+      "2": [
+        2,
+        3,
+        4
+      ],
+      "1": [
+        3,
+        4
+      ],
+      "0": []
+    },
+    "edgesByDof": {
+      "2": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "1": [
+        2,
+        3,
+        4
+      ],
+      "0": []
+    },
+    "volumeMm3": 4000.0000000000005,
+    "centroidMm": [
+      19.999999999999996,
+      9.999999999999998,
+      2.5
+    ],
+    "corners": 8,
+    "projectBytes": 1196,
+    "projectSHA256": "d014c03b1c0417e3e77d32fff43bf9048e5f1a420cb23ddb2b65fabd68956f90",
+    "geometryTolerance": 1e-08,
+    "projectionTolerancePx": 0.02
+  }
+}

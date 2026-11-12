@@ -10,6 +10,7 @@ import { ellipseMatches, type EllipseDef } from '@barocss/cad-model/sketch/ellip
 import { applyEllipse, ellipseConstraintRows } from './ellipsePanel';
 import { liveBand } from '@barocss/cad-model/sketch/band';
 import { ConstraintTools } from './ConstraintTools';
+import { SketchMobility } from './SketchMobility';
 import type { ConstraintInspectionStore } from '../sketch/constraintInspection';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -101,6 +102,8 @@ export function SketchPanel({ sketch, constraintInspection, toolLabel, error, to
       {toolControls}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {(error ?? splineError) && <div className="sk-status open" role="alert"><i />{error ?? splineError}</div>}
+      {s && <SketchMobility owner={sketch} inspection={constraintInspection}
+        onDimEdit={editDim => onUi?.({ editDim })} />}
       {s?.kind === 'rectangle' && (() => {
         const x0 = Math.min(s.a[0], s.b[0]), y0 = Math.min(s.a[1], s.b[1]), w = Math.abs(s.b[0] - s.a[0]), h = Math.abs(s.b[1] - s.a[1]);
         const put = (nx: number, ny: number, nw: number, nh: number) => onShape({ kind: 'rectangle', a: [nx, ny], b: [nx + nw, ny + nh] });

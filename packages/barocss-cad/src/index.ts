@@ -354,8 +354,8 @@ export { classifyPairedSurfaceMaterialBodyWorldPoints, validatePairedSurfaceMate
 export type { PairedSurfaceMaterialBodyWorldPointQuery, PairedSurfaceMaterialBodyWorldPointOptions, PairedSurfaceMaterialBodyWorldPointReport, PairedSurfaceMaterialBodyWorldPointResult } from './paired/paired-surface-material-body-world-points.js';
 
 
-export { buildXYNumericalSketch, solveXYNumericalSketch, solveXYNumericalSketchPoints, validateXYNumericalSketch, XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './sketch/xy-numerical-sketch.js';
-export type { XYNumericalSketchPoint, XYNumericalSketchSegment, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard, XYNumericalSketchDocumentV0, XYNumericalSketchResidual, XYNumericalSketchReport, XYNumericalSketchSuccess, XYNumericalSketchDiagnostic, XYNumericalSketchResult, XYNumericalSketchPointsSuccess } from './sketch/xy-numerical-sketch.js';
+export { buildXYNumericalSketch, solveXYNumericalSketch, solveXYNumericalSketchPoints, diagnoseXYNumericalSketchMobility, validateXYNumericalSketch, XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './sketch/xy-numerical-sketch.js';
+export type { XYNumericalSketchPoint, XYNumericalSketchSegment, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard, XYNumericalSketchDocumentV0, XYNumericalSketchResidual, XYNumericalSketchReport, XYNumericalSketchSuccess, XYNumericalSketchDiagnostic, XYNumericalSketchResult, XYNumericalSketchPointsSuccess, XYNumericalSketchMobility } from './sketch/xy-numerical-sketch.js';
 export { qualifyConvexPlanarSolid, validateConvexPlanarSolid, classifyConvexPlanarSolidPoints, ConvexPlanarSolidError, ConvexPlanarSolidDiagnosticCode } from './convex-planar-solid.js';
 export type { ConvexPlanarSolidAsset, ConvexPlanarSolidUseReference, ConvexPlanarSolidEdgePair, ConvexPlanarSolidOptions, ConvexPlanarSolidQueryOptions, ConvexPlanarSolidVertexReference, ConvexPlanarSolidGraph, ConvexPlanarSolidSupport, ConvexPlanarSolidCertificate, ConvexPlanarSolidReport, ConvexPlanarSolidResult, ConvexPlanarSolidPointClassification, ConvexPlanarSolidPointBatch } from './convex-planar-solid.js';
 

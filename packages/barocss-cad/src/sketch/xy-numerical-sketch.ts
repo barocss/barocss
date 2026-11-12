@@ -5,7 +5,8 @@ import { copyCadData } from '../data-copy.js';
 import type { Curve, Model } from '../types.js';
 import type { XYPoint } from './xy-profile.js';
 import { admit, check, exact, isNumericalError, snapshot, XYNumericalSketchError } from './xy-numerical-sketch-admission-internal.js';
-import { solve } from './xy-numerical-sketch-solver-internal.js';
+import { evaluate, solve } from './xy-numerical-sketch-solver-internal.js';
+import { checkedNullspace } from './xy-numerical-sketch-mobility-internal.js';
 export { XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch-admission-internal.js';
 import type { XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch-admission-internal.js';
 
@@ -74,6 +75,42 @@ export function solveXYNumericalSketchPoints(document: XYNumericalSketchDocument
     return copyCadData({ ok: true as const, document: admitted, solution: { points }, report });
   } catch (cause) { const e = isNumericalError(cause) ? cause : new XYNumericalSketchError('INVALID_DOCUMENT', 'Sketch refused'); return { ok: false, diagnostics: [{ code: e.code, message: e.message, path: e.path }] }; }
 }
+export interface XYNumericalSketchMobility {
+  numericalRank: number;
+  rankThreshold: number;
+  localDegreesOfFreedom: number;
+  movablePointIds: readonly string[];
+}
+
+/**
+ * Read-only, binary64 first-order mobility at the supplied residual-checked coefficients.
+ * Uses the solver's undamped rank threshold and refuses pivots within a factor of 16 of it.
+ * A checked nullspace projection below the arithmetic error estimate is numerical zero.
+ * Projection magnitudes between that estimate and 16 times it are unresolved. A zero or
+ * nonzero numerical projection does not certify finite rigidity or finite motion.
+ */
+export function diagnoseXYNumericalSketchMobility(input: XYNumericalSketchDocumentV0): XYNumericalSketchMobility | null {
+  try {
+    const document = admit(input), coordinates = document.points.flatMap(point => point.position);
+    const final = evaluate(document, coordinates);
+    if (final.residuals.some(r => Math.abs(r.residual) > r.tolerance)) return null;
+    const nullspace = checkedNullspace(final.jacobian, coordinates.length);
+    if (!nullspace) return null;
+    const { basis, rank, threshold, uncertainty } = nullspace;
+    const movablePointIds: string[] = [];
+    for (const [i, point] of document.points.entries()) {
+      const participation = Math.hypot(...basis.flatMap(q => [q[2 * i], q[2 * i + 1]]));
+      // Below arithmetic resolution is numerical zero. Refuse an unresolved projection between the bands.
+      if (participation <= uncertainty) continue;
+      if (participation < 16 * uncertainty) return null;
+      movablePointIds.push(point.id);
+    }
+    return { numericalRank: rank, rankThreshold: threshold, localDegreesOfFreedom: coordinates.length - rank, movablePointIds };
+  } catch {
+    return null;
+  }
+}
+
 /** Complete deterministic reconstruction proves self-consistency only, never provenance/authenticity. */
 export function validateXYNumericalSketch(input: XYNumericalSketchSuccess): XYNumericalSketchReport {
   try {

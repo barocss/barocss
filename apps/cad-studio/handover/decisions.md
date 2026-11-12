@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D871 — inspect local mobility of a straight sketch outline](notes/straight-outline-local-mobility-2026-11-13/README.md).
 - [D870 — replace the source face of a healthy linked inset](notes/associative-inset-source-replacement-2026-11-13/README.md).
 - [D869 — protect the separate target of a linked inset](notes/associative-inset-target-delete-2026-11-13/README.md).
 - [D868 — refuse a failed associative inset before Open](notes/associative-inset-open-admission-2026-11-13/README.md).

@@ -798,7 +798,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
       overlaidLine: props.overlaidLine,
-      inspected: inspection?.target === 'row' ? inspection.entry.involves : undefined,
+      inspected: inspection?.target === 'row' ? inspection.entry.involves
+        : inspection?.target === 'mobility' ? [inspection.entity] : undefined,
       constraintComparison: inspection?.target === 'comparison' && inspection.result.ok ? inspection.result.display : undefined,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },

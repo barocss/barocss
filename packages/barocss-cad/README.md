@@ -6726,6 +6726,18 @@ all data and proves self-consistency, not authenticity/history. This profile
 adds no GUI, drag transaction, feature propagation, general nonlinear solver,
 curved constraint, topology or professional CAD parity claim.
 
+### Local numerical sketch mobility
+
+`diagnoseXYNumericalSketchMobility(document)` reads the supplied settled
+coefficients in either bounded length/angle profile. It checks the original
+constraint residuals and uses the same final undamped Jacobian and numerical
+rank threshold as the solver. The result gives numerical rank, threshold, local
+degrees of freedom and the IDs of points with resolvable first-order movement.
+The classifier reports participation below its arithmetic resolution as zero.
+Unsettled inputs and unreliable rank or mobility classifications return `null`.
+The result describes local first-order movement. Finite motion and global
+rigidity require separate analysis. The diagnostic is a read-only operation.
+
 
 ## Bounded convex planar solid qualification (#1589)
 

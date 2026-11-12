@@ -1,7 +1,7 @@
 // Sketch geometry shared by the viewport, the sketch panel and Finish sketch.
 // An outline is a closed chain of points; segment i runs from point i to point i+1 and is a line
 // (bulge 0) or a circular arc. Bulge is the DXF convention: tan(sweep / 4), positive = counter-clockwise.
-import { solveXYNumericalSketchPoints } from '@barocss/cad';
+import { diagnoseXYNumericalSketchMobility, solveXYNumericalSketchPoints, type XYNumericalSketchDocumentV0 } from '@barocss/cad';
 import { ruleTerms, type SketchRule } from './terms';
 import { rectilinearConflict } from './conflict';
 import type { FixedTriangleSeed } from './fixedTriangleLength';
@@ -160,17 +160,13 @@ export function inferArcRelations(points: P2[], bulges: number[] | undefined): {
 }
 export const canBeTangent = (points: P2[], bulges: number[] | undefined, j: number) => !!bulges && tangentTarget(points, bulges, j) !== null;
 
-/**
- * Solves a closed outline with the kernel's numerical sketch solver: point 1 anchored, drawn H/V edges
- * kept, locked lengths and radii held, tangent joints kept tangent. Arcs keep their turning direction.
- */
-export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[],
-  recoverFixedTriangle?: () => FixedTriangleSeed | null): SolveResult {
+/** The same authored constraint system serves solving and read-only diagnosis. */
+function outlineSystem(points: P2[], c: OutlineConstraints, bulgesIn?: number[]) {
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
   const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? [], c.circleRadii ?? []);
   // (The kernel's -v1 sketch profile: 64 points, 64 segments, 128 constraints.)
-  if (n + arcs.length + extra.points.length > 64 || n + arcs.length + extra.segments.length > 64) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (64 points / 64 segments)' };
+  if (n + arcs.length + extra.points.length > 64 || n + arcs.length + extra.segments.length > 64) return null;
   const centres = new Map(arcs.map(i => [i, arcOf(points[i], points[(i + 1) % n], bulges[i]).center]));
   const straight = (i: number) => i >= 0 && i < n && !bulges[i];
   const hv = c.hv ? { h: c.hv.h.filter(straight), v: c.hv.v.filter(straight) } : inferredHV(points, bulges);
@@ -179,7 +175,7 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     ...arcs.flatMap(i => [{ id: 'ra' + i, startPointId: 'c' + i, endPointId: 'p' + i }, { id: 'rb' + i, startPointId: 'c' + i, endPointId: 'p' + ((i + 1) % n) }]),
     ...extra.segments,
   ];
-  type Constraint = Parameters<typeof solveXYNumericalSketchPoints>[0]['constraints'][number];
+  type Constraint = XYNumericalSketchDocumentV0['constraints'][number];
   const constraints: Constraint[] = [
     { id: 'anchor', kind: 'fixed', pointId: 'p0', target: points[0] },
     ...hv.h.map((i): Constraint => ({ id: 'h' + i, kind: 'horizontal', segmentId: 's' + i })),
@@ -194,13 +190,40 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     }),
     ...extra.constraints,
   ];
-  const solveFrom = (seed: { id: string; position: P2 }[], ccw = false) => solveXYNumericalSketchPoints({
+  const authoredPoints = points.map((position, i) => ({ id: 'p' + i, position }));
+  const document: XYNumericalSketchDocumentV0 = {
     format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v1', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
-    points: seed, segments, constraints, branchGuards: ccw
+    points: [...authoredPoints, ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points],
+    segments, constraints, branchGuards: [],
+  };
+  return { authoredPoints, bulges, hv, document };
+}
+
+/** Read movement only for the points owned by this outline, excluding solver helpers. */
+export function settledOutlineMovablePoints(points: P2[], c: OutlineConstraints, bulges?: number[]): number[] | null {
+  const system = outlineSystem(points, c, bulges);
+  if (!system) return null;
+  const mobility = diagnoseXYNumericalSketchMobility(system.document);
+  if (!mobility) return null;
+  const movable = new Set(mobility.movablePointIds);
+  return system.authoredPoints.flatMap((point, i) => movable.has(point.id) ? [i] : []);
+}
+
+/**
+ * Solves a closed outline with the kernel's numerical sketch solver: point 1 anchored, drawn H/V edges
+ * kept, locked lengths and radii held, tangent joints kept tangent. Arcs keep their turning direction.
+ */
+export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[],
+  recoverFixedTriangle?: () => FixedTriangleSeed | null): SolveResult {
+  const system = outlineSystem(points, c, bulgesIn);
+  if (!system) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (64 points / 64 segments)' };
+  const { bulges, hv, document } = system, n = points.length;
+  const solveFrom = (seed: { id: string; position: P2 }[], ccw = false) => solveXYNumericalSketchPoints({
+    ...document, points: seed, branchGuards: ccw
       ? [{ id: 'triangle-branch', kind: 'oriented-triplet', pointA: 'p0', pointB: 'p1', pointC: 'p2', orientation: 'ccw' }]
       : [],
   });
-  let result = solveFrom([...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points]);
+  let result = solveFrom(document.points);
   let recovered = false;
   if (!result.ok && result.diagnostics[0]?.code === 'NONCONVERGENCE') {
     if (rectilinearConflict(points, { ...c, hv }, bulges).proven)

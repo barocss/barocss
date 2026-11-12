@@ -13,7 +13,7 @@ export const tolerances = Object.freeze({ linear: 1e-7, angular: 1e-9, rankRelat
 export function wrap(angle: number): number { const a = Math.atan2(Math.sin(angle), Math.cos(angle)); return a === -Math.PI ? Math.PI : a; }
 
 /** Householder QR with recomputed column norms; strict > selects the first current column on a tie. */
-export function qr(matrix: number[][], rhs: number[], columns: number): { solution: number[]; rank: number; threshold: number } {
+export function factorQR(matrix: number[][], rhs: number[], columns: number) {
   const a = matrix.map(row => [...row]), b = [...rhs], m = a.length, n = columns, order = Array.from({ length: n }, (_, i) => i), diagonals: number[] = [];
   for (let k = 0; k < Math.min(m, n); k++) {
     let pivot = k, largest = -1;
@@ -28,6 +28,11 @@ export function qr(matrix: number[][], rhs: number[], columns: number): { soluti
     a[k][k] = alpha; for (let i = k + 1; i < m; i++) a[i][k] = 0; diagonals.push(Math.abs(alpha));
   }
   const threshold = Math.max(1, ...diagonals) * tolerances.rankRelative, rank = diagonals.filter(d => d > threshold).length;
+  return { a, b, order, diagonals, rank, threshold };
+}
+
+export function qr(matrix: number[][], rhs: number[], n: number): { solution: number[]; rank: number; threshold: number } {
+  const { a, b, order, rank, threshold } = factorQR(matrix, rhs, n);
   const z = Array(n).fill(0) as number[];
   // Only the leading rank block is used, avoiding a division by a numerically null diagonal.
   for (let i = rank - 1; i >= 0; i--) { let value = b[i]; for (let j = i + 1; j < rank; j++) value -= a[i][j] * z[j]; z[i] = value / a[i][i]; }

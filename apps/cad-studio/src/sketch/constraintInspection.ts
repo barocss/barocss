@@ -1,4 +1,4 @@
-import type { ConstraintEntry, ConstraintKind, Polygon } from '@barocss/cad-model/sketch/rules';
+import type { ConstraintEntry, ConstraintKind, Polygon, SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { createValueStore, type ValueStore } from '../state/valueStore';
 
@@ -9,6 +9,7 @@ export type ConstraintInspection = {
 } & (
   | { target: 'row'; entry: ConstraintEntry }
   | { target: 'comparison'; kind: ConstraintKind; result: ConstraintComparison }
+  | { target: 'mobility'; entity: SketchPick }
 );
 
 export type ConstraintInspectionStore = ValueStore<ConstraintInspection | null>;

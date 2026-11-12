@@ -59,5 +59,11 @@
 :root[data-theme='light'] .cons-tools button { border-color: #c9ccd2; }
 /* The mono face has no ∥ / ⊥ glyphs: symbols use the system face. */
 .vp-overlay .cons-glyph .cons-text, .cons-tools button b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.sk-mobility { margin-bottom: 8px; color: var(--text-2); font-size: 12px; }
+.sk-mobility summary { cursor: pointer; }
+.sk-mobility p { margin: 4px 0 0; }
+.sk-mobility ul { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 4px 0 0; padding: 0; }
+.sk-mobility li { border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+.sk-mobility li:hover, .sk-mobility li:focus-visible { border-color: var(--accent); background: var(--accent-soft); }
 .cons-tools.cons-dims { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
