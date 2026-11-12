@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { qualifyMovedFlange } from './sheet-move-flange.mjs';
 
-const baseline = process.argv[3] === '--baseline';
+const baseline = process.argv[3] === '--baseline', flange = process.argv[3] === '--flange';
 const fixture = 'packages/barocss-cad-model/test/fixtures/sheet-l-bracket.calls.json';
 const canonical = 'packages/barocss-cad/conformance/r12/accept-l-bracket.json';
 const repo = new URL('../../../', import.meta.url);
@@ -13,12 +14,13 @@ const pins = [
   'apps/cad-studio/src/ui/SelectionInspector.tsx',
   'packages/barocss-cad/src/part/part-transform.ts',
   'packages/barocss-cad/src/part/part-model.ts',
-  fixture, canonical,
+  fixture, canonical, ...(flange ? ['apps/cad-studio/test/sheet-move-flange.mjs'] : []),
 ];
 const f = await createFlow({
-  name: 'sheet-move', output: process.argv[2], envFrozen: 'D812_SOURCE_FROZEN',
+  name: 'sheet-move', output: process.argv[2], envFrozen: flange ? 'D813_SOURCE_FROZEN' : 'D812_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
+  qualification: flange ? 'Pick and apply a flange on the reopened translated L-bracket, save, and edit the sheet source.' :
+    'Move the D546 L-bracket and check the existing folded and flat-pattern consumers.',
   limits: ['One single-body L-bracket with two through holes, explicit K, and Move by (7, -3, 11) mm.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -51,7 +53,7 @@ if (args.fixture) {
   console.log(JSON.stringify({
     id: output.id, valid: checkOutput(output).valid, bodyCount: output.bodyCount,
     points: output.brep.vertices.map(vertex => vertex.point),
-    faces: output.brep.faces.map(face => face.name), sheet: output.sheet ?? null,
+    faces: output.brep.faces.map(face => face.name), edges: output.brep.edges.map(edge => edge.name), sheet: output.sheet ?? null,
     mass: massPropertiesOf(output), flat, flatError,
   }));
 }
@@ -157,6 +159,35 @@ async function showFlat(label) {
   await flatDialog().waitFor({ state: 'hidden' });
 }
 
+async function projectRoundTrip(expected) {
+  async function openProject() {
+    if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
+    if (await versions().getByLabel('Project', { exact: true }).isVisible()) return;
+    await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+    await button(versions(), 'Project in this browser').click();
+    await versions().getByLabel('Project', { exact: true }).waitFor();
+  }
+  await openProject();
+  await button(f.page, 'Save').click();
+  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const saved = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const directory = await projects.getDirectoryHandle(project);
+    return Array.from(new Uint8Array(await (await (await directory.getFileHandle(name)).getFile()).arrayBuffer()));
+  }, [project, name]));
+  assert.deepEqual(JSON.parse(saved), expected);
+  await button(versions(), 'Close project').click();
+  await versions().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await f.ready();
+  await openProject();
+  await button(versions(), 'Open ' + name).click();
+  await f.same(expected);
+  return saved;
+}
+
 await f.run(async () => {
   f.phase = 'materialize the pinned D546 source and open its flat pattern';
   const seed = await f.inspect('materialize-sheet', {}, {
@@ -208,36 +239,13 @@ await f.run(async () => {
     await showFlat('04-redo-flat');
 
     f.phase = 'save and freshly reopen the moved bracket with its flat pattern';
-    async function openProject() {
-      if (!(await versions().isVisible())) await button(f.page, 'Project and versions').click();
-      if (await versions().getByLabel('Project', { exact: true }).isVisible()) return;
-      await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
-      await button(versions(), 'Project in this browser').click();
-      await versions().getByLabel('Project', { exact: true }).waitFor();
-    }
-    await openProject();
-    await button(f.page, 'Save').click();
-    await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
-    await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
-    const saved = Buffer.from(await f.page.evaluate(async ([project, name]) => {
-      const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
-      const directory = await projects.getDirectoryHandle(project);
-      return Array.from(new Uint8Array(await (await (await directory.getFileHandle(name)).getFile()).arrayBuffer()));
-    }, [project, name]));
-    assert.deepEqual(JSON.parse(saved), moved);
-    await button(versions(), 'Close project').click();
-    await versions().getByLabel('Project', { exact: true }).waitFor({ state: 'hidden' });
-    await f.page.reload();
-    await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
-    await f.ready();
-    await openProject();
-    await button(versions(), 'Open ' + name).click();
-    await f.same(moved);
+    const saved = await projectRoundTrip(moved);
     const reopened = await checkMass('reopened-native', moved, centroid.map((value, index) => value + offset[index]), 'n7');
     checkFlat(reopened, [10, 27, 14]);
     await selectBody();
     await showFlat('05-reopened-flat');
     f.report.observations.push({ label: 'project-readback', bytes: saved.length, sha256: sha256(saved) });
+    if (flange) await qualifyMovedFlange(f, moved, reopened, { selectBody, showFlat, projectRoundTrip });
   }
   assert.deepEqual(f.report.downloads, []);
 });

@@ -1,0 +1,211 @@
+{
+  "decision": "D813",
+  "tier": "SMALL",
+  "parent": "09e2f710c2f20af4e540df731ed8d8326a0b651f",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d813-sheet-flange-after-move",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-move-flange.mjs",
+    "cd apps/cad-studio && D813_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --flange",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d813-2026-11-12",
+    "desktop": {
+      "status": "PASS",
+      "folder": "desktop-1",
+      "sha256": "57f6a8eee7242f68cee70f34590c5ec1d1e508dd98410bde36a0171ff14adace",
+      "frozenSources": 1006,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "sourceReview": "PASS_SOL_HIGH_INDEPENDENT_ORACLE",
+    "rootVisualReview": "PASS",
+    "retainedFocusedEvidence": "D812 on the unchanged native, Model and Studio product sources",
+    "inputEdge": "n0.end|n0.leg1.a",
+    "pickMm": [
+      47,
+      12,
+      11
+    ],
+    "flangeLengthMm": 20,
+    "angleDeg": 90,
+    "observations": [
+      {
+        "label": "flanged-native",
+        "thickness": 1.5,
+        "volume": 3756.8113728476337,
+        "centroid": [
+          24.829364946235003,
+          11.999999999999986,
+          14.472116772185254
+        ],
+        "min": [
+          6.999999999999998,
+          -3,
+          -7.500000000000002
+        ],
+        "max": [
+          47,
+          27,
+          41
+        ],
+        "axis": {
+          "origin": [
+            44,
+            27,
+            9.5
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        "length": 84.78584013175396,
+        "area": 2496.058615067073,
+        "holes": [
+          [
+            15.000000000000005,
+            9.999999999999991
+          ],
+          [
+            15.000000000000083,
+            52.39292006587696
+          ]
+        ],
+        "bends": [
+          [
+            "n0.bend1",
+            "down"
+          ],
+          [
+            "n8.bend",
+            "up"
+          ]
+        ]
+      },
+      {
+        "label": "flange-project-readback",
+        "bytes": 2784,
+        "sha256": "b2b70ccb94432dbf555fd81e347c2c86bfaa86a02e501b9f9daca3ef2bcda57a"
+      },
+      {
+        "label": "reopened-flange-native",
+        "thickness": 1.5,
+        "volume": 3756.8113728476337,
+        "centroid": [
+          24.829364946235003,
+          11.999999999999986,
+          14.472116772185254
+        ],
+        "min": [
+          6.999999999999998,
+          -3,
+          -7.500000000000002
+        ],
+        "max": [
+          47,
+          27,
+          41
+        ],
+        "axis": {
+          "origin": [
+            44,
+            27,
+            9.5
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        "length": 84.78584013175396,
+        "area": 2496.058615067073,
+        "holes": [
+          [
+            15.000000000000005,
+            9.999999999999991
+          ],
+          [
+            15.000000000000083,
+            52.39292006587696
+          ]
+        ],
+        "bends": [
+          [
+            "n0.bend1",
+            "down"
+          ],
+          [
+            "n8.bend",
+            "up"
+          ]
+        ]
+      },
+      {
+        "label": "reopened-flange-thickness2",
+        "thickness": 2,
+        "volume": 4936.205720267378,
+        "centroid": [
+          24.82529976181359,
+          12.00000000000001,
+          14.734323805784076
+        ],
+        "min": [
+          6.999999999999998,
+          -3,
+          -7.000000000000002
+        ],
+        "max": [
+          47,
+          27,
+          41
+        ],
+        "axis": {
+          "origin": [
+            43.5,
+            27,
+            9.5
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        "length": 83.47699051554372,
+        "area": 2456.7931265807665,
+        "holes": [
+          [
+            15.000000000000005,
+            9.999999999999991
+          ],
+          [
+            14.999999999999963,
+            51.738495257771895
+          ]
+        ],
+        "bends": [
+          [
+            "n0.bend1",
+            "down"
+          ],
+          [
+            "n8.bend",
+            "up"
+          ]
+        ]
+      }
+    ]
+  }
+}
