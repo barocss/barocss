@@ -1,0 +1,397 @@
+{
+  "decision": "D895",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "0b613db75efa0e0b725d4558ae55ff295b6f5f86",
+  "issue": 2285,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "antecedent": "D342",
+  "commands": [
+    "gate.sh acquire heavy 600 d895-studio-compare-edit-offset",
+    "D895_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/extrude-versus-offset-browser.mjs <external-evidence>/compare",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles native-offset-face native-offset-result",
+    "node --check apps/cad-studio/test/extrude-versus-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 35,
+    "modelFail": 0,
+    "logSHA256": "5c4419dc7c40dc2ee8169273eed3cbede6bc231ad79447d7044cbc6b72c1433c"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "071d191948c0fb2d3e667dc992b5818b4c3a316e0a9e28780f90dbe5a605d947",
+    "sourceManifestSHA256": "d365282b688239d2e4c5b55e815ed5700c90c350720359e6b41b989b23f614d7",
+    "frozenFiles": 845,
+    "snapshots": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "lengthToleranceMm": 1e-07,
+    "volumeToleranceMm3": 1e-07,
+    "nativeSaved": [
+      {
+        "name": "D895 original driver",
+        "bytes": 465,
+        "sha256": "0a65102ad9d4b77b579a6b91889619d0c7eab24ec0d91a182d80d1234993a4ad"
+      },
+      {
+        "name": "D895 appended offset",
+        "bytes": 1592,
+        "sha256": "9eff98dea086d1535bab63312951c6bfac03143b91622d5c59b8319efa039274"
+      }
+    ],
+    "caseObservations": [
+      {
+        "label": "stock",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1000.0000000000001,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          2.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            5
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "01-original-cap",
+        "nativeCap": "n1.top",
+        "index": 5,
+        "world": [
+          10,
+          5,
+          5
+        ],
+        "point": [
+          660.7463484833236,
+          531.6254693709335
+        ]
+      },
+      {
+        "label": "driver-7",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1400.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          3.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            7
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "driver-7-reopened",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1400.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          3.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            7
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      },
+      {
+        "label": "05-cap-for-offset",
+        "nativeCap": "n1.top",
+        "index": 5,
+        "world": [
+          10,
+          5,
+          5
+        ],
+        "point": [
+          660.7463484833236,
+          531.6254693709335
+        ]
+      },
+      {
+        "label": "offset-2",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1400.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          3.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            7
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "offset-2-reopened",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1400.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          3.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            7
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      },
+      {
+        "label": "snapshot-stays-at-7",
+        "graph": [
+          {
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "id": "n1",
+            "kind": "extrude"
+          },
+          {
+            "id": "n2",
+            "kind": "sketch"
+          },
+          {
+            "id": "n3",
+            "kind": "extrude"
+          },
+          {
+            "id": "n4",
+            "kind": "union"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "volumeMm3": 1400.0000000000002,
+        "centroidMm": [
+          9.999999999999998,
+          4.999999999999999,
+          3.5
+        ],
+        "boundsMm": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            20,
+            10,
+            7
+          ]
+        ],
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n3.top"
+        ]
+      }
+    ],
+    "collapseRefusal": "PASS",
+    "cancelRetention": "PASS",
+    "firstUndoRedo": "PASS",
+    "freshOpen": "PASS"
+  },
+  "notRun": [
+    "downstream cap reference and rematch",
+    "concurrent source change during Offset face preview",
+    "paired handle and field candidate equality",
+    "general direct face operations",
+    "full suites",
+    "mobile"
+  ]
+}
