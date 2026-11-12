@@ -1,0 +1,126 @@
+{
+  "decision": "D809",
+  "tier": "SMALL",
+  "parent": "4270fa89b6e57f944a22ce09f8a4963ab6c9fa34",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d809-reordered-profile-selection",
+    "node --check apps/cad-studio/test/reordered-profile-selection-browser.mjs",
+    "cd apps/cad-studio && D809_SOURCE_FROZEN=1 node test/reordered-profile-selection-browser.mjs \"$EVIDENCE/baseline-1\" --baseline",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test dependents versions driven-sketch-contract",
+    "cd apps/cad-studio && D809_SOURCE_FROZEN=1 node test/reordered-profile-selection-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "cd apps/cad-studio && D808_SOURCE_FROZEN=1 node test/feature-order-project-browser.mjs \"$EVIDENCE/feature-order-regression\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d809-2026-11-12",
+    "baselineProduct": "FAIL_WRONG_PROFILE",
+    "runs": {
+      "baseline-1": {
+        "status": "PASS",
+        "sha256": "291294eb919f325a983c530ad57b47804d73097485c46647f3a28d54997babaa",
+        "frozenSources": 341,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "01-free-rectangle",
+            "index": 0,
+            "id": "n0"
+          },
+          {
+            "label": "02-reordered",
+            "index": 0,
+            "id": "n1"
+          },
+          {
+            "label": "extrusion-result",
+            "profile": "n1",
+            "volume": 157.0796326794896,
+            "centroid": [
+              50.00000000000005,
+              10.000000000000002,
+              1
+            ]
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "3217278491d4b5f03ae78b07c7a121f1cc0eaa3556702932c402a1139145c540",
+        "frozenSources": 341,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "01-free-rectangle",
+            "index": 0,
+            "id": "n0"
+          },
+          {
+            "label": "02-reordered",
+            "index": 2,
+            "id": "n0"
+          },
+          {
+            "label": "03-undone",
+            "index": 0,
+            "id": "n0"
+          },
+          {
+            "label": "04-redone",
+            "index": 2,
+            "id": "n0"
+          },
+          {
+            "label": "extrusion-result",
+            "profile": "n0",
+            "volume": 1200,
+            "centroid": [
+              15.000000000000004,
+              10.000000000000002,
+              1
+            ]
+          }
+        ]
+      },
+      "feature-order-regression": {
+        "status": "PASS",
+        "sha256": "68d4446611635fcc0ab29fb49aa4244b250d91ace389fc97d9f92324bfa3fe97",
+        "frozenSources": 805,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      }
+    },
+    "focused": {
+      "modelPass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

@@ -30,7 +30,7 @@ import { useSketchActions } from './sketch/useSketchActions';
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
-import { useFeatureHistory } from './state/useFeatureHistory';
+import { carryHistorySketchSelection, useFeatureHistory } from './state/useFeatureHistory';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
@@ -1523,7 +1523,9 @@ export function App() {
   }, [clearBodyClipboard, currentDocumentIdentity, resetDocumentDraft]);
   const detachProject = project.detach;
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
+    const previous = docNow.current;
     if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); }
+    else setSelection(selection => carryHistorySketchSelection(selection, previous, entry.doc));
     setDocState(entry.doc);
     setMarker(entry.marker);
     if (entry.documentIdentity) {

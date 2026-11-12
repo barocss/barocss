@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D809 — keep the picked profile after a feature reorder](notes/reordered-profile-selection-2026-11-12/README.md).
+
 - [D808 — verify independent feature reorder and dependent Hole](notes/feature-order-project-2026-11-12/README.md).
 
 - [D807 — cut a path-length gap in an ordinary arc](notes/ordinary-arc-path-gap-2026-11-12/README.md).
