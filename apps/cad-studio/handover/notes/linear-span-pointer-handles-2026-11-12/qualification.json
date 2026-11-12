@@ -1,0 +1,72 @@
+{
+  "decision": "D837",
+  "tier": "FEATURE",
+  "parent": "9e0af0478a7b2e23332ebd26758698ec256c7823",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d837-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d837-linear-span-pattern",
+    "node --check apps/cad-studio/test/linear-span-pattern-browser.mjs",
+    "cd apps/cad-studio && D837_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/baseline\" --handle-baseline",
+    "cd apps/cad-studio && D837_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/baseline-2\" --handle-baseline",
+    "cd apps/cad-studio && D837_SOURCE_FROZEN=1 node test/linear-span-pattern-browser.mjs \"$EVIDENCE/desktop-1\" --handles",
+    "gate.sh acquire heavy 600 d837-linear-span-handles-feature",
+    "cd apps/cad-studio && D555_SOURCE_FROZEN=1 D555_POINTER_TAIL=handle node test/viewport-pointer-boundary-browser.mjs \"$EVIDENCE/width-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern feature-handles editFields api-verbs",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test gizmo command preview pattern",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/src/app/editCommand.ts packages/barocss-cad-model/src/app/linearSpanHandles.ts packages/barocss-cad-model/test/linear-span-pattern.test.ts apps/cad-studio/src/ui/Hud.tsx apps/cad-studio/src/viewport/gizmo.ts apps/cad-studio/src/viewport/useCommandGizmos.ts apps/cad-studio/src/viewport/viewportPointerInput.ts apps/cad-studio/test/gizmo.test.ts",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "desktop": {
+    "baseline": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "a0553ffd527160a50033c464d3c374d191da7f4086a4185020c64d57b4ff81e3",
+      "frozenSources": 817,
+      "movementMm": 60,
+      "releasedCount": 4,
+      "releasedSpanMm": 150
+    },
+    "baseline-2": {
+      "status": "FAIL",
+      "exit": 1,
+      "sha256": "6f392a1c5019a7e076a4cd0624d4a1018352e216dc0d73382c96947b8b6d9b37",
+      "frozenSources": 817,
+      "movementMm": 60,
+      "heldCount": 9,
+      "releasedCount": 9,
+      "acceptedHistoryHandleCount": 0
+    },
+    "desktop-1": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "0858870a94df49e21d9ebaccc62cd627e97736a299fd0b8e904453ea316def91",
+      "frozenSources": 818,
+      "countOffsetCssPixels": 16,
+      "nativeComparisonAbsoluteTolerance": 1e-8,
+      "drags": [
+        { "control": "creation Count", "movementMm": 60, "held": 6, "released": 6, "count": 6, "span": 90, "spacing": 18, "volume": 2880, "corners": 48 },
+        { "control": "history Total span", "movementMm": 20, "held": 110, "released": 110, "count": 6, "span": 110, "spacing": 22, "volume": 2880, "corners": 48 },
+        { "control": "history Count", "movementMm": -22, "held": 5, "released": 5, "count": 5, "span": 110, "spacing": 27.5, "volume": 2400, "corners": 40 }
+      ]
+    },
+    "width-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "f69cddc3e94b1e6b52fe562bd823677dc5e05fab39057a70210fc88e15b5bf1b",
+      "frozenSources": 347,
+      "heldWidthMm": 11
+    }
+  },
+  "allDesktopRuns": { "pageErrors": 0, "consoleErrors": 0, "downloads": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] },
+  "focused": { "modelPass": 40, "studioPass": 57, "fail": 0, "skip": 0 },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "driverSyntax": "PASS",
+  "scopedLint": "PASS",
+  "productionBuild": "PASS",
+  "rootVisualReview": "PASS"
+}

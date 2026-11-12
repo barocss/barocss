@@ -79,7 +79,7 @@ export function useCommandGizmos({ model, command, context, drag }: CommandGizmo
     const step = h.arc || h.unit !== undefined ? h.step ?? 1 : Math.max(0.001, (h.step ?? 1) * (snapStep || 0.01)), snap = (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step));
     const pair = h.pair, value2 = pair ? Number(handleValues[pair.key]) : NaN;
     if (pair && !Number.isFinite(value2)) return [];
-    return [{ id: pair ? `${h.key}+${pair.key}` : h.key, at: h.at, dir: h.dir, label: pair ? field.label.replace(/ \w$/, '') : field.label, value, ...(h.arc ? { arc: h.arc } : {}),
+    return [{ id: pair ? `${h.key}+${pair.key}` : h.key, at: h.at, dir: h.dir, label: pair ? field.label.replace(/ \w$/, '') : field.label, value, screenOffset: h.screenOffset, ...(h.arc ? { arc: h.arc } : {}),
       ...(pair ? { plane: { dir2: pair.dir, value2, toValue2: snap } } : {}),
       toValue: snap,
       format: (v: number) => h.arc ? `${fmt(v)}°` : h.unit !== undefined ? `${fmt(v)}${h.unit ? ' ' + h.unit : ''}` : `${fmt(v)} mm`,

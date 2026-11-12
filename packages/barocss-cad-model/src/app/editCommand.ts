@@ -17,6 +17,7 @@ import { boundsOf } from '../engine/bounds';
 import { textEditCommand } from './textCommand';
 import { cylindricalWrapEditCommand } from './cylindricalWrapCommand';
 import { textReliefEditCommand } from './textReliefCommand';
+import { linearSpanHandles } from './linearSpanHandles';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -70,6 +71,13 @@ function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Ha
   if (n.kind === 'split') {
     const k = 'xyz'.indexOf(n.axis), at = [0, 1, 2].map(i => (box.min[i] + box.max[i]) / 2) as V3, dir: V3 = [0, 0, 0]; dir[k] = 1; at[k] = num(n.at);
     return [{ key: 'at', at, dir, min: Math.ceil((box.min[k] + 0.5) * 2) / 2, max: Math.floor((box.max[k] - 0.5) * 2) / 2, step: 0.5 }];
+  }
+  if (n.kind === 'linear-span-pattern' && was?.kind === 'linear-span-pattern') {
+    if (n.axis !== was.axis) return [];
+    const k = 'xyz'.indexOf(n.axis), seedMax: V3 = [...box.max];
+    seedMax[k] -= was.span;
+    if (seedMax[k] <= box.min[k]) return [];
+    return linearSpanHandles({ min: box.min, max: seedMax }, n.axis, n.span, n.count);
   }
   if (n.kind !== 'linear-pattern' || was?.kind !== 'linear-pattern') return [];
   // The first copy's extent: the row's, less the spacing of the copies after it (as it stands now).
@@ -191,7 +199,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
       const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index, ctx.doc.parameters);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
-      if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);
+      if (n.kind === 'split' || n.kind === 'linear-pattern' || n.kind === 'linear-span-pattern') return placedHandles(ctx, now, index);
       if (n.kind === 'revolve') return revolveHandles(now, index, ctx.doc.parameters);
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {

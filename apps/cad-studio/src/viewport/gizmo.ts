@@ -35,6 +35,7 @@ export interface TransformGizmo {
 /** One dimension dragged along a direction: `value` at the start, `toValue` maps the mm moved to the new value. */
 export interface FeatureHandle {
   id: string; at: Vec3; dir: Vec3; label: string; value: number;
+  screenOffset?: number;
   /**
    * An angle instead (degrees): an arc about `axis` through `centre`, from `from` (a point on it) as far
    * as the value; dragging it round sweeps the angle, `toValue` getting the degrees swept.
@@ -100,7 +101,11 @@ export function handleLayout(h: FeatureHandle, P: Projector): { from: XY; to: XY
     const n = Math.max(2, Math.ceil(Math.abs(h.value) / 6)), points = Array.from({ length: n + 1 }, (_, i) => P.project(at(c, [[turn(r0, k, h.value * Math.PI / 180 * i / n), 1]])));
     return { from: points[0], to: points[points.length - 1], points };
   }
-  return { from: P.project(h.at), to: P.project(at(h.at, [[h.dir, 0.62 * P.size]])) };
+  const from = P.project(h.at), to = P.project(at(h.at, [[h.dir, 0.62 * P.size]]));
+  if (!h.screenOffset) return { from, to };
+  const dx = to[0] - from[0], dy = to[1] - from[1];
+  const scale = h.screenOffset / (Math.hypot(dx, dy) || 1);
+  return { from: [from[0] - dy * scale, from[1] + dx * scale], to: [to[0] - dy * scale, to[1] + dx * scale] };
 }
 
 const polyDist = (p: XY, pts: XY[]) => pts.slice(1).reduce((m, q, i) => Math.min(m, segDist(p, pts[i], q)), Infinity);

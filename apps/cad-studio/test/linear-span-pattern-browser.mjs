@@ -5,12 +5,17 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const creationMode = process.argv[3] === '--create';
 const conversionMode = process.argv[3] === '--convert';
+const handleBaseline = process.argv[3] === '--handle-baseline';
+const handleMode = handleBaseline || process.argv[3] === '--handles';
 const pins = [
   'apps/cad-studio/test/linear-span-pattern-browser.mjs',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/Hud.tsx',
   'apps/cad-studio/src/ui/LinearSpanSpacing.tsx',
+  'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'packages/barocss-cad-model/src/app/commands.ts',
+  'packages/barocss-cad-model/src/app/editCommand.ts',
+  'packages/barocss-cad-model/src/app/linearSpanHandles.ts',
   'packages/barocss-cad-model/src/app/editFields.ts',
   'packages/barocss-cad-model/src/engine/linearSpanPattern.ts',
   'packages/barocss-cad-model/src/engine/migrate.ts',
@@ -18,8 +23,9 @@ const pins = [
   'packages/barocss-cad/src/part/part-transform.ts',
 ];
 const f = await createFlow({
-  name: 'linear-span-pattern', output: process.argv[2], envFrozen: conversionMode ? 'D836_SOURCE_FROZEN' : creationMode ? 'D835_SOURCE_FROZEN' : 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: conversionMode ? 'Switch the stored distance authority in history, retain native placement, and refuse implicit unbinding.'
+  name: 'linear-span-pattern', output: process.argv[2], envFrozen: handleMode ? 'D837_SOURCE_FROZEN' : conversionMode ? 'D836_SOURCE_FROZEN' : creationMode ? 'D835_SOURCE_FROZEN' : 'D834_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: handleMode ? 'Use the actual Count and Total span handles without changing the other input.'
+    : conversionMode ? 'Switch the stored distance authority in history, retain native placement, and refuse implicit unbinding.'
     : creationMode ? 'Author fixed span in the actual command, switch modes, and verify preview refusal and the accepted native result.'
     : 'Open and edit a fixed-span row, preserve its extent across Count and source width changes, and reopen the saved project.',
   limits: ['One moved 10 × 6 × 8 mm rectangular seed. X direction, numeric 90 mm span, disjoint solids.'],
@@ -76,7 +82,7 @@ const open = async (name, doc) => {
 };
 
 async function verify(label, width, offsets, pitch, doc = documentAt(width, offsets.length)) {
-  if (creationMode || conversionMode) {
+  if (creationMode || conversionMode || handleMode) {
     assert.deepEqual(await f.doc(), doc);
     await f.ready();
   } else await f.same(doc);
@@ -266,7 +272,117 @@ async function convertDistanceMode() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function dragSpanHandles() {
+  const four = documentAt(10, 4), six = documentAt(10, 6);
+  const seed = { ...four, nodes: four.nodes.slice(0, 2), outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 };
+  const hud = () => f.page.locator('.hud');
+  const handle = key => f.page.locator(`g.gizmo-handle[data-handle="${key}"]`);
+  const preview = () => f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent.trim() === 'preview');
+  const frame = async () => {
+    await button(f.page, 'Top').click();
+    const ortho = button(f.page, 'Ortho');
+    if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+    await f.frame([[20, 13], [235, 13]]);
+  };
+  const drag = async (key, label, move, before) => {
+    const arrow = handle(key);
+    await arrow.waitFor();
+    const tip = await arrow.locator('polygon').evaluate((el, baseline) => {
+      if (baseline) {
+        const end = el.points.getItem(0).matrixTransform(el.getScreenCTM());
+        return [end.x, end.y];
+      }
+      const rect = el.getBoundingClientRect();
+      return [rect.x + rect.width / 2, rect.y + rect.height / 2];
+    }, handleBaseline);
+    const p0 = await f.screenOf([110, 13]), p1 = await f.screenOf([110 + move, 13]);
+    const end = tip.map((x, i) => x + p1[i] - p0[i]);
+    for (const point of [tip, end]) assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('.vp-canvas'), point));
+    await f.page.mouse.move(...tip);
+    await arrow.locator('..').locator(`g.hot[data-handle="${key}"]`).waitFor();
+    await f.page.mouse.down();
+    let held;
+    try {
+      await f.page.mouse.move(...end, { steps: 24 });
+      await preview();
+      held = Number(await field(hud(), label).inputValue());
+      assert.deepEqual(await f.doc(), before);
+    } finally { await f.page.mouse.up(); }
+    await preview();
+    const released = Number(await field(hud(), label).inputValue());
+    assert.deepEqual(await f.doc(), before);
+    f.report.observations.push({ label: 'drag-' + key, moveMm: move, held, released, tip, end });
+    return [held, released];
+  };
+  const apply = async label => {
+    const before = await f.doc();
+    await button(hud(), 'Apply').click();
+    await hud().waitFor({ state: 'hidden' });
+    await f.changed(before);
+    await f.snapshot(label);
+  };
+  f.phase = 'drag creation Count by two initial 30 mm intervals';
+  await f.newPage();
+  await open('D837-seed.bcad', seed);
+  await f.same(seed);
+  await frame();
+  await f.page.locator('.outliner .ol-row > button.ol').click();
+  await clickModelCommand(f.page, 'Pattern', 'Linear pattern');
+  await field(hud(), 'Count').fill('4');
+  await field(hud(), 'Spacing').fill('30');
+  await field(hud(), 'Distance mode').selectOption('span');
+  await preview();
+  const countDrag = await drag('count', 'Count', 60, seed);
+  assert.equal(await field(hud(), 'Total span').inputValue(), '90');
+  await f.snapshot('01-creation-count-release');
+  if (handleBaseline) {
+    await button(hud(), 'Cancel').click();
+  } else {
+    assert.deepEqual(countDrag, [6, 6]);
+    assert.equal(await field(hud(), 'Spacing').textContent(), '18 mm');
+    await apply('02-creation-count-applied');
+    await verify('creation-count-applied', 10, [0, 18, 36, 54, 72, 90], 18, six);
+  }
+
+  f.phase = 'find the span handles for an accepted feature in History';
+  await open('D837-accepted.bcad', six);
+  await f.same(six);
+  await frame();
+  await f.openFeatureEditor(2, 'accepted fixed span');
+  if (handleBaseline) {
+    await f.snapshot('02-history-handles-missing');
+    f.report.observations.push({ label: 'history-handles', span: await handle('span').count(), count: await handle('count').count() });
+    assert.equal(await handle('span').count(), 1, 'accepted fixed span has no Total span handle');
+    assert.deepEqual(countDrag, [6, 6]);
+    return;
+  }
+  await handle('span').waitFor();
+  await handle('count').waitFor();
+  const widerSpan = { ...six, nodes: [...six.nodes.slice(0, 2), { ...six.nodes[2], span: 110 }] };
+  f.phase = 'drag Total span from 90 to 110 mm while keeping Count 6';
+  assert.deepEqual(await drag('span', 'Total span', 20, six), [110, 110]);
+  assert.equal(await field(hud(), 'Count').inputValue(), '6');
+  assert.equal(await field(hud(), 'Spacing').textContent(), '22 mm');
+  await apply('03-history-span-applied');
+  await verify('history-span-applied', 10, [0, 22, 44, 66, 88, 110], 22, widerSpan);
+
+  f.phase = 'drag History Count from 6 to 5 while retaining 110 mm';
+  await f.openFeatureEditor(2, 'accepted wider span');
+  assert.deepEqual(await drag('count', 'Count', -22, widerSpan), [5, 5]);
+  assert.equal(await field(hud(), 'Total span').inputValue(), '110');
+  assert.equal(await field(hud(), 'Spacing').textContent(), '27.5 mm');
+  await apply('04-history-count-applied');
+  const five = { ...widerSpan, nodes: [...widerSpan.nodes.slice(0, 2), { ...widerSpan.nodes[2], count: 5 }] };
+  await verify('history-count-applied', 10, [0, 27.5, 55, 82.5, 110], 27.5, five);
+  await f.undo();
+  await verify('first-undo', 10, [0, 22, 44, 66, 88, 110], 22, widerSpan);
+  await f.redo();
+  await verify('first-redo', 10, [0, 27.5, 55, 82.5, 110], 27.5, five);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
+  if (handleMode) { await dragSpanHandles(); return; }
   if (creationMode) { await createFixedSpan(); return; }
   if (conversionMode) { await convertDistanceMode(); return; }
   const four = documentAt(10, 4), six = documentAt(10, 6), wider = documentAt(12, 6);

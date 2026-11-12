@@ -155,6 +155,7 @@ interface PointerDrag {
   start2?: number;
   origin?: Vec3;
   handleAt?: Vec3;
+  handleToValue?: FeatureHandle['toValue'];
   factor?: number;
   gizmo?: TransformGizmo;
   sessionKey?: string | number;
@@ -508,7 +509,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       const at0 = d.handleAt ?? hd.at;
       if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], at0, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
       if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
-      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
+      else d.value = (d.handleToValue ?? hd.toValue)(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
       hd.onDrag(d.value, done);
       // (Roadmap 20 ⑥: the handle let go offers its value in a box beside it while the command runs.)
       if (done) valueBox.current = { id: hd.id, owner: hd.owner };
@@ -576,7 +577,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
       const g = hit.kind === 'handle' ? undefined : propsRef.current.gizmo ?? undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2,
+        handleAt: hd ? [...hd.at] as Vec3 : undefined, handleToValue: hd?.toValue,
+        origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
       g?.onStart?.(e.pointerId);
       return;
     }

@@ -27,7 +27,8 @@ import { mountCommand } from './mounts';
 import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
-import { linearSpanPatternInput, linearSpanSpacing } from '../engine/linearSpanPattern';
+import { linearSpanPatternInput } from '../engine/linearSpanPattern';
+import { linearSpanHandles } from './linearSpanHandles';
 import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
@@ -109,6 +110,8 @@ export function givenValues(cmd: Command, ctx: Ctx, values: Values, given: Value
  */
 export interface HandleSpec {
   key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number;
+  /** Offset a straight arrow across its projected axis so nearby arrows remain distinct. */
+  screenOffset?: number;
   /** An angle handle: an arc about `axis` through `centre` from `from` (then `at` and `dir` are unused). */
   arc?: { centre: [number, number, number]; axis: [number, number, number]; from: [number, number, number] };
   /** What its readout counts in (default mm; an arc's degrees). */
@@ -894,15 +897,10 @@ const allCommands: Command[] = [
     // Spacing: an arrow at the second copy; count: one past the last (each spacing dragged adds a copy).
     handles: (ctx, v) => {
       const b = oneBody(ctx); if (!b) return [];
+      if (usesLinearSpan(v)) return linearSpanHandles(b.mesh.bounds, v.axis as Axis, Number(v.span), Number(v.count), LINEAR_PATTERN_COUNT.max);
       const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
       const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
       const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
-      if (usesLinearSpan(v)) {
-        const span = Number(v.span), input = linearSpanSpacing(span, n, LINEAR_PATTERN_COUNT.max);
-        if (k < 0 || 'code' in input) return [];
-        return [{ key: 'span', at: at(c[k] + span), dir }, { key: 'count', at: at(max[k] + span), dir,
-          scale: 1 / Math.max(1, input.spacing), ...LINEAR_PATTERN_COUNT, unit: '' }];
-      }
       return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
     },
     build: (ctx, v) => {

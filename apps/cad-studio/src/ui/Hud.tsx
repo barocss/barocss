@@ -71,7 +71,8 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       <div className="hud-fields">
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}
         {fields.map(renderField)}
-        {active.cmd.id === 'linear-pattern' && active.values.result !== 'separate' && active.values.distanceMode === 'span'
+        {((active.cmd.id === 'linear-pattern' && active.values.result !== 'separate' && active.values.distanceMode === 'span')
+          || (active.cmd.id === 'edit' && fields.some(field => field.key === 'span')))
           && <LinearSpanSpacing span={Number(active.values.span)} count={Number(active.values.count)} />}
       </div>
       {active.cmd.id === 'hole' ? <HolePresets key={activeKey(active, active.values)} values={active.values}

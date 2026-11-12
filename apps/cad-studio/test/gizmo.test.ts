@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dragAlong, dragPlane, dragTurn, hitTest, layout, snapTo, type Projector, type TransformGizmo } from '../src/viewport/gizmo';
+import { dragAlong, dragPlane, dragTurn, handleLayout, hitTest, layout, snapTo, type FeatureHandle, type Projector, type TransformGizmo } from '../src/viewport/gizmo';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 // A camera straight above, looking down −Z: screen x = world x, screen y = −world y (10 px per mm, origin at 500, 500).
@@ -41,6 +41,18 @@ test('gizmo: hits find the handle under the pointer; the centre is none', () => 
   assert.deepEqual(hitTest([500 + 82 * Math.cos(a), 500 - 82 * Math.sin(a)], g, [], top), { kind: 'turn', axis: 2 });
   assert.equal(hitTest([500, 500], g, [], top), null);
   assert.equal(hitTest([700, 700], g, [], top), null);
+});
+
+test('gizmo: offset parallel feature arrows draw and hit on separate rows', () => {
+  const span: FeatureHandle = {
+    id: 'span', label: 'Total span', at: [0, 0, 0], dir: [1, 0, 0], value: 90,
+    toValue: (start, mm) => start + mm, format: String, onDrag: () => {},
+  };
+  const count = { ...span, id: 'count', label: 'Count', screenOffset: 16 };
+  assert.deepEqual(handleLayout(span, top), { from: [500, 500], to: [562, 500] });
+  assert.deepEqual(handleLayout(count, top), { from: [500, 516], to: [562, 516] });
+  assert.deepEqual(hitTest([556, 500], null, [span, count], top), { kind: 'handle', index: 0 });
+  assert.deepEqual(hitTest([556, 516], null, [span, count], top), { kind: 'handle', index: 1 });
 });
 
 test('gizmo: drags in mm along an arrow, in two axes on a square; nothing along an axis at the camera', () => {
