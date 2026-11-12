@@ -2,7 +2,7 @@
 import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, exportStudioStep, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
-import { currentFaceEndDistance } from '@barocss/cad-model/engine/part';
+import { currentFaceEndDistance, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { nativeMidpointPlane, type NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
 import { projectMaterialFootprint } from '@barocss/cad-model/engine/materialFootprint';
 import { projectViews } from '@barocss/cad-model/drawing/project';
@@ -27,6 +27,7 @@ export type WorkerRequest =
   | { type: 'volumes'; id: number; doc: WireDoc; intersection: number }
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
+  | { type: 'verifyStoredInsets'; id: number; doc: WireDoc }
   | { type: 'faceEndDistance'; id: number; doc: WireDoc; index: number }
   | { type: 'midpointPlane'; id: number; doc: WireDoc; key: string; faces: readonly [NativeMidpointFace, NativeMidpointFace] }
   | { type: 'projectFootprint'; id: number; doc: WireDoc; key: string }
@@ -108,6 +109,15 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const doc = wire.unpack(event.data.doc), base = event.data.type === 'placed' ? wire.unpack(event.data.base) : null;
   const proposed = event.data.type === 'proposalDiff' ? wire.unpack(event.data.proposed) : null;
   const request = { ...event.data, doc };
+  if (request.type === 'verifyStoredInsets') {
+    try {
+      for (const [index, node] of doc.nodes.entries()) {
+        if (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined) resolveAssociativeSketch(doc, index);
+      }
+      post({ id: request.id, ok: true });
+    } catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    return;
+  }
   if (request.type === 'faceEndDistance') {
     try { post({ id: request.id, distance: currentFaceEndDistance(doc, request.index) }); }
     catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }

@@ -4,6 +4,7 @@ import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/do
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { verifyReferences } from '@barocss/cad-model/engine/references';
+import type { StoredInsetReply } from '../engine/client';
 import { downloadBytes } from '../ui/files';
 
 export function writeDocumentFile(doc: StudioDoc, name: string): void {
@@ -64,6 +65,19 @@ async function verifyCavitySources(sources: ReturnType<typeof storedStepCavities
 export function verifyStoredStepCavities(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>, current: () => boolean) {
   const sources = storedStepCavities(opened);
   return sources.length ? verifyCavitySources(sources, readPart, current) : undefined;
+}
+
+/** Check the native features that require admission before either Open can adopt the file. */
+export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
+  readInsets: (doc: StudioDoc) => Promise<StoredInsetReply>, current: () => boolean): Promise<void> | undefined {
+  if (!current()) return;
+  const hasInsets = opened.nodes.some(node => node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined);
+  if (!hasInsets) return verifyStoredStepCavities(opened, readPart, current);
+  return readInsets(opened).then(result => {
+    if (!current()) return;
+    if ('error' in result) throw new Error(result.error + ' Your part is unchanged.');
+    return verifyStoredStepCavities(opened, readPart, current);
+  });
 }
 
 /** No UI or document writes occur here. The App checks its same owner before applying the returned data. */

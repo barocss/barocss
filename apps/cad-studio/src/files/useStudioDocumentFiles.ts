@@ -17,7 +17,7 @@ import type { OpenScope } from '../state/openOwnership';
 import { currentDocumentSave } from '../state/saveOwnership';
 import type { useProject } from '../storage/useProject';
 import { placedProposalPreview } from '../viewport/instanceEvaluation';
-import { readDocumentFile, verifyDocumentFile, verifyStoredStepCavities, writeDocumentFile } from './documentFile';
+import { readDocumentFile, verifyDocumentFile, verifyStoredNativeOpen, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
@@ -573,9 +573,9 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       if (!read || !isOpenCurrent(scope)) return;
       if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
       const parsed = read.doc;
-      const cavityCheck = verifyStoredStepCavities(parsed, d => engine.part(d, nextRevision(), 'read'), owner.isCurrent);
-      if (cavityCheck) {
-        await cavityCheck;
+      const nativeCheck = verifyStoredNativeOpen(parsed, d => engine.part(d, nextRevision(), 'read'), d => engine.verifyStoredInsets(d), owner.isCurrent);
+      if (nativeCheck) {
+        await nativeCheck;
         if (!owner.isCurrent()) return;
       }
       const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };

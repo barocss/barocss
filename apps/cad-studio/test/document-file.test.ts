@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { verifyDocumentFile, verifyStoredStepCavities } from '../src/files/documentFile';
+import { verifyDocumentFile, verifyStoredNativeOpen, verifyStoredStepCavities } from '../src/files/documentFile';
 import { referenceOpenFixtures } from './reference-open-fixture';
 
 const evaluate = async (doc: Parameters<typeof evaluateDoc>[0]) => evaluateDoc(doc, 0);
@@ -78,4 +78,32 @@ test('late native cavity verification cannot report a failure to a superseding O
   await assert.rejects(check, /Embedded STEP.*cavity.*unchanged/);
   let current = true;
   await verifyStoredStepCavities(doc, async () => { current = false; return refusal; }, () => current);
+});
+
+
+test('native Open checks stored inset bindings without replacing or rewriting the input', async () => {
+  const original = rectanglePart(10, 10, 8);
+  const unexpected = async () => assert.fail('no native verification is required');
+  assert.equal(verifyStoredNativeOpen(original, unexpected, unexpected, () => true), undefined);
+  const linked = withNode(original, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10],
+    association: { kind: 'planar-face-outline-inset', version: 1, source: { node: 1, side: 'solid' },
+      sourceFeature: 'n1', face: 'n1.top', insetMM: 2 } });
+  const before = structuredClone(linked);
+  let checked = 0;
+  await verifyStoredNativeOpen(linked, unexpected, async candidate => {
+    assert.equal(candidate, linked);
+    checked++;
+    return { ok: true };
+  }, () => true);
+  assert.equal(checked, 1);
+  assert.deepEqual(linked, before);
+  await assert.rejects(verifyStoredNativeOpen(linked, unexpected,
+    async () => ({ error: '[BAD_REFERENCE] Associative sketch: source missing.' }), () => true)!,
+  /BAD_REFERENCE.*Associative sketch.*unchanged/);
+  let current = true;
+  await verifyStoredNativeOpen(linked, unexpected, async () => {
+    current = false;
+    return { error: 'late refusal' };
+  }, () => current);
+  assert.equal(verifyStoredNativeOpen(linked, unexpected, unexpected, () => false), undefined);
 });

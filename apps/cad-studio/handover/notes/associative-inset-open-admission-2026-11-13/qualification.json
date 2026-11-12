@@ -1,0 +1,46 @@
+{
+  "decision": "D868",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8debfe0e04ba1271b29f7ecc52d48bd36b4e5c99",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d868-inset-open-desktop",
+    "D868_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/studio-run01 --fixed",
+    "gate.sh acquire heavy 600 d868-inset-open-focused",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-associative-inset drawing-associative-sketch saved-perpendicular",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketch-edit-identity project-open",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint <changed-worker-and-Open-TypeScript-except-App.tsx>",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 20,
+    "studioPass": 86,
+    "logSHA256": "83f8f0247c7ea5e04f381c6574c1f2d10242b122cfdc2154bf32a4ce6e119f77"
+  },
+  "studio": {
+    "status": "PASS",
+    "parentBaselineReceiptSHA256": "6d4fdf2386bc5179e8353f6d45e5b1cdcf056b0ab96bd1fc1de9c31d23ecd136",
+    "receiptSHA256": "989291a7ae4c38b78b5af8abc92a89ff9cb73643e4429c941c14e111bbc7dfe5",
+    "sourceManifestSHA256": "5b34a31ef713977e20dfb0dcadadacac8cfd81d340cd910db29c663787c5bcf0",
+    "runnerSHA256": "cf23fb1e8569318371c02225512cc119c8b077274ba5f873830e79543a2f121f",
+    "frozenFiles": 826,
+    "snapshots": 11,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "refusalCode": "BAD_REFERENCE",
+    "rejectedOpenRoutes": 2,
+    "additionalUndoEntries": 0,
+    "heldLateRefusals": 1,
+    "lateRefusalNotices": 0,
+    "acceptedProjectRingVolumeMm3": 1280.0000000000011
+  }
+}

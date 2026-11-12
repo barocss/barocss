@@ -2,20 +2,24 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const fixed = process.argv[3] === '--fixed';
 const pins = [
   'apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs',
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts',
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
+  ...(fixed ? ['apps/cad-studio/src/files/documentFile.ts', 'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
+    'apps/cad-studio/src/storage/useProject.ts', 'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts'] : []),
   'packages/barocss-cad-model/src/engine/part.ts',
   'packages/barocss-cad-model/src/engine/references.ts',
   'packages/barocss-cad-model/src/engine/migrate.ts',
 ];
 const f = await createFlow({
-  name: 'associative-inset-relink-baseline', output: process.argv[2], envFrozen: 'D867_SOURCE_FROZEN',
+  name: 'associative-inset-relink-baseline', output: process.argv[2], envFrozen: fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
+  qualification: fixed ? 'Keep the working document during failed associative inset File and Project Open.'
+    : 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
   limits: ['Two earlier axial native rectangular solids and one 2 mm linked inset. A prepared candidate file measures the existing reader and evaluator.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -98,9 +102,52 @@ async function verify(label, doc, x, width, id, sourceIndex, bodyZ = 8) {
   return read;
 }
 
+function holdInsetVerification() {
+  const worker = Worker.prototype, send = worker.postMessage;
+  const onmessage = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  let armed, target, held, deliver;
+  worker.postMessage = function (request, ...args) {
+    if (armed && request.type === 'verifyStoredInsets') {
+      armed = false;
+      target = { worker: this, id: request.id };
+    }
+    return Reflect.apply(send, this, [request, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true, get: onmessage.get,
+    set(callback) {
+      onmessage.set.call(this, callback && function (event) {
+        if (target?.worker === this && target.id === event.data?.id) {
+          held = event.data;
+          deliver = () => callback.call(this, event);
+          target = undefined;
+          return;
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+  window.__d868Check = {
+    arm() { armed = true; held = undefined; },
+    held: () => held,
+    release() { deliver(); deliver = undefined; },
+  };
+}
+
+function unchanged(after, before) {
+  for (const key of ['doc', 'name', 'bodies', 'history', 'dirty', 'controls', 'selection']) assert.deepEqual(after[key], before[key], key);
+}
+
 async function observeBadOpen(label, before, damaged) {
   await f.waitToast(/BAD_REFERENCE.*source feature binding/i);
   const after = await f.snapshot(label);
+  if (fixed) {
+    unchanged(after, before);
+    assert.equal(after.bodies.fresh, true);
+    assert.ok(after.notices.some(notice => /your part is unchanged/i.test(notice)));
+    await f.dismissToasts();
+    return;
+  }
   assert.deepEqual(after.doc, damaged);
   assert.equal(after.bodies.fresh, false);
   assert.deepEqual(after.bodies.bodies, before.bodies.bodies);
@@ -113,22 +160,26 @@ async function observeBadOpen(label, before, damaged) {
   await f.dismissToasts();
 }
 
-async function putProjectFile(name, doc) {
+async function putProjectFiles(files) {
   const project = 'D867 invalid ' + randomUUID();
-  await f.page.evaluate(async ([project, name, text]) => {
+  await f.page.evaluate(async ([project, files]) => {
     const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects', { create: true });
     const folder = await projects.getDirectoryHandle(project, { create: true });
-    const file = await folder.getFileHandle(name, { create: true });
-    const writer = await file.createWritable();
-    await writer.write(text);
-    await writer.close();
-  }, [project, name, JSON.stringify(doc)]);
+    for (const [name, doc] of Object.entries(files)) {
+      const file = await folder.getFileHandle(name, { create: true });
+      const writer = await file.createWritable();
+      await writer.write(JSON.stringify(doc));
+      await writer.close();
+    }
+  }, [project, files]);
   const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   if (!(await versions.isVisible())) await button(f.page, 'Project and versions').click();
   await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
   await button(versions, 'Project in this browser').click();
   await versions.getByLabel('Project', { exact: true }).waitFor();
-  await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  for (const name of Object.keys(files)) {
+    await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  }
   return versions;
 }
 
@@ -143,6 +194,7 @@ await f.run(async () => {
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
       return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
     });
+    if (fixed) await context.addInitScript(holdInsetVerification);
     return context;
   };
   await f.newPage();
@@ -212,17 +264,46 @@ await f.run(async () => {
   damaged.nodes[4].association.sourceFeature = 'n1';
   const refusal = await f.inspect('native-invalid-binding', damaged);
   assert.ok(refusal.stage !== 'accepted' && /BAD_REFERENCE/i.test(refusal.error), JSON.stringify(refusal));
+  const browser = f.page.getByRole('complementary', { name: 'Browser', exact: true });
+  await button(browser, 'Extrude 8').first().click();
   const before = await f.snapshot('06-before-bad-loose-open');
+  assert.deepEqual(before.selection.selection.bodies, [0]);
   assert.equal(before.dirty, true);
   await chooseFile('D867-wrong-inset-source.bcad', damaged);
-  await observeBadOpen('07-bad-loose-open-adopted', before, damaged);
+  await observeBadOpen(fixed ? '07-loose-open-refuses' : '07-bad-loose-open-adopted', before, damaged);
 
   f.phase = 'measure the same failed binding through Project Open';
-  const projectFile = 'D867-project-wrong-inset-source.bcad';
-  const versions = await putProjectFile(projectFile, damaged);
+  const projectFile = 'D867-project-wrong-inset-source.bcad', healthyFile = 'D868-project-healthy-inset.bcad';
+  const files = fixed ? { [projectFile]: damaged, [healthyFile]: replacement } : { [projectFile]: damaged };
+  const versions = await putProjectFiles(files);
   const beforeProject = await f.snapshot('08-before-bad-project-open');
+  if (fixed) assert.equal(beforeProject.dirty, true);
   await button(versions, 'Open ' + projectFile).click();
-  await observeBadOpen('09-bad-project-open-adopted', beforeProject, damaged);
+  await observeBadOpen(fixed ? '09-project-open-refuses' : '09-bad-project-open-adopted', beforeProject, damaged);
   f.report.observations.push({ label: 'invalid-binding', ...refusal });
+
+  if (fixed) {
+    f.phase = 'confirm failed Opens left no Undo entry';
+    await f.undo();
+    await f.same(replacement);
+    await f.redo();
+    await f.same(edited.doc);
+    f.phase = 'hold an invalid File Open reply and open a valid project file';
+    await f.page.evaluate(() => window.__d868Check.arm());
+    await chooseFile('D868-late-invalid-inset.bcad', damaged);
+    await f.page.waitForFunction(() => /BAD_REFERENCE/.test(window.__d868Check.held()?.error ?? ''));
+    await f.same(edited.doc);
+    await button(versions, 'Open ' + healthyFile).click();
+    await f.same(replacement);
+    const accepted = await f.snapshot('10-valid-project-open');
+    await f.page.evaluate(async () => {
+      window.__d868Check.release();
+      await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+    });
+    const late = await f.snapshot('11-stale-invalid-open-ignored');
+    unchanged(late, accepted);
+    assert.ok(late.notices.every(notice => !/source feature binding/.test(notice)));
+    await verify('native-current-after-late-reply', replacement, 100, 60, 'n3', 3);
+  }
   assert.deepEqual(f.report.downloads, []);
 });

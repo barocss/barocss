@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D868 — refuse a failed associative inset before Open](notes/associative-inset-open-admission-2026-11-13/README.md).
 - [D867 — measure associative inset replacement and failed Open](notes/associative-inset-relink-baseline-2026-11-13/README.md).
 - [D866 — measure the Revolve axis-diameter boundary](notes/revolve-axis-diameter-boundary-2026-11-13/README.md).
 - [D865 — keep Enter on the focused Browser control](notes/sketch-enter-focus-2026-11-13/README.md).
