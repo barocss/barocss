@@ -1,0 +1,197 @@
+{
+  "decision": "D872",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "04cde39c365e508fe5eeb5ebc7c0908b2b75b3f9",
+  "issue": 2388,
+  "issueDisposition": "ACCEPTANCE_MET_CLOSE_AFTER_PUSH",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d872-desktop-verified",
+    "D872_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/studio-run06",
+    "gate.sh acquire heavy 600 d872-feature-checks-final",
+    "node packages/barocss-cad-model/scripts/test.mjs osnap edge-plane-crossing sketch-profile-precision",
+    "cd apps/cad-studio && node scripts/test.mjs object-snap-kinds sketch-snap-visibility constraints sketch-edit-identity viewport-sketch-overlay-band",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/{sketch/SketchSnapControls.tsx,sketch/objectSnapKinds.ts,ui/ViewDisplayControls.tsx,viewport/viewportPointerInput.ts} apps/cad-studio/test/object-snap-kinds.test.ts",
+    "node --check each edited desktop driver",
+    "git diff --check",
+    "gate.sh acquire heavy 600 d872-desktop-publish",
+    "D872_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/studio-run07",
+    "D864_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/native-crossing-final",
+    "D794_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/two-point-snap-offset-plane-browser.mjs <external-evidence>/two-point-final",
+    "D796_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/arc-midpoint-after-trim-browser.mjs <external-evidence>/arc-midpoint-final"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 18,
+    "studioPass": 60,
+    "typeChecks": "PASS",
+    "productionBuild": "PASS",
+    "scopedLint": "PASS",
+    "logSHA256": "eac60086f8e0346465b80b653c8912df2d9428f1aab9f870bacab6a8f98aeafa",
+    "firstStudioTypeCheck": "FAIL: TS2722 on optional dimension callback"
+  },
+  "studio": {
+    "earlyDriverFailures": [
+      {
+        "status": "FAIL",
+        "receiptSHA256": "2d9cbbee5fe01b47159cf8e11d84b34f99afc012daf35bf4ebb4906ba9ddfee5",
+        "sourceManifestSHA256": "d6fae91e423749a99fd960d73f059e08edb1933e30189ec5b8512e80425733b0",
+        "frozenFiles": 356,
+        "snapshots": 1,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "sourceChanges": 0,
+        "firstFailure": "The Diameter accessible name includes the unit."
+      },
+      {
+        "status": "FAIL",
+        "receiptSHA256": "c6a0c47178e4dbc8ad7c4fbc9bf393d797b1b582926aa1178b9b8f343e30ea59",
+        "sourceManifestSHA256": "d6fae91e423749a99fd960d73f059e08edb1933e30189ec5b8512e80425733b0",
+        "frozenFiles": 356,
+        "snapshots": 3,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "sourceChanges": 0,
+        "firstFailure": "The corner input retains 12.3457 mm."
+      },
+      {
+        "status": "FAIL",
+        "receiptSHA256": "a20bdcd1414f0d4bf78d3aa39b4e17c4e6eb887f87e314d0db7fc7abc6308c42",
+        "sourceManifestSHA256": "d6fae91e423749a99fd960d73f059e08edb1933e30189ec5b8512e80425733b0",
+        "frozenFiles": 356,
+        "snapshots": 7,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "sourceChanges": 0,
+        "firstFailure": "The second point fell outside the canvas after framing."
+      },
+      {
+        "status": "FAIL",
+        "receiptSHA256": "3ad21b0988833e554583a07b7fbdb8e73e510cea66f02ae579955cbbac85e337",
+        "sourceManifestSHA256": "e8d174895ccd1bc47a231dbca1f8880b4e48f7559c8eb8eb39cb8ad9b0c004a6",
+        "frozenFiles": 356,
+        "snapshots": 8,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "sourceChanges": 0,
+        "firstFailure": "The line candidates exceeded the actual snap reach."
+      },
+      {
+        "status": "FAIL",
+        "receiptSHA256": "612a6c43c2e2bf6914f8407044ee1ce6e550f396dca72417650841cb2ac11920",
+        "sourceManifestSHA256": "e8d174895ccd1bc47a231dbca1f8880b4e48f7559c8eb8eb39cb8ad9b0c004a6",
+        "frozenFiles": 356,
+        "snapshots": 8,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "sourceChanges": 0,
+        "firstFailure": "Escape clears the picked edge before closing the sketch."
+      }
+    ],
+    "earlierPass": {
+      "status": "PASS",
+      "receiptSHA256": "dc44b4e5f8b66f867f286b852d6d4507ea9baf2ae7788c7c59537fd895f89601",
+      "sourceManifestSHA256": "e8d174895ccd1bc47a231dbca1f8880b4e48f7559c8eb8eb39cb8ad9b0c004a6",
+      "frozenFiles": 356,
+      "snapshots": 8,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "finalRun": {
+      "status": "PASS",
+      "receiptSHA256": "88bf572be370de7c66b7226d07b771db4a4bea6759cdfde79a16db031aad3ee0",
+      "sourceManifestSHA256": "bc013dab9b4a6df74efa7010f2dfa7fc9f644a236e0f869960f9fa84547eb8b1",
+      "frozenFiles": 356,
+      "snapshots": 9,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "nativeCrossing": {
+      "status": "PASS",
+      "receiptSHA256": "22e16fc66b2f4d4806c94086273ce653df3bc374d93e0d5346180bf0edaaa011",
+      "sourceManifestSHA256": "932103276674b2f9ec8f488f61a164743ddd4a125974ea1f64f3557b6509048e",
+      "frozenFiles": 830,
+      "snapshots": 13,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "twoPoint": {
+      "status": "PASS",
+      "receiptSHA256": "73b2353e3d4ccb78fc997f83c1b9915eb4eb1219fa9a8bddf2bc83c99a1781ad",
+      "sourceManifestSHA256": "1a3a8a3e03f0321a06376997ba0537a61e7ae0db9cb723cef9df7c6c5c1dfe49",
+      "frozenFiles": 830,
+      "snapshots": 4,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "arcMidpoint": {
+      "status": "PASS",
+      "receiptSHA256": "821dff277ff3d9c571dbf60cb1eb79a4f9ab5c7913032157c51bb6f018ad476d",
+      "sourceManifestSHA256": "0ff6a277127008e8b27331514d840a4307ab6ee026b060b9d390231bffbb78f9",
+      "frozenFiles": 830,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "04edf91a823fc8a82229bd525059622561e3115c3e23bef9971a3515667266c4",
+    "screenReachPx": 8,
+    "competingGapPx": 5.568265289579358,
+    "endpointMm": [
+      14.54,
+      12.3457
+    ],
+    "centreMm": [
+      14.84,
+      12.3457
+    ],
+    "gridCornerMm": [
+      28,
+      19
+    ],
+    "bothOffBoundsMm": [
+      [
+        23.25,
+        15.75
+      ],
+      [
+        32.25,
+        22.75
+      ]
+    ],
+    "circleRadiusMm": [
+      7,
+      6
+    ],
+    "slotRadiusMm": [
+      2.5,
+      2
+    ],
+    "nativeCrossingOffsetMm": 2,
+    "disabledCrossingGridCornerMm": [
+      15,
+      12
+    ],
+    "projectBytes": 1694,
+    "projectSHA256": "ae702e0005c5ab36157cb45c7c3975fa48dd82c50716fba6e2c095a439d3fec0"
+  }
+}

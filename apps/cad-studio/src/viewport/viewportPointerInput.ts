@@ -29,6 +29,7 @@ import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
+import { enabledObjectSnaps, type ObjectSnapKinds } from '../sketch/objectSnapKinds';
 import { planPathGap } from '../sketch/pathGap';
 import type { ArcExtensionInput } from '../sketch/useArcExtensionSnap';
 import type { PathGapDraft, PathGapInput } from '../sketch/usePathGap';
@@ -51,7 +52,7 @@ export interface ViewportPointerProps {
   /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
   snapStep?: number;
   sketch: SketchState | null;
-  sketchSnaps?: { twoPoint: TwoPointSnapInput; extension: ArcExtensionInput; crossingBodies?: readonly BodyResult[] };
+  sketchSnaps?: { twoPoint: TwoPointSnapInput; extension: ArcExtensionInput; crossingBodies?: readonly BodyResult[]; objectKinds?: ObjectSnapKinds };
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
   handles?: FeatureHandle[];
@@ -191,6 +192,17 @@ export const cutting = (sk: SketchState | null) => sk?.tool === 'trim' || sk?.to
 /** Band tool: a click picks a whole closed shape (no snapping). */
 export const banding = (sk: SketchState | null) => sk?.tool === 'band';
 
+function circleRadiusAt(centre: readonly number[], point: readonly number[]): number {
+  return Math.max(1, Math.round(Math.hypot(point[0] - centre[0], point[1] - centre[1])));
+}
+
+function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonly number[]): number {
+  const x = b[0] - a[0], y = b[1] - a[1];
+  const length = Math.hypot(x, y) || 1;
+  const offset = Math.abs((point[0] - a[0]) * y - (point[1] - a[1]) * x) / length;
+  return Math.max(0.5, Math.round(offset * 2) / 2);
+}
+
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
   const { renderer, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
@@ -243,7 +255,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
   const { bodies: snapBodies, hiddenBodies: snapHidden } = propsRef.current;
   const snapPlaneKey = sketch ? JSON.stringify(sketch.plane) : null;
-  const crossingBodies = propsRef.current.sketchSnaps?.crossingBodies;
+  const { crossingBodies, objectKinds } = propsRef.current.sketchSnaps ?? {};
   const extensionDraft = propsRef.current.sketchSnaps?.extension.read(sketch);
   const clearSketchSnap = useCallback(() => {
     const draft = sketchDraft.current;
@@ -255,7 +267,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     propsRef.current.onCursor(null);
     requestRef.current();
   }, [propsRef, requestRef]);
-  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.plane, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft]);
+  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.plane, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft, objectKinds]);
   useLayoutEffect(() => {
     const snap = sketchDraft.current.snap;
     if (!livePolygonMiddle.current || !snap) return;
@@ -273,7 +285,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const snap = sketchDraft.current.snap;
     if (snap && (cached.points.includes(snap) || cached.crossings.includes(snap))) clearSketchSnap();
   }, [snapBodies, snapHidden, snapPlaneKey, crossingBodies, clearSketchSnap]);
-  /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
+  /** The sketch point for the pointer: an eligible object snap within 8 px, then grid fallback. */
   const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null; liveMiddle?: boolean; extension?: boolean; terminal?: boolean } => {
     const { bodies, hiddenBodies, sketchSnaps } = propsRef.current;
     const model = modelSnapCache.current = modelSketchSnaps(modelSnapCache.current, bodies, hiddenBodies, sk.plane, sketchSnaps?.crossingBodies);
@@ -284,7 +296,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const crossings = guide ? [] : model.crossings;
     const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
-    const ordinary = nearestSnap(points, project, [x, y]);
+    const candidates = guide ? points : enabledObjectSnaps(points, sketchSnaps?.objectKinds);
+    const ordinary = nearestSnap(candidates, project, [x, y]);
     const extensionPoint = !ordinary && guide?.stage === 'guide' ? arcExtensionPoint(guide.arc, p) : null;
     const extension = extensionPoint && nearestSnap([{ at: extensionPoint, kind: 'calculated' }], project, [x, y]);
     const hit = ordinary ?? extension;
@@ -675,14 +688,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
-        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
+        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: circleRadiusAt(s.c, c) });
         if (s.kind === 'slot' && drafting.current) {
           if (slotStage.current === 1) emit({ ...s, b: c });
-          else {
-            const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1;
-            const off = Math.abs((c[0] - s.a[0]) * (s.b[1] - s.a[1]) - (c[1] - s.a[1]) * (s.b[0] - s.a[0])) / l;
-            emit({ ...s, r: Math.max(0.5, Math.round(off * 2) / 2) });
-          }
+          else emit({ ...s, r: slotRadiusAt(s.a, s.b, c) });
         }
         if (s.kind === 'polygon' && s.pending && p) {
           const n = s.points.length, i = s.closed ? n - 1 : n - 2;
@@ -830,11 +839,25 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
       } else if (sk.tool === 'circle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }, true); }
-        else drafting.current = false;
+        else {
+          drafting.current = false;
+          if (s?.kind === 'circle') {
+            const r = circleRadiusAt(s.c, c);
+            if (r !== s.r) emit({ ...s, r });
+          }
+        }
       } else if (sk.tool === 'slot') {
         if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }, true); }
-        else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); } }
-        else { drafting.current = false; slotStage.current = 0; }
+        else if (slotStage.current === 1) {
+          if (s?.kind === 'slot' && (c[0] !== s.a[0] || c[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); }
+        } else {
+          drafting.current = false;
+          slotStage.current = 0;
+          if (s?.kind === 'slot') {
+            const r = slotRadiusAt(s.a, s.b, c);
+            if (r !== s.r) emit({ ...s, r });
+          }
+        }
       } else {
         // Line (polygon) and arc tools share one open chain; an arc's bulge follows the cursor until the next click.
         const open = s && s.kind === 'polygon' && !s.closed ? s : null;

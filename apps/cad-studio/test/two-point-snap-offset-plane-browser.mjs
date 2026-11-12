@@ -132,10 +132,10 @@ await f.run(async () => {
   await f.same(empty);
 
   f.phase = 'apply a signed distance with the grid off';
-  const grid = button(f.page, 'Snap');
-  for (let i = 0; i < 6 && !(await grid.innerText()).includes('Snap off'); i++) await grid.click();
-  assert.match(await grid.innerText(), /Snap off/);
-  assert.equal(await f.sketchPanel().getByText('Snap 1 mm', { exact: true }).count(), 0);
+  const grid = button(f.page, 'Grid snap');
+  for (let i = 0; i < 6 && !(await grid.innerText()).includes('Grid off'); i++) await grid.click();
+  assert.match(await grid.innerText(), /Grid off/);
+  assert.equal(await f.sketchPanel().getByText('Grid 1 mm', { exact: true }).count(), 0);
   await start();
   await form().getByRole('status').getByText('Pick the first endpoint.').waitFor();
   await clickPoint(A);

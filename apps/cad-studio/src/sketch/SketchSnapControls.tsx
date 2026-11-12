@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button';
+import { keepsDimensionDraft } from './constraintInspection';
+import { OBJECT_SNAP_KINDS, type ObjectSnapKind, type ObjectSnapKinds } from './objectSnapKinds';
 import { TwoPointSnapControls } from './TwoPointSnapControls';
 import type { useArcExtensionSnap } from './useArcExtensionSnap';
 import type { useTwoPointSnap } from './useTwoPointSnap';
@@ -6,10 +8,24 @@ import type { useTwoPointSnap } from './useTwoPointSnap';
 interface Props {
   twoPoint: ReturnType<typeof useTwoPointSnap>;
   extension: ReturnType<typeof useArcExtensionSnap>;
+  objectKinds: ObjectSnapKinds;
+  onToggleObjectKind(kind: ObjectSnapKind): void;
+  onExitObjectKinds?(): void;
 }
 
-export function SketchSnapControls({ twoPoint, extension }: Props) {
+export function SketchSnapControls({ twoPoint, extension, objectKinds, onToggleObjectKind, onExitObjectKinds }: Props) {
   return <>
+    <details className="sk-object-snaps" data-sketch-dimension-focus
+      onBlur={event => { if (!keepsDimensionDraft(event.relatedTarget)) onExitObjectKinds?.(); }}>
+      <summary>Object snaps · {objectKinds.size}/{OBJECT_SNAP_KINDS.length}</summary>
+      <div className="sk-object-snap-kinds" role="group" aria-label="Object snap kinds">
+        {OBJECT_SNAP_KINDS.map(({ kind, label }) => {
+          const enabled = objectKinds.has(kind);
+          return <Button key={kind} type="button" size="xs" variant={enabled ? 'default' : 'outline'} aria-pressed={enabled}
+            onClick={() => onToggleObjectKind(kind)}>{label}</Button>;
+        })}
+      </div>
+    </details>
     <TwoPointSnapControls snap={{ ...twoPoint, begin: () => { extension.cancel(); twoPoint.begin(); } }} />
     {extension.available && <Button variant="ghost" aria-pressed={!!extension.stage}
       onKeyDown={event => { if (event.key === 'Enter') event.stopPropagation(); }}

@@ -93,9 +93,9 @@ await f.run(async () => {
   await f.openFile(file, 1);
   const opened = await f.doc();
   assert.deepEqual(opened.nodes, initial.nodes);
-  const grid = button(f.page, 'Snap');
-  for (let i = 0; i < 6 && !(await grid.innerText()).includes('Snap off'); i++) await grid.click();
-  assert.match(await grid.innerText(), /Snap off/);
+  const grid = button(f.page, 'Grid snap');
+  for (let i = 0; i < 6 && !(await grid.innerText()).includes('Grid off'); i++) await grid.click();
+  assert.match(await grid.innerText(), /Grid off/);
 
   f.phase = 'cancel the major arc cue and reopen the sketch';
   await openSketch();

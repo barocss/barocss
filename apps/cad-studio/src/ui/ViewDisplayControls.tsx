@@ -171,9 +171,9 @@ export function ViewDisplayControls({ doc, viewport, cornerRight, display, view,
         <Button size="sm" variant="secondary" className="chip snap" aria-label="Selection filter" data-tip="Selection filter" data-tip-desc="What a click picks: anything, or only faces, edges or whole bodies (click for the next)"
           onClick={() => setPickFilter(f => { const all = ['all', 'face', 'edge', 'body'] as const, n = all[(all.indexOf(f) + 1) % all.length]; try { localStorage.setItem('studio.pick', n); } catch { /* private mode */ } return n; })}>
           <Icon name="ads_click" small />{({ all: 'Pick all', face: 'Faces', edge: 'Edges', body: 'Bodies' } as const)[pickFilter]}</Button>
-        <Button size="sm" variant="secondary" className="chip snap" aria-label="Snap" data-tip="Grid snap" data-tip-desc="Sketch points, placing and moves land on this step: click for the next (1, 0.5, 0.1, 5, 10 mm, off)"
+        <Button size="sm" variant="secondary" className="chip snap" aria-label="Grid snap" data-tip="Grid snap" data-tip-desc="Sketch points, placing and moves land on this step: click for the next (1, 0.5, 0.1, 5, 10 mm, off)"
           onClick={() => setSnapStep(s => { const steps = [1, 0.5, 0.1, 5, 10, 0], n = steps[(steps.indexOf(s) + 1) % steps.length]; try { localStorage.setItem('studio.snap', String(n)); } catch { /* private mode */ } return n; })}>
-          <Icon name="adjust" small />{snapStep ? `Snap ${fmt(snapStep)} mm` : 'Snap off'}</Button>
+          <Icon name="adjust" small />{snapStep ? `Grid ${fmt(snapStep)} mm` : 'Grid off'}</Button>
         <span className="chip mono">mm</span>
       </div></Profiler>;
 }

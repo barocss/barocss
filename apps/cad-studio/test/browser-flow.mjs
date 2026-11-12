@@ -2872,8 +2872,8 @@ try {
   });
 
   await check('the snap step cycles and the sketch grid follows it', async () => {
-    await page.click('[aria-label="New part"]'); await page.click('[aria-label="Snap"]');
-    await page.waitForFunction(() => /Snap 0.5 mm/.test(document.querySelector('[aria-label="Snap"]')?.textContent ?? ''));
+    await page.click('[aria-label="New part"]'); await page.click('[aria-label="Grid snap"]');
+    await page.waitForFunction(() => /Grid 0.5 mm/.test(document.querySelector('[aria-label="Grid snap"]')?.textContent ?? ''));
     await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
     await clickAt(cx - 67, cy - 31); await clickAt(cx + 53, cy + 29);
     await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
@@ -2881,8 +2881,8 @@ try {
     const s = (await doc()).nodes[0];
     assert.ok([...s.min, ...s.max].every(v => Math.abs(v * 2 - Math.round(v * 2)) < 1e-9), JSON.stringify(s));
     // Back to 1 mm for the rest (0.1, 5, 10, off, 1).
-    for (let k = 0; k < 5; k++) await page.click('[aria-label="Snap"]');
-    await page.waitForFunction(() => /Snap 1 mm/.test(document.querySelector('[aria-label="Snap"]')?.textContent ?? ''));
+    for (let k = 0; k < 5; k++) await page.click('[aria-label="Grid snap"]');
+    await page.waitForFunction(() => /Grid 1 mm/.test(document.querySelector('[aria-label="Grid snap"]')?.textContent ?? ''));
   });
 
   await check('the browser lists a body’s features under it; a click opens one in the editor', async () => {

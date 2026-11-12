@@ -24,6 +24,7 @@ import { useModelAppearance } from './viewport/useModelAppearance';
 import { useTwoPointSnap } from './sketch/useTwoPointSnap';
 import { useArcExtensionSnap } from './sketch/useArcExtensionSnap';
 import { SketchSnapControls } from './sketch/SketchSnapControls';
+import { defaultObjectSnapKinds, toggleObjectSnapKind } from './sketch/objectSnapKinds';
 import { usePathGap } from './sketch/usePathGap';
 import { PathGapControls } from './sketch/PathGapControls';
 import { useOverlaidLines } from './sketch/useOverlaidLines';
@@ -652,6 +653,7 @@ export function App() {
   /** The selection filter (kept between visits). */
   const [pickFilter, setPickFilter] = useState<'all' | 'face' | 'edge' | 'body'>(() => { try { const v = localStorage.getItem('studio.pick'); return v === 'face' || v === 'edge' || v === 'body' ? v : 'all'; } catch { return 'all'; } });
   const pickFilterRef = useRef(pickFilter); pickFilterRef.current = pickFilter;
+  const [objectSnapKinds, setObjectSnapKinds] = useState(defaultObjectSnapKinds);
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
   /** The history chip right-clicked: its menu (edit, edit sketch, roll back here, delete). */
   const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number } | null>(null);
@@ -2475,7 +2477,9 @@ export function App() {
 
       {insetReview && <InsetSourceReview review={insetReview} cancel={insetRelink.cancel} apply={insetRelink.apply} />}
       {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelNativeReview} adopt={midpointSketch.adopt} />}
-      {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+      {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
+        onToggleObjectKind={kind => setObjectSnapKinds(kinds => toggleObjectSnapKind(kinds, kind))}
+        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
@@ -2778,7 +2782,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies }} onCursor={onCursor}
+        picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, objectKinds: objectSnapKinds }} onCursor={onCursor}
         boundsBox={showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;

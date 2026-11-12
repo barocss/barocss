@@ -342,7 +342,7 @@ try {
     await page.evaluate(() => document.activeElement?.blur()); await press('Enter'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
     const s = (await doc()).nodes[0];
     const all = [...s.min, ...s.max];
-    return { ok: all.every(v => Number.isInteger(v)), expected: 'integer corner coordinates (Snap 1 mm)', actual: { min: s.min, max: s.max } };
+    return { ok: all.every(v => Number.isInteger(v)), expected: 'integer corner coordinates (Grid 1 mm)', actual: { min: s.min, max: s.max } };
   });
   // ---------------------------------------------------------------------------------- features via UI
   await probe('U60', 'revolve rectangle (10..20, 0..10) about Y, 360° → tube', async () => {

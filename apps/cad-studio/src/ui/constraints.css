@@ -59,6 +59,9 @@
 :root[data-theme='light'] .cons-tools button { border-color: #c9ccd2; }
 /* The mono face has no ∥ / ⊥ glyphs: symbols use the system face. */
 .vp-overlay .cons-glyph .cons-text, .cons-tools button b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.sk-object-snaps { margin-bottom: 8px; color: var(--text-2); font-size: 12px; }
+.sk-object-snaps summary { cursor: pointer; }
+.sk-object-snap-kinds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .sk-mobility { margin-bottom: 8px; color: var(--text-2); font-size: 12px; }
 .sk-mobility summary { cursor: pointer; }
 .sk-mobility p { margin: 4px 0 0; }
