@@ -1,0 +1,82 @@
+{
+  "decision": "D854",
+  "tier": "FULL",
+  "parent": "297382880251de54f29f258e1b9c8f49935affcb",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d854-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d854-split-circle-baseline",
+    "cd apps/cad-studio && D854_SOURCE_FROZEN=1 node test/split-circle-offset-browser.mjs \"$EVIDENCE/baseline-run01\" --baseline",
+    "gate.sh acquire heavy 600 d854-split-circle-final",
+    "cd apps/cad-studio && D854_SOURCE_FROZEN=1 node test/split-circle-offset-browser.mjs \"$EVIDENCE/fixed-run03\"",
+    "cd apps/cad-studio && D854_SOURCE_FROZEN=1 node test/split-circle-offset-browser.mjs \"$EVIDENCE/rotated-run02\" --rotated",
+    "gate.sh acquire heavy 600 d854-split-circle-full",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test offset.test trim sketch-profile-precision sketch-plane-precision sketch-reopen-side-ids sketch-associative-inset engine",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test trim sketch-edit-identity project-open-ownership palette",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/offset.ts packages/barocss-cad-model/test/offset.test.ts",
+    "node \"$EVIDENCE/mutations.mjs\" \"$PWD\" \"$EVIDENCE/mutations\"",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "node --check apps/cad-studio/test/split-circle-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "productResult": "FAIL",
+    "reproductionExit": 0,
+    "receiptSha256": "3ac17aeb09c018ad76cc451421caf6996513c0915ad58141f0f40975bbca8ad6",
+    "out2CreatedRadiusMm": 8,
+    "in2CreatedRadiusMm": 12
+  },
+  "firstValidationFailures": [
+    { "status": "FAIL", "sha256": "5e3ee164ed31f6ed7da122f2bb9ae720c9f26656fde105ab30058cf360be21f9", "reason": "The analytic lens bulge assertion omitted propagation of the 1e-6 mm stored point rounding." },
+    { "status": "FAIL", "sha256": "9f097944021b84b653beaf28c7748598ad77ec2fbde013e411a8e7d091d7821c", "reason": "The XZ runner initially projected XY points and actually drew radius 11 mm." }
+  ],
+  "desktop": {
+    "status": "PASS",
+    "renderer": "WebGPU",
+    "viewport": [1440, 1000],
+    "sourceRadiusMm": 10,
+    "originalSplitSideIds": ["e1", "e2"],
+    "radiiToleranceMm": 3e-6,
+    "volumeToleranceMm3": 1e-5,
+    "frozenSourcesPerRun": 817,
+    "xy": {
+      "exit": 0,
+      "receiptSha256": "f7063282676b2c4dbea8e5bc9310d094bc55ae9552566efd1a03e01e8c45a0b4",
+      "out2RadiiMm": [12, 10],
+      "out2VolumeMm3": 276.46015351595565,
+      "in2RadiiMm": [10, 8],
+      "in2VolumeMm3": 226.1946710585104,
+      "in12RefusedAcceptedState": "EXACT",
+      "savedBytes": 1511,
+      "savedSha256": "102514c8784950034356225741d0b78db6cecb0f878630491cd563aa2ad2172b",
+      "reopenedHeight3VolumeMm3": 414.6902302739335
+    },
+    "xz": {
+      "exit": 0,
+      "receiptSha256": "293d1612644d0dd5bedb0009c38a8d27f136f501d77f836e957e5989163955ca",
+      "planeOriginMm": [0, -7, 0],
+      "planeNormal": [0, -1, 0],
+      "out2VolumeMm3": 276.46015351595577,
+      "out2CentroidMm": [0, -8, 0]
+    },
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0
+  },
+  "focused": { "modelPass": 136, "studioPass": 79, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "scopedLint": "PASS",
+  "driverSyntax": "PASS",
+  "studioBuild": "PASS",
+  "rootVisualReview": "PASS",
+  "mutations": {
+    "control": "PASS",
+    "mutantsKilled": 6,
+    "runnerSha256": "a3580d1eca208501222d3cc2bd31fd0d818d83cfa5f5dbe04d91c486e8f80c87",
+    "receiptSha256": "9e086c2c7f2cd6741c1f8fa7d9ed4665e73c1be20c7e4677fd0775de9134a327"
+  }
+}

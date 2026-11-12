@@ -50,11 +50,46 @@ export function offsetShape(s: SketchShape, d: number): { shape: SketchShape } |
   }
 }
 
+/** Signed winding of the actual line-and-arc boundary, with zero for an indeterminate area. */
+function arcOutlineWinding(points: readonly P2[], bulges: readonly number[]): number {
+  if (!points.length) return 0;
+  const [originX, originY] = points[0];
+  let area = 0, correction = 0, magnitude = 0;
+  const add = (term: number) => {
+    const adjusted = term - correction, next = area + adjusted;
+    correction = (next - area) - adjusted;
+    area = next;
+    magnitude += Math.abs(term);
+  };
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i], b = points[(i + 1) % points.length], bulge = bulges[i] ?? 0;
+    const chord = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (!(chord > 0) || !Number.isFinite(chord) || !Number.isFinite(bulge)) return 0;
+    add((a[0] - originX) * (b[1] - originY) / 2);
+    add(-(b[0] - originX) * (a[1] - originY) / 2);
+    if (bulge === 0) continue;
+    // The area between the arc and its chord is r²(θ − sin θ)/2.
+    // Expand in bulge for shallow arcs so the small difference stays representable.
+    if (Math.abs(bulge) < 0.01) {
+      const b2 = bulge * bulge;
+      add(chord * chord * bulge * (1 / 3 + b2 * (1 / 15 + b2 * (-1 / 105 + b2 / 315))));
+    } else {
+      const sweep = 4 * Math.atan(bulge), abs = Math.abs(bulge);
+      const radius = chord * (abs + 1 / abs) / 4, halfRadiusSquared = radius * radius / 2;
+      add(halfRadiusSquared * sweep);
+      add(-halfRadiusSquared * Math.sin(sweep));
+    }
+  }
+  // Include the absolute terms before subtraction in the roundoff scale.
+  return Number.isFinite(area) && Math.abs(area) > 32 * Number.EPSILON * magnitude ? Math.sign(area) : 0;
+}
+
 /** An outline with arcs offset by `d`: each piece along its own normals (a line parallel, an arc about its
  * centre); at a tangent joint the moved pieces still meet, at a corner they are cut or run on to meet. */
 function offsetArcs(pts: P2[], bulges: number[], d: number): { shape: SketchShape } | { error: string } {
   const n = pts.length;
-  const area = pts.reduce((t, p, i) => { const q = pts[(i + 1) % n]; return t + p[0] * q[1] - q[0] * p[1]; }, 0) / 2, out = area > 0 ? 1 : -1;
+  const out = arcOutlineWinding(pts, bulges);
+  if (!out) return { error: 'The outline does not enclose a clear area.' };
   const normal = (t: P2): P2 => [t[1] * out, -t[0] * out];
   // Each piece's tangent where it starts and where it ends, and the piece moved: a line, or a circle.
   type Moved = { kind: 'line'; p: P2; dir: P2 } | { kind: 'circle'; c: P2; r: number };
@@ -65,10 +100,10 @@ function offsetArcs(pts: P2[], bulges: number[], d: number): { shape: SketchShap
       return { a: t, b: t, moved: { kind: 'line', p: [p[0] + m[0] * d, p[1] + m[1] * d], dir: t } as Moved };
     }
     const arc = arcOf(p, q, bulges[i]), sg = Math.sign(arc.sweep), at = (ang: number): P2 => [-Math.sin(ang) * sg, Math.cos(ang) * sg];
-    const a = at(arc.start), m = normal(a), c = arc.center, moved: P2 = [p[0] + m[0] * d, p[1] + m[1] * d];
-    // An arc offset past its centre (inside its radius) closes up.
-    if ((p[0] - c[0]) * (moved[0] - c[0]) + (p[1] - c[1]) * (moved[1] - c[1]) <= 0 || Math.hypot(moved[0] - c[0], moved[1] - c[1]) < 0.01) return null;
-    return { a, b: at(arc.start + arc.sweep), arc, moved: { kind: 'circle', c, r: Math.hypot(moved[0] - c[0], moved[1] - c[1]) } as Moved };
+    const radius = arc.radius + d * out * sg;
+    // Check the signed radius before rebuilding endpoints in world coordinates.
+    if (!Number.isFinite(radius) || radius <= 0.01) return null;
+    return { a: at(arc.start), b: at(arc.start + arc.sweep), arc, moved: { kind: 'circle', c: arc.center, r: radius } as Moved };
   });
   if (pieces.some(x => !x)) return { error: 'That offset is more than an arc’s radius: use a smaller one.' };
   const P = pieces as NonNullable<(typeof pieces)[number]>[];
@@ -100,8 +135,7 @@ function offsetArcs(pts: P2[], bulges: number[], d: number): { shape: SketchShap
     if (Math.abs(sw) < 1e-6 || Math.abs(sw) > Math.abs(sw0) + Math.PI) return { error: 'That offset cuts an arc of the outline away: use a smaller one.' };
     out2.push(Math.round(Math.tan(sw / 4) * 1e9) / 1e9);
   }
-  const area2 = corners.reduce((t, p, i) => { const q = corners[(i + 1) % n]; return t + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
-  if (Math.sign(area2) !== Math.sign(area)) return { error: 'That offset turns the outline inside out: use a smaller one.' };
+  if (arcOutlineWinding(corners, out2) !== out) return { error: 'That offset turns the outline inside out: use a smaller one.' };
   return { shape: { kind: 'polygon', points: corners, closed: true, bulges: out2 } };
 }
 
