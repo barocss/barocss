@@ -1679,17 +1679,32 @@ export function App() {
     if (!askDiscard && sessionChanged(s, docNow.current)) { setAskDiscard(true); return; }
     leaveInPlace(s, s.assembly, false);
   };
-  // (A sheet's bend table from a file (R12.4, D120): checked, then set on the sheet feature its body starts from.)
+  // Evaluate a bend table against the current part before accepting it into history.
+  const bendTableRequest = useRef<object | null>(null);
   const loadBendTable = async (b: BodyResult, file?: File) => {
-    if (!file) return;
+    if (!file || !canChangeDocument()) return;
+    const request = {}, openScope = openIntent.current;
+    bendTableRequest.current = request;
+    const current = () => bendTableRequest.current === request && docNow.current === doc && isOpenCurrent(openScope);
     let table: unknown;
-    try { table = JSON.parse(await file.text()); } catch { setToast({ title: 'Not a bend table', hint: `${file.name} is not JSON.`, detail: '' }); return; }
+    try { table = JSON.parse(await file.text()); } catch {
+      if (current()) setToast({ title: 'Not a bend table', hint: `${file.name} is not JSON.`, detail: '' });
+      return;
+    }
+    if (!current()) return;
     const problem = bendTableProblem(table);
     if (problem) { setToast({ title: 'Bend table refused', hint: problem, detail: '' }); return; }
-    const i = rootOf(doc.nodes, refOf(b).node), n = doc.nodes[i];
-    if (!n || (n.kind !== 'sheet-base' && n.kind !== 'sheet-contour')) { setToast({ title: 'No sheet feature', hint: 'This body does not start from a sheet plate or profile.', detail: '' }); return; }
-    const rest = { ...n } as Record<string, unknown>; delete rest.kFactor;
-    commit({ ...doc, nodes: doc.nodes.map((x, j) => j === i ? { ...rest, bendTable: table as BendTable } as ModelNode : x) });
+    const i = rootOf(doc.nodes, refOf(b).node), node = doc.nodes[i];
+    if (!node || (node.kind !== 'sheet-base' && node.kind !== 'sheet-contour')) {
+      setToast({ title: 'No sheet feature', hint: 'This body does not start from a sheet plate or profile.', detail: '' });
+      return;
+    }
+    const { kFactor: _k, ...sheet } = node;
+    const next = { ...doc, nodes: doc.nodes.map((item, index) => index === i ? { ...sheet, bendTable: table as BendTable } : item) };
+    const reply = await engine.evaluate(prefixDoc(next, next.nodes.length), revision.current++);
+    if (!current() || !reply) return;
+    if (!reply.ok) { setToast({ ...reply.error, title: 'Bend table refused', hint: 'Check that the table covers the current bends.' }); return; }
+    commit(next);
   };
   // (A sheet-metal body's flat pattern shown: its body key; R12.2, D117.)
   const [flatView, setFlatView] = useState<string | null>(null);

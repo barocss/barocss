@@ -1,0 +1,472 @@
+{
+  "decision": "D820",
+  "tier": "SMALL",
+  "parent": "c538f9014691bb63df09976944b305eebb2aeb54",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d820-sheet-bend-table",
+    "node --check apps/cad-studio/test/sheet-move-browser.mjs",
+    "node --check apps/cad-studio/test/sheet-copy-flow.mjs",
+    "cd apps/cad-studio && D820_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/baseline-1\" --copy-table-baseline",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test sheet.test sheet-acceptance",
+    "cd apps/cad-studio && D820_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-1\" --copy-table",
+    "cd apps/cad-studio && D820_SOURCE_FROZEN=1 node test/sheet-move-browser.mjs \"$EVIDENCE/desktop-2\" --copy-table",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-build-2\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "evidenceFolder": "d820-2026-11-12",
+    "baselineProduct": "FAIL_UNMATCHED_TABLE_COMMITTED",
+    "firstFixVisual": "FAIL_UNDO_ADVICE_FOR_UNCOMMITTED_TABLE",
+    "runs": {
+      "baseline-1": {
+        "status": "PASS",
+        "sha256": "db9736013af79332d78a7a7e8cca54ffaf94e8b089f9b71affaccdc653c69cb4",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "copy-exact-table-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "kFactor": 0.44,
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "table": {
+                  "table": "D820-exact-copy",
+                  "rows": [
+                    0
+                  ],
+                  "how": "exact",
+                  "estimate": false
+                },
+                "kFactor": 0.46,
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.80132711084366
+                ],
+                "area": 1956.523224439764,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999993,
+                    51.801327110843644
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "baseline-invalid-table-committed",
+            "id": "D820-missing-copy-row",
+            "failure": "The kernel could not build thisUndo the last change, or adjust the values and try again.Details[BEND_TABLE_MISS] bend1: table D820-missing-copy-row has no row for 2 mm"
+          }
+        ]
+      },
+      "desktop-1": {
+        "status": "PASS",
+        "sha256": "bd31f8d683c8a74930de84ff4eac9750d628fd25286b5af757e9608a26093770",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ]
+      },
+      "desktop-2": {
+        "status": "PASS",
+        "sha256": "a85f1dc3b240072d8ac932cb0b14d1d6d2f21936b640287ff3a6ca2224fae41d",
+        "frozenSources": 1007,
+        "errors": 0,
+        "consoleErrors": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "observations": [
+          {
+            "label": "copy-exact-table-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "kFactor": 0.44,
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "table": {
+                  "table": "D820-exact-copy",
+                  "rows": [
+                    0
+                  ],
+                  "how": "exact",
+                  "estimate": false
+                },
+                "kFactor": 0.46,
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.80132711084366
+                ],
+                "area": 1956.523224439764,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999993,
+                    51.801327110843644
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "copy-exact-table-retained-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "kFactor": 0.44,
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "table": {
+                  "table": "D820-exact-copy",
+                  "rows": [
+                    0
+                  ],
+                  "how": "exact",
+                  "estimate": false
+                },
+                "kFactor": 0.46,
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.80132711084366
+                ],
+                "area": 1956.523224439764,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999993,
+                    51.801327110843644
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "unmatched-table-refusal",
+            "refusal": "Bend table refusedCheck that the table covers the current bends.Details[BEND_TABLE_MISS] bend1: table D820-missing-copy-row has no row for 2 mm"
+          },
+          {
+            "label": "reopened-copy-exact-table-native",
+            "results": [
+              {
+                "id": "n6",
+                "key": "b6",
+                "thickness": 1.5,
+                "volume": 2967.7682447596635,
+                "centroid": [
+                  12.141098054079967,
+                  14.999999999999996,
+                  7.007842511441254
+                ],
+                "fixedFace": "n0.leg0.a",
+                "bend": "n0.bend1",
+                "kFactor": 0.44,
+                "axis": {
+                  "origin": [
+                    3,
+                    30,
+                    2.9999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  67.39292006587698
+                ],
+                "area": 1974.2710130907633,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    15.000000000000083,
+                    52.39292006587695
+                  ]
+                ]
+              },
+              {
+                "id": "n14",
+                "key": "b14",
+                "thickness": 2,
+                "volume": 3920.5862712481457,
+                "centroid": [
+                  72.34936139924027,
+                  14.999999999999998,
+                  7.206656798289554
+                ],
+                "fixedFace": "n7.leg0.a",
+                "bend": "n7.bend1",
+                "table": {
+                  "table": "D820-exact-copy",
+                  "rows": [
+                    0
+                  ],
+                  "how": "exact",
+                  "estimate": false
+                },
+                "kFactor": 0.46,
+                "axis": {
+                  "origin": [
+                    63.5,
+                    30,
+                    3.4999999999999996
+                  ],
+                  "direction": [
+                    0,
+                    -1,
+                    0
+                  ]
+                },
+                "flat": [
+                  30,
+                  66.80132711084366
+                ],
+                "area": 1956.523224439764,
+                "holes": [
+                  [
+                    14.999999999999996,
+                    10.000000000000004
+                  ],
+                  [
+                    14.999999999999993,
+                    51.801327110843644
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "label": "table-project-readback",
+            "bytes": 4691,
+            "sha256": "8097f4189c3daf583ca31dbd57e3f69cb9622ded6b06b320fae16f38ceaabffa"
+          }
+        ]
+      }
+    },
+    "focused": {
+      "modelPass": 11,
+      "fail": 0,
+      "skip": 0
+    },
+    "typeChecks": "PASS",
+    "studioBuild": "PASS",
+    "rootVisualReview": "PASS"
+  }
+}

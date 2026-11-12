@@ -8,6 +8,8 @@ P0 addresses the package and Studio boundaries identified by D519. At D520 every
 
 Work in the order below. First reproduce the selected boundary without changing its inputs. If it cannot be reproduced, record the supported explanation and exact remaining unknown; do not invent a fix. A concrete data-loss or wrong-geometry failure takes precedence over breadth work in P1–P6.
 
+[D820](../notes/sheet-bend-table-atomic-2026-11-12/README.md) fixes the reproduced Studio bend-table import that committed an unmatched row before native validation. The valid table, both accepted bodies and the first history step remain current.
+
 ## Acceptance queue
 
 | ID | Boundary and owner | Required acceptance | Initial tier / dependencies |
