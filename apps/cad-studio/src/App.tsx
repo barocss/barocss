@@ -2469,8 +2469,19 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onApply={(nodes, ownsDraft) => {
+        })()} readFaceEndDistance={async () => {
+          const current = () => docNow.current === doc && evaluatedRef.current === evaluated && markerNow.current === null && !shownVariant.current;
+          if (!current() || !fresh || busy || !canChangeDocument()) {
+            return { error: 'Show the master at the latest History and wait for the model before detaching.' };
+          }
+          const result = await engine.faceEndDistance(doc, editNode);
+          return current() ? result : { error: 'The source changed. Open the current feature again.' };
+        }} onApply={(nodes, ownsDraft) => {
           if (!canChangeDocument()) return;
+          if (doc.nodes[editNode]?.kind === 'face-end-extrude' && nodes[editNode]?.kind === 'extrude'
+            && (markerNow.current !== null || shownVariant.current || evaluatedRef.current !== evaluated || !fresh || busy)) {
+            return Promise.resolve({ title: 'Distance not applied', hint: 'Show the master at the latest History and wait for the model before detaching.', detail: '' });
+          }
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           const candidate = preparePatternNodeCandidate(doc, next, editNode);

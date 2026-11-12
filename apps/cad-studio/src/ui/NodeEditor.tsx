@@ -2,6 +2,8 @@ import { nodeFilletType } from '../app/filletFamily';
 import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import { detachFaceEndExtrude } from '@barocss/cad-model/engine/faceEndExtrude';
+import type { FaceEndDistanceReply } from '../engine/client';
 import { convertLinearPatternDistance, type LinearPatternDistanceMode } from '@barocss/cad-model/engine/linearSpanPattern';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
@@ -11,19 +13,21 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, readFaceEndDistance, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [modeProblem, setModeProblem] = useState<string | null>(null);
+  const [readingEnd, setReadingEnd] = useState(false);
   const request = useRef<object | null>(null);
   const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure } | null>(null);
   useLayoutEffect(() => () => { request.current = null; }, [nodes, index]);
-  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); }, [nodes, index]);
+  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); setReadingEnd(false); }, [nodes, index]);
   const current = evaluation?.nodes === nodes && evaluation.index === index ? evaluation : null;
   const retireEvaluation = () => {
     request.current = null;
+    setReadingEnd(false);
     setEvaluation(null);
     setModeProblem(null);
   };
@@ -43,6 +47,24 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       delete next.span;
       return next;
     });
+  };
+  const detach = async () => {
+    if (node?.kind !== 'face-end-extrude' || !readFaceEndDistance || pending || request.current) return;
+    retireEvaluation();
+    const ticket = {};
+    request.current = ticket;
+    setReadingEnd(true);
+    try {
+      const reply = await readFaceEndDistance();
+      if (request.current !== ticket) return;
+      if ('error' in reply) { setModeProblem(reply.error); return; }
+      const replacement = detachFaceEndExtrude(node, reply.distance);
+      setDraft(draft.map((item, i) => i === index ? replacement : item));
+    } catch (error) {
+      if (request.current === ticket) setModeProblem(error instanceof Error ? error.message : String(error));
+    } finally {
+      if (request.current === ticket) { request.current = null; setReadingEnd(false); }
+    }
   };
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
@@ -79,6 +101,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
           <option value="span">Total span</option>
         </select>
       </div>}
+      {node?.kind === 'face-end-extrude' && <div className="field">
+        <span>End face</span><span>{node.target.face}</span>
+      </div>}
+      {node?.kind === 'face-end-extrude' && readFaceEndDistance && <button className="ghost" type="button" disabled={pending || readingEnd || !!node.suppressed}
+        onClick={() => void detach()}>Detach to Distance</button>}
+      {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
@@ -97,7 +125,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
             : f.kind === 'choice' ? <select disabled={pending} aria-label={f.label} value={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.value)); }}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.checked)); }} />}
         </div>
-      )) : <div className="empty">This feature has no editable dimensions.</div>}
+      )) : node?.kind !== 'face-end-extrude' && <div className="empty">This feature has no editable dimensions.</div>}
       {node?.kind === 'linear-span-pattern' && <LinearSpanSpacing span={node.span} count={node.count} />}
       {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={remove}><Icon name="delete" small /> Delete feature</button>}

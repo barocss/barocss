@@ -1,5 +1,5 @@
 import { CadNumericPolicy, CadPartLimits, checkOutput, coedgeVertices, evaluateCadPart, faceGeometry, type Brep, type BrepFace, type CadPartFeature, type Point } from '@barocss/cad';
-import { NODE_EXTRA_FIELDS, type FaceEndExtrudeNode, type ModelNode, type SketchNode, type StudioDoc } from './doc';
+import { NODE_EXTRA_FIELDS, type FaceEndExtrudeNode, type ModelNode, type NodeExtras, type SketchNode, type StudioDoc } from './doc';
 import { refusal } from './refusal';
 
 const recipeFields = new Set(['kind', 'sketch', 'target']);
@@ -9,6 +9,15 @@ const previous = (value: unknown, index: number): value is number => typeof valu
 const withinTolerance = (a: number, b: number) => Math.abs(a - b) <= CadNumericPolicy.linearTolerance;
 const invalid = (message: string) => refusal('VALUE', `Extrude to face: ${message}`);
 const missing = (message: string) => refusal('BAD_REFERENCE', `Extrude to face: ${message}`);
+
+/** Detaching drops the target and its reference metadata. The feature and source IDs stay in place. */
+export function detachFaceEndExtrude(node: FaceEndExtrudeNode & NodeExtras, distance: number): ModelNode {
+  if (node.suppressed || !Number.isFinite(distance) || distance <= CadNumericPolicy.linearTolerance || distance > CadPartLimits.length) {
+    throw invalid('a current exact distance is required to detach.');
+  }
+  const { id, sketch, bought } = node;
+  return { kind: 'extrude', sketch, height: distance, ...(id === undefined ? {} : { id }), ...(bought === undefined ? {} : { bought }) };
+}
 
 function recipeProblem(node: Record<string, unknown>, index: number, nodes: readonly unknown[]): string | null {
   if (Object.keys(node).some(key => !recipeFields.has(key) && !(NODE_EXTRA_FIELDS as readonly string[]).includes(key))) return 'the saved recipe has an unknown field.';

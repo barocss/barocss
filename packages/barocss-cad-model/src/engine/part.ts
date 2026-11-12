@@ -519,6 +519,20 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
+/** Read the distance from the same native lowering that builds the current associative feature. */
+export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'face-end-extrude' || node.suppressed) throw refusal('BAD_REFERENCE', 'Select an active Extrude to face feature.');
+  const id = featureId(doc.nodes, index);
+  const solved = resolveSkeletons(doc).doc;
+  const matches = buildPartDocument(solved, index + 1).features.filter(feature => feature.id === id);
+  const [lowered] = matches;
+  if (matches.length !== 1 || lowered.kind !== 'extrude' || typeof lowered.height !== 'number') {
+    throw refusal('BAD_REFERENCE', 'The current native extrusion distance could not be resolved.');
+  }
+  return lowered.height;
+}
+
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);

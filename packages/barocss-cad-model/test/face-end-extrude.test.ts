@@ -7,7 +7,8 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { bodyNodes, duplicateBody, moveFeature, renumber } from '../src/chat/features';
 import { parentsOf, prefixDoc, usesOf, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { toPartDocument } from '../src/engine/part';
+import { currentFaceEndDistance, toPartDocument } from '../src/engine/part';
+import { detachFaceEndExtrude } from '../src/engine/faceEndExtrude';
 
 const recipe = {
   id: 'n3', kind: 'face-end-extrude', sketch: 2,
@@ -134,4 +135,30 @@ test('the Extrude command binds a picked native cap and resets the pick when dep
   assert.ok(attachedDepth?.kind === 'choice');
   assert.deepEqual(attachedDepth.options.map(option => option.value), ['distance', 'through']);
   assert.throws(() => cmd.build!(attached, picked), /finished XY rectangle/i);
+});
+
+test('detaching keeps the exact current distance and the feature identity used by later nodes', () => {
+  const base = documentAt(30), downstream = {
+    id: 'n4', kind: 'translate', parent: { node: 3, side: 'solid' }, offset: [0, 0, 12],
+  } as const;
+  const bound: StudioDoc = {
+    ...base, nodes: [...base.nodes, { ...downstream, offset: [...downstream.offset] }],
+    outputs: { b1: base.outputs.b1, b4: { node: 4, side: 'solid' } }, nextId: 5,
+  };
+  assert.equal(currentFaceEndDistance(bound, 3), 30);
+  assert.throws(() => currentFaceEndDistance(bound, 4), /active Extrude to face/i);
+  assert.throws(() => currentFaceEndDistance(documentAt(-20), 3), /positive Z/i);
+  assert.throws(() => detachFaceEndExtrude(recipe, NaN), /current exact distance/i);
+  assert.throws(() => detachFaceEndExtrude(recipe, 0), /current exact distance/i);
+  assert.throws(() => detachFaceEndExtrude({ ...recipe, suppressed: true }, 30), /current exact distance/i);
+  const detached = detachFaceEndExtrude({ ...recipe, bought: false, held: 'old target' }, currentFaceEndDistance(bound, 3));
+  assert.deepEqual(detached, { id: 'n3', kind: 'extrude', sketch: 2, height: 30, bought: false });
+  assert.deepEqual(usesOf(detached), [2]);
+  const replaced = { ...bound, nodes: bound.nodes.map((node, i) => i === 3 ? detached : node) };
+  assert.deepEqual(toPartDocument(replaced), toPartDocument(bound));
+  const moved = { ...replaced, nodes: replaced.nodes.map((node, i) => i === 1 && node.kind === 'extrude' ? { ...node, from: 40 } : node) };
+  const part = toPartDocument(moved), outputs = evaluateCadPart(part).outputs;
+  assert.deepEqual(part.features[3], { id: 'n3', kind: 'extrude', sketch: 'n2', height: 30 });
+  assert.equal(outputs.find(output => output.id === 'n4')?.brep.vertices.length, 8);
+  assert.ok(Math.abs(massPropertiesOf(outputs.find(output => output.id === 'n4')!).volume - 3000) < 1e-8);
 });

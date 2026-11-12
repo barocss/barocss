@@ -68,11 +68,14 @@ test('restart releases the old sender subscription and retains only the current 
 test('final disposal settles all request families and does not revive the client', async () => {
   await useClient(async client => {
     const input = doc(); let progress = 0;
+    const faceEndDistance = client.faceEndDistance(input, 1);
     const requests = [client.evaluate(input, 1), client.preview(input, 2), client.section(input, 3), client.mould(input, 4, false), client.part(input, 5),
       client.proposalDiff(input, input, 6, { revision: 'r', proposal: 'p' }), client.volumes(input), client.placed(input, input, { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] }, 7),
       client.stepMeshes('STEP'), client.diagnose(positions, indices), client.repair(positions, indices, DEFAULT_REPAIR, () => { progress++; }), client.step(input, 'Part'), client.drawing(input), client.stl(input, 'b0')];
     const worker = WorkerDouble.made.at(-1)!, late = worker.onmessage!, repair = worker.sent.find(message => message.type === 'repair')!;
     client.dispose(); client.dispose(); await within(Promise.all(requests));
+    const distanceReply = await within(faceEndDistance);
+    assert.ok('error' in distanceReply); assert.equal(distanceReply.error, 'stopped');
     late({ data: { id: repair.id, progress: 'fill' } }); assert.equal(progress, 0); assert.equal(worker.terminated, 1);
     const before = WorkerDouble.made.length; client.restart(); const refused = await within(client.part(input, 8));
     assert.equal(refused.ok, false); assert.equal(WorkerDouble.made.length, before);

@@ -21,6 +21,7 @@ import { Lanes, type LaneReply } from './lanes';
 import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
+export type FaceEndDistanceReply = { distance: number } | { error: string };
 export type VolumeReply = VolumeEvaluation | { ok: false; error: 'stopped' };
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
@@ -189,6 +190,14 @@ export class EngineClient {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'preview');
       this.post(id, () => ({ type: 'preview', id, doc: this.wire!.pack(doc), revision }));
+    });
+  }
+
+  faceEndDistance(doc: StudioDoc, index: number): Promise<FaceEndDistanceReply> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve(data as FaceEndDistanceReply));
+      this.post(id, () => ({ type: 'faceEndDistance', id, doc: this.wire!.pack(doc), index }));
     });
   }
 

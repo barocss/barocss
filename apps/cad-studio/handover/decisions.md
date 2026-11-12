@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D842 — detach a saved Extrude to face in History](notes/extrude-end-face-history-detach-2026-11-12/README.md).
 - [D841 — author an Extrude to face in Studio](notes/studio-extrude-end-face-authoring-2026-11-12/README.md).
 - [D840 — resolve an Extrude end to a preceding native face](notes/associative-extrude-end-face-2026-11-12/README.md).
 - [D839 — verify the project lifecycle of a newly created fixed-span pattern](notes/linear-span-created-project-lifecycle-2026-11-12/README.md).

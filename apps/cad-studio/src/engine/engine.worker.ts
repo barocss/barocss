@@ -2,6 +2,7 @@
 import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, exportStudioStep, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
+import { currentFaceEndDistance } from '@barocss/cad-model/engine/part';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionsCut } from '@barocss/cad-model/drawing/section';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
@@ -24,6 +25,7 @@ export type WorkerRequest =
   | { type: 'volumes'; id: number; doc: WireDoc; intersection: number }
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
+  | { type: 'faceEndDistance'; id: number; doc: WireDoc; index: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
   /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
   | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean; mould: StudioDoc['mould'] }
@@ -102,6 +104,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const doc = wire.unpack(event.data.doc), base = event.data.type === 'placed' ? wire.unpack(event.data.base) : null;
   const proposed = event.data.type === 'proposalDiff' ? wire.unpack(event.data.proposed) : null;
   const request = { ...event.data, doc };
+  if (request.type === 'faceEndDistance') {
+    try { post({ id: request.id, distance: currentFaceEndDistance(doc, request.index) }); }
+    catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    return;
+  }
   if (request.type === 'evaluate' || request.type === 'part' || request.type === 'placed' || request.type === 'preview' || request.type === 'section') {
     // (The part's own evaluation only: a placed part's bodies patched after its reply leave the WebGPU renderer's copies
     // out of the frame it draws — O10's frame costs — so placed parts keep their masses inline for now.)
