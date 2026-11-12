@@ -1,0 +1,63 @@
+{
+  "decision": "D850",
+  "tier": "SMALL",
+  "parent": "56e82b8ebff3b55ed30d7ee28de419c0a870011b",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d850-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d850-end-face-refusals",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude",
+    "node --check apps/cad-studio/test/extrude-end-face-refusals-browser.mjs",
+    "cd apps/cad-studio && D850_SOURCE_FROZEN=1 node test/extrude-end-face-refusals-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "gate.sh acquire heavy 600 d850-end-face-refusals-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude references referencesCopy",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick preview project-open-ownership",
+    "pnpm exec eslint packages/barocss-cad-model/test/face-end-extrude.test.ts",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "exit": 1,
+    "sha256": "8f3f45887b020b1d4c6e21550857c0a2cccdd120681afadeb3e7947d8e3555b3",
+    "failure": "The expected reason was present inside the collapsed Details element; the driver incorrectly waited for it to be visible."
+  },
+  "desktop": {
+    "status": "PASS",
+    "renderer": "WebGPU",
+    "exit": 0,
+    "sha256": "91bc493b03bdb40e4a0c0a6fdc28dcc4f9cb8af1a4d520ec19b351b5438e1c15",
+    "frozenSources": 817,
+    "holedCap": {
+      "name": "n3.bottom",
+      "z": 30,
+      "loops": ["outer", "inner"],
+      "boreCenter": [9, 5],
+      "boreRadius": 3,
+      "volumeMm3": 4358.628330588457,
+      "intersectionAtX10Y": [2.1715728752538097, 7.82842712474619]
+    },
+    "refused": ["HOLED_TRIM", "NONPARALLEL", "CURVED"],
+    "acceptedStateAfterRefusals": "EXACT",
+    "validControl": { "target": "n1.bottom", "heightMm": 20, "volumeMm3": 2000, "nativeCorners": 8 },
+    "cascade": {
+      "before": ["b1", "b3", "b5", "b7"],
+      "after": ["b3", "b5"],
+      "cancelledExact": true,
+      "firstUndoRestoresRelation": true,
+      "firstRedoExact": true
+    },
+    "absoluteComparisonTolerance": 1e-7,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 56, "studioPass": 50, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "scopedLint": "PASS",
+  "driverSyntax": "PASS",
+  "highNativeReview": "PASS",
+  "rootVisualReview": "PASS"
+}

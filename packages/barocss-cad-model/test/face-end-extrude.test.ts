@@ -5,7 +5,7 @@ import { patchValues, shownFields, type Ctx } from '../src/app/commands';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '../src/app/extrudeEndFaceEdit';
 import { extrudeCommand } from '../src/app/profileCommands';
 import { evaluateDoc } from '../src/engine/evaluate';
-import { bodyNodes, duplicateBody, moveFeature, renumber } from '../src/chat/features';
+import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature, renumber } from '../src/chat/features';
 import { parentsOf, prefixDoc, usesOf, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { currentFaceEndDistance, toPartDocument } from '../src/engine/part';
@@ -398,4 +398,43 @@ test('an existing bound end changes its sole target dependency without replacing
   const output = evaluateCadPart(toPartDocument(moved)).outputs.find(output => output.id === 'n5');
   assert.ok(output && checkOutput(output).valid);
   assert.ok(Math.abs(massPropertiesOf(output).volume - 4000) < 1e-8);
+});
+
+test('the bound end refuses a holed cap even when its bounds and the four source corners pass', () => {
+  const doc = documentAt(20), target = doc.nodes[0];
+  assert.ok(target.kind === 'sketch' && target.profile === 'rectangle');
+  const withHole: StudioDoc = { ...doc, nodes: [
+    { ...target, holes: [[{ kind: 'arc', start: [12, 5], center: [9, 5], direction: 'ccw' }]] },
+    ...doc.nodes.slice(1),
+  ] };
+  const { outputs } = evaluateCadPart(toPartDocument(prefixDoc(withHole, 3)));
+  const cap = outputs[0].brep.faces.find(face => face.name === 'n1.bottom');
+  assert.ok(cap && checkOutput(outputs[0]).valid);
+  assert.equal(cap.loops.length, 2);
+  assert.ok(Math.abs(massPropertiesOf(outputs[0]).volume - (2000 - 45 * Math.PI)) < 1e-8);
+  assert.throws(() => toPartDocument(withHole), /one straight rectangular trim without holes/i);
+});
+
+test('nonfinite profile input and a deleted target cannot use a fallback height or another face', () => {
+  const doc = documentAt(20), source = doc.nodes[2];
+  assert.ok(source.kind === 'sketch' && source.profile === 'rectangle');
+  for (const bad of [NaN, Infinity, -Infinity]) {
+    const malformed: StudioDoc = { ...doc, nodes: [doc.nodes[0], doc.nodes[1], { ...source, min: [bad, 0] }, recipe] };
+    assert.throws(() => toPartDocument(malformed), /literal rectangle|finite|coordinate/i);
+  }
+  const direct = deleteFeature(doc, 1);
+  assert.ok('error' in direct);
+  assert.match(direct.error, /used by feature 3/i);
+  assert.deepEqual(featureDependents(doc, 1), [3]);
+  const explicit = deleteFeatures(doc, [1, 3]);
+  assert.ok('doc' in explicit);
+  assert.deepEqual(explicit.doc.nodes, []);
+  assert.deepEqual(explicit.doc.outputs, {});
+
+  const missing: StudioDoc = { ...doc, nodes: [doc.nodes[0], { ...doc.nodes[1], id: 'n9' }, source, recipe] };
+  const read = readStudioDoc(JSON.stringify(missing));
+  assert.ok('error' in read);
+  assert.match(read.error, /target feature identity is missing, changed or ambiguous/i);
+  assert.throws(() => toPartDocument(missing), /target feature identity is missing, changed or ambiguous/i);
+  assert.deepEqual(doc.nodes[3], recipe);
 });
