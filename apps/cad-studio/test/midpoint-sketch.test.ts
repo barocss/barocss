@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { nativeMidpointPlane } from '@barocss/cad-model/app/nativeMidpointPlane';
-import { cylinderPart, rectanglePart } from '@barocss/cad-model/engine/doc';
+import { cylinderPart, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { evaluatePart, partBreps } from '@barocss/cad-model/engine/evaluate';
 import { bodyMesh } from '@barocss/cad-model/engine/mesh';
 import { bindMidpointPick, midpointFaces } from '../src/app/midpointSketch';
@@ -56,4 +56,26 @@ test('fresh cap picks resolve the same native midpoint at different display tess
     assert.deepEqual(nativeMidpointPlane(doc, bound.key, bound.faces), frame);
   }
   assert.ok(counts[1] > counts[0], counts.join(' vs '));
+});
+
+test('body array reorder rejects old midpoint face picks and admits fresh picks on the original solid', () => {
+  const doc = withNode(withNode(rectanglePart(20, 10, 4), { kind: 'sketch', profile: 'rectangle', min: [35, 0], max: [45, 12] }),
+    { kind: 'extrude', sketch: 2, height: 8 });
+  const result = evaluatePart(doc, 1);
+  assert.ok(result.ok);
+  assert.equal(result.bodies.length, 2);
+  const [original, sibling] = result.bodies;
+  const bindCaps = (bodyIndex: number) => {
+    const faces = ['n1.top', 'n1.bottom'].map(name => ({ body: bodyIndex, face: original.mesh.faces.findIndex(face => face.nativePlaneName === name) }));
+    assert.ok(faces.every(face => face.face >= 0));
+    for (const pick of faces) bindMidpointPick(pick, doc, original);
+    return { faces, edges: [], bodies: [] };
+  };
+  const before = bindCaps(0), reordered = [sibling, original];
+  assert.equal(midpointFaces({ doc, bodies: result.bodies, selection: before })?.key, original.key);
+  assert.equal(midpointFaces({ doc, bodies: reordered, selection: before }), null);
+  const current = midpointFaces({ doc, bodies: reordered, selection: bindCaps(1) });
+  assert.ok(current);
+  assert.equal(current.key, original.key);
+  assert.deepEqual(nativeMidpointPlane(doc, current.key, current.faces), { origin: [0, 0, 2], normal: [0, 0, 1], xAxis: [1, 0, 0] });
 });

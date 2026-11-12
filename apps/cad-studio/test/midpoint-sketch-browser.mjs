@@ -6,6 +6,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const oblique = process.argv[3] === '--oblique';
 const admission = process.argv[3] === '--admission';
+const ownership = process.argv[3] === '--selection-ownership';
 const pins = [
   'apps/cad-studio/test/midpoint-sketch-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -19,10 +20,12 @@ const pins = [
   'packages/barocss-cad-model/src/app/nativeMidpointPlane.ts',
 ];
 const f = await createFlow({
-  name: 'midpoint-sketch', envFrozen: admission ? 'D888_SOURCE_FROZEN' : oblique ? 'D887_SOURCE_FROZEN' : 'D862_SOURCE_FROZEN', output: process.argv[2],
+  name: 'midpoint-sketch', envFrozen: ownership ? 'D889_SOURCE_FROZEN'
+    : admission ? 'D888_SOURCE_FROZEN' : oblique ? 'D887_SOURCE_FROZEN' : 'D862_SOURCE_FROZEN', output: process.argv[2],
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Review two native face picks, then draw and extrude on their independent midpoint plane.',
-  limits: [admission ? 'Two native stocks and a stored faceted mesh, with physical face selection on desktop.'
+  limits: [ownership ? 'Native, hidden, mixed, assembly and raw STL face selection on desktop.'
+    : admission ? 'Two native stocks and a stored faceted mesh, with physical face selection on desktop.'
     : oblique ? 'Exact oblique native caps and a near-parallel refusal on desktop.'
     : 'Fractional axial desktop stock. The native model tests cover oblique and invalid support separately.'],
   snapshotExtra: () => ({
@@ -139,6 +142,17 @@ async function readyReview(origin = [0, 0, midpoint], direction = normal) {
 function unchanged(actual, previous) {
   for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty']) assert.deepEqual(actual[key], previous[key], key);
   assert.deepEqual(actual.selection.selection, previous.selection.selection);
+}
+
+async function refuseSelection(label, verifySelection) {
+  const before = await f.snapshot(label + '-input');
+  verifySelection(before.selection.selection);
+  await launch();
+  await f.waitToast(/select two distinct native planar faces on one visible solid/i);
+  await review().waitFor({ state: 'hidden' });
+  assert.equal(await f.sketchPanel().isVisible(), false);
+  unchanged(await f.snapshot(label + '-refused'), before);
+  await f.dismissToasts();
 }
 
 async function pending() {
@@ -334,42 +348,31 @@ async function checkAdmission() {
   await filter.click();
   await filter.getByText('Faces', { exact: true }).waitFor();
 
-  async function refuse(label, verifySelection) {
-    const before = await f.snapshot(label + '-input');
-    verifySelection(before.selection.selection);
-    await launch();
-    await f.waitToast(/select two distinct native planar faces on one visible solid/i);
-    await review().waitFor({ state: 'hidden' });
-    assert.equal(await f.sketchPanel().isVisible(), false);
-    unchanged(await f.snapshot(label + '-refused'), before);
-    await f.dismissToasts();
-  }
-
   f.phase = 'refuse the same face toggled twice';
   await pick('Top');
   await pick('Top', true, faces.Top, 0);
-  await refuse('01-same-face', selection => assert.equal(selection.faces.length, 0));
+  await refuseSelection('01-same-face', selection => assert.equal(selection.faces.length, 0));
 
   f.phase = 'refuse three faces on one body';
   await pick('Top');
   await pick('Bottom', true);
   await pick('Front', true, faces.Front, 3);
-  await refuse('02-three-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 0, 0]));
+  await refuseSelection('02-three-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 0, 0]));
 
   f.phase = 'refuse a face pair from different native bodies';
   await pick('Top');
   await pick('Top', true, [57, 7, 4]);
-  await refuse('03-two-native-bodies', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 1]));
+  await refuseSelection('03-two-native-bodies', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 1]));
 
   f.phase = 'refuse two actual faceted mesh picks';
   await pick('Top', false, [-17, 3, 4]);
   await pick('Bottom', true, [-16, 2, 0]);
-  await refuse('04-faceted-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [2, 2]));
+  await refuseSelection('04-faceted-faces', selection => assert.deepEqual(selection.faces.map(face => face.body), [2, 2]));
 
   f.phase = 'refuse a native face and a faceted face';
   await pick('Top');
   await pick('Top', true, [-17, 3, 4]);
-  await refuse('05-native-and-facet', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 2]));
+  await refuseSelection('05-native-and-facet', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 2]));
 
   f.phase = 'recover with the same-body native pair and verify the separate result';
   await pick('Top');
@@ -409,13 +412,135 @@ async function checkAdmission() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkSelectionOwnership() {
+  const native = { ...seed, nextId: 4, nodes: [
+    ...seed.nodes,
+    { kind: 'sketch', profile: 'circle', center: [54, 7], radius: 7, id: 'n2' },
+    { kind: 'extrude', sketch: 2, height: 8, id: 'n3' },
+  ], outputs: { ...seed.outputs, b3: { node: 3, side: 'solid' } } };
+  const assembly = { ...native, instances: [
+    { id: 'placed', name: 'Placed stock', doc: seed, position: [70, 5, 0], rotation: [0, 0, 0] },
+  ] };
+  const name = 'D889-face-ownership.bcad';
+  const original = await f.inspect('ownership-source-native', native);
+  await f.newPage();
+  await open(name, native);
+  await frameStock();
+
+  f.phase = 'refuse a planar cap and curved side from the same native cylinder';
+  await pick('Top', false, [54, 7, 8]);
+  await pick('Front', true, [54, 0, 4]);
+  await refuseSelection('01-curve-and-cap', selection => assert.deepEqual(selection.faces.map(face => face.body), [1, 1]));
+
+  f.phase = 'refuse the selection made by mixing a face click and a Shift-edge click';
+  await pick('Top', false, [51, 5, 8]);
+  assert.deepEqual((await pickState()).faces.map(face => face.body), [1]);
+  const filter = button(f.page, 'Selection filter');
+  await filter.click();
+  await filter.click();
+  await filter.getByText('Edges', { exact: true }).waitFor();
+  await clickWorld([0, 10, 10.0006], true);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.bodies.length === 2);
+  await refuseSelection('02-face-plus-edge', selection => {
+    assert.deepEqual([...selection.bodies].sort(), [0, 1]);
+    assert.deepEqual(selection.faces, []);
+  });
+  await filter.click();
+  await filter.click();
+  await filter.getByText('Pick all', { exact: true }).waitFor();
+
+  f.phase = 'hide the selected native body and refuse its old face pair';
+  await pick('Top');
+  await pick('Bottom', true);
+  await f.page.getByRole('checkbox', { name: 'Visible', exact: true }).click();
+  await f.page.waitForFunction(() => window.__studioDoc.bodies?.b1?.hidden && !window.__studioSelection.selection.faces.length);
+  await clickWorld(faces.Bottom);
+  await refuseSelection('03-hidden-original-faces', selection => assert.deepEqual(selection.faces, []));
+  await f.undo();
+  await f.same(native);
+
+  f.phase = 'refuse the two root caps in an assembly document';
+  await open(name, assembly);
+  await f.page.waitForFunction(() => window.__studioInstanceBounds?.().length === 1);
+  await frameStock();
+  await pick('Top', false, [82, 14, 10.0006], 0);
+  const placed = f.page.locator('.ol.instance.sel').filter({ hasText: 'Placed stock' });
+  await placed.waitFor();
+  await refuseSelection('04a-assembly-occurrence', selection => assert.deepEqual(selection.faces, []));
+  assert.equal(await placed.count(), 1);
+  await pick('Top');
+  await pick('Bottom', true);
+  await refuseSelection('04-assembly-context', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 0]));
+
+  f.phase = 'open real STL bytes and refuse the two selected facets';
+  const vertices = [[0, 0, 0], [10, 0, 0], [0, 10, 0], [0, 0, 10]];
+  const facesStl = [[0, 2, 1], [0, 1, 3], [1, 2, 3], [2, 0, 3]];
+  const facets = facesStl.map(triangle => 'facet normal 0 0 0\n outer loop\n'
+    + triangle.map(index => '  vertex ' + vertices[index].join(' ')).join('\n') + '\n endloop\nendfacet').join('\n');
+  const stl = Buffer.from('solid tetrahedron\n' + facets + '\nendsolid tetrahedron\n');
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name: 'D889-native-refusal.stl', mimeType: 'model/stl', buffer: stl });
+  const units = f.page.getByRole('dialog', { name: 'Mesh units', exact: true });
+  await units.getByLabel('Mesh unit', { exact: true }).selectOption('mm');
+  await button(units, 'Open').click();
+  await f.waitToast(/STL opened/);
+  await f.ready();
+  const imported = await f.doc();
+  assert.deepEqual(imported.nodes.map(node => [node.kind, node.representation]), [['mesh', 'facets']]);
+  await f.dismissToasts();
+  await frameStock();
+  await pick('Top', false, [3, 3, 4]);
+  await pick('Bottom', true, [4, 2, 0]);
+  await refuseSelection('05-raw-stl-facets', selection => assert.deepEqual(selection.faces.map(face => face.body), [0, 0]));
+
+  f.phase = 'recover after a camera zoom and preserve the exact native frame';
+  await open(name, native);
+  await frameStock();
+  await pick('Top');
+  await pick('Bottom', true);
+  await readyReview();
+  const first = await f.snapshot('06-native-before-zoom');
+  await button(review(), 'Cancel').click();
+  const beforeZoom = await f.page.evaluate(() => {
+    const pixel = window.__studioScreenOf([20, 10, 2.0002]);
+    const other = window.__studioScreenOf([30, 10, 2.0002]);
+    return { pixel, span: Math.hypot(pixel[0] - other[0], pixel[1] - other[1]),
+      onCanvas: !!document.elementFromPoint(...pixel)?.closest('canvas.vp-canvas') };
+  });
+  assert.ok(beforeZoom.onCanvas);
+  await f.page.mouse.move(...beforeZoom.pixel);
+  await f.page.mouse.wheel(0, 245);
+  const afterZoom = await (await f.page.waitForFunction(span => {
+    const a = window.__studioScreenOf([20, 10, 2.0002]), b = window.__studioScreenOf([30, 10, 2.0002]);
+    const distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    return distance < span - 1 && distance;
+  }, beforeZoom.span)).jsonValue();
+  await pick('Top', false, [15, 11, 10.0006]);
+  await pick('Bottom', true, [28, 13, 2.0002]);
+  await readyReview();
+  const second = await f.snapshot('07-native-after-zoom');
+  assert.equal(second.review, first.review);
+  await button(review(), 'Start sketch').click();
+  await f.sketchPanel().waitFor();
+  assert.equal(await f.page.getByLabel('Sketch plane', { exact: true }).inputValue(), 'midpoint');
+  await f.same(native);
+  await f.page.keyboard.press('Escape');
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await f.same(native);
+  assert.deepEqual(await f.inspect('ownership-recovered-native', native), original);
+  f.report.observations.push({ label: 'midpoint-selection-ownership', stlBytes: stl.length, stlSHA256: sha256(stl),
+    refusals: ['curved-side', 'face-plus-edge', 'hidden-body', 'assembly-context', 'assembly-occurrence', 'raw-stl-facets'],
+    frameZMm: midpoint, zoomSpanCssPx: [beforeZoom.span, afterZoom] });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
-    if (admission) context.setDefaultNavigationTimeout(30000);
+    if (admission || ownership) context.setDefaultNavigationTimeout(30000);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -424,6 +549,10 @@ await f.run(async () => {
     await context.addInitScript(holdRead);
     return context;
   };
+  if (ownership) {
+    await checkSelectionOwnership();
+    return;
+  }
   if (admission) {
     await checkAdmission();
     return;
