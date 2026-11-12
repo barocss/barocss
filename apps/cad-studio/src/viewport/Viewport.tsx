@@ -326,7 +326,7 @@ function printViewportProps(source: Props, projection: ReturnType<typeof project
 
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
   countRender('Viewport');
-  const inspected = useStoreValue(sourceProps.constraintInspection ?? NO_CONSTRAINT_INSPECTION);
+  const constraintInspection = useStoreValue(sourceProps.constraintInspection ?? NO_CONSTRAINT_INSPECTION);
   const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
     [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.top, sourceProps.printDisplay?.printed]);
   const printSel = useMemo(() => projection ? printSelection(sourceProps.selection, projection) : null, [sourceProps.selection, projection]);
@@ -787,6 +787,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
     const sk = props.sketch;
+    const inspection = constraintInspection?.owner === sk && drag.current.mode !== 'spline' ? constraintInspection : null;
     const reference = props.sketchSnaps?.twoPoint.read();
     const extension = props.sketchSnaps?.extension.read(sk);
     const referenceHit = reference?.preview ? { at: reference.preview, kind: 'calculated' as const }
@@ -797,7 +798,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,
       overlaidLine: props.overlaidLine,
-      inspected: inspected?.owner === sk && drag.current.mode !== 'spline' ? inspected.entry.involves : undefined,
+      inspected: inspection?.target === 'row' ? inspection.entry.involves : undefined,
+      constraintComparison: inspection?.target === 'comparison' && inspection.result.ok ? inspection.result.display : undefined,
       bandCache, picking: picking(sk), cutting: cutting(sk), banding: banding(sk), items,
       dimensions: { onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit },
     }) : null;

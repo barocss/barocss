@@ -1,0 +1,68 @@
+{
+  "decision": "D861",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "dd9bd63290415fc9ec4abf36fea32beef2440582",
+  "issue": 2306,
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d861-studio03",
+    "D861_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-comparison-browser.mjs <external-evidence>/studio-run03",
+    "D856_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-inspection-browser.mjs <external-evidence>/row-inspection-regression",
+    "pnpm -C apps/cad-studio run test constraints sketch-edit-identity sketch-reopen sketch-mode-exit sketch-ellipse-studio sketch-band-studio viewport-sketch-overlay-band",
+    "node packages/barocss-cad-model/scripts/test.mjs sketch-outline-field-identity sketch-profile-precision sketch-conflict-proof saved-perpendicular",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/constraintInspection.ts apps/cad-studio/src/ui/ConstraintTools.tsx apps/cad-studio/src/viewport/{Viewport,sketchOverlay}.tsx",
+    "pnpm -C apps/cad-studio run build",
+    "node --check apps/cad-studio/test/constraint-comparison-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "runnerSHA256": "e438175f35d543563bca6b21a8967f5accae07e385d66e21a79e22f88a42bea9",
+    "receiptSHA256": "f618db35c8937e0b72b5953207910c506d2179649837862a21fef6fc51741988",
+    "sourceManifestSHA256": "765989c43e4bd220a598464f7e14c893088ee2676707f353dc01234bde108c88",
+    "frozenFilesBeforeAfterAndAfterCleanup": 819,
+    "snapshots": 6,
+    "downloads": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "fixtureSHA256": "8e6d7e21efbbb2386a130cfe2c8097a1a86517544da2dbe1b5feaa96f135e246",
+    "projectionToleranceCssPx": 0.02,
+    "autosaveObservationMs": 1000,
+    "previewOnlyDelta": { "appRenders": 0, "workerRequests": 0, "fileWrites": 0, "storageWrites": 0 },
+    "draftDegrees": 85.5,
+    "pointerToResultMs": 44.654458,
+    "parallelPointsMm": [[0,0],[39.999997,0],[36.045721,22],[2.954279,22]],
+    "equalIndependentResidualMm": 6.620837211812614e-11,
+    "independentVolumeMm3": 6432.046632,
+    "nativeVolumeMm3": 6432.046632000001,
+    "savedBytes": 1239,
+    "savedSHA256": "f60bce90279b8ce34e2bca0c3a133671cb9d52ccc5f73e6e0e89ce9524e30971"
+  },
+  "rowInspectionRegression": {
+    "status": "PASS",
+    "receiptSHA256": "f7cf9676d5dd7386f62db6fe162795f83bb7fa504ec858795921e53650fff02e",
+    "frozenFiles": 818
+  },
+  "earlierReceipts": [
+    "429f769a07b5a87d24004b1287c68e2cb736aefdf0660f2bd2e8c7126843e4c8",
+    "ed3ab546afbb1ac50f356a58ca19805d85c289be7223d5e3033404831ee193b5"
+  ],
+  "independentSourceAudit": "PASS",
+  "studioFocused": { "pass": 74, "fail": 0 },
+  "modelFocused": { "pass": 29, "fail": 0 },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "scopedLint": "PASS",
+  "studioBuild": "PASS",
+  "driverSyntax": "PASS",
+  "appLint": {
+    "status": "FAIL",
+    "sameParentDiagnostic": "Unused _k",
+    "parentSHA256": "dce7bae4777e75894a916d3ad244c253e167046b9b5d2fa78db4499883573132",
+    "currentSHA256": "3d846f1914319f828fbfcf8749ac7a9782c8a4b6c3373290ca43df265477a280"
+  },
+  "rootVisualReview": "PASS"
+}

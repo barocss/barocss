@@ -1503,7 +1503,11 @@ export function App() {
 
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const finishSketch = () => {
+    clearConstraintInspection(constraintInspection, sketch);
+    sketchActions.finishSketch();
+  };
   const twoPointSnap = useTwoPointSnap(doc, sketch, docNow, sketchGeneration, viewport);
   const arcExtensionSnap = useArcExtensionSnap(doc, sketch, docNow, sketchGeneration);
   const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
@@ -1933,7 +1937,7 @@ export function App() {
   useEffect(() => {
     const listen = (e: KeyboardEvent) => onKeyRef.current(e);
     let dismissed = false;
-    let removing = false;
+    let constraintAction = false;
     const constraintKeys = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
       if (e.key === 'Escape') {
@@ -1941,11 +1945,11 @@ export function App() {
         if (!dismissed) return;
       } else if (e.key === 'Enter') {
         if (!e.repeat) {
-          removing = e.target instanceof Element && e.target.hasAttribute('data-remove-sketch-constraint');
+          constraintAction = e.target instanceof Element && e.target.hasAttribute('data-sketch-constraint-action');
           return;
         }
-        // The Remove button can unmount on keydown. Its repeats must not finish the sketch.
-        if (!removing) return;
+        // An action can disable or unmount its button. Its repeats must not finish the sketch.
+        if (!constraintAction) return;
       } else return;
       e.preventDefault();
       e.stopImmediatePropagation();
@@ -1972,6 +1976,7 @@ export function App() {
       if (skel.onKey(e)) return;
       if (undoKey) {
         e.preventDefault();
+        clearConstraintInspection(constraintInspection, sketch);
         twoPointSnap.cancel();
         arcExtensionSnap.cancel();
         pathGap.cancel();

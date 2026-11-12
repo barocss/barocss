@@ -1,12 +1,15 @@
-import type { ConstraintEntry } from '@barocss/cad-model/sketch/rules';
+import type { ConstraintEntry, ConstraintKind, Polygon } from '@barocss/cad-model/sketch/rules';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { createValueStore, type ValueStore } from '../state/valueStore';
 
-export interface ConstraintInspection {
+export type ConstraintComparison = { ok: true; shape: Polygon; display: Polygon } | { ok: false; reason: string };
+export type ConstraintInspection = {
   owner: SketchState;
-  entry: ConstraintEntry;
   input: 'pointer' | 'focus';
-}
+} & (
+  | { target: 'row'; entry: ConstraintEntry }
+  | { target: 'comparison'; kind: ConstraintKind; result: ConstraintComparison }
+);
 
 export type ConstraintInspectionStore = ValueStore<ConstraintInspection | null>;
 export const createConstraintInspection = () => createValueStore<ConstraintInspection | null>(null);

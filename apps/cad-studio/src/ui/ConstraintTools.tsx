@@ -1,14 +1,15 @@
 // The sketch panel's constraint section for a closed outline: what is picked, the constraints that can
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { roundCorner } from '@barocss/cad-model/sketch/corner';
 import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import {
-  applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
+  applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, isSettled, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintEntry, type ConstraintKind, type Polygon, type SketchPick,
 } from '@barocss/cad-model/sketch/rules';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
-import { clearConstraintInspection, keepsDimensionDraft, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
+import { clearConstraintInspection, keepsDimensionDraft, type ConstraintComparison, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
 import { useStoreValue } from '../state/valueStore';
 import './constraints.css';
 
@@ -27,22 +28,53 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
   const [refused, setRefused] = useState<string | null>(null);
   const [roundR, setRoundR] = useState(2);
   const current = useStoreValue(inspection);
-  const inspectedId = current?.owner === owner ? current.entry.id : null;
+  const active = current?.owner === owner ? current : null;
+  const inspectedId = active?.target === 'row' ? active.entry.id : null;
+  const comparison = active?.target === 'comparison' ? active : null;
+  const comparisonReason = comparison && !comparison.result.ok ? comparison.result.reason : null;
+  const cached = useRef<{ owner: SketchState; results: Map<ConstraintKind, ConstraintComparison> } | null>(null);
   useLayoutEffect(() => () => { clearConstraintInspection(inspection, owner); }, [inspection, owner]);
-  // The last input to enter a row owns the preview. The other input cannot clear it.
-  const enter = (entry: ConstraintEntry, input: ConstraintInspection['input']) => inspection.set({ owner, entry, input });
+  // The last input to enter a row or button owns the inspection.
+  const enter = (entry: ConstraintEntry, input: ConstraintInspection['input']) => inspection.set({ owner, target: 'row', entry, input });
   const leave = (entry: ConstraintEntry, input: ConstraintInspection['input']) => {
-    const active = inspection.get();
-    if (active?.owner === owner && active.entry.id === entry.id && active.input === input) inspection.set(null);
+    const current = inspection.get();
+    if (current?.owner === owner && current.target === 'row' && current.entry.id === entry.id && current.input === input) inspection.set(null);
   };
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
+  const canCompare = !owner.association && !owner.done?.length && !s.construction && !s.circles?.length &&
+    !s.bulges?.some(Boolean) && picked.length === 2 && picked.every(p => p.kind === 'edge');
+  const compare = (kind: ConstraintKind, input: ConstraintInspection['input']) => {
+    if (!canCompare || options[kind] || (kind !== 'parallel' && kind !== 'perpendicular' && kind !== 'equal')) return;
+    const cache = cached.current?.owner === owner ? cached.current : { owner, results: new Map<ConstraintKind, ConstraintComparison>() };
+    cached.current = cache;
+    let result = cache.results.get(kind);
+    if (!result) {
+      const applied = applyConstraint(s, picked, kind);
+      if (!applied.ok) result = applied;
+      else {
+        const settled = settleShape(applied.shape, s);
+        result = settled.error || !isSettled(settled.shape)
+          ? { ok: false, reason: settled.error ?? 'Could not settle the outline' }
+          : { ok: true, shape: applied.shape, display: settled.shape };
+      }
+      cache.results.set(kind, result);
+    }
+    inspection.set({ owner, target: 'comparison', kind, input, result });
+  };
+  const stopComparing = (kind: ConstraintKind, input: ConstraintInspection['input']) => {
+    const current = inspection.get();
+    if (current?.owner === owner && current.target === 'comparison' && current.kind === kind && current.input === input) inspection.set(null);
+  };
   const point = picked.find(p => p.kind === 'point'), circle = picked.find(p => p.kind === 'circle');
   const twoPoints = picked.length === 2 && picked.every(p => p.kind === 'point') ? pointDimensionKeys(picked[0].i, picked[1].i)
     : picked.length === 2 && point && circle ? circleDimensionKeys(point.i, circle.i)
       : picked.length === 2 && picked.every(p => p.kind === 'circle') ? circlePairKeys(picked[0].i, picked[1].i) : null;
   const apply = (kind: ConstraintKind) => {
-    const r = applyConstraint(s, picked, kind);
+    const current = inspection.get();
+    const r = current?.owner === owner && current.target === 'comparison' && current.kind === kind
+      ? current.result : applyConstraint(s, picked, kind);
+    clearConstraintInspection(inspection, owner);
     if (!r.ok) { setRefused(r.reason); return; }
     onShape(r.shape); onPicked([]);
   };
@@ -53,12 +85,18 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
     <div className="cons-sel" aria-live="polite">{picked.length
       ? <>Picked <b>{picked.map(p => pickName(s, p)).join(', ')}</b></>
       : 'Pick points and edges with Select (S) · Shift adds'}</div>
-    <div className="cons-tools" role="group" aria-label="Constraints for the selection">
+    <div className="cons-tools" role="group" aria-label="Constraints for the selection" data-sketch-dimension-focus
+      onBlur={e => { if (owner.editDim && !keepsDimensionDraft(e.relatedTarget)) onEditDim(null); }}>
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
+        data-sketch-constraint-action className={comparison?.kind === t.kind ? 'comparing' : undefined}
+        onPointerEnter={() => compare(t.kind, 'pointer')} onPointerLeave={() => stopComparing(t.kind, 'pointer')}
+        onFocus={() => compare(t.kind, 'focus')} onBlur={() => stopComparing(t.kind, 'focus')}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}
         title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b><span>{t.short}</span></button>)}
       <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select an edge or arc, two straight edges (angle), two points, or a circle with a point, a horizontal or vertical edge or another circle'}
         onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
+    {comparisonReason && comparisonReason !== refused && <div className="sk-status open" role="status" aria-label="Constraint preview"><i />{comparisonReason}</div>}
     {twoPoints && <div className="cons-tools cons-dims" role="group" aria-label="Dimensions between the points">
       <button type="button" aria-label="Distance between the points" title="Straight distance" onClick={() => onEditDim(circle ? twoPoints.dist : dim ?? twoPoints.dist)}><b>⤢</b><span>Distance</span></button>
       <button type="button" aria-label="Horizontal distance" title="Distance along the sketch X axis" onClick={() => onEditDim(twoPoints.dx)}><b>↔</b><span>Horizontal</span></button>
@@ -88,7 +126,7 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
             if (e.target === e.currentTarget) e.preventDefault();
           }}>
           <div className="kv">{c.label}<b>{c.detail}</b></div>
-          <button type="button" data-remove-sketch-constraint className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
+          <button type="button" data-sketch-constraint-action className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
             title={c.removable ? 'Remove this constraint' : undefined} onClick={() => onShape(removeConstraint(s, c.id))}>×</button>
         </div>;
       })}

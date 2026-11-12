@@ -7,7 +7,7 @@ import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import type { SnapPoint } from '@barocss/cad-model/sketch/osnap';
 import { isDefaultPlane, toLocal, toWorld } from '@barocss/cad-model/sketch/plane';
 import { arcOf, sampleOutline, sampleSlot, type P2 } from '@barocss/cad-model/sketch/profile';
-import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { hvOf, isSettled, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
@@ -56,6 +56,7 @@ interface SketchOverlayInputs {
   pathGap?: PathGapDraft;
   overlaidLine?: OverlaidLine;
   inspected?: readonly SketchPick[];
+  constraintComparison?: Polygon;
   bandCache: RefObject<SketchBandCache | null>;
   picking: boolean;
   cutting: boolean;
@@ -66,7 +67,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, inspected, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, overlaidLine, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -154,6 +155,11 @@ export function drawSketchOverlay({
     const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
     items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
       : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
+    if (constraintComparison) {
+      const comparison = constraintComparison.points.map(([u, v]) => P(u, v));
+      items.push(<polygon key="constraint-comparison" className="sk-constraint-comparison" aria-hidden="true"
+        points={comparison.map(p => `${p[0]},${p[1]}`).join(' ')} />);
+    }
     if (marks) items.push(...marks.under);
     const ell = isSettled(s) && !!s.ellipse && ellipseMatches(s); // (An ellipse's 96 tiny arcs get no radius labels or centre dots; its centre and axis ends are marked instead.)
     if (ell) [s.ellipse!.center, ...[0, 1, 2, 3].map(k => s.points[k * s.points.length / 4])].forEach((q, i) => { const p = P(q[0], q[1]); items.push(<circle key={'ep' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />); });
