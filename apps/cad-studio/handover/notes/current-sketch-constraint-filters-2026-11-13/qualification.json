@@ -1,0 +1,114 @@
+{
+  "decision": "D880",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "c77e8b34d788cdb59ce66b453abb7df4a4a6008f",
+  "issue": 2329,
+  "issueDisposition": "ACCEPTED",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D880_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/studio-run04",
+    "D880_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/studio-run07",
+    "D856_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-inspection-browser.mjs <external-evidence>/inspection-regression",
+    "D861_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-comparison-browser.mjs <external-evidence>/comparison-regression",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraints sketch-ellipse-studio draft-sketch-history",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/sketch/constraintList.ts apps/cad-studio/src/ui/{ConstraintList,ConstraintTools,SketchPanel}.tsx apps/cad-studio/test/constraint-list.test.ts",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 41,
+    "typeChecks": "PASS",
+    "scopedLint": "PASS",
+    "studioBuild": "PASS",
+    "independentSourceAudit": "PASS after keyboard repair",
+    "logSHA256": "6476367a3564cabc6df477b9b44272dc5afd92525626328d90a992f89bfa9008"
+  },
+  "studio": {
+    "earlierRuns": [
+      {
+        "run": 1,
+        "status": "FAIL",
+        "firstFailure": "Driver used the accessible role for the hidden Anchor removal control",
+        "receiptSHA256": "ae148242fb199238bb769dc28bf93bb229daf844e48910b75bbc4c0002458a48"
+      },
+      {
+        "run": 2,
+        "status": "FAIL",
+        "firstFailure": "Driver assumed ArrowDown activated a native option",
+        "receiptSHA256": "e92e3017b583d976eb9083f9b96b33f3eaa5561a6759dfa2685a21a7518b6d3d"
+      },
+      {
+        "run": 3,
+        "status": "FAIL",
+        "firstFailure": "Native Meta+Z in the filter changed the active draft from 42 to 40",
+        "receiptSHA256": "4e39548d45a2c14c69058b49d0e3cd160c80f859d8f84e44108d8f2cea2b2487"
+      },
+      {
+        "run": 4,
+        "status": "FAIL",
+        "firstFailure": "Confirmed native Meta+Z caused the draft reversion after other steps retained 42",
+        "receiptSHA256": "5dfe5fc9c77a60e8f7bbef7e0320bd4dd6b1ecca0f174aaf75b7675f73fff72d"
+      },
+      {
+        "run": 5,
+        "status": "FAIL",
+        "firstFailure": "Driver used a feature button selector for a standalone sketch",
+        "receiptSHA256": "c2ae43899601ed44d9505bf58bed5fc95d7ee259600864f86300a21581b3922a"
+      },
+      {
+        "run": 6,
+        "status": "FAIL",
+        "firstFailure": "Driver assumed both standalone sketches had the polygon history label",
+        "receiptSHA256": "e48bcd0fb07eb8b9464d00d986eeed1cfdcfe4c6c1d1d92c9eea7c2d4d0e6c73"
+      }
+    ],
+    "final": {
+      "status": "PASS",
+      "receiptSHA256": "b257e10dcfc0b3aedad7e0ae335cb62594bdd5f1c2cb5ea584d937242c809df4",
+      "sourceManifestSHA256": "a34e2f38e678a1211e38b7aec2ea5b95650019a6e41448dcb0c10ca1c1da101f",
+      "frozenFiles": 837,
+      "snapshots": 12,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "inspectionRegression": {
+      "status": "PASS",
+      "receiptSHA256": "fb54e99a4fc39e6f7ac24bd6661dde5a50348b3355f7cd4757deec7186fcbe11",
+      "sourceManifestSHA256": "3b12a0f57a9bf710c9ccd996cf4e8de560e05ca1c45c2b58e4cdf50a1683461d",
+      "frozenFiles": 836,
+      "snapshots": 10,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "comparisonRegression": {
+      "status": "PASS",
+      "receiptSHA256": "8f124d091305e5b5620220662433fdd0e6a308ecb0460348a20734c09859b56b",
+      "sourceManifestSHA256": "c747d08db8bb0d4e52d78fd936391a03c51010ddf0ee20a271907b6efde42321",
+      "frozenFiles": 837,
+      "snapshots": 6,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0
+    },
+    "visualReview": "PASS",
+    "runnerSHA256": "b2025b9e96a10c8aea9fc26c0f5197eace1cbdb9927f2a9c704a8ec448479232",
+    "fixtureSHA256": "09f6d02ae0ff2597365988f3ac9bee3d9eca81dd5ebfaec965b263b406429c03",
+    "projectBytes": 79050,
+    "projectSHA256": "cef128025e3170b0c9f244e63eb5b56ee0f2fae466461c065ad262b73f83f744",
+    "nativeVolumeMm3": 1600,
+    "nativeCentroidMm": [
+      20,
+      10,
+      1
+    ],
+    "nativeTolerance": 1e-08
+  }
+}

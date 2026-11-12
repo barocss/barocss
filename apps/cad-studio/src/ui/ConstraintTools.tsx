@@ -2,15 +2,15 @@
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { roundCorner } from '@barocss/cad-model/sketch/corner';
-import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import {
-  applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, isSettled, pointDimensionKeys, removeConstraint, samePick,
-  type ConstraintEntry, type ConstraintKind, type Polygon, type SketchPick,
+  applyConstraint, circleDimensionKeys, circlePairKeys, constraintOptions, dimensionKey, isSettled, pointDimensionKeys,
+  type ConstraintKind, type Polygon, type SketchPick,
 } from '@barocss/cad-model/sketch/rules';
 import { settleShape } from '@barocss/cad-model/sketch/settle';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { clearConstraintInspection, keepsDimensionDraft, type ConstraintComparison, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
 import { useStoreValue } from '../state/valueStore';
+import { ConstraintList } from './ConstraintList';
 import './constraints.css';
 
 const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }[] = [
@@ -21,8 +21,8 @@ const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }
 
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
 
-export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, onPicked, onEditDim }: {
-  shape: Polygon; owner: SketchState; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
+export function ConstraintTools({ shape: s, owner, documentScope, inspection, picked, onShape, onPicked, onEditDim }: {
+  shape: Polygon; owner: SketchState; documentScope: object; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
   onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string | null): void;
 }) {
   const [refused, setRefused] = useState<string | null>(null);
@@ -34,12 +34,6 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
   const comparisonReason = comparison && !comparison.result.ok ? comparison.result.reason : null;
   const cached = useRef<{ owner: SketchState; results: Map<ConstraintKind, ConstraintComparison> } | null>(null);
   useLayoutEffect(() => () => { clearConstraintInspection(inspection, owner); }, [inspection, owner]);
-  // The last input to enter a row or button owns the inspection.
-  const enter = (entry: ConstraintEntry, input: ConstraintInspection['input']) => inspection.set({ owner, target: 'row', entry, input });
-  const leave = (entry: ConstraintEntry, input: ConstraintInspection['input']) => {
-    const current = inspection.get();
-    if (current?.owner === owner && current.target === 'row' && current.entry.id === entry.id && current.input === input) inspection.set(null);
-  };
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
   const canCompare = !owner.association && !owner.done?.length && !s.construction && !s.circles?.length &&
@@ -79,7 +73,6 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
     onShape(r.shape); onPicked([]);
   };
   // A matching ellipse lists its arc-direction rows (one per arc) as one summary row.
-  const ell = !!s.ellipse && ellipseMatches(s), all = constraintEntries(s), entries = ell ? all.filter(c => c.label !== 'Arc') : all;
   return <>
     <div className="card-title" style={{ marginTop: 10 }}>ADD CONSTRAINT</div>
     <div className="cons-sel" aria-live="polite">{picked.length
@@ -109,27 +102,7 @@ export function ConstraintTools({ shape: s, owner, inspection, picked, onShape, 
       <button className="ghost" aria-label="Round the corner" onClick={() => { const r = roundCorner(s, point.i, roundR); if ('error' in r) { setRefused(r.error); return; } onShape(r.shape); onPicked([]); }}>Round</button>
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
-    <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length + (ell ? 1 : 0)}</div>
-    <div role="list" aria-label="Constraints" data-sketch-dimension-focus
-      onBlur={e => { if (owner.editDim && !keepsDimensionDraft(e.relatedTarget)) onEditDim(null); }}>
-      {ell && <div className="cons-row" role="listitem"><div className="kv">Ellipse<b>{2 * ELLIPSE_POINTS} tangent arcs</b></div></div>}
-      {entries.map(c => {
-        const hit = c.involves.some(p => picked.some(q => samePick(p, q)));
-        return <div className={'cons-row' + (hit ? ' hit' : '') + (inspectedId === c.id ? ' inspecting' : '')}
-          role="listitem" tabIndex={0} key={`${c.id}:${c.label}:${c.detail}`} data-constraint-id={c.id}
-          onPointerEnter={() => enter(c, 'pointer')} onPointerLeave={() => leave(c, 'pointer')}
-          onFocus={() => enter(c, 'focus')}
-          onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) leave(c, 'focus'); }}
-          onKeyDown={e => {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            e.stopPropagation();
-            if (e.target === e.currentTarget) e.preventDefault();
-          }}>
-          <div className="kv">{c.label}<b>{c.detail}</b></div>
-          <button type="button" data-sketch-action className={'x' + (c.removable ? '' : ' off')} disabled={!c.removable} aria-label={`Remove ${c.label} ${c.detail}`}
-            title={c.removable ? 'Remove this constraint' : undefined} onClick={() => onShape(removeConstraint(s, c.id))}>×</button>
-        </div>;
-      })}
-    </div>
+    <ConstraintList shape={s} owner={owner} documentScope={documentScope} inspection={inspection}
+      inspectedId={inspectedId} picked={picked} onShape={onShape} onEditDim={onEditDim} />
   </>;
 }
