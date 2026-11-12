@@ -1,0 +1,181 @@
+{
+  "decision": "D893",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9b7eaa03580d48d08995815572b5d9c58e7ba700",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d893-studio-native-measure",
+    "D893_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/measure --source-measure",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure",
+    "cd apps/cad-studio && node scripts/test.mjs measure-quantity-text sketchIds",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 10,
+    "studioPass": 7,
+    "logSHA256": "893dc5210b4db9cf0943e39da7636bf22dfd6089c0b4f4a3a3d8fa6db05bc6ce"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "2e2c75b8c56a30067ad2efbab6b3ce399724cc920ca7392f6039abd651863723",
+    "sourceManifestSHA256": "fc86faa68589e4351433f35cd9b1f60e61abe8ce2eda88775dc54034b203f02e",
+    "frozenFiles": 843,
+    "snapshots": 11,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "saved": [
+      {
+        "bytes": 2183,
+        "sha256": "3251d3dc3f9fd94c66b9e8f975b862281041b10e0ae8ea155369553e70dd8941"
+      }
+    ],
+    "measurements": [
+      {
+        "label": "source-R20",
+        "face": "n1.side[e5]",
+        "displayIndex": 1,
+        "world": [
+          38.65421104499804,
+          21.55051025721682,
+          5
+        ],
+        "radiusMm": 4
+      },
+      {
+        "label": "source-R20",
+        "face": "n1.side[e2]",
+        "displayIndex": 2,
+        "world": [
+          32.24744871391589,
+          35.8113883008419,
+          5
+        ],
+        "radiusMm": 20
+      },
+      {
+        "label": "source-R16",
+        "face": "n1.side[e5]",
+        "displayIndex": 1,
+        "world": [
+          34.82842712474619,
+          21.17157287525381,
+          5
+        ],
+        "radiusMm": 4
+      },
+      {
+        "label": "source-R16",
+        "face": "n1.side[e2]",
+        "displayIndex": 2,
+        "world": [
+          31.31370849898476,
+          35.31370849898476,
+          5
+        ],
+        "radiusMm": 16
+      },
+      {
+        "label": "reopened-source-R16",
+        "face": "n1.side[e5]",
+        "displayIndex": 1,
+        "world": [
+          34.82842712474619,
+          21.17157287525381,
+          5
+        ],
+        "radiusMm": 4
+      },
+      {
+        "label": "reopened-source-R16",
+        "face": "n1.side[e2]",
+        "displayIndex": 2,
+        "world": [
+          31.31370849898476,
+          35.31370849898476,
+          5
+        ],
+        "radiusMm": 16
+      },
+      {
+        "label": "source-R18",
+        "face": "n1.side[e5]",
+        "displayIndex": 1,
+        "world": [
+          36.88012224462483,
+          21.381385317168093,
+          5
+        ],
+        "radiusMm": 4
+      },
+      {
+        "label": "source-R18",
+        "face": "n1.side[e2]",
+        "displayIndex": 2,
+        "world": [
+          31.78376607274359,
+          35.60672102833218,
+          5
+        ],
+        "radiusMm": 18
+      }
+    ],
+    "nativeVolumes": [
+      {
+        "label": "source-R20-native",
+        "expectedVolumeMm3": 7091.948937557186,
+        "volumeMm3": 7091.948937557187
+      },
+      {
+        "label": "source-R16-native",
+        "expectedVolumeMm3": 6616.283004441058,
+        "volumeMm3": 6616.28300444106
+      },
+      {
+        "label": "reopened-source-R16-native",
+        "expectedVolumeMm3": 6616.283004441058,
+        "volumeMm3": 6616.28300444106
+      },
+      {
+        "label": "source-R18-native",
+        "expectedVolumeMm3": 6865.290693253592,
+        "volumeMm3": 6865.290693253592
+      }
+    ]
+  },
+  "adjacentFinding": {
+    "status": "FAIL",
+    "scope": "Exact numerical area of the selected cylindrical faces",
+    "sourceRadiusMm": 16,
+    "filletRadiusMm": 4,
+    "depthMm": 10,
+    "angleRadians": 1.5707963267948966,
+    "studioAreaMm2": [
+      62.73,
+      250.92
+    ],
+    "analyticAreaMm2": [
+      62.83185307179586,
+      251.32741228718345
+    ],
+    "displayedAs": "Area without a displayed approximation qualifier"
+  },
+  "notRun": [
+    "XZ Measure",
+    "edge Measure",
+    "arbitrary sketch fillets",
+    "full suites",
+    "mobile"
+  ]
+}

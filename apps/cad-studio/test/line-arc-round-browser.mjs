@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
-const sourceEdit = mode === '--source-edit' || mode === '--source-edit-baseline' || mode === '--mirrored-source-edit';
+const sourceMeasure = mode === '--source-measure';
+const sourceEdit = mode === '--source-edit' || mode === '--source-edit-baseline' || mode === '--mirrored-source-edit' || sourceMeasure;
 const sourceEditBaseline = mode === '--source-edit-baseline';
 const pins = [
   'apps/cad-studio/test/line-arc-round-browser.mjs',
@@ -18,12 +20,16 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
   ...(fixed || mirrored || sourceEdit ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(sourceMeasure ? ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
+    'apps/cad-studio/src/ui/MeasurementInspector.tsx', 'packages/barocss-cad-model/src/app/measure.ts',
+    'packages/barocss-cad-model/src/engine/mesh.ts'] : []),
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
+  envFrozen: sourceMeasure ? 'D893_SOURCE_FROZEN' : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: sourceEdit ? 'Edit the source radius of a pinned round and verify native contacts and history.'
+  qualification: sourceMeasure ? 'Measure the two named cylindrical faces of a pinned round across source-radius changes.'
+    : sourceEdit ? 'Edit the source radius of a pinned round and verify native contacts and history.'
     : mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
     : fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
     : 'Measure the finite line–circular-arc Round boundary and the existing straight-corner control.',
@@ -34,6 +40,7 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { bodyMesh } from '@barocss/cad-model/engine/mesh';
 import { partSnapshot } from '@barocss/cad-model/engine/part';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
 if (['"fixture"', '"pinned"', '"mirrored"'].includes(process.argv[3])) {
@@ -58,8 +65,9 @@ const cylinders = output.brep.faces.flatMap(face => {
   const g = faceGeometry(face);
   return g.kind === 'cylinder' ? [{ name: face.name, ...g }] : [];
 });
+const displayFaces = process.argv[3] === '"measure"' ? bodyMesh(output.brep, 0).faces.map(({ index, name }) => ({ index, name })) : undefined;
 console.log(JSON.stringify({ volume: massPropertiesOf(output).volume, faces: output.brep.faces.map(face => face.name), cylinders,
-  vertices: output.brep.vertices.map(vertex => vertex.point) }));
+  vertices: output.brep.vertices.map(vertex => vertex.point), displayFaces }));
 `,
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -166,7 +174,7 @@ async function checkRound(label, doc, original, radius, sourceRadius = 20) {
   const point = (actual, wanted) => wanted.forEach((value, i) => near(actual[i], value));
   assert.equal(sketch.segments.length, 5);
   sketch.segments.forEach((segment, i) => point(segment.start, local(expected.polygon[i])));
-  const native = await f.inspect(label, doc);
+  const native = await f.inspect(label, doc, ...(sourceMeasure ? ['measure'] : []));
   assert.equal(native.cylinders.length, 2);
   for (const [i, tag, center, r] of [[1, 'e5', expected.fillet, radius], [2, 'e2', expected.source, sourceRadius]]) {
     assert.equal(sketch.segments[i].kind, 'arc');
@@ -199,6 +207,52 @@ async function checkRound(label, doc, original, radius, sourceRadius = 20) {
   return native;
 }
 
+async function measureRound(label, doc, original, sourceRadius) {
+  const native = await checkRound(`${label}-native`, doc, original, 4, sourceRadius);
+  const expected = independentRound(4, sourceRadius);
+  const join = expected.polygon[2], c = expected.source;
+  const angle = Math.atan2(join[1] - c[1], join[0] - c[0]);
+  const view = f.page.getByRole('group', { name: 'Views', exact: true });
+  await button(view, 'Right').click();
+  await f.page.locator('.views button[title="Frame all (F)"]').click();
+  const filter = button(f.page, 'Selection filter');
+  for (let attempt = 0; attempt < 4 && !(await filter.innerText()).trim().endsWith('Faces'); attempt++) await filter.click();
+  assert.match((await filter.innerText()).trim(), /Faces$/);
+  await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+
+  for (const [tag, center, radius, sweepMidpoint] of [
+    ['e5', expected.fillet, 4, (angle - Math.PI / 2) / 2],
+    ['e2', c, sourceRadius, (angle + Math.PI / 2) / 2],
+  ]) {
+    const name = `n1.side[${tag}]`;
+    const face = native.displayFaces.find(face => face.name === name);
+    assert.ok(face, name);
+    const world = [center[0] + radius * Math.cos(sweepMidpoint), center[1] + radius * Math.sin(sweepMidpoint), 5];
+    f.phase = `${label}: select and measure ${name}`;
+    const pixel = await f.page.evaluate(point => {
+      const at = window.__studioScreenOf(point);
+      return at && document.elementFromPoint(...at)?.closest('canvas.vp-canvas') ? at : null;
+    }, world);
+    assert.ok(pixel, JSON.stringify(world));
+    await f.page.mouse.click(...pixel);
+    await f.page.waitForFunction(index => {
+      const faces = window.__studioSelection?.selection.faces;
+      return faces?.length === 1 && faces[0].body === 0 && faces[0].face === index;
+    }, face.index, { timeout: 5000 });
+    await clickModelCommand(f.page, 'Inspect', 'Measure');
+    const panel = f.page.getByLabel('Measurement', { exact: true });
+    const item = panel.locator('.measure-item');
+    await item.getByText('Curved face', { exact: true }).waitFor();
+    await item.locator('.kv').filter({ hasText: /^Radius/ }).getByText(`${radius} mm`, { exact: true }).waitFor();
+    const measurement = await item.innerText();
+    await f.same(doc);
+    await f.snapshot(`${label}-measure-${tag}`);
+    f.report.observations.push({ label, face: name, displayIndex: face.index, world, pixel, radiusMm: radius, measurement });
+    await button(panel, 'Done measuring').click();
+    await panel.waitFor({ state: 'hidden' });
+  }
+}
+
 async function checkSourceEdit() {
   const doc = await f.inspect('source-radius-fixture', {}, mirrored ? 'mirrored' : 'pinned');
   const panel = () => f.sketchPanel();
@@ -219,7 +273,8 @@ async function checkSourceEdit() {
   await edit();
   await applyRound([40, 20], 4);
   const r20 = (await f.finishSketch('01-pinned-fillet-source-R20')).doc;
-  await checkRound('source-R20-native', r20, doc, 4);
+  if (sourceMeasure) await measureRound('source-R20', r20, doc, 20);
+  else await checkRound('source-R20-native', r20, doc, 4);
 
   f.phase = 'edit the retained source radius using the outline panel';
   await edit();
@@ -238,6 +293,23 @@ async function checkSourceEdit() {
   assert.equal(await alert().count(), 0);
   await panel().getByText(/^Fully defined/).waitFor();
   const r16 = (await f.finishSketch('02-pinned-fillet-source-R16')).doc;
+  if (sourceMeasure) {
+    await measureRound('source-R16', r16, doc, 16);
+    await f.undo();
+    await f.same(r20);
+    await f.redo();
+    await f.same(r16);
+    const saved = await save(r16);
+    await f.newPage();
+    await open(r16, saved);
+    await measureRound('reopened-source-R16', r16, doc, 16);
+    await edit();
+    await enterInline(18);
+    assert.equal(await radius().inputValue(), '18');
+    const r18 = (await f.finishSketch('03-pinned-fillet-source-R18')).doc;
+    await measureRound('source-R18', r18, doc, 18);
+    return;
+  }
   if (sourceEditBaseline) {
     try {
       await checkRound('source-R16-parent-native', r16, doc, 4, 16);
