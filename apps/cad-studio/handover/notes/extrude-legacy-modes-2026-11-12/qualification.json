@@ -1,0 +1,45 @@
+{
+  "decision": "D847",
+  "tier": "SMALL",
+  "parent": "1468de62e89a081b2210c8bb3d1aeec81442558a",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d847-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d847-legacy-extrude",
+    "node --check apps/cad-studio/test/extrude-legacy-modes-browser.mjs",
+    "cd apps/cad-studio && D847_SOURCE_FROZEN=1 node test/extrude-legacy-modes-browser.mjs \"$EVIDENCE/desktop-2\"",
+    "gate.sh acquire heavy 600 d847-legacy-extrude-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude face-commands engine editFields profiles-parameters draft-command-pull api-studio-commands",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick command preview",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "exit": 1,
+    "sha256": "770dc433cb246044214ed35bafdff0706a20cf87c7cc87470b312ca40a729fb8",
+    "failure": "A viewport handle owned keyboard focus during the Sketch attempt after four passing groups."
+  },
+  "desktop": {
+    "status": "PASS",
+    "renderer": "WebGPU",
+    "exit": 0,
+    "sha256": "8f9672ae694fba3fb019008e6d6bdb5d4ac59a10b0f2876d6c5028d81230dc36",
+    "frozenSources": 817,
+    "fixed": { "defaultDistanceMm": 8, "distanceMm": 12, "draftDegrees": 5, "volumeMm3": 965.6680784750915 },
+    "named": { "parameter": "Height", "distanceMm": 15, "startZMm": 3, "draftDegrees": 5, "volumeMm3": 1140.7452122383277 },
+    "join": { "heightMm": 4, "volumeMm3": 5600, "solidCount": 1 },
+    "newBody": { "heightMm": 4, "volumesMm3": [4000, 1600], "solidCount": 2 },
+    "throughAll": { "drawnSizeMm": [6, 8], "toolHeightMm": 11, "toolStartMm": -11, "volumeMm3": 3520, "nativeCorners": 16 },
+    "nativeComparisonAbsoluteTolerance": 1e-7,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 95, "studioPass": 40, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "driverSyntax": "PASS",
+  "rootVisualReview": "PASS"
+}

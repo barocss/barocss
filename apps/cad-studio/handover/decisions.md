@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D847 — qualify existing Extrude modes after To face](notes/extrude-legacy-modes-2026-11-12/README.md).
 - [D846 — export and reopen one bound-end extrusion as STEP](notes/extrude-end-face-step-roundtrip-2026-11-12/README.md).
 - [D845 — qualify delayed Extrude to face results](notes/extrude-end-face-preview-ownership-2026-11-12/README.md).
 - [D844 — resolve an Extrude to face in one cardinal YZ frame](notes/cardinal-extrude-end-face-2026-11-12/README.md).
