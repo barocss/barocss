@@ -1,0 +1,70 @@
+{
+  "decision": "D783",
+  "tier": "SMALL evidence",
+  "parent": "6101c29d354c334ab1d3a3f958cd2d7732c17945",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "commands": [
+    "node --check apps/cad-studio/test/bowed-loft-lifecycle-browser.mjs",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test loft-guide-command profiles-parameters api-loft-guide",
+    "cd apps/cad-studio && D783_SOURCE_FROZEN=1 node test/bowed-loft-lifecycle-browser.mjs \"$EVIDENCE/desktop-bowed-loft\"",
+    "cd apps/cad-studio && D783_SOURCE_FROZEN=1 node test/bowed-loft-lifecycle-browser.mjs \"$EVIDENCE/desktop-project-reopen\"",
+    "git diff --check"
+  ],
+  "execution": {
+    "gate": "gate.sh acquire heavy 180 <label>",
+    "evidenceFolder": "d783-2026-11-12",
+    "firstDesktop": {
+      "status": "FAIL",
+      "phase": "Save tab-name locator",
+      "sha256": "c1c6e9d71d01fc92a53f3a89ec5ad8863391f116781660ce17682e066b923ac6",
+      "frozenSources": 798
+    },
+    "finalDesktop": {
+      "status": "PASS",
+      "sha256": "2ee4649249a43789ba4b4e7c3c28d07d07910a2a595e83d5b0425e544e345359",
+      "frozenSources": 798,
+      "nativeAndIndependentReads": 6,
+      "sourceSaveBytes": 1130,
+      "sourceSaveSHA256": "34ef19dcea1a718280da309c4d887ddb7ea7f4a70c1ad47ec9b54e11de65e99f"
+    },
+    "ownedCleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "model": {
+      "pass": 35,
+      "fail": 0,
+      "skip": 0
+    },
+    "nativeRefusal": {
+      "code": "GEOMETRY",
+      "feature": "n1"
+    },
+    "nativeVolumeMm3": [
+      2000.0000000000011,
+      2400.0000000000023,
+      3360.0000000000027
+    ],
+    "nativeCentroidMm": [
+      [
+        6.199999999999998,
+        5.666666666666667,
+        10.000000000000002
+      ],
+      [
+        7.1999999999999975,
+        5.666666666666664,
+        9.999999999999998
+      ],
+      [
+        7.199999999999998,
+        7.666666666666663,
+        9.999999999999998
+      ]
+    ],
+    "independentAbsoluteTolerance": 1e-8
+  }
+}
