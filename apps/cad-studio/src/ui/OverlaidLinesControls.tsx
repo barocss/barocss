@@ -7,11 +7,16 @@ const notices = {
   'result-limit': `More than ${OVERLAID_LINE_RESULT_LIMIT} matching segments. Reduce the sketch before scanning again.`,
   unfinished: 'Finish the current stroke before scanning.',
 };
+const countOf = (count: number, label: string) => `${count} ${label}${count === 1 ? '' : 's'}`;
 
 export function OverlaidLinesControls({ scan }: { scan: ReturnType<typeof useOverlaidLines> }) {
   if (!scan.enabled) return null;
   const { report, selection } = scan;
   const selectedGroup = report?.status === 'complete' && selection ? report.groups[selection.group] : undefined;
+  const skipped = report?.status === 'complete' ? [
+    report.excludedShapes ? countOf(report.excludedShapes, 'shape') : '',
+    report.excludedSegments ? countOf(report.excludedSegments, 'segment') : '',
+  ].filter(Boolean).join(' and ') : '';
   return <section aria-label="Overlaid lines"
       onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') event.stopPropagation(); }}>
     <div className="flex flex-wrap items-center gap-1.5">
@@ -20,8 +25,8 @@ export function OverlaidLinesControls({ scan }: { scan: ReturnType<typeof useOve
     </div>
     {report?.status === 'complete' ? <>
       <p role="status" className="muted small">
-        Checked {report.checked} straight segments. Found {report.groups.length} exact {report.groups.length === 1 ? 'group' : 'groups'}.
-        {report.excludedShapes || report.excludedSegments ? ` Skipped ${report.excludedShapes} shapes and ${report.excludedSegments} segments.` : ''}
+        Checked {countOf(report.checked, 'straight segment')}. Found {countOf(report.groups.length, 'exact group')}.
+        {skipped ? ` Skipped ${skipped}.` : ''}
       </p>
       <div className="grid max-h-28 gap-1 overflow-y-auto">
         {report.groups.map((group, index) => <Button key={index} type="button" variant="ghost" size="sm"

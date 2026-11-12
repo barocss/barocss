@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const storedIdMode = process.argv[3] === '--stored-ids';
 const pins = [
   'apps/cad-studio/test/overlaid-lines-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -12,8 +13,9 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'overlaid-lines', output: process.argv[2], envFrozen: 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
+  name: 'overlaid-lines', output: process.argv[2], envFrozen: storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
+    : 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
   limits: ['Ordinary desktop rectangles. The diagnostic reads straight segments and does not determine profile validity.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -76,6 +78,74 @@ async function openProject() {
   await versionPanel().getByLabel('Project', { exact: true }).waitFor();
 }
 
+async function reopenRectangle() {
+  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · rectangle').click();
+  await button(f.editor(), 'Edit sketch').click();
+  await f.sketchPanel().waitFor();
+}
+
+async function checkStoredIds(empty) {
+  f.phase = 'reopen a stored rectangle with a driving edge length and draw mixed draft geometry';
+  const stored = structuredClone(source);
+  stored.nodes[0].outline = { points: [[30, 10], [36, 10], [36, 15], [30, 15]], lengths: { 0: 6 }, hv: { h: [0, 2], v: [1, 3] } };
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name: 'D829-stored-ids.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(stored)) });
+  await f.same(stored);
+  await reopenRectangle();
+  const dimension = () => f.sketchPanel().getByLabel('Edge 1 length', { exact: true });
+  assert.equal(await dimension().inputValue(), '6');
+  assert.match(await dimension().getAttribute('class'), /\blocked\b/);
+  await f.tool('Circle', 'c');
+  await button(f.page, 'Construction').click();
+  const start = [36, 10], end = [36, 15], corner = [42, 15];
+  await f.frame([[30, 25], [34, 25], start, end, corner]);
+  await f.worldClick([30, 25]);
+  await f.worldClick([34, 25]);
+  await f.tool('Rectangle', 'r');
+  await button(f.page, 'Construction').click();
+  await f.worldClick(start);
+  await f.worldClick(corner);
+  await f.tool('Select', 's');
+  const state = await controls(), graphics = await shapeGraphics();
+  assert.ok(graphics.length >= 3);
+
+  f.phase = 'select the saved e2 and separate draft occurrence without modifying them';
+  await beginScan(8, 1);
+  await scan().getByRole('status').getByText(/Skipped 1 shape\./).waitFor();
+  await button(scan(), 'Group 1 · 2 segments').click();
+  const original = scan().getByRole('button', { name: /Shape 1 · segment 2 · ID e2.*\(36, 10\) → \(36, 15\)/ });
+  await original.click();
+  await checkMark(1, 2, start, end);
+  assert.equal(await mark().getAttribute('data-id'), 'e2');
+  const draft = scan().getByRole('button', { name: /Shape 3 · segment 4.*\(36, 15\) → \(36, 10\)/ });
+  await draft.click();
+  await checkMark(3, 4, end, start);
+  assert.equal(await mark().getAttribute('data-id'), null);
+  await f.same(stored);
+  assert.deepEqual(await shapeGraphics(), graphics);
+  assert.deepEqual(await controls(), state);
+  await f.snapshot('01-mixed-stored-and-draft');
+
+  f.phase = 'retire the draft scan on Undo and keep the restored sketch exact on Redo';
+  await f.undo();
+  await f.same(empty);
+  await mark().waitFor({ state: 'hidden' });
+  await f.sketchPanel().waitFor({ state: 'hidden' });
+  await f.redo();
+  await f.same(stored);
+  await reopenRectangle();
+  assert.equal(await scan().getByRole('status').count(), 0);
+  assert.equal(await mark().count(), 0);
+  assert.equal(await dimension().inputValue(), '6');
+  assert.match(await dimension().getAttribute('class'), /\blocked\b/);
+  await beginScan(4, 0);
+  await f.finishSketch('02-restored-exact-sketch');
+  await f.same(stored);
+  f.report.observations.push({ label: 'stored-draft-identity-and-history', storedId: 'e2', storedOccurrence: [1, 2],
+    draftOccurrence: [3, 4], checked: 8, skippedShapes: 1, restoredChecked: 4, restoredGroups: 0, drivingLength: 6 });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   f.phase = 'draw two adjacent rectangles through the actual desktop sketch tool';
   await f.newPage();
@@ -83,6 +153,7 @@ await f.run(async () => {
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
   const empty = await f.doc();
+  if (storedIdMode) { await checkStoredIds(empty); return; }
   await button(f.page.locator('.mode'), 'Sketch').click();
   await f.sketchPanel().waitFor();
   const A = [4, 6], B = [14, 6], C = [14, 16], D = [24, 16];
@@ -162,9 +233,7 @@ await f.run(async () => {
   assert.equal(await scan().count(), 0);
 
   f.phase = 'scan and finish an unaffected control sketch';
-  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · rectangle').click();
-  await button(f.editor(), 'Edit sketch').click();
-  await f.sketchPanel().waitFor();
+  await reopenRectangle();
   await beginScan(4, 0);
   await f.finishSketch('02-control-finished');
   await f.same(source);

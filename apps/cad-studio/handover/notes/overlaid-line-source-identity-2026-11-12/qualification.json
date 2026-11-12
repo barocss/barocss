@@ -1,0 +1,74 @@
+{
+  "decision": "D829",
+  "tier": "SMALL",
+  "parent": "d5090ba61042925a97d363cffff2dbd7d8036c88",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d829-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d829-overlaid-lines",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "cd apps/cad-studio && D829_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/desktop-1\" --stored-ids",
+    "gate.sh acquire heavy 600 d829-overlaid-lines-stored-final",
+    "cd apps/cad-studio && D828_SOURCE_FROZEN=1 node test/overlaid-lines-browser.mjs \"$EVIDENCE/adjacent-regression\"",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test overlaid-lines trim.test sketchIds.test constraints.test",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/OverlaidLinesControls.tsx",
+    "git diff --check"
+  ],
+  "desktop": {
+    "desktop-1": {
+      "status": "PASS",
+      "sha256": "ebcdf090a5656eee9ec7e1919ac34a5b9459a7dd6d462100885db832faecc4bf",
+      "frozenSources": 811,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "stored-draft-identity-and-history",
+          "storedId": "e2",
+          "storedOccurrence": [
+            1,
+            2
+          ],
+          "draftOccurrence": [
+            3,
+            4
+          ],
+          "checked": 8,
+          "skippedShapes": 1,
+          "restoredChecked": 4,
+          "restoredGroups": 0,
+          "drivingLength": 6
+        }
+      ]
+    },
+    "adjacent-regression": {
+      "status": "PASS",
+      "sha256": "857d2b2fc9dae24a0150ed8f440ba9eb2b39dbc66f823fb7d2cb5bf85935d358",
+      "frozenSources": 811,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focused": {
+    "studioPass": 38,
+    "fail": 0,
+    "skip": 0
+  },
+  "types": "PASS",
+  "scopedLint": "PASS",
+  "rootVisualReview": "PASS"
+}
