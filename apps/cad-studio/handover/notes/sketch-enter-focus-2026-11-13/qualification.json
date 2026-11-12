@@ -1,0 +1,51 @@
+{
+  "decision": "D865",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9059f5bc1fd0e1318c43f9f8485b6c6c54560187",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d865-focus-baseline",
+    "D865_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-enter-focus-browser.mjs <external-evidence>/baseline-run01 --baseline",
+    "gate.sh acquire heavy 600 d865-focus-fixed",
+    "D865_SOURCE_FROZEN=1 PW_DIR=<cached-playwright> CHROME=<installed-chrome> node apps/cad-studio/test/sketch-enter-focus-browser.mjs <external-evidence>/fixed-run02 --fixed",
+    "gate.sh acquire heavy 600 d865-focus-regressions",
+    "D667_SOURCE_FROZEN=1 node apps/cad-studio/test/browser-row-keyboard-browser.mjs <external-evidence>/browser-row-regression --fixed",
+    "D684_SOURCE_FROZEN=1 node apps/cad-studio/test/studio-shortcut-focus-browser.mjs <external-evidence>/shortcut-focus-regression --fixed",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-edit-identity palette render-focus",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/sketch-enter-focus-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "productStatus": "FAIL",
+    "receiptSHA256": "deee744a21564183f15a18275d87c7e6c2f989c69b0d2909e8ff9ef84f10edfa",
+    "sourceManifestSHA256": "3ef80820ba69153a26180440ca74f7b824263d77c95697ed4014171ff843b921",
+    "preventedEnter": true,
+    "nativeHideClicks": 0,
+    "unintendedSketchNodes": 1
+  },
+  "fixed": {
+    "status": "PASS",
+    "receiptSHA256": "324697937059ea283d768d9248825a805a2872aca970d52fae94d4008657311c",
+    "sourceManifestSHA256": "469f68d881d47ff0e0c40d3cdf75a094de4955b3118bc5b49ef8a559328d988f",
+    "runnerSHA256": "5da33ce74af5759dd0ef6478e639fff488ec301b25e6bb430987f3cd66bd5042",
+    "firstDriverFailureSHA256": "adfd78f622acaf12016bb8e5e3944b6c6f0f53dd0f90bc1959370626c927a080",
+    "fixtureSHA256": "98d638d606d404edfdad8b2cf64b974722515db88be397a9cd3f8863cc9f4bc3",
+    "fixtureBytes": 261,
+    "frozenFiles": 352,
+    "snapshots": 6,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "extrusionVolumeMm3": 48.00000000000001
+  },
+  "regressions": {
+    "status": "PASS",
+    "browserRowReceiptSHA256": "954d221b04c2c29d338ef7886906f3212eacbfdd3df2c184d74644646b4ffd30",
+    "shortcutFocusReceiptSHA256": "3eeb41b1959a70728cf361af9c6e42b600d125bff9c192d26e568d8ce574e63f",
+    "studioPass": 37,
+    "focusedLogSHA256": "cd87db622bcd99a1bb252910a1a50619e2e751566f3942dc2b4810700faf56d3"
+  }
+}

@@ -2015,7 +2015,8 @@ export function App() {
       const undoKey = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z';
       // Leave text history and focused control activation to the browser.
       if (undoKey && typing) return;
-      if (e.key === ' ' && target instanceof Element && target.closest('button, summary')) return;
+      const activateControl = e.key === ' ' || (e.key === 'Enter' && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey);
+      if (activateControl && target instanceof Element && target.closest('button, summary')) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
