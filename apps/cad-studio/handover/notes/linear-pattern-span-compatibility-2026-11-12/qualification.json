@@ -1,0 +1,43 @@
+{
+  "decision": "D833",
+  "tier": "SMALL",
+  "parent": "d0e85717da64883ae9fc87a020816c3cf870ccc0",
+  "developSourceObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d833-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d833-linear-pattern-span-compatibility",
+    "node --check apps/cad-studio/test/linear-pattern-span-compatibility-browser.mjs",
+    "cd apps/cad-studio && D833_SOURCE_FROZEN=1 node test/linear-pattern-span-compatibility-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d833-linear-pattern-compatibility-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test migrate.test circular-pattern-span feature-handles",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "desktop": {
+    "status": "PASS",
+    "exit": 0,
+    "sha256": "1d5de335ffa0de71e41a619c644d90e30b9fe11fbcd1facf55fab82ecdf0392b",
+    "frozenSources": 812,
+    "nativeComparisonAbsoluteTolerance": 1e-8,
+    "extraSpanMm": 90,
+    "existingPitchMm": 30,
+    "counts": [4, 6],
+    "firstToLastMm": [90, 150],
+    "overallWidthMm": [100, 160],
+    "volumesMm3": [1920, 2880],
+    "corners": [32, 48],
+    "distinctFeature": "linear-span-pattern",
+    "distinctFeatureOpen": "REFUSED_UNKNOWN_KIND",
+    "firstUndoCount": 4,
+    "firstRedoCount": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 22, "fail": 0, "skip": 0 },
+  "modelTypes": "PASS",
+  "developDesktop": "NOT_RUN",
+  "rootVisualReview": "PASS"
+}

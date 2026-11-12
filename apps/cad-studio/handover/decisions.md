@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D833 — qualify the old reader boundary for a fixed linear pattern span](notes/linear-pattern-span-compatibility-2026-11-12/README.md).
 - [D832 — preserve the typed linear pattern count for native validation](notes/linear-pattern-history-count-2026-11-12/README.md).
 - [D831 — validate separate-body linear pattern inputs before copying](notes/linear-pattern-separate-admission-2026-11-12/README.md).
 - [D830 — retire overlaid line diagnostics during spline drag](notes/overlaid-line-spline-drag-2026-11-12/README.md).
