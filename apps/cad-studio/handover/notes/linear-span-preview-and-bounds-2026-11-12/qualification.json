@@ -1,0 +1,42 @@
+{
+  "decision": "D838",
+  "tier": "SMALL",
+  "parent": "f163697a03dd14095e180ebb2d4de86ac046d371",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d838-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d838-linear-span-preview-bounds",
+    "node --check apps/cad-studio/test/linear-span-preview-bounds-browser.mjs",
+    "cd apps/cad-studio && D838_SOURCE_FROZEN=1 node test/linear-span-preview-bounds-browser.mjs \"$EVIDENCE/desktop-1\"",
+    "gate.sh acquire heavy 600 d838-linear-span-preview-small",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test linear-span-pattern migrate.test",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "git diff --check"
+  ],
+  "desktop": {
+    "status": "PASS",
+    "exit": 0,
+    "sha256": "06d8a8dd294e3c20847f11cff7a2331ba0343e5d10a35617af6310c6c709ea3e",
+    "frozenSources": 814,
+    "realHeldSuccesses": [
+      { "id": 6, "revision": 6, "supersededBy": "Spacing zero after mode change" },
+      { "id": 9, "revision": 9, "supersededBy": "Open of a 9 mm extrusion with the same feature IDs" }
+    ],
+    "bounds": [
+      { "axis": "z", "count": 2, "spanMm": 20, "spacingMm": 20, "volumeMm3": 960, "corners": 16, "centroidMm": [35, 13, 14] },
+      { "axis": "y", "count": 24, "spanMm": 184, "spacingMm": 8, "volumeMm3": 11520, "corners": 192, "centroidMm": [35, 105, 4] }
+    ],
+    "nativeComparisonAbsoluteTolerance": 1e-8,
+    "nativeProviderRefusal": "Cylindrical wrap cannot be consumed by another feature.",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "focused": { "modelPass": 7, "studioPass": 36, "fail": 0, "skip": 0 },
+  "driverSyntax": "PASS",
+  "modelTypes": "PASS",
+  "rootVisualReview": "PASS"
+}

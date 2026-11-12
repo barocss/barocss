@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D838 — verify fixed-span preview ownership and creation bounds](notes/linear-span-preview-and-bounds-2026-11-12/README.md).
 - [D837 — keep Count and Total span drags distinct and stable](notes/linear-span-pointer-handles-2026-11-12/README.md).
 - [D836 — switch distance mode in linear pattern history](notes/linear-span-history-conversion-2026-11-12/README.md).
 - [D835 — create a linear pattern with a fixed total span](notes/linear-span-authoring-2026-11-12/README.md).
