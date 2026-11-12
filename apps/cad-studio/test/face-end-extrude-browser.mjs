@@ -2,23 +2,25 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const baseline = process.argv[3] === '--baseline', create = process.argv[3] === '--create', detach = process.argv[3] === '--detach';
+const baseline = process.argv[3] === '--baseline', create = process.argv[3] === '--create', detach = process.argv[3] === '--detach', bind = process.argv[3] === '--bind';
 const pins = [
   'apps/cad-studio/test/face-end-extrude-browser.mjs',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(create ? ['apps/cad-studio/src/app/extrudeEndFace.ts', 'packages/barocss-cad-model/src/app/extrudeEndFacePick.ts', 'packages/barocss-cad-model/src/app/profileCommands.ts'] : []),
+  ...(bind ? ['packages/barocss-cad-model/src/app/extrudeEndFaceEdit.ts', 'packages/barocss-cad-model/src/app/extrudeEndFacePick.ts'] : []),
   ...(detach ? ['apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts'] : []),
   'packages/barocss-cad-model/src/engine/doc.ts',
   ...(baseline ? [] : ['packages/barocss-cad-model/src/engine/faceEndExtrude.ts']),
   'packages/barocss-cad-model/src/engine/migrate.ts',
   'packages/barocss-cad-model/src/engine/part.ts',
 ];
-const decision = detach ? 'D842' : create ? 'D841' : 'D840';
+const decision = bind ? 'D848' : detach ? 'D842' : create ? 'D841' : 'D840';
 const f = await createFlow({
   name: 'face-end-extrude', output: process.argv[2], envFrozen: decision + '_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: baseline ? 'Verify legacy fixed distance and unsupported-kind Open in the pre-feature reader.'
     : create ? 'Author Extrude to face from the actual HUD and the original body face, then verify history and project reopen.'
+    : bind ? 'Convert one saved Distance extrusion to a picked earlier end face and verify its identity, Undo and project Open.'
     : detach ? 'Detach a saved end face at the exact current distance, preserve History and verify independence after project Open.'
     : 'Resolve a fixed XY rectangle to a preceding native cap and retain its two output bodies through target edits and Open.',
   limits: ['Two rectangular prisms in the same desktop document. Positive Z. One native rectangle cap.'],
@@ -268,6 +270,94 @@ async function detachFaceEnd() {
   await geometry('target-moved-detached-distance-stays', 40, 30, false);
 }
 
+async function saveAndReopen(accepted) {
+  f.phase = 'save and reopen the feature';
+  await attachProject();
+  await button(f.page, 'Save').click();
+  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const root = await navigator.storage.getDirectory();
+    const projects = await root.getDirectoryHandle('projects');
+    const directory = await projects.getDirectoryHandle(project);
+    return Array.from(new Uint8Array(await (await directory.getFileHandle(name)).getFile().then(file => file.arrayBuffer())));
+  }, [project, name]));
+  assert.deepEqual(JSON.parse(bytes), accepted);
+  f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
+  await button(versions(), 'Close project').click();
+  await field(versions(), 'Project').waitFor({ state: 'hidden' });
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await f.ready();
+  await attachProject();
+  await button(versions(), 'Open ' + name).click();
+  await f.same(accepted);
+}
+
+async function bindSavedDistance() {
+  const seed = documentAt(30, false);
+  await open(name, seed);
+  await f.same(seed);
+  await geometry('ordinary-distance-before-binding', 30, 20, false);
+  const ortho = button(f.page, 'Ortho');
+  if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+  assert.equal(await ortho.getAttribute('aria-pressed'), 'true');
+  await f.openFeatureEditor(1, 'first extrusion has no earlier target');
+  assert.equal(await button(f.editor(), 'Set end face').count(), 0);
+  await f.closeEditor();
+  const hud = f.page.getByRole('dialog', { name: 'Set end face', exact: true });
+  const status = value => hud.locator('.status').filter({ hasText: new RegExp('^' + value + '$') }).waitFor();
+  const begin = async (verifyDraft = false) => {
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    await f.openFeatureEditor(3, 'saved Distance extrusion');
+    const setEnd = button(f.editor(), 'Set end face');
+    if (verifyDraft) {
+      await field(f.editor(), 'Distance').fill('21');
+      assert.equal(await setEnd.isDisabled(), true);
+      await button(f.editor(), 'Reset').click();
+      assert.equal(await field(f.editor(), 'Distance').inputValue(), '20');
+    }
+    await setEnd.click();
+    await status('pick face');
+  };
+  f.phase = 'refuse selecting the saved extrusion itself and cancel a valid staged pick';
+  await begin(true);
+  const before = await f.snapshot('04-before-binding');
+  await pickCap('Bottom', [5, 5, 0]);
+  await f.waitToast(/earlier current solid/);
+  await status('pick face');
+  assert.equal(await button(hud, 'Apply').isDisabled(), true);
+  await pickCap('Bottom', [13, 13, 30]);
+  await status('preview');
+  assert.deepEqual(await f.doc(), seed);
+  await hud.getByText('n1.bottom', { exact: true }).waitFor();
+  await button(hud, 'Cancel').click();
+  await hud.waitFor({ state: 'hidden' });
+  const cancelled = await f.snapshot('05-binding-cancelled');
+  for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty']) assert.deepEqual(cancelled[key], before[key], key);
+
+  f.phase = 'apply the explicit bound end and retain the stable feature identity';
+  await begin();
+  await pickCap('Bottom', [13, 13, 30]);
+  await status('preview');
+  await button(hud, 'Apply').click();
+  await f.changed(seed);
+  await hud.waitFor({ state: 'hidden' });
+  await geometry('bound-same-feature', 30, 30, true);
+  await f.undo();
+  await geometry('binding-first-undo', 30, 20, false);
+  await f.redo();
+  await geometry('binding-first-redo', 30, 30, true);
+  await editTargetStart(40);
+  await geometry('binding-target-edited', 40, 40, true);
+  await saveAndReopen(await f.doc());
+  await geometry('binding-reopened', 40, 40, true);
+  await editTargetStart(50);
+  await geometry('binding-post-open-target-moved', 50, 50, true);
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.snapshot('06-binding-post-open');
+}
+
 await f.run(async () => {
   if (detach) {
     const newContext = f.browser.newContext.bind(f.browser);
@@ -278,6 +368,11 @@ await f.run(async () => {
     };
   }
   await f.newPage();
+  if (bind) {
+    await bindSavedDistance();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   const initial = documentAt(20, !baseline);
   if (create) await authorFaceEnd();
   else { await open(name, initial); await f.same(initial); }
@@ -316,27 +411,7 @@ await f.run(async () => {
     await detachFaceEnd();
     accepted = await f.doc();
   }
-  f.phase = 'save and reopen the feature and move the target again';
-  await attachProject();
-  await button(f.page, 'Save').click();
-  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
-  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
-  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
-    const root = await navigator.storage.getDirectory();
-    const projects = await root.getDirectoryHandle('projects');
-    const directory = await projects.getDirectoryHandle(project);
-    return Array.from(new Uint8Array(await (await directory.getFileHandle(name)).getFile().then(file => file.arrayBuffer())));
-  }, [project, name]));
-  assert.deepEqual(JSON.parse(bytes), accepted);
-  f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
-  await button(versions(), 'Close project').click();
-  await field(versions(), 'Project').waitFor({ state: 'hidden' });
-  await f.page.reload();
-  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
-  await f.ready();
-  await attachProject();
-  await button(versions(), 'Open ' + name).click();
-  await f.same(accepted);
+  await saveAndReopen(accepted);
   await geometry('reopened', detach ? 40 : 30, 30, !detach);
   await editTargetStart(detach ? 50 : 40);
   await geometry('post-open-target-moved', detach ? 50 : 40, detach ? 30 : 40, !detach);

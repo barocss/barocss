@@ -2,8 +2,10 @@ import type { FaceEndExtrudeNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Ctx, FaceSel, Values } from './commands';
 
+export const EXTRUDE_END_FACE_EDIT = 'extrude-end-face-edit';
+
 export function isExtrudeToFace(command: string, values: Values): boolean {
-  return command === 'extrude' && values.depth === 'to-face';
+  return (command === 'extrude' || command === EXTRUDE_END_FACE_EDIT) && values.depth === 'to-face';
 }
 
 export function awaitingExtrudeEndFace(command: string, values: Values): boolean {

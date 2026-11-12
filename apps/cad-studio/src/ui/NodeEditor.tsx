@@ -13,7 +13,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, readFaceEndDistance, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, readFaceEndDistance, onBindEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onBindEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -106,6 +106,8 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       </div>}
       {node?.kind === 'face-end-extrude' && readFaceEndDistance && <button className="ghost" type="button" disabled={pending || readingEnd || !!node.suppressed}
         onClick={() => void detach()}>Detach to Distance</button>}
+      {onBindEndFace && <button className="ghost" type="button" disabled={pending || changed}
+        onClick={() => { retireEvaluation(); onBindEndFace(); }}>Set end face</button>}
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (

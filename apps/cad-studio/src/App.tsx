@@ -48,7 +48,8 @@ import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/Reference
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
-import { awaitingExtrudeEndFace, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
+import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
+import { bindDistanceExtrudeCommand, canBindDistanceExtrude } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
@@ -1495,7 +1496,8 @@ export function App() {
       ? sourceExtrudeEndFace(current, scope.bodies, hit) : null;
     const picked = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
     if (!picked || typeof picked.error === 'string') {
-      setToast({ title: 'End face not selected', hint: 'Pick one original planar face of a current solid.', detail: '' });
+      const hint = typeof picked?.error === 'string' ? picked.error : 'Pick one original planar face of a current solid.';
+      setToast({ title: 'End face not selected', hint, detail: '' });
       return true;
     }
     commandPreview.retire();
@@ -1954,7 +1956,7 @@ export function App() {
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
-      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
+      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT) again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
@@ -2469,7 +2471,18 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} readFaceEndDistance={async () => {
+        })()} onBindEndFace={canBindDistanceExtrude(doc, editNode) ? () => {
+          if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
+            || !fresh || busy || !canChangeDocument()) {
+            setToast({ title: 'End face not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
+            return;
+          }
+          const cmd = bindDistanceExtrudeCommand(commandDoc, editNode);
+          if (!cmd) return;
+          discardFeatureDraft();
+          setEditNode(null);
+          setActive({ cmd, ctx, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy' });
+        } : undefined} readFaceEndDistance={async () => {
           const current = () => docNow.current === doc && evaluatedRef.current === evaluated && markerNow.current === null && !shownVariant.current;
           if (!current() || !fresh || busy || !canChangeDocument()) {
             return { error: 'Show the master at the latest History and wait for the model before detaching.' };

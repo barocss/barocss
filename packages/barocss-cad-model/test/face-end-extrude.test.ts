@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { patchValues, shownFields, type Ctx } from '../src/app/commands';
+import { bindDistanceExtrudeCommand, canBindDistanceExtrude } from '../src/app/extrudeEndFaceEdit';
 import { extrudeCommand } from '../src/app/profileCommands';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { bodyNodes, duplicateBody, moveFeature, renumber } from '../src/chat/features';
@@ -304,4 +305,52 @@ test('the cardinal end maps asymmetric YZ trim and refuses wrong axes, faces and
   assert.ok(Math.abs(massPropertiesOf(native).volume - 1200) < 1e-8);
   const narrow = { ...asymmetric, nodes: asymmetric.nodes.map((node, index): ModelNode => index === 0 ? { ...target, min: [-1, -1], max: [11, 5] } : node) };
   assert.throws(() => toPartDocument(narrow), /entire projected profile/i);
+});
+
+test('a saved Distance converts in place to an earlier current end face and keeps downstream references', () => {
+  const bound = documentAt(30);
+  const fixed: ModelNode = { kind: 'extrude', id: 'n3', sketch: 2, height: 20, bought: false };
+  const translate: ModelNode = { kind: 'translate', id: 'n4', parent: { node: 3, side: 'solid' }, offset: [20, 0, 0] };
+  const doc: StudioDoc = {
+    ...bound, nodes: [...bound.nodes.slice(0, 3), fixed, translate],
+    outputs: { b1: bound.outputs.b1, b4: { node: 4, side: 'solid' } }, nextId: 5,
+  };
+  const command = bindDistanceExtrudeCommand(doc, 3);
+  assert.ok(command && command.onPick && command.build && command.defaults);
+  const result = evaluateDoc(doc, 0);
+  assert.ok(result.ok);
+  const ctx: Ctx = { doc, bodies: result.bodies, selection: { faces: [], edges: [], bodies: [] } };
+  const [target, downstream] = ctx.bodies;
+  const pick = (body: number, name: string) => ({ face: { body, face: ctx.bodies[body].mesh.faces.find(face => face.name === name)!.index }, edge: null });
+  const defaults = command.defaults(ctx);
+  assert.equal(target.key, 'b1');
+  assert.equal(downstream.key, 'b4');
+  assert.throws(() => command.build!(ctx, defaults), /earlier current solid/i);
+  const downstreamFace = downstream.mesh.faces.find(face => face.kind === 'plane')!;
+  assert.match(String(command.onPick(ctx, defaults, pick(1, downstreamFace.name))?.error), /earlier current solid/i);
+  const picked = command.onPick(ctx, defaults, pick(0, 'n1.bottom'));
+  assert.ok(picked && !('error' in picked));
+  assert.throws(() => command.build!({ ...ctx, doc: { ...doc } }, picked), /current Distance feature/i);
+  const candidate = command.build(ctx, picked);
+  assert.deepEqual(candidate.nodes[3], { ...recipe, bought: false });
+  assert.equal(candidate.nodes[4], translate);
+  assert.equal(candidate.outputs, doc.outputs);
+  assert.equal(candidate.nextId, doc.nextId);
+  const { outputs } = evaluateCadPart(toPartDocument(candidate));
+  assert.deepEqual(outputs.map(output => output.id), ['n1', 'n4']);
+  assert.ok(outputs.every(output => checkOutput(output).valid));
+  assert.ok(Math.abs(massPropertiesOf(outputs[1]).volume - 3000) < 1e-8);
+  assert.deepEqual(usesOf(candidate.nodes[3]), [2, 1]);
+});
+
+test('saved Distance conversion requires a plain non-drafted, unshifted literal extrusion', () => {
+  const bound = documentAt(20);
+  const fixed: ModelNode = { kind: 'extrude', id: 'n3', sketch: 2, height: 12 };
+  const draft = (node: ModelNode) => ({ ...bound, nodes: [...bound.nodes.slice(0, 3), node] });
+  assert.equal(canBindDistanceExtrude(draft(fixed), 3), true);
+  assert.equal(canBindDistanceExtrude(draft(fixed), 1), false);
+  for (const node of [
+    { ...fixed, height: { parameter: 'Height' } }, { ...fixed, draft: 5 }, { ...fixed, from: 1 },
+    { ...fixed, from: { parameter: 'Start' } }, { ...fixed, suppressed: true },
+  ] as ModelNode[]) assert.equal(bindDistanceExtrudeCommand(draft(node), 3), null);
 });

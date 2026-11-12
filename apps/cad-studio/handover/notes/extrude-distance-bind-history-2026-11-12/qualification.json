@@ -1,0 +1,71 @@
+{
+  "decision": "D848",
+  "tier": "FEATURE",
+  "parent": "d6039affa4e74def9ae0b58e22249e26bb694a14",
+  "developObserved": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "node": "22.19.0",
+  "evidenceFolder": "d848-2026-11-12",
+  "commands": [
+    "gate.sh acquire heavy 600 d848-saved-end-face-focused",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude",
+    "gate.sh acquire heavy 600 d848-saved-end-face",
+    "node --check apps/cad-studio/test/face-end-extrude-browser.mjs",
+    "cd apps/cad-studio && D848_SOURCE_FROZEN=1 node test/face-end-extrude-browser.mjs \"$EVIDENCE/desktop-2\" --bind",
+    "gate.sh acquire heavy 600 d848-saved-end-face-feature",
+    "cd apps/cad-studio && D842_SOURCE_FROZEN=1 node test/face-end-extrude-browser.mjs \"$EVIDENCE/detach-regression\" --detach",
+    "TEST_CONCURRENCY=1 pnpm --dir packages/barocss-cad-model test face-end-extrude face-commands engine editFields references referencesCopy profiles-parameters api-studio-commands draft-command-pull",
+    "TEST_CONCURRENCY=1 pnpm --dir apps/cad-studio test extrude-end-face-pick command preview project-open-ownership",
+    "pnpm --dir packages/barocss-cad-model type-check",
+    "pnpm --dir apps/cad-studio type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/extrudeEndFaceEdit.ts packages/barocss-cad-model/src/app/extrudeEndFacePick.ts packages/barocss-cad-model/test/face-end-extrude.test.ts apps/cad-studio/src/ui/NodeEditor.tsx",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "pnpm --dir apps/cad-studio exec vite build --outDir \"$EVIDENCE/studio-dist\"",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "exit": 1,
+    "sha256": "905cf044f45de35bd103b392bab13e583a110ca26d52b46e6a520aaf73948c33",
+    "failure": "The second perspective ray met the existing extrusion edge before the target."
+  },
+  "desktop": {
+    "renderer": "WebGPU",
+    "desktop-2": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "51dac926e1c5c4d0f19e63b11670bb549c55d0ba8e632f32d4ff2b21811fbe41",
+      "frozenSources": 818,
+      "oldMode": "DISTANCE_20_MM",
+      "target": "n1.bottom",
+      "feature": "n3",
+      "outputs": ["b1", "b3"],
+      "cancelledDocumentExact": true,
+      "selfTarget": "REFUSED",
+      "dirtyHistoryDraftDisablesConversion": true,
+      "firstUndoEndZ": 20,
+      "firstRedoEndZ": 30,
+      "boundEndZ": [30, 40, 50],
+      "boundVolumeMm3": [3000, 4000, 5000],
+      "nativeCorners": 16,
+      "absoluteComparisonTolerance": 1e-8,
+      "savedBytes": 958,
+      "savedSha256": "370fc4f704693d3c76bd555e29a8886d87eab579d708464de7d4c44da3e73766"
+    },
+    "detach-regression": {
+      "status": "PASS",
+      "exit": 0,
+      "sha256": "c99944ec2c71471ea6f39ff18bd2fa296908d2b6d0ad0017e232599dff8b7d40",
+      "frozenSources": 816,
+      "savedBytes": 813
+    },
+    "allRuns": { "downloads": 0, "pageErrors": 0, "consoleErrors": 0, "cleanup": ["CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"] }
+  },
+  "focused": { "modelPass": 137, "studioPass": 76, "fail": 0, "skip": 0 },
+  "types": { "model": "PASS", "studio": "PASS" },
+  "scopedLint": "PASS",
+  "appLint": { "status": "FAIL", "identicalToParent": true, "diagnostics": ["'_k' is assigned a value but never used."] },
+  "driverSyntax": "PASS",
+  "productionBuild": "PASS",
+  "rootVisualReview": "PASS"
+}
