@@ -9,7 +9,8 @@ const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--dr
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
-const storedInset = insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
+const dependentInset = process.argv[3] === '--dependent-inset';
+const storedInset = dependentInset || insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
 const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
@@ -51,8 +52,8 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
+  name: 'rounded-sketch-offset', envFrozen: dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: dependentInset ? 'Qualify the stored linked inset boundary for a retired dependent finish edge.' : insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
     : detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
     : widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
     : drawnInset ? 'Draw and round all four source corners in desktop Studio.'
@@ -420,6 +421,40 @@ async function verifyLostCorner(rounded, sharp) {
     sharpVolumeMm3: sharpNative.volume, expectedSharpVolumeMm3: expectedSharp });
 }
 
+async function verifyInsetDependencyBoundary(candidate, check) {
+  const initial = candidate(1), sharp = candidate(2.5);
+  const edge = 'n2.side[e10]|n2.top';
+  const buttonNamed = name => button(f.page, name);
+  f.phase = 'open the supported rounded linked inset';
+  await open(initial);
+  const rounded = await check('supported-rounded', initial, 1);
+  assert.ok(rounded.faces.includes('n2.side[e10]'));
+  await f.openFeatureEditor(2, 'linked inset');
+  await f.editor().getByRole('spinbutton', { name: 'Inset distance', exact: true }).fill('2.5');
+  await button(f.editor(), 'Apply').click();
+  const accepted = await check('supported-sharp', sharp, 2.5);
+  assert.equal(accepted.faces.includes('n2.side[e10]'), false);
+
+  for (const kind of ['fillet', 'chamfer']) {
+    f.phase = 'open a linked inset with an authored ' + kind + ' on the retired arc';
+    const feature = { id: 'n3', kind, parent: { node: 2, side: 'solid' }, edges: [edge],
+      ...(kind === 'fillet' ? { radius: 0.2 } : { distance: 0.2 }),
+      sigs: { [edge]: { k: 'curve', p: [18.5, 1.5, 10], s: Math.sqrt(2) } } };
+    const proposed = { ...sharp, nodes: [...sharp.nodes, feature], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    await f.dismissToasts();
+    const before = await f.snapshot(kind + '-before-refusal');
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), buttonNamed('Open').click()]);
+    await chooser.setFiles({ name: kind + '-retired-inset.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(proposed)) });
+    await f.waitToast(/retired inset side.*cannot be rematched/i);
+    const after = await f.snapshot(kind + '-retired-edge-refused');
+    for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) {
+      assert.deepEqual(after[key], before[key], key);
+    }
+    assert.equal(await f.page.getByRole('region', { name: 'References', exact: true }).count(), 0);
+  }
+  assert.deepEqual(f.report.downloads, []);
+}
+
 async function verifyStoredInset(stock) {
   const sideMap = Object.fromEntries(ids.map((id, i) => [id, derivedIds[i]]));
   const recipe = { kind: 'rounded-rectangle-inset', version: 1, sourceSketch: 0, sourceFeature: 'n0', insetMM: 1, sideMap, id: 'n1' };
@@ -444,6 +479,10 @@ async function verifyStoredInset(stock) {
     f.report.observations.push({ label, insetMm: distance, volumeMm3: body.volume, expectedVolumeMm3: expected, derivedFaces: names });
     return body;
   };
+  if (dependentInset) {
+    await verifyInsetDependencyBoundary(candidate, check);
+    return;
+  }
   if (insetRefusals) {
     await verifyInsetRefusals(candidate, check);
     return;

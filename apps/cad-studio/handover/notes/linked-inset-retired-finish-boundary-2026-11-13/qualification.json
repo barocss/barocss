@@ -1,0 +1,37 @@
+{
+  "decision": "D999",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "5b6f01feac247f8048cf52ca212c9bf68ee7a713",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D999-linked-inset-finish",
+    "D999_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/studio01 --dependent-inset",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "3f33751d1987e848094a40811691b45a9845c8de569340ea86ed564aaef6c6a5",
+    "sourceManifestSHA256": "d2e9b4a951a6d71f2eb62ca650d77332dc246e9c92909fbe45a1ea6560378c0a",
+    "frozenFiles": 849,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "insetDistancesMM": [1, 2.5],
+    "volumesMM3": [534.247779607693, 1215.663706143591],
+    "volumeToleranceMM3": 1e-7,
+    "refusedKinds": ["fillet", "chamfer"],
+    "retiredEdge": "n2.side[e10]|n2.top"
+  },
+  "notRun": [
+    "accepted downstream finish on a stored v1 recipe",
+    "Draft/Flange/Hole",
+    "type-check",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

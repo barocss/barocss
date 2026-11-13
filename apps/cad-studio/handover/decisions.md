@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D999 — qualify the linked inset boundary for a retired finish edge](notes/linked-inset-retired-finish-boundary-2026-11-13/README.md).
 - [D998 — replace a held finish edge from History](notes/held-finish-history-repick-2026-11-13/README.md).
 - [D997 — qualify live Split edits with signed edge finishes](notes/live-split-finish-reference-2026-11-13/README.md).
 - [D996 — restore held reference choices with Undo and Redo](notes/split-finish-reference-history-2026-11-13/README.md).
