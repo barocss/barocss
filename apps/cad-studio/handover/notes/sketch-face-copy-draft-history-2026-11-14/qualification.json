@@ -1,0 +1,47 @@
+{
+  "decision": "D1069",
+  "tier": "SMALL",
+  "parent": "ede0801de00f2fc69e5e187084ff7d03ce289688",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1069-face-copy-<run>",
+    "D1069_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-face-copy-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-face-copy-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "4f14186ccfde1269d6888e2c957170609cdf3db2b9488894cca0df6403016947",
+      "sourceManifestSHA256": "476ffafba2f3ea611101b2ed543ad8d69ff37bcd9489857adb58efd35c1f46ec",
+      "firstFailure": "Cmd+Z after Use its outline leaves both copied boundaries."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 379,
+      "receiptSHA256": "52b2ce706e2d9f097edb75e2223c6644a6c385c468446e8fd48f7a397fac96f0",
+      "sourceManifestSHA256": "9aa2840bce99a13734e9e95444f65948930e4edc31e7c61896468f149c75d33d"
+    }
+  },
+  "faceSizeMm": [
+    30,
+    20
+  ],
+  "throughHoleRadiusMm": 2,
+  "sourceHeightMm": 8,
+  "copyHeightMm": 2,
+  "sourceVolumeMm3": 4699.469035085127,
+  "copyVolumeMm3": 1174.8672587712817,
+  "absoluteVolumeToleranceMm3": 1e-07,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

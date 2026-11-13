@@ -125,6 +125,14 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const replaceDraftShapes = (before: SketchState, shapes: SketchShape[]) => {
     commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null });
   };
+  const useFaceOutline = (asReferences: boolean) => {
+    if (!sketch || !ownsSketch()) return;
+    const { anchor, done, shape } = sketch;
+    const outline = anchor?.face?.outline;
+    if (anchor?.kind !== 'face' || anchor.offset || anchor.angle || !outline?.length) return;
+    const copied = asReferences ? outline.map(source => ({ ...source, construction: true as const })) : outline;
+    replaceDraftShapes(sketch, [...(done ?? []), ...(shape ? [shape] : []), ...copied]);
+  };
   const clearSketchProfile = () => {
     if (!sketch || !ownsSketch() || (!sketch.shape && !sketch.done?.length)) return;
     replaceDraftShapes(sketch, []);
@@ -299,5 +307,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { currentSketchSource, makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
 }
