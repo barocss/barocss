@@ -1,0 +1,78 @@
+{
+  "decision": "D1125",
+  "tier": "SMALL",
+  "parent": "a94087bcf8391224c78601ebb6c116ffc932c137",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1125-placed-face-sketch-<run>",
+    "D1125_SOURCE_FROZEN=1 node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/<run> --placed-face-sketch",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership object-snap-kinds",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D883_SOURCE_FROZEN=1 node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/quarter-turn --quarter-turn",
+    "D1124_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/normal-view --normal-sketch-view",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 861,
+      "receiptSHA256": "0dfc31dbd7c5013d055899dd7843a870fdc316ee00d49bded4606ccfc3e96e19",
+      "sourceManifestSHA256": "4d31538d198e1f64597a752ebf0116bf98964aec2bfdf97f94179fb1b5c0fcc7",
+      "savedFiles": [],
+      "firstFailure": "After a top-face click on Left box with the Faces filter, the parent opened a root Sketch at XY Z0."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 861,
+      "receiptSHA256": "8bf40c2e74e91f13031e2821125bd2c885cb22fb689ead996a55517424433545",
+      "sourceManifestSHA256": "bdc7c9f05282fcf8a2b62085b530177b36dfec5c787d508d08c525b79096f740",
+      "savedFiles": []
+    },
+    "quarterTurn": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "5e297110379ccb93c2976bf34d8c4207f14d5bcb0f9e859a1a6da53654a0c750",
+      "sourceManifestSHA256": "6750a550fad77255f80b68cb9cfec60f04672071769d8f14e6cd2fd836635532",
+      "savedFiles": []
+    },
+    "normalView": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "d103ca4b0dc373b50ed2466b6021df9cff540d86946c597bdc90dc4a006ca6a8",
+      "sourceManifestSHA256": "836fee549e98001174f2ef5d3918732f10a9be1c683e731b9595f57d3cbafe3a",
+      "savedFiles": [
+        {
+          "bytes": 1058,
+          "sha256": "fc30aeb8d3ce30a1665bcfa79fb085e552d0b1a06a2b3c13b4466c158a18d3f1"
+        }
+      ]
+    }
+  },
+  "placedFaceWorldMM": [
+    19,
+    20,
+    6
+  ],
+  "rootFaceWorldMM": [
+    -18,
+    -6,
+    6
+  ],
+  "explicitXYOffsetMM": 0,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

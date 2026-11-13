@@ -9,6 +9,7 @@ const quarterTurnFixed = mode === '--quarter-turn';
 const sourceRevision = mode === '--source-revision';
 const lifecycle = mode === '--lifecycle';
 const rotationLimits = mode === '--rotation-limits';
+const placedFaceSketch = mode === '--placed-face-sketch';
 
 const pins = [
   'apps/cad-studio/test/placed-edge-snap-browser.mjs',
@@ -28,7 +29,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'placed-edge-snap', output: process.argv[2],
-  envFrozen: rotationLimits ? 'D1115_SOURCE_FROZEN' : lifecycle ? 'D885_SOURCE_FROZEN' : sourceRevision ? 'D884_SOURCE_FROZEN'
+  envFrozen: placedFaceSketch ? 'D1125_SOURCE_FROZEN' : rotationLimits ? 'D1115_SOURCE_FROZEN' : lifecycle ? 'D885_SOURCE_FROZEN' : sourceRevision ? 'D884_SOURCE_FROZEN'
     : quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: lifecycle ? 'Reject stale placed snaps after hiding, evaluation failure, removal, New and same-ID Open.'
@@ -295,6 +296,36 @@ async function checkRotationLimits() {
     await cancel();
     await f.same(doc);
   }
+}
+
+async function checkPlacedFaceSketch() {
+  await f.newPage();
+  await open(source);
+  await button(f.page, 'Top').click();
+  if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const filter = button(f.page, 'Selection filter');
+  for (let i = 0; i < 4 && await filter.innerText() !== 'Faces'; i++) await filter.click();
+  assert.equal(await filter.innerText(), 'Faces');
+  const sketchMode = button(f.page.locator('.mode'), 'Sketch');
+  f.phase = 'prevent a placed face pick from starting Sketch on the default plane';
+  await f.page.mouse.click(...await pixel([19, 20], 6));
+  await f.snapshot('placed-face-picked');
+  await sketchMode.click();
+  assert.equal(await f.sketchPanel().isVisible(), false, 'a selected placed face must not fall back to XY');
+  assert.ok((await f.toasts()).some(text => text.includes('Placed face sketch unavailable')));
+  await f.same(source);
+  await f.snapshot('placed-face-sketch-refused');
+  await f.page.mouse.click(...await pixel([-18, -6], 6));
+  await sketchMode.click();
+  await f.sketchPanel().getByText(/SKETCH · Rectangle · Z 6/).waitFor();
+  await f.snapshot('root-face-sketch-z6');
+  await cancel();
+  await f.page.keyboard.press('Escape');
+  await sketchMode.click();
+  await f.sketchPanel().getByText(/SKETCH · Rectangle · Z 0/).waitFor();
+  await cancel();
+  await f.same(source);
 }
 
 async function checkQuarterTurn() {
@@ -682,6 +713,10 @@ await f.run(async () => {
   }
   if (rotationLimits) {
     await checkRotationLimits();
+    return;
+  }
+  if (placedFaceSketch) {
+    await checkPlacedFaceSketch();
     return;
   }
 

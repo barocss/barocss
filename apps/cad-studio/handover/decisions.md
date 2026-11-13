@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1125 — refuse the silent XY fallback from a selected placed part](notes/placed-face-sketch-start-2026-11-14/README.md).
 - [D1124 — restore the normal view of an active sketch](notes/normal-to-active-sketch-2026-11-14/README.md).
 - [D1123 — verify overlapping snap markers and curved-edge exclusion](notes/native-crossing-projection-limits-2026-11-14/README.md).
 - [D1122 — verify a Hole on the cylinder from a snapped Circle](notes/snapped-circle-hole-consumer-2026-11-14/README.md).
