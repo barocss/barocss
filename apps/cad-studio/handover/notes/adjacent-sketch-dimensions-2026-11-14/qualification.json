@@ -1,0 +1,70 @@
+{
+  "decision": "D1054",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "2fae00f2d87602d10fde7fd69d4220330024dcd6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1054-dimensions-<run>",
+    "D1054_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-adjacent-dimensions-browser.mjs <external-evidence>/baseline01",
+    "D1054_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-adjacent-dimensions-browser.mjs <external-evidence>/fixed01",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/marks --fixed",
+    "D1053_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-highlight-gap-browser.mjs <external-evidence>/gap",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test sketch-constraint-mark-layout constraint-list",
+    "node --check apps/cad-studio/test/sketch-adjacent-dimensions-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 856,
+      "receiptSHA256": "41fc7652d7e119bbd1b12c1089c8cbd7d3341163b68c851efc75e49d454fee56",
+      "sourceManifestSHA256": "eee34797b720f94239f6b273734aceb15fab9736e4fb4e5d2c501232fc3c3189"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 856,
+      "receiptSHA256": "7e9ee36a153a39b62c9e83708924aa5b6acea62c29b840dd3fa47e927bc3ecfe",
+      "sourceManifestSHA256": "ca1c5cd9569dafceddfa1c06075bbf0534e6954d47f461442421cf6bca1f2180"
+    },
+    "marks": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 856,
+      "receiptSHA256": "3c671e4ee74631047bd6798962970914aeb9764c1f477c993c24a288b78f0e64",
+      "sourceManifestSHA256": "c52ca79efaa2c34c7adaebf3a5bc9ad3cc96f7b79110f427d2befb56c07242cf"
+    },
+    "gap": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 857,
+      "receiptSHA256": "55bf36bc2bfe1f9dbf7400cb947a027004d6b258535b902c8d44e5bd9ad020a9",
+      "sourceManifestSHA256": "769fc2e21f1f71fbf544656305410f13cabe07f0a45977ec9169446fc198b075"
+    }
+  },
+  "observed": {
+    "gapCSS": 3.999981328739864,
+    "baselineOverlapCSS2": 936.003173828125,
+    "fixedOverlapCSS2": 0,
+    "baselineEditors": [
+      "Length of edge 3",
+      "Length of edge 3"
+    ],
+    "fixedEditors": [
+      "Length of edge 1",
+      "Length of edge 3"
+    ],
+    "committedLengthsMm": {
+      "0": 55
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 7,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -93,12 +93,26 @@ export function drawSketchOverlay({
     for (let v = v0; v <= v1; v += step) seg([u0, v], [u1, v], 'gv' + v, v === 0);
   }
   const outlineLabels: ScreenBox[] = [];
+  const referenceAnchors = new Map<string, [number, number]>();
+  const labelBox = (x: number, y: number): ScreenBox => ({ x: x - 26, y: y - 11, width: 52, height: 22 });
   const label = (x: number, y: number, text: string, key: string) => {
-    const box = { x: x - 26, y: y - 11, width: 52, height: 22 };
+    const box = labelBox(x, y);
     if (!key.startsWith('live')) outlineLabels.push(box);
     return <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); dimensions.onDimClick?.(key); }}
       onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); dimensions.onDimEdit?.(key); } }}>
       <rect {...box} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>;
+  };
+  const lengthLabel = (x: number, y: number, text: string, key: string) => {
+    const overlaps = (box: ScreenBox) => outlineLabels.some(other => box.x < other.x + other.width && other.x < box.x + box.width
+      && box.y < other.y + other.height && other.y < box.y + box.height);
+    const above = labelBox(x, y - 20);
+    const moved = overlaps(labelBox(x, y + 20)) && above.y >= 0 && !overlaps(above);
+    const centerY = y + (moved ? -20 : 20);
+    if (moved) {
+      referenceAnchors.set(key, [x, centerY]);
+      items.push(<line key={key + '-leader'} x1={x} y1={y} x2={x} y2={centerY + 11} className="dim-ext" />);
+    }
+    return label(x, centerY, text, key);
   };
   // A closed outline shows its kept H/V edges; while drawing, the edges that are H/V as drawn.
   const hv = isSettled(sk.shape) ? hvOf(sk.shape) : null, driving = isSettled(sk.shape) ? drivingKeys(sk.shape) : new Set<string>();
@@ -188,7 +202,10 @@ export function drawSketchOverlay({
         continue;
       }
       glyph(a, b, 'p' + i, i);
-      if (s.closed && !s.pending && !driving.has('len' + i)) { const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); items.push(label(m[0], m[1] + 20, fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i)); }
+      if (s.closed && !s.pending && !driving.has('len' + i)) {
+        const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+        items.push(lengthLabel(m[0], m[1], fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i));
+      }
     }
     if (!s.closed && !s.pending && cur && n) {
       const last = s.points[n - 1];
@@ -197,7 +214,7 @@ export function drawSketchOverlay({
       if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
     }
     if (isSettled(s)) {
-      const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, rail, done: sk.done,
+      const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, referenceAnchors, rail, done: sk.done,
         project: P, picked: sk.picked ?? [], inspected, hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
         onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit });
       items.splice(underIndex, 0, ...marks.under);

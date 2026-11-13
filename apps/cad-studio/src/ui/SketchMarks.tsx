@@ -15,7 +15,7 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number, source: Polygon): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+interface Args extends MarkHandlers { shape: Polygon; project: Project; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
   done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
@@ -34,10 +34,10 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, view, outlineLabels, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, view, outlineLabels, referenceAnchors, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
-  const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map<string, XY>();
+  const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map(referenceAnchors);
   const edgePath = (i: number) => [...sampleSegment(s.points[i] as P2, s.points[(i + 1) % n] as P2, s.bulges?.[i] ?? 0, 16), s.points[(i + 1) % n]].map(P);
   const mid = (i: number): XY => {
     const b = s.bulges?.[i] ?? 0, a = s.points[i] as P2, c = s.points[(i + 1) % n] as P2;

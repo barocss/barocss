@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1054 — separate overlapping Sketch length labels](notes/adjacent-sketch-dimensions-2026-11-14/README.md).
 - [D1053 — keep the gap between Sketch highlights](notes/sketch-highlight-gap-2026-11-14/README.md).
 - [D1052 — pick the closest Sketch curve](notes/sketch-nearest-curve-2026-11-14/README.md).
 - [D1051 — requalify the Model tool rail and projected corner reach](notes/model-rail-projection-regression-2026-11-14/README.md).
