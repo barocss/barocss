@@ -1,0 +1,51 @@
+{
+  "decision": "D985",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9700cfae608c48732d6eb18cc5a77b4f8851f5b7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D985-drawing-annotation-identity",
+    "D985_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/baseline01 --annotation-identity-baseline",
+    "D985_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/fixed02 --annotation-identity-fixed",
+    "gate.sh acquire heavy 600 D985-small",
+    "pnpm --filter @barocss/cad-studio-app test drawing",
+    "pnpm --filter @barocss/cad-model test drawing-datum-targets drawing-standalone-frame-consumer drawing-composite-frame-consumer",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "26b4a8befd4db4528422c6b33c4c50706f2dd74b85a81b28529e3cbbd4c4970f"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f3bb66e2cb27db0ae902898e30f367872ea2a6a0b49e397cf5270533a84e7fb3",
+    "sourceManifestSHA256": "3b8396182a38ce28227a8de2a56229656013534406769ec6962cc5a7c7c73e23",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sharedId": "width",
+    "widthMM": 20,
+    "sheets": 2
+  },
+  "focusedTests": {
+    "studioPass": 19,
+    "modelPass": 10,
+    "fail": 0
+  },
+  "notRun": [
+    "overlapping Note/frame click order",
+    "Note Duplicate/Remove leader",
+    "edit Escape",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

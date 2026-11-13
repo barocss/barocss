@@ -38,9 +38,11 @@ function markSvg(m: Mark): string {
 export const marksSvg = (marks: readonly Mark[]) => marks.map(markSvg).join('');
 
 /** Sheet groups keep target identity separate from dimension/datum identity when selected or picked. */
-export function sheetGroupsSvg(sheet: Sheet, selected?: string | null, selectedTarget?: string | null, selectedFrame?: string | null): string {
+export type SheetAnnotationSelection = { kind: 'dimension' | 'note'; id: string };
+export function sheetGroupsSvg(sheet: Sheet, selected?: string | SheetAnnotationSelection | null, selectedTarget?: string | null, selectedFrame?: string | null): string {
   return sheet.groups.map(g => {
-    const active = g.standaloneFrame ? selectedFrame : g.datumTarget ? selectedTarget : selected;
+    const active = g.standaloneFrame ? selectedFrame : g.datumTarget ? selectedTarget
+      : typeof selected === 'string' ? selected : selected?.kind === g.role ? selected.id : null;
     const identity = g.standaloneFrame ? 'data-standalone-frame' : g.datumTarget ? 'data-datum-target' : 'data-dim';
     return `<g class="${g.role}${active && g.id === active ? ' sel' : ''}"${g.view ? ` data-view="${g.view}"` : ''}${g.id ? ` ${identity}="${esc(g.id)}"` : ''}>${g.marks.map(markSvg).join('')}</g>`;
   }).join('\n');

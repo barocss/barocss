@@ -22,7 +22,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { presetFor } from '@barocss/cad-model/drawing/standard';
 import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections, withShownText } from '@barocss/cad-model/drawing/sheet';
-import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
+import { marksSvg, sheetGroupsSvg, sheetSvg, type SheetAnnotationSelection } from '@barocss/cad-model/io/svg';
 
 import { pdfMissing, sheetsPdf } from '@barocss/cad-model/io/pdf';
 import { forSheet, mergeSheet, moveToSheet, sheetCount, sheetName, sheetOf } from '@barocss/cad-model/drawing/sheets';
@@ -137,15 +137,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<SheetAnnotationSelection | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
   const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
   const [targetDraft, setTargetDraft] = useState<DatumTargetDraft>(DEFAULT_TARGET_DRAFT);
-  const selectAnnotationRow = (id: string) => {
+  const selectAnnotationRow = (kind: SheetAnnotationSelection['kind'], id: string) => {
     cancel();
-    setSelected(id);
+    setSelected({ kind, id });
     setSelectedTarget(null);
     setSelectedFrame(null);
     setDrag(null);
@@ -160,7 +160,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   /** A note just added: its text box takes the keyboard, its placeholder text selected. */
   const noteBox = useRef<HTMLTextAreaElement>(null), [typeNote, setTypeNote] = useState<string | null>(null);
   // (Once the new note has come back in the settings and its text box shows it.)
-  const shownNote = selected && settings.notes?.some(n => n.id === selected) ? selected : null;
+  const shownNote = selected?.kind === 'note' && settings.notes?.some(n => n.id === selected.id) ? selected.id : null;
   useEffect(() => {
     if (!typeNote || shownNote !== typeNote) return;
     const t = setTimeout(() => { noteBox.current?.focus(); noteBox.current?.select(); setTypeNote(null); }, 0);
@@ -288,7 +288,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const referenceDimensionId = referenceInspection?.dimensionId ?? null;
   useEffect(() => {
     if (!referencePreview) return;
-    setSelected(referenceDimensionId); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setTool('select'); setPending(null);
+    setSelected(referenceDimensionId === null ? null : { kind: 'dimension', id: referenceDimensionId }); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setTool('select'); setPending(null);
   }, [referencePreview, referenceDimensionId]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected, selectedTarget, selectedFrame) : '', [sheet, selected, selectedTarget, selectedFrame]);
   const [W, H] = layout?.size ?? [297, 210];
@@ -555,7 +555,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
     const note: DrawingNote = { id: `n${k}`, text: 'NOTE', at: [Math.round(at[0] * 10) / 10, Math.round(at[1] * 10) / 10], ...(leader ? { leader } : {}) };
     onChange({ ...settings, notes: [...(settings.notes ?? []), note] });
-    setPending(null); setTool('select'); setSelectedTarget(null); setSelectedFrame(null); setSelected(note.id); setNoteDraft(note.text); setTypeNote(note.id);
+    setPending(null); setTool('select'); setSelectedTarget(null); setSelectedFrame(null); setSelected({ kind: 'note', id: note.id }); setNoteDraft(note.text); setTypeNote(note.id);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -585,7 +585,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (tool === 'select') {
       const hit = e.target as Element;
       // Section marks are read-only ink. Keep removed-section and detail dragging on their sheet-space paths.
-      const selectable = '[data-dim]:not(.section), [data-standalone-frame], [data-datum-target]';
+      const selectable = 'g.dimension[data-dim], g.note[data-dim], [data-standalone-frame], [data-datum-target]';
       const picked = hit.closest('g.section')
         ? document.elementsFromPoint(e.clientX, e.clientY).filter(element => e.currentTarget.contains(element))
           .map(element => element.closest(selectable)).find(Boolean)
@@ -603,25 +603,27 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       }
       setSelectedTarget(null);
       // (DR-1: a detail grabbed anywhere in its square — not on one of its dimensions — moves it on the sheet.)
-      const qd = sheetPoint(e.clientX, e.clientY), onDim = !!target && settings.dimensions.some(x => x.id === target.getAttribute('data-dim'));
-      const det = !onDim && qd ? sheet?.details?.find(x => qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      const qd = sheetPoint(e.clientX, e.clientY);
+      const det = !target && qd ? sheet?.details?.find(x => qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
       const sd = det && settings.details?.find(x => x.id === det.id);
       if (det && sd && qd) {
         const at = toSheet(det.placement, sd.center);
         setSelected(null); setDrag({ detail: det.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
       }
       // (DR-4: a removed section grabbed anywhere in its box moves it; its place is its box's centre.)
-      const rem = !onDim && qd ? sheet?.sections?.find(x => x.form === 'removed' && qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      const rem = !target && qd ? sheet?.sections?.find(x => x.form === 'removed' && qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
       if (rem && qd) {
         const b = rem.placement.box, at: XY = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
         setSelected(null); setDrag({ removed: rem.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
       }
       const id = target?.getAttribute('data-dim') ?? null;
-      setSelected(id); setNoteDraft(null); setTolDraft({});
-      const d = id ? settings.dimensions.find(x => x.id === id) : undefined, n = id ? settings.notes?.find(x => x.id === id) : undefined, q = sheetPoint(e.clientX, e.clientY);
+      const d = target?.matches('g.dimension') ? settings.dimensions.find(x => x.id === id) : undefined;
+      const n = target?.matches('g.note') ? settings.notes?.find(x => x.id === id) : undefined;
+      setSelected(d ? { kind: 'dimension', id: d.id } : n ? { kind: 'note', id: n.id } : null);
+      setNoteDraft(null); setTolDraft({});
       if (n) setNoteDraft(n.text);
       if (d) setDrag({ id: d.id, place: d.place });
-      else if (n && q) setDrag({ note: n.id, at: n.at, grab: [q[0] - n.at[0], q[1] - n.at[1]] });
+      else if (n && qd) setDrag({ note: n.id, at: n.at, grab: [qd[0] - n.at[0], qd[1] - n.at[1]] });
       else setDrag({ pan: [e.clientX, e.clientY], box: [...viewBox] as [number, number, number, number] });
       (e.currentTarget as Element).setPointerCapture(e.pointerId);
       return;
@@ -690,12 +692,21 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setBox([q[0] - (q[0] - x) * f, q[1] - (q[1] - y) * f, nw, h * f]);
   };
 
-  const remove = useCallback((id: string) => {
-    if (settings.notes?.some(n => n.id === id)) { const notes = settings.notes.filter(n => n.id !== id), rest = { ...settings }; delete rest.notes; onChange(notes.length ? { ...rest, notes } : rest); }
-    else commitDims(settings.dimensions.filter(d => d.id !== id));
-    setSelected(null); setNoteDraft(null);
-  },
-    [settings]);
+  const removeAnnotation = ({ kind, id }: SheetAnnotationSelection) => {
+    if (kind === 'note') {
+      if (settings.notes?.filter(note => note.id === id).length !== 1) return;
+      const notes = settings.notes.filter(note => note.id !== id);
+      const next = { ...settings };
+      if (notes.length) next.notes = notes;
+      else delete next.notes;
+      if (!onChange(next)) return;
+    } else {
+      if (settings.dimensions.filter(dim => dim.id === id).length !== 1) return;
+      if (!commitDims(settings.dimensions.filter(dim => dim.id !== id))) return;
+    }
+    if (selected?.kind === kind && selected.id === id) setSelected(null);
+    if (kind === 'note') setNoteDraft(null);
+  };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
@@ -717,7 +728,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         if (commitTargets((settings.datumTargets ?? []).filter(t => t.id !== selectedTarget))) setSelectedTarget(null);
         return;
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(selected); return; }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); removeAnnotation(selected); return; }
       const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note', e: 'detail', t: 'datum-target' } as Record<string, Tool>)[e.key.toLowerCase()];
       if (t) { setTool(t); cancel(); }
     };
@@ -911,7 +922,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
   const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
-  const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
+  const selDim = selected?.kind === 'dimension' ? settings.dimensions.find(d => d.id === selected.id) : undefined;
+  const selNote = selected?.kind === 'note' ? settings.notes?.find(n => n.id === selected.id) : undefined;
   const changeFrame = (next: DrawingSettings) => {
     if (!selectedFrame && selDim && wholeSettings.dimensions.filter(dim => dim.id === selDim.id).length !== 1) {
       setMessage('Dimension ' + selDim.id + ' has a duplicate ID. Remove the duplicate dimension before changing its geometric control.');
@@ -976,17 +988,17 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           onSelect={id => { cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(id); setDrag(null); setTool('select'); }}
           onAdd={view => placeFrame(view)} onMove={frame => { if (frame.dim === undefined) placeFrame(frame.view, frame); }} onRemove={removeFrame} />
 
-        <IssuesList sheetLabel={sheetTotal > 1 ? `${sheetName(wholeSettings, current)} of ${sheetTotal}` : undefined} issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={selectAnnotationRow} />
+        <IssuesList sheetLabel={sheetTotal > 1 ? `${sheetName(wholeSettings, current)} of ${sheetTotal}` : undefined} issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={id => selectAnnotationRow('dimension', id)} />
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
-        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { selectAnnotationRow(id); setNoteDraft(null); }} remove={remove} autoDimension={autoDimension} />
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
 
         <FrameEditor key={selectedFrame ? `frame:${selectedFrame}` : selDim?.id ?? 'none'} dim={selectedFrame ? undefined : selDim?.id} frameId={selectedFrame ?? undefined} settings={settings} onChange={changeFrame} onRefused={setMessage} />
 
-        <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow(n.id); setNoteDraft(n.text); }} remove={remove} onChange={onChange} />
+        <NotesList settings={settings} selected={selNote?.id ?? null} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow('note', n.id); setNoteDraft(n.text); }} remove={id => removeAnnotation({ kind: 'note', id })} onChange={onChange} />
 
         <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>

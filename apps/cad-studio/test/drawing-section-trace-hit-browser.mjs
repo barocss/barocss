@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed', '--annotation-identity-baseline', '--annotation-identity-fixed'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
 const annotations = mode === '--annotations';
 const detachedViews = mode === '--detached-views';
 const ownership = mode === '--ownership';
-const annotationKeys = mode.startsWith('--annotation-keys-');
+const annotationIdentity = mode.startsWith('--annotation-identity-');
+const annotationKeys = annotationIdentity || mode.startsWith('--annotation-keys-');
 const pins = [
   'apps/cad-studio/test/drawing-section-trace-hit-browser.mjs',
   'apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'apps/cad-studio/src/drawing/drawing.css',
@@ -36,7 +37,7 @@ const source = {
       ...(reopen ? [{ id: 'ordinary', view: 'front', kind: 'linear', a: end(0), b: end(20),
         orient: 'horizontal', place: [10, 13] }] : [])], views: annotationKeys ? ['front', 'top', 'right'] : ['front', 'top'],
     ...(reopen ? { notes: [{ id: 'n1', text: 'KEEP NOTE', at: [80, 75] }] } : {}),
-    ...(annotationKeys ? { notes: [{ id: 'n1', text: 'KEEP NOTE', at: [80, 75] }, { id: 'n2', text: 'OTHER SHEET', at: [90, 80], sheet: 'S2' }] } : {}),
+    ...(annotationKeys ? { notes: [{ id: annotationIdentity ? 'width' : 'n1', text: 'KEEP NOTE', at: [80, 75] }, { id: 'n2', text: 'OTHER SHEET', at: [90, 80], sheet: 'S2' }] } : {}),
     ...(annotations || annotationKeys ? {
       datumTargets: [{ id: 'target-1', kind: 'line', letter: 'B', number: 1, view: 'top', line: { from: [2, 6], to: [8, 6] }, place: [-12, 6] }],
       frames: [{ id: 'frame-1', view: 'top', characteristic: 'flatness', value: 0.07, datums: [], place: [14, 6] }],
@@ -44,8 +45,8 @@ const source = {
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+  name: 'drawing-section-trace-hit', output, envFrozen: annotationIdentity ? 'D985_SOURCE_FROZEN' : annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: annotationIdentity ? 'Select and delete the correct kind when a Note and dimension share an ID.' : annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
     : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
   limits: [ownership ? 'Two sectioned plates reuse Section A and dimension width IDs across files; Section A spans two sheets.' : detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
     : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
@@ -400,6 +401,62 @@ async function ownershipFlow() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function annotationIdentityFlow() {
+  const page = f.page;
+  const original = await f.doc();
+  const note = sheet().locator('g.note[data-dim="width"]');
+  const mark = dimension();
+  const widthRow = page.getByRole('button', { name: /20.*horizontal · top/ });
+  const noteRow = page.getByRole('button', { name: /^KEEP NOTE/ });
+  const selected = () => sheet().locator('g.sel[data-dim="width"]').evaluateAll(
+    groups => groups.map(group => group.getAttribute('class')));
+  f.phase = 'select width by keyboard with a same-ID Note present';
+  await widthRow.press('Enter');
+  await mark.locator('text').waitFor();
+  if (mode.endsWith('baseline')) {
+    assert.deepEqual(await selected(), ['dimension sel', 'note sel']);
+    await page.keyboard.press('Delete');
+    await f.changed(original);
+    assert.equal((await f.doc()).drawing.dimensions.length, 1);
+    assert.equal((await f.doc()).drawing.notes.some(n => n.id === 'width'), false);
+    await f.snapshot('same-id-dimension-deleted-note');
+    assert.fail('The dimension and Note shared selection and Delete removed the Note');
+  }
+  assert.deepEqual(await selected(), ['dimension sel']);
+  await page.keyboard.press('Delete');
+  await f.changed(original);
+  const withoutDimension = await f.doc();
+  assert.equal(withoutDimension.drawing.dimensions.length, 0);
+  assert.deepEqual(withoutDimension.drawing.notes, original.drawing.notes);
+  await f.undo();
+  await f.same(original);
+  await mark.waitFor();
+
+  f.phase = 'select the Note on the sheet with its same-ID dimension visible';
+  const pixel = await note.locator('text').evaluate(text => {
+    const r = text.getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  await page.mouse.click(...pixel);
+  await page.getByLabel('Note text', { exact: true }).waitFor();
+  assert.deepEqual(await selected(), ['note sel']);
+  assert.equal(await noteRow.getAttribute('aria-pressed'), 'true');
+  assert.equal(await widthRow.getAttribute('aria-pressed'), 'false');
+  await f.snapshot('same-id-note-only-selected');
+  await page.keyboard.press('Delete');
+  await f.changed(original);
+  const withoutNote = await f.doc();
+  assert.deepEqual(withoutNote.drawing.dimensions, original.drawing.dimensions);
+  assert.deepEqual(withoutNote.drawing.notes, original.drawing.notes.filter(n => n.id !== 'width'));
+  assert.deepEqual(withoutNote.drawing.frames, original.drawing.frames);
+  assert.deepEqual(withoutNote.drawing.datumTargets, original.drawing.datumTargets);
+  await f.undo();
+  await f.same(original);
+  await f.redo();
+  await f.same(withoutNote);
+  await f.snapshot('same-id-note-deletion-redone');
+}
+
 async function annotationKeyboardFlow() {
   const page = f.page;
   const original = await f.doc();
@@ -519,6 +576,7 @@ await f.run(async () => {
   await trace().waitFor();
   if (!ownership) await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
+  if (annotationIdentity) { await annotationIdentityFlow(); return; }
   if (annotationKeys) { await annotationKeyboardFlow(); return; }
   if (annotations) { await annotationFlow(source); return; }
   if (detachedViews) { await detachedViewFlow(); return; }
