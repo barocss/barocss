@@ -33,6 +33,11 @@ import type { ViewportHandle, SketchState } from '../viewport/Viewport';
 import type { EngineClient } from '../engine/client';
 import type { DragTrimOwner, DragTrimPlan } from '../viewport/dragTrimStroke';
 import { preserveConstruction } from './preserveConstruction';
+
+function unfinishedChain(shapes: readonly SketchShape[]): Polygon | undefined {
+  return shapes.find((shape): shape is Polygon => shape.kind === 'polygon' && !shape.construction
+    && shape.points.length >= 2 && (!shape.closed || !!shape.pending));
+}
 interface SketchActionOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null };
   editor: { sketch: SketchState | null; setSketch: Dispatch<SetStateAction<SketchState | null>>; sketchGeneration: RefObject<number>;
@@ -125,7 +130,20 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const r = offsetShape(target, d);
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
     const done = [...draftShapeOrder(sketch), r.shape];
-    commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, activeOutlineIndex: undefined, picked: [], editDim: null });
+    const next = { ...detachSketchLink(sketch), shape: null, done, activeOutlineIndex: undefined, picked: [], editDim: null };
+    if (!sketch.band) {
+      const candidate = profileOf(sketchFinishInputs(next).joined);
+      // An Offset must not turn an admissible profile into a refused one. Drafts already
+      // being repaired keep their existing authoring path.
+      if ('error' in candidate) {
+        const original = sketchFinishInputs(sketch).joined;
+        if (!unfinishedChain(original) && !('error' in profileOf(original))) {
+          setToast({ title: 'Cannot offset', hint: candidate.error, detail: '' });
+          return;
+        }
+      }
+    }
+    commitDraft(sketch, next);
   };
   const replaceDraftShapes = (before: SketchState, shapes: SketchShape[]) => {
     commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, activeOutlineIndex: undefined, picked: [], editDim: null });
@@ -253,14 +271,12 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // (Open lines and arcs meeting end to end are one outline.)
     // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
     const { authored, protectedShapes, joined } = sketchFinishInputs(sketch);
-    if (!sketch.band) {
-      for (const shape of joined) {
-        if (shape.kind !== 'polygon' || shape.construction || shape.points.length < 2 || (shape.closed && !shape.pending)) continue;
-        const start = shape.points[0].join(', '), end = shape.points[shape.points.length - 1].join(', ');
-        const action = shape.pending ? 'Place the last arc or trim' : 'Close or trim';
-        setFinishRefusal({ generation: requestedGeneration, message: `${action} the open chain from (${start}) to (${end}) mm.` });
-        return;
-      }
+    const openChain = sketch.band ? undefined : unfinishedChain(joined);
+    if (openChain) {
+      const start = openChain.points[0].join(', '), end = openChain.points[openChain.points.length - 1].join(', ');
+      const action = openChain.pending ? 'Place the last arc or trim' : 'Close or trim';
+      setFinishRefusal({ generation: requestedGeneration, message: `${action} the open chain from (${start}) to (${end}) mm.` });
+      return;
     }
     const shapes = withIds(joined, undefined, protectedShapes);
     // A band sketch holds the band and its construction sources only (the model refuses anything else, and a band that cannot be made).

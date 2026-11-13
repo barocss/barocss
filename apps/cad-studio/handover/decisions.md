@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1099 — refuse nested inward Offset before changing the draft](notes/nested-sketch-offset-admission-2026-11-14/README.md).
 - [D1098 — edit a standalone circle diameter directly](notes/standalone-circle-direct-diameter-2026-11-14/README.md).
 - [D1097 — explain the cross-outline point selection limit](notes/cross-outline-dimension-boundary-2026-11-14/README.md).
 - [D1096 — restore and edit a saved secondary outline Length](notes/secondary-outline-length-reopen-2026-11-14/README.md).

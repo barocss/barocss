@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const nestedOffset = process.argv[3] === '--nested-offset';
 const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
@@ -52,8 +53,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: dependentInset ? 'Qualify the stored linked inset boundary for a retired dependent finish edge.' : insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
+  name: 'rounded-sketch-offset', envFrozen: nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: nestedOffset ? 'Refuse a third nested outline at Offset and retain the valid ring draft.'
+    : dependentInset ? 'Qualify the stored linked inset boundary for a retired dependent finish edge.' : insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
     : detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
     : widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
     : drawnInset ? 'Draw and round all four source corners in desktop Studio.'
@@ -1140,6 +1142,38 @@ await f.run(async () => {
     await distance.fill(String(value));
     await button(panel, 'Offset inward').click();
   };
+  if (nestedOffset) {
+    const before = await f.snapshot('01-stock');
+    await offset(1);
+    const draft = await f.snapshot('02-ring-draft');
+    assert.equal(draft.sketchCurves.length, 2);
+    assert.deepEqual(draft.doc, before.doc);
+    f.phase = 'refuse the third nested outline at Offset';
+    await offset(0.5);
+    const attempted = await f.snapshot('03-nested-offset-attempt');
+    assert.equal(attempted.sketchCurves.length, 2, 'a rejected Offset leaves the two existing outlines');
+    const refusal = await f.waitToast(/inside a hole/);
+    f.report.observations.push({ label: 'nested-refusal', refusal });
+    for (const key of ['doc', 'history', 'historyControls', 'dirty', 'sketchCurves']) assert.deepEqual(attempted[key], draft[key], key);
+    await f.dismissToasts();
+    await f.undo();
+    const undone = await f.snapshot('04-one-undo-restores-stock');
+    assert.deepEqual(undone.sketchCurves, before.sketchCurves);
+    await f.redo();
+    const redone = await f.snapshot('05-redo-restores-ring');
+    assert.deepEqual(redone.sketchCurves, draft.sketchCurves);
+    const ring = (await f.finishSketch('06-valid-ring')).doc;
+    await checkRing('valid-ring-native', ring, stock);
+    await f.undo();
+    await f.same(stock);
+    await f.redo();
+    await f.same(ring);
+    const bytes = await save(ring);
+    await f.newPage();
+    await open(ring, bytes);
+    await checkRing('valid-ring-reopened-native', ring, stock);
+    return;
+  }
   if (sourceEdit) {
     await offset(1);
     const ring = (await f.finishSketch('01-independent-inset')).doc;
