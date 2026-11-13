@@ -3,24 +3,26 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed'].includes(mode));
 const openFlow = mode.startsWith('--open');
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
+const project = mode.startsWith('--project');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
+  ...(project ? ['apps/cad-studio/src/storage/useProject.ts', 'apps/cad-studio/src/storage/VersionsPanel.tsx'] : []),
   ...(mate ? ['apps/cad-studio/src/assembly/useAssembly.ts', 'apps/cad-studio/src/ui/MatePanel.tsx'] : []),
   ...(inPlace || mate ? ['apps/cad-studio/test/fixtures/edit-in-place.bcad', 'apps/cad-studio/src/app/editInPlace.ts'] : []),
   ...(skeleton ? ['apps/cad-studio/src/skeleton/useSkeletonEditor.tsx', 'apps/cad-studio/src/ui/SkeletonPanel.tsx'] : []),
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -65,6 +67,54 @@ async function checkOpenDraft() {
   const height = hud.getByRole('spinbutton', { name: 'Height Z', exact: true });
   const replacement = structuredClone(source);
   replacement.nodes[1].height = 7;
+  let requestOpen = () => openCandidate('New geometry', replacement);
+  const title = f.page.locator('.doc-tab input');
+  let activePath;
+  if (project) {
+    await button('Project and versions').click();
+    const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+    await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill('D969 draft project');
+    await versions.getByRole('button', { name: 'Project in this browser', exact: true }).click();
+    await versions.getByLabel('Project', { exact: true }).waitFor();
+    const files = versions.getByRole('list', { name: 'Project documents', exact: true });
+    activePath = files.locator('[data-active="true"]');
+    await button('Save').click();
+    await activePath.getByText('Draft source.bcad', { exact: true }).waitFor();
+    await openCandidate('New geometry', replacement);
+    await f.same(replacement);
+    await button('Save').click();
+    await activePath.getByText('New geometry.bcad', { exact: true }).waitFor();
+    await files.getByRole('button', { name: 'Open Draft source.bcad', exact: true }).click();
+    await f.same(source);
+    await activePath.getByText('Draft source.bcad', { exact: true }).waitFor();
+    requestOpen = () => files.getByRole('button', { name: 'Open New geometry.bcad', exact: true }).click();
+    await f.openFeatureEditor(1);
+    await distance().fill('4');
+    const before = await f.snapshot('01-project-draft');
+    await requestOpen();
+    f.phase = 'request a valid project Open with an unapplied Distance';
+    if (mode.endsWith('baseline')) {
+      await f.same(replacement);
+      assert.equal(await activePath.textContent(), 'New geometry.bcad');
+      await f.snapshot('02-project-open-lost-draft');
+      assert.fail('Project Open replaced the part and discarded the unapplied Distance');
+    }
+    await prompt().getByRole('button', { name: 'Keep editing', exact: true }).click();
+    await prompt().waitFor({ state: 'hidden' });
+    await waitFocus(distance());
+    const kept = await f.snapshot('02-project-draft-kept');
+    assert.equal(kept.value, '4');
+    for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[field], before[field], field);
+    assert.equal(await title.inputValue(), 'Draft source');
+    assert.equal(await activePath.textContent(), 'Draft source.bcad');
+    await requestOpen();
+    await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+    await f.same(replacement);
+    assert.equal(await activePath.textContent(), 'New geometry.bcad');
+    await f.editor().waitFor({ state: 'hidden' });
+    await f.snapshot('03-project-open-accepted');
+    return;
+  }
   await f.page.keyboard.press('b');
   await hud.waitFor();
   await width.fill('48');
@@ -72,8 +122,8 @@ async function checkOpenDraft() {
   await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
   const before = await f.snapshot('01-box-draft');
   f.phase = 'open valid native file while a Box preview is active';
-  if (mode === '--open-baseline') {
-    await openCandidate('New geometry', replacement);
+  if (mode.endsWith('baseline')) {
+    await requestOpen();
     await f.same(replacement);
     await hud.waitFor({ state: 'hidden' });
     await f.snapshot('02-open-lost-box');
@@ -81,7 +131,7 @@ async function checkOpenDraft() {
   }
   for (const cancel of ['button', 'escape']) {
     await height.focus();
-    await openCandidate('New geometry', replacement);
+    await requestOpen();
     await prompt().waitFor();
     const keep = prompt().getByRole('button', { name: 'Keep editing', exact: true });
     await waitFocus(keep);
@@ -92,14 +142,17 @@ async function checkOpenDraft() {
     assert.deepEqual([await width.inputValue(), await height.inputValue()], ['48', '18']);
     assert.equal(await hud.locator('.status').textContent(), 'preview');
     const kept = await f.snapshot('02-kept-' + cancel);
+    assert.equal(await title.inputValue(), 'Draft source');
+    if (activePath) assert.equal(await activePath.textContent(), 'Draft source.bcad');
     for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[field], before[field], field);
   }
   f.phase = 'explicitly discard the Box and complete the previously checked Open';
-  await openCandidate('New geometry', replacement);
+  await requestOpen();
   await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
   await f.same(replacement);
   await hud.waitFor({ state: 'hidden' });
   assert.equal(await f.page.locator('.doc-tab input').inputValue(), 'New geometry');
+  if (activePath) assert.equal(await activePath.textContent(), 'New geometry.bcad');
   await f.snapshot('03-open-accepted');
   assert.deepEqual(f.report.downloads, []);
 }
@@ -346,7 +399,7 @@ await f.run(async () => {
   if (mate) { await checkMate(); return; }
   await openCandidate('Draft source', source);
   await f.same(source);
-  if (openFlow) { await checkOpenDraft(); return; }
+  if (openFlow || project) { await checkOpenDraft(); return; }
   if (commands) { await checkModelCommands(); return; }
   if (skeleton) { await checkSkeleton(); return; }
   await f.openFeatureEditor(1);

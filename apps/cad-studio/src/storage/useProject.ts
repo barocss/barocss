@@ -29,6 +29,8 @@ export interface ProjectView {
 export interface ProjectCallbacks extends OpenIntentBridge {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
   onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | false | void;
+  /** Resolve the current draft before an admitted project document replaces it. */
+  confirmOpen?(focus: HTMLElement | null): Promise<boolean>;
   /** Validate geometry that must be admitted before updating the active project path. */
   validateOpen?(doc: StudioDoc, current: () => boolean): Promise<void> | undefined;
   onError(title: string, hint: string): void;
@@ -172,11 +174,10 @@ export function useProject(cb: ProjectCallbacks) {
       /** A new or external document starts without a project path. */
       detach() { actions.restoreDocument(null); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
-      async openPart(path: string) {
+      async openPart(path: string, focus: HTMLElement | null = null) {
         const owner = beginOpen(), store = live.current.store; if (!store) return false;
         reading.current++;
         owner.session = projectSession.current; owner.store = store;
-        invalidateSaves(path);
         const current = () => currentOpen(owner);
         try {
           const r = await readPart(store, path);
@@ -188,10 +189,14 @@ export function useProject(cb: ProjectCallbacks) {
             await check;
             if (!current() || (call.current.canOpen && !call.current.canOpen())) return false;
           }
+          if (call.current.confirmOpen) {
+            if (!(await call.current.confirmOpen(focus)) || !current() || (call.current.canOpen && !call.current.canOpen())) return false;
+          }
           const accepted = call.current.onOpened(r.doc, path, r.notes);
           if (accepted === false) return false;
           if (accepted) owner.scope = accepted;
           if (!current()) return false;
+          invalidateSaves(path);
           tags.current = { part: r.tag, sourceSHA256: taskSourceSHA(r.bytes), log: null };
           set({ part: path, offered: null, log: null });
           owner.path = path;

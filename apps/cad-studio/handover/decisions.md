@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D969 — keep an unapplied feature at Project Open](notes/project-open-feature-draft-2026-11-13/README.md).
 - [D968 — preserve a Mate draft during a feature history request](notes/mate-draft-history-transition-2026-11-13/README.md).
 - [D967 — protect an unapplied feature edit at Edit part Cancel](notes/edit-in-place-cancel-feature-draft-2026-11-13/README.md).
 - [D966 — confirm the final Escape from a changed 3D sketch](notes/skeleton-draft-final-escape-2026-11-13/README.md).

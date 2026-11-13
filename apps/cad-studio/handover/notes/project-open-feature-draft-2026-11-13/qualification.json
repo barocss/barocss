@@ -1,0 +1,46 @@
+{
+  "decision": "D969",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "cf2626ab9a49cbaef166ce07a7f698c472cac5cc",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D969-project-draft",
+    "D969_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent02 --project-baseline",
+    "D969_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --project-fixed",
+    "D958_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/save-history01 --fixed",
+    "pnpm --filter @barocss/cad-studio-app test project-open-ownership project-version-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "0a2427ccb324da08d399dc276d3d723a7ac2068e430c220221b2a9163f539b87"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "5616406b20ac6cbfd4bc7d0369c3b4075f0b668410c77263e8cacac3218020bf",
+    "sourceManifestSHA256": "0cb4530efe625c1291e2d20a2541f637ad6c38f1333476fec209eef0560b543c",
+    "saveRegressionReceiptSHA256": "c007bb721e34da755a4b297170daf6c0325b2d5e1ddd5be9c89b4f9b15047183",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "keptDistanceMM": 4,
+    "replacementDistanceMM": 7,
+    "restoredFocus": "Distance"
+  },
+  "focusedTests": {
+    "pass": 65,
+    "fail": 0
+  },
+  "notRun": [
+    "exchange Open",
+    "alternate feature entry points",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

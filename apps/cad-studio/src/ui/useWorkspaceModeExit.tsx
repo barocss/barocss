@@ -11,6 +11,7 @@ type Request = {
   feature: object | null;
   featureDraft(): object | null;
   switchMode(): void;
+  onKeep?(): void;
   keepFocus: HTMLElement | null;
   discardFocus: HTMLElement | null;
   trigger: HTMLElement | null;
@@ -33,6 +34,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   useEffect(() => {
     if (request && !current) {
       focusAfterClose.current = request.trigger;
+      request.onKeep?.();
       setRequest(null);
     }
   }, [request, current]);
@@ -45,9 +47,9 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     pointer.current = null;
     return event.detail && previous?.trigger === event.currentTarget ? previous.focus : activeElement();
   };
-  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus, title }: {
+  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus, title, onKeep }: {
     event?: MouseEvent<HTMLButtonElement>; readFeature?: () => object | null; destinationFocus?: HTMLElement | null;
-    originFocus?: HTMLElement | null; title?: string;
+    originFocus?: HTMLElement | null; title?: string; onKeep?: () => void;
   } = {}) => {
     const previous = pointer.current;
     pointer.current = null;
@@ -59,7 +61,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     }
     const trigger = event?.currentTarget ?? activeElement();
     const focus = originFocus ?? (event?.detail && previous?.trigger === trigger ? previous.focus : trigger);
-    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger, title,
+    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger, title, onKeep,
       discardFocus: destinationFocus ?? trigger,
       keepFocus: focus?.isConnected && focus !== document.body ? focus : trigger });
   };
@@ -69,6 +71,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     focusAfterClose.current = stillOwned ? (discard ? current.discardFocus : current.keepFocus) : current.trigger;
     setRequest(null);
     if (discard && stillOwned) current.switchMode();
+    else current.onKeep?.();
   };
 
   const title = current?.title ?? (current?.feature

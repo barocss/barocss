@@ -53,7 +53,7 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, onMakeVersion, onOpen, onCompare, comparing, onInsert, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence, onPrepareFaceRepair }: {
+export function VersionsPanel({ project, doc, onMakeVersion, onOpen, onCompare, comparing, onInsert, projectOpenFocus, evaluate, checkpointReview, candidate, onCollapse, onAttachApprovalEvidence, onPrepareFaceRepair }: {
   project: ProjectActions; doc: StudioDoc;
   onMakeVersion(name?: string): Promise<boolean>;
   /** A document to work on: restored, switched to or merged. */
@@ -63,6 +63,10 @@ export function VersionsPanel({ project, doc, onMakeVersion, onOpen, onCompare, 
   comparing: VersionComparison | null;
   /** A document of the project placed in this one, linked by its path. */
   onInsert(path: string): void;
+  projectOpenFocus?: {
+    remember(event: React.PointerEvent<HTMLButtonElement>): void;
+    take(event: React.MouseEvent<HTMLButtonElement>): HTMLElement | null;
+  };
   evaluate: Evaluate;
   checkpointReview?: CheckpointReview | null;
   candidate?: { review: CandidateReview; shown: boolean; available: boolean; toggle(): void; decide?(decision: TaskRunDecision): Promise<void> };
@@ -140,7 +144,8 @@ export function VersionsPanel({ project, doc, onMakeVersion, onOpen, onCompare, 
     <ul className="m-0 list-none p-0" aria-label="Project documents">{view.parts.map(p => <li key={p.path} className={ROW} data-active={p.path === view.part || undefined}>
       <span className={p.path === view.part ? 'font-semibold' : ''}>{p.path}</span>
       {p.path !== view.part && <Button variant="ghost" size="xs" aria-label={`Insert ${p.path}`} title="Place it in this document, linked to its file" onClick={() => onInsert(p.path)}>Insert</Button>}
-      {p.path !== view.part && <Button variant="ghost" size="xs" aria-label={`Open ${p.path}`} onClick={() => void project.openPart(p.path)}>Open</Button>}
+      {p.path !== view.part && <Button variant="ghost" size="xs" aria-label={`Open ${p.path}`} onPointerDown={projectOpenFocus?.remember}
+        onClick={event => void project.openPart(p.path, projectOpenFocus?.take(event))}>Open</Button>}
     </li>)}</ul>
     {linkedCount > 0 && <div className={ROW}><span className="text-muted-foreground">{linkedCount} placed part{linkedCount === 1 ? '' : 's'} linked to project files</span>
       <Button variant="ghost" size="xs" aria-label="Check placed parts" onClick={() => void project.checkLinked(doc)}>Check</Button></div>}

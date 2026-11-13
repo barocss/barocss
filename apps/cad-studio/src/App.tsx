@@ -546,6 +546,9 @@ export function App() {
     onOpenIntent: beginOpenIntent,
     currentOpenScope,
     isOpenCurrent,
+    confirmOpen: focus => new Promise(resolve => workspaceModeExit.switchWhenReady(() => resolve(true), {
+      originFocus: focus, onKeep: () => resolve(false),
+    })),
     validateOpen: (doc, current) => verifyStoredNativeOpen(doc, d => engine.part(d, revision.current++, 'read'), d => engine.verifyStoredInsets(d), current),
     onOpened: (d, path, notes) => {
       if (!openAccepted(inPlaceNow.current) || !replaceDoc(d, 'project-open')) return false;
@@ -2654,7 +2657,7 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
-      {versionsVisible && <VersionsPanel project={project} doc={doc} onMakeVersion={makeVersion} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
+      {versionsVisible && <VersionsPanel project={project} projectOpenFocus={{ remember: workspaceModeExit.rememberFocus, take: workspaceModeExit.takeFocus }} doc={doc} onMakeVersion={makeVersion} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {
           const scope = openIntent.current;
           if (docNow.current !== working || project.opening()) return false;
