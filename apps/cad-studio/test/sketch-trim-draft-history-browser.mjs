@@ -5,6 +5,7 @@ const fixed = process.argv[3] === '--fixed';
 const toolFixed = process.argv[3] === '--tool-fixed';
 const toolBoundary = toolFixed || process.argv[3] === '--tool-baseline';
 const numeric = process.argv[3] === '--numeric-first';
+const noCut = process.argv[3] === '--no-cut-history';
 const noOpFinish = process.argv[3] === '--no-op-finish';
 const pins = [
   'apps/cad-studio/src/App.tsx',
@@ -14,13 +15,14 @@ const pins = [
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
   'packages/barocss-cad-model/src/sketch/history.ts',
   'packages/barocss-cad-model/src/sketch/trim.ts',
-  ...(fixed || toolBoundary || numeric ? ['apps/cad-studio/src/sketch/draftHistory.ts',
+  ...(fixed || toolBoundary || numeric || noCut ? ['apps/cad-studio/src/sketch/draftHistory.ts',
     'packages/barocss-cad-model/src/sketch/select.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: noOpFinish ? 'D1057_SOURCE_FROZEN' : numeric ? 'D1056_SOURCE_FROZEN' : toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
+  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: noCut ? 'D1079_SOURCE_FROZEN' : noOpFinish ? 'D1057_SOURCE_FROZEN' : numeric ? 'D1056_SOURCE_FROZEN' : toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: noOpFinish ? 'Finish a restored draft without consuming document Redo'
+  qualification: noCut ? 'Preserve numeric draft Undo and Redo across a Trim tool switch without a cut.'
+    : noOpFinish ? 'Finish a restored draft without consuming document Redo'
     : numeric ? 'Undo and redo a point coordinate and a following Trim through both draft history controls'
     : toolBoundary ? 'Measure Trim history across activation of the same closed outline in Select'
     : fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
@@ -146,6 +148,60 @@ async function numericThenTrim() {
   await f.same(accepted.doc);
 }
 
+async function replayWithoutCut() {
+  const page = f.page;
+  const point = f.sketchPanel().getByRole('spinbutton', { name: 'Point 3 X', exact: true });
+  const checkX = async x => assert.equal(Number(await point.inputValue()), x);
+  const key = async shortcut => {
+    await page.locator('.topbar button.finish').focus();
+    await page.keyboard.press(shortcut);
+  };
+  const noChange = async refused => {
+    await f.tool('Trim', 't');
+    if (refused) {
+      await hover([20, 10]);
+      await page.mouse.down();
+      await page.mouse.up();
+      await f.waitToast(/Nothing to trim there/i);
+    }
+    await f.tool('Select', 's');
+  };
+  await f.frame([[0, 0], [44, 20], [10, -5], [30, -5]]);
+  await checkX(40);
+  await point.fill('44');
+  await page.locator('.topbar button.finish').focus();
+  await checkX(44);
+  f.phase = 'Undo a numeric edit after switching through Trim without cutting';
+  await noChange(false);
+  await checkX(44);
+  await key('Meta+z');
+  f.report.observations.push({ xAfterNoCutUndo: Number(await point.inputValue()) });
+  await f.snapshot('01-after-no-cut-undo');
+  await checkX(40);
+
+  f.phase = 'Redo after a refused Trim preserves the numeric edit';
+  await noChange(true);
+  await button(page, 'Redo').click();
+  await checkX(44);
+  await noChange(true);
+  await button(page, 'Undo').click();
+  await checkX(40);
+  await noChange(false);
+  await key('Meta+Shift+z');
+  await checkX(44);
+  await f.same(source);
+  await f.snapshot('02-after-no-cut-redo');
+  const finished = await f.finishSketch('03-numeric-change');
+  assert.deepEqual(finished.doc.nodes[0].max, [44, 20]);
+  assert.deepEqual(finished.doc.nodes[0].sideTags, source.nodes[0].sideTags);
+  assert.deepEqual(finished.doc.nodes[1], source.nodes[1]);
+  assert.ok(Math.abs(finished.bodies.bodies[0].volume - 1760) < 1e-8);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished.doc);
+}
+
 async function finishRestoredDraft() {
   const page = f.page;
   f.phase = 'Make a pending document Redo';
@@ -265,6 +321,11 @@ await f.run(async () => {
   await f.openFeatureEditor(1);
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();
+  if (noCut) {
+    await replayWithoutCut();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (numeric) {
     await numericThenTrim();
     assert.deepEqual(f.report.downloads, []);

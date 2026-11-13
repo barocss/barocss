@@ -1,0 +1,46 @@
+{
+  "decision": "D1079",
+  "tier": "SMALL",
+  "parent": "56ef857f5c466a2d3990fc9473bccea975ba59b5",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1079-no-cut-<run>",
+    "D1079_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/<run> --no-cut-history",
+    "D1057_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/no-op-retry --no-op-finish",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "current": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 382,
+      "receiptSHA256": "94f15aecda20dae6d856eebe1db81ea9d067c89b415d2b0ea7b2dfca5557fe5d",
+      "sourceManifestSHA256": "d6693c4c2862b11638549a79f8ed9d7146f87213f42958f931634a4c917d5d6b"
+    },
+    "noOpFinish": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "9609f869067f804742d0fc15df4f64f76b6acdf10f0e92b77e6a905bce3b0839",
+      "sourceManifestSHA256": "f4cb3b95eea53d9ecff9832313acb6092394acb8c5471cb0e9d6bd6f8357872d"
+    }
+  },
+  "point3XMm": [
+    40,
+    44
+  ],
+  "committedExtrudeMm": 2,
+  "volumeMm3": [
+    1600,
+    1760
+  ],
+  "documentRedoVolumeMm3": 2400,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0
+  }
+}
