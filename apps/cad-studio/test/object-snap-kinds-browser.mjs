@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const settingsEscape = process.argv[3] === '--settings-escape';
 const stationaryCrossing = process.argv[3] === '--stationary-crossing';
+const hideCircleSource = process.argv[3] === '--hide-circle-source';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/SketchSnapControls.tsx',
@@ -15,7 +16,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'object-snap-kinds', output: process.argv[2],
-  envFrozen: stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
+  envFrozen: hideCircleSource ? 'D1114_SOURCE_FROZEN' : stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Apply current session object-snap settings to the next sketch input with independent grid fallback.',
   limits: ['One XY rectangle and circle as native snap sources. Desktop Chrome WebGPU.'],
@@ -240,6 +241,70 @@ async function toggleStationaryCrossing() {
   await f.same(finished);
 }
 
+async function preserveCircleWhenHidingSource() {
+  f.phase = 'preserve a snapped Circle centre while its source body is hidden';
+  await begin('Circle', 'c', [centre, [22, 12]]);
+  await only(['Centre']);
+  await f.page.mouse.click(...await hover(centre, 'Centre'));
+  await f.page.mouse.move(...await f.screenOf([22, 12]));
+  await number('Centre X', centre[0]);
+  await number('Centre Y', centre[1]);
+  const before = await f.snapshot('circle-before-hide');
+  const browser = f.page.getByRole('complementary', { name: 'Browser', exact: true });
+  const cylinder = browser.locator('.ol-row').filter({ has: button(f.page, 'Cylinder 5') });
+  await button(cylinder, 'Hide body').click();
+  await button(cylinder, 'Show body').waitFor();
+  const hidden = await f.snapshot('circle-source-hidden');
+  assert.deepEqual(hidden.doc.nodes, before.doc.nodes);
+  assert.deepEqual(hidden.doc.outputs, before.doc.outputs);
+  assert.equal(await f.sketchPanel().locator('#sk-cx').count(), 1, 'Hide body must preserve the active circle');
+  await number('Centre X', centre[0]);
+  await number('Centre Y', centre[1]);
+  await button(cylinder, 'Show body').click();
+  await button(cylinder, 'Hide body').waitFor();
+  await number('Centre X', centre[0]);
+  await number('Centre Y', centre[1]);
+  await f.worldClick([22, 12]);
+  const finished = (await f.finishSketch('circle-after-source-show')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 4), source.nodes);
+  assert.deepEqual(finished.nodes[4].center, centre);
+  assert.equal(finished.nodes[4].radius, 7);
+  await f.undo();
+  assert.deepEqual((await f.doc()).nodes, source.nodes);
+  await f.redo();
+  await f.same(finished);
+  await open(source);
+  f.phase = 'preserve the first Circle from two points pick while its source body is hidden';
+  await begin('Circle', 'c', [centre, [22, 12]]);
+  await only(['Centre']);
+  await button(f.sketchPanel(), 'Circle from two points').click();
+  const chord = f.page.getByRole('group', { name: 'Circle from two points', exact: true });
+  await f.page.mouse.click(...await hover(centre, 'Centre'));
+  await chord.getByText('Pick the second point on the circle.', { exact: true }).waitFor();
+  await f.snapshot('chord-circle-before-hide');
+  await button(cylinder, 'Hide body').click();
+  await button(cylinder, 'Show body').waitFor();
+  await f.snapshot('chord-circle-source-hidden');
+  assert.ok(await chord.isVisible(), 'Hide body must preserve the active chord circle');
+  await chord.getByText('Pick the second point on the circle.', { exact: true }).waitFor();
+  await hover(centre, null);
+  await button(cylinder, 'Show body').click();
+  await button(cylinder, 'Hide body').waitFor();
+  await chord.getByText('Pick the second point on the circle.', { exact: true }).waitFor();
+  await f.worldClick([22, 12]);
+  await chord.getByRole('textbox', { name: 'Circle radius', exact: true }).fill('5');
+  await button(chord, 'Use circle 1').click();
+  const chordDoc = (await f.finishSketch('chord-circle-after-source-show')).doc;
+  assert.deepEqual(chordDoc.nodes.slice(0, 4), source.nodes);
+  const circle = chordDoc.nodes[4];
+  assert.equal(circle.radius, 5);
+  assert.ok(Math.abs(Math.hypot(circle.center[0] - centre[0], circle.center[1] - centre[1]) - 5) < 1e-6);
+  await f.undo();
+  assert.deepEqual((await f.doc()).nodes, source.nodes);
+  await f.redo();
+  await f.same(chordDoc);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -255,6 +320,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open(source);
+  if (hideCircleSource) {
+    await preserveCircleWhenHidingSource();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (stationaryCrossing) {
     await toggleStationaryCrossing();
     assert.deepEqual(f.report.downloads, []);

@@ -1735,6 +1735,11 @@ export function App() {
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, (shape, fresh) => updateShape(shape, fresh, 'chord-circle'));
+  const commitBodyVisibility = (next: StudioDoc) => {
+    if (!commit(next)) return false;
+    circleChord.carryVisibilityChange(doc);
+    return true;
+  };
   const finishSketch = () => {
     if (circleChord.input.read(sketch)) return;
     clearConstraintInspection(constraintInspection, sketch);
@@ -2827,7 +2832,7 @@ export function App() {
           }}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
         <BodyBrowserRows model={{ doc, evaluated, namesDoc, bodies, fresh, busy }} selection={selection}
-          rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setRowHover }} changes={{ commit, setSelection, setDirectSel, setInstanceSel,
+          rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setRowHover }} changes={{ commit, commitVisibility: commitBodyVisibility, setSelection, setDirectSel, setInstanceSel,
             rememberFocus: workspaceModeExit.rememberFocus,
             editFeature: (index, body, event) => workspaceModeExit.switchWhenReady(() => {
               setEditNode(index);

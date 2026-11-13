@@ -64,6 +64,13 @@ export function useCircleFromChord(doc: StudioDoc, sketch: SketchState | null, d
 
   return {
     input, available, visible, cancel,
+    carryVisibilityChange(previous: StudioDoc) {
+      const value = current.current;
+      const next = docNow.current;
+      if (!value || value.doc !== previous || previous !== doc || next === previous
+        || value.sketch !== sketch || value.generation !== generation.current) return;
+      change({ ...value, doc: next });
+    },
     begin() {
       if (read(sketch) || !sketch || !available || docNow.current !== doc || generation.current !== renderedGeneration) return;
       change({ doc, sketch, generation: renderedGeneration, radius: '' });

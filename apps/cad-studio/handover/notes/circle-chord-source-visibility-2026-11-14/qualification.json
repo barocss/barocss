@@ -1,0 +1,68 @@
+{
+  "decision": "D1114",
+  "tier": "SMALL",
+  "parent": "f1b7d33237bcf4eab2d8f5aa251f9ed9cc500742",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1114-hide-circle-source-<run>",
+    "D1114_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/<run> --hide-circle-source",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/sketch/useCircleFromChord.ts apps/cad-studio/src/ui/BodyBrowserRows.tsx",
+    "D878_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/chord-control",
+    "D1113_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/crossing-control --stationary-crossing",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 6,
+      "frozenFiles": 381,
+      "receiptSHA256": "61473268fcac133b17699df92fb7009ace090008edf9857b4d8c34d531c6e3b1",
+      "sourceManifestSHA256": "86d7f54cadd3e5e749671c2d3bb18a966aabc8f72f42b06413b4b6aa26de860f",
+      "savedFiles": [],
+      "firstFailure": "The Browser Hide body command retired the active Circle from two points draft after its first Centre pick."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 381,
+      "receiptSHA256": "4574c8d55e2007cefde00c48f668e8e495e383d01df89325cfa7cbc1dc5d32bc",
+      "sourceManifestSHA256": "647e28771b588ae030f4a622a51438866fa99d22af40558219394668cdeb5fdc",
+      "savedFiles": []
+    },
+    "chordControl": {
+      "status": "PASS",
+      "states": 19,
+      "frozenFiles": 860,
+      "receiptSHA256": "e33b9d64f8d774aec563b4481ee62c8f8a3304e091d47510bf5d2615e9e8eb74",
+      "sourceManifestSHA256": "3c00c33b143c432ed1534509cbe9f303d777b74ba47e400f0782b7598fe2fe6f",
+      "savedFiles": []
+    },
+    "crossingControl": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "32acb1636db9b015187280220f949d2cf46126d1ee444677bf765d991fdd94a1",
+      "sourceManifestSHA256": "647e28771b588ae030f4a622a51438866fa99d22af40558219394668cdeb5fdc",
+      "savedFiles": []
+    }
+  },
+  "firstPointMM": [
+    14.84,
+    12.3457
+  ],
+  "ordinaryCircleRadiusMM": 7,
+  "chordCircleRadiusMM": 5,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

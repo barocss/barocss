@@ -11,7 +11,7 @@ interface BodyBrowserRowsProps {
   model: { doc: StudioDoc; evaluated: StudioDoc; namesDoc: StudioDoc; bodies: BodyResult[]; fresh: boolean; busy: boolean };
   selection: Selection;
   rows: { expanded: string[]; setExpanded: Dispatch<SetStateAction<string[]>>; renaming: string | null; setRenaming: Dispatch<SetStateAction<string | null>>; editNode: number | null; setRowHover: Dispatch<SetStateAction<number | null>> };
-  changes: { commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setDirectSel: Dispatch<SetStateAction<string[]>>; setInstanceSel: Dispatch<SetStateAction<string[]>>;
+  changes: { commit(next: StudioDoc): boolean; commitVisibility(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setDirectSel: Dispatch<SetStateAction<string[]>>; setInstanceSel: Dispatch<SetStateAction<string[]>>;
     editFeature(index: number, body: number, event: MouseEvent<HTMLButtonElement>): void;
     rememberFocus: PointerEventHandler<HTMLButtonElement> };
   meshBadges(index: number, body: BodyResult, steps: readonly number[]): ReactNode;
@@ -20,7 +20,7 @@ interface BodyBrowserRowsProps {
 export function BodyBrowserRows({ model, selection, rows, changes, meshBadges }: BodyBrowserRowsProps) {
   const { doc, evaluated, namesDoc, bodies, fresh, busy } = model;
   const { expanded, setExpanded, renaming, setRenaming, editNode, setRowHover } = rows;
-  const { commit, setSelection, setDirectSel, setInstanceSel, editFeature, rememberFocus } = changes;
+  const { commit, commitVisibility, setSelection, setDirectSel, setInstanceSel, editFeature, rememberFocus } = changes;
   return <>
         {bodies.length > 0 && <div className="ol-head">Bodies</div>}
         {!fresh && bodies.map(b => <div key={b.key} className="ol-row stale" aria-busy="true" title={busy ? 'Evaluating the part: this is the body before the change' : 'The part did not evaluate: this is the last good body'}>
@@ -34,7 +34,7 @@ export function BodyBrowserRows({ model, selection, rows, changes, meshBadges }:
           return <Fragment key={b.key}><div className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
             <button className="ol-caret" aria-label={open ? 'Hide its features' : 'Show its features'} disabled={steps.length < 2} onClick={() => setExpanded(x => open ? x.filter(k => k !== b.key) : [...x, b.key])}><Icon name={open ? 'expand_more' : 'chevron_right'} small /></button>
             <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
-              onClick={() => { if (!commit(withLook(doc, b, { hidden: !look.hidden }))) return; if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
+              onClick={() => { if (!commitVisibility(withLook(doc, b, { hidden: !look.hidden }))) return; if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
             <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
             {renaming === b.key
               ? <input className="ol-name-edit" autoFocus defaultValue={bodyName(doc, b)} aria-label="Body name"
