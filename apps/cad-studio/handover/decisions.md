@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D940 — pick the displayed source arc when creating a Detail diameter](notes/detail-diameter-visible-source-pick-2026-11-13/README.md).
 - [D939 — verify hidden-only Detail diameter restoration](notes/detail-diameter-hidden-arc-2026-11-13/README.md).
 - [D938 — attach a clipped Detail diameter to its source arc](notes/detail-diameter-source-arc-2026-11-13/README.md).
 - [D937 — clear the counted tolerance label in the hole-row drawing](notes/hole-row-plus-minus-clearance-2026-11-13/README.md).

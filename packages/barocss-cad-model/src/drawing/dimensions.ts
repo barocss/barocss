@@ -42,9 +42,10 @@ function addSnap(pr: BrepProjection, out: SnapPoint[], shown: boolean[], edge: P
 export const roundIn = (pr: BrepProjection, e: ProjectedEdge) => !!e.circle && Math.abs(dot(e.circle.normal, pr.toward)) > 1 - 1e-6;
 
 /** The nearest edge to a view point, within `tol` (view mm). */
-export function edgeAt(pr: BrepProjection, p: XY, tol: number): ProjectedEdge | null {
+export function edgeAt(pr: BrepProjection, p: XY, tol: number, visibleOnly = false): ProjectedEdge | null {
   let best: ProjectedEdge | null = null, bestD = tol;
   for (const e of pr.edges) for (const piece of e.pieces) {
+    if (visibleOnly && !piece.visible) continue;
     const d = distanceTo(piece.curve, p);
     if (d < bestD) { bestD = d; best = e; }
   }

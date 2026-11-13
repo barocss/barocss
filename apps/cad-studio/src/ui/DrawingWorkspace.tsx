@@ -92,6 +92,11 @@ type Pending =
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
 const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
+const detailFor = (settings: DrawingSettings, view: DimView) => isDetailRef(view) ? settings.details?.find(d => d.id === detailLetter(view)) : undefined;
+const showDetailHidden = (settings: DrawingSettings, view: DimView) => {
+  const detail = detailFor(settings, view);
+  return !!(settings.hidden && detail && !isSectionRef(detail.view));
+};
 
 export interface DrawingReferencePreview { dimensionId: string; edge?: string; candidateNumber?: number }
 export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
@@ -266,10 +271,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const q = sheetPoint(clientX, clientY); if (!q || !layout || !views || !snaps) return null;
     const view = viewAt(q), v = view && placementOf(layout, sheet ?? undefined, view), pr = view && projectionOf(views, sheet ?? undefined, view); if (!view || !v || !pr) return null;
     const at = fromSheet(v, q), tol = 9 * mmPerPx() / v.scale;
+    if (tool === 'diameter' && isDetailRef(view)) {
+      return { q, view, at, snap: null, edge: edgeAt(pr, at, 6 * mmPerPx() / v.scale, !showDetailHidden(settings, view)) };
+    }
     let snap: SnapPoint | null = null, best = tol;
     for (const s of snaps[view] ?? []) { const d = Math.hypot(s.at[0] - at[0], s.at[1] - at[1]); if (d < best) { best = d; snap = s; } }
     return { q, view, at, snap, edge: snap ? null : edgeAt(pr, at, 6 * mmPerPx() / v.scale) };
-  }, [sheetPoint, layout, views, snaps, viewAt, sheet]);
+  }, [sheetPoint, layout, views, snaps, viewAt, sheet, tool, settings]);
 
   /** Placing a dimension (its points picked): where it goes, read in its own view wherever the pointer is on the sheet —
    *  beyond the views' reach too (hoverAt finds a view only within 30 mm), so a click out on the paper places it. */
@@ -428,7 +436,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
     if (tool === 'diameter' || tool === 'radius') {
       if (pending && pending.kind === tool) {
-        commitDims([...settings.dimensions, { id: newDimensionId(wholeSettings.dimensions), view: pending.view, kind: tool, edge: pending.edge, near: pending.near, place }]);
+        const dim: DrawingDimension = { id: newDimensionId(wholeSettings.dimensions), view: pending.view, kind: tool, edge: pending.edge, near: pending.near, place };
+        if (tool === 'diameter' && isDetailRef(dim.view)) {
+          const resolved = resolveDimension({ [dim.view]: pr }, dim, detailFor(settings, dim.view), showDetailHidden(settings, dim.view));
+          if (!resolved.ok) { setMessage(resolved.reason); return; }
+        }
+        commitDims([...settings.dimensions, dim]);
         setPending(null); return;
       }
       const e = h.edge ?? (h.snap ? pr.edges.find(x => x.name === h.snap!.ref.edge && x.circle) ?? null : null);
@@ -788,8 +801,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         ? { id: 'preview', view: pending.view, kind: 'linear', a: pending.a, b: pending.b!, orient: orientFor(pointIn(R(pending.view), pending.a), pointIn(R(pending.view), pending.b!), at), place: at }
         : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
-      const detail = settings.details?.find(detail => `detail:${detail.id}` === pending.view);
-      const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d, detail, !!(settings.hidden && detail && !isSectionRef(detail.view)));
+      const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d, detailFor(settings, pending.view), showDetailHidden(settings, pending.view));
       if (r.ok) { const preset = presetFor(settings); parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), withShownText(r, undefined, preset) as typeof r, preset))}</g>`); }
     } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
       for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
@@ -800,7 +812,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (hover.snap && tool === 'linear') { const q = toSheet(v, hover.snap.at); parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`); }
       else if (hover.edge && (tool !== 'linear' || !pending)) {
         const ok = tool === 'linear' || tool === 'angle' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(R(hover.view), hover.edge);
-        if (ok) parts.push(`<g class="dw-hover">${marksSvg(hover.edge.pieces.map(p => curveMark(v, p.curve, 'visible')))}</g>`);
+        const pieces = tool === 'diameter' && isDetailRef(hover.view) && !showDetailHidden(settings, hover.view)
+          ? hover.edge.pieces.filter(piece => piece.visible) : hover.edge.pieces;
+        if (ok) parts.push(`<g class="dw-hover">${marksSvg(pieces.map(p => curveMark(v, p.curve, 'visible')))}</g>`);
       }
     }
     return parts.join('');

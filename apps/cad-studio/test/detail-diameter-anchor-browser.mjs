@@ -9,6 +9,7 @@ assert.ok(output && relative(repo, resolve(output)).startsWith('../'));
 assert.ok(['--baseline', '--fixed'].includes(mode));
 const baseline = mode === '--baseline';
 const covered = variant === '--covered';
+const creation = variant === '--create';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -16,7 +17,7 @@ const diameter = { id: 'b-diameter', kind: 'diameter', view: 'detail:B', edge: '
   near: [32, 16, 8], place: [44, 16], tol: { kind: 'symmetric', value: 0.15 } };
 const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] };
 const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
-  views: ['front', 'top'], details: [detail], dimensions: covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
+  views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
 const part = covered ? {
   ...document,
   nodes: [...document.nodes,
@@ -26,7 +27,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -38,7 +39,7 @@ import json, math, re, sys, xml.etree.ElementTree as ET
 d = json.load(sys.stdin)
 root = ET.fromstring(d['svg'])
 ns = {'s': 'http://www.w3.org/2000/svg'}
-dim = root.find(".//s:g[@data-dim='b-diameter']", ns)
+dim = root.find(".//s:g[@data-dim='%s']" % d.get('id','b-diameter'), ns)
 ink = root.find(".//s:g[@class='detail'][@data-view='detail:B']", ns)
 assert ink is not None
 if d.get('hiddenOff'):
@@ -51,7 +52,9 @@ if d.get('hiddenOff'):
     sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
-assert 'Ø8' in texts and '0.15' in texts
+assert 'Ø8' in texts
+if not d.get('creation'):
+    assert '0.15' in texts
 [head] = dim.findall("s:path[@fill='#000']", ns)
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
 x, y = map(float, m.groups())
@@ -119,7 +122,69 @@ await f.run(async () => {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.details?.length === 1);
     await f.ready();
     await button('Drawing').click();
-    await f.page.locator(covered ? 'g.detail[data-view="detail:B"]' : locator).waitFor();
+    await f.page.locator(covered || creation ? 'g.detail[data-view="detail:B"]' : locator).waitFor();
+  }
+  if (creation) {
+    f.phase = 'select the surviving arc and preview opposite-side placement';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const hit = (u, v) => f.page.evaluate(([x,y]) => window.__studioDrawingAt('detail:B', x, y), [u,v]);
+    const pick = await hit(32 + 4 * Math.cos(-0.3), 16 + 4 * Math.sin(-0.3));
+    const place = await hit(24, 16);
+    const preview = f.page.locator('.dw-preview path[fill="#000"]');
+    if (baseline) {
+      await button('Diameter').click();
+      await f.page.mouse.click(pick.x, pick.y);
+      await f.page.mouse.move(place.x, place.y);
+      await f.page.getByText('Click where the dimension goes · Esc cancels', { exact: true }).waitFor();
+      assert.equal(await preview.count(), 0);
+      await f.page.mouse.click(place.x, place.y);
+      await f.changed(original);
+      const state = await f.snapshot('01-invisible-source-committed');
+      const [dim] = state.doc.drawing.dimensions;
+      assert.match(state.drawing.dimensions.find(d => d.id === dim.id).lost, /No drawable circular arc/);
+      assert.deepEqual(f.report.downloads, []);
+      return;
+    }
+    async function begin() {
+      await button('Diameter').click();
+      await f.page.mouse.click(pick.x, pick.y);
+      await f.page.mouse.move(place.x, place.y);
+      await preview.waitFor();
+      return preview.getAttribute('d');
+    }
+    const canceledTip = await begin();
+    await f.snapshot('01-placement-preview');
+    assert.deepEqual(await f.doc(), original);
+    await f.page.keyboard.press('Escape');
+    await preview.waitFor({ state: 'detached' });
+    assert.deepEqual(await f.doc(), original);
+    assert.equal(await f.page.locator('g.dimension[data-view="detail:B"]').count(), 0);
+    const nextTip = await begin();
+    assert.equal(nextTip, canceledTip);
+    await f.page.mouse.click(place.x, place.y);
+    await f.changed(original);
+    const committed = await f.doc();
+    const [dim] = committed.drawing.dimensions;
+    assert.equal(dim.view, 'detail:B');
+    assert.equal(dim.kind, 'diameter');
+    assert.match(dim.edge, /^n1\.top\|n2\.side0#/);
+    assert.deepEqual(dim.near, [32, 16, 8]);
+    assert.deepEqual(committed, { ...original, drawing: { ...original.drawing, dimensions: [dim] } });
+    const arrow = f.page.locator(`g.dimension[data-dim="${dim.id}"] path[fill="#000"]`);
+    assert.equal(await arrow.getAttribute('d'), nextTip);
+    const state = await f.snapshot('02-committed');
+    assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === dim.id).value - 8) < 1e-9);
+    const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+    f.report.observations.push({ label: 'creation-output', svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+    await f.runOracle({ svg, dxf, id: dim.id, creation: true, opposite: true, expectClipped: false }, 'creation-output');
+    await f.undo();
+    await f.same(original);
+    await f.redo();
+    await f.same(committed);
+    assert.equal(await arrow.getAttribute('d'), nextTip);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   async function capture(action) {
     const index = await f.page.evaluate(() => window.__detailAnchorFiles.length);

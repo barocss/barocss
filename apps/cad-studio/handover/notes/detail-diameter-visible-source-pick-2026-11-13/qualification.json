@@ -1,0 +1,50 @@
+{
+  "decision": "D940",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "fae6ad4b58079daa92465ad0452ce90a93b14a7b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D940-regression",
+    "D940_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/baseline02 --baseline --create (parent product source, baseline driver revision)",
+    "D940_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/create02 --fixed --create",
+    "D939_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/d939-regression --fixed --covered",
+    "D938_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/d938-regression --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs drawing-detail drawing-issues",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "modelStatus": "PASS",
+    "modelPass": 29,
+    "studioStatus": "PASS",
+    "studioPass": 4,
+    "modelTypes": "PASS",
+    "studioTypes": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "firstFailureReceiptSHA256": "dd273467a0f879a63bcb4de3eb446f593a26be07b9225eacb01a5d55460efd17",
+    "baselineReceiptSHA256": "68e52d81ca7363af1e81da757c1d850accc3b0715a6c2e96931aa3c8d9a9e41a",
+    "receiptSHA256": "b917370a67c7778db3eb749493a12844f8efd6c54b5ac368b528032868db1405",
+    "d938RegressionReceiptSHA256": "2f145a7bf1ca47b92e6d83c0fbc795cb71ab5fb94212d19f83f7259f763bfa6d",
+    "d939RegressionReceiptSHA256": "4eb4f8cea6f924a5f3b41de2b3a2b46fb5e3f2760c30f5e8461d37f1bf041941",
+    "sourceManifestSHA256": "d9611487de0469fd48f81d27e6354aee0d5f64cef18ea9ebfc419acdaad302ab",
+    "oracleSHA256": "015e090661feb8bc0ac14e08b20a930d67ce74fce86c94f212ae5cd0d753554a",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 5464,
+    "svgSHA256": "cc00e53035901fd4cf65098bb6c4174658a8843e3e8d9087435ad820c06dc3b0",
+    "dxfBytes": 15400,
+    "dxfSHA256": "62f93200d08e042b9977a0407dcdbfcbebfd0c2cab92bae242da7219d1b57c61",
+    "diameterMM": 8,
+    "tipPaperMM": [307.5, 75.3175]
+  },
+  "notRun": ["crop scale changes", "full quadrant and negative matrix", "production build", "full suites", "PDF", "mobile"]
+}
