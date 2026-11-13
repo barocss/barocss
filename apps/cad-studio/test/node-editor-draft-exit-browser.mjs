@@ -3,13 +3,14 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed', '--skeleton-workspace-baseline', '--skeleton-workspace-fixed'].includes(mode));
 const step = mode.startsWith('--step');
 const openFlow = mode.startsWith('--open') || step;
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const skeletonKeys = mode.startsWith('--skeleton-keys');
+const skeletonWorkspace = mode.startsWith('--skeleton-workspace');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
 const project = mode.startsWith('--project');
@@ -27,8 +28,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: skeletonWorkspace ? 'D973_SOURCE_FROZEN' : skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: skeletonWorkspace ? 'Park the 3D Sketch in Render and Drawing and send Render history to the document.' : skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -247,10 +248,12 @@ async function checkSkeleton() {
   const page = f.page;
   const panel = page.getByRole('complementary', { name: '3D sketch', exact: true });
   const overlay = page.locator('.vp-overlay g[aria-label="3D sketch"][data-points]');
-  await button('New part').click();
-  await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
-  await f.ready();
-  const empty = await f.doc();
+  if (!skeletonWorkspace) {
+    await button('New part').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await f.ready();
+  }
+  const accepted = await f.doc();
   await page.locator('.views').getByRole('button', { name: 'Top', exact: true }).click();
   await page.waitForFunction(() => window.__studioEye?.()?.[2] > 0 &&
     document.querySelector('.view-cube .vc-label')?.textContent === 'TOP');
@@ -259,14 +262,15 @@ async function checkSkeleton() {
   await page.locator('.palette input').fill('3d sketch');
   await page.keyboard.press('Enter');
   await panel.waitFor();
-  for (const [index, world] of [[0, [0, 0, 0]], [1, [skeletonKeys ? 30 : 25, 0, 0]]]) {
+  for (const [index, world] of [[0, [0, 0, 0]], [1, [skeletonWorkspace ? 8 : skeletonKeys ? 30 : 25, 0, 0]]]) {
     const pixel = await page.evaluate(point => window.__studioScreenOf(point), world);
     assert.ok(pixel);
     await page.mouse.click(...pixel);
     await page.waitForFunction(count => Number(document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.points) === count, index + 1);
   }
   assert.equal(await overlay.getAttribute('data-segments'), '1');
-  if (skeletonKeys) { await checkSkeletonKeys(panel, empty); return; }
+  if (skeletonKeys) { await checkSkeletonKeys(panel, accepted); return; }
+  if (skeletonWorkspace) { await checkSkeletonWorkspace(panel, overlay, accepted); return; }
   await page.keyboard.press('Escape');
   await panel.waitFor();
   const xy = panel.getByRole('button', { name: 'XY', exact: true });
@@ -277,7 +281,7 @@ async function checkSkeleton() {
   await page.keyboard.press('Escape');
   if (mode === '--skeleton-baseline') {
     await panel.waitFor({ state: 'hidden' });
-    await f.same(empty);
+    await f.same(accepted);
     await f.snapshot('02-skeleton-lost');
     assert.fail('Final Escape silently discarded two points and their segment');
   }
@@ -294,7 +298,7 @@ async function checkSkeleton() {
   await page.keyboard.press('Escape');
   await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
   await panel.waitFor({ state: 'hidden' });
-  await f.same(empty);
+  await f.same(accepted);
   assert.equal(await overlay.count(), 0);
   await f.snapshot('03-skeleton-discarded');
 }
@@ -346,6 +350,85 @@ async function checkSkeletonKeys(panel, empty) {
   await f.same(empty);
   await f.snapshot('02-cancel-without-apply');
   assert.deepEqual(f.report.downloads, []);
+}
+
+async function checkSkeletonWorkspace(panel, overlay, accepted) {
+  const page = f.page;
+  const world = point => page.evaluate(p => window.__studioScreenOf(p), point);
+  const clickWorld = async point => page.mouse.click(...await world(point));
+  const draftPoints = () => overlay.locator('[data-point]').evaluateAll(points => points.map(point =>
+    [point.getAttribute('cx'), point.getAttribute('cy')]));
+  const expectedPoints = await draftPoints();
+  const render = page.getByRole('complementary', { name: 'Render', exact: true });
+
+  f.phase = 'park the sketch and use Render focus on the accepted body';
+  await tab('Render').click();
+  await panel.waitFor({ state: 'hidden' });
+  await render.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await render.getByRole('button', { name: 'Pick focus on part', exact: true }).click();
+  await clickWorld([2, 3, 2]);
+  await render.getByRole('button', { name: 'Pick focus on part', exact: true }).waitFor();
+  await f.changed(accepted);
+  const focused = await f.doc();
+  assert.ok(focused.render?.environment.post?.depthOfField?.focus > 0);
+  assert.deepEqual({ ...focused, render: accepted.render }, { ...accepted, render: accepted.render });
+
+  f.phase = 'compare Render keyboard Undo with toolbar Undo';
+  await page.keyboard.press('Meta+z');
+  if (mode.endsWith('baseline')) {
+    const afterKey = await f.snapshot('01-hidden-sketch-keyboard-undo');
+    assert.deepEqual(afterKey.doc, focused);
+    assert.ok(await overlay.count(), 'the hidden draft still owns a viewport overlay');
+    await button('Undo').click();
+    await f.same(accepted);
+    await f.snapshot('02-toolbar-undid-render-focus');
+    assert.fail('A hidden 3D Sketch intercepted keyboard Undo while toolbar Undo changed Render focus');
+  }
+  await f.same(accepted);
+  await button('Redo').click();
+  await f.same(focused);
+  await button('Undo').click();
+  await f.same(accepted);
+  await page.keyboard.press('Meta+Shift+z');
+  await f.same(focused);
+
+  f.phase = 'leave Render click, drag and Tab with the visible workspace';
+  assert.equal(await overlay.count(), 0);
+  await clickWorld([8, 7, 0]);
+  const [x, y] = await world([0, 0, 0]);
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 37, y - 28, { steps: 5 });
+  await page.mouse.up();
+  assert.equal(await overlay.count(), 0);
+  await render.getByRole('tab', { name: 'Scene', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await waitFocus(render.getByRole('tab', { name: 'Source', exact: true }));
+  await f.snapshot('01-render-focus-with-parked-sketch');
+
+  f.phase = 'navigate Drawing and restore the exact 3D Sketch in Model';
+  await tab('Drawing').click();
+  const sheet = page.locator('svg[aria-label="Drawing sheet"]');
+  await sheet.waitFor();
+  assert.equal(await overlay.count(), 0);
+  await sheet.click({ position: { x: 25, y: 25 } });
+  await page.keyboard.press('Tab');
+  await tab('Model').click();
+  await panel.waitFor();
+  assert.deepEqual(await draftPoints(), expectedPoints);
+  assert.equal(await overlay.getAttribute('data-segments'), '1');
+  assert.equal(await panel.getByRole('button', { name: 'XY', exact: true }).getAttribute('aria-pressed'), 'true');
+  await f.same(focused);
+  await f.snapshot('02-exact-sketch-resumed');
+
+  f.phase = 'keep visible 3D Sketch toolbar history within the draft';
+  await button('Undo').click();
+  assert.equal(await overlay.getAttribute('data-points'), '1');
+  await button('Redo').click();
+  assert.deepEqual(await draftPoints(), expectedPoints);
+  assert.equal(await overlay.getAttribute('data-segments'), '1');
+  await f.same(focused);
+  await f.snapshot('03-draft-history-retains-render-focus');
 }
 
 async function checkInPlace() {

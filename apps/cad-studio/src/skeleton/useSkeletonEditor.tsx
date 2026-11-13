@@ -4,7 +4,7 @@
 // constraints a selection offers, the diagnosis (well, under, over, conflict) drawn on the points and marks, a session
 // undo, and Apply writing the node once (stored solved, as the model keeps it). Without a session, the document's
 // skeletons drawn faint.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { featureLabel, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Command } from '@barocss/cad-model/app/commands';
 import type { Axis3, BoundConstraint3D, V3 } from '@barocss/cad-model/frames/sketch3d';
@@ -43,6 +43,7 @@ export interface SkeletonEditor {
   readonly session: SkeletonSession | null;
   begin(node: number | null): void;
   readonly tool: ViewportTool | null;
+  readonly historyAvailable: { undo: boolean; redo: boolean };
   readonly diagnosis: Diagnosis | null;
   readonly selection: Selection3D;
   select(sel: Selection3D): void;
@@ -66,7 +67,7 @@ function settled(d: SkeletonDraft, parameters: Readonly<Record<string, number>>)
   return 'error' in r || r.solve.status === 'conflict' ? d : { ...d, points: r.solve.points };
 }
 
-export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => void, fail: (title: string, hint: string) => void, snapStep: number): SkeletonEditor {
+export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => void, fail: (title: string, hint: string) => void, snapStep: number, inputActive: boolean): SkeletonEditor {
   const [session, setSession] = useState<SkeletonSession | null>(null);
   const [selection, select] = useState<Selection3D>(NO_SELECTION);
   const [mode, setMode] = useState<SkeletonMode>('draw');
@@ -81,8 +82,14 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   const press = useRef<{ x: number; y: number; snap: Snap | null } | null>(null);
   const history = useRef<{ past: SkeletonDraft[]; future: SkeletonDraft[] }>({ past: [], future: [] });
   const params = doc.parameters;
-  const ref = useRef({ session, selection, mode, plane, axis, params, snapStep });
-  ref.current = { session, selection, mode, plane, axis, params, snapStep };
+  const ref = useRef({ session, selection, mode, plane, axis, params, snapStep, inputActive });
+  ref.current = { session, selection, mode, plane, axis, params, snapStep, inputActive };
+  useLayoutEffect(() => {
+    if (inputActive) return;
+    press.current = null;
+    drag.current = null;
+    hover.current = { at: null, snap: null };
+  }, [inputActive]);
 
   const diagnosis = useMemo(() => session ? diagnoseDraft(session.draft, params) : null, [session, params]);
   const from = useRef<ModelNode | null>(null);
@@ -100,7 +107,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     from.current = n ?? null;
     const draft: SkeletonDraft = n ? { points: n.points.map(p => p.map(Number) as V3), segments: n.segments.map(s => [...s] as [number, number]), constraints: [...(n.constraints ?? [])] } : { points: [], segments: [], constraints: [] };
     setSession({ node, draft, ...(n?.name ? { name: n.name } : {}) }); select(NO_SELECTION); setMode(n ? 'select' : 'draw'); setAxis(null); setLastDrag(null);
-    chain.current = null; drag.current = null; history.current = { past: [], future: [] };
+    chain.current = null; press.current = null; drag.current = null; history.current = { past: [], future: [] };
   }, [doc]);
 
   // The part changed under an edit (a file opened, the agent's edit): the session ends with nothing written, and says so.
@@ -110,7 +117,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     fail('3D sketch ended', 'The part changed while the skeleton was being edited; nothing was written. Edit it again.');
   }, [doc, session, fail]);
 
-  const end = useCallback(() => { setSession(null); select(NO_SELECTION); chain.current = null; drag.current = null; from.current = null; }, []);
+  const end = useCallback(() => { setSession(null); select(NO_SELECTION); chain.current = null; press.current = null; drag.current = null; from.current = null; }, []);
   const apply = useCallback(() => {
     const s = ref.current.session; if (!s) return;
     if (!s.draft.points.length) { end(); return; }
@@ -167,10 +174,10 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
 
   const tool = useMemo((): ViewportTool | null => {
     const skeletons = doc.nodes.flatMap((n, i) => n.kind === 'skeleton' && !n.suppressed ? [{ i, n }] : []);
-    if (!session && !skeletons.length) return null;
+    if ((!session || !inputActive) && !skeletons.length) return null;
     return {
       down(x, y, view, e) {
-        const { session: s, mode: m } = ref.current; if (!s) return false;
+        const { session: s, mode: m } = ref.current; if (!s || !ref.current.inputActive) return false;
         const snap = nearestSnap(x, y, view.project, s.draft.points, [], 9);
         if (m === 'select') {
           if (snap?.kind === 'point') {
@@ -189,7 +196,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
         return true;
       },
       move(x, y, view, e) {
-        const s = ref.current.session; if (!s) return false;
+        const s = ref.current.session; if (!s || !ref.current.inputActive) return false;
         const d = drag.current;
         if (d && e.buttons & 1) {
           if (!d.moved && Math.hypot(x - d.x, y - d.y) < 3) return true;
@@ -216,7 +223,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
         return true;
       },
       up(x, y, view) {
-        const s = ref.current.session; if (!s) return;
+        const s = ref.current.session; if (!s || !ref.current.inputActive) return;
         const d = drag.current; drag.current = null;
         if (d) { if (d.moved && d.live) step({ ...s.draft, points: d.live }); return; }
         const p = press.current; press.current = null; if (!p) return;
@@ -232,20 +239,19 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
         if (draft !== s.draft) step(draft);
       },
       marks(view) {
-        const s = ref.current.session;
+        const s = ref.current.inputActive ? ref.current.session : null;
         return <SkeletonMarks view={view} skeletons={s ? skeletons.filter(k => k.i !== s.node).map(k => k.n) : skeletons.map(k => k.n)}
           draft={s ? { ...s.draft, points: drag.current?.live ?? s.draft.points } : null} diagnosis={s ? (drag.current?.live ? diagnoseDraft({ ...s.draft, points: drag.current.live }, ref.current.params) : diagnosis) : null}
           selection={ref.current.selection} chainFrom={ref.current.mode === 'draw' ? chain.current : null} hover={s ? hover.current : null} dragging={drag.current?.moved ? drag.current.index : null} plane={ref.current.plane} axis={ref.current.axis}
           onPickConstraint={(k, additive) => select(sel => additive ? { ...sel, constraints: sel.constraints.includes(k) ? sel.constraints.filter(c => c !== k) : [...sel.constraints, k] } : { ...NO_SELECTION, constraints: [k] })} />;
       },
     };
-  }, [doc.nodes, session, diagnosis, step]);
+  }, [doc.nodes, session, diagnosis, inputActive, step]);
 
   const onKey = useCallback<SkeletonEditor['onKey']>((e, requestExit) => {
     const s = ref.current.session; if (!s) return false;
     const typing = (e.target as HTMLElement | null)?.closest?.('input, textarea, select');
     if (typing && e.key !== 'Escape') return false;
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return true; }
     if (e.metaKey || e.ctrlKey || e.altKey) return false;
     switch (e.key) {
       case 'Escape':
@@ -270,9 +276,10 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
       // (Other letters are not the App's commands while it is open; F still frames.)
       default: return e.key.length === 1 && e.key.toLowerCase() !== 'f';
     }
-  }, [apply, end, removeSelected, undo, redo]);
+  }, [apply, end, removeSelected]);
 
-  return { session, begin, tool, diagnosis, selection, select, mode, setMode, plane, setPlane, axis, setAxis, addConstraint, setValue, removeSelected, undo, redo, apply, cancel: end, onKey, lastDrag };
+  const historyAvailable = { undo: history.current.past.length > 0, redo: history.current.future.length > 0 };
+  return { session, begin, tool, historyAvailable, diagnosis, selection, select, mode, setMode, plane, setPlane, axis, setAxis, addConstraint, setValue, removeSelected, undo, redo, apply, cancel: end, onKey, lastDrag };
 }
 
 /** A point on an axis line through `from`, its distance along the axis on the grid. */

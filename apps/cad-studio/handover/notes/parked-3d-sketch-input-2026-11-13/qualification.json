@@ -1,0 +1,53 @@
+{
+  "decision": "D973",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "b4da47a7e59394d265dcd57ec67998ab2e3dda36",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D973-skeleton-workspace-baseline",
+    "D973_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/baseline02 --skeleton-workspace-baseline",
+    "gate.sh acquire heavy 600 D973-skeleton-workspace-fixed",
+    "D973_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --skeleton-workspace-fixed",
+    "gate.sh acquire heavy 600 D973-small",
+    "pnpm --filter @barocss/cad-studio-app test skeleton work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "8a31f8e5165cb7e235c68111686db351aecdeb36b0ef22966686530018ec96fb"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "9ebaafa77a1ba5f1189e32b8944751970b8a02af99c185b8ee44b6aa964e9070",
+    "sourceManifestSHA256": "76d43260774266e5275f32ea198aa1fc5fcf60e4941ec1788ed6977eee44fc7a",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "focusMM": 39.246795947048845,
+    "draftPoints": 2,
+    "draftSegments": 1,
+    "plane": "XY"
+  },
+  "focusedTests": {
+    "pass": 20,
+    "fail": 0
+  },
+  "notRun": [
+    "SubD Cage workspace ownership",
+    "switching workspace during a held pointer",
+    "committed skeleton overlay regression",
+    "Mate and Hole activation",
+    "Delete confirmation",
+    "WebGL2",
+    "project reopen",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

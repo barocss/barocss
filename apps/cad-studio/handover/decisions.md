@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D973 — keep parked 3D Sketch out of workspace input and history](notes/parked-3d-sketch-input-2026-11-13/README.md).
 - [D972 — keep 3D Sketch constraint focus and native control keys](notes/3d-sketch-constraint-keyboard-2026-11-13/README.md).
 - [D971 — protect drafts on History menu and Browser feature edits](notes/alternate-feature-draft-entry-points-2026-11-13/README.md).
 - [D970 — protect a Box draft after STEP validation](notes/step-open-box-draft-2026-11-13/README.md).

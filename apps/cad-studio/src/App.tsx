@@ -726,7 +726,8 @@ export function App() {
   const cageEdRef = useRef<ReturnType<typeof useCageEditor>>(null!);
   const cageEd = useCageEditor(doc, useCallback((d: StudioDoc) => engine.preview(d, revision.current++), [engine]), useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []));
   // (G17: the 3D sketch's session — points, segments, FRg's constraints — written as one skeleton feature on Apply.)
-  const skel = useSkeletonEditor(doc, useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []), snapStep);
+  const sketch3dInputActive = !rendering && !drawing && !sketch && !cageEd.session;
+  const skel = useSkeletonEditor(doc, useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []), snapStep, sketch3dInputActive);
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
@@ -2117,7 +2118,13 @@ export function App() {
   // that click's selection, not the one before it (effects run only after the frame is painted).
   const sketchHistoryGeneration = sketchGeneration.current;
   const sketchHistoryAvailable = sketch ? sketchHistory.available(draftHistoryState(doc, sketch)) : null;
+  const skeletonHistoryAvailable = sketch3dInputActive && skel.session ? skel.historyAvailable : null;
+  const editorHistoryAvailable = sketchHistoryAvailable ?? skeletonHistoryAvailable;
   const replayHistory = (forward: boolean, event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (skeletonHistoryAvailable) {
+      if (forward) skel.redo(); else skel.undo();
+      return;
+    }
     if (!sketch) {
       if (!(forward ? redo : undo).length) return;
       workspaceModeExit.switchWhenReady(() => {
@@ -2191,7 +2198,7 @@ export function App() {
       if (e.key === 'Tab' && (control || typing || (target instanceof HTMLElement && target.tabIndex >= 0))) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
-      if (skel.onKey(e, (readFeature, close) => workspaceModeExit.switchWhenReady(close, { readFeature }))) return;
+      if (sketch3dInputActive && skel.onKey(e, (readFeature, close) => workspaceModeExit.switchWhenReady(close, { readFeature }))) return;
       if (undoKey) { e.preventDefault(); replayHistory(e.shiftKey); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && !active && !sketch) { e.preventDefault(); start(commands.find(c => c.id === 'duplicate')!); return; }
@@ -2806,7 +2813,7 @@ export function App() {
         setSelection={next => { if (interference.ownsResult()) setSelection(next); }} />}
       {/* (A running command's HUD takes this place at the right.) */}
       {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
-      {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
+      {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
         {editNode !== null && <NodeEditor onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
@@ -2920,8 +2927,8 @@ export function App() {
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
         <ToolsTray items={[
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
-          <ToolIconButton key="tool1" aria-label="Undo" data-tip={sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.undo : !undo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(false, event)}><Icon name="undo" /></ToolIconButton>,
-          <ToolIconButton key="tool2" aria-label="Redo" data-tip={sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.redo : !redo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(true, event)}><Icon name="redo" /></ToolIconButton>,
+          <ToolIconButton key="tool1" aria-label="Undo" data-tip={skeletonHistoryAvailable ? 'Undo 3D sketch edit' : sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.undo : !undo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(false, event)}><Icon name="undo" /></ToolIconButton>,
+          <ToolIconButton key="tool2" aria-label="Redo" data-tip={skeletonHistoryAvailable ? 'Redo 3D sketch edit' : sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.redo : !redo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(true, event)}><Icon name="redo" /></ToolIconButton>,
           <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onPointerDown={workspaceModeExit.rememberFocus}
             onClick={event => {
               if (sessionBlocked('starting a new part')) return;
