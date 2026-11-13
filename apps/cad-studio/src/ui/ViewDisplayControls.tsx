@@ -43,6 +43,7 @@ export interface ViewDisplayState {
 
 export interface ViewCameraControls {
   ortho: boolean;
+  sketching: boolean;
   ao: boolean;
   setAo: StateSetter<boolean>;
   theme: 'dark' | 'light';
@@ -101,7 +102,7 @@ export interface ViewDisplayControlsProps {
 export function ViewDisplayControls({ doc, viewport, cornerRight, display, view, section: sectionState, analysis: analysisState, picking, explodeStore }: ViewDisplayControlsProps) {
   const { displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason,
     displayModeReason, displayModeNotice, clearDisplayModeFailure, isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection } = display;
-  const { ortho, ao, setAo, theme, setTheme, rendering, printing, viewBackend } = view;
+  const { ortho, sketching, ao, setAo, theme, setTheme, rendering, printing, viewBackend } = view;
   const aoAvailable = !lineDisplayMode(effectiveDisplayMode), aoActive = aoAvailable && ao;
   const { section, setSection, sectionHatchOn, setSectionHatchOn, sectionBox, sectionFacePick, setSectionFacePick, sketchSection, cameraEye } = sectionState;
   const { analysis, setAnalysis, mapKind, setMapKind, mapLegend, mapHover, setMapHover, mouldResult, mouldSpread, setMouldSpread } = analysisState;
@@ -148,6 +149,8 @@ export function ViewDisplayControls({ doc, viewport, cornerRight, display, view,
           <Button size="sm" variant={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'default' : 'ghost'} aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
             title="The display mode and isolate (the previews are in the dock)" onClick={() => setDisplayOpen(o => !o)}>Display</Button>
           {(['iso', 'top', 'front', 'right'] as const).map(v => <Button size="sm" variant="ghost" key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</Button>)}
+          {sketching && <Button size="sm" variant="ghost" aria-label="Normal to sketch" title="Normal to sketch"
+            onClick={() => viewport.current?.faceActiveSketch()}><Icon name="filter_center_focus" small /></Button>}
           <Button size="sm" variant="ghost" onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></Button>
           <Button size="sm" variant={section ? 'default' : 'ghost'} className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
             onClick={toggleSection}>

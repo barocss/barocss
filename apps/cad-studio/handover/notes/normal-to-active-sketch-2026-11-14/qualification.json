@@ -1,0 +1,80 @@
+{
+  "decision": "D1124",
+  "tier": "FEATURE",
+  "parent": "bd9105c47c9504d38aa74f269ea05ecff710538e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1124-normal-sketch-view-<run>",
+    "D1124_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --normal-sketch-view",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs camera-projector camera-relative-query small-camera-scale",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/Viewport.tsx apps/cad-studio/src/ui/ViewDisplayControls.tsx",
+    "D864_DPR2=1 D1124_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --normal-sketch-view",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "98a78b82feea9ea670bf2ec0a8bfe6b2b8bc7e75ade44cb57d2b39f76f303fec",
+      "sourceManifestSHA256": "fe64d8381c95237c8c09751a28a9d0f47db47b16c800098a4b91a6c9b375f822",
+      "savedFiles": [],
+      "firstFailure": "The orbited active tilted sketch had no action to look normal to its plane."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "bc0f5920b2d7d2f6bc7e7e9bfec6e26b5680323603327fbbf1df169bc6751c3a",
+      "sourceManifestSHA256": "3fced1ee0b462625db2040e9c7a29f578e3cc2ea356ef2d0a2abef5aa6d6971e",
+      "savedFiles": [
+        {
+          "bytes": 1058,
+          "sha256": "fc30aeb8d3ce30a1665bcfa79fb085e552d0b1a06a2b3c13b4466c158a18d3f1"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "eb3543600627255b7677ec8787bdcfc9f8227b2ad2d5743cd43cc639bf0924d0",
+      "sourceManifestSHA256": "3fced1ee0b462625db2040e9c7a29f578e3cc2ea356ef2d0a2abef5aa6d6971e",
+      "savedFiles": [
+        {
+          "bytes": 1058,
+          "sha256": "fc30aeb8d3ce30a1665bcfa79fb085e552d0b1a06a2b3c13b4466c158a18d3f1"
+        }
+      ]
+    }
+  },
+  "planeNormal": [
+    0,
+    0.6,
+    0.8
+  ],
+  "draftSizeMM": [
+    6,
+    4
+  ],
+  "projectionRatioBefore": 1.1730593552249817,
+  "projectionRatioAfter": 1.0000000109384666,
+  "axisCosineBefore": 0.12190441392746575,
+  "axisCosineAfter": 0,
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 50,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

@@ -13,9 +13,11 @@ const smallCircleRadius = process.argv[3] === '--small-circle-radius';
 const nearbyCrossings = process.argv[3] === '--nearby-crossings';
 const snappedCircleHole = process.argv[3] === '--snapped-circle-hole';
 const crossingLimits = process.argv[3] === '--crossing-limits';
+const normalSketchView = process.argv[3] === '--normal-sketch-view';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
+  ...(normalSketchView ? ['apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/ViewDisplayControls.tsx'] : []),
   'apps/cad-studio/src/viewport/modelSketchSnaps.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
@@ -27,7 +29,8 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: crossingLimits ? 'D1123_SOURCE_FROZEN' : snappedCircleHole ? 'D1122_SOURCE_FROZEN' : nearbyCrossings ? 'D1121_SOURCE_FROZEN'
+  envFrozen: normalSketchView ? 'D1124_SOURCE_FROZEN' : crossingLimits ? 'D1123_SOURCE_FROZEN'
+    : snappedCircleHole ? 'D1122_SOURCE_FROZEN' : nearbyCrossings ? 'D1121_SOURCE_FROZEN'
     : smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
     : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
@@ -724,6 +727,76 @@ async function checkCurvedCrossing() {
   await f.same(cylinder);
 }
 
+async function checkNormalSketchView() {
+  const world = ([x, y]) => [x, 3.6 + 0.8 * y, 4.8 - 0.6 * y];
+  const basis = [[3, 8], [8, 8], [3, 13]].map(world);
+  const projection = async () => {
+    const [a, b, c] = await f.page.evaluate(points => points.map(point => window.__studioScreenOf(point)), basis);
+    const u = [b[0] - a[0], b[1] - a[1]], v = [c[0] - a[0], c[1] - a[1]];
+    const lu = Math.hypot(...u), lv = Math.hypot(...v);
+    return { ratio: lu / lv, cosine: (u[0] * v[0] + u[1] * v[1]) / (lu * lv) };
+  };
+  const normal = async () => {
+    const view = await projection();
+    assert.ok(Math.abs(view.ratio - 1) < 1e-6 && Math.abs(view.cosine) < 1e-6, JSON.stringify(view));
+    return view;
+  };
+  const normalButton = () => button(f.page, 'Normal to sketch');
+  const orbit = async () => {
+    const p = await pixel(world([8, 15]));
+    await f.page.mouse.move(...p);
+    await f.page.mouse.down({ button: 'right' });
+    await f.page.mouse.move(p[0] + 90, p[1] + 64, { steps: 6 });
+    await f.page.mouse.up({ button: 'right' });
+    const view = await projection();
+    assert.ok(Math.abs(view.ratio - 1) > 0.01 || Math.abs(view.cosine) > 0.01, JSON.stringify(view));
+    return view;
+  };
+  const restore = async label => {
+    const before = await orbit();
+    await f.snapshot(label + '-orbited');
+    assert.ok(await normalButton().isVisible(), 'an active tilted sketch must offer Normal to sketch');
+    await normalButton().click();
+    const after = await normal();
+    f.report.observations.push({ label, before, after });
+    await f.snapshot(label + '-normal');
+  };
+  const panel = () => f.sketchPanel();
+  const dimensions = async () => Promise.all(['x', 'y', 'width', 'height'].map(key =>
+    panel().locator('#sk-' + key).inputValue().then(Number)));
+  assert.equal(await normalButton().count(), 0);
+  f.phase = 'restore an orbited active tilted sketch';
+  await begin(0);
+  await tilt();
+  await normal();
+  await f.page.mouse.click(...await hover(world([3, 8]), null));
+  await f.page.mouse.click(...await hover(world([9, 12]), null));
+  assert.deepEqual(await dimensions(), [3, 8, 6, 4]);
+  await restore('active-tilted-sketch');
+  assert.deepEqual(await dimensions(), [3, 8, 6, 4]);
+  assert.deepEqual(await f.doc(), source);
+  const saved = (await f.finishSketch('normal-view-finished')).doc;
+  assert.deepEqual(saved.nodes[2].min, [3, 8]);
+  assert.deepEqual(saved.nodes[2].max, [9, 12]);
+  const file = await saveInProject(saved, 'saved-normal-view.bcad');
+  await f.freshOpen(file, saved, 'normal-view-fresh-open');
+  f.phase = 'restore the same view during history sketch editing';
+  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · rectangle').click();
+  await button(f.editor(), 'Edit sketch').click();
+  await panel().waitFor();
+  const lengths = async () => Promise.all([0, 1, 2, 3].map(index =>
+    panel().locator('#sk-len' + index).inputValue().then(Number)));
+  assert.deepEqual(await lengths(), [6, 4, 6, 4]);
+  await restore('history-tilted-sketch');
+  assert.deepEqual(await lengths(), [6, 4, 6, 4]);
+  assert.deepEqual(await f.doc(), saved);
+  await f.page.evaluate(() => document.activeElement?.blur());
+  await f.page.keyboard.press('Escape');
+  await panel().waitFor({ state: 'hidden' });
+  assert.equal(await normalButton().count(), 0);
+  await f.same(saved);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin, newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
@@ -745,6 +818,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (normalSketchView) {
+    await checkNormalSketchView();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (nearbyCrossings || crossingLimits) {
     await checkNearbyCrossings();
     if (crossingLimits) await checkCurvedCrossing();

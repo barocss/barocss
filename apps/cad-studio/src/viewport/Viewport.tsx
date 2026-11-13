@@ -47,6 +47,7 @@ export interface ViewportHandle {
   startRectangleAt(owner: SketchState, at: [number, number]): boolean;
   /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
   frameSketch(min: [number, number], max: [number, number], plane: SketchPlane): void;
+  faceActiveSketch(): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
@@ -778,6 +779,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     fit(box) { const b = sourceProps.printActive ? boundsForFit() : box ?? boundsForFit(); if (b) fitBounds(b); request(); },
     setView(name) { camera.current.setView(name); const b = boundsForFit(); if (b) fitBounds(b); request(); },
     frameSketch(min, max, plane) { pendingSketchFrame.current = { min, max, plane }; },
+    faceActiveSketch() {
+      const plane = propsRef.current.sketch?.plane;
+      if (!plane) return;
+      camera.current.faceNormal(plane.normal);
+      request();
+    },
     toggleOrtho() { setOrthographic(!camera.current.ortho); request(); return camera.current.ortho; },
     getDisplayModeStatus() {
       const status = renderer.current?.getDisplayModeStatus?.() ?? null;
