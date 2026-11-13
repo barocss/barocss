@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1022 — name the dependency order for Pattern and Hole suppression](notes/fixed-span-hole-suppression-order-2026-11-13/README.md).
 - [D1021 — preserve rectangular cut pockets when the cutter misses the stock](notes/rectangular-cut-cutter-miss-2026-11-13/README.md).
 - [D1020 — keep a Fixed span Hole on the physical end copy](notes/fixed-span-end-hole-count-2026-11-13/README.md).
 - [D1019 — name the dependent Hole when Count removes its copy](notes/linear-pattern-hole-count-refusal-2026-11-13/README.md).

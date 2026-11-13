@@ -1,0 +1,60 @@
+{
+  "decision": "D1022",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "9f37b001010ce8055aff8db5b1db48521ad73bf7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1022-section-baseline",
+    "gate.sh acquire heavy 600 D1022-section-studio01",
+    "D1022_SOURCE_FROZEN=1 node apps/cad-studio/test/fixed-span-hole-suppression-browser.mjs <external-evidence>/baseline",
+    "D1022_SOURCE_FROZEN=1 node apps/cad-studio/test/fixed-span-hole-suppression-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1022-suppression-regression",
+    "D991_SOURCE_FROZEN=1 node apps/cad-studio/test/dependent-fillet-suppression-browser.mjs <external-evidence>/fillet-regression --fixed",
+    "gate.sh acquire heavy 600 D1022-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test document-file failed-feature linear-span-pattern",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/fixed-span-hole-suppression-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The primary suppression hint did not identify both steps in order.",
+    "receiptSHA256": "510c1a8cf5fb72f1eaefadf46741a8a1439af66f635e6f8fba941692a3150a8a",
+    "sourceManifestSHA256": "f8d3301fbabad2bf6ce7b2917fccb969424bfa6f9e0b40e46e9500e27938e434"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "fe59d82825e657716ceb38d729b9fbd446c85e49f2090152b4cd11d98ed39a43",
+    "sourceManifestSHA256": "d37df3ab679e6cb07fbfdd4539cafd4637f45421fcdfcab2dd14e27c7ba583c8",
+    "frozenFiles": 852,
+    "states": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pattern": "n2",
+    "hole": "n3",
+    "face": "n1.top@2",
+    "volumeToleranceMM3": 1e-07
+  },
+  "filletRegression": {
+    "status": "PASS",
+    "receiptSHA256": "080bcfba2b52b027f0a402b92e96c36ac645f1374c0276f8e4af6f2c9ed15802"
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 18,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "fresh Open of suppressed or retargeted states",
+    "other dependent feature families",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

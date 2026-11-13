@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { featureLabel, parentsOf, prefixDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { refOf, type Selection } from '@barocss/cad-model/app/commands';
@@ -76,10 +77,22 @@ export function useFeatureHistory({ model, worker, suppression, changes, onNotic
       if (suppressionRequest.current !== request || !owns()) return;
       if (!result.ok) {
         const failed = failedFeatureText(result.error.feature, next.nodes, doc.nodes);
-        const dependent = !n.suppressed && failed && next.nodes.slice(i + 1).some(node => node.id === result.error.feature);
+        const failedIndex = result.error.feature ? nodeIndexOf(next.nodes, result.error.feature) : -1;
+        const failedNode = next.nodes[failedIndex];
+        const dependent = !n.suppressed && failed && failedIndex > i;
+        let hint = dependent ? `The edit would break ${failed}. Update or suppress that feature first.` : result.error.hint;
+        const isPattern = (node: ModelNode | undefined) => node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern';
+        if (dependent && isPattern(n) && failedNode?.kind === 'hole' && failedNode.parent.node === i && /@\d+$/.test(failedNode.face ?? '')) {
+          hint = `Suppress ${failed} before suppressing ${label} (${featureId(doc.nodes, i)}).`;
+        } else if (n.suppressed && failedIndex === i && n.kind === 'hole' && /@\d+$/.test(n.face ?? '')) {
+          const parent = doc.nodes[n.parent.node];
+          if (parent?.suppressed && isPattern(parent)) {
+            const source = featureLabel(parent, n.parent.node, doc.nodes);
+            hint = `Unsuppress ${source} (${featureId(doc.nodes, n.parent.node)}) before unsuppressing ${label} (${featureId(doc.nodes, i)}).`;
+          }
+        }
         setToast({
-          ...result.error, title: `${title}: ${result.error.title}`,
-          hint: dependent ? `The edit would break ${failed}. Update or suppress that feature first.` : result.error.hint,
+          ...result.error, title: `${title}: ${result.error.title}`, hint,
         }, { acceptedDocument: true });
         return;
       }
