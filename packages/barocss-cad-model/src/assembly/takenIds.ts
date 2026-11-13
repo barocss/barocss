@@ -1,5 +1,6 @@
 // A new part cannot take an occurrence id still named by an assembly or drawing reference.
 import type { StudioDoc } from '../engine/doc';
+import { dimensionEdgeNames } from '../drawing/dimensionReferences';
 import { hostOf } from '../engine/occurrences';
 import { nextFreeId } from '../util/ids';
 
@@ -11,20 +12,7 @@ function reserveDrawingIds(taken: Set<string>, drawing: NonNullable<Naming['draw
     if (typeof name === 'string' && name.includes('/')) taken.add(hostOf(name));
   };
   if (drawing.scope?.kind === 'part' && drawing.scope.part) taken.add(drawing.scope.part);
-  for (const dim of drawing.dimensions ?? []) {
-    if (dim.kind === 'linear' || dim.kind === 'angle') {
-      reserve(dim.a?.edge);
-      reserve(dim.b?.edge);
-      if (dim.kind === 'linear') {
-        for (const member of dim.a?.ring ?? []) reserve(member.edge);
-        for (const member of dim.b?.ring ?? []) reserve(member.edge);
-      }
-    } else if (dim.kind === 'pcd') {
-      for (const member of dim.ring ?? []) reserve(member.edge);
-    } else {
-      reserve(dim.edge);
-    }
-  }
+  for (const dim of drawing.dimensions ?? []) for (const name of dimensionEdgeNames(dim)) reserve(name);
   for (const datum of drawing.datums ?? []) {
     reserve(datum.edge?.edge);
     reserve(datum.face?.face);

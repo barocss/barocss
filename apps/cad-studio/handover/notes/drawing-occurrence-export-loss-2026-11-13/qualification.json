@@ -1,0 +1,63 @@
+{
+  "decision": "D1032",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "b71aa7b33f7f8ad1c8159d0f12eb4210a65b2eba",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1032-section-baseline01",
+    "D1032_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-occurrence-export-loss-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1032-section-studio03",
+    "D1032_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-occurrence-export-loss-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1032-regression",
+    "D1029_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-occurrence-reuse-browser.mjs <external-evidence>/reuse-regression",
+    "gate.sh acquire heavy 600 D1032-final-focused",
+    "node --check apps/cad-studio/test/drawing-occurrence-export-loss-browser.mjs",
+    "pnpm --filter @barocss/cad-model test assembly-steps drawing-scope drawing-current-contract drawing-issues",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "unwarnedOutputs": 4,
+    "receiptSHA256": "2bdbf580b0ad2bbc5828b0a721e68b82acbd0a6204854f785908234347187280",
+    "sourceManifestSHA256": "a564a945801ae7174efa69fa4e4f1fdb8c96247a0ff4aa08bf6ea18f24747d30"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "frozenFiles": 379,
+    "outputBlobs": 7,
+    "warningStates": 5,
+    "receiptSHA256": "2d441a85efb5b8e4a7d12c4e8a5e13e2a69179841c35f5195384c523e188a7a3",
+    "sourceManifestSHA256": "edd0b12cd6f36f37ec63857d37bd474648f08dcabf6892000dfb607e962c5dda",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "reuseRegression": {
+    "status": "PASS",
+    "receiptSHA256": "c306e807b45ef0723e2c29a67c454d7c74d7f1d5f774d6fe6d78ebb8a6a4f88d",
+    "sourceManifestSHA256": "93ce35a0870d1062500a650baf2fb418c1e20c1a64f91dbbdd56e0076958147e"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 46,
+    "studioPassed": 17,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "notRun": [
+    "desktop nested and multi-sheet controls",
+    "PDF visual or numerical acceptance",
+    "external DXF import",
+    "section-only DXF",
+    "explicit reattachment",
+    "Redo row deletion",
+    "full suites",
+    "production build",
+    "mobile"
+  ]
+}

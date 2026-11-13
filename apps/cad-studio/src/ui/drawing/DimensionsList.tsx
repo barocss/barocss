@@ -7,8 +7,9 @@ import { Icon, Kbd } from '../atoms';
 import { Button } from '@/components/ui/button';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function DimensionsList({ sheet, views, layout, scope, settings, selected, onSelect, remove, autoDimension }: {
+export function DimensionsList({ sheet, views, layout, scope, settings, occurrenceReasons, selected, onSelect, remove, autoDimension }: {
   sheet: Sheet['sheet']; views: Sheet['views']; layout: Sheet['layout']; scope: Sheet['scope']; settings: DrawingSettings; selected: string | null;
+  occurrenceReasons: ReadonlyMap<string, string>;
   onSelect(id: string): void; remove(id: string): void; autoDimension(): Promise<void>;
 }) {
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
@@ -16,7 +17,7 @@ export function DimensionsList({ sheet, views, layout, scope, settings, selected
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
           <Button variant="ghost" disabled={!views || !layout || scope.kind === 'assembly'} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: keeps your dimensions and authored tolerances">Auto</Button></div>
         <div className="dw-dims">
-          {sheet?.dimensions.map(r => <div key={r.dim.id} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
+          {sheet?.dimensions.map(r => <div key={r.dim.id} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : occurrenceReasons.get(r.dim.id) ?? r.reason}
             >
             <button type="button" className="dw-annotation-select" aria-pressed={selected === r.dim.id} onClick={() => onSelect(r.dim.id)}>
               <b>{r.ok ? dimensionLine(r, presetFor(settings)) : 'lost'}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>

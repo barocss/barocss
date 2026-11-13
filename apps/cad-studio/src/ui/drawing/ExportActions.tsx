@@ -1,4 +1,5 @@
 // The drawing's EXPORT (O16: split from DrawingWorkspace, on shadcn's components): SVG, PDF, DXF (2000 or R12), a section's DXF alone.
+import { useEffect, useRef } from 'react';
 import type { DxfVersion } from '@barocss/cad';
 import { VIEWS, scaleLabel } from '@barocss/cad-model/drawing/views';
 import { VIEW_IDS, type DrawingSettings } from '@barocss/cad-model/drawing/types';
@@ -9,12 +10,18 @@ import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function ExportActions({ sheets = 1, sheet, canExportPdf, layout, views, cuts, settings, dxfVersion, setDxfVersion, dxfCut, setDxfSection, exportSvg, exportPdf, exportDxf, exportSectionDxf }: {
+export function ExportActions({ sheets = 1, sheet, canExportPdf, layout, views, cuts, settings, dxfVersion, setDxfVersion, dxfCut, setDxfSection, exportSvg, exportPdf, exportDxf, exportSectionDxf, confirmation }: {
   /** 11 ④: how many sheets the drawing has (the PDF has them all; the SVG and the DXF are of the sheet shown). */ sheets?: number;
   sheet: Sheet['sheet']; canExportPdf: boolean; layout: Sheet['layout']; views: Sheet['views']; cuts: Sheet['cuts']; settings: DrawingSettings;
   dxfVersion: DxfVersion; setDxfVersion(v: DxfVersion): void; dxfCut: Sheet['cuts'][number] | undefined; setDxfSection(id: string): void;
+  confirmation: { format: string; messages: string[]; onCancel(): void; onConfirm(): void } | null;
   exportSvg(): void; exportPdf(): void; exportDxf(): void; exportSectionDxf(): void;
 }) {
+  const confirmPanel = useRef<HTMLDivElement>(null);
+  const pendingFormat = confirmation?.format;
+  useEffect(() => {
+    if (pendingFormat) confirmPanel.current?.focus();
+  }, [pendingFormat]);
   return <>
         <div className="card-title" style={{ marginTop: 8 }}>EXPORT</div>
         <div className="dw-actions">
@@ -27,6 +34,13 @@ export function ExportActions({ sheets = 1, sheet, canExportPdf, layout, views, 
           {cuts.length > 1 && <NativeSelect className={CONTROL} aria-label="Section for DXF" value={dxfCut?.id} onChange={e => setDxfSection(e.target.value)} title="The section to export alone">{cuts.map(c => <option key={c.id} value={c.id}>{c.id}–{c.id}</option>)}</NativeSelect>}
           {dxfCut && <Button variant="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title={`Section ${dxfCut.id}–${dxfCut.id} alone, 1:1 in model mm`}>{dxfCut.id}–{dxfCut.id} DXF</Button>}
         </div>
+        {confirmation && <div ref={confirmPanel} tabIndex={-1} className="dw-export-confirm" role="group" aria-label="Confirm drawing export">
+          <ul>{confirmation.messages.map((message, i) => <li key={i}>{message}</li>)}</ul>
+          <div className="dw-actions">
+            <Button variant="ghost" onClick={confirmation.onCancel}>Cancel</Button>
+            <Button variant="default" onClick={confirmation.onConfirm}>Export {confirmation.format} without the listed dimensions</Button>
+          </div>
+        </div>}
         {sheet && <div className="empty">{scaleLabel(layout!.scale)} · {settings.sheet} · {VIEW_IDS.map(id => `${VIEWS[id].label.toLowerCase()} ${views![id].edges.length}`).join(', ')} edges</div>}
   </>;
 }

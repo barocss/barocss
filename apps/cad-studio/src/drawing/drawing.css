@@ -21,6 +21,9 @@
 .dw-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .dw-hint { flex: 0 0 auto; align-self: center; width: fit-content; max-width: 100%; box-sizing: border-box; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 11px; color: var(--text-2); white-space: normal; overflow-wrap: anywhere; pointer-events: none; }
 .dw-rim-choice { display: flex; flex-wrap: wrap; gap: 6px; pointer-events: auto; }
+.dw-export-confirm { color: var(--warn); font-size: 11px; }
+.dw-export-confirm ul { margin: 4px 0; padding-left: 18px; }
+.dw-export-confirm button { white-space: normal; height: auto; }
 .dw-hint.warn { border-color: var(--warn); }
 .dw-busy { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); color: var(--muted); }
 /* On the paper (sheet mm): the cursor's snap, hovered edge and a dimension being placed or selected. */

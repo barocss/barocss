@@ -42,6 +42,7 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { DETAIL_PARENTS, type DetailParent, type DrawingDetail } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
 import { clipProjectionOutside } from '@barocss/cad-model/drawing/breaks';
+import { occurrenceLosses, occurrenceLossText } from './drawing/occurrenceLoss';
 import { diameterRims, rimOccurrence } from './drawing/diameterRims';
 import { Button } from '@/components/ui/button';
 import { BreaksList } from './drawing/BreaksList';
@@ -180,10 +181,16 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setRimChoice(null); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey, current]);
 
+  const lostOccurrences = useMemo(() => scope.kind === 'assembly' && sheet ? occurrenceLosses(sheet.dimensions, model.instances) : [], [scope.kind, sheet, model.instances]);
+  const lossByDimension = useMemo(() => new Map(lostOccurrences.map(loss => [loss.id, loss.reason])), [lostOccurrences]);
+
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? [...drawingIssues({ views, layout, settings, sheet, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }),
     // (11 ④: what is missing judged on the whole drawing, and a sheet with no view: this sheet's share.)
-    ...(sheetTotal > 1 ? setIssuesOn({ views, settings: wholeSettings, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) }, current) : [])] : [], [views, layout, settings, wholeSettings, current, sheet, callout, locationOwner, fitMissOf, followedChanged, elements, cuts]);
+    ...(sheetTotal > 1 ? setIssuesOn({ views, settings: wholeSettings, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) }, current) : [])].map(issue => {
+      const reason = issue.code === 'DIMENSION_LOST' && issue.dims?.length === 1 ? lossByDimension.get(issue.dims[0]) : undefined;
+      return reason ? { ...issue, message: `Dimension ${issue.dims![0]} · ${reason}` } : issue;
+    }) : [], [views, layout, settings, wholeSettings, current, sheet, callout, locationOwner, fitMissOf, followedChanged, elements, cuts, lossByDimension]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout, locationOwner, fastenerSizes: fastenerSizesOf(doc) }) : [], [views, layout, settings, sheet, callout, locationOwner, doc.fastenerSizes]);
   const acceptEvery = () => {
@@ -820,7 +827,19 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const sheetSuffix = sheetTotal > 1 ? `-sheet-${current + 1}` : '';
   const exportableSheet = !wantsBom || bom ? sheet : null;
   const canExportPdf = !!sheet && (!drawingSetWantsBom || !!bom);
-  const exportSvg = () => { if (exportableSheet) downloadBytes(new TextEncoder().encode(sheetSvg(exportableSheet, title)), `${fileName}${sheetSuffix}.svg`, 'image/svg+xml'); };
+  const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
+  type ExportFormat = 'SVG' | 'PDF' | 'DXF';
+  const [exportLoss, setExportLoss] = useState<{ format: ExportFormat; sheet: NonNullable<typeof sheet>; name: string; settings: DrawingSettings; version?: DxfVersion; messages: string[]; write: () => void } | null>(null);
+  const exportConfirmation = sheet && exportLoss?.sheet === sheet && exportLoss.name === fileName && exportLoss.settings === wholeSettings && (exportLoss.version === undefined || exportLoss.version === dxfVersion) && !busy ? exportLoss : null;
+  const confirmExport = (format: ExportFormat, messages: string[], write: () => void) => {
+    if (!sheet) return;
+    if (messages.length) setExportLoss({ format, sheet, name: fileName, settings: wholeSettings, ...(format === 'DXF' ? { version: dxfVersion } : {}), messages, write });
+    else { setExportLoss(null); write(); }
+  };
+  const exportSvg = () => {
+    if (exportableSheet) confirmExport('SVG', lostOccurrences.map(occurrenceLossText), () =>
+      downloadBytes(new TextEncoder().encode(sheetSvg(exportableSheet, title)), `${fileName}${sheetSuffix}.svg`, 'image/svg+xml'));
+  };
   const exportPdf = () => {
     if (!sheet || !canExportPdf) return;
     const all = sheetTotal > 1 && views ? buildSheets(views, wholeSettings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts).map(x => x.sheet) : [sheet];
@@ -833,9 +852,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       onToast({ title: 'PDF not written', hint: 'Load fit rows for the listed dimensions, then export again.', detail: missingFits.join('\n') });
       return;
     }
-    downloadBytes(sheetsPdf(all, title), `${fileName}.pdf`, 'application/pdf');
-    const missing = [...new Set(all.flatMap(pdfMissing))];
-    if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
+    const losses = scope.kind === 'assembly' ? all.flatMap((page, index) => occurrenceLosses(page.dimensions, model.instances)
+      .map(loss => `${sheetName(wholeSettings, index)} · ${occurrenceLossText(loss)}`)) : [];
+    confirmExport('PDF', losses, () => {
+      downloadBytes(sheetsPdf(all, title), `${fileName}.pdf`, 'application/pdf');
+      const missing = [...new Set(all.flatMap(pdfMissing))];
+      if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
+    });
   };
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
   /**
@@ -883,16 +906,17 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!commitWhole(t.settings)) return;
     if (t.moved.length) onToast({ title: `Front now seen from ${SIDE_NAMES[o]}`, hint: `Annotations moved with their axes: ${t.moved.map(m => `${m.from} → ${m.to}`).join(', ')}.`, detail: '' });
   };
-  const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
   const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
   const exportDxf = () => {
     if (!exportableSheet || !layout) return;
-    try {
-      const r = sheetDxf(exportableSheet, layout, dxfVersion);
-      downloadBytes(r.bytes, `${fileName}${sheetSuffix}.dxf`, 'image/vnd.dxf');
-      // R12 has no ellipses, splines, hatches, line weights or units: say what was changed to fit it.
-      if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
-    } catch (e) { dxfFailed(e); }
+    confirmExport('DXF', lostOccurrences.map(occurrenceLossText), () => {
+      try {
+        const r = sheetDxf(exportableSheet, layout, dxfVersion);
+        downloadBytes(r.bytes, `${fileName}${sheetSuffix}.dxf`, 'image/vnd.dxf');
+        // R12 has no ellipses, splines, hatches, line weights or units: say what was changed to fit it.
+        if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
+      } catch (e) { dxfFailed(e); }
+    });
   };
   // (O148 X1: the section chosen — the first by default — alone as a 1:1 DXF.)
   const dxfCut = cuts.find(c => c.id === dxfSection) ?? cuts[0];
@@ -1020,6 +1044,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           {busy && !views && <div className="dw-busy">Projecting views…</div>}
           {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
         </div>
+        {!!lostOccurrences.length && <div className="card dw-hint warn" role="status" aria-label="Drawing occurrence references">
+          {lostOccurrences.map(loss => <span key={loss.id}>{occurrenceLossText(loss)}</span>)}
+        </div>}
         <SheetTabs whole={wholeSettings} current={current} onSelect={selectSheet} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); selectSheet(sheetTotal); }} />
         <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
           {currentRimChoice
@@ -1060,7 +1087,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
-        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} occurrenceReasons={lossByDimension} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
 
@@ -1068,7 +1095,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <NotesList settings={settings} selected={selNote?.id ?? null} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow('note', n.id); setNoteDraft(n.text); }} remove={id => removeAnnotation({ kind: 'note', id })} onRemoveLeader={removeNoteLeader} onDuplicate={duplicateNote} onChange={onChange} />
 
-        <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
+        <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={version => { setExportLoss(null); setDxfVersion(version); }} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf}
+          confirmation={exportConfirmation && { format: exportConfirmation.format, messages: exportConfirmation.messages,
+            onCancel: () => setExportLoss(null), onConfirm: () => { setExportLoss(null); exportConfirmation.write(); } }} />
       </aside>
     </div>
   );

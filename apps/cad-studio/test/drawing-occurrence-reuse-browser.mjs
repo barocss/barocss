@@ -38,6 +38,8 @@ async function check(label, doc, dim) {
   await f.page.waitForFunction(id => window.__studioDrawing?.()?.dimensions.some(d => d.id === id), dim);
   const index = await f.page.evaluate(() => window.__drawingCaptures.length);
   await button('Export SVG', drawing()).click();
+  const confirmation = f.page.getByRole('group', { name: 'Confirm drawing export', exact: true });
+  if (await confirmation.isVisible()) await button('Export SVG without the listed dimensions', confirmation).click();
   const svg = await f.page.evaluate(i => window.__drawingCaptures[i], index);
   const model = await f.page.evaluate(id => window.__studioDrawing().dimensions.find(d => d.id === id), dim);
   const state = await f.snapshot(label);
