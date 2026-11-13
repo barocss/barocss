@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const projectFlow = process.argv[3] === '--project';
 const missing = process.argv[3] === '--missing';
 const held = process.argv[3] === '--held';
-const pin = missing || held || process.argv[3] === '--pin';
+const pin = projectFlow || missing || held || process.argv[3] === '--pin';
 const pins = [
   'apps/cad-studio/test/measure-opposite-face-edit-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -14,9 +15,9 @@ const pins = [
   ...(pin ? ['apps/cad-studio/src/app/pinnedFaceMeasure.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: missing ? 'D930_SOURCE_FROZEN' : held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
+  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: projectFlow ? 'D931_SOURCE_FROZEN' : missing ? 'D930_SOURCE_FROZEN' : held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: missing ? 'Never transfer a pinned measurement to a surviving output after suppression or deletion.' : held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
+  qualification: projectFlow ? 'Keep a measurement pin within its workspace and project session.' : missing ? 'Never transfer a pinned measurement to a surviving output after suppression or deletion.' : held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
   limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.'],
   snapshotExtra: () => ({
     fresh: window.__studioFresh,
@@ -336,6 +337,77 @@ async function missingFlow() {
   await check('07-manual-measure-after-clear', 8);
 }
 
+async function verifyProjectSession() {
+  const name = 'D931 pinned measure', filename = 'D931-project.bcad';
+  const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  const workspace = label => f.page.locator('.mode').getByRole('button', { name: label, exact: true });
+  const attach = async () => {
+    if (!(await versions().isVisible())) await button('Project and versions').click();
+    await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(name);
+    await versions().getByRole('button', { name: 'Project in this browser', exact: true }).click();
+    await versions().getByLabel('Project', { exact: true }).waitFor();
+  };
+  const noPin = async () => {
+    await pinnedPanel().waitFor({ state: 'hidden' });
+    await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  };
+  const save = async () => {
+    if (!(await versions().isVisible())) await button('Project and versions').click();
+    await button('Save').click();
+    await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(filename, { exact: true }).waitFor();
+    await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+    return Buffer.from(await f.page.evaluate(async ([name, filename]) => {
+      const storage = await navigator.storage.getDirectory();
+      const projects = await storage.getDirectoryHandle('projects');
+      const project = await projects.getDirectoryHandle(name);
+      const file = await (await project.getFileHandle(filename)).getFile();
+      return Array.from(new Uint8Array(await file.arrayBuffer()));
+    }, [name, filename]));
+  };
+  await attach();
+  f.phase = 'save the same accepted document before pinning';
+  const before = await save();
+  assert.deepEqual(JSON.parse(before), source);
+  await button('Project and versions').click();
+  await versions().waitFor({ state: 'hidden' });
+  await check('01-project-pin-8', 8, false, true);
+
+  f.phase = 'hide the overlay in Drawing and Render and recheck on return';
+  await workspace('Drawing').click();
+  await f.page.getByRole('navigation', { name: 'Drawing tools', exact: true }).waitFor();
+  await noPin();
+  await workspace('Model').click();
+  await checkPin('02-after-drawing', 8);
+  await workspace('Render').click();
+  await f.page.waitForFunction(() => document.querySelector('.mode .on')?.textContent === 'Render');
+  await noPin();
+  await workspace('Model').click();
+  await checkPin('03-after-render', 8);
+  await f.same(source);
+
+  f.phase = 'save again while pinned and compare the exact file bytes';
+  const pinnedBytes = await save();
+  assert.deepEqual(pinnedBytes, before);
+  assert.deepEqual(JSON.parse(pinnedBytes), source);
+  f.report.observations.push({ label: 'exact-project-save', bytes: pinnedBytes.length, sha256: sha256(pinnedBytes) });
+  await checkPin('04-after-project-save', 8);
+  await versions().getByRole('button', { name: 'Close project', exact: true }).click();
+  await noPin();
+  await f.same(source);
+  await f.snapshot('05-project-close-clears');
+
+  f.phase = 'reload Studio and open the saved project document';
+  await f.page.reload();
+  await f.ready();
+  await attach();
+  await versions().getByRole('button', { name: 'Open ' + filename, exact: true }).click();
+  await f.same(source);
+  await noPin();
+  await button('Project and versions').click();
+  await versions().waitFor({ state: 'hidden' });
+  await check('06-fresh-project-open-repin', 8, true, true);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -351,7 +423,8 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  await open(missing ? 'D930-two-bodies' : held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', missing ? withWitness : source);
+  await open(projectFlow ? 'D931-project' : missing ? 'D930-two-bodies' : held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', missing ? withWitness : source);
+  if (projectFlow) { await verifyProjectSession(); assert.deepEqual(f.report.downloads, []); return; }
   if (missing) { await missingFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (held) { await heldFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (pin) { await pinFlow(); assert.deepEqual(f.report.downloads, []); return; }

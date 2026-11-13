@@ -1,0 +1,49 @@
+{
+  "decision": "D931",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "d21b1a38cb126f7611f49a5f093d570db0b7e3c7",
+  "node": "22.19.0",
+  "issue": 2337,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D931-project",
+    "D931_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/run01 --project",
+    "gate.sh acquire heavy 600 D931-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure",
+    "cd apps/cad-studio && node scripts/test.mjs pinned-face-measure project workOwnership",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 12,
+    "studioPass": 103,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "0fd48d9411907c759b2d170a6595d43434f2902fc29392e2315c4eddc35057e1"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "0ad7721aeac9a0065f2665f6cc720a8e983cd42c0eb2a386d3bf64c9cf7b9f81",
+    "sourceManifestSHA256": "0f0e700cc7f6c05458c13624da9eceb5768ea35e253b569c2a9bce4652816421",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "savedBytes": 465,
+    "savedSHA256": "d5aed626652f09d755a65e2fae23b0df8102e13dc6c76f9d839ff3813136c0e3",
+    "pinMM": 8,
+    "volumeMM3": 1920.0000000000007
+  },
+  "notRun": [
+    "live Worker restart",
+    "wider topology support",
+    "build",
+    "type checks",
+    "full suites",
+    "mobile"
+  ]
+}
