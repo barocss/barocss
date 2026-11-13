@@ -1,0 +1,71 @@
+{
+  "decision": "D1096",
+  "tier": "FEATURE",
+  "parent": "b06429a3e37ea41caf007b9069e10e4caa207b1e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1096-secondary-outline-<run>",
+    "D1096_SOURCE_FROZEN=1 node apps/cad-studio/test/secondary-outline-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-reopen sketch-profile-precision driven-sketch",
+    "pnpm exec eslint apps/cad-studio/src/app/sketchControls.ts apps/cad-studio/src/sketch/draftHistory.ts apps/cad-studio/src/ui/SketchPanel.tsx packages/barocss-cad-model/src/sketch/{driven,loops,reopen,internal/regionLengths}.ts packages/barocss-cad-model/src/engine/{doc,part}.ts",
+    "node --check apps/cad-studio/test/secondary-outline-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 857,
+      "receiptSHA256": "5fc996c1c5b408d1973d962acc8c40880e390236d53cae284299867a811ecad8",
+      "sourceManifestSHA256": "361361eb15a80188ad161b005b5d5058da21b0a1a61a81449886fd076852ef5c",
+      "firstFailure": "Fresh Open preserves the second native region at width 24 mm, but Active outline is absent and no secondary Length was saved."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 858,
+      "receiptSHA256": "646c457545537ff12301c9f24bcdfc0154c8b0f14581b14b14091dd9d05ba92a",
+      "sourceManifestSHA256": "4eb6465e5d2c4978f649ba1988cbd3f30d7716c4bc61813a43b652e1498a73b6",
+      "projectFiles": [
+        {
+          "bytes": 1930,
+          "sha256": "3e7d79c4fa9282ea65593deac1abcd3fed56bb3a90d3932acc54c1b9131dc536"
+        },
+        {
+          "bytes": 1930,
+          "sha256": "430903f45c8b63f77f7d7e1f4c385d6f9d8369e6bf87fcbd51c0c5c427af2c0e"
+        }
+      ]
+    }
+  },
+  "volumeMM3": [
+    1280,
+    1340
+  ],
+  "dimensionMM": [
+    20,
+    24,
+    26
+  ],
+  "faceNamesRetained": 12,
+  "parkedUndoBaseline": {
+    "status": "FAIL",
+    "firstFailure": "Switching to the main outline before Undo leaves the second region Length at 26 mm instead of 24 mm.",
+    "receiptSHA256": "2897ef5398d62326d5a913d97969a8f5cb42d36d177ec8d80df8da866f642c21",
+    "sourceManifestSHA256": "22ec61659368783b0ec20e9da2de49fd5cc35cecfc9a218f4564769b265199d4"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 32,
+    "modelPassed": 79,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "intermediateStudioTypeCheck": {
+    "status": "FAIL",
+    "firstFailure": "Array.findLastIndex is outside the Studio TypeScript target. Final run uses the existing array methods."
+  }
+}

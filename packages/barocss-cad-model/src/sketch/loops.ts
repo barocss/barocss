@@ -1,13 +1,14 @@
 // A sketch's closed shapes as one profile: each shape a closed loop; loops inside another are holes, the
 // rest are separate regions of material (the first drawn is the main profile).
 import type { SketchShape } from './types';
-import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
+import type { LoopSegment as DocSegment, RegionLengths, SketchNode, SketchOutline } from '../engine/doc';
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
 import { sideTagsFor, withIds } from './entityIds';
 import { splineMatches } from './spline';
 import { ellipseMatches } from './ellipse';
 import { bezierSamples, wellFormedBezier } from './bezier';
+import { matchesRegionLengths } from './internal/regionLengths';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -164,8 +165,44 @@ export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: s
   const node = { ...main.node, ...(rest.length ? { regions: rest.map(x => loopOf(x.node)) } : {}), ...(holes.length ? { holes: holes.map(x => loopOf(x.node)) } : {}) } as SketchNode;
   return { node: tagged(node, main.s, rest.map(x => x.s), holes.map(x => x.s)) };
 }
+function regionLengthRecipe(shape: SketchShape, loop: DocSegment[], sides: string[], compactRectangle: boolean): RegionLengths | null {
+  if (shape.kind !== 'polygon' || !shape.ids || !shape.hv || !Object.keys(shape.lengths ?? {}).length
+    || shape.bulges?.some(bulge => bulge !== 0) || shape.rules?.length || shape.circles?.length
+    || Object.keys(shape.radii ?? {}).length || shape.tangents?.length || shape.equalRadii?.length
+    || shape.concentric?.length || shape.ellipse || shape.spline) return null;
+  const samePoint = (a: P2, b: DocSegment['start']) => a.every((v, i) =>
+    v === b[i] || (compactRectangle && typeof b[i] === 'number' && Math.abs(v - Number(b[i])) < 1e-9));
+  if (shape.points.length !== loop.length || loop.length < 3 || !samePoint(shape.points[0], loop[0].start)) return null;
+  const points: P2[] = [];
+  const lengths: Record<number, number> = {};
+  const hv: RegionLengths['hv'] = { h: [], v: [] };
+  for (const [i, segment] of loop.entries()) {
+    const side = shape.ids.indexOf(sides[i]);
+    if (side < 0 || segment.kind !== 'line') return null;
+    const [x, y] = segment.start;
+    if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    const a = shape.points[side], b = shape.points[(side + 1) % shape.points.length];
+    const end = loop[(i + 1) % loop.length].start;
+    const matches = (u: P2, v: P2) => samePoint(u, segment.start) && samePoint(v, end);
+    if (!matches(a, b) && !matches(b, a)) return null;
+    points.push([x, y]);
+    const length = shape.lengths?.[side];
+    if (length !== undefined) lengths[i] = length;
+    if (shape.hv.h.includes(side)) hv.h.push(i);
+    if (shape.hv.v.includes(side)) hv.v.push(i);
+  }
+  const recipe = { sides: [...sides], points, lengths, hv };
+  return matchesRegionLengths(recipe, loop, sides) ? recipe : null;
+}
+
 /** The node with its sides' tags (R10a, D86), from the shapes that make it. */
 function tagged(node: SketchNode, main: SketchShape, regions: SketchShape[], holes: SketchShape[]): SketchNode {
   const tags = sideTagsFor(node, main, regions, holes, loopOf);
-  return tags ? { ...node, sideTags: tags } : node;
+  if (!tags) return node;
+  const recipes = regions.flatMap((shape, i) => {
+    const loop = node.regions?.[i], sides = tags.regions?.[i];
+    const recipe = loop && sides && regionLengthRecipe(shape, loop, sides, shape.kind === 'polygon' && !!rectangleNode(shape));
+    return recipe ? [recipe] : [];
+  });
+  return { ...node, sideTags: tags, ...(recipes.length ? { regionLengths: recipes } : {}) };
 }

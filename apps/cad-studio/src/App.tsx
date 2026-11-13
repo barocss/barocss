@@ -70,7 +70,7 @@ import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
 import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
-import { draftShapeOrder, TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
+import { activateDraftOutline, draftShapeOrder, sketchCutInputs, TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { detachRoundedInsetRecipe, resizeRoundedInsetSource, roundedInsetSourceWidth, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { activeKey, type Active } from './app/commandState';
@@ -1746,11 +1746,12 @@ export function App() {
     setSketch(after);
     recordSketchDraft(before, after);
   });
-  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, next => {
+  const setActiveOutline = (next: SketchState) => {
     liveShape.current = next.shape;
     setSketchError(null);
     setSketch(next);
-  });
+  };
+  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, setActiveOutline);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError,
     setLengthConflict: (reason, source, edge) => setSketchIssue({ reason, conflict: { doc, source, edge } }), updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
@@ -2895,6 +2896,11 @@ export function App() {
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} constraintDocument={doc} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
         onToggleObjectKind={kind => setObjectSnapKinds(kinds => toggleObjectSnapKind(kinds, kind))}
         onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchIssue?.reason ?? null}
+        onActivateOutline={sketch.editNode !== undefined && (sketch.tool === 'select' || sketch.tool === 'dimension') ? index => {
+          const source = sketchCutInputs(sketch).shapes[index];
+          const next = activateDraftOutline(sketch, draftShapeOrder(sketch).indexOf(source));
+          if (next && next !== sketch) setActiveOutline(next);
+        } : undefined}
         conflictEdge={!sketchFinishError && sketchIssue?.conflict?.doc === doc && sketchIssue.conflict.source === sketch.shape ? sketchIssue?.conflict?.edge : undefined} onShape={shape => updateShape(shape, false, 'panel')} onDrivingLength={sketchViewportActions.recoverPanelLength} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: editSketchBand, remove: removeSketchBand }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? useFaceOutline : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}

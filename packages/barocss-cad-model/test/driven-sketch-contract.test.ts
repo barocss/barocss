@@ -102,6 +102,29 @@ test('D537 malformed recipes and inherited parameters refuse without mutation', 
   assert.equal((fixture().nodes[0] as ModelNode).kind, 'sketch');
 });
 
+test('D1096 a main-outline binding retains a separate region Length through solve and unbind', () => {
+  const doc = fixture(), source = doc.nodes[0];
+  assert.ok(source.kind === 'sketch' && source.profile === 'loop' && source.sideTags);
+  const points: [number, number][] = [[90, 0], [114, 0], [114, 15], [90, 15]];
+  const sides = ['e7', 'e8', 'e9', 'e10'];
+  source.regions = [points.map(start => ({ kind: 'line', start }))];
+  source.sideTags.regions = [sides];
+  source.regionLengths = [{ points, sides, lengths: { 0: 24 }, hv: { h: [0, 2], v: [1, 3] } }];
+  const bound = bindSketchLength(doc, 'n0', 'e1', 'L');
+  const node = bound.nodes[0];
+  assert.equal(node.kind, 'driven-sketch');
+  assert.deepEqual(node.seed.regionLengths, source.regionLengths);
+  const roundtrip = readStudioDoc(JSON.stringify(withParameters(bound, { L: 68 })));
+  assert.ok('doc' in roundtrip);
+  const solved = unbindSketchLength(roundtrip.doc, 'n0').nodes[0];
+  assert.equal(solved.kind, 'sketch');
+  assert.deepEqual(solved.regions, source.regions);
+  assert.deepEqual(solved.regionLengths, source.regionLengths);
+  assert.equal(solved.outline?.lengths?.[0], 68);
+  assert.throws(() => assertDrivenSketchNode({ ...node, seed: { ...node.seed,
+    regionLengths: [{ ...source.regionLengths![0], lengths: { 0: 45 } }] } }, bound.parameters), /literal source region/);
+});
+
 
 test('D537 linked-sketch source prefix ignores an invalid later driven recipe', () => {
   const source = rectanglePart(40, 24, 8), bad = driven().nodes[0];

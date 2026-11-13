@@ -10,14 +10,16 @@ import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
 import { ellipseMatches, wellFormedEllipse } from './ellipse';
 import { refusal } from '../engine/refusal';
+import { matchesRegionLengths } from './internal/regionLengths';
 
 type Params = Readonly<Record<string, number>>;
 const isRef = (v: unknown): v is { parameter: string } => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && typeof (v as { parameter?: unknown }).parameter === 'string';
 
-function withoutSlotHint(node: SketchNode): SketchNode {
-  if (node.profile !== 'loop' || !Object.hasOwn(node, 'slot')) return node;
+function withoutOutlineHints(node: SketchNode): SketchNode {
+  if (!Object.hasOwn(node, 'regionLengths') && !(node.profile === 'loop' && Object.hasOwn(node, 'slot'))) return node;
   const geometry = { ...node };
-  delete geometry.slot;
+  if (geometry.profile === 'loop') delete geometry.slot;
+  delete geometry.regionLengths;
   return geometry;
 }
 
@@ -34,9 +36,10 @@ export function resolveSketchDims(node: SketchNode, params: Params = {}): Sketch
     if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
     return v;
   };
-  // The authored Slot hint has no parameter fields. Resolve geometry independently.
-  const resolved = walk(withoutSlotHint(node)) as SketchNode;
+  // Editing hints have no parameter fields. Resolve geometry independently.
+  const resolved = walk(withoutOutlineHints(node)) as SketchNode;
   if (resolved.profile === 'loop' && node.profile === 'loop' && Object.hasOwn(node, 'slot')) resolved.slot = node.slot;
+  if (Object.hasOwn(node, 'regionLengths')) resolved.regionLengths = node.regionLengths;
   return resolved;
 }
 
@@ -132,7 +135,7 @@ export function rebindDims(stored: SketchNode, next: SketchNode, params: Params 
     const [o] = old.splice(i, 1);
     n.put(out, walk(o.value, n.value));
   }
-  const dropped = [...new Set(refsIn(withoutSlotHint(stored)).filter(r => !kept.has(r)).map(r => r.parameter))];
+  const dropped = [...new Set(refsIn(withoutOutlineHints(stored)).filter(r => !kept.has(r)).map(r => r.parameter))];
   return { node: out as unknown as SketchNode, dropped };
 }
 
@@ -240,6 +243,18 @@ export function mainShape(node: SketchNode): SketchShape | null {
 /** A node's construction shapes as the sketcher keeps them (a Bézier curve only when well-formed). */
 const constructionOf = (node: SketchNode): SketchShape[] => ((node.construction ?? []) as SketchShape[]).filter(x => x?.kind !== 'bezier' || wellFormedBezier(x));
 
+/** A saved recipe decorates one exact literal native region. The native loop owns its points and order. */
+function regionShape(stored: SketchNode, index: number, loop: LoopSegment[], ids: string[]): SketchShape | null {
+  const shape = loopShape(loop), raw = stored.regions?.[index], saved = stored.sideTags?.regions?.[index];
+  if (shape?.kind !== 'polygon' || !raw || !saved || !Array.isArray(stored.regionLengths)
+    || !sameIds(saved, ids) || new Set(ids).size !== ids.length) return shape;
+  const matches = stored.regionLengths.filter(item => Array.isArray(item?.sides) && sameIds(item.sides, ids));
+  const recipe = matches[0];
+  if (matches.length !== 1 || !matchesRegionLengths(recipe, raw, ids)) return shape;
+  const { hv } = recipe;
+  return { ...shape, hv: { h: [...hv.h], v: [...hv.v] }, lengths: { ...recipe.lengths } };
+}
+
 /**
  * The shapes of a sketch node: the main profile, then its other regions and holes — each with its sides' ids (R10a,
  * D86): the node's `sideTags`, or, for a node from before them, new ones in the order its loops run, with `positional`
@@ -261,7 +276,10 @@ export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: 
     return out;
   };
   const main = authoredSlot(stored) ?? mainShape(node), outer = idsFor(loopOf(node).length, tags?.outer, i => `side${i}`);
-  const regions = (node.regions ?? []).map((l, r) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.regions?.[r], i => `region${r}.side${i}`) }));
+  const regions = (node.regions ?? []).map((loop, r) => {
+    const ids = idsFor(loop.length, tags?.regions?.[r], i => `region${r}.side${i}`);
+    return { s: regionShape(stored, r, loop, ids), ids };
+  });
   const holes = (node.holes ?? []).map((l, h) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.holes?.[h], i => `hole${h}.side${i}`) }));
   const loops = [...regions, ...holes];
   // Native rectangle sides run in canonical order; an authored outline may start at

@@ -13,6 +13,7 @@ import { liveBand } from '@barocss/cad-model/sketch/band';
 import { ConstraintTools } from './ConstraintTools';
 import { SketchMobility } from './SketchMobility';
 import type { ConstraintInspectionStore } from '../sketch/constraintInspection';
+import { canActivateDraftOutline, sketchCutInputs } from '../app/sketchControls';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +28,7 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, constraintInspection, constraintDocument, toolLabel, error, conflictEdge, toolControls, onShape, onDrivingLength, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; constraintInspection: ConstraintInspectionStore; constraintDocument: StudioDoc; toolLabel: string; error: string | null; conflictEdge?: number; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, constraintInspection, constraintDocument, toolLabel, error, conflictEdge, onActivateOutline, toolControls, onShape, onDrivingLength, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; constraintInspection: ConstraintInspectionStore; constraintDocument: StudioDoc; toolLabel: string; error: string | null; conflictEdge?: number; onActivateOutline?(index: number): void; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   onDrivingLength?(source: Polygon, edge: number, value: number): boolean;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
@@ -44,6 +45,9 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
   const [offsetBy, setOffsetBy] = useState(2);
   const [splineError, setSplineError] = useState<string | null>(null);
   const s = sketch.shape;
+  const outlines = onActivateOutline ? sketchCutInputs(sketch).shapes.flatMap((shape, index) =>
+    canActivateDraftOutline(shape) ? [{ shape, index }] : []) : [];
+  const activeOutline = outlines.find(outline => outline.shape === s)?.index ?? '';
   // A refusal belongs to the shape it was made on.
   useEffect(() => setSplineError(null), [s]);
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
@@ -103,6 +107,15 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
               onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) < 90) onPlace(anchor.kind, anchor.offset, v); }} /><em>°</em></span></label>
         </div>;
       })()}
+      {outlines.length > 1 &&
+        <label className={FIELD}><span>Active outline</span>
+          <NativeSelect className={CONTROL} aria-label="Active outline" value={activeOutline}
+            onChange={event => onActivateOutline?.(Number(event.target.value))}
+            onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') event.stopPropagation(); }}>
+            {activeOutline === '' && <option disabled value="">Choose outline</option>}
+            {outlines.map(({ index }) => <option key={index} value={index}>Outline {index + 1}</option>)}
+          </NativeSelect>
+        </label>}
       {toolControls}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {(error ?? splineError) && <div className="sk-status open" role="alert"><i />{error ?? splineError}</div>}

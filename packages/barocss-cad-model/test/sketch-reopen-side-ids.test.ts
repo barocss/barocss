@@ -100,3 +100,43 @@ test('Slot editing requires matching literal authored metadata and leaves legacy
   assert.equal(sketchShapes(invalidHint).shape?.kind, 'polygon');
   assert.deepEqual(rebindDims(invalidHint, legacy).dropped, []);
 });
+
+test('D1096 restores authored Length only on the matching literal region', () => {
+  const secondary = rectangleOutline({ kind: 'rectangle', a: [20, 0], b: [44.125, 6] })!;
+  secondary.points[1][1] += 5e-10;
+  secondary.lengths = { 0: 24.12500004 };
+  const result = profileOf([rect, secondary]);
+  assert.ok('node' in result);
+  const node: SketchNode = JSON.parse(JSON.stringify(result.node));
+  const recipes = node.regionLengths;
+  assert.equal(recipes?.length, 1);
+  assert.deepEqual(recipes[0].sides, node.sideTags?.regions?.[0]);
+  assert.deepEqual(recipes[0].points, node.regions?.[0].map(segment => segment.start));
+  const polygon = (source: SketchNode, parameters = {}) => {
+    const region = sketchShapes(source, parameters).done[0];
+    assert.equal(region.kind, 'polygon');
+    return region;
+  };
+  const reopened = polygon(node);
+  assert.deepEqual(reopened.lengths, secondary.lengths);
+  assert.deepEqual(reopened.hv, secondary.hv);
+  assert.deepEqual(reopenFinish(node as unknown as Node).regionLengths, recipes);
+  const { regionLengths: _, ...legacy } = node;
+  assert.equal(polygon(legacy).lengths, undefined);
+  const malformed = [
+    [{ ...recipes[0], sides: [...recipes[0].sides].reverse() }],
+    [{ ...recipes[0], points: [[21, 0], ...recipes[0].points.slice(1)] }],
+    [{ ...recipes[0], lengths: { 0: 40 } }],
+    [{ ...recipes[0], hv: { h: [1], v: [] } }],
+    [{ ...recipes[0], lengths: { 0: { parameter: 'missing' } } }],
+    [recipes[0], recipes[0]],
+  ];
+  for (const recipe of malformed) {
+    const bad = { ...node, regionLengths: recipe } as SketchNode;
+    assert.equal(polygon(bad).lengths, undefined);
+    assert.deepEqual(rebindDims(bad, legacy).dropped, []);
+  }
+  const bound = structuredClone(node);
+  bound.regions![0][0].start[0] = { parameter: 'X' };
+  assert.equal(polygon(bound, { X: 20 }).lengths, undefined);
+});

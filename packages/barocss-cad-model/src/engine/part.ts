@@ -122,7 +122,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sketch': {
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
       if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
-      const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; delete profile.association;
+      const profile = { ...node }; delete profile.outline; delete profile.regionLengths; delete profile.on; delete profile.construction; delete profile.association;
       if (profile.profile === 'loop') delete profile.slot;
       return { ...at, ...profile } as CadPartFeature;
     }

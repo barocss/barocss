@@ -4,7 +4,8 @@ import { boxOnPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeNode } from '@barocss/cad-model/sketch/loops';
 import { reopenedOrder } from '@barocss/cad-model/sketch/reopen';
 import { joinOpen } from '@barocss/cad-model/sketch/trim';
-import { startPicking } from '@barocss/cad-model/sketch/select';
+import { rectangleOutline, startPicking } from '@barocss/cad-model/sketch/select';
+import { isSettled } from '@barocss/cad-model/sketch/rules';
 import { bezierError } from '@barocss/cad-model/sketch/bezier';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
 
@@ -14,10 +15,26 @@ export function draftShapeOrder(sketch: SketchState): SketchShape[] {
   return shapes;
 }
 
+export function canActivateDraftOutline(shape: SketchShape | undefined): shape is Extract<SketchShape, { kind: 'rectangle' | 'polygon' }> {
+  return !!shape && !shape.construction && (shape.kind === 'rectangle' || isSettled(shape));
+}
+
+/** Activate a closed outline without changing its position in the draft. */
+export function activateDraftOutline(sketch: SketchState, index: number): SketchState | null {
+  const ordered = draftShapeOrder(sketch), source = ordered[index];
+  if (!canActivateDraftOutline(source)) return null;
+  if (source === sketch.shape) return sketch;
+  const shape = source.kind === 'rectangle' ? rectangleOutline(source) : source;
+  if (!shape) return null;
+  ordered.splice(index, 1);
+  return { ...sketch, shape, done: ordered, activeOutlineIndex: index, picked: [], editDim: null };
+}
+
 /** Use the same ordered inputs for sketch hover and click. Hidden construction remains a boundary. */
 export function sketchCutInputs(sketch: SketchState) {
   const shapes = sketch.editNode === undefined ? draftShapeOrder(sketch)
-    : reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds);
+    : sketch.activeOutlineIndex === undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds)
+      : reopenedOrder(null, draftShapeOrder(sketch), sketch.mainIds);
   const protectedShapes = sketch.hideConstruction ? new Set(shapes.filter(shape => shape !== sketch.shape && shape.construction)) : undefined;
   return { shapes, protectedShapes };
 }

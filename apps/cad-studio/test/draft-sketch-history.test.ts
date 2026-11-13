@@ -117,6 +117,25 @@ test('outline Undo and Redo replace only the parked main polygon while Trim is a
   assert.deepEqual(restoreDraftHistory(restored, redo).done, [guide, after]);
 });
 
+test('D1096 outline history replays on a parked region with a unique owner and exact draft identity', () => {
+  const doc = emptyDoc(), history = createDraftHistory(), active = outline(10);
+  const ids = ['e5', 'e6', 'e7', 'e8'];
+  const before = { ...outline(24), ids }, after = { ...outline(26), ids };
+  const draft: SketchState = { tool: 'select', editNode: 0, shape: active, plane: xyPlane(), done: [after] };
+  history.push(outlineHistoryState(before), outlineHistoryState(after));
+  for (const done of [[{ ...after }], [after, { ...after }]]) {
+    assert.equal(history.available(draftHistoryState(doc, { ...draft, done })).undo, false);
+  }
+  const undo = history.undo(draftHistoryState(doc, draft));
+  assert.ok(undo);
+  const restored = restoreDraftHistory(draft, undo);
+  assert.equal(restored.shape, active);
+  assert.equal(restored.done?.[0], before);
+  const redo = history.redo(draftHistoryState(doc, restored));
+  assert.ok(redo);
+  assert.equal(restoreDraftHistory(restored, redo).done?.[0], after);
+});
+
 test('Trim replay refuses changed points, bulges, constraints, IDs or nonmain shape order', () => {
   const doc = emptyDoc(), plane = xyPlane(), main = { ...outline(40), bulges: [0, 0.25, 0, 0] }, first = trim(20), second = trim(30);
   assert.equal(main.kind, 'polygon');

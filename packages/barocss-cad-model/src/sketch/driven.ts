@@ -7,6 +7,7 @@ import { arcOf, outlineSegments } from './profile';
 import { sketchShapes } from './reopen';
 import { commitDimension } from './rules';
 import { edgeAngle } from './terms';
+import { matchesRegionLengths } from './internal/regionLengths';
 
 type Params = Readonly<Record<string, number>>;
 type Obj = Record<string, unknown>;
@@ -177,8 +178,10 @@ function attachedCircles(seed: NumericDrivenSketchSeed): Attached[] {
     input(!used.has(key), 'attached circles must not share one original loop'); used.add(key); return match;
   });
 }
+const seedFields = ['profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction', 'regionLengths'];
+const requiredSeedFields = ['profile', 'segments', 'outline', 'sideTags'];
 function assertSeed(x: unknown): asserts x is NumericDrivenSketchSeed {
-  keys(x, ['profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction'], ['profile', 'segments', 'outline', 'sideTags'], 'numeric seed');
+  keys(x, seedFields, requiredSeedFields, 'numeric seed');
   input(x.profile === 'loop', 'v1 requires a numeric loop profile'); loop(x.segments, 'source outer loop'); outline(x.outline, x.segments);
   for (const key of ['holes', 'regions']) if (x[key] !== undefined) { input(Array.isArray(x[key]), `source ${key} must be loops`); for (const l of x[key] as unknown[]) loop(l, `source ${key}`); }
   keys(x.sideTags, ['outer', 'holes', 'regions'], ['outer'], 'side tags'); const ids: string[] = [];
@@ -187,8 +190,19 @@ function assertSeed(x: unknown): asserts x is NumericDrivenSketchSeed {
   for (const key of ['holes', 'regions']) { const loops = (x[key] as unknown[][] | undefined) ?? [], ts = x.sideTags[key]; input(ts === undefined ? loops.length === 0 : Array.isArray(ts) && ts.length === loops.length, `source ${key} tags must match loop roles/order`); loops.forEach((l, i) => tags((ts as unknown[])[i], l.length)); }
   if (x.construction !== undefined) construction(x.construction, ids);
   input(new Set(ids).size === ids.length, 'side IDs must be unique across material and construction');
-  sourceConstraints(x as unknown as NumericDrivenSketchSeed);
-  attachedCircles(x as unknown as NumericDrivenSketchSeed);
+  const seed = x as unknown as NumericDrivenSketchSeed;
+  if (x.regionLengths !== undefined) {
+    input(Array.isArray(x.regionLengths), 'source region lengths must be a list');
+    const used = new Set<number>();
+    for (const recipe of x.regionLengths) {
+      const owner = seed.regions?.findIndex((region, i) =>
+        matchesRegionLengths(recipe, region, seed.sideTags.regions![i])) ?? -1;
+      input(owner >= 0 && !used.has(owner), 'region lengths must describe a distinct literal source region');
+      used.add(owner);
+    }
+  }
+  sourceConstraints(seed);
+  attachedCircles(seed);
 }
 function parameter(name: string, parameters: Params): number {
   input(typeof name === 'string' && /^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name), 'binding needs a valid parameter name');
@@ -249,7 +263,8 @@ export function resolveDrivenSketch(node: DrivenSketchNode, parameters: Params):
       const kept = mapping ? circleMatches(result as NumericDrivenSketchSeed['segments'], solved.shape.circles![mapping.circle]) : equal(result, original);
       if (!kept) throw refusal('REFUSED', 'Driven sketch: the edit changes an untouched hole or region, or loses an attached circle', { phase: 'profile' });
     }
-    return { ...next, ...(node.seed.construction === undefined ? {} : { construction: copy(node.seed.construction) }), ...context(node) } as SketchNode & NodeExtras;
+    return { ...next, ...(node.seed.construction === undefined ? {} : { construction: copy(node.seed.construction) }),
+      ...(node.seed.regionLengths === undefined ? {} : { regionLengths: copy(node.seed.regionLengths) }), ...context(node) } as SketchNode & NodeExtras;
   } catch (cause) {
     if (isRefusal(cause)) throw cause;
     throw refusal('REFUSED', `Driven sketch: ${cause instanceof Error ? cause.message : String(cause)}`, { phase: 'resolve' });
@@ -263,8 +278,8 @@ export function bindSketchLengthNode(node: ModelNode, entity: string, name: stri
     resolveDrivenSketch(next, parameters); return next;
   }
   input(node.kind === 'sketch' && node.profile === 'loop', 'v1 binds numeric loop sketches only');
-  keys(node, ['kind', 'profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction', 'plane', 'on', ...NODE_EXTRA_FIELDS], ['kind', 'profile', 'segments', 'outline', 'sideTags'], 'source sketch');
-  const seed = Object.fromEntries(['profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction'].filter(k => Object.hasOwn(node, k)).map(k => [k, copy((node as unknown as Obj)[k])])) as unknown as NumericDrivenSketchSeed;
+  keys(node, ['kind', ...seedFields, 'plane', 'on', ...NODE_EXTRA_FIELDS], ['kind', ...requiredSeedFields], 'source sketch');
+  const seed = Object.fromEntries(seedFields.filter(k => Object.hasOwn(node, k)).map(k => [k, copy((node as unknown as Obj)[k])])) as unknown as NumericDrivenSketchSeed;
   const next = { kind: 'driven-sketch', version: 1, seed, bindings: [{ kind: 'line-length', entity, value: { parameter: name } }], ...context(node) } as DrivenSketchNode;
   resolveDrivenSketch(next, parameters); return next;
 }

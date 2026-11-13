@@ -12,6 +12,7 @@ type DraftStep = Pick<SketchState, 'shape' | 'done' | 'association' | 'associati
   doc: StudioDoc;
 };
 type SketchStep = OutlineStep | DraftStep;
+type RestoredStep = DraftStep | (OutlineStep & { parked?: { index: number; owner: SketchShape } });
 
 export function outlineHistoryState(shape: SketchShape): OutlineStep {
   return { kind: 'outline', shape };
@@ -42,6 +43,17 @@ function sameMainOutline(a: SketchShape, b: SketchShape): boolean {
     Object.hasOwn(b, key) && Object.is(value, (b as unknown as Record<string, unknown>)[key]));
 }
 
+function parkedOutlineIndex(step: Omit<DraftStep, 'kind' | 'doc'>, shape: SketchShape): number {
+  const ids = shape.ids;
+  if (step.editNode === undefined || (step.tool !== 'select' && step.tool !== 'dimension')
+    || !isSettled(shape) || !ids?.length || ids.length !== shape.points.length || new Set(ids).size !== ids.length) return -1;
+  const sameOwner = (other: SketchShape) => isSettled(other) && other.ids?.length === ids.length
+    && ids.every((id, i) => !!id && id === other.ids?.[i]);
+  if (step.shape && sameOwner(step.shape)) return -1;
+  const done = step.done ?? [], index = done.findIndex(sameOwner);
+  return index >= 0 && !done.some((shape, i) => i > index && sameOwner(shape)) ? index : -1;
+}
+
 function activateNewRectangle(step: DraftStep, tool: SketchState['tool']) {
   if (step.editNode !== undefined || step.tool !== 'trim' || step.shape || !step.done
     || (tool !== 'select' && tool !== 'dimension')) return null;
@@ -55,6 +67,7 @@ function activateNewRectangle(step: DraftStep, tool: SketchState['tool']) {
 function matches(expected: SketchStep, current: SketchStep): boolean {
   if (expected.kind === 'outline') {
     if (expected.shape === current.shape) return true;
+    if (current.kind === 'draft' && current.done?.[parkedOutlineIndex(current, expected.shape)] === expected.shape) return true;
     const main = current.kind === 'draft' ? orderedMainDraft(current)?.[0] : undefined;
     return !!main && sameMainOutline(expected.shape, main);
   }
@@ -75,6 +88,14 @@ function matches(expected: SketchStep, current: SketchStep): boolean {
 
 type Edit = { before: SketchStep; after: SketchStep };
 
+function replayStep(current: DraftStep, from: SketchStep, to: SketchStep): RestoredStep {
+  if (from.kind === 'outline' && to.kind === 'outline' && from.shape !== current.shape) {
+    const index = parkedOutlineIndex(current, from.shape);
+    if (current.done?.[index] === from.shape) return { ...to, parked: { index, owner: from.shape } };
+  }
+  return to;
+}
+
 class DraftHistory {
   private done: Edit[] = [];
   private undone: Edit[] = [];
@@ -86,21 +107,21 @@ class DraftHistory {
     if (this.done.length > 100) this.done.shift();
   }
 
-  undo(current: DraftStep): SketchStep | null {
+  undo(current: DraftStep): RestoredStep | null {
     const step = this.done.at(-1);
     if (!step) return null;
     if (!matches(step.after, current)) { this.clear(); return null; }
     this.done.pop();
     this.undone.push(step);
-    return step.before;
+    return replayStep(current, step.after, step.before);
   }
 
-  redo(current: DraftStep): SketchStep | null {
+  redo(current: DraftStep): RestoredStep | null {
     const step = this.undone.at(-1);
     if (!step || !matches(step.before, current)) { this.undone = []; return null; }
     this.undone.pop();
     this.done.push(step);
-    return step.after;
+    return replayStep(current, step.before, step.after);
   }
 
   available(current: DraftStep): { undo: boolean; redo: boolean } {
@@ -118,8 +139,14 @@ export function createDraftHistory() {
   return new DraftHistory();
 }
 
-export function restoreDraftHistory(sketch: SketchState, step: SketchStep): SketchState {
+export function restoreDraftHistory(sketch: SketchState, step: RestoredStep): SketchState {
   if (step.kind === 'outline') {
+    if (step.parked) {
+      const { index, owner } = step.parked;
+      if (sketch.done?.[index] !== owner) return sketch;
+      return { ...detachSketchLink(sketch), done: sketch.done.map((shape, i) => i === index ? step.shape : shape),
+        picked: sketch.picked?.filter(pick => !pick.done), editDim: null };
+    }
     const before = sketch.shape, after = step.shape;
     const ids = isSettled(before) ? before.ids : undefined;
     const sameEdges = isSettled(before) && isSettled(after) && ids && ids.length === before.points.length
