@@ -178,7 +178,7 @@ export interface ViewRenderer {
   pickSurfacePoint?(x: number, y: number, camera: OrbitCamera): Vec3 | null;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
-  bounds(): { min: Vec3; max: Vec3 } | null;
+  bounds(visibleOnly?: boolean): { min: Vec3; max: Vec3 } | null;
   dispose?(): void;
   /** Render settings (the Render workspace; WebGPU only). */
   setRender?(settings: import('@barocss/cad-model/engine/render').RenderSettings | null): void;
@@ -779,12 +779,17 @@ export class Renderer implements ViewRenderer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); this.targetSize = [w, h];
   }
 
-  private sceneBounds(): { min: Vec3; max: Vec3 } | null {
+  private sceneBounds(visibleOnly = false): { min: Vec3; max: Vec3 } | null {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-    for (const b of this.bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.result.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.result.mesh.bounds.max[k]); }
+    for (const [index, body] of this.bodies.entries()) {
+      if (visibleOnly && this.view?.hiddenBodies?.has(index)) continue;
+      const box = body.result.mesh.bounds;
+      for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], box.min[k]); max[k] = Math.max(max[k], box.max[k]); }
+    }
     for (const d of this.direct) if (d.bounds) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], d.bounds.min[k]); max[k] = Math.max(max[k], d.bounds.max[k]); }
     for (const it of this.instances) for (let bi = 0; bi < it.bodies.length; bi++) {
+      if (visibleOnly && it.looks[bi]?.hidden) continue;
       this.instanceMatrix(it, bi, false);
       const box = it.bodies[bi].gpu.result.mesh.bounds;
       for (let corner = 0; corner < 8; corner++) {
@@ -1244,7 +1249,7 @@ export class Renderer implements ViewRenderer {
     return best;
   }
 
-  bounds() { return this.sceneBounds(); }
+  bounds(visibleOnly = false) { return this.sceneBounds(visibleOnly); }
 }
 
 /** A body's model matrix (its gizmo drag's, else a move by its offset) and normal matrix (the inverse transpose), into `model` and `normal`. */

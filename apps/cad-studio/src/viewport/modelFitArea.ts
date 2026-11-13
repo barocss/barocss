@@ -15,7 +15,7 @@ export function modelFitArea(canvas: HTMLCanvasElement): CameraFitArea | undefin
   const left = Math.max(box.left, toolbarBox.right) + PADDING;
   const right = Math.min(box.right, ...panels('.dock, .dock-strip').map(rect => rect.left)) - PADDING;
   const top = Math.max(box.top, ...panels('.topbar, .view-cube').map(rect => rect.bottom)) + PADDING;
-  const bottom = Math.min(box.bottom, ...panels('.corner-right, .history').map(rect => rect.top)) - PADDING;
+  const bottom = Math.min(box.bottom, ...panels('.corner-right, .corner-right .previews, .history').map(rect => rect.top)) - PADDING;
   if (right <= left || bottom <= top) return undefined;
   return { left: (left - box.left) / box.width, right: (right - box.left) / box.width,
     top: (top - box.top) / box.height, bottom: (bottom - box.top) / box.height };

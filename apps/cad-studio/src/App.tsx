@@ -2380,7 +2380,7 @@ export function App() {
       }
       // F frames what is picked (its bodies), or everything when nothing is.
       if (e.key.toLowerCase() === 'f' && !e.shiftKey) {
-        const picked = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
+        const picked = selectedBodies(selection).map(i => bodies[i]).filter(body => body && !lookOf(doc, body).hidden);
         viewport.current?.fit(picked.length ? { min: [0, 1, 2].map(k => Math.min(...picked.map(b => b.mesh.bounds.min[k]))) as Vec3, max: [0, 1, 2].map(k => Math.max(...picked.map(b => b.mesh.bounds.max[k]))) as Vec3 } : undefined); return;
       }
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());

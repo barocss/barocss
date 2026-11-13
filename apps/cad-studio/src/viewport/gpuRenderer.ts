@@ -858,7 +858,8 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   /** The box around the bodies and the direct curves and surfaces. */
-  bounds(): { min: Vec3; max: Vec3 } | null {
+  bounds(visibleOnly = false): { min: Vec3; max: Vec3 } | null {
+    if (visibleOnly) return this.measureBounds(true);
     // (Kept while what it is made of stays the same objects — the render asks for it every frame; G13.)
     const k = this.boundsKey;
     if (k && k[0] === this.bodies && k[1] === this.direct && k[2] === this.instances && k[3] === this.poses && k[4] === this.instancePreview && k[5] === this.clip) return this.boundsMemo;
@@ -867,14 +868,23 @@ export class GpuRenderer implements ViewRenderer {
   }
   private boundsKey: unknown[] | null = null;
   private boundsMemo: { min: Vec3; max: Vec3 } | null = null;
-  private measureBounds(): { min: Vec3; max: Vec3 } | null {
+  private measureBounds(visibleOnly = false): { min: Vec3; max: Vec3 } | null {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     // (Cut by the section's plane where it cuts them, as the CPU's clipped meshes' boxes are: the ambient occlusion and the fit follow it.)
     const c = this.clip && { ...this.clip.planes[0], planes: this.clip.planes, bodies: this.clip.bodies, cutout: !!this.clip.cutout };
-    for (const b of this.bodies) { const x = c?.bodies ? clipBox(b.result.mesh.bounds, c) : b.result.mesh.bounds; if (x) grow(min, max, x); }
+    for (const [index, body] of this.bodies.entries()) {
+      if (visibleOnly && this.view?.hiddenBodies?.has(index)) continue;
+      const box = visibleOnly ? body.surface.bounds : body.result.mesh.bounds;
+      const kept = c?.bodies ? clipBox(box, c) : box;
+      if (kept) grow(min, max, kept);
+    }
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(min, max, b); }
-    for (const it of this.instances) for (const m of it.surfaces) { const b = c ? clipBox(m.bounds, c) : m.bounds; if (b) grow(min, max, b); }
+    for (const it of this.instances) for (const [index, mesh] of it.surfaces.entries()) {
+      if (visibleOnly && it.looks[index]?.hidden) continue;
+      const box = c ? clipBox(mesh.bounds, c) : mesh.bounds;
+      if (box) grow(min, max, box);
+    }
     return min[0] <= max[0] ? { min, max } : null;
   }
 

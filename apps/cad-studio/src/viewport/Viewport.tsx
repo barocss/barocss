@@ -765,11 +765,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     request();
   }, [props.sketch?.plane]);
 
+  const boundsForFit = () => sourceProps.printActive
+    ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies)
+    : renderer.current?.bounds(!props.sketch && !props.render && !sourceProps.camActive);
+
   useImperativeHandle(ref, () => ({
     camera: camera.current,
     startRectangleAt: input.startRectangleAt,
-    fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) fitBounds(b); request(); },
-    setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) fitBounds(b); request(); },
+    fit(box) { const b = sourceProps.printActive ? boundsForFit() : box ?? boundsForFit(); if (b) fitBounds(b); request(); },
+    setView(name) { camera.current.setView(name); const b = boundsForFit(); if (b) fitBounds(b); request(); },
     frameSketch(min, max, plane) { pendingSketchFrame.current = { min, max, plane }; },
     toggleOrtho() { setOrthographic(!camera.current.ortho); request(); return camera.current.ortho; },
     getDisplayModeStatus() {

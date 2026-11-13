@@ -1,0 +1,98 @@
+{
+  "decision": "D1043",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "cfa1c8e77c74cc2d0434b33294ef3a69d4247435",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1043-section-baseline02",
+    "D1043_SOURCE_FROZEN=1 node apps/cad-studio/test/visible-model-frame-browser.mjs <external-evidence>/baseline02",
+    "gate.sh acquire heavy 600 D1043-section-regressions",
+    "D1043_SOURCE_FROZEN=1 node apps/cad-studio/test/visible-model-frame-browser.mjs <external-evidence>/studio02",
+    "D1043_SOURCE_FROZEN=1 node apps/cad-studio/test/visible-model-frame-browser.mjs <external-evidence>/webgl2 --webgl2",
+    "D668_SOURCE_FROZEN=1 node apps/cad-studio/test/model-work-area-fit-browser.mjs <external-evidence>/model-fit --fixed",
+    "pnpm --filter @barocss/cad-studio-app test instance-pose small-camera-scale",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/visible-model-frame-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "2e310133cb7fa1ab48f656d07b746d37c37011526e61bc2d9e0ec8cc8fd85e61",
+    "sourceManifestSHA256": "78b344e062f589050d7e1941f9656554d8746743ea2be7bf1a897236a08b9b91",
+    "frozenFiles": 379,
+    "states": 2,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "bodyWidthCSSpx": 31.407406646758318,
+    "displayClearanceCSSpx": 212.14691595952405,
+    "blockedCorners": 0
+  },
+  "studio": {
+    "webgpu": {
+      "status": "PASS",
+      "receiptSHA256": "7cee12415f4879b2dcd9c17832a80e02706b26c51001b33e68cbc060340ab472",
+      "sourceManifestSHA256": "7b5619b6c7d1ce391c79a1223d8049b7f916f2c3182b3c570802e67a9274ad81",
+      "frozenFiles": 379,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "bodyWidthCSSpx": 424.00001138448704,
+      "displayClearanceCSSpx": 130.98335344667407,
+      "blockedCorners": 0,
+      "displayCloseShiftCSSpx": 17.000000217472575,
+      "restoredBlockedCorners": 0,
+      "restoredSampleCount": 24,
+      "visualReview": "PASS"
+    },
+    "webgl2": {
+      "status": "PASS",
+      "receiptSHA256": "7cee12415f4879b2dcd9c17832a80e02706b26c51001b33e68cbc060340ab472",
+      "sourceManifestSHA256": "7b5619b6c7d1ce391c79a1223d8049b7f916f2c3182b3c570802e67a9274ad81",
+      "frozenFiles": 379,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "bodyWidthCSSpx": 424.00001138448704,
+      "displayClearanceCSSpx": 130.98335344667407,
+      "blockedCorners": 0,
+      "displayCloseShiftCSSpx": 17.000000217472575,
+      "restoredBlockedCorners": 0,
+      "restoredSampleCount": 24,
+      "visualReview": "PASS"
+    }
+  },
+  "regressions": {
+    "modelFit": {
+      "status": "PASS",
+      "receiptSHA256": "75e554fa244c157fb8722cff658f42f38d5e6bf0f2b7165775a6b579771d44b1",
+      "sourceManifestSHA256": "96de9afcac166ea2ff721a4a812ae00520419a5affbd933e798ee9e817a8d7c7",
+      "frozenFiles": 378,
+      "states": 6,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 21,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "multi-body occurrence with a hidden member",
+    "posed or clipped assembly fit",
+    "gizmo obstruction",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

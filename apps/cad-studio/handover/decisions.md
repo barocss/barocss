@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1043 — frame the visible model with Display open](notes/frame-visible-model-display-2026-11-13/README.md).
 - [D1042 — keep the Fixed mark clear of the Sketch rail](notes/sketch-fixed-mark-rail-2026-11-13/README.md).
 - [D1041 — frame the projected sketch clear of the tool rail](notes/projected-sketch-rail-clearance-2026-11-13/README.md).
 - [D1040 — start Measure from a static placed face](notes/measure-context-placed-face-2026-11-13/README.md).
