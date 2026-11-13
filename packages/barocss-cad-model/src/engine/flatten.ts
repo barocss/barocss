@@ -6,6 +6,7 @@ import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type 
 import { nextSerial, renameFeatureIds, withIds } from './ids';
 import { cutsOf } from './assemblyCut';
 import { refusal } from './refusal';
+import { regionExtrudeProblem } from './regionExtrude';
 import { assertRouteBundleDocument } from './routeBundle';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 
@@ -25,6 +26,8 @@ export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: str
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
   if (doc.nodes.some(n => n.kind === 'band-surface')) throw refusal('BAD_REFERENCE', 'Band surface: flattening a document with bands is not supported.');
+  const regionProblem = regionExtrudeProblem(doc, true);
+  if (regionProblem) throw refusal('BAD_REFERENCE', `Extrude region: ${regionProblem}`);
   const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, instancePatterns: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);
   if (!shown.length) return { doc: own, placed: [] };
@@ -58,6 +61,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'face-end-extrude': throw refusal('BAD_REFERENCE', 'Extrude to face: flattening a placed recipe is not supported.');
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
+    case 'region-extrude': return { ...node, sketch: node.sketch + k, sourceFeature: id(node.sourceFeature) };
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;

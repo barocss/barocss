@@ -2,6 +2,7 @@ import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
 import { faceEndExtrudeHeight, faceEndExtrudeProblem } from './faceEndExtrude';
+import { regionExtrudeProblem, resolveExtrudeRegion } from './regionExtrude';
 import { linearSpanPatternInput, linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
@@ -127,6 +128,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, ...profile } as CadPartFeature;
     }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
+    case 'region-extrude': throw coded('BAD_REFERENCE', 'Extrude region requires the current source sketch.');
     case 'face-end-extrude': throw coded('BAD_REFERENCE', 'Extrude to face requires the current native document prefix.');
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
@@ -540,6 +542,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   validateRoundedInsetDocument(doc, false);
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
+  const regionProblem = regionExtrudeProblem(doc);
+  if (regionProblem) throw coded('BAD_REFERENCE', `Extrude region: ${regionProblem}`);
   const faceEndProblem = faceEndExtrudeProblem(doc);
   if (faceEndProblem) throw coded('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`);
   const linearSpanProblem = linearSpanPatternProblem(doc);
@@ -580,6 +584,16 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     if (node.kind === 'skeleton') return;
     if (node.kind === 'rounded-rectangle-inset') {
       features.push(...featuresOf(resolveRoundedInsetRecipe(doc, i), i, CadPartLimits.features - features.length));
+      return;
+    }
+    if (node.kind === 'region-extrude') {
+      if (node.suppressed) { gone.add(i); return; }
+      if (features.length + 2 > CadPartLimits.features) throw refusal('LIMIT', 'Extrude region: the native feature limit was reached.');
+      const profile = resolveExtrudeRegion(node, doc.nodes, params), feature = id(i), sketch = `${feature}_region`;
+      if (sketch.length > 64 || doc.nodes.some((_, index) => id(index) === sketch) || features.some(item => item.id === sketch))
+        throw refusal('BAD_REFERENCE', 'Extrude region: the native sketch ID is unavailable.');
+      const native = featureOf(profile, i);
+      features.push({ ...native, id: sketch }, { id: feature, kind: 'extrude', sketch, height: node.height });
       return;
     }
     if (node.kind === 'face-end-extrude') {

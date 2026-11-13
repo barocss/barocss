@@ -1,0 +1,101 @@
+{
+  "decision": "D1132",
+  "tier": "FEATURE",
+  "parent": "e3ef324147501c93e5b2f5a8ad1d8f4a297f556a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1132-saved-region-<run>",
+    "D1132_SOURCE_FROZEN=1 node apps/cad-studio/test/saved-region-extrude-browser.mjs <external-evidence>/complete",
+    "D1129_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/scope",
+    "cd apps/cad-studio && node scripts/test.mjs document-file",
+    "cd packages/barocss-cad-model && node scripts/test.mjs region-extrude face-end-extrude readonly container profiles-parameters",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/complete-build",
+    "pnpm exec eslint apps/cad-studio/src/files/documentFile.ts apps/cad-studio/src/sketch/useSketchActions.ts apps/cad-studio/src/ui/featureIcon.ts packages/barocss-cad-model/src/engine/regionExtrude.ts packages/barocss-cad-model/test/region-extrude.test.ts",
+    "node --check apps/cad-studio/test/saved-region-extrude-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "scope": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 861,
+      "receiptSHA256": "8c3802d684f8b88b7c0647b7743b80b520b2166e61e9e69f819f9a6ed349b781",
+      "sourceManifestSHA256": "c95f4b5f67d292b9245460174764719ae2c4de488771700555b4f45752c4a643",
+      "savedFiles": []
+    },
+    "first": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "bd49b04a179333c6a73619e70c24345f2be2cd2aceff7ccb859076a3cde5a926",
+      "sourceManifestSHA256": "339460c70f10a07c18cc228f7dd5a97740abc90f5ffab270e5122e0124be877c",
+      "savedFiles": [
+        {
+          "name": "D1132-region-extrude.bcad",
+          "bytes": 2982,
+          "sha256": "5d3a562997e832fcba0c8458ad3ebace4bcfb77f6a9da8682381b100e3793107"
+        }
+      ]
+    },
+    "guarded": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "544073786d7baf194930d1348017dcf5477fbda1314a13ff7f293f0069ff2a0f",
+      "sourceManifestSHA256": "d6bdd4edbb6c9cff8642378e1d29987308730f4471f751f351671765f6761703",
+      "savedFiles": [
+        {
+          "name": "D1132-region-extrude.bcad",
+          "bytes": 2982,
+          "sha256": "5d3a562997e832fcba0c8458ad3ebace4bcfb77f6a9da8682381b100e3793107"
+        }
+      ]
+    },
+    "settled": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "7586e122270a88cb993e6ca192b156ad5f6f43d58342dfcdb6e17e1b4682197c",
+      "sourceManifestSHA256": "a6eda2c483e44921905fb65edbff0cd205f8deefb36921715a04f9935947aa70",
+      "savedFiles": [
+        {
+          "name": "D1132-region-extrude.bcad",
+          "bytes": 2982,
+          "sha256": "5d3a562997e832fcba0c8458ad3ebace4bcfb77f6a9da8682381b100e3793107"
+        }
+      ]
+    },
+    "complete": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "34e0f4b0f29ce790b0ed4ed3673df17edf805384870173591742a6f6a8757b2b",
+      "sourceManifestSHA256": "39a9c99dcf2c93507b2a426859ef73b43f168414ae840532cd3c1b7c6970b199",
+      "savedFiles": [
+        {
+          "name": "D1132-region-extrude.bcad",
+          "bytes": 2982,
+          "sha256": "5d3a562997e832fcba0c8458ad3ebace4bcfb77f6a9da8682381b100e3793107"
+        }
+      ]
+    }
+  },
+  "observation": {
+    "label": "saved-region",
+    "fromHeightMM": 2,
+    "toHeightMM": 3,
+    "volumeMM3": 360.00000000000006,
+    "centroidMM": [
+      19.000000000000004,
+      12.000000000000004,
+      1.5
+    ]
+  },
+  "focused": {
+    "studioPassed": 15,
+    "modelPassed": 42,
+    "failed": 0
+  }
+}

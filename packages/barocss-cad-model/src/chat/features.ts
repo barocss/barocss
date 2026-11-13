@@ -460,6 +460,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
 }
 /** A node's names (fillet and chamfer edges, shell openings, draft faces) with feature ids replaced. */
 function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
+  if (node.kind === 'region-extrude') return { ...node, sourceFeature: rename(node.sourceFeature) };
   const r = (name: string) => renameFeatureIds(name, rename);
   if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };

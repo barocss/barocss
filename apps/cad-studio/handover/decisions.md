@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1132 — evaluate and edit a saved individual-region Extrude](notes/saved-region-extrude-2026-11-14/README.md).
 - [D1131 — qualify shared-edge Trim in desktop Studio](notes/shared-sketch-trim-acceptance-2026-11-14/README.md).
 - [D1130 — explain the one-sketch limit before Extrude](notes/extrude-multiple-sketch-refusal-2026-11-14/README.md).
 - [D1129 — pick a finished sketch from each filled region](notes/multi-region-profile-picking-2026-11-14/README.md).

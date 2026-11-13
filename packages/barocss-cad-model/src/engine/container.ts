@@ -13,6 +13,7 @@ import { arrayOf, blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha
 import { readStudioDoc } from './migrate';
 import type { StudioDoc } from './doc';
 import { isRefusal, refusal } from './refusal';
+import { regionExtrudeProblem } from './regionExtrude';
 import { assertRouteBundleDocument } from './routeBundle';
 import { assertSavedDrawingDocument } from './savedDrawing';
 import { validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
@@ -27,6 +28,8 @@ export function encodeStudioFile(doc: StudioDoc): Uint8Array {
   validateRoundedInsetDocument(doc, true);
   assertSavedDrawingDocument(doc);
   assertRouteBundleDocument(doc);
+  const regionProblem = regionExtrudeProblem(doc, true);
+  if (regionProblem) throw refusal('BAD_REFERENCE', `Extrude region: ${regionProblem}`);
   return encodeDocument(doc);
 }
 

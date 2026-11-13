@@ -83,6 +83,14 @@ export interface FaceEndExtrudeNode {
 export type StockRow = { id: string; kind: 'block'; size: [number, number, number]; source: string } | { id: string; kind: 'bar'; diameter: number; maxLength?: number; source: string };
 /** A frame stock row (FRb, O116): a length bars come in, how many if limited, the section it is (a cut list's section text; unset: any), with its source. */
 export interface FrameStockRow { id: string; length: number; count?: number; section?: string; source: string }
+export interface RegionExtrudeNode {
+  kind: 'region-extrude';
+  sketch: number;
+  sourceFeature: string;
+  plane: DocPlane;
+  height: Dim;
+  boundary: { side: string; ends: [[number, number], [number, number]] }[];
+}
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 /** A standalone solid from a scalar run. Size is em height; tolerance is an explicit chord-error bound. */
 export interface TextNode { kind: 'text'; text: string; font: FontSource; size: Dim; height: Dim; tolerance: number; tracking?: Dim; plane?: DocPlane }
@@ -414,6 +422,7 @@ export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
 type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
+  | RegionExtrudeNode
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   | FaceEndExtrudeNode
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
@@ -1042,7 +1051,7 @@ export function parentsOf(node: ModelNode): number[] {
       if (!a || a.kind !== 'planar-face-outline-inset' || a.version !== 1 || !a.source || !Number.isInteger(a.source.node) || a.source.node < 0 || a.source.side !== 'solid' || Object.keys(a.source).some(k => k !== 'node' && k !== 'side') || typeof a.sourceFeature !== 'string' || !a.sourceFeature || typeof a.face !== 'string' || !a.face || a.face.includes('+') || !Number.isFinite(a.insetMM) || a.insetMM <= 0) throw refusal('BAD_REFERENCE', 'Associative sketch: the stored recipe is malformed.');
       return [a.source.node];
     }
-    case 'extrude': case 'face-end-extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
+    case 'extrude': case 'region-extrude': case 'face-end-extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
@@ -1061,7 +1070,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'face-end-extrude') return; // The target is a reference, not a consumed body.
+    if (node.kind === 'face-end-extrude' || node.kind === 'region-extrude') return; // The target is a reference, not a consumed body.
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
     if (isSketchNode(node) || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
@@ -1193,6 +1202,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'rounded-rectangle-inset': return 'Sketch · rounded inset';
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'face-end-extrude': return 'Extrude to face';
+    case 'region-extrude': return `Extrude region ${n(node.height)}`;
     case 'extrude': {
       const s = nodes[node.sketch];
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';

@@ -94,9 +94,36 @@ export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: Studio
       }
     });
   };
+  const regionParts = [opened];
+  const checked = new Set<StudioDoc>();
+  const activeRegionParts: StudioDoc[] = [];
+  while (regionParts.length) {
+    const part = regionParts.pop()!;
+    if (checked.has(part)) continue;
+    checked.add(part);
+    const regionNodes = part.nodes.filter(node => node.kind === 'region-extrude').filter(node => !node.suppressed);
+    if (regionNodes.length && part === opened) activeRegionParts.push(part);
+    else for (const node of regionNodes) {
+      // Validate the nested recipe in its own coordinates without evaluating unrelated features outside their assembly context.
+      const source = part.nodes[node.sketch];
+      if (!source) continue; // The file reader already validates every source reference.
+      activeRegionParts.push({ ...emptyDoc(), parameters: part.parameters, nodes: [source, { ...node, sketch: 0 }] });
+    }
+    for (const instance of part.instances ?? []) regionParts.push(instance.doc);
+    for (const pending of Object.values(part.pendingParts ?? {})) regionParts.push(pending.doc);
+  }
+  const checkRegions = async () => {
+    for (const part of activeRegionParts) {
+      if (!current()) return;
+      const result = await readPart(prefixDoc(part, part.nodes.length));
+      if (!current()) return;
+      if (!result.ok) throw new Error(`Extrude region: ${result.error.detail} Your part is unchanged.`);
+    }
+  };
   const checkSources = () => {
     const cavities = verifyStoredStepCavities(opened, readPart, current);
-    return cavities ? cavities.then(checkPart) : checkPart();
+    const earlier = cavities ? cavities.then(checkPart) : checkPart();
+    return activeRegionParts.length ? Promise.resolve(earlier).then(checkRegions) : earlier;
   };
   const hasInsets = opened.nodes.some(node => node.kind === 'rounded-rectangle-inset' ||
     (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined));

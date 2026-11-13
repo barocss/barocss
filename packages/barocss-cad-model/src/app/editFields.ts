@@ -173,6 +173,9 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), get: n => get(self(n)), set: (n, v) => replace(n, i, set(self(n), v)) });
   switch (node.kind) {
     case 'driven-sketch': case 'sketch': return sketchFields(nodes, i, '', parameters);
+    case 'region-extrude':
+      number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, height) => ({ ...(n as typeof node), height }));
+      break;
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
       number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => withExtrusionHeight(n as typeof node, nodes[node.sketch], v));

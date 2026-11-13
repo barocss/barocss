@@ -200,6 +200,10 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     }
     if (stored?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
     if (stored?.kind !== 'sketch') return;
+    if (doc.nodes.some(node => node.kind === 'region-extrude' && node.sketch === index)) {
+      setToast({ title: 'Region source is locked', hint: 'Remove the region extrusion before editing its source sketch.', detail: '' });
+      return;
+    }
     let node: SketchNode;
     try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
     catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
