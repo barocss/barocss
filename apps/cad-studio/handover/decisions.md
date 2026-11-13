@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1135 — trim the selected overlaid line occurrence](notes/overlaid-line-direct-trim-2026-11-14/README.md).
 - [D1134 — carry a canvas region pick into Extrude](notes/canvas-extrude-region-selection-2026-11-14/README.md).
 - [D1133 — choose an individual sketch region in the Extrude HUD](notes/studio-extrude-region-choice-2026-11-14/README.md).
 - [D1132 — evaluate and edit a saved individual-region Extrude](notes/saved-region-extrude-2026-11-14/README.md).

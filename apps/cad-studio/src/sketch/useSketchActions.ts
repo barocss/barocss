@@ -174,6 +174,26 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
     replaceDraftShapes(sketch, r.shapes);
   };
+  const trimSelectedEdge = (active: SketchState) => {
+    if (!sketch || !ownsSketch() || active.tool !== 'select' || active.shape?.kind !== 'polygon') return;
+    const pick = active.picked?.[0];
+    if (pick?.kind !== 'edge' || active.picked?.length !== 1) return;
+    const { shapes, protectedShapes } = sketchCutInputs(active);
+    if (active.editNode !== undefined || shapes.some(shape => shape.ids?.length)) {
+      setToast({ title: 'Cannot trim the highlighted line', hint: 'Direct Trim requires a new sketch without stored edge IDs.', detail: '' });
+      return;
+    }
+    const shape = shapes.indexOf(active.shape), side = pick.i;
+    const first = active.shape.points[side], last = active.shape.points[(side + 1) % active.shape.points.length];
+    if (shape < 0 || !first || !last) return;
+    const at: [number, number] = [(first[0] + last[0]) / 2, (first[1] + last[1]) / 2];
+    const result = trimAt(shapes, at, 1e-6, protectedShapes, { shape, side });
+    if ('error' in result) {
+      setToast({ title: 'Cannot trim the highlighted line', hint: 'A crossing splits the line at its midpoint. Use Trim and click the part to remove.', detail: '' });
+      return;
+    }
+    replaceDraftShapes(sketch, result.shapes);
+  };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
   const makeSketchBand = (offset: number, width?: number) => {
     if (!sketch || !ownsSketch()) return;
@@ -332,5 +352,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { currentSketchSource, makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, trimSelectedEdge, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
 }

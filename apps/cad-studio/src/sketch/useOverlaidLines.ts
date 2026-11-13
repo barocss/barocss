@@ -13,7 +13,7 @@ interface Scan {
   selected?: { group: number; occurrence?: number };
 }
 
-export function useOverlaidLines(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>, generation: RefObject<number>, activate: (next: SketchState) => void) {
+export function useOverlaidLines(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>, generation: RefObject<number>, activate: (next: SketchState) => void, trim: (next: SketchState) => void) {
   const [scan, setScan] = useState<Scan | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragInProgress = useRef(false);
@@ -31,6 +31,11 @@ export function useOverlaidLines(doc: StudioDoc, sketch: SketchState | null, doc
       if (!next || !visible || dragInProgress.current || docNow.current !== doc || visible.generation !== generation.current) return;
       setScan(null);
       activate(next);
+    },
+    trimEdge() {
+      if (!next || !visible || dragInProgress.current || docNow.current !== doc || visible.generation !== generation.current) return;
+      setScan(null);
+      trim(next);
     },
     onSplineDragChange(active: boolean) {
       dragInProgress.current = active;

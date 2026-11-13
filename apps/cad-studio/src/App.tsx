@@ -1743,7 +1743,7 @@ export function App() {
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker },
     editor: { sketch, setSketch, sketchGeneration, recordDraft: recordSketchDraft }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, trimSelectedEdge, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, (shape, fresh) => updateShape(shape, fresh, 'chord-circle'));
   const commitBodyVisibility = (next: StudioDoc) => {
     if (!commit(next)) return false;
@@ -1766,7 +1766,7 @@ export function App() {
     setSketchError(null);
     setSketch(next);
   };
-  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, setActiveOutline);
+  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, setActiveOutline, trimSelectedEdge);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError,
     clearOutlinePickIssue: () => setSketchIssue(issue => isOutlinePickIssue(issue?.reason) ? null : issue),
     updateCircleDiameter: (shape, diameter) => {

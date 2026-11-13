@@ -170,3 +170,19 @@ test('D715: an oblique source and target intersect at the authored point after t
     assert.deepEqual(extendPreview([source, far, near], [x + 0.75, y + 0.75], 1 / 32), [[x + 1, y + 1], end]);
   }
 });
+
+test('exact occurrence trim refuses an ambiguous midpoint crossing', () => {
+  const right: SketchShape = { kind: 'rectangle', a: [10, 0], b: [20, 10] };
+  const left: SketchShape = { kind: 'rectangle', a: [0, 0], b: [10, 10] };
+  const crossing = openLine([8, 5], [12, 5]);
+  const selected = { shape: 1, side: 3 };
+  const result = trimAt([left, right], [10, 5], 1e-6, undefined, selected);
+  assert.ok('shapes' in result);
+  const [untouched, opened] = result.shapes;
+  assert.ok(untouched.kind === 'rectangle' && opened.kind === 'polygon' && !opened.closed);
+  assert.deepEqual([untouched.a, untouched.b], [[0, 0], [10, 10]]);
+  assert.deepEqual(opened.points, [[10, 0], [20, 0], [20, 10], [10, 10]]);
+  const ids = result.shapes.flatMap(shape => shape.ids ?? []);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok('error' in trimAt([left, right, crossing], [10, 5], 1e-6, undefined, selected));
+});

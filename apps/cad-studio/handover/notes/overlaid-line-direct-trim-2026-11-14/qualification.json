@@ -1,0 +1,62 @@
+{
+  "decision": "D1135",
+  "tier": "FEATURE",
+  "parent": "09373b235c32014c55adf938d1ca8511bcbeacf8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1135-occurrence-trim-<run>",
+    "D1135_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/final --trim-occurrence",
+    "D1131_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/shared-final --trim-shared",
+    "D1094_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/choose-final --choose-edge",
+    "cd apps/cad-studio && node scripts/test.mjs overlaid-lines trim.test drag-trim-plan",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-profile-precision",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-complete",
+    "pnpm exec eslint apps/cad-studio/src/sketch/useOverlaidLines.ts apps/cad-studio/src/sketch/useSketchActions.ts apps/cad-studio/src/ui/OverlaidLinesControls.tsx packages/barocss-cad-model/src/sketch/trim.ts",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "first": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "defd724781957799478c887303f199a26a06baecf90061fe9e787f27a7409ec5",
+      "sourceManifestSHA256": "1377e2a4512ec8451cf0e1515acef7d16a95425f9fcf08a9cfdf85e95c615dd3"
+    },
+    "final": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "c201674391486423127cd787321b8ece4d529ed9acb50abbe6402e6f1e92c7f9",
+      "sourceManifestSHA256": "8686e6c739bcb736b2e2ebafbd976ce04583185edd7a38108e5c3d1f10bc6d84"
+    },
+    "shared-final": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "74d631b414266f7c107a27e93f327ac5f2874026e975592e1a4f36c26d8118c7",
+      "sourceManifestSHA256": "8686e6c739bcb736b2e2ebafbd976ce04583185edd7a38108e5c3d1f10bc6d84"
+    },
+    "choose-final": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "7dc55d48d9c7b230963d8c228db214717da6c0aa5740405cbf5c07e19d30868b",
+      "sourceManifestSHA256": "8686e6c739bcb736b2e2ebafbd976ce04583185edd7a38108e5c3d1f10bc6d84"
+    }
+  },
+  "observation": {
+    "occurrence": [
+      2,
+      4
+    ],
+    "volumeMM3": 400
+  },
+  "focused": {
+    "studioPassed": 21,
+    "modelPassed": 5,
+    "failed": 0
+  }
+}

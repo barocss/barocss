@@ -42,7 +42,10 @@ export function OverlaidLinesControls({ scan }: { scan: ReturnType<typeof useOve
           <span>({line.start.join(', ')}) → ({line.end.join(', ')})</span>
         </Button>)}
       </div> : null}
-      {scan.canSelect ? <Button type="button" variant="outline" size="sm" onClick={scan.selectEdge}>Select highlighted edge</Button> : null}
+      {scan.canSelect ? <div className="flex flex-wrap gap-1.5">
+        <Button type="button" variant="outline" size="sm" onClick={scan.selectEdge}>Select highlighted edge</Button>
+        <Button type="button" variant="outline" size="sm" onClick={scan.trimEdge}>Trim highlighted edge</Button>
+      </div> : null}
     </> : report ? <p role="status" className="muted small">{notices[report.status]}</p> : null}
   </section>;
 }

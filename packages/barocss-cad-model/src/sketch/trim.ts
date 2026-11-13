@@ -80,17 +80,22 @@ const pt = (s: Piece, t: number): P2 => { const q = at(s, t); return [r6(q[0]), 
 
 /** The piece nearest `p` (within `tol` mm) and the part of it a trim there removes: t from lo to hi. */
 interface Target { shape: number; piece: number; s: Piece; full: boolean; lo: number; hi: number; gone: boolean }
-function target(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): Target | null {
+function target(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>, exact?: { shape: number; side: number }): Target | null {
   let best: { shape: number; piece: number; d: number } | null = null;
   const pieces = shapes.map(piecesOf);
   pieces.forEach((ps, si) => {
     if (protectedShapes?.has(shapes[si])) return;
-    ps.forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; });
+    ps.forEach((s, pi) => {
+      if (exact && (exact.shape !== si || exact.side !== pi)) return;
+      const d = distance(s, p);
+      if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d };
+    });
   });
   if (!best) return null;
   const { shape: si, piece: pi } = best as { shape: number; piece: number }, s = pieces[si][pi];
   const full = s.kind === 'arc' && Math.abs(s.sw) >= TAU - 1e-12, tp = paramOf(s, p);
   const cuts = pieces.flatMap((ps, sj) => ps.flatMap((o, pj) => sj === si && pj === pi ? [] : crossings(s, o))).filter(t => full ? true : t > 1e-7 && t < 1 - 1e-7);
+  if (exact && cuts.some(t => Math.abs(t - tp) <= 1e-7)) return null;
   if (full) {
     // A circle: crossing nothing (or once) it goes; else the arc between the crossings either side of the click.
     const ts = [...new Set(cuts.map(t => ((t % 1) + 1) % 1))].sort((a, b) => a - b);
@@ -112,8 +117,8 @@ export function trimPreview(shapes: SketchShape[], p: P2, tol: number, protected
  * The sketch's shapes with the piece nearest `p` (within `tol` mm) trimmed back to its nearest crossings
  * on either side, and open outlines meeting end to end joined; or why not.
  */
-export function trimAt(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>): { shapes: SketchShape[] } | { error: string } {
-  const T = target(shapes, p, tol, protectedShapes);
+export function trimAt(shapes: SketchShape[], p: P2, tol: number, protectedShapes?: ReadonlySet<SketchShape>, exact?: { shape: number; side: number }): { shapes: SketchShape[] } | { error: string } {
+  const T = target(shapes, p, tol, protectedShapes, exact);
   if (!T) return { error: 'Click on a line, arc or circle of the sketch to trim it.' };
   const { shape: si, piece: pi, s, full, lo, hi } = T, shape = shapes[si];
   const rest = shapes.filter((_, k) => k !== si);
