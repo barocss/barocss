@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed', '--annotation-identity-baseline', '--annotation-identity-fixed', '--note-sheet-baseline', '--note-sheet-fixed', '--note-escape-baseline', '--note-escape-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed', '--annotation-identity-baseline', '--annotation-identity-fixed', '--note-sheet-baseline', '--note-sheet-fixed', '--note-escape-baseline', '--note-escape-fixed', '--annotation-overlap'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
-const annotations = mode === '--annotations';
+const overlap = mode === '--annotation-overlap';
+const annotations = overlap || mode === '--annotations';
 const detachedViews = mode === '--detached-views';
 const ownership = mode === '--ownership';
 const noteEscape = mode.startsWith('--note-escape-');
@@ -47,8 +48,8 @@ const source = {
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: noteEscape ? 'D987_SOURCE_FROZEN' : noteSheet ? 'D986_SOURCE_FROZEN' : annotationIdentity ? 'D985_SOURCE_FROZEN' : annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: noteEscape ? 'Cancel a Drawing Note draft with Escape and keep explicit text commits.' : noteSheet ? 'Preserve second-sheet Note ownership when removing a leader or duplicating.' : annotationIdentity ? 'Select and delete the correct kind when a Note and dimension share an ID.' : annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+  name: 'drawing-section-trace-hit', output, envFrozen: overlap ? 'D988_SOURCE_FROZEN' : noteEscape ? 'D987_SOURCE_FROZEN' : noteSheet ? 'D986_SOURCE_FROZEN' : annotationIdentity ? 'D985_SOURCE_FROZEN' : annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: overlap ? 'Delete the visible annotation selected where it overlaps the cutting-plane trace.' : noteEscape ? 'Cancel a Drawing Note draft with Escape and keep explicit text commits.' : noteSheet ? 'Preserve second-sheet Note ownership when removing a leader or duplicating.' : annotationIdentity ? 'Select and delete the correct kind when a Note and dimension share an ID.' : annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
     : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
   limits: [ownership ? 'Two sectioned plates reuse Section A and dimension width IDs across files; Section A spans two sheets.' : detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
     : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
@@ -197,6 +198,7 @@ async function annotationFlow(initial) {
   for (const [index, { label, group, attr, id, selection }] of cases.entries()) {
     f.phase = `select the ${label} in the actual drawing`;
     await group.waitFor();
+    const beforePick = overlap ? await f.snapshot(`before-${label}-selection`) : before;
     const site = await sheet().evaluate((svg, { attr, id }) => {
       const target = svg.querySelector(`g[${attr}="${id}"]`);
       const trace = svg.querySelector('g.section[data-view][data-dim="A"] line');
@@ -215,7 +217,7 @@ async function annotationFlow(initial) {
       return null;
     }, { attr, id });
     assert.ok(site, `painted trace overlaps the ${label}`);
-    assert.equal(site.traceFirst, index === 0);
+    if (!overlap) assert.equal(site.traceFirst, index === 0);
     await f.page.mouse.click(site.x, site.y);
     const pointerHit = await f.page.evaluate(index => window.__d953PointerHits[index], index);
     assert.equal(pointerHit, site.traceFirst ? 'A' : id);
@@ -224,10 +226,26 @@ async function annotationFlow(initial) {
     assert.deepEqual(selected.selected, []);
     assert.deepEqual(selected[selection === 'selectedTargets' ? 'selectedFrames' : 'selectedTargets'], []);
     assert.equal(selected.box, before.box);
-    assert.equal(selected.dirty, before.dirty);
-    assert.deepEqual(selected.history, before.history);
+    assert.equal(selected.dirty, beforePick.dirty);
+    assert.deepEqual(selected.history, beforePick.history);
     assert.deepEqual(selected.doc, loaded);
     f.report.observations.push({ label, paintedOverlap: site, pointerHit });
+    if (overlap) {
+      await f.page.keyboard.press('Delete');
+      await f.changed(loaded);
+      const expected = structuredClone(loaded);
+      if (label === 'datum-target') delete expected.drawing.datumTargets;
+      else delete expected.drawing.frames;
+      await f.same(expected);
+      assert.equal(await group.count(), 0);
+      await f.snapshot(`03-${label}-deleted-only`);
+      await f.undo();
+      await f.same(loaded);
+      await f.redo();
+      await f.same(expected);
+      await f.undo();
+      await f.same(loaded);
+    }
   }
   assert.equal(await trace().innerHTML(), sectionMarkup);
   assert.equal(await exportSvg(), svgBefore);

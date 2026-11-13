@@ -1,0 +1,37 @@
+{
+  "decision": "D988",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e5e5421f5637ff6cc5792627eeb40f930b9fef78",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D988-drawing-annotation-overlap",
+    "D988_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/studio03 --annotation-overlap",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f17014ae1c394ec887001106d71947e7b60a141189bd1fa0c673eb2dd9e4769e",
+    "sourceManifestSHA256": "03625f2e71d280dceb88cca21e955a7cf4410569298dcbf7c8f7219405d2987d",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "deletedIndependently": [
+      "target-1",
+      "frame-1"
+    ],
+    "restoredSvgSHA256": "76c7abdd5af58d24dbb897663ca620e35c71f877be918e6d579eb269bff8c06c"
+  },
+  "notRun": [
+    "other overlap pairs",
+    "WebGL2",
+    "type-check",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
