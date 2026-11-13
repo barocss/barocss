@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
-import { createFlow } from './flow-helper.mjs';
+import { randomUUID } from 'node:crypto';
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createFlow, sha256 } from './flow-helper.mjs';
 
-const reopened = process.argv[3] === '--reopened';
+const repair = process.argv[3] === '--repair-reopened';
+const reopened = repair || process.argv[3] === '--reopened';
 const pins = [
   'apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -12,10 +16,19 @@ const pins = [
 const f = await createFlow({
   name: 'sketch-circle-gap-draft-history',
   output: process.argv[2],
-  envFrozen: reopened ? 'D1136_SOURCE_FROZEN' : 'D1074_SOURCE_FROZEN',
+  envFrozen: repair ? 'D1137_SOURCE_FROZEN' : reopened ? 'D1136_SOURCE_FROZEN' : 'D1074_SOURCE_FROZEN',
   qualification: 'Undo and redo a 4 mm gap in a new ordinary circle.',
   limits: ['One new 10 mm radius XY circle in desktop WebGPU.'],
   initialFiles: pins, requiredFrozen: pins,
+  inspectorSource: `
+import { readFileSync } from 'node:fs';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+console.log(JSON.stringify(evaluateCadPart(toPartDocument(doc)).outputs.map(output => ({
+  id: output.id, valid: checkOutput(output).valid, ...massPropertiesOf(output),
+}))));
+`,
 });
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
 const outline = () => f.page.locator('.vp-overlay .sk-shape.done');
@@ -71,6 +84,58 @@ await f.run(async () => {
     assert.equal(await f.sketchAlert(), null);
     await f.redo();
     assert.deepEqual(await geometry(), arc);
+    if (repair) {
+      f.phase = 'close the reopened gap and update the existing extrusion';
+      const a = [20 + 10 * Math.sin(0.2), 20 + 10 * Math.cos(0.2)];
+      const b = [20 - 10 * Math.sin(0.2), 20 + 10 * Math.cos(0.2)];
+      await f.tool('Line', 'l');
+      await f.worldClick(a);
+      await f.worldClick(b);
+      const changed = (await f.finishSketch('03-reopened-arc-closed')).doc;
+      const [outline, extrude] = changed.nodes;
+      assert.equal(outline.id, 'n0');
+      assert.equal(outline.profile, 'loop');
+      assert.deepEqual(outline.segments.map(segment => segment.kind).sort(), ['arc', 'line']);
+      assert.deepEqual(extrude, source.nodes[1]);
+      const start = outline.segments.find(segment => segment.kind === 'arc').start;
+      const end = outline.segments.find(segment => segment.kind === 'line').start;
+      assert.ok(Math.hypot(start[0] - b[0], start[1] - b[1]) < 3e-6, JSON.stringify(start));
+      assert.ok(Math.hypot(end[0] - a[0], end[1] - a[1]) < 3e-6, JSON.stringify(end));
+      const expected = 100 * (2 * Math.PI - 0.4 + Math.sin(0.4));
+      const [body] = await f.inspect('repaired-native', changed);
+      assert.equal(body.id, 'n1');
+      assert.equal(body.valid, true);
+      assert.ok(Math.abs(body.volume - expected) < 0.002);
+      await f.undo();
+      await f.same(source);
+      await f.redo();
+      await f.same(changed);
+
+      const name = 'D1136-ordinary-circle.bcad';
+      const project = 'D1137 reopened circle ' + randomUUID();
+      const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+      await button('Project and versions').click();
+      await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+      await button('Project in this browser', versions).click();
+      await versions.getByLabel('Project', { exact: true }).waitFor();
+      await button('Save').click();
+      await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(name, { exact: true }).waitFor();
+      await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+      const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+        const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+        const dir = await projects.getDirectoryHandle(project);
+        return Array.from(new Uint8Array(await (await (await dir.getFileHandle(name)).getFile()).arrayBuffer()));
+      }, [project, name]));
+      assert.deepEqual(JSON.parse(bytes), changed);
+      const saved = join(f.output, 'repaired-reopened-circle.bcad');
+      await writeFile(saved, bytes);
+      f.report.files.push({ name, bytes: bytes.length, sha256: sha256(bytes) });
+      await f.freshOpen(saved, changed, '04-repaired-fresh-open');
+      assert.deepEqual(await f.inspect('reopened-repair-native', changed), [body]);
+      f.report.observations.push({ label: 'repaired-native', expectedVolumeMM3: expected, volumeMM3: body.volume, centroidMM: body.centroid });
+      assert.deepEqual(f.report.downloads, []);
+      return;
+    }
     await f.undo();
     assert.deepEqual(await geometry(), circle);
     const restored = (await f.finishSketch('03-reopened-no-op-finish')).doc;

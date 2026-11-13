@@ -362,7 +362,17 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const centreArcSize = sk.tool === 'carc' && carc.current !== null;
     const crossings = guide || circleRadiusOrChord || arcBend || centreArcSize ? [] : model.crossings;
     const placed = guide ? [] : currentPlacedPoints(sk);
-    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings, ...placed];
+    const done = (sk.done ?? []).filter(shape => !(sk.hideConstruction && shape.construction));
+    const exactEnds = new Set<SnapPoint>();
+    const draftPoints = done.flatMap(shape => {
+      const snaps = shapeSnaps(shape);
+      if (sk.tool === 'polygon' && shape.kind === 'polygon' && !shape.closed && !shape.pending
+        && !shape.construction && shape.points.length === 2 && shape.bulges?.[0]) {
+        for (const point of snaps) if (point.kind === 'end') exactEnds.add(point);
+      }
+      return snaps;
+    });
+    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...draftPoints, ...livePoints, ...crossings, ...placed];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
     let candidates = guide ? points : enabledObjectSnaps(points, sketchSnaps?.objectKinds);
     if (sk.tool === 'circle' && drafting.current && live?.kind === 'circle') {
@@ -399,7 +409,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const extension = extensionPoint && nearestSnap([{ at: extensionPoint, kind: 'calculated' }], project, [x, y]);
     const hit = ordinary ?? extension;
     return hit ? {
-      at: authoredSnapPoint(hit.at),
+      at: exactEnds.has(hit) ? hit.at : authoredSnapPoint(hit.at),
       snap: hit, liveMiddle: live?.kind === 'polygon' && hit.kind === 'mid' && livePoints.includes(hit), extension: !!extension,
       terminal: guide?.stage === 'end' && uniqueArcTerminal(guide.arc.end, ordinary, points, project, [x, y]),
     } : { at: [snap(p[0]), snap(p[1])], snap: null };

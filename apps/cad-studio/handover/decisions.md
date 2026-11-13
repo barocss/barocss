@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1137 — preserve reopened circle-gap endpoints when closing the profile](notes/reopened-circle-gap-repair-2026-11-14/README.md).
 - [D1136 — open Circle gap in a saved ordinary sketch](notes/reopened-circle-gap-2026-11-14/README.md).
 - [D1135 — trim the selected overlaid line occurrence](notes/overlaid-line-direct-trim-2026-11-14/README.md).
 - [D1134 — carry a canvas region pick into Extrude](notes/canvas-extrude-region-selection-2026-11-14/README.md).

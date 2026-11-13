@@ -1,0 +1,74 @@
+{
+  "decision": "D1137",
+  "tier": "SMALL",
+  "parent": "8ab2a26edb41d85ace1e2107ef8504317666b5d0",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1137-reopened-gap-<run>",
+    "D1137_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs <external-evidence>/<run> --repair-reopened",
+    "D1136_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs <external-evidence>/no-op --reopened",
+    "D806_SOURCE_FROZEN=1 node apps/cad-studio/test/ordinary-circle-gap-close-browser.mjs <external-evidence>/new-gap",
+    "cd apps/cad-studio && node scripts/test.mjs circlePathGap arcPathGap linePathGap trim.test",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "node --check apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "first": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "9944da56ed80aa73235b27711c6d271eef7338d7f98496902431bd342288b3fd",
+      "sourceManifestSHA256": "6f80b0abd14be56d2b4d348ba499ea22c1a04e244df0ea0678177f60d38bf7a0",
+      "savedFiles": []
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "08aa4c90d34adf7e6882d5e3da5d4cda8040d9a80f7ea5c76fac5fd47d1515e8",
+      "sourceManifestSHA256": "6e66129e238676ee7eba8da16a75656787ed4e02e962ff870dffb1e3aa9e1469",
+      "savedFiles": [
+        {
+          "name": "D1136-ordinary-circle.bcad",
+          "bytes": 861,
+          "sha256": "cca6e9b137eee5df61745d2388efe856d0b4171f527babe88bbcf263c8a0a3fc"
+        }
+      ]
+    },
+    "no-op": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 861,
+      "receiptSHA256": "bc875365350235d7175a6dc1b87a78c855e4c1dae2117da08ea709b48face8f8",
+      "sourceManifestSHA256": "6e66129e238676ee7eba8da16a75656787ed4e02e962ff870dffb1e3aa9e1469",
+      "savedFiles": []
+    },
+    "new-gap": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "79d75f08cc41a61d3915f18e09df1e18988e802b7aac9ee499162f68253f5384",
+      "sourceManifestSHA256": "22eefa4ee69606db4ebf88b1c19811f2a3886109a6c59f62c09734e00144fffa",
+      "savedFiles": []
+    }
+  },
+  "observation": {
+    "label": "repaired-native",
+    "expectedVolumeMM3": 627.2603649488236,
+    "volumeMM3": 627.2601704578004,
+    "centroidMM": [
+      20.00000047077234,
+      19.983333248008606,
+      1
+    ]
+  },
+  "baselineVolumeMM3": 627.2645906967485,
+  "toleranceMM3": 0.002,
+  "focused": {
+    "studioPassed": 21,
+    "failed": 0
+  }
+}
