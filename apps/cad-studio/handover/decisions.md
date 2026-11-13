@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1109 — snap the Centre arc centre to a native edge crossing](notes/native-crossing-centre-arc-2026-11-14/README.md).
 - [D1108 — snap Line, Arc and Circle anchors to native edge crossings](notes/native-crossing-line-arc-circle-2026-11-14/README.md).
 - [D1107 — show active construction lines as open references](notes/active-construction-line-style-2026-11-14/README.md).
 - [D1106 — verify both Round lock orders on an oblique sketch plane](notes/oblique-round-lock-order-2026-11-14/README.md).

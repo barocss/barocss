@@ -2586,7 +2586,7 @@ export function App() {
   };
   const visibleMeasurement = measure ? measured : pinResult;
   const sketchTool = sketch?.tool;
-  const usesNativeCrossings = sketchTool === 'rectangle' || sketchTool === 'polygon' || sketchTool === 'arc' || sketchTool === 'circle';
+  const usesNativeCrossings = sketchTool === 'rectangle' || sketchTool === 'polygon' || sketchTool === 'arc' || sketchTool === 'circle' || sketchTool === 'carc';
   const crossingBodies = usesNativeCrossings && fresh && !busy && shownDoc === doc && marker === null && !inPlace && !doc.instances?.length
     && !active && !rendering && !drawing && !section && previewMode === 'none' && !cageEd.session && !skel.session
     && !bodyDrag && !ghost && !workingComparison && shownBodies === drawnBodies

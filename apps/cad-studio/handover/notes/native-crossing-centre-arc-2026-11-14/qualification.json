@@ -1,0 +1,109 @@
+{
+  "decision": "D1109",
+  "tier": "FEATURE",
+  "parent": "a02a0fd4f42bc9f0600cf37964bcaa857b97245a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1109-centre-arc-<run>",
+    "D1109_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --centre-arc",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1109_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --centre-arc",
+    "D1108_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/anchor-control --anchor-tools",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "b5bf8bc0c9676ce6533f449b85f9379d6ade0af3252c3aa9f1108971d9fbd785",
+      "sourceManifestSHA256": "6e9301099b6082ca61a09602f7b68d17a373ee190f811a8672b7cce2c47687ce",
+      "savedFiles": [],
+      "firstFailure": "Centre arc showed no Crossing cue two CSS pixels from the projected native intersection."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "a90c68e1613fc53d5c3263b2219331d3e25ca65a8f226d026704e24305475fa8",
+      "sourceManifestSHA256": "c3ed30575070e459fb5c2377541e1091a73571a9b3f4baeb7eaa673a92a1ec0b",
+      "savedFiles": [
+        {
+          "bytes": 1540,
+          "sha256": "7f8955739d2769fcdef47cc25ba30d1032e0ab7ea66c373edc3fe6023ed75ee4"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "4ec35cfbf7c7fc9c825e13b7b4007e99358bee389068bb15ace9c61aafa868ad",
+      "sourceManifestSHA256": "c3ed30575070e459fb5c2377541e1091a73571a9b3f4baeb7eaa673a92a1ec0b",
+      "savedFiles": [
+        {
+          "bytes": 1540,
+          "sha256": "7f8955739d2769fcdef47cc25ba30d1032e0ab7ea66c373edc3fe6023ed75ee4"
+        }
+      ]
+    },
+    "anchorControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "b1380cdfb39a155cad2812397e00282805cf6afb4e2bcbbd8ebe76c57557503d",
+      "sourceManifestSHA256": "c3ed30575070e459fb5c2377541e1091a73571a9b3f4baeb7eaa673a92a1ec0b",
+      "savedFiles": [
+        {
+          "bytes": 1536,
+          "sha256": "18549c4024e7c2fd8d40d1a93a48f2cc6b5e249916c5554e565c40fba6ebedd4"
+        },
+        {
+          "bytes": 1555,
+          "sha256": "5db3c7a0c6cfe21f0882f0c3b5def8d1bce787bf87599f175730b8bd7f3df916"
+        },
+        {
+          "bytes": 993,
+          "sha256": "39239096b1004149c555b791c3abe2ccc8e1536edfab0c1dd105ec8236658b2d"
+        }
+      ]
+    }
+  },
+  "authoredCentreMM": [
+    4.2346,
+    3.4321
+  ],
+  "recoveredCentreMM": [
+    4.23460013986543,
+    3.4320997284184624
+  ],
+  "centreErrorMM": 3.0548137419372016e-07,
+  "centreToleranceMM": 1e-06,
+  "sweepRadians": 1.6877130378973344,
+  "planeNormal": [
+    0,
+    0.6,
+    0.8
+  ],
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "review": {
+    "model": "GPT-6.1 Sol High",
+    "status": "PASS"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

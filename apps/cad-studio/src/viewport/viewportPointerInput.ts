@@ -352,7 +352,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const guide = sketchSnaps?.extension.read(sk);
     const circleRadiusOrChord = sk.tool === 'circle' && (drafting.current || circleChord?.read(sk));
     const arcBend = sk.tool === 'arc' && live?.kind === 'polygon' && live.pending;
-    const crossings = guide || circleRadiusOrChord || arcBend ? [] : model.crossings;
+    const centreArcSize = sk.tool === 'carc' && carc.current !== null;
+    const crossings = guide || circleRadiusOrChord || arcBend || centreArcSize ? [] : model.crossings;
     const placed = guide ? [] : currentPlacedPoints(sk);
     const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings, ...placed];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
@@ -652,7 +653,16 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   /** A cancelled or lost pointer ends its own armed or active spline drag only. */
   const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
   /** A tool change or the end of the sketch cancels the drag and clears the drafts. */
-  const resetSketchTool = () => { cancelDragTrim(); drafting.current = false; slotStage.current = 0; splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; };
+  const resetSketchTool = () => {
+    cancelDragTrim();
+    drafting.current = false;
+    slotStage.current = 0;
+    splineCancelRef.current();
+    if (canvas.current) canvas.current.style.cursor = '';
+    bezierDraft.current = { poles: [], open: false };
+    ellipseDraft.current = null;
+    carc.current = null;
+  };
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     const held = drag.current;
@@ -959,7 +969,10 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       if (sk.tool === 'carc') {
         const d = carc.current;
-        if (!d) carc.current = { c, sweep: 0, cursor: c };
+        if (!d) {
+          carc.current = { c, sweep: 0, cursor: c };
+          if (sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
+        }
         else if (!d.a) { if (c[0] !== d.c[0] || c[1] !== d.c[1]) carc.current = { ...d, a: c, last: Math.atan2(c[1] - d.c[1], c[0] - d.c[0]), sweep: 0 }; }
         else if (Math.abs(d.sweep) > 1e-3) {
           // The end where clicked (on the circle at its angle), turned the way the pointer went round.

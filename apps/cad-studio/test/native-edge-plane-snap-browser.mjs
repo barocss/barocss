@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const anchorTools = process.argv[3] === '--anchor-tools';
+const centreArc = process.argv[3] === '--centre-arc';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -18,7 +19,8 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/edgePlaneCrossing.ts',
 ];
 const f = await createFlow({
-  name: 'native-edge-plane-snap', output: process.argv[2], envFrozen: anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
+  name: 'native-edge-plane-snap', output: process.argv[2],
+  envFrozen: centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
   limits: ['One original top-level native prism on the desktop WebGPU viewport, with XY and tilted sketch planes.'],
@@ -325,6 +327,67 @@ async function visibilityControl() {
   await cue().waitFor({ state: 'hidden' });
 }
 
+async function tiltedCentreArc() {
+  f.phase = 'Centre arc first anchor on a tilted plane';
+  await begin(0);
+  await tilt();
+  const toWorld = ([x, y]) => [x, 3.6 + 0.8 * y, 4.8 - 0.6 * y];
+  const z = (6 - 0.6 * target[1]) / 0.8;
+  await f.page.mouse.click(...await hover(toWorld([1, 8]), null));
+  await f.page.mouse.click(...await hover(toWorld([8, 12]), null));
+  await f.tool('Centre arc', 'q');
+  await button(f.page, 'Construction').click();
+  const [x, y] = await pixel([...target, z]);
+  await f.page.mouse.move(x + 2, y);
+  await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+  const anchor = await f.snapshot('centre-arc-anchor');
+  assert.equal(anchor.cue, 'Crossing', 'Centre arc centre');
+  assert.deepEqual(anchor.doc, source);
+  await f.page.mouse.click(x + 2, y);
+  await cue().waitFor({ state: 'hidden' });
+  await f.tool('Line', 'l');
+  await f.tool('Centre arc', 'q');
+  await hover([...target, z], 'Crossing');
+  await f.page.mouse.click(x + 2, y);
+  await cue().waitFor({ state: 'hidden' });
+  const anotherCrossing = [source.nodes[0].max[0], target[1], z];
+  await hover(anotherCrossing, null);
+  await f.page.mouse.click(...await hover(toWorld([10, 3]), null));
+  await hover(anotherCrossing, null);
+  const sweepEnd = await hover(toWorld([4, 9]), null);
+  await f.snapshot('centre-arc-sweep');
+  await f.page.mouse.click(...sweepEnd);
+  const finished = (await f.finishSketch('centre-arc-finish')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 2), source.nodes);
+  assert.deepEqual(finished.outputs, source.outputs);
+  const sketch = finished.nodes[2];
+  sketch.plane.origin.forEach((value, axis) => near(value, [0, 3.6, 4.8][axis]));
+  assert.deepEqual(sketch.plane.normal, [0, 0.6, 0.8]);
+  assert.deepEqual(sketch.plane.xAxis, [1, 0, 0]);
+  assert.equal(sketch.construction.length, 1);
+  const [arc] = sketch.construction;
+  assert.equal(arc.construction, true);
+  assert.equal(arc.closed, false);
+  const [a, b] = arc.points;
+  assert.deepEqual(a, [10, 3]);
+  const bulge = arc.bulges[0];
+  assert.ok(bulge > 0 && bulge < 1);
+  // Recover the centre from the persisted chord and the signed sweep.
+  const sweep = 4 * Math.atan(bulge);
+  assert.ok(Math.abs(sweep - 1.6877130385506605) < 1e-8);
+  const scale = 0.5 / Math.tan(sweep / 2);
+  const recovered = [(a[0] + b[0]) / 2 - (b[1] - a[1]) * scale, (a[1] + b[1]) / 2 + (b[0] - a[0]) * scale];
+  const error = Math.hypot(recovered[0] - 4.2346, recovered[1] - 3.4321);
+  assert.ok(error < 1e-6, `centre error ${error} mm`);
+  f.report.observations.push({ label: 'centre-arc', sketch, recovered, error, sweep });
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished);
+  const saved = await saveInProject(finished, 'saved-crossing-centre-arc.bcad');
+  await f.freshOpen(saved, finished, 'centre-arc-reopened');
+}
+
 async function replacementControl() {
   f.phase = 'replace the part with the same body identity while a crossing is shown';
   const move = 5;
@@ -371,6 +434,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (centreArc) {
+    await tiltedCentreArc();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (anchorTools) {
     await tiltedAnchorTools();
     assert.deepEqual(f.report.downloads, []);
