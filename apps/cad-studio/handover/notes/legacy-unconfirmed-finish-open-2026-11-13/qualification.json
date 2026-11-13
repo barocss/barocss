@@ -1,0 +1,41 @@
+{
+  "decision": "D1007",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "93d3f1c33430b9813283046e7ae35671d4e479ed",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1007-legacy-finish-studio",
+    "D1007_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/file02 --legacy --file",
+    "D1007_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/project02 --legacy",
+    "pnpm --filter @barocss/cad-model test references.test rematch.test band-surface.test o19-stored-names.test",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test project-open-ownership.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The stored unconfirmed match opened with its finish active.",
+    "receiptSHA256": "f9d733d9ebfa4b27ffd9cf0c7022f705ef3ceb9e5fbffb038560b7ffa8a46a65",
+    "sourceManifestSHA256": "37ddabaa0b8dc33c6d72ea545b1402d24b24db764ff07960221208d454d4e68c"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "file": { "states": 7, "receiptSHA256": "b01edcae4c8b95f5138ababb6ce535aa8aa75f51fd277d090ba5e2c23f59ec67" },
+    "project": { "states": 6, "receiptSHA256": "314fd8cd61e144b3fc9827f06a23092a097a127ef0a6df95b2c94201620ab066" },
+    "sourceManifestSHA256": "6a99f17a13d91df13af8c46698eeafaf667ff8180c7de1c5630427b8b7c0d797",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldVolumeMM3": 630,
+    "confirmedVolumeMM3": 624.8495559215388,
+    "volumeToleranceMM3": 1e-7
+  },
+  "focused": { "model": 71, "studio": 51, "failed": 0, "earlierModel": "FAIL: 70 passed, Agent O19 rematch compatibility failed.", "typeCheck": "PASS" },
+  "notRun": ["shared signature", "multiple edge or varying radius migration", "live linked-inset finish", "production build", "full suites", "mobile"]
+}

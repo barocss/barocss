@@ -263,7 +263,8 @@ export interface Problem { index: number; where: string; node: number | null; na
  * those whose geometry is now named otherwise substituted and marked; those that cannot be told listed, and the
  * features holding them held (suppressed, `held` saying why) so the rest of the part builds.
  */
-export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResult[], evaluate: Evaluate, tables: Tables = tablesFor(doc)): Promise<{ doc: StudioDoc; changes: Verified[]; problems: Problem[] }> {
+export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResult[], evaluate: Evaluate, tables: Tables = tablesFor(doc),
+  options?: { preserveAgentRematch?: boolean }): Promise<{ doc: StudioDoc; changes: Verified[]; problems: Problem[] }> {
   const { doc: out, refs } = referencesOf(doc);
   if (!refs.some(r => r.sig || r.datumTarget)) return { doc, changes: [], problems: [] };
   const parents = await parentBodies(out, refs.filter(r => r.sig), evaluate), changes: Verified[] = [], problems: Problem[] = [];
@@ -286,7 +287,18 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     const finish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') ? node : undefined;
     const splitFinish = finish && (finish.parent.side === 'negative' || finish.parent.side === 'positive') &&
       ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, finish.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
-    const singleFinish = (ref.sig.n ?? 1) === 1 && finish?.edges.length === 1 && (finish.kind === 'chamfer' || (!finish.radii && !finish.section));
+    const singleFinish = !options?.preserveAgentRematch && (ref.sig.n ?? 1) === 1 && finish?.edges.length === 1 && (finish.kind === 'chamfer' || (!finish.radii && !finish.section));
+    // Reopen a previously saved unconfirmed match as a decision on the authored edge.
+    if (singleFinish && !finish.suppressed && ref.was && ref.was !== ref.name && m !== ref.was) {
+      const authored = cands.get(ref.was);
+      if (typeof m !== 'string' || authored === undefined || authored !== cands.get(m)) {
+        const original = ref.was;
+        ref.clear();
+        ref.rename(original, false);
+        ref.name = original;
+        if (typeof m === 'string') m = [m];
+      }
+    }
     // These edges keep their authored name until the user chooses a different live edge.
     if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish || singleFinish)) {
       const live = cands.get(ref.name);

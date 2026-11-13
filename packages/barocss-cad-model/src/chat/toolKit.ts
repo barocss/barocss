@@ -83,7 +83,7 @@ export async function accept(state: ChatState, next: StudioDoc, evaluate: Evalua
   // signature, as on open: one clear match is taken, marked re-matched until confirmed; none or several, refused with
   // the candidates. Never built on the other edge.)
   if (!r.ok && r.error.code === 'REFERENCE_MOVED') {
-    const v = await verifyReferences(next, [], evaluate);
+    const v = await verifyReferences(next, [], evaluate, undefined, { preserveAgentRematch: true });
     if (v.problems.length || !v.changes.length) return fail(state, `${r.error.title}. ${r.error.hint}`, { detail: r.error.detail, references: v.problems.map(p => ({ where: p.where, name: p.name, candidates: p.candidates })), kept: 'the part is unchanged' });
     const again = await evaluate(v.doc);
     if (!again) return fail(state, 'The evaluation was superseded; try again.');

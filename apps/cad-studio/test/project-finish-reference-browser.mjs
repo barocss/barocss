@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
-const fileMode = process.argv[3] === '--file';
+const fileMode = process.argv.includes('--file');
+const legacyMode = process.argv.includes('--legacy');
 const pins = [
   'apps/cad-studio/test/project-finish-reference-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -11,7 +12,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/references.ts',
 ];
 const f = await createFlow({
-  name: 'project-finish-reference', output: process.argv[2], envFrozen: fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
+  name: 'project-finish-reference', output: process.argv[2], envFrozen: legacyMode ? 'D1007_SOURCE_FROZEN' : fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
   qualification: (fileMode ? 'File' : 'Project') + ' Open admits a valid held finish repair and refuses an unusable one.',
   limits: ['Individual signed constant-radius single-edge Fillet in a browser project.'],
   initialFiles: pins, requiredFrozen: pins,
@@ -36,7 +37,10 @@ const doc = (nodes, output) => ({
   nodes, outputs: { ['b' + output]: ref(output) }, nextId: nodes.length,
 });
 const stock = doc(nodes.slice(0, 2), 1);
-const lost = doc(nodes, 2);
+const lost = doc(legacyMode ? [...nodes.slice(0, 2), {
+  ...nodes[2], edges: [replacement], sigs: { [replacement]: nodes[2].sigs[edge] },
+  rematched: { [replacement]: edge },
+}] : nodes, 2);
 const unusable = doc([...nodes, { id: 'n3', kind: 'chamfer', parent: ref(2), edges: ['n2.face|n1.top'], distance: 1 }], 3);
 const button = (name, parent = f.page) => parent.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
@@ -88,13 +92,16 @@ await f.run(async () => {
   f.phase = 'open a changed Fillet edge directly from the project';
   if (fileMode) await fileOpen('lost', lost); else await projectOpen('lost');
   await f.page.waitForFunction(() => document.querySelector('.doc-tab input')?.value === 'lost');
-  await f.page.getByRole('region', { name: 'References', exact: true }).or(f.page.getByText('Base part · not up to date', { exact: true })).waitFor();
+  const arrived = refs().or(f.page.getByText('Base part · not up to date', { exact: true }));
+  if (legacyMode) await f.ready(); else await arrived.waitFor();
   if (await refs().count()) await f.ready();
   const held = await f.snapshot('project-damaged-file-open');
   assert.ok(held.fresh);
   assert.equal(held.dirty, true);
   assert.equal(held.doc.nodes[2].suppressed, true);
+  assert.equal(held.doc.nodes[2].rematched, undefined);
   assert.deepEqual(held.doc.nodes[2].edges, [edge]);
+  assert.deepEqual(held.doc.nodes[2].sigs, nodes[2].sigs);
   if (fileMode) assert.equal(held.active, undefined); else assert.match(held.active, /lost\.bcad/);
   volume(held, 630);
   await refs().locator('summary').click();

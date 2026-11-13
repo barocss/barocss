@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1007 — reopen a saved unconfirmed finish as a pending decision](notes/legacy-unconfirmed-finish-open-2026-11-13/README.md).
 - [D1006 — admit a File Open finish repair before replacing the current document](notes/file-finish-reference-admission-2026-11-13/README.md).
 - [D1005 — admit a project finish reference before changing the active file](notes/project-finish-reference-admission-2026-11-13/README.md).
 - [D1004 — hold an ordinary finish edge until confirmation](notes/ordinary-finish-reference-confirmation-2026-11-13/README.md).
