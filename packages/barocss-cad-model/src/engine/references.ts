@@ -287,9 +287,12 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     const finish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') ? node : undefined;
     const splitFinish = finish && (finish.parent.side === 'negative' || finish.parent.side === 'positive') &&
       ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, finish.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
-    const singleFinish = !options?.preserveAgentRematch && (ref.sig.n ?? 1) === 1 && finish?.edges.length === 1 && (finish.kind === 'chamfer' || (!finish.radii && !finish.section));
+    const needsChoice = !options?.preserveAgentRematch && (ref.sig.n ?? 1) === 1 && finish &&
+      (finish.kind === 'chamfer'
+        ? finish.edges.every(edge => finish.sigs?.[edge] && (finish.sigs[edge].n ?? 1) === 1)
+        : finish.edges.length === 1 && !finish.radii && !finish.section);
     // Reopen a previously saved unconfirmed match as a decision on the authored edge.
-    if (singleFinish && !finish.suppressed && ref.was && ref.was !== ref.name && m !== ref.was) {
+    if (needsChoice && !finish.suppressed && ref.was && ref.was !== ref.name && m !== ref.was) {
       const authored = cands.get(ref.was);
       if (typeof m !== 'string' || authored === undefined || authored !== cands.get(m)) {
         const original = ref.was;
@@ -300,7 +303,7 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
       }
     }
     // These edges keep their authored name until the user chooses a different live edge.
-    if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish || singleFinish)) {
+    if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish || needsChoice)) {
       const live = cands.get(ref.name);
       if (!(live !== undefined && live === cands.get(m))) m = [m];
     }
@@ -333,7 +336,7 @@ export function markedReferences(doc: StudioDoc): Marked[] {
  * Reference `index` confirmed (as it is, or as `to`, another of its candidates): its mark gone, its signature
  * taken from that face (edge) as the part now stands, and its feature released if it was held for it.
  */
-export async function confirmReference(doc: StudioDoc, index: number, finals: readonly BodyResult[], evaluate: Evaluate, to?: string, tables: Tables = tablesFor(doc)): Promise<StudioDoc> {
+export async function confirmReference(doc: StudioDoc, index: number, finals: readonly BodyResult[], evaluate: Evaluate, to?: string, tables: Tables = tablesFor(doc), pending?: Problem): Promise<StudioDoc> {
   const { doc: out, refs } = referencesOf(doc), ref = refs[index];
   if (!ref || ref.datumTarget) return doc;
   if (to !== undefined && to !== ref.name) { ref.rename(to, false); ref.name = to; }
@@ -341,7 +344,16 @@ export async function confirmReference(doc: StudioDoc, index: number, finals: re
   const parents = await parentBodies(out, [ref], evaluate), sig = candidatesOf(ref, finals, parents, tables)?.get(ref.name);
   if (sig) ref.setSig(toSig(sig));
   // The reference setter owns the current node object. Capture the signature before releasing a held copy.
-  if (ref.node !== null && out.nodes[ref.node].held) { const n = { ...out.nodes[ref.node] }; delete n.held; delete n.suppressed; out.nodes[ref.node] = n; }
+  if (ref.node !== null && out.nodes[ref.node].held) {
+    const n = { ...out.nodes[ref.node] };
+    if (pending?.node === ref.node) {
+      n.held = pending.candidates.length ? `"${pending.name}" could be ${pending.candidates.join(' or ')}` : `"${pending.name}" is gone`;
+    } else {
+      delete n.held;
+      delete n.suppressed;
+    }
+    out.nodes[ref.node] = n;
+  }
   return prefixDoc(out, out.nodes.length);
 }
 /** The faces (edges) reference `index` could be: those alike its stored signature, nearest first (at most `n`). */

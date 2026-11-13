@@ -3,6 +3,7 @@ import { createFlow } from './flow-helper.mjs';
 
 const fileMode = process.argv.includes('--file');
 const legacyMode = process.argv.includes('--legacy');
+const multiMode = process.argv.includes('--multi');
 const pins = [
   'apps/cad-studio/test/project-finish-reference-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -12,7 +13,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/references.ts',
 ];
 const f = await createFlow({
-  name: 'project-finish-reference', output: process.argv[2], envFrozen: legacyMode ? 'D1007_SOURCE_FROZEN' : fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
+  name: 'project-finish-reference', output: process.argv[2], envFrozen: multiMode ? 'D1008_SOURCE_FROZEN' : legacyMode ? 'D1007_SOURCE_FROZEN' : fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
   qualification: (fileMode ? 'File' : 'Project') + ' Open admits a valid held finish repair and refuses an unusable one.',
   limits: ['Individual signed constant-radius single-edge Fillet in a browser project.'],
   initialFiles: pins, requiredFrozen: pins,
@@ -37,7 +38,13 @@ const doc = (nodes, output) => ({
   nodes, outputs: { ['b' + output]: ref(output) }, nextId: nodes.length,
 });
 const stock = doc(nodes.slice(0, 2), 1);
-const lost = doc(legacyMode ? [...nodes.slice(0, 2), {
+const secondEdge = 'n1.side0|n1.side3';
+const secondReplacement = 'n1.side0|n1.side4';
+const multiFinish = {
+  id: 'n2', kind: 'chamfer', parent: ref(1), edges: [edge, secondEdge], distance: 2,
+  sigs: { ...nodes[2].sigs, [secondEdge]: { k: 'line', p: [0, 0, 3], d: [0, 0, 1], s: 6 } },
+};
+const lost = doc(multiMode ? [...nodes.slice(0, 2), multiFinish] : legacyMode ? [...nodes.slice(0, 2), {
   ...nodes[2], edges: [replacement], sigs: { [replacement]: nodes[2].sigs[edge] },
   rematched: { [replacement]: edge },
 }] : nodes, 2);
@@ -88,6 +95,71 @@ await f.run(async () => {
   await projectOpen('stock');
   await f.same(stock);
   volume(await f.snapshot('accepted-project-stock'), 630);
+
+  if (multiMode) {
+    f.phase = 'open an ordinary two-edge Chamfer with two displaced references';
+    const old = doc([
+      { ...nodes[0], points: [[0, 0], [10, 0], [10, 10], [0, 10]] }, nodes[1], multiFinish,
+    ], 2);
+    await fileOpen('original-chamfer', old);
+    await f.same(old);
+    volume(await f.snapshot('old-two-edge-chamfer'), 576);
+    await fileOpen('changed-chamfer', lost);
+    await f.page.waitForFunction(() => document.querySelector('.doc-tab input')?.value === 'changed-chamfer');
+    const arrived = refs().or(f.page.getByText('Base part · not up to date', { exact: true }));
+    await arrived.waitFor();
+    if (await refs().count()) await f.ready();
+    const opened = await f.snapshot('two-edges-opened');
+    assert.ok(opened.fresh);
+    assert.match(await refs().textContent(), /0 matched again.*2 need a choice/);
+    assert.deepEqual(opened.doc.nodes[2].edges, [edge, secondEdge]);
+    assert.equal(opened.doc.nodes[2].suppressed, true);
+    volume(opened, 630);
+    const pending = () => refs().getByRole('button', { name: 'Use candidate 1', exact: true });
+    assert.equal(await pending().count(), 2);
+    await pending().first().click();
+    await f.page.waitForFunction(name => window.__studioDoc?.nodes?.[2]?.edges?.[0] === name, replacement);
+    await f.ready();
+    const partial = await f.snapshot('first-edge-confirmed-still-held');
+    assert.equal(partial.doc.nodes[2].suppressed, true);
+    assert.deepEqual(partial.doc.nodes[2].edges, [replacement, secondEdge]);
+    assert.equal(await pending().count(), 1);
+    volume(partial, 630);
+    await pending().click();
+    await refs().waitFor({ state: 'hidden' });
+    await f.ready();
+    const confirmed = await f.snapshot('both-edges-confirmed');
+    assert.deepEqual(confirmed.doc.nodes[2].edges, [replacement, secondReplacement]);
+    assert.equal(confirmed.doc.nodes[2].held, undefined);
+    assert.equal(confirmed.doc.nodes[2].suppressed, undefined);
+    // Equal setback distances form a triangle with area d² sin(angle) / 2.
+    const obliqueCornerSine = 5 / Math.sqrt(29);
+    volume(confirmed, 630 - 12 * (1 + obliqueCornerSine));
+    await f.undo();
+    await f.same(partial.doc);
+    assert.equal(await pending().count(), 1);
+    await f.undo();
+    await f.same(opened.doc);
+    assert.equal(await pending().count(), 2);
+    await f.redo();
+    await f.same(partial.doc);
+    await f.redo();
+    await f.same(confirmed.doc);
+    assert.equal(await refs().count(), 0);
+    await f.newPage();
+    await fileOpen('partial-chamfer', partial.doc);
+    await refs().waitFor();
+    await f.ready();
+    await f.same(partial.doc);
+    assert.equal(await pending().count(), 1);
+    volume(await f.snapshot('partial-chamfer-reopened'), 630);
+    await fileOpen('confirmed-chamfer', confirmed.doc);
+    await f.same(confirmed.doc);
+    assert.equal(await refs().count(), 0);
+    volume(await f.snapshot('confirmed-chamfer-reopened'), 630 - 12 * (1 + obliqueCornerSine));
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'open a changed Fillet edge directly from the project';
   if (fileMode) await fileOpen('lost', lost); else await projectOpen('lost');

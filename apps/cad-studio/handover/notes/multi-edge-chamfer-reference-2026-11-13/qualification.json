@@ -1,0 +1,43 @@
+{
+  "decision": "D1008",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "9ae5861c4d8bf33e26e35ff8e280637c871e9279",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1008-multi-edge-studio",
+    "D1008_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/studio02 --multi",
+    "pnpm --filter @barocss/cad-model test references.test rematch.test band-surface.test o19-stored-names.test",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "File Open refused the changed Chamfer with no decision.",
+    "receiptSHA256": "7461d2844de6e6f31d67d057fe8a5bc6accef89e2f57d1e98290cef6751a835d",
+    "sourceManifestSHA256": "760c11ae5e0862e29a587c292b28883af0b0226b833ce479b026f553d4e8ec00"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "22fa0b558b17f95763309e364136d1e436fcd16763763a7c9cb5a70ee75ba9db",
+    "sourceManifestSHA256": "222a0a51c837c32c4a335c178cc47179a90371637eb003ceaf538deac7ba71ca",
+    "frozenFiles": 373,
+    "states": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pendingChoices": [2, 1, 0],
+    "oldChamferVolumeMM3": 576,
+    "heldVolumeMM3": 630,
+    "confirmedVolumeMM3": 606.8582797093768,
+    "volumeToleranceMM3": 1e-7
+  },
+  "earlierHarness": { "status": "FAIL", "reason": "Equal-setback wedge oracle used the wrong angle formula.", "receiptSHA256": "f30c620775ea76743ec4d70ca8b766eb655a1c8e9f2e9a5c1f2e456b0d3d0cf6" },
+  "focused": { "model": 71, "studio": 15, "failed": 0, "typeCheck": "PASS" },
+  "notRun": ["varying radius rematch", "multi-edge History repick", "shared signatures", "duplicate choice browser path", "production build", "full suites", "mobile"]
+}
