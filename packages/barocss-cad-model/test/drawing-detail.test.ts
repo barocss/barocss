@@ -245,6 +245,23 @@ test('the agent’s set_drawing adds a detail and reads it back on the sheet; a 
   assert.ok('error' in bad && /DRAWING_DETAIL_PARENT/.test(bad.error));
 });
 
+test('set_drawing refuses an annotated Detail crop edit and permits it before annotation', () => {
+  const part = starterDoc();
+  const detail = { id: 'B', view: 'top' as const, center: [36, 16] as [number, number], radius: 2 };
+  const source: StudioDoc = { ...part, drawing: { ...defaultDrawing(), sheet: 'A3', details: [detail],
+    dimensions: [{ id: 'd1', view: 'detail:B', kind: 'diameter', edge: 'n1.top|n2.side0#1', near: [32, 16, 8], place: [24, 16] }] } };
+  const snapshot = structuredClone(source);
+  for (const crop of [{ ...detail, center: [35, 16] }, { ...detail, radius: 3 }]) {
+    const denied = runDrawingTool(source, 'set_drawing', { details: [crop] });
+    assert.ok('error' in denied && /DRAWING_DETAIL_REFERENCES/.test(denied.error));
+    assert.deepEqual(source, snapshot);
+    const unannotated = { ...source, drawing: { ...source.drawing!, dimensions: [] } };
+    const accepted = runDrawingTool(unannotated, 'set_drawing', { details: [crop] });
+    assert.ok(!('error' in accepted), JSON.stringify(accepted));
+    assert.deepEqual(accepted.doc.drawing?.details, [crop]);
+  }
+});
+
 test('turning the drawing to a front from +X: a detail on the front view goes with its view, its centre and dimension carried, the value kept', () => {
   const v = viewsOf(starterDoc()), turnedViews = viewsOf(starterDoc(), 'x+');
   const hole = v.top.edges.find(e => e.kind === 'circle')!;

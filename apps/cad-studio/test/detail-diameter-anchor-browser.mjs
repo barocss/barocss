@@ -14,6 +14,7 @@ const scaled = variant === '--scaled';
 const deleted = variant === '--delete-source';
 const removalNotice = variant === '--removal-notice';
 const units = variant === '--units';
+const splitArc = variant === '--split-arc';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -24,6 +25,10 @@ const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', sca
   views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
 if (deleted || removalNotice) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
+}
+if (splitArc) {
+  drawing.details = [{ ...detail, center: [32, 18], radius: 5 }];
+  drawing.dimensions = [{ ...diameter, place: [32 + 12 * Math.cos(-2.2), 16 + 12 * Math.sin(-2.2)] }];
 }
 if (units) drawing.dimensions = [
   { ...diameter, place: [24, 16] },
@@ -39,7 +44,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -81,6 +86,27 @@ if not d.get('creation') and d.get('units') not in ('inch', 'dual'):
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
 x, y = map(float, m.groups())
 eps = 0.0001
+if 'split' in d:
+    u, v = d['split']
+    wanted = math.atan2(v-16, u-32)
+    a = math.asin(5/16)
+    points = [max(lo, min(hi, wanted + offset)) for lo, hi in [(-math.pi,-math.pi+a),(-a,0)] for offset in [-2*math.pi,0,2*math.pi]]
+    best = max(points, key=lambda q: math.cos(q-wanted))
+    expected = (310+20*math.cos(best), 95-20*math.sin(best))
+    assert math.dist((x,y), expected) <= eps, (expected, (x,y))
+    assert math.dist((x,y),(310,85)) <= 25+eps
+    assert abs(math.dist((x,y),(310,95))-20) <= eps
+    assert any(abs(float(line.attrib['x1'])-x) <= eps and abs(float(line.attrib['y1'])-y) <= eps for line in dim.findall('s:line', ns))
+    assert len([p for p in ink.findall("s:path[@stroke-width='0.5']", ns) if 'A20 20 ' in p.attrib['d']]) >= 3
+    lines = d['dxf'].splitlines()
+    pairs = list(zip(map(int, lines[::2]), (s.strip() for s in lines[1::2]), strict=True))
+    starts = [i for i,(k,v) in enumerate(pairs) if k == 0]
+    [diameter] = [dict(pairs[i+1:j]) for i,j in zip(starts,starts[1:]) if pairs[i] == (0,'DIMENSION')]
+    assert math.dist((float(diameter[15]),297-float(diameter[25])),(x,y)) <= eps
+    assert abs(math.hypot(float(diameter[10])-x,297-float(diameter[20])-y)-40) <= 2*eps
+    assert abs(float(diameter[42])-8) <= eps
+    print(json.dumps({'status':'PASS', 'tip':[x,y], 'expected':expected, 'wantedAngle':wanted, 'tipAngle':best}))
+    sys.exit(0)
 if 'scaled' in d:
     scale, u, v = d['scaled']
     center = (310-4*scale, 85)
@@ -238,6 +264,43 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (splitArc) {
+    f.phase = 'open a Detail with two surviving intervals on one source edge';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const check = async label => {
+      const state = await f.snapshot(label);
+      const [dim] = state.doc.drawing.dimensions;
+      assert.deepEqual(dim, { ...original.drawing.dimensions[0], place: dim.place });
+      assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === dim.id).value - 8) < 1e-9);
+      const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+      f.report.observations.push({ label, svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+      await f.runOracle({ svg, dxf, split: dim.place, expectClipped: false }, label);
+    };
+    await check('01-gap-left');
+    const targets = [['02-gap-right', -1], ['03-right-interior', -0.2], ['04-across-seam', 0.1]];
+    let prior;
+    for (const [label, angle] of targets) {
+      f.phase = label;
+      prior = await f.doc();
+      const from = await f.page.locator(`${locator} text`).boundingBox();
+      const to = await f.page.evaluate(a => window.__studioDrawingAt('detail:B', 32 + 12 * Math.cos(a), 16 + 12 * Math.sin(a)), angle);
+      assert.ok(from && to);
+      await f.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+      await f.page.mouse.down();
+      await f.page.mouse.move(to.x, to.y, { steps: 8 });
+      await f.page.mouse.up();
+      await f.changed(prior);
+      await check(label);
+    }
+    const moved = await f.doc();
+    await f.undo();
+    await f.same(prior);
+    await f.redo();
+    await f.same(moved);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (units) {
     f.phase = 'open a clipped diameter and ordinary diameter and radius controls';

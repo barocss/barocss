@@ -1,0 +1,36 @@
+{
+  "decision": "D945",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "d9bd60e1cabd7738857ded6b8b59b2b7e31e7344",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D945-qualification",
+    "D945_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/split01 --fixed --split-arc",
+    "cd packages/barocss-cad-model && node scripts/test.mjs drawing-detail",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "modelStatus": "PASS",
+    "modelPass": 21,
+    "modelTypes": "PASS",
+    "modelLogSHA256": "136345d897e32e2d33598fc5205c317accb40932a69468eb8c3b78c19f377df9"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "4a142acf40c4a103aee817e8510c58c0f9e886894cddfc3b4f1dc6d8efd2e0e7",
+    "sourceManifestSHA256": "6793af4ab3bb6d6ec9de4df22eeba3c4d0e2e1d669b0d7b597bcf26ebbeaa99d",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "filePairs": 4,
+    "tipsPaperMM": [[291.0016,101.25],[328.9984,101.25],[329.6013,98.9734],[330,95]],
+    "coordinateTolerancePaperMM": 0.0001,
+    "diameterMM": 8
+  },
+  "notRun": ["point-contact-only crop", "remaining no-anchor boundary", "production build", "full suites", "PDF", "mobile"]
+}
