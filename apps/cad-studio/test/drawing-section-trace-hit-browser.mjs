@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed', '--annotation-identity-baseline', '--annotation-identity-fixed', '--note-sheet-baseline', '--note-sheet-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership', '--annotation-keys-baseline', '--annotation-keys-fixed', '--annotation-identity-baseline', '--annotation-identity-fixed', '--note-sheet-baseline', '--note-sheet-fixed', '--note-escape-baseline', '--note-escape-fixed'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
 const annotations = mode === '--annotations';
 const detachedViews = mode === '--detached-views';
 const ownership = mode === '--ownership';
-const noteSheet = mode.startsWith('--note-sheet-');
+const noteEscape = mode.startsWith('--note-escape-');
+const noteSheet = noteEscape || mode.startsWith('--note-sheet-');
 const annotationIdentity = mode.startsWith('--annotation-identity-');
 const annotationKeys = noteSheet || annotationIdentity || mode.startsWith('--annotation-keys-');
 const pins = [
@@ -46,8 +47,8 @@ const source = {
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: noteSheet ? 'D986_SOURCE_FROZEN' : annotationIdentity ? 'D985_SOURCE_FROZEN' : annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: noteSheet ? 'Preserve second-sheet Note ownership when removing a leader or duplicating.' : annotationIdentity ? 'Select and delete the correct kind when a Note and dimension share an ID.' : annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+  name: 'drawing-section-trace-hit', output, envFrozen: noteEscape ? 'D987_SOURCE_FROZEN' : noteSheet ? 'D986_SOURCE_FROZEN' : annotationIdentity ? 'D985_SOURCE_FROZEN' : annotationKeys ? 'D984_SOURCE_FROZEN' : ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: noteEscape ? 'Cancel a Drawing Note draft with Escape and keep explicit text commits.' : noteSheet ? 'Preserve second-sheet Note ownership when removing a leader or duplicating.' : annotationIdentity ? 'Select and delete the correct kind when a Note and dimension share an ID.' : annotationKeys ? 'Keyboard-select and delete only the current Drawing annotation.' : ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
     : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
   limits: [ownership ? 'Two sectioned plates reuse Section A and dimension width IDs across files; Section A spans two sheets.' : detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
     : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
@@ -402,6 +403,50 @@ async function ownershipFlow() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function noteEscapeFlow() {
+  const page = f.page;
+  const original = await f.doc();
+  const tab = index => page.getByRole('tab', { name: `Sheet ${index}`, exact: true });
+  const note = page.getByRole('button', { name: /^OTHER SHEET/ });
+  const text = page.getByLabel('Note text', { exact: true });
+  await tab(2).click();
+  await note.press('Enter');
+  const history = async () => [await button('Undo').isEnabled(), await button('Redo').isEnabled()];
+  const before = await history();
+  f.phase = 'cancel an edited second-sheet Note with Escape';
+  await text.fill('DO NOT APPLY');
+  await text.press('Escape');
+  if (mode.endsWith('baseline')) {
+    await f.changed(original);
+    assert.equal((await f.doc()).drawing.notes.find(n => n.id === 'n2').text, 'DO NOT APPLY');
+    await f.snapshot('escape-committed-note-text');
+    assert.fail('Escape committed the Note text and wrote a history entry');
+  }
+  await f.same(original);
+  assert.equal(await text.inputValue(), 'OTHER SHEET');
+  assert.equal(await note.getAttribute('aria-pressed'), 'true');
+  assert.ok(await note.evaluate(element => document.activeElement === element));
+  assert.deepEqual(await history(), before);
+  await f.snapshot('escaped-note-edit-kept-original');
+
+  f.phase = 'commit a later edit using Command+Enter and undo it';
+  await text.fill('CONFIRMED NOTE');
+  await text.press('Meta+Enter');
+  await f.changed(original);
+  const changed = await f.doc();
+  assert.deepEqual(changed.drawing.notes, original.drawing.notes.map(n =>
+    n.id === 'n2' ? { ...n, text: 'CONFIRMED NOTE' } : n));
+  await f.undo();
+  await f.same(original);
+  await f.redo();
+  await f.same(changed);
+  await tab(1).click();
+  assert.deepEqual(await sheet().locator('g.note text').allTextContents(), ['KEEP NOTE']);
+  await tab(2).click();
+  assert.deepEqual(await sheet().locator('g.note text').allTextContents(), ['CONFIRMED NOTE']);
+  await f.snapshot('confirmed-note-edit-redone');
+}
+
 async function noteSheetFlow() {
   const page = f.page;
   const original = await f.doc();
@@ -649,6 +694,7 @@ await f.run(async () => {
   await trace().waitFor();
   if (!ownership) await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
+  if (noteEscape) { await noteEscapeFlow(); return; }
   if (noteSheet) { await noteSheetFlow(); return; }
   if (annotationIdentity) { await annotationIdentityFlow(); return; }
   if (annotationKeys) { await annotationKeyboardFlow(); return; }
