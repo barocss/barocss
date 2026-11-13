@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1033 — verify DIMENSIONS deletion after part removal Redo](notes/drawing-lost-dimension-delete-2026-11-13/README.md).
 - [D1032 — report lost Drawing occurrence references before export](notes/drawing-occurrence-export-loss-2026-11-13/README.md).
 - [D1031 — choose the occurrence for coincident Drawing diameter rims](notes/drawing-coincident-diameter-choice-2026-11-13/README.md).
 - [D1030 — honor Hidden lines in Drawing Diameter selection](notes/drawing-diameter-hidden-rim-2026-11-13/README.md).

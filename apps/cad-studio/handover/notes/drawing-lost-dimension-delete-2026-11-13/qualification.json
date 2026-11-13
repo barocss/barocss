@@ -1,0 +1,39 @@
+{
+  "decision": "D1033",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "c0093364caf9324ab4b17e49ce54a1e8ec2d0ab4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1033-section-studio01",
+    "D1033_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-lost-dimension-delete-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1033-focused",
+    "node --check apps/cad-studio/test/drawing-lost-dimension-delete-browser.mjs",
+    "pnpm --filter @barocss/cad-studio-app test drawing-commit-roundtrip drawing-revision-print",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "states": 3,
+    "frozenFiles": 378,
+    "receiptSHA256": "65e71168afdfc2b9e643a18b57f6580244da87d6ef052b24364e0606d7328eb5",
+    "sourceManifestSHA256": "2901401a8331f85e27409c1849bcb6211bae71c28120833c1761d35f67f6b53f",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 17,
+    "failed": 0
+  },
+  "notRun": [
+    "immediate click during pending projection",
+    "explicit reattachment",
+    "other sheets",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
