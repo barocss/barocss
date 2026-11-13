@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1153 — tie the End face completion mark to the native preview](notes/extrude-end-face-preview-status-2026-11-14/README.md).
 - [D1152 — preserve Through all on upright stock edits](notes/persistent-through-cut-2026-11-14/README.md).
 - [D1151 — preserve the sketch opening in Cut Distance edits](notes/sketch-anchored-cut-distance-2026-11-14/README.md).
 - [D1150 — qualify Direct Bézier endpoints at precision zoom](notes/precision-direct-endpoint-2026-11-14/README.md).

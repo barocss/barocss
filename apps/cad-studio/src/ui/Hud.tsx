@@ -2,6 +2,7 @@ import { FilletTypeFields } from './FilletTypeFields';
 import type { FilletType, RadiusMode } from '../app/filletFamily';
 import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
+import { isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
 import type { Field, Values } from '@barocss/cad-model/app/commands';
@@ -73,8 +74,13 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">
-        {active.cmd.steps(active.ctx, active.values).map(s => <div key={s.label} className={'hud-step' + (s.done ? ' done' : '')}>
-          <Icon name={s.done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{s.label}</b><span>{s.text}</span></div>)}
+        {active.cmd.steps(active.ctx, active.values).map(step => {
+          const endFace = step.label === 'End face' && isExtrudeToFace(active.cmd.id, active.values);
+          const done = step.done && (!endFace || active.preview === 'ok');
+          return <div key={step.label} className={'hud-step' + (done ? ' done' : '')}>
+            <Icon name={done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{step.label}</b><span>{step.text}</span>
+          </div>;
+        })}
       </div>}
       <div className="hud-fields">
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}

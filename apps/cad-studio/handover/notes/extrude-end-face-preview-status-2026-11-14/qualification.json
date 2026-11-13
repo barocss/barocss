@@ -1,0 +1,62 @@
+{
+  "decision": "D1153",
+  "tier": "SMALL",
+  "parent": "31095f971b5e2fd41fe86ba4fe6662e287717e1c",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1153-<run>",
+    "D850_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-refusals-browser.mjs <external-evidence>/<run> [--status-baseline]",
+    "D849_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-preview-ownership-browser.mjs <external-evidence>/change-saved --change-saved",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/Hud.tsx",
+    "node --check apps/cad-studio/test/extrude-end-face-refusals-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 869,
+      "receiptSHA256": "d7a7890d9bcf91f5ccce941500d11d0ae68b7537fe28cdfc592d962b0da3ba39",
+      "sourceManifestSHA256": "32a975d4b259d98e3740e2e4be6fa6119f8639e60176fcdb7758b6b8f500645b",
+      "observations": [
+        {
+          "label": "invalid-end-face-status",
+          "checked": true
+        }
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 869,
+      "receiptSHA256": "1719cbab9fdb0875071496148402df5ee99807f51005e99d98499544897fb9e5",
+      "sourceManifestSHA256": "078682259cec13d8eb70d028aa68e5c1fe369dcd53b76470dc9e70d211f04ed9",
+      "observations": [
+        {
+          "label": "invalid-end-face-status",
+          "checked": false
+        },
+        {
+          "label": "invalid-picks",
+          "refused": [
+            "HOLED_TRIM",
+            "NONPARALLEL",
+            "CURVED"
+          ],
+          "notice": "End face not selectedPick one original planar face of a current solid.",
+          "acceptedExact": true
+        }
+      ]
+    },
+    "change-saved": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 869,
+      "receiptSHA256": "d4964925efc767717b7040cf84c9531e1bff92f18ad739fe77df5bdb257c5555",
+      "sourceManifestSHA256": "39687355bc81356ba9bde0059811c7e49d48ec161c821c18915728ebebeafad8"
+    }
+  }
+}

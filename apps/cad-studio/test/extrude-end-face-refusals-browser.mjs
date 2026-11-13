@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const statusBaseline = process.argv.includes('--status-baseline');
 const pins = [
   'apps/cad-studio/test/extrude-end-face-refusals-browser.mjs',
   'apps/cad-studio/src/App.tsx',
+  'apps/cad-studio/src/ui/Hud.tsx',
   'apps/cad-studio/src/state/useFeatureHistory.ts',
   'packages/barocss-cad-model/src/app/extrudeEndFacePick.ts',
   'packages/barocss-cad-model/src/engine/faceEndExtrude.ts',
@@ -53,6 +55,8 @@ const hud = () => f.hud();
 const apply = () => button(hud(), 'Apply');
 const status = value => hud().locator('.status').filter({ hasText: new RegExp('^' + value + '$') }).waitFor();
 const near = (a, b) => Math.abs(a - b) < 1e-7;
+const endStep = () => hud().locator('.hud-step').filter({ has: f.page.getByText('End face', { exact: true }) });
+const checked = async () => (await endStep().getAttribute('class')).split(/\s+/).includes('done');
 
 async function open(doc) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -134,7 +138,13 @@ await f.run(async () => {
   await hud().getByText('n3.bottom', { exact: true }).waitFor();
   await readRefusal(/one straight rectangular trim without holes/i);
   assert.equal(await apply().isDisabled(), true);
+  f.report.observations.push({ label: 'invalid-end-face-status', checked: await checked() });
   assertExact(await f.snapshot('02-holed-cap-refused'), before);
+  if (statusBaseline) {
+    assert.equal(await checked(), true);
+    assert.fail('A native refusal still shows the selected end face as complete');
+  }
+  assert.equal(await checked(), false);
 
   f.phase = 'refuse a native plane that is not parallel to the sketch';
   await view('Front');
@@ -142,12 +152,14 @@ await f.run(async () => {
   await status('refused');
   await readRefusal(/native plane parallel to the sketch/i);
   assert.equal(await apply().isDisabled(), true);
+  assert.equal(await checked(), false);
   assertExact(await f.snapshot('03-nonparallel-face-refused'), before);
 
   f.phase = 'refuse the original curved cylinder side';
   await pick([40, 0, 22.5]);
   const curvedNotice = await f.waitToast(/End face not selected.*Pick one original planar face/);
   assert.equal(await apply().isDisabled(), true);
+  assert.equal(await checked(), false);
   assertExact(await f.snapshot('04-curved-face-refused'), before);
   f.report.observations.push({ label: 'invalid-picks', refused: ['HOLED_TRIM', 'NONPARALLEL', 'CURVED'], notice: curvedNotice, acceptedExact: true });
 
@@ -156,6 +168,7 @@ await f.run(async () => {
   await pick([13, 13, 20]);
   await status('preview');
   await hud().getByText('n1.bottom', { exact: true }).waitFor();
+  assert.equal(await checked(), true);
   await apply().click();
   await f.changed(seed);
   await hud().waitFor({ state: 'hidden' });
