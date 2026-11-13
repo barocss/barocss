@@ -12,6 +12,7 @@ const covered = variant === '--covered';
 const creation = variant === '--create';
 const scaled = variant === '--scaled';
 const deleted = variant === '--delete-source';
+const removalNotice = variant === '--removal-notice';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -20,7 +21,7 @@ const diameter = { id: 'b-diameter', kind: 'diameter', view: 'detail:B', edge: '
 const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] };
 const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
   views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
-if (deleted) {
+if (deleted || removalNotice) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
 }
 const part = covered ? {
@@ -32,12 +33,13 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
     'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/dimensions.ts',
-    'packages/barocss-cad-model/src/io/svg.ts', 'packages/barocss-cad-model/src/io/dxf.ts', 'packages/barocss-cad/src/io/dxf-writer.ts'],
+    'packages/barocss-cad-model/src/io/svg.ts', 'packages/barocss-cad-model/src/io/dxf.ts', 'packages/barocss-cad/src/io/dxf-writer.ts',
+    ...(removalNotice ? ['apps/cad-studio/src/state/useFeatureHistory.ts', 'apps/cad-studio/src/App.tsx'] : [])],
   limits: ['One native through bore, an offset detail crop and the external diameter label.'],
   oracleSource: `
 import json, math, re, sys, xml.etree.ElementTree as ET
@@ -222,6 +224,44 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (removalNotice) {
+    f.phase = 'delete the bore and confirm its removal notice';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const notice = f.page.getByText('Removed 2 drawing dimensions', { exact: true });
+    await button('Model').click();
+    await f.page.locator('.history .hs[data-node-index="2"]').click({ button: 'right' });
+    await f.page.getByRole('menuitem', { name: /^Delete\b/ }).click();
+    await f.changed(original);
+    const removed = await f.doc();
+    assert.equal(removed.drawing.dimensions.length, 0);
+    await notice.waitFor();
+    await f.snapshot('01-removal-notice');
+    await f.undo();
+    await f.same(original);
+    if (!baseline) await notice.waitFor({ state: 'detached' });
+    else assert.equal(await notice.count(), 1);
+    await button('Drawing').click();
+    await verify('02-restored', false);
+    if (!baseline) {
+      await f.redo();
+      await f.same(removed);
+      assert.equal(await notice.count(), 0);
+      await f.undo();
+      await f.same(original);
+      f.phase = 'retain an unrelated tolerance notice across history';
+      await button('Accept all suggestions').click();
+      await f.changed(original);
+      const unrelated = f.page.getByText(/^\d+ suggestions? accepted$/);
+      await unrelated.waitFor();
+      await f.undo();
+      await f.same(original);
+      assert.equal(await unrelated.count(), 1);
+      assert.equal(await notice.count(), 0);
+    }
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (deleted) {
     f.phase = 'open the source and read the current diameter';

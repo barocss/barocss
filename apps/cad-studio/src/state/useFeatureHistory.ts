@@ -11,7 +11,7 @@ interface FeatureHistoryOptions {
   model: { doc: StudioDoc; marker: number | null; bodies: BodyResult[]; selection: Selection };
   worker: { engine: EngineClient; nextRevision(): number };
   changes: { canChangeDocument(): boolean; commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>> };
-  onNotice(notice: FriendlyError): void;
+  onNotice(notice: FriendlyError, options?: { acceptedDocument: true }): void;
 }
 /** Feature history operations retain their original validation and central acceptance callbacks. */
 export function useFeatureHistory({ model, worker, changes, onNotice: setToast }: FeatureHistoryOptions) {
@@ -33,7 +33,7 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
       if (!commit(r.doc)) return;
-      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
+      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' }, { acceptedDocument: true });
     });
   };
   /** A body in several pieces made one body per piece (a Separate step), checked by evaluating first. */
@@ -108,7 +108,7 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${what}: ${e.error.title}` }); return; }
       if (!commit(r.doc)) return; setSelection(emptySel);
-      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${what}. Undo restores them.`, detail: '' });
+      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${what}. Undo restores them.`, detail: '' }, { acceptedDocument: true });
     });
   };
   return { deleteNode, separate, reorder, toggleSuppress, cascade, setCascade, deleteCascade, deleteSelection };

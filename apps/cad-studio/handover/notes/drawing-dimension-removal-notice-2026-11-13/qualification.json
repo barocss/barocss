@@ -1,0 +1,34 @@
+{
+  "decision": "D943",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "7240c8e1e8ec7bc26758b01cf298bc8c452177a9",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D943-qualification",
+    "D943_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/notice01 --fixed --removal-notice",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "studioPass": 4,
+    "studioTypes": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "parentD942ReceiptSHA256": "252dd590c79c08211f10d3f440ca20b4835a22eac7542c174e3207ccfcd6a008",
+    "receiptSHA256": "7ea07d164a6d67cb7d93e178bfbc2a3360081a40e491a4c5741e78fff19bb3cc",
+    "sourceManifestSHA256": "c02a496287e810b202a238fd3b611da7d0f9de130efc1446e1797e42a632b39a",
+    "oracleSHA256": "53641f097e8adc7a351dc825d106a1244432e25b282b333fdcaf4953f4221d3a",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "restoredSvgBytes": 5824,
+    "restoredSvgSHA256": "bcc06cbf91acd5ea6f78679981108757c47d3d1f5551dffaa71e49dcd89844f8"
+  },
+  "notRun": ["separate selection Delete pointer flow", "production build", "full suites", "PDF", "mobile"]
+}

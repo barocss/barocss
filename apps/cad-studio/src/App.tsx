@@ -1788,7 +1788,8 @@ export function App() {
   }, [redo, doc, marker, restoreHistoryEntry, reverseHistoryEntry, cancelNativeReview]);
 
   const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
-    changes: { canChangeDocument, commit, setSelection }, onNotice: setToast });
+    changes: { canChangeDocument, commit, setSelection },
+    onNotice: (message, options) => setToast(options?.acceptedDocument ? { ...message, documentSource: { doc: docNow.current } } : message) });
   const { deleteNode, separate, reorder, toggleSuppress, cascade, setCascade, deleteCascade, deleteSelection } = featureHistory;
   /** A sketch on the section plane holding the exact section's cut outlines (its cut faces' outlines), the section closed. */
   const sketchSection = () => {
