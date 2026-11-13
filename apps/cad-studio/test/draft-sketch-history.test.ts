@@ -100,6 +100,23 @@ test('the same stored straight outline keeps Trim history when Select activates 
   assert.deepEqual(restoreDraftHistory(rehomed, redo).done, [main]);
 });
 
+test('outline Undo and Redo replace only the parked main polygon while Trim is active', () => {
+  const { doc, original } = cutDrafts();
+  const before = outline(40), after = outline(44), guide = trim(30);
+  const parked: SketchState = { ...original, mainIds: after.ids, done: [guide, { ...after, pending: false }] };
+  const history = createDraftHistory();
+  history.push(outlineHistoryState(before), outlineHistoryState(after));
+  const undo = history.undo(draftHistoryState(doc, parked));
+  assert.ok(undo);
+  const restored = restoreDraftHistory(parked, undo);
+  assert.equal(restored.shape, null);
+  assert.deepEqual(restored.done, [guide, before]);
+  assert.equal(restored.done?.[0], guide);
+  const redo = history.redo(draftHistoryState(doc, restored));
+  assert.ok(redo);
+  assert.deepEqual(restoreDraftHistory(restored, redo).done, [guide, after]);
+});
+
 test('Trim replay refuses changed coefficients, constraints, IDs or nonmain shape order', () => {
   const doc = emptyDoc(), plane = xyPlane(), main = outline(40), first = trim(20), second = trim(30);
   assert.equal(main.kind, 'polygon');

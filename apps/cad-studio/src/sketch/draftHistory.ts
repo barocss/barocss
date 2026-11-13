@@ -20,7 +20,7 @@ export function draftHistoryState(doc: StudioDoc, sketch: SketchState, shape = s
     mainIds: sketch.mainIds, tool: sketch.tool, association: sketch.association, associationDetached: sketch.associationDetached };
 }
 
-function orderedStraightDraft(step: DraftStep): SketchShape[] | null {
+function orderedStraightDraft(step: Omit<DraftStep, 'kind' | 'doc'>): SketchShape[] | null {
   const ids = step.mainIds;
   if (step.editNode === undefined || !ids?.length
     || (step.tool !== 'trim' && step.tool !== 'select' && step.tool !== 'dimension')) return null;
@@ -41,7 +41,11 @@ function sameMainOutline(a: SketchShape, b: SketchShape): boolean {
 }
 
 function matches(expected: SketchStep, current: SketchStep): boolean {
-  if (expected.kind === 'outline') return expected.shape === current.shape;
+  if (expected.kind === 'outline') {
+    if (expected.shape === current.shape) return true;
+    const main = current.kind === 'draft' ? orderedStraightDraft(current)?.[0] : undefined;
+    return !!main && sameMainOutline(expected.shape, main);
+  }
   if (current.kind !== 'draft' || expected.doc !== current.doc || expected.plane !== current.plane
     || expected.editNode !== current.editNode || expected.mainIds !== current.mainIds
     || expected.association !== current.association || expected.associationDetached !== current.associationDetached) return false;
@@ -97,7 +101,12 @@ export function createDraftHistory() {
 }
 
 export function restoreDraftHistory(sketch: SketchState, step: SketchStep): SketchState {
-  if (step.kind === 'outline') return { ...detachSketchLink(sketch), shape: step.shape, picked: [], editDim: null };
+  if (step.kind === 'outline') {
+    const restored = { ...detachSketchLink(sketch), shape: step.shape, picked: [], editDim: null };
+    if (sketch.tool !== 'trim' || sketch.shape) return restored;
+    const main = orderedStraightDraft(sketch)?.[0];
+    return main ? { ...restored, shape: null, done: sketch.done?.map(shape => shape === main ? step.shape : shape) } : restored;
+  }
   const restored = { ...sketch, shape: step.shape, done: step.done, association: step.association,
     associationDetached: step.associationDetached, picked: [], editDim: null };
   if (step.tool === sketch.tool || (sketch.tool !== 'select' && sketch.tool !== 'dimension')) return restored;

@@ -1,0 +1,70 @@
+{
+  "decision": "D1056",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "e3373ae1c55a0f24ece70285e629d46238747807",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1056-numeric-trim-<run>",
+    "D1056_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/<run> --numeric-first",
+    "D874_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/trim --fixed",
+    "D875_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/trim-select --tool-fixed",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history drag-trim-stroke",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "4b76d9adf524fed94f9690562092056dd8160ba047e47c43f1be520c38940b76",
+      "sourceManifestSHA256": "298352ad451fea6cdbc965a1260525c71ff6aa6ddfb746c3095ebf910beedc6c"
+    },
+    "fixedFirst": {
+      "status": "FAIL",
+      "states": 7,
+      "frozenFiles": 382,
+      "receiptSHA256": "453557fb66ddb3d8487e8d2e22d53f9676821cc3f79b3b671fe264724d49ca4a",
+      "sourceManifestSHA256": "ee282d9d6e6f3480d84be8552a00417862f6f35f506a685090e212ec0e64345d"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 382,
+      "receiptSHA256": "53666e968590d32bac92c889d81ec3699c340bdb5a08372a3572d64ee4e742ad",
+      "sourceManifestSHA256": "e3a6075e34e7e679e253fa5e9bca80fd2da6afaeb1eec1cb75958b8400d6392a"
+    },
+    "trim": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 382,
+      "receiptSHA256": "2f336b340315543664576e77d80c1015649777371ae934af4b3816e8d351b7a2",
+      "sourceManifestSHA256": "e3a6075e34e7e679e253fa5e9bca80fd2da6afaeb1eec1cb75958b8400d6392a"
+    },
+    "trimSelect": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 382,
+      "receiptSHA256": "80f512313b82b6c9d7dd433b07e444aa224d605b97079173e7657b874849c29f",
+      "sourceManifestSHA256": "e3a6075e34e7e679e253fa5e9bca80fd2da6afaeb1eec1cb75958b8400d6392a"
+    }
+  },
+  "numeric": {
+    "originalX": 40,
+    "editedX": 44,
+    "trimSpanMm": [
+      10,
+      30
+    ],
+    "originalVolumeMm3": 1600,
+    "finishedVolumeMm3": 1760
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -4,6 +4,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const fixed = process.argv[3] === '--fixed';
 const toolFixed = process.argv[3] === '--tool-fixed';
 const toolBoundary = toolFixed || process.argv[3] === '--tool-baseline';
+const numeric = process.argv[3] === '--numeric-first';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/app/sketchControls.ts',
@@ -12,13 +13,14 @@ const pins = [
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
   'packages/barocss-cad-model/src/sketch/history.ts',
   'packages/barocss-cad-model/src/sketch/trim.ts',
-  ...(fixed || toolBoundary ? ['apps/cad-studio/src/sketch/draftHistory.ts',
+  ...(fixed || toolBoundary || numeric ? ['apps/cad-studio/src/sketch/draftHistory.ts',
     'packages/barocss-cad-model/src/sketch/select.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
+  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: numeric ? 'D1056_SOURCE_FROZEN' : toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: toolBoundary ? 'Measure Trim history across activation of the same closed outline in Select'
+  qualification: numeric ? 'Undo and redo a point coordinate and a following Trim through both draft history controls'
+    : toolBoundary ? 'Measure Trim history across activation of the same closed outline in Select'
     : fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
   limits: [toolBoundary ? 'A reopened native rectangle and one isolated visible construction segment. Desktop Studio.'
     : 'One 40 × 20 mm native rectangle with two straight construction boundaries. Actual desktop Studio.'],
@@ -82,7 +84,64 @@ async function expectGap() {
 
 function unchanged(after, before) {
   for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(after[key], before[key], key);
-  if (!fixed && !toolBoundary) assert.deepEqual(after.controls, before.controls);
+  if (!fixed && !toolBoundary && !numeric) assert.deepEqual(after.controls, before.controls);
+}
+
+async function numericThenTrim() {
+  const page = f.page;
+  await f.frame([[0, 0], [44, 20], [10, -5], [30, -5]]);
+  await f.tool('Select', 's');
+  const point = f.sketchPanel().getByRole('spinbutton', { name: 'Point 3 X', exact: true });
+  assert.equal(await point.inputValue(), '40');
+  const before = await f.snapshot('numeric-before');
+  await point.fill('44');
+  await point.press('Tab');
+  assert.equal(await point.inputValue(), '44');
+
+  f.phase = 'Trim after the numeric edit';
+  await f.tool('Trim', 't');
+  await expectSegment([20, 0], [10, 0], [30, 0]);
+  await page.mouse.down();
+  await page.mouse.up();
+  await expectGap();
+  unchanged(await f.snapshot('numeric-trimmed'), before);
+
+  f.phase = 'Undo Trim and then X44';
+  await button(page, 'Undo').click();
+  await expectSegment([20, 0], [10, 0], [30, 0]);
+  assert.equal(await button(page, 'Undo').isEnabled(), true);
+  await f.tool('Select', 's');
+  assert.equal(await point.inputValue(), '44');
+  await page.keyboard.press('Meta+z');
+  assert.equal(await point.inputValue(), '40');
+  const undone = await f.snapshot('numeric-both-undone');
+  unchanged(undone, before);
+  assert.deepEqual(undone.controls, [true, false]);
+  await page.keyboard.press('Meta+z');
+  assert.equal(await point.inputValue(), '40');
+  assert.deepEqual((await f.snapshot('numeric-extra-undo')).controls, [true, false]);
+
+  f.phase = 'Redo X44 and then Trim';
+  await button(page, 'Redo').click();
+  assert.equal(await point.inputValue(), '44');
+  await f.tool('Trim', 't');
+  await page.keyboard.press('Meta+Shift+z');
+  await expectGap();
+  unchanged(await f.snapshot('numeric-both-redone'), before);
+  await page.keyboard.press('Meta+z');
+  await expectSegment([20, 0], [10, 0], [30, 0]);
+  await f.tool('Select', 's');
+  assert.equal(await point.inputValue(), '44');
+  const accepted = await f.finishSketch('numeric-finished');
+  assert.deepEqual(accepted.doc.nodes[0].max, [44, 20]);
+  assert.deepEqual(accepted.doc.nodes[0].sideTags, source.nodes[0].sideTags);
+  assert.deepEqual(accepted.doc.nodes[0].construction, source.nodes[0].construction.map(shape => ({ ...shape, pending: false })));
+  assert.deepEqual(accepted.doc.nodes[1], source.nodes[1]);
+  assert.ok(Math.abs(accepted.bodies.bodies[0].volume - 1760) < 1e-8);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(accepted.doc);
 }
 
 async function acrossToolChange() {
@@ -157,6 +216,11 @@ await f.run(async () => {
   await f.openFeatureEditor(1);
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();
+  if (numeric) {
+    await numericThenTrim();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await f.tool('Trim', 't');
   if (toolBoundary) {
     await acrossToolChange();
