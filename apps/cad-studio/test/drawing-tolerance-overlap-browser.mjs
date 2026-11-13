@@ -6,9 +6,10 @@ const [output, mode] = process.argv.slice(2);
 assert.ok(['--baseline', '--fixed'].includes(mode));
 const baseline = mode === '--baseline';
 const cross = process.argv[4] === '--cross-hole';
-const row = process.argv[4] === '--row-geometric';
+const plusMinus = process.argv[4] === '--row-plus-minus';
+const row = plusMinus || process.argv[4] === '--row-geometric';
 const crossFixture = 'packages/barocss-cad/conformance/r14/tol-cross-hole-geometric/case.json';
-const rowFixture = 'packages/barocss-cad/conformance/r14/tol-row-geometric/case.json';
+const rowFixture = `packages/barocss-cad/conformance/r14/tol-row-${plusMinus ? 'plus-minus' : 'geometric'}/case.json`;
 const fixture = cross ? crossFixture : row ? rowFixture : null;
 const sample = 'packages/barocss-cad-model/samples/rows/fastener-sizes.json';
 const pins = [
@@ -22,9 +23,51 @@ const pins = [
   ...(row ? ['apps/cad-studio/src/ui/drawing/TolerancingList.tsx', 'packages/barocss-cad-model/src/io/svg.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'drawing-tolerance-overlap', output, envFrozen: row ? 'D936_SOURCE_FROZEN' : cross ? 'D935_SOURCE_FROZEN' : 'D934_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'drawing-tolerance-overlap', output, envFrozen: plusMinus ? 'D937_SOURCE_FROZEN' : row ? 'D936_SOURCE_FROZEN' : cross ? 'D935_SOURCE_FROZEN' : 'D934_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: 'Open the accepted tolerance drawing and inspect its actual drawing warning.',
-  oracleSource: row ? `
+  oracleSource: plusMinus ? `
+import json, math, sys, xml.etree.ElementTree as ET
+d = json.load(sys.stdin)
+marks = d['target']['marks']
+[ruler] = [m for m in marks if m.get('role') == 'dimension']
+extensions = [m for m in marks if m.get('role') == 'extension']
+texts = [m for m in marks if m['kind'] == 'text']
+[left, y], [right, other_y] = ruler['a'], ruler['b']
+close = lambda a, b: math.isclose(a, b, abs_tol=1e-8)
+assert y == other_y == 43 and close(right - left, 20)
+assert [m['b'][0] for m in extensions] == [left, right]
+def bounds(mark):
+    weights = {'.': 278, ' ': 278, '/': 278, '-': 333}
+    x, y = mark['at']
+    size = mark['size']
+    return [x, y - 0.8*size, x + size*sum(weights.get(c, 556) for c in mark['text'])/1000, y + 0.22*size]
+if d['baseline']:
+    [text] = texts
+    x0, y0, x1, y1 = bounds(text)
+    assert text['text'] == '3× 20 +0.2/-0.21'
+    assert x0 < left < right < x1 and y0 < 41 < y1
+else:
+    assert [m['text'] for m in texts] == ['3× 20', '+0.2', '-0.21']
+    assert [m['size'] for m in texts] == [3.5, 2.5, 2.5]
+    assert texts[1]['at'][0] == texts[2]['at'][0]
+    boxes = [bounds(m) for m in texts]
+    x0, x1 = min(b[0] for b in boxes), max(b[2] for b in boxes)
+    y0, y1 = min(b[1] for b in boxes), max(b[3] for b in boxes)
+    assert close((x0+x1)/2, (left+right)/2)
+    assert close(x0-left-0.125, 2.24775) and close(right-x1-0.125, 2.24775)
+    assert close(boxes[2][1]-boxes[1][3], 0.1)
+    assert close(y-0.6-y1, 1.2)
+    root = ET.fromstring(d['svg'])
+    ns = {'s': 'http://www.w3.org/2000/svg'}
+    assert root.attrib['width'] == '297mm' and root.attrib['height'] == '210mm'
+    group = root.find(".//s:g[@data-dim='d1']", ns)
+    assert group.attrib['class'] == 'dimension' and group.attrib['data-view'] == 'top'
+    for text, expected in zip(group.findall('s:text', ns), texts, strict=True):
+        assert text.text == expected['text']
+        assert abs(float(text.attrib['x'])-expected['at'][0]) <= 0.000050001
+        assert abs(float(text.attrib['y'])-expected['at'][1]) <= 0.000050001
+print(json.dumps({'status':'PASS', 'rulerMM':20, 'rulerY':y, 'box':[x0,y0,x1,y1]}))
+` : row ? `
 import json, math, sys, xml.etree.ElementTree as ET
 d = json.load(sys.stdin)
 marks = d['target']['marks']
@@ -109,7 +152,7 @@ else:
     assert d['layout']['views']['top']['box'][0] - max(xs) - half_stroke >= 1.2 - 1e-8
 print(json.dumps({'status':'PASS', 'rulerX':line_x, 'rulerLength':12, 'boxX':[min(xs), max(xs)]}))
 `,
-  limits: row ? ['The exact hole-row geometric tolerance drawing and its locally recorded M6 rows.'] : cross
+  limits: row ? ['The exact hole-row tolerance drawing and its locally recorded M6 rows.'] : cross
     ? ['The exact 60 × 30 × 30 mm block with an Ø8 cross-hole and a plain-mm geometric tolerance drawing.']
     : ['The exact existing 100 × 40 × 10 mm plate, four-hole pattern and local fastener-size fixture.'],
   inspectorSource: `
@@ -202,13 +245,13 @@ await f.run(async () => {
     return context;
   };
   f.phase = 'build the existing local approved drawing fixture';
-  const fixtureInputs = { rowPath: join(f.repo, sample), fixture: fixture && join(f.repo, fixture), targetId: row ? 'd2' : 'd4' };
+  const fixtureInputs = { rowPath: join(f.repo, sample), fixture: fixture && join(f.repo, fixture), targetId: plusMinus ? 'd1' : row ? 'd2' : 'd4' };
   const native = await f.inspect('approved-proposal', {}, fixtureInputs);
   if (row) {
     await f.newPage();
     f.phase = 'open the original hole-row document';
     const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-    await chooser.setFiles({ name: 'hole-row-geometric.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(native.initial)) });
+    await chooser.setFiles({ name: plusMinus ? 'hole-row-plus-minus.bcad' : 'hole-row-geometric.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(native.initial)) });
     await f.page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4);
     await f.ready();
     assert.deepEqual((await f.doc()).drawing, native.initial.drawing);
@@ -216,19 +259,30 @@ await f.run(async () => {
     const accept = button('Accept all suggestions');
     await accept.waitFor();
     await f.snapshot('01-before-accept-all');
-    f.phase = 'accept all geometric tolerances and read Studio diagnostics';
+    f.phase = 'accept all tolerances and read Studio diagnostics';
     await accept.click();
-    await f.page.waitForFunction(() => window.__studioDoc?.drawing?.frames?.length === 2);
+    await f.page.waitForFunction(isPlusMinus => {
+      const drawing = window.__studioDoc?.drawing;
+      return isPlusMinus ? drawing?.dimensions.filter(d => d.tol).length === 5 : drawing?.frames?.length === 2;
+    }, plusMinus);
     const current = await f.snapshot('02-after-accept-all');
     const actual = await f.inspect('accepted-in-studio', {}, { ...fixtureInputs, settings: current.doc.drawing });
     assert.deepEqual(actual.doc.drawing, current.doc.drawing);
     assert.deepEqual(current.doc.nodes, native.initial.nodes);
-    assert.deepEqual(current.drawing.issues.filter(i => i.code === 'TEXT_OVER_LINES').map(i => i.dims), baseline ? [['d2']] : []);
-    assert.deepEqual(current.doc.drawing.datums.map(d => d.letter), ['A', 'B', 'C']);
-    assert.deepEqual(current.doc.drawing.frames.map(d => [d.dim, d.value, d.datums]), [['d7', 0.3, ['A', 'B', 'C']], ['d8', 0.6, ['A', 'B', 'C']]]);
+    assert.deepEqual(current.drawing.issues.filter(i => i.code === 'TEXT_OVER_LINES').map(i => i.dims), baseline ? [[fixtureInputs.targetId]] : []);
+    if (plusMinus) {
+      assert.deepEqual(current.doc.drawing.dimensions.filter(d => d.tol).map(d => [d.id, d.tol.kind, d.tol.value]),
+        [['d1', 'symmetric', 0.21], ['d2', 'symmetric', 0.1], ['d3', 'symmetric', 0.21], ['d4', 'symmetric', 0.21], ['d5', 'symmetric', 0.1]]);
+      assert.equal(current.doc.drawing.frames, undefined);
+      assert.equal(current.doc.drawing.datums, undefined);
+    } else {
+      assert.deepEqual(current.doc.drawing.datums.map(d => d.letter), ['A', 'B', 'C']);
+      assert.deepEqual(current.doc.drawing.frames.map(d => [d.dim, d.value, d.datums]), [['d7', 0.3, ['A', 'B', 'C']], ['d8', 0.6, ['A', 'B', 'C']]]);
+    }
     assert.deepEqual(current.drawing.dimensions.filter(d => d.id === 'd7' || d.id === 'd8').map(d => d.text), ['M6×1 × 12 DEEP', '4× Ø6.6 THRU']);
-    const original = native.initial.drawing.dimensions.find(d => d.id === 'd2');
-    assert.deepEqual(current.doc.drawing.dimensions.find(d => d.id === 'd2'), { ...original, basic: true });
+    const original = native.initial.drawing.dimensions.find(d => d.id === fixtureInputs.targetId);
+    const decoration = plusMinus ? { tol: { kind: 'symmetric', value: 0.21 } } : { basic: true };
+    assert.deepEqual(current.doc.drawing.dimensions.find(d => d.id === fixtureInputs.targetId), { ...original, ...decoration });
     let svg;
     if (!baseline) {
       f.phase = 'read the actual SVG and verify the acceptance history';

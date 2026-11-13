@@ -456,8 +456,8 @@ function placeShortLinearText(groups: MarkGroup[], dimensions: readonly Resolved
     // A basic box can be trapped between adjacent rulers on its usual side. Try the other side at
     // the same station, while keeping the dimension line, arrowheads and extension lines fixed.
     const aboveTop = r.dim.orient === 'horizontal' && r.dim.view === 'top' && middle[1] < v.box[1] && !v.breaks;
-    if (!best && r.dim.basic && r.dim.auto && (r.dim.orient === 'vertical' || aboveTop) && !payload.groups.length
-      && settings.standard === undefined && settings.units === undefined && !settings.dual && settings.precision === undefined
+    const plain = settings.standard === undefined && settings.units === undefined && !settings.dual && settings.precision === undefined;
+    if (!best && r.dim.basic && r.dim.auto && (r.dim.orient === 'vertical' || aboveTop) && !payload.groups.length && plain
       && dot2(textUp(axis), outward) > 0) {
       const rulerLine = payload.fixed.find(mark => mark.kind === 'line' && mark.role === 'dimension')!;
       const frame = payload.marks.find(mark => mark.kind === 'polyline')!;
@@ -471,6 +471,24 @@ function placeShortLinearText(groups: MarkGroup[], dimensions: readonly Resolved
         && !labelBlocked(box, relevant, layout.frame, true)) best = alternate;
     }
     if (best) { commitLabelTranslation(payload, best); if (bestConnector) payload.own.marks.push(bestConnector); }
+    else if (aboveTop && plain && r.dim.auto && r.dim.count !== undefined && !r.dim.basic && !payload.groups.length && r.dim.tol?.kind === 'symmetric') {
+      const crossesExtension = payload.fixed.some(m => m.kind === 'line' && m.role === 'extension'
+        && payload.marks.some(text => labelPolygonsOverlap(labelPolygon(text), labelPolygon(m))));
+      if (!crossesExtension) continue;
+      const deviations = deviationsOf(r.dim.tol, '', p, p.units, r.value);
+      if (!deviations.printable || deviations.equal) continue;
+      // Use the existing deviation column with the same limits as the inline text.
+      const [nominal, upper, lower] = dimensionValueMarks(middle, 0, 'middle', r.text, p, [deviations.upper, deviations.lower]);
+      const gap = 0.1 + labelMarkRect(upper)[3] - labelMarkRect(lower)[1];
+      const stacked = [nominal, upper, translateLabelMark(lower, [0, Math.max(0, gap)])];
+      const box = joinedLabelRect(stacked);
+      const rulerInk = payload.fixed.filter(m => m.kind === 'line' && m.role === 'dimension');
+      const upperInk = joinedLabelRect([...heads, ...rulerInk])[1];
+      const delta: XY = [0, upperInk - LINEAR_LABEL_CLEAR - box[3]];
+      if (!labelBlocked(shiftedLabelRect(box, delta), relevant, layout.frame, true)) {
+        payload.own.marks = [...payload.fixed, ...stacked.map(mark => translateLabelMark(mark, delta))];
+      }
+    }
   }
 }
 
@@ -946,12 +964,15 @@ export function dimensionLine(r: Extract<Resolved, { ok: true }>, p: StandardPre
  * follow the value on its line; deviations stack after it in smaller text, the upper one raised.
  */
 export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = '', p: StandardPreset = PLAIN, alt?: string, nominal = 0): Mark[] {
-  const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
   // (11 ③b: lengths in the drawing's unit, an angle's tolerance never; on a dual drawing the value and its tolerance in the other unit follow in brackets, and deviations then print on the line, not stacked.)
   const dv = tol?.kind === 'deviation' && alt === undefined ? deviationsOf(tol, unit, p, p.units, nominal) : null;
   const stacked = !!dv?.printable, part = (v: string, u: DrawingUnits) => tol && !stacked ? `${v} ${toleranceText(tol, unit, p, u, nominal)}` : v;
   const main = alt === undefined ? part(value, p.units) : `${part(value, p.units)} [${part(alt, otherUnit(p))}]`;
-  const small = ordinaryTextHeight(p), devs = stacked && dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
+  return dimensionValueMarks(at, angle, anchor, main, p, stacked && dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null);
+}
+function dimensionValueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', main: string, p: StandardPreset, devs: readonly [string, string] | null): Mark[] {
+  const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
+  const small = ordinaryTextHeight(p);
   const wMain = textWidth(main, p.text, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
   const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
   const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: p.text, anchor: 'start', ...(angle ? { angle } : {}) }];
