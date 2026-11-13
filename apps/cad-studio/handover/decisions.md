@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1004 — hold an ordinary finish edge until confirmation](notes/ordinary-finish-reference-confirmation-2026-11-13/README.md).
 - [D1003 — replace a held Fillet with a concave edge in History](notes/concave-fillet-history-reference-2026-11-13/README.md).
 - [D1002 — preserve the open document when a Hole loses its Split face](notes/split-hole-reference-open-2026-11-13/README.md).
 - [D1001 — compare Draft and Flange references](notes/draft-flange-reference-comparison-2026-11-13/README.md).

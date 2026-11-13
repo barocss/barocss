@@ -2154,8 +2154,16 @@ export function App() {
   };
   const settleRef = async (index: number, to?: string) => {
     const open = openIntent.current;
+    const current = () => openIntent.current === open && ownsEvaluatedSource() && canChangeDocument();
     const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to);
-    if (openIntent.current !== open || !ownsEvaluatedSource() || !canChangeDocument()) return;
+    if (!current() || next === doc) return;
+    const problem = refProblems.find(p => p.index === index);
+    const held = problem?.node == null ? undefined : doc.nodes[problem.node];
+    if (held?.held && (held.kind === 'fillet' || held.kind === 'chamfer')) {
+      const result = await engine.part(prefixDoc(next, next.nodes.length), revision.current++, 'refs');
+      if (!current()) return;
+      if (!result.ok) { setToast({ ...result.error, title: 'Reference not applied' }); return; }
+    }
     pushUndo(); if (!setDoc(next)) return;
     referenceProblems.current.set(next, refProblems.filter(p => p.index !== index));
     setRefChoices(null); setDirty(true);

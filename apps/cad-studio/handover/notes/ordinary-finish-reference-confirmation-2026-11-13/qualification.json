@@ -1,0 +1,42 @@
+{
+  "decision": "D1004",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "00fb653b917f9aef25cb73f0ce0d3988aa1dd84d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1004-ordinary-finish-studio",
+    "D1004_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/studio02 --non-split",
+    "pnpm --filter @barocss/cad-model test references.test band-surface.test rematch.test",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test reference-candidate.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/split-finish-reference-browser.mjs",
+    "node --check apps/cad-studio/test/browser-flow.mjs",
+    "git diff --check"
+  ],
+  "baselines": [
+    { "status": "FAIL", "reason": "File Open applied the renamed edge before confirmation.", "receiptSHA256": "ddb0dcf9b0dc26fa6067970723a8bf6e5587d502eeb8a0bfe1dbc0024a9e89aa", "sourceManifestSHA256": "47d741e9fbb23173abc4cbdd4e44137ae8f555e5018e75364c08c80c8314c643" },
+    { "status": "FAIL", "reason": "Selecting an R2 candidate with a 0.5 mm wall replaced the accepted held state despite native refusal.", "receiptSHA256": "90f7c258c3a60ea4c8b2bc5665e2618fac3c08dc7090881680e2ff7705f221aa", "sourceManifestSHA256": "b022418ce65082ddd1736e0cb556bfd30572af26123b6b664701ce8086f8ae4a" }
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "e6ad244f7899025535c1448f2349465c3c5d2d5ac4a6901dfafbd4fbd0531bf3",
+    "sourceManifestSHA256": "8418c2e384e975b16718783ce6a34cb338dfcac3a1b318ee5e875c7fb054a222",
+    "frozenFiles": 375,
+    "states": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldVolumeMM3": 630,
+    "confirmedFilletVolumeMM3": 624.8495559215388,
+    "confirmedChamferVolumeMM3": 618.0000000000001,
+    "candidateMidpointMM": [10, 9.5, 3],
+    "volumeToleranceMM3": 1e-7,
+    "refusedIncidentWallMM": 0.5
+  },
+  "focused": { "model": 66, "studio": 16, "failed": 0, "typeCheck": "PASS" },
+  "notRun": ["damaged and previously marked Project Open", "shared signature", "general varying and multi-edge recovery", "full legacy browser flow", "production build", "full suites", "mobile"]
+}

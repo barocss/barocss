@@ -2,13 +2,22 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live', '--repick-baseline', '--repick-fixed'].includes(mode));
-const historyMode = mode.startsWith('--history-');
+assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live', '--repick-baseline', '--repick-fixed', '--non-split'].includes(mode));
+const nonSplit = mode === '--non-split';
+const historyMode = mode.startsWith('--history-') || nonSplit;
 const liveMode = mode === '--live';
 const repickMode = mode.startsWith('--repick-');
-const stored = 'n1.side0|n2.cut.side1';
-const replacement = 'n1.side0|n2.cut.side3';
-const model = {
+const stored = nonSplit ? 'n1.side1|n1.side2' : 'n1.side0|n2.cut.side1';
+const replacement = nonSplit ? 'n1.side2|n1.side3' : 'n1.side0|n2.cut.side3';
+const nonSplitModel = {
+  format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+  nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'polygon', points: [[0, 0], [5, -2], [10, 0], [10, 9.5], [0, 9.5]] },
+    { id: 'n1', kind: 'extrude', sketch: 0, height: 6 },
+  ],
+  outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3,
+};
+const model = nonSplit ? nonSplitModel : {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
     { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 30] },
@@ -23,13 +32,14 @@ const files = [
   'apps/cad-studio/src/ui/ReferenceDecisions.tsx',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(mode === '--repick-fixed' ? ['apps/cad-studio/src/state/useHeldFinishEdge.ts'] : []),
+  ...(nonSplit ? ['packages/barocss-cad-model/src/engine/part.ts'] : []),
   'packages/barocss-cad-model/src/engine/references.ts',
   'packages/barocss-cad-model/src/engine/rematch.ts',
   'apps/cad-studio/test/split-finish-reference-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'split-finish-reference', output, envFrozen: repickMode ? 'D998_SOURCE_FROZEN' : liveMode ? 'D997_SOURCE_FROZEN' : historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
-  qualification: 'Hold Fillet and Chamfer when a native Split edge changes on Open.',
+  name: 'split-finish-reference', output, envFrozen: nonSplit ? 'D1004_SOURCE_FROZEN' : repickMode ? 'D998_SOURCE_FROZEN' : liveMode ? 'D997_SOURCE_FROZEN' : historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
+  qualification: nonSplit ? 'Hold Fillet and Chamfer on a unique changed edge until an explicit candidate choice.' : 'Hold Fillet and Chamfer when a native Split edge changes on Open.',
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const refs = () => f.page.getByRole('region', { name: 'References', exact: true });
@@ -133,6 +143,72 @@ await f.run(async () => {
     });
     return context;
   };
+
+  if (nonSplit) {
+    for (const kind of ['fillet', 'chamfer']) {
+      await f.newPage();
+      const finish = {
+        id: 'n2', kind, parent: { node: 1, side: 'solid' }, edges: [stored],
+        ...(kind === 'fillet' ? { radius: 2 } : { distance: 2 }),
+        sigs: { [stored]: { k: 'line', p: [10, 10, 3], d: [0, 0, 1], s: 6 } },
+      };
+      f.phase = 'Open a renamed ordinary ' + kind + ' edge';
+      const name = 'split-' + kind + '.bcad';
+      const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+      await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ ...model, nodes: [...model.nodes, finish] })) });
+      await refs().waitFor();
+      await f.ready();
+      const opened = await f.snapshot(kind + '-ordinary-open');
+      assert.match(await refs().textContent(), /0 matched again.*1 need a choice.*Feature held/);
+      assert.deepEqual(opened.doc.nodes[2].edges, [stored]);
+      assert.deepEqual(opened.doc.nodes[2].sigs, finish.sigs);
+      assert.equal(opened.doc.nodes[2].suppressed, true);
+      volumeNear(opened.bodies.bodies[0].volume, 630);
+      const details = refs().locator('details');
+      await details.locator('summary').click();
+      assert.ok((await details.textContent()).includes(stored));
+      assert.ok((await details.textContent()).includes('Candidate 1: ' + replacement));
+      f.report.observations.push({ kind, referenceDetails: await referenceDetails() });
+      await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+      await refs().waitFor({ state: 'hidden' });
+      await f.ready();
+      const applied = await f.snapshot(kind + '-ordinary-confirmed');
+      assert.deepEqual(applied.doc.nodes[2].edges, [replacement]);
+      assert.deepEqual(applied.doc.nodes[2].sigs[replacement].p, [10, 9.5, 3]);
+      volumeNear(applied.bodies.bodies[0].volume, kind === 'fillet' ? 630 - 6 * (4 - Math.PI) : 618);
+      await proveHistoryAndSave(kind, opened, applied);
+    }
+    await f.newPage();
+    f.phase = 'confirm an ordinary candidate whose incident wall is too short';
+    const badEdge = 'n1.side3|n1.side4';
+    const narrow = { ...model, nodes: [
+      { ...model.nodes[0], points: [[0, 0], [5, -2], [10, 0], [10, 9], [10, 9.5], [0, 9.5]] },
+      model.nodes[1],
+      { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: [stored], radius: 2,
+        sigs: { [stored]: { k: 'line', p: [10, 10, 3], d: [0, 0, 1], s: 6 } } },
+    ] };
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'narrow-corner.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(narrow)) });
+    await refs().waitFor();
+    await f.ready();
+    const before = await f.snapshot('narrow-corner-held');
+    const details = refs().locator('details');
+    await details.locator('summary').click();
+    assert.ok((await details.textContent()).includes('Candidate 1: ' + badEdge));
+    const choices = await referenceDetails();
+    const history = () => Promise.all(['Undo', 'Redo'].map(name => button(name).isEnabled()));
+    const beforeHistory = await history();
+    await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+    const refusal = await f.waitToast(/too large|Reference not applied/);
+    assert.ok(refusal.includes(badEdge));
+    const after = await f.snapshot('narrow-corner-refused');
+    for (const key of ['doc', 'bodies', 'selection', 'history']) assert.deepEqual(after[key], before[key], key);
+    assert.deepEqual(await history(), beforeHistory);
+    assert.deepEqual(await referenceDetails(), choices);
+    volumeNear(after.bodies.bodies[0].volume, 630);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   for (const kind of ['fillet', 'chamfer']) {
     await f.newPage();

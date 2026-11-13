@@ -283,11 +283,12 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     // The bounded wrap requires its exact original wall; another match cannot replace it.
     if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
     const node = ref.node === null ? undefined : out.nodes[ref.node];
-    const splitFinish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') &&
-      (node.parent.side === 'negative' || node.parent.side === 'positive') &&
-      ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, node.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
-    // A band's edge and a direct Split finish must keep their authored name until the user chooses a candidate.
-    if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish)) {
+    const finish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') ? node : undefined;
+    const splitFinish = finish && (finish.parent.side === 'negative' || finish.parent.side === 'positive') &&
+      ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, finish.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
+    const singleFinish = (ref.sig.n ?? 1) === 1 && finish?.edges.length === 1 && (finish.kind === 'chamfer' || (!finish.radii && !finish.section));
+    // These edges keep their authored name until the user chooses a different live edge.
+    if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish || singleFinish)) {
       const live = cands.get(ref.name);
       if (!(live !== undefined && live === cands.get(m))) m = [m];
     }

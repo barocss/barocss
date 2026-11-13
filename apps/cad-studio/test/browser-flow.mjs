@@ -3072,7 +3072,7 @@ try {
     await page.click('[aria-label="Dismiss"]');
   });
 
-  await check('references: a file whose fillet edge a kernel would name otherwise opens with it matched again, shown, confirmed; one gone is held and the rest builds', async () => {
+  await check('references: a renamed fillet edge is held until its shown candidate is chosen; one gone is held and the rest builds', async () => {
     const fs = await import('node:fs');
     const box = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 6 }];
     const file = (fillet) => JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 3, outputs: {}, nodes: [...box, { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, radius: 2, ...fillet }] });
@@ -3081,18 +3081,19 @@ try {
     fs.writeFileSync(moved, file({ edges: ['n1.side0|n1.side1'], sigs: { 'n1.side0|n1.side1': { k: 'line', p: [10, 10, 3], d: [0, 0, 1], s: 6 } } }));
     await page.setInputFiles('input[aria-label="Model file"]', moved);
     await page.waitForSelector('[aria-label="References"]', { timeout: 15000 });
-    assert.match(await page.textContent('[aria-label="References"]'), /1 matched again/);
-    let d = await doc(); assert.equal(Object.keys(d.nodes[2].rematched ?? {}).length, 1);
-    assert.ok(await page.locator('.history .hs.rematched').count() >= 1, 'the step is marked');
-    await page.click('[aria-label="References"] button:has-text("Confirm")');
-    await page.waitForFunction(() => !window.__studioDoc.nodes[2].rematched, null, { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="References"]'), /0 matched again.*1 need a choice.*Feature held/);
+    let d = await doc();
+    assert.equal(d.nodes[2].suppressed, true);
+    assert.deepEqual(d.nodes[2].edges, ['n1.side0|n1.side1']);
+    await page.getByRole('region', { name: 'References' }).getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+    await page.waitForFunction(() => !window.__studioDoc.nodes[2].held && window.__studioDoc.nodes[2].edges[0] === 'n1.side1|n1.side2', null, { timeout: 15000 });
     assert.equal(await page.locator('[aria-label="References"]').count(), 0, 'nothing left to settle');
     // Gone: nothing alike left (a curved edge on a box): the file opens, the fillet held, the box built.
     const gone = join(out, 'gone.bcad');
     fs.writeFileSync(gone, file({ edges: ['n1.side1|n1.side2'], sigs: { 'n1.side1|n1.side2': { k: 'curve', p: [10, 10, 3], s: 6 } } }));
     await page.setInputFiles('input[aria-label="Model file"]', gone);
     await page.waitForSelector('[aria-label="References"]', { timeout: 15000 });
-    assert.match(await page.textContent('[aria-label="References"]'), /1 needs a choice/);
+    assert.match(await page.textContent('[aria-label="References"]'), /1 need a choice/);
     d = await doc(); assert.deepEqual([d.nodes[2].suppressed, d.nodes[2].held], [true, '"n1.side1|n1.side2" is gone']);
     await page.waitForFunction(() => /1 solid/.test(document.body.innerText), null, { timeout: 15000 });
   });

@@ -164,7 +164,7 @@ test('suppressing the fillet that made the band’s edges refuses; deleting it i
   const g = evaluateDoc(cyl, 1); assert.ok(g.ok); if (g.ok) assert.ok(g.bodies.every(b => !b.band));
 });
 
-test('no silent retarget: a name a fillet would be re-matched to is held on a band, never substituted', async () => {
+test('no silent retarget: a different unique edge requires confirmation for a band or a single-edge fillet', async () => {
   // Two boxes: a fillet on one's top edge, a band on the other's top loop; each stored name's signature is moved to the
   // opposite parallel edge, so the one matcher finds exactly one other edge as the name's match.
   const sk = (x: number): ModelNode => ({ kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 20, 20] });
@@ -183,7 +183,9 @@ test('no silent retarget: a name a fillet would be re-matched to is held on a ba
   const moveFillet = prefixDoc({ ...doc, nodes: doc.nodes.map(n => n.kind === 'fillet' ? { ...n, sigs: { [pe.names[0]]: n.sigs![po.names[0]] ?? sigOf(p, po.names[0]) } } : n) }, doc.nodes.length);
   const moveBand = prefixDoc({ ...doc, nodes: doc.nodes.map(n => n.kind === 'band-surface' ? { ...n, sigs: { ...n.sigs, [qe.names[0]]: n.sigs![qo.names[0]] } } : n) }, doc.nodes.length);
   const f = await verifyReferences(moveFillet, [], evaluate);
-  assert.ok(f.changes.some(c => c.where === 'feature 7' && c.was === pe.names[0] && c.now === po.names[0]), 'the fillet’s name is re-matched (marked)');
+  assert.deepEqual(f.changes, []);
+  assert.ok(f.problems.some(p => p.where === 'feature 7' && p.name === pe.names[0] && p.candidates.join() === po.names[0]), 'the fillet keeps its authored edge until confirmation');
+  assert.equal(f.doc.nodes[7].suppressed, true);
   const v = await verifyReferences(moveBand, [], evaluate);
   assert.deepEqual(v.changes, [], 'the band is not substituted');
   const held = bandOf(v.doc);
