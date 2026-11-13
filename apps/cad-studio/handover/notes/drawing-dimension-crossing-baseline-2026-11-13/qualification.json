@@ -1,0 +1,32 @@
+{
+  "decision": "D951",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "01fbdd19ac867ef287bfa3967e62d1185e06fcd2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D951-studio",
+    "D951_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-dimension-crossing-browser.mjs <external-evidence>/baseline01",
+    "node --check apps/cad-studio/test/drawing-dimension-crossing-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "b00fa551b23f1824a7d76b7aaf0759e22a2c6e11b1bdcd6314aba3af969fcf5e",
+    "sourceManifestSHA256": "b3a04507056e1f5299b88eed29cf79de839e3f05d1c2f6c7d9d9932d960ebc0f",
+    "oracleSHA256": "2616e00c90bef316d9210c772475077469ddf58f98819184d47aa04baee2383e",
+    "frozenFiles": 376,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 5070,
+    "svgSHA256": "ec5404fd02e3845c0f1fb55893d64381466f174d9a4a7b19f3792d2d31e75c74",
+    "dxfBytes": 15439,
+    "dxfSHA256": "2f26dc83a445a022dedc254fc4719d612691679869fe61368b0ba59f1984606c",
+    "intersectionPaperMM": [183, 125.5],
+    "rulersMM": [64, 32],
+    "centerlineGapPaperMM": 0
+  },
+  "notRun": ["crossing-break implementation", "3D annotation changes", "production build", "full suites", "PDF", "mobile"]
+}
