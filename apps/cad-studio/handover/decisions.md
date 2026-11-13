@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D979 — repair a Detail boundary without deleting its annotations](notes/drawing-detail-issue-move-2026-11-13/README.md).
 - [D978 — let Escape dismiss More tools when Undo’s tooltip is visible](notes/toolbar-tooltip-escape-2026-11-13/README.md).
 - [D977 — restore toolbar focus and close More tools on resize](notes/toolbar-overflow-resize-focus-2026-11-13/README.md).
 - [D976 — focus Cancel and restore the History Delete opener](notes/history-delete-confirmation-focus-2026-11-13/README.md).

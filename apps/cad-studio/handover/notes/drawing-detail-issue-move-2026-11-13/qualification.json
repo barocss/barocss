@@ -1,0 +1,55 @@
+{
+  "decision": "D979",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "aed4ee5f582e720c22ac448a5fdef2a01c091ce5",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D979-detail-move",
+    "D979_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-ownership-browser.mjs <external-evidence>/baseline01 --issue-move-baseline",
+    "D979_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-ownership-browser.mjs <external-evidence>/fixed01 --issue-move-fixed",
+    "gate.sh acquire heavy 600 D979-small",
+    "pnpm --filter @barocss/cad-studio-app test drawing",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/detail-ownership-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "5ec8f46e4ca1b972fd5f42f864bb90f11db635ca8a64c31955d0f4c0e9a9dba5"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "ee64890ba35bb9283ef67149b671ba24eba70ca73e7427148808786bbe54570a",
+    "sourceManifestSHA256": "af792fc1bd0225881b581b3408f7e571d845ad1cfe77538c909cd018e80daa00",
+    "frozenFiles": 381,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "detail": "B",
+    "centerMM": [
+      48,
+      16
+    ],
+    "radiusMM": 9,
+    "scale": 2,
+    "retainedDimensions": 1,
+    "retainedFrames": 2
+  },
+  "focusedTests": {
+    "pass": 19,
+    "fail": 0
+  },
+  "notRun": [
+    "Fix all",
+    "other sheets",
+    "Save/reopen",
+    "SVG/DXF/PDF exports",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

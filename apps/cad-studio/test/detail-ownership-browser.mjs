@@ -6,7 +6,8 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(['--baseline', '--fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed'].includes(mode));
+const issueMove = mode.startsWith('--issue-move-');
 await mkdir(output, { recursive: true });
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document: model } } = JSON.parse(await readFile(modelPath));
@@ -27,10 +28,17 @@ const fixtures = {
   'legacy-detail': { ...drawing, details: [detailC], dimensions: [...drawing.dimensions, otherDetail], frames: [attached, standalone],
     sheets: [{ id: 's2', views: ['detail:B', 'detail:E'] }] },
 };
+const moveModel = { ...model, nodes: model.nodes.map(node => node.kind === 'hole' ? { ...node, radius: 6 } : node) };
+if (issueMove) fixtures['issue-move'] = {
+  ...drawing,
+  details: [{ ...detailB, radius: 9, scale: 2 }],
+  dimensions: [detailDimension],
+  frames: [attached, standalone],
+};
 const files = new Map();
 for (const [key, settings] of Object.entries(fixtures)) {
   const path = join(output, `${key}.bcad`);
-  await writeFile(path, JSON.stringify({ ...model, drawing: settings }), { flag: 'wx' });
+  await writeFile(path, JSON.stringify({ ...(key === 'issue-move' ? moveModel : model), drawing: settings }), { flag: 'wx' });
   files.set(key, path);
 }
 
@@ -70,10 +78,10 @@ print(json.dumps({"status": "PASS", "details": r["details"], "dimensions": r["di
 `;
 
 const f = await createFlow({
-  name: 'detail-ownership', envFrozen: 'D701_SOURCE_FROZEN', output,
-  qualification: 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
+  name: 'detail-ownership', envFrozen: issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
+  qualification: issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
   initialFiles: [import.meta.filename, modelPath, ...files.values()], oracleSource: oracle,
-  extraFrozen: ['packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
+  extraFrozen: ['packages/barocss-cad-model/src/drawing/issues.ts', 'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
     'packages/barocss-cad-model/src/drawing/sheets.ts', 'packages/barocss-cad-model/src/drawing/options.ts',
     'apps/cad-studio/src/ui/drawing/DetailsList.tsx', 'apps/cad-studio/src/ui/DrawingWorkspace.tsx'],
   limits: ['Capture local emitted bytes before browser delivery. No PDF or standards verification.'],
@@ -205,7 +213,67 @@ const topDim = { 'top-diameter': 'top' };
 const topAndC = { ...topDim, 'c-diameter': 'detail:C' };
 const bDim = { 'b-diameter': 'detail:B' };
 
+async function checkIssueMove() {
+  f.phase = 'open a 64 × 32 × 8 mm plate with an annotated Ø12 Detail B';
+  await open(files.get('issue-move'));
+  const original = await f.doc();
+  await checkDimension('b-diameter', 'detail:B', 12);
+  const sheet = f.page.locator(svg);
+  await sheet.locator('g.control[data-standalone-frame="b-frame"]').waitFor();
+  await sheet.locator('g.control[data-dim="b-attached"]').waitFor();
+  await button('Model').click();
+  await f.openFeatureEditor(2, 'source Hole');
+  f.phase = 'move the Hole centre from [32,16] to [48,16] in History';
+  await f.editor().getByLabel('Centre X', { exact: true }).fill('48');
+  await f.applyEditor(original, 'hole-outside-detail');
+  await button('Drawing').click();
+  await checkLost('b-diameter');
+  const emptyIssue = f.page.locator('.dw-issue[title="DETAIL_EMPTY"]');
+  await emptyIssue.waitFor();
+  const empty = await f.doc();
+  assert.deepEqual(empty.nodes[2].center, [48, 16]);
+  assert.equal(empty.nodes[2].radius, 6);
+  assert.deepEqual(empty.drawing.details, original.drawing.details);
+  const move = emptyIssue.getByRole('button', { name: /^Fix: Detail B/ });
+  assert.equal(await move.textContent(), 'Move');
+  f.phase = 'use Move on the empty Detail issue';
+  await move.click();
+  if (mode.endsWith('baseline')) {
+    await f.changed(empty);
+    const after = await f.doc();
+    assert.equal(after.drawing.details?.some(d => d.id === 'B') ?? false, false);
+    assert.equal(after.drawing.dimensions.some(d => d.id === 'b-diameter'), false);
+    assert.ok(after.drawing.frames.some(frame => frame.id === 'b-frame'));
+    await f.snapshot('issue-move-deleted-detail');
+    assert.fail('Move removed Detail B and its diameter while leaving a standalone frame without a view');
+  }
+  await f.same(empty);
+  await f.page.locator('.dw-hint').getByText(/centre.*detail B/i).waitFor();
+  await clickAt('top', 48, 16);
+  await f.page.locator('.dw-hint').getByText(/how far the detail/).waitFor();
+  await clickAt('top', 57, 16);
+  await f.changed(empty);
+  const repaired = await f.doc();
+  const detail = repaired.drawing.details.find(d => d.id === 'B');
+  assert.deepEqual(detail.center, [48, 16]);
+  assert.ok(Math.abs(detail.radius - 9) < 0.15, JSON.stringify(detail));
+  assert.deepEqual(repaired.drawing.dimensions, empty.drawing.dimensions);
+  assert.deepEqual(repaired.drawing.frames, empty.drawing.frames);
+  assert.deepEqual(repaired.nodes, empty.nodes);
+  await checkDimension('b-diameter', 'detail:B', 12);
+  await emptyIssue.waitFor({ state: 'hidden' });
+  await f.snapshot('issue-move-repaired-detail');
+  await f.undo();
+  await f.same(empty);
+  await emptyIssue.waitFor();
+  await f.redo();
+  await f.same(repaired);
+  await checkDimension('b-diameter', 'detail:B', 12);
+  await f.snapshot('issue-move-redo');
+}
+
 await f.run(async () => {
+  if (issueMove) { await checkIssueMove(); return; }
   f.phase = 'open original Detail B';
   await open(files.get('bound-detail'));
   const original = await f.doc();

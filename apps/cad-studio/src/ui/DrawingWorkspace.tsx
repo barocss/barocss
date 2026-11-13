@@ -39,7 +39,7 @@ import { writeDxf, type DxfVersion } from '@barocss/cad';
 
 import { VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { DETAIL_PARENTS, type DetailParent } from '@barocss/cad-model/drawing/detail';
+import { DETAIL_PARENTS, type DetailParent, type DrawingDetail } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
 import { BreaksList } from './drawing/BreaksList';
 import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
@@ -86,7 +86,8 @@ type Pending =
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
   | { kind: 'note'; leader: { view: ViewId; at: XY } }
   /** DR-1: a detail's circle, its centre picked on its parent. */
-  | { kind: 'detail'; view: DetailParent; center: XY };
+  | { kind: 'detail-center'; view: DetailParent; detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc }
+  | { kind: 'detail'; view: DetailParent; center: XY; moving?: { detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc } };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
@@ -175,7 +176,23 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
-  const fixIssue = (x: DrawingIssue) => { if (scope.kind === 'assembly' && x.fix?.kind === 'auto-dimension') return; if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, locationOwner, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
+  const fixIssue = (issue: DrawingIssue) => {
+    const fix = issue.fix;
+    if (!views || !layout || !sheet || !fix || (scope.kind === 'assembly' && fix.kind === 'auto-dimension')) return;
+    if (issue.code === 'DETAIL_EMPTY' && fix.kind === 'remove-detail') {
+      const detail = settings.details?.find(d => d.id === fix.detail);
+      const parent = detail && placementOf(layout, sheet, detail.view);
+      if (busy || !detail || !parent || parent.hidden) {
+        setMessage('Show the current parent view before moving the detail.');
+        return;
+      }
+      cancel();
+      setTool('detail');
+      setPending({ kind: 'detail-center', view: detail.view, detail, owner: wholeSettings, model: currentModel.current });
+      return;
+    }
+    onChange(applyFix({ views, layout, settings, sheet, callout, locationOwner, elements, ...(cuts.length ? { sections: cuts } : {}) }, fix));
+  };
   // (O175: Fix all runs the chat's rounds, fixRound: a round that adds a section waits for the worker to cut it, and the
   // next round runs on the sheet with its view — one Fix, as the chat's fix_drawing, not a second click. The rounds stop
   // when the settings change from elsewhere. Each round is its own undo step.)
@@ -282,7 +299,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   /** Placing a dimension (its points picked): where it goes, read in its own view wherever the pointer is on the sheet —
    *  beyond the views' reach too (hoverAt finds a view only within 30 mm), so a click out on the paper places it. */
   const placingAt = (clientX: number, clientY: number): Hover | null => {
-    if (!pending || pending.kind === 'note' || ((pending.kind === 'linear' || pending.kind === 'angle') && !pending.b)) return null;
+    if (!pending || pending.kind === 'note' || pending.kind === 'detail-center' || ((pending.kind === 'linear' || pending.kind === 'angle') && !pending.b)) return null;
     const q = sheetPoint(clientX, clientY), v = q && placementAt(pending.view);
     return q && v ? { q, view: pending.view, at: fromSheet(v, q), snap: null, edge: null } : null;
   };
@@ -453,18 +470,38 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
   /** DR-1: the detail tool — its centre on a view or a section, then a point its circle reaches; the next free letter, its scale and place automatic. */
   const pickDetail = (h: Hover) => {
+    const moving = pending?.kind === 'detail-center' ? pending : pending?.kind === 'detail' ? pending.moving : undefined;
+    if (moving && (busy || moving.owner !== wholeSettings || moving.model !== currentModel.current)) {
+      cancel();
+      setMessage('The drawing changed. Select Move again.');
+      return;
+    }
     if (pending?.kind === 'detail') {
-      const into = placementAt(pending.view), at = into ? fromSheet(into, h.q) : h.at, radius = Math.round(Math.hypot(at[0] - pending.center[0], at[1] - pending.center[1]) * 100) / 100;
+      const into = placementAt(pending.view);
+      if (!into || into.hidden) return;
+      const at = fromSheet(into, h.q), radius = Math.round(Math.hypot(at[0] - pending.center[0], at[1] - pending.center[1]) * 100) / 100;
       if (!(radius > 0)) { setMessage('Click away from the centre: that is how far the circle reaches.'); return; }
+      if (moving) {
+        const detail = { ...moving.detail, center: pending.center, radius };
+        if (commitWhole({ ...wholeSettings, details: wholeSettings.details?.map(d => d.id === detail.id ? detail : d) })) {
+          setPending(null);
+          setTool('select');
+        }
+        return;
+      }
       // (A stays the front section's, by its checkbox, as added sections leave it.)
       const used = [...(wholeSettings.details ?? []).map(d => d.id), ...reservedDetailLetters(wholeSettings)];
       const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionsOf(wholeSettings)], used);
       onChange({ ...settings, details: [...(settings.details ?? []), { id, view: pending.view, center: pending.center, radius }] });
       setPending(null); return;
     }
+    if (moving && h.view !== moving.detail.view) {
+      setMessage(`Select the centre of Detail ${moving.detail.id} on the ${viewLabel(moving.detail.view)}.`);
+      return;
+    }
     if (!(DETAIL_PARENTS as readonly string[]).includes(h.view) && !isSectionRef(h.view)) { setMessage('A detail enlarges part of the front, top or right view, or of a section.'); return; }
     const c = h.snap?.at ?? h.at;
-    setPending({ kind: 'detail', view: h.view as DetailParent, center: [Math.round(c[0] * 100) / 100, Math.round(c[1] * 100) / 100] });
+    setPending({ kind: 'detail', view: h.view as DetailParent, center: [Math.round(c[0] * 100) / 100, Math.round(c[1] * 100) / 100], ...(moving ? { moving } : {}) });
   };
 
   const removeDetail = (id: string) => {
@@ -768,8 +805,10 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       parts.push(`<g class="dw-preview"><line x1="${t[0]}" y1="${t[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g><circle class="dw-pick" cx="${t[0]}" cy="${t[1]}" r="0.9"/>`);
       return parts.join('');
     }
+    if (pending?.kind === 'detail-center') return '';
     if (pending?.kind === 'detail') {
-      const c = toSheet(P(pending.view), pending.center), r = hover ? Math.hypot(hover.q[0] - c[0], hover.q[1] - c[1]) : 0;
+      const placement = P(pending.view); if (!placement || placement.hidden) return '';
+      const c = toSheet(placement, pending.center), r = hover ? Math.hypot(hover.q[0] - c[0], hover.q[1] - c[1]) : 0;
       parts.push(`<circle class="dw-pick" cx="${c[0]}" cy="${c[1]}" r="0.9"/>`);
       if (r > 0) parts.push(`<g class="dw-preview"><circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="none" stroke-width="0.25"/></g>`);
       return parts.join('');
@@ -837,7 +876,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
   const changeFrame = (next: DrawingSettings) => {
     if (!selectedFrame && selDim && wholeSettings.dimensions.filter(dim => dim.id === selDim.id).length !== 1) {
