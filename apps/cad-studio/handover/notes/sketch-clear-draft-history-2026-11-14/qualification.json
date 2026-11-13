@@ -1,0 +1,41 @@
+{
+  "decision": "D1066",
+  "tier": "SMALL",
+  "parent": "8033b40e5b3cbcfc4dcd2e0675e5821414625972",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1066-clear-<run>",
+    "D1066_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-clear-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-clear-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 379,
+      "receiptSHA256": "287c355aea98429204404e7e5ba8cc85ea6963cc84f80e4493cd17cc0a6cf3e3",
+      "sourceManifestSHA256": "0f1abdb75aa66127806e269bc8ebb994719ef527574975f779b8ca392857d774",
+      "firstFailure": "Cmd+Z leaves both erased shapes absent."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 379,
+      "receiptSHA256": "2599946aa61a744a4ad5fb8b51d0fa9e080babb2f6cd3d27b730302f1fe1ae66",
+      "sourceManifestSHA256": "9796fd62028119ae468d5eacb815ccedae3e897940a49cc31f19b301d89258a7"
+    }
+  },
+  "initialVolumeMm3": 1800,
+  "replacementVolumeMm3": 600,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "restoredShapes": 2,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -1,7 +1,7 @@
 import { useId, useState, type Dispatch, type SetStateAction, type DragEvent, type MouseEvent, type PointerEvent } from 'react';
 import type { Command, Ctx } from '@barocss/cad-model/app/commands';
 import type { SketchState } from '../viewport/Viewport';
-import { TOOLS, switchTool, detachSketchLink } from '../app/sketchControls';
+import { TOOLS, switchTool } from '../app/sketchControls';
 import { TOOL_GROUPS, GROUP_COMMANDS, PLACE_COMMANDS } from '../app/studioConstants';
 import { contextualModelCommand, primaryModelCommands } from '../app/modelRail';
 import { CommandButtons, ToolButton, commandStates } from './ToolButton';
@@ -11,6 +11,7 @@ import { Icon } from './atoms';
 interface ModelToolsProps {
   sketch: SketchState | null;
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
+  clearSketchProfile(): void;
   sketchWorkspace: {
     request(event: MouseEvent<HTMLButtonElement>): void;
     rememberFocus(event: PointerEvent<HTMLButtonElement>): void;
@@ -83,7 +84,7 @@ function ModelCommandRail({ command, panels, sketchWorkspace }: Pick<ModelToolsP
   </div>;
 }
 
-export function ModelTools({ sketch, setSketch, command, panels, sketchWorkspace }: ModelToolsProps) {
+export function ModelTools({ sketch, setSketch, clearSketchProfile, command, panels, sketchWorkspace }: ModelToolsProps) {
   if (!sketch) return <ModelCommandRail command={command} panels={panels} sketchWorkspace={sketchWorkspace} />;
   return <>
     {TOOLS.map(t => (
@@ -94,6 +95,6 @@ export function ModelTools({ sketch, setSketch, command, panels, sketchWorkspace
       onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></ToolIconButton>
     {(sketch.done ?? []).some(d => d.construction) && <ToolIconButton state={sketch.hideConstruction ? 'on' : 'idle'} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
       onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></ToolIconButton>}
-    <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
+    <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={clearSketchProfile}><Icon name="ink_eraser" /></ToolIconButton>
   </>;
 }

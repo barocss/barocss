@@ -122,13 +122,17 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const done = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : []), r.shape];
     commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, picked: [], editDim: null });
   };
-  const commitCutDraft = (before: SketchState, shapes: SketchShape[]) => {
+  const replaceDraftShapes = (before: SketchState, shapes: SketchShape[]) => {
     commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null });
+  };
+  const clearSketchProfile = () => {
+    if (!sketch || !ownsSketch() || (!sketch.shape && !sketch.done?.length)) return;
+    replaceDraftShapes(sketch, []);
   };
   const dragTrim = (source: DragTrimOwner, plan: DragTrimPlan) => {
     if (source.sketch !== sketch || source.doc !== doc || source.scope !== acceptanceScope || !ownsSketch()) return;
     if ('error' in plan) { setToast({ title: 'Could not trim the stroke', hint: plan.error, detail: '' }); return; }
-    if (plan.intervals.length) commitCutDraft(source.sketch, plan.shapes);
+    if (plan.intervals.length) replaceDraftShapes(source.sketch, plan.shapes);
   };
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
@@ -137,7 +141,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    commitCutDraft(sketch, r.shapes);
+    replaceDraftShapes(sketch, r.shapes);
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
   const makeSketchBand = (offset: number, width?: number) => {
@@ -285,5 +289,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
 }

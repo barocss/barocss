@@ -1726,7 +1726,7 @@ export function App() {
     },
   }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, updateShape);
   const finishSketch = () => {
     if (circleChord.input.read(sketch)) return;
@@ -3216,7 +3216,7 @@ export function App() {
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className={'card toolbar' + (sketch ? '' : ' model-toolbar')} aria-label="Tools" hidden={rendering || drawing}>
-        <ModelTools sketch={sketch} setSketch={setSketch} sketchWorkspace={{ request: requestSketchWorkspace, rememberFocus: workspaceModeExit.rememberFocus }}
+        <ModelTools sketch={sketch} setSketch={setSketch} clearSketchProfile={clearSketchProfile} sketchWorkspace={{ request: requestSketchWorkspace, rememberFocus: workspaceModeExit.rememberFocus }}
           command={{ ctx, current: fresh && !busy && !variants.showing && !instanceSel.length, activeId: active && filletType(active.cmd.id) ? 'fillet' : active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
           panels={{ bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen }} />
       </nav></Profiler>
