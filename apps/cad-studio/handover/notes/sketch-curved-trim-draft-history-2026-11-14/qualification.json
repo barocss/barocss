@@ -1,0 +1,43 @@
+{
+  "decision": "D1071",
+  "tier": "SMALL",
+  "parent": "b69b2b3b411adc8202300e6a6b7635eb54c7b455",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1071-curved-trim-<run>",
+    "D1071_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-curved-trim-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-curved-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "800f3fe012fda62bd75a5c43d7b469302c75ddbed11a94c57e72d3609bcdd9ce",
+      "sourceManifestSHA256": "d5ffe79fcf07980dfe59e437e57148b4bb4c0ca7d154fe015ad58da4106c6993",
+      "firstFailure": "After Trim to Select, Cmd+Z leaves the construction guide absent."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "4ceeaa1030c767acc7d8cb8a255c3cfe406d24a1649b27529cb3797021681c93",
+      "sourceManifestSHA256": "bfe93df8e99c9e7987d67e2d6c843f1c9af28e3b8cea7e3c7b566814e0f74ac4"
+    }
+  },
+  "guideLengthMm": 10,
+  "arcRadiusMm": 7.0710678118654755,
+  "arcSweepDegrees": 90,
+  "extrudeMm": 6,
+  "volumeMm3": 1285.6194490192345,
+  "absoluteVolumeToleranceMm3": 1e-07,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

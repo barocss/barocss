@@ -117,14 +117,15 @@ test('outline Undo and Redo replace only the parked main polygon while Trim is a
   assert.deepEqual(restoreDraftHistory(restored, redo).done, [guide, after]);
 });
 
-test('Trim replay refuses changed coefficients, constraints, IDs or nonmain shape order', () => {
-  const doc = emptyDoc(), plane = xyPlane(), main = outline(40), first = trim(20), second = trim(30);
+test('Trim replay refuses changed points, bulges, constraints, IDs or nonmain shape order', () => {
+  const doc = emptyDoc(), plane = xyPlane(), main = { ...outline(40), bulges: [0, 0.25, 0, 0] }, first = trim(20), second = trim(30);
   assert.equal(main.kind, 'polygon');
   const before: SketchState = { tool: 'trim', plane, editNode: 0, mainIds: main.ids, shape: null, done: [main, first, second, trim(10)] };
   const after: SketchState = { ...before, done: [main, first, second] };
   const selecting: SketchState = { ...after, tool: 'select', shape: main, done: [first, second] };
   const replacements: SketchState[] = [
     { ...selecting, shape: { ...main, points: main.points.map(point => [...point]) } },
+    { ...selecting, shape: { ...main, bulges: [0, 0.5, 0, 0] } },
     { ...selecting, shape: { ...main, lengths: { 0: 40 } } },
     { ...selecting, shape: { ...main, ids: ['e0', ...main.ids!.slice(1)] } },
     { ...selecting, done: [second, first] },

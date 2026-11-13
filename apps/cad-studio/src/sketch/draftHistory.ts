@@ -20,12 +20,12 @@ export function draftHistoryState(doc: StudioDoc, sketch: SketchState, shape = s
     mainIds: sketch.mainIds, tool: sketch.tool, band: sketch.band, bandPicks: sketch.bandPicks, association: sketch.association, associationDetached: sketch.associationDetached };
 }
 
-function orderedStraightDraft(step: Omit<DraftStep, 'kind' | 'doc'>): SketchShape[] | null {
+function orderedMainDraft(step: Omit<DraftStep, 'kind' | 'doc'>): SketchShape[] | null {
   const ids = step.mainIds;
   if (step.editNode === undefined || !ids?.length
     || (step.tool !== 'trim' && step.tool !== 'select' && step.tool !== 'dimension')) return null;
   const ordered = reopenedOrder(step.shape, step.done ?? [], ids), main = ordered[0];
-  if (!isSettled(main) || main.construction || main.bulges?.some(Boolean) || main.spline || main.ellipse || main.circles?.length
+  if (!isSettled(main) || main.construction || main.spline || main.ellipse || main.circles?.length
     || main.ids?.length !== ids.length || !ids.every((id, i) => main.ids?.[i] === id)) return null;
   return ordered;
 }
@@ -43,7 +43,7 @@ function sameMainOutline(a: SketchShape, b: SketchShape): boolean {
 function matches(expected: SketchStep, current: SketchStep): boolean {
   if (expected.kind === 'outline') {
     if (expected.shape === current.shape) return true;
-    const main = current.kind === 'draft' ? orderedStraightDraft(current)?.[0] : undefined;
+    const main = current.kind === 'draft' ? orderedMainDraft(current)?.[0] : undefined;
     return !!main && sameMainOutline(expected.shape, main);
   }
   if (current.kind !== 'draft' || expected.doc !== current.doc || expected.plane !== current.plane
@@ -52,7 +52,7 @@ function matches(expected: SketchStep, current: SketchStep): boolean {
     || expected.band !== current.band
     || expected.association !== current.association || expected.associationDetached !== current.associationDetached) return false;
   if (expected.shape === current.shape && expected.done === current.done) return true;
-  const a = orderedStraightDraft(expected), b = orderedStraightDraft(current);
+  const a = orderedMainDraft(expected), b = orderedMainDraft(current);
   return !!a && !!b && a.length === b.length && sameMainOutline(a[0], b[0])
     && a.slice(1).every((shape, i) => shape === b[i + 1]);
 }
@@ -106,13 +106,13 @@ export function restoreDraftHistory(sketch: SketchState, step: SketchStep): Sket
   if (step.kind === 'outline') {
     const restored = { ...detachSketchLink(sketch), shape: step.shape, picked: [], editDim: null };
     if (sketch.tool !== 'trim' || sketch.shape) return restored;
-    const main = orderedStraightDraft(sketch)?.[0];
+    const main = orderedMainDraft(sketch)?.[0];
     return main ? { ...restored, shape: null, done: sketch.done?.map(shape => shape === main ? step.shape : shape) } : restored;
   }
   const restored = { ...sketch, shape: step.shape, done: step.done, plane: step.plane, anchor: step.anchor, base: step.base, band: step.band,
     bandPicks: sketch.tool === 'band' ? step.bandPicks : undefined, association: step.association,
     associationDetached: step.associationDetached, picked: [], editDim: null };
   if (step.tool === sketch.tool || (sketch.tool !== 'select' && sketch.tool !== 'dimension')) return restored;
-  const ordered = orderedStraightDraft(step);
+  const ordered = orderedMainDraft(step);
   return ordered ? { ...restored, shape: ordered[0], done: ordered.slice(1) } : restored;
 }
