@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
+import { cylinderPart, emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { verifyDocumentFile, verifyStoredNativeOpen, verifyStoredStepCavities } from '../src/files/documentFile';
 import { referenceOpenFixtures } from './reference-open-fixture';
@@ -106,4 +106,20 @@ test('native Open checks stored inset bindings without replacing or rewriting th
     return { error: 'late refusal' };
   }, () => current);
   assert.equal(verifyStoredNativeOpen(linked, unexpected, unexpected, () => false), undefined);
+});
+
+test('native Open refuses a missing live fit row, admits a covering row, and retires a late refusal', async () => {
+  const model = cylinderPart(6, 24);
+  const faces = [{ face: model.nodes[1].id + '.side0', class: 'g6' }];
+  const table = { id: 'shop-fits', rows: [{ class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true as const }] };
+  const doc = { ...model, fits: { version: 1 as const, tables: [], faces } };
+  const insets = async () => assert.fail('this model has no inset');
+  const before = structuredClone(doc);
+  const check = verifyStoredNativeOpen(doc, evaluate, insets, () => true);
+  assert.ok(check);
+  await assert.rejects(check, /FIT_TABLE_MISS.*g6.*12 mm.*unchanged/);
+  await verifyStoredNativeOpen({ ...doc, fits: { ...doc.fits, tables: [table] } }, evaluate, insets, () => true);
+  let current = true;
+  await verifyStoredNativeOpen(doc, async next => { current = false; return evaluate(next); }, insets, () => current);
+  assert.deepEqual(doc, before);
 });

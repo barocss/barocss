@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed'].includes(mode));
+const openMode = mode.startsWith('--open-');
 const table = { id: 'shop-fits', rows: [{ class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] };
 const fixture = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
@@ -16,15 +17,19 @@ const fixture = {
 const files = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/ui/FitTables.tsx',
+  'apps/cad-studio/src/files/documentFile.ts',
+  'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
   'apps/cad-studio/src/ui/LibraryPanel.tsx',
   'packages/barocss-cad-model/src/engine/fits.ts',
   'apps/cad-studio/test/fit-table-removal-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'fit-table-removal', output, envFrozen: 'D989_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
-  qualification: 'Refuse removal of the last row that supplies a current model fit.',
+  name: openMode ? 'fit-table-open' : 'fit-table-removal', output, envFrozen: openMode ? 'D990_SOURCE_FROZEN' : 'D989_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
+  qualification: openMode ? 'Refuse a native file missing a current fit row before changing the accepted document.'
+    : 'Refuse removal of the last row that supplies a current model fit.',
   snapshotExtra: () => ({
     fresh: window.__studioFresh,
+    fileName: document.querySelector('.doc-tab input')?.value,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
   }),
 });
@@ -34,6 +39,49 @@ const remove = id => fitTables().getByRole('button', { name: 'Remove fit table '
 const history = () => Promise.all(['Undo', 'Redo'].map(name => button(name).isEnabled()));
 const put = (name, value) => ({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)) });
 const error = () => f.page.getByRole('alert').filter({ hasText: 'A fit class has no row in your fit tables' });
+
+const openFile = async (name, doc) => {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles(put(name + '.bcad', doc));
+};
+const openWithoutFit = async (label, withBody) => {
+  const invalid = { ...fixture, fits: { ...fixture.fits, tables: [] } };
+  f.phase = 'refuse a missing-fit file in ' + label;
+  if (withBody) {
+    await f.page.locator('.outliner .ol-row button.ol').click();
+    await f.page.waitForFunction(() => window.__studioSelection?.selection?.bodies?.[0] === 0);
+  }
+  const before = await f.snapshot(label + '-before');
+  assert.equal(before.bodies.bodies.length, withBody ? 1 : 0);
+  const historyBefore = await history();
+  await openFile('invalid-fit', invalid);
+  if (mode === '--open-baseline') {
+    await error().waitFor();
+    const failed = await f.snapshot('open-installed-invalid-fit');
+    assert.equal(failed.fileName, 'invalid-fit');
+    assert.deepEqual(failed.doc.fits.tables, []);
+    assert.equal(failed.fresh, false);
+    assert.deepEqual(failed.bodies.bodies, before.bodies.bodies);
+    assert.fail('Native Open installed the invalid file name and document over the previous body');
+  }
+  const refused = f.page.getByRole('alert').filter({ hasText: 'Could not open this file' });
+  await refused.waitFor();
+  assert.match(await refused.textContent(), /g6.*12 mm.*unchanged/i);
+  const after = await f.snapshot(label + '-refused');
+  for (const field of ['doc', 'bodies', 'selection', 'history', 'fresh', 'fileName', 'dirty']) {
+    assert.deepEqual(after[field], before[field], field);
+  }
+  assert.deepEqual(await history(), historyBefore);
+
+  f.phase = 'open the corrected file with the covering table restored';
+  await openFile('recovered-fit', fixture);
+  await f.page.waitForFunction(() => document.querySelector('.doc-tab input')?.value === 'recovered-fit');
+  await f.ready();
+  const repaired = await f.snapshot(label + '-recovered');
+  assert.deepEqual(repaired.doc, fixture);
+  assert.equal(repaired.bodies.bodies.length, 1);
+  assert.ok(Math.abs(repaired.bodies.bodies[0].volume - Math.PI * 36 * 24) < 1e-7);
+};
 
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
@@ -48,8 +96,17 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles(put('fit-custody.bcad', fixture));
+  if (openMode) {
+    await openWithoutFit('selected-model', true);
+    await f.newPage();
+    await button('New part').click();
+    await f.page.waitForFunction(() => window.__studioDoc?.nodes?.length === 0);
+    await f.ready();
+    await openWithoutFit('fresh-empty-part', false);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
+  await openFile('fit-custody', fixture);
   await f.page.waitForFunction(() => window.__studioDoc?.fits?.tables?.[0]?.id === 'shop-fits');
   await f.ready();
   const accepted = await f.doc();

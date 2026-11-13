@@ -1,0 +1,45 @@
+{
+  "decision": "D990",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "71e4178540288fe11247e17b33908453627c272a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D990-open-missing-fit",
+    "D990_SOURCE_FROZEN=1 node apps/cad-studio/test/fit-table-removal-browser.mjs <external-evidence>/baseline --open-baseline",
+    "D990_SOURCE_FROZEN=1 node apps/cad-studio/test/fit-table-removal-browser.mjs <external-evidence>/studio01 --open-fixed",
+    "pnpm --filter @barocss/cad-studio-app test document-file",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/fit-table-removal-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "ba54758047d5eabeac0dc5aba7eba7d4ee2d5e0bdc3c59cab488dd663325f5ec"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f0e982869d65e76e38448eb0d9450368c1a03a900e4b926e04547ad04ebe308d",
+    "sourceManifestSHA256": "d2335ba8629c1e795de30d1b9048a3d05064bd823964dcb1c862801a4f51e243",
+    "frozenFiles": 372,
+    "contexts": 2,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "volumeToleranceMM3": 1e-7
+  },
+  "focused": { "pass": 13, "fail": 0, "typeCheck": "PASS" },
+  "notRun": [
+    "project Open and Save",
+    "nested fits",
+    "stale face consumers after another evaluation failure",
+    "Drawing PDF",
+    "dependent Fillet suppression",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

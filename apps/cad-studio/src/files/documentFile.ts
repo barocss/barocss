@@ -1,6 +1,6 @@
 // Serialized document transport and reference reads. The App owns adoption, history and operation scopes.
 // Callers must recheck their owner after awaiting these helpers, immediately before any adoption or UI write.
-import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, prefixDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { verifyReferences } from '@barocss/cad-model/engine/references';
@@ -71,13 +71,26 @@ export function verifyStoredStepCavities(opened: StudioDoc, readPart: (doc: Stud
 export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
   readInsets: (doc: StudioDoc) => Promise<StoredInsetReply>, current: () => boolean): Promise<void> | undefined {
   if (!current()) return;
+  const checkFits = () => {
+    if (!current() || !opened.fits?.faces?.length) return;
+    // Use the same full-history input as the Model view. Leave unrelated refusals to reference review.
+    return readPart(prefixDoc(opened, opened.nodes.length)).then(result => {
+      if (current() && !result.ok && result.error.code === 'FIT_TABLE_MISS') {
+        throw new Error(`${result.error.detail} ${result.error.hint} Your part is unchanged.`);
+      }
+    });
+  };
+  const checkSources = () => {
+    const cavities = verifyStoredStepCavities(opened, readPart, current);
+    return cavities ? cavities.then(checkFits) : checkFits();
+  };
   const hasInsets = opened.nodes.some(node => node.kind === 'rounded-rectangle-inset' ||
     (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined));
-  if (!hasInsets) return verifyStoredStepCavities(opened, readPart, current);
+  if (!hasInsets) return checkSources();
   return readInsets(opened).then(result => {
     if (!current()) return;
     if ('error' in result) throw new Error(result.error + ' Your part is unchanged.');
-    return verifyStoredStepCavities(opened, readPart, current);
+    return checkSources();
   });
 }
 

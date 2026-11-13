@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D990 — refuse a native Open with a missing fit row](notes/native-open-missing-fit-2026-11-13/README.md).
 - [D989 — reject a fit table edit that invalidates the model](notes/fit-table-removal-2026-11-13/README.md).
 - [D988 — qualify Delete for overlapping Drawing annotations](notes/drawing-overlap-delete-ownership-2026-11-13/README.md).
 - [D987 — cancel a Drawing Note edit with Escape](notes/drawing-note-edit-escape-2026-11-13/README.md).
