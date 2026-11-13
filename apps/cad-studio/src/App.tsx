@@ -494,7 +494,10 @@ export function App() {
       && (prev.a[0] !== r.shape.a[0] || prev.a[1] !== r.shape.a[1] || prev.b[0] !== r.shape.b[0] || prev.b[1] !== r.shape.b[1]);
     const changedCircle = fromPanel && prev?.kind === 'circle' && r.shape?.kind === 'circle'
       && (prev.r !== r.shape.r || prev.c[0] !== r.shape.c[0] || prev.c[1] !== r.shape.c[1]);
-    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle) && prev && r.shape) {
+    const bezier = r.shape?.kind === 'bezier' ? r.shape : null;
+    const changedBezier = fromPanel && prev?.kind === 'bezier' && bezier && prev.poles.length === bezier.poles.length
+      && prev.poles.some(([x, y], i) => x !== bezier.poles[i][0] || y !== bezier.poles[i][1]);
+    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedBezier) && prev && r.shape) {
       sketchHistory.push(outlineHistoryState(prev), outlineHistoryState(r.shape));
     }
     setSketchError(r.error);

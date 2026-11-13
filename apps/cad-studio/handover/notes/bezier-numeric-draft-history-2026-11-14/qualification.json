@@ -1,0 +1,65 @@
+{
+  "decision": "D1061",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "6a2e49a24585c83c3f50ffced4f51a4af6c2fccd",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1061-bezier-<run>",
+    "D1061_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-bezier-draft-history-browser.mjs <external-evidence>/<run>",
+    "D1060_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs <external-evidence>/circle --circle",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history sketch-bezier-studio",
+    "node --check apps/cad-studio/test/sketch-bezier-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "a6edf72a57e2e2678d5b828cc3a2c620477b1cf80c362fa28af296645ccaaf7d",
+      "sourceManifestSHA256": "8aa3cb17210a6e04a8fed5ecb30055fdcf952adfa1cff163a9b0ed65d72871f5"
+    },
+    "fixedFirst": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "56f9841a17e9e372a6f7adfc89986e032f69daf29593d6b8dd71f9e47ea0f757",
+      "sourceManifestSHA256": "65f06cf48e2b91f69adb0fa5f5097f3069ab249ce064769c32af6de7be32ea61"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "6f24871f6ae70861833be35862b9a6340a84a108c61b2f9ba5ff308ad75eee8a",
+      "sourceManifestSHA256": "6dcc4ec739033c019bedf2942765f3c47af5f166df4798c866f8970ceb74f3a6"
+    },
+    "circle": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "4960ee727a5d0b5581b5cdf397115c624fc40a1a4c1ef094f00107a0630c52f6",
+      "sourceManifestSHA256": "eece019876f0df5f9ebfbea52c5fc3b7f9061aa95f6d9967074241b2cf309de3"
+    }
+  },
+  "numeric": {
+    "controlPointYMm": [
+      42,
+      34,
+      38
+    ],
+    "curveMidpointYMm": [
+      34,
+      31,
+      32.5
+    ],
+    "maxProjectionErrorCSS": 0.05
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
