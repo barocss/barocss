@@ -1,0 +1,121 @@
+{
+  "decision": "D1110",
+  "tier": "FEATURE",
+  "parent": "bf256f208fd27451d89fea8a4d4211c4f5ea9a9a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1110-circle-end-radius-<run>",
+    "D1110_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --circle-end-radius",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts apps/cad-studio/src/viewport/sketchOverlay.tsx apps/cad-studio/src/ui/SketchPanel.tsx",
+    "D864_DPR2=1 D1110_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --circle-end-radius",
+    "D1108_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/anchor-control --anchor-tools",
+    "D878_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/chord-control",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/settings-final",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "f821a61e70857a44eb9ad3c2b874294d6ced8fabac8c4d43cd1639ff2621eafd",
+      "sourceManifestSHA256": "5b39e40a574c2d3763ba9135d78d7e134ddd5a0e8cff1b037242a4f73cb8a91c",
+      "savedFiles": [],
+      "firstFailure": "With Grid off, the End cue appeared at (4.2346, 6.3457) mm, but the preview showed diameter 16 mm."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "85bac5f79026f3d5f06937eabfdd634b3a5ae400ebf88894eeaa677c9d0c439a",
+      "sourceManifestSHA256": "69d25ae20083e0ca5d21123032261cf9b1c8bc0fde8ff3e000958d86f3ecd758",
+      "savedFiles": [
+        {
+          "bytes": 964,
+          "sha256": "407cb3e2dbe965ff4a9c281fae3c0ea383a1c4f08ddac2478cd47243510bd79b"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "45912a339e79bf12e7426fd9956cddccc69096554fd6a64ed057cdd9b90df455",
+      "sourceManifestSHA256": "69d25ae20083e0ca5d21123032261cf9b1c8bc0fde8ff3e000958d86f3ecd758",
+      "savedFiles": [
+        {
+          "bytes": 964,
+          "sha256": "407cb3e2dbe965ff4a9c281fae3c0ea383a1c4f08ddac2478cd47243510bd79b"
+        }
+      ]
+    },
+    "anchorControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "83c54f588d58998a3ebc159fa07dc775b3e8d1542c0706e274b72ecf106609d1",
+      "sourceManifestSHA256": "69d25ae20083e0ca5d21123032261cf9b1c8bc0fde8ff3e000958d86f3ecd758",
+      "savedFiles": [
+        {
+          "bytes": 1536,
+          "sha256": "18549c4024e7c2fd8d40d1a93a48f2cc6b5e249916c5554e565c40fba6ebedd4"
+        },
+        {
+          "bytes": 1555,
+          "sha256": "5db3c7a0c6cfe21f0882f0c3b5def8d1bce787bf87599f175730b8bd7f3df916"
+        },
+        {
+          "bytes": 993,
+          "sha256": "39239096b1004149c555b791c3abe2ccc8e1536edfab0c1dd105ec8236658b2d"
+        }
+      ]
+    },
+    "chordControl": {
+      "status": "PASS",
+      "states": 19,
+      "frozenFiles": 860,
+      "receiptSHA256": "26db521306774dc721bb8c3b4ac75969a139c3e9ba6124598a13ead6c7ccede9",
+      "sourceManifestSHA256": "fd9de568e5fe5ab1a3b5d9a2d38a8779dbfe4f67d10b15e9f4f98b58f04cdb23",
+      "savedFiles": []
+    },
+    "settingsControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 381,
+      "receiptSHA256": "672fce84fbcd02bbe518aa5e8fbb22bbcb95afc23ce9e927c36d7ceed9b477de",
+      "sourceManifestSHA256": "92be886b3dad4489e55cc74d033d76d1b909e96cd59a0093086c8c65a202705e",
+      "savedFiles": []
+    }
+  },
+  "snapPointMM": [
+    4.2346,
+    6.3457
+  ],
+  "radiusMM": 7.6288757789074015,
+  "displayDiameterMM": 15.2578,
+  "extrudeDepthMM": 2,
+  "expectedVolumeMM3": 365.6797867496691,
+  "measuredVolumeMM3": 365.67978674966923,
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "review": {
+    "model": "GPT-6.1 Sol High",
+    "status": "PASS"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

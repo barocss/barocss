@@ -250,7 +250,7 @@ function statusOf(s: SketchShape | null, solved: SolveResult | null, tool?: stri
 function inferred(s: SketchShape) {
   if (s.kind === 'bezier') return [];
   if (s.kind === 'rectangle') return [{ label: 'Horizontal', detail: '2 edges' }, { label: 'Vertical', detail: '2 edges' }, { label: 'Perpendicular', detail: '4 corners' }];
-  if (s.kind === 'circle') return [{ label: 'Diameter', detail: 'Ø' + s.r * 2 }];
+  if (s.kind === 'circle') return [{ label: 'Diameter', detail: 'Ø' + round(s.r * 2) }];
   if (s.kind === 'slot') return [{ label: 'Tangent', detail: '4 joints' }, { label: 'Equal radius', detail: 'both ends' }];
   const out: { label: string; detail: string }[] = [];
   const straightEdges = s.points.map((_, i) => !(s.bulges?.[i] ?? 0));

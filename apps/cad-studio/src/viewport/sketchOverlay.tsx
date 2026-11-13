@@ -115,7 +115,8 @@ export function drawSketchOverlay({
   const referenceAnchors = new Map<string, [number, number]>();
   const labelBox = (x: number, y: number): ScreenBox => ({ x: x - 26, y: y - 11, width: 52, height: 22 });
   const label = (x: number, y: number, text: string, key: string, openInline = false) => {
-    const box = labelBox(x, y);
+    const width = key === 'diameter' ? Math.max(52, text.length * 8 + 8) : 52;
+    const box = { ...labelBox(x, y), x: x - width / 2, width };
     if (!key.startsWith('live')) outlineLabels.push(box);
     return <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => {
       if (key.startsWith('live')) return;
@@ -193,7 +194,7 @@ export function drawSketchOverlay({
     const e = P(s.c[0] + s.r, s.c[1]);
     const at: [number, number] = [(cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16];
     items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />,
-      label(...at, 'Ø' + s.r * 2, 'diameter', sk.tool === 'dimension'));
+      label(...at, 'Ø' + Math.round(s.r * 2e4) / 1e4, 'diameter', sk.tool === 'dimension'));
     if (sk.tool === 'dimension' && sk.shape === s && sk.editDim === 'diameter') {
       editor = <InlineSketchDimension key="diameter" at={at} label="Diameter of circle 1" value={2 * s.r} driving arc={false}
         onConfirm={value => dimensions.onDimCommit?.('diameter', value, s)} onClose={() => dimensions.onDimEdit?.(null)} />;

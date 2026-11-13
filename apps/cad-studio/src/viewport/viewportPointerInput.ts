@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState, type DragEvent, type MouseEvent, type PointerEvent, type RefObject, type WheelEvent } from 'react';
+import { CadPartLimits, ExtrudedProfileLimits } from '@barocss/cad';
 import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -202,9 +203,13 @@ export const cutting = (sk: SketchState | null) => sk?.tool === 'trim' || sk?.to
 /** Band tool: a click picks a whole closed shape (no snapping). */
 export const banding = (sk: SketchState | null) => sk?.tool === 'band';
 
-function circleRadiusAt(centre: readonly number[], point: readonly number[]): number {
-  return Math.max(1, Math.round(Math.hypot(point[0] - centre[0], point[1] - centre[1])));
+function circleRadiusAt(centre: readonly number[], point: readonly number[], snapped: boolean): number {
+  const radius = Math.hypot(point[0] - centre[0], point[1] - centre[1]);
+  return snapped ? radius : Math.max(1, Math.round(radius));
 }
+
+const authoredSnapPoint = ([x, y]: [number, number]): [number, number] =>
+  [Math.round(x * 1e4) / 1e4, Math.round(y * 1e4) / 1e4];
 
 function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonly number[]): number {
   const x = b[0] - a[0], y = b[1] - a[1];
@@ -357,13 +362,21 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const placed = guide ? [] : currentPlacedPoints(sk);
     const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings, ...placed];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
-    const candidates = guide ? points : enabledObjectSnaps(points, sketchSnaps?.objectKinds);
+    let candidates = guide ? points : enabledObjectSnaps(points, sketchSnaps?.objectKinds);
+    if (sk.tool === 'circle' && drafting.current && live?.kind === 'circle') {
+      candidates = candidates.filter(point => {
+        const radius = circleRadiusAt(live.c, authoredSnapPoint(point.at), true);
+        const startX = live.c[0] + radius;
+        return radius <= CadPartLimits.length && Math.abs(startX) <= ExtrudedProfileLimits.coordinateMM
+          && startX - live.c[0] >= ExtrudedProfileLimits.minimumRadiusMM;
+      });
+    }
     const ordinary = nearestSnap(candidates, project, [x, y]);
     const extensionPoint = !ordinary && guide?.stage === 'guide' ? arcExtensionPoint(guide.arc, p) : null;
     const extension = extensionPoint && nearestSnap([{ at: extensionPoint, kind: 'calculated' }], project, [x, y]);
     const hit = ordinary ?? extension;
     return hit ? {
-      at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4],
+      at: authoredSnapPoint(hit.at),
       snap: hit, liveMiddle: live?.kind === 'polygon' && hit.kind === 'mid' && livePoints.includes(hit), extension: !!extension,
       terminal: guide?.stage === 'end' && uniqueArcTerminal(guide.arc.end, ordinary, points, project, [x, y]),
     } : { at: [snap(p[0]), snap(p[1])], snap: null };
@@ -804,7 +817,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
-        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: circleRadiusAt(s.c, c) });
+        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: circleRadiusAt(s.c, c, !!at?.snap) });
         if (s.kind === 'slot' && drafting.current) {
           if (slotStage.current === 1) emit({ ...s, b: c });
           else emit({ ...s, r: slotRadiusAt(s.a, s.b, c) });
@@ -992,13 +1005,13 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       } else if (sk.tool === 'circle') {
         if (!drafting.current) {
           drafting.current = true;
-          if (sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
+          clearSketchSnap();
           emit({ kind: 'circle', c, r: 1 }, true);
         }
         else {
           drafting.current = false;
           if (s?.kind === 'circle') {
-            const r = circleRadiusAt(s.c, c);
+            const r = circleRadiusAt(s.c, c, !!target?.snap);
             if (r !== s.r) emit({ ...s, r });
           }
         }

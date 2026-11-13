@@ -6,6 +6,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const anchorTools = process.argv[3] === '--anchor-tools';
 const centreArc = process.argv[3] === '--centre-arc';
+const circleEndRadius = process.argv[3] === '--circle-end-radius';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -20,7 +21,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
+  envFrozen: circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
   limits: ['One original top-level native prism on the desktop WebGPU viewport, with XY and tilted sketch planes.'],
@@ -413,6 +414,54 @@ async function replacementControl() {
   await f.same(replacement);
 }
 
+async function snappedCircleRadius() {
+  f.phase = 'preview the Circle radius at a native End with the grid off';
+  await begin(10);
+  await f.tool('Circle', 'c');
+  const grid = button(f.page, 'Grid snap');
+  for (let i = 0; i < 5; i++) await grid.click();
+  assert.match(await grid.textContent(), /Grid off/);
+  const centre = await hover([0, 0, 10], 'Origin');
+  await f.page.mouse.click(...centre);
+  await cue().waitFor({ state: 'hidden' });
+  await f.page.mouse.move(centre[0] + 2, centre[1]);
+  await hover([0, 0, 10], null);
+  const [x, y] = await pixel([...target, 10]);
+  await f.page.mouse.move(x + 2, y);
+  await cue().waitFor();
+  assert.equal(await cue().textContent(), 'End');
+  const radius = Math.hypot(...endpoint);
+  const readDiameter = async () => Number((await f.page.locator('.dim-text').getByText(/^Ø/).textContent()).slice(1));
+  const preview = await f.snapshot('circle-end-preview');
+  assert.deepEqual(preview.doc, source);
+  assert.ok(Math.abs(await readDiameter() - 2 * radius) <= 5e-5, 'preview diameter must reach End');
+  await f.page.mouse.click(x + 2, y);
+  assert.ok(Math.abs(await readDiameter() - 2 * radius) <= 5e-5, 'accepted diameter must reach End');
+  const finished = (await f.finishSketch('circle-end-finish')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 2), source.nodes);
+  assert.deepEqual(finished.outputs, source.outputs);
+  const sketch = finished.nodes[2];
+  assert.equal(sketch.profile, 'circle');
+  assert.deepEqual(sketch.center, [0, 0]);
+  near(sketch.radius, radius);
+  f.report.observations.push({ label: 'circle-end-radius', sketch, snapPoint: endpoint, radius });
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished);
+  const saved = await saveInProject(finished, 'saved-circle-end-radius.bcad');
+  await f.freshOpen(saved, finished, 'circle-end-reopened');
+  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · circle').click();
+  await f.openExtrudeHud();
+  const applied = await f.applyExtrude({ distance: 2, previous: finished, label: 'circle-end-solid' });
+  const [stock, cylinder] = await f.inspect('circle-end-native', applied.doc, 'extrude');
+  assert.ok(stock.valid && cylinder.valid);
+  near(stock.volume, 2800);
+  const expectedVolume = Math.PI * radius ** 2 * 2;
+  near(cylinder.volume, expectedVolume);
+  f.report.observations.push({ label: 'circle-end-extrude', expectedVolume, volume: cylinder.volume });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin, newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
@@ -434,6 +483,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (circleEndRadius) {
+    await snappedCircleRadius();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (centreArc) {
     await tiltedCentreArc();
     assert.deepEqual(f.report.downloads, []);

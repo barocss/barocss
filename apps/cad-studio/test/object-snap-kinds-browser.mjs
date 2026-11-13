@@ -239,7 +239,8 @@ await f.run(async () => {
   await only(['Endpoint']);
   await f.worldClick([8, 12]);
   await hover([14.42, 12.35], 'End');
-  await number('Diameter', 14);
+  const snappedDiameter = 2 * Math.hypot(endpoint[0] - 8, endpoint[1] - 12);
+  await number('Diameter', Math.round(snappedDiameter * 1e4) / 1e4);
   await toggle('Endpoint', false);
   await expectCue(null);
   await clickAtPointer();
