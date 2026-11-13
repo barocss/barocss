@@ -1,0 +1,113 @@
+{
+  "decision": "D1111",
+  "tier": "FEATURE",
+  "parent": "c419f1bcbb3a74b281b489f6048583824fff1ce4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1111-slot-end-width-<run>",
+    "D1111_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --slot-end-width",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1111_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi-final --slot-end-width",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/settings-final",
+    "D1110_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/circle-control --circle-end-radius",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "9692dbb76f33f6d8a4c5e4d20cd8006d5e8930d18cf8a30bdbd2540fc566203d",
+      "sourceManifestSHA256": "791883b1a3043e1e779b34a12a8da504650ea2bc0b50d7f58d6558d579984683",
+      "savedFiles": [],
+      "firstFailure": "With Grid off, End appeared on the third native vertex and the preview width was 23 mm instead of 22.9385 mm."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "1158ed946f37b0b85af1ad106a0d9932065af5a45182bb6dfb3261e63c27eabe",
+      "sourceManifestSHA256": "9e319dc9026b9749549034a735d83e48169f9226734c6f653c3e6fd9d59e8fc1",
+      "savedFiles": [
+        {
+          "bytes": 1915,
+          "sha256": "c3c4f734c2cb0b7767cdf199b167a72509696437e2b25165d7347a3d0b21105e"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "4088f13996b790d29a2f7d036c903c387b5371da2ac1e7f580b64bc617605827",
+      "sourceManifestSHA256": "9e319dc9026b9749549034a735d83e48169f9226734c6f653c3e6fd9d59e8fc1",
+      "savedFiles": [
+        {
+          "bytes": 1915,
+          "sha256": "c3c4f734c2cb0b7767cdf199b167a72509696437e2b25165d7347a3d0b21105e"
+        }
+      ]
+    },
+    "settingsControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 381,
+      "receiptSHA256": "10c0e2c4e3cd78993079c7f46c6993e3b02c553fd5fca69f43aab47ed64b83dc",
+      "sourceManifestSHA256": "ce26ed562c4ad80f32984954f67332e9bb6208c79c63accde699293294055e96",
+      "savedFiles": []
+    },
+    "circleControl": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "e72f2dc26ffff928b45add22e9c1a2555638a2590ee696d54b3bdfd9ed4ff729",
+      "sourceManifestSHA256": "9e319dc9026b9749549034a735d83e48169f9226734c6f653c3e6fd9d59e8fc1",
+      "savedFiles": [
+        {
+          "bytes": 964,
+          "sha256": "407cb3e2dbe965ff4a9c281fae3c0ea383a1c4f08ddac2478cd47243510bd79b"
+        }
+      ]
+    }
+  },
+  "centresMM": [
+    [
+      4.2346,
+      6.3457
+    ],
+    [
+      24.2346,
+      20.3457
+    ]
+  ],
+  "snapPointMM": [
+    4.2346,
+    20.3457
+  ],
+  "widthMM": 22.938493774533136,
+  "extrudeDepthMM": 2,
+  "expectedVolumeMM3": 1946.512966582013,
+  "measuredVolumeMM3": 1946.5129665820134,
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "review": {
+    "model": "GPT-6.1 Sol High",
+    "status": "PASS"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

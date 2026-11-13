@@ -10,7 +10,7 @@ import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { nearestSnap, shapeSnaps, type SnapPoint } from '@barocss/cad-model/sketch/osnap';
 import { currentModelSketchSnaps, modelSketchSnaps, type ModelSketchSnaps } from './modelSketchSnaps';
 import { rayOnPlane, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
-import { bulgeThrough } from '@barocss/cad-model/sketch/profile';
+import { bulgeThrough, slotSegments } from '@barocss/cad-model/sketch/profile';
 import { pickShapeAt } from '@barocss/cad-model/sketch/select';
 import { respline, splineEditError, splineOutline, type SplineDef } from '@barocss/cad-model/sketch/spline';
 import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
@@ -211,11 +211,11 @@ function circleRadiusAt(centre: readonly number[], point: readonly number[], sna
 const authoredSnapPoint = ([x, y]: [number, number]): [number, number] =>
   [Math.round(x * 1e4) / 1e4, Math.round(y * 1e4) / 1e4];
 
-function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonly number[]): number {
+function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonly number[], snapped: boolean): number {
   const x = b[0] - a[0], y = b[1] - a[1];
   const length = Math.hypot(x, y) || 1;
   const offset = Math.abs((point[0] - a[0]) * y - (point[1] - a[1]) * x) / length;
-  return Math.max(0.5, Math.round(offset * 2) / 2);
+  return snapped ? offset : Math.max(0.5, Math.round(offset * 2) / 2);
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
@@ -369,6 +369,27 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         const startX = live.c[0] + radius;
         return radius <= CadPartLimits.length && Math.abs(startX) <= ExtrudedProfileLimits.coordinateMM
           && startX - live.c[0] >= ExtrudedProfileLimits.minimumRadiusMM;
+      });
+    }
+    if (sk.tool === 'slot' && slotStage.current === 2 && live?.kind === 'slot') {
+      const [ax, ay] = live.a, dx = live.b[0] - ax, dy = live.b[1] - ay;
+      const lengthSquared = dx * dx + dy * dy;
+      candidates = candidates.filter(point => {
+        const at = authoredSnapPoint(point.at);
+        const along = (at[0] - ax) * dx + (at[1] - ay) * dy;
+        if (along < 0 || along > lengthSquared) return false;
+        const radius = slotRadiusAt(live.a, live.b, at, true);
+        const { coordinateMM, minimumRadiusMM, minimumLengthMM } = ExtrudedProfileLimits;
+        if (!(radius >= minimumRadiusMM)) return false;
+        const segments = slotSegments(live.a, live.b, radius);
+        return segments.every((segment, index) => {
+          const [x, y] = segment.start;
+          const end = segments[(index + 1) % segments.length].start;
+          if (Math.abs(x) > coordinateMM || Math.abs(y) > coordinateMM) return false;
+          return segment.kind === 'arc'
+            ? Math.hypot(x - segment.center[0], y - segment.center[1]) >= minimumRadiusMM
+            : Math.hypot(x - end[0], y - end[1]) >= minimumLengthMM;
+        });
       });
     }
     const ordinary = nearestSnap(candidates, project, [x, y]);
@@ -820,7 +841,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         if (s.kind === 'circle' && drafting.current) emit({ ...s, r: circleRadiusAt(s.c, c, !!at?.snap) });
         if (s.kind === 'slot' && drafting.current) {
           if (slotStage.current === 1) emit({ ...s, b: c });
-          else emit({ ...s, r: slotRadiusAt(s.a, s.b, c) });
+          else emit({ ...s, r: slotRadiusAt(s.a, s.b, c, !!at?.snap) });
         }
         if (s.kind === 'polygon' && s.pending && p) {
           const n = s.points.length, i = s.closed ? n - 1 : n - 2;
@@ -1018,12 +1039,16 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       } else if (sk.tool === 'slot') {
         if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }, true); }
         else if (slotStage.current === 1) {
-          if (s?.kind === 'slot' && (c[0] !== s.a[0] || c[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); }
+          if (s?.kind === 'slot' && (c[0] !== s.a[0] || c[1] !== s.a[1])) {
+            slotStage.current = 2;
+            clearSketchSnap();
+            emit({ ...s, b: c, r: 1 });
+          }
         } else {
           drafting.current = false;
           slotStage.current = 0;
           if (s?.kind === 'slot') {
-            const r = slotRadiusAt(s.a, s.b, c);
+            const r = slotRadiusAt(s.a, s.b, c, !!target?.snap);
             if (r !== s.r) emit({ ...s, r });
           }
         }

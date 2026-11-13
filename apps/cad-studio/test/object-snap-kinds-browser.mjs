@@ -251,12 +251,12 @@ await f.run(async () => {
 
   f.phase = 'commit the current Slot width without a pointer move';
   await open(source);
-  await begin('Slot', 'o', [[4, 10], [8, 10], endpoint, [14.42, 12.35]]);
+  await begin('Slot', 'o', [[4, 10], [18, 10], endpoint, [14.42, 12.35]]);
   await only(['Endpoint']);
   await f.worldClick([4, 10]);
-  await f.worldClick([8, 10]);
+  await f.worldClick([18, 10]);
   await hover([14.42, 12.35], 'End');
-  await number('Width', 5);
+  await number('Width', 4.6914);
   await toggle('Endpoint', false);
   await expectCue(null);
   await clickAtPointer();
