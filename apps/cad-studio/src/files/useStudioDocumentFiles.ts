@@ -48,6 +48,7 @@ interface StudioDocumentFileOptions {
     isOpenCurrent(scope: OpenScope): boolean;
     sessionBlocked(action: string): boolean;
     canOpenImport(): boolean;
+    requestNativeOpen(accept: () => void, focus: HTMLElement | null): void;
     canReviewLocalCandidate(occurrence?: string): boolean;
   };
   worker: {
@@ -57,7 +58,7 @@ interface StudioDocumentFileOptions {
     stopImport(): void;
   };
   changes: {
-    replaceDoc(doc: StudioDoc): void;
+    replaceDoc(doc: StudioDoc): boolean;
     setDocState(doc: StudioDoc): void;
     setFileName(name: string): void;
     setDirty(dirty: boolean): void;
@@ -546,7 +547,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
     }
   };
 
-  const open = async (file: File) => {
+  const open = async (file: File, focus: HTMLElement | null = null) => {
     if (sessionBlocked('opening a file')) return;
     if (file.name.toLowerCase().endsWith(TASK_RUN_HANDOFF_EXT)) return reopenTaskRun(file);
     const scope = beginOpenIntent(), owner = captureImportOwner();
@@ -579,11 +580,15 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
         if (!owner.isCurrent()) return;
       }
       const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
-      replaceDoc(acceptedDoc); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
-      const accepted = currentOpenScope(), dispatch = saveDocumentToken.current;
-      if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
-      setTimeout(() => { if (isOpenCurrent(accepted)) fit(); }, 300);
-      void verifyOpened(acceptedDoc, accepted, dispatch);
+      ownership.requestNativeOpen(() => {
+        if (!owner.isCurrent() || !replaceDoc(acceptedDoc)) return;
+        setFileName(file.name.replace(/\.(bcad|json)$/i, ''));
+        setDirty(read.notes.length > 0);
+        const accepted = currentOpenScope(), dispatch = saveDocumentToken.current;
+        if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
+        setTimeout(() => { if (isOpenCurrent(accepted)) fit(); }, 300);
+        void verifyOpened(acceptedDoc, accepted, dispatch);
+      }, focus);
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
 

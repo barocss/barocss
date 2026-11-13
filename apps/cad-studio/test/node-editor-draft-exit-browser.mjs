@@ -2,15 +2,17 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed'].includes(mode));
+const openFlow = mode.startsWith('--open');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
+  ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -44,6 +46,56 @@ const waitFocus = locator => locator.evaluate(element => new Promise((resolve, r
   check();
 }));
 
+async function openCandidate(name, doc) {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: name + '.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+}
+
+async function checkOpenDraft() {
+  const hud = f.page.getByRole('dialog', { name: 'Box', exact: true });
+  const width = hud.getByRole('spinbutton', { name: 'Width X', exact: true });
+  const height = hud.getByRole('spinbutton', { name: 'Height Z', exact: true });
+  const replacement = structuredClone(source);
+  replacement.nodes[1].height = 7;
+  await f.page.keyboard.press('b');
+  await hud.waitFor();
+  await width.fill('48');
+  await height.fill('18');
+  await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+  const before = await f.snapshot('01-box-draft');
+  f.phase = 'open valid native file while a Box preview is active';
+  if (mode === '--open-baseline') {
+    await openCandidate('New geometry', replacement);
+    await f.same(replacement);
+    await hud.waitFor({ state: 'hidden' });
+    await f.snapshot('02-open-lost-box');
+    assert.fail('Open replaced the document and discarded the unapplied Box without confirmation');
+  }
+  for (const cancel of ['button', 'escape']) {
+    await height.focus();
+    await openCandidate('New geometry', replacement);
+    await prompt().waitFor();
+    const keep = prompt().getByRole('button', { name: 'Keep editing', exact: true });
+    await waitFocus(keep);
+    if (cancel === 'button') await keep.click();
+    else await f.page.keyboard.press('Escape');
+    await prompt().waitFor({ state: 'hidden' });
+    await waitFocus(height);
+    assert.deepEqual([await width.inputValue(), await height.inputValue()], ['48', '18']);
+    assert.equal(await hud.locator('.status').textContent(), 'preview');
+    const kept = await f.snapshot('02-kept-' + cancel);
+    for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[field], before[field], field);
+  }
+  f.phase = 'explicitly discard the Box and complete the previously checked Open';
+  await openCandidate('New geometry', replacement);
+  await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await f.same(replacement);
+  await hud.waitFor({ state: 'hidden' });
+  assert.equal(await f.page.locator('.doc-tab input').inputValue(), 'New geometry');
+  await f.snapshot('03-open-accepted');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -59,9 +111,9 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: 'Draft source.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });
+  await openCandidate('Draft source', source);
   await f.same(source);
+  if (openFlow) { await checkOpenDraft(); return; }
   await f.openFeatureEditor(1);
   await distance().fill('4');
   const before = await f.snapshot('01-dirty-node-editor');

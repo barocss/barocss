@@ -39,8 +39,14 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   const rememberFocus = (event: PointerEvent<HTMLButtonElement>) => {
     pointer.current = { trigger: event.currentTarget, focus: activeElement() };
   };
-  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus }: {
+  const takeFocus = (event: MouseEvent<HTMLButtonElement>) => {
+    const previous = pointer.current;
+    pointer.current = null;
+    return event.detail && previous?.trigger === event.currentTarget ? previous.focus : activeElement();
+  };
+  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus }: {
     event?: MouseEvent<HTMLButtonElement>; readFeature?: () => object | null; destinationFocus?: HTMLElement | null;
+    originFocus?: HTMLElement | null;
   } = {}) => {
     const previous = pointer.current;
     pointer.current = null;
@@ -51,7 +57,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
       return;
     }
     const trigger = event?.currentTarget ?? activeElement();
-    const focus = event?.detail && previous?.trigger === trigger ? previous.focus : trigger;
+    const focus = originFocus ?? (event?.detail && previous?.trigger === trigger ? previous.focus : trigger);
     setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger,
       discardFocus: destinationFocus ?? trigger,
       keepFocus: focus?.isConnected && focus !== document.body ? focus : trigger });
@@ -84,5 +90,5 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     </DialogContent>
   </Dialog>;
 
-  return { pending: !!current, rememberFocus, switchWhenReady, dialog };
+  return { pending: !!current, rememberFocus, takeFocus, switchWhenReady, dialog };
 }

@@ -1,0 +1,51 @@
+{
+  "decision": "D964",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "a38271cd5f10dd16560f562192ff5fa230c9b5b0",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D964-open-draft",
+    "D964_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent01 --open-baseline",
+    "D964_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --open-fixed",
+    "pnpm --filter @barocss/cad-studio-app test project-open-ownership open-ownership work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "1d2c46466fa7ab9331a2ae4c47f648e32fda4f05f45d96f74930377f33f5c1b0"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "bc639b74a4fb0c8f75847922fb444a5d5350273adc571dd8fda2ed0ff87cf5da",
+    "sourceManifestSHA256": "be2781ce2c031a19aa2b9fbb71ada06a0395298bb46239cb7b3c7548f87ce316",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "widthXMM": 48,
+    "heightZMM": 18,
+    "restoredFocus": "Height Z"
+  },
+  "focusedTests": {
+    "pass": 49,
+    "fail": 0
+  },
+  "notRun": [
+    "project-list and exchange draft transitions",
+    "picker behavior",
+    "New part",
+    "template",
+    "Model history",
+    "Cmd+S",
+    "3D Sketch",
+    "in-place Cancel",
+    "Mate",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
