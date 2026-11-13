@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D952 — verify the existing Move action for a clipped Detail label](notes/detail-diameter-existing-move-2026-11-13/README.md).
 - [D951 — measure the current dimension-ruler crossing](notes/drawing-dimension-crossing-baseline-2026-11-13/README.md).
 - [D950 — verify the current Detail diameter after a native bore edit](notes/detail-diameter-source-edit-closeout-2026-11-13/README.md).
 - [D949 — retain a clipped Detail diameter through project reopen and precision changes](notes/detail-diameter-project-precision-2026-11-13/README.md).

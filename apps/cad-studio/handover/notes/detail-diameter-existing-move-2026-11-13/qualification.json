@@ -1,0 +1,33 @@
+{
+  "decision": "D952",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4f40a60aa675dab370b759728fb8bf0a13937c17",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D952-studio",
+    "D952_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/move01 --fixed --move-fix",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "5497a619ca750005bcdcf463b148b3f6c33f03315765fde8cd8e3a0af1481540",
+    "sourceManifestSHA256": "809676c897e01766c09de3b3b6f1dd09e1b0be07155b7827c5d8778e6e4ed514",
+    "oracleSHA256": "98bb3a9169724e8fd28c0fd9ecbc0c7af0cf3b050f38a84a37d3402e3c1d0cda",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 5472,
+    "svgSHA256": "8b02eefcfcd76cbe67a17ceb1ee0cd0ba6a2172c07fea3924476c01a5f3cc5c0",
+    "dxfBytes": 15369,
+    "dxfSHA256": "9e981bbb35b7cc671c36ba7619b668090cb0429e4077efe003d3826553830c41",
+    "beforePlaceMM": [33,15],
+    "afterPlaceMM": [30.999999999999993,17.000000000000007],
+    "tipPaperMM": [312.5,85],
+    "diameterMM": 9
+  },
+  "notRun": ["new placement behavior", "new unit suites for unchanged product code", "production build", "full suites", "PDF", "mobile"]
+}

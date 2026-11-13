@@ -19,6 +19,7 @@ const tangent = variant === '--tangent';
 const diagnosis = variant === '--diagnosis';
 const projectStore = variant === '--project-store';
 const edited = variant === '--edit-source';
+const moveFix = variant === '--move-fix';
 const tie = variant === '--tie';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
@@ -29,6 +30,7 @@ const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] 
 const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
   views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
 if (edited) drawing.dimensions = [{ ...diameter, place: [24, 16] }];
+if (moveFix) drawing.dimensions = [{ ...diameter, place: [33, 15] }];
 if (deleted || removalNotice || edited) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
 }
@@ -59,8 +61,9 @@ const part = covered ? {
   nextId: 5, outputs: { ...document.outputs, b4: { node: 4, side: 'solid' } },
 } : document;
 const doc = { ...part, drawing };
+if (moveFix) doc.nodes = doc.nodes.map((node, i) => i === 2 ? { ...node, radius: 4.5 } : node);
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: edited ? 'D950_SOURCE_FROZEN' : projectStore ? 'D949_SOURCE_FROZEN' : diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: moveFix ? 'D952_SOURCE_FROZEN' : edited ? 'D950_SOURCE_FROZEN' : projectStore ? 'D949_SOURCE_FROZEN' : diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -330,6 +333,34 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (moveFix) {
+    f.phase = 'open the interior label and find the existing Move fix';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const overlap = f.page.locator('[aria-label="Drawing issues"] [title="TEXT_OVER_LINES"]').filter({ hasText: 'Ø9 THRU' });
+    await overlap.waitFor();
+    await f.snapshot('01-label-overlap');
+    const fix = overlap.getByRole('button', { name: /^Fix:/ });
+    await fix.click();
+    await f.changed(original);
+    const changed = await f.doc();
+    const [dim] = changed.drawing.dimensions;
+    assert.deepEqual(changed, { ...original, drawing: { ...original.drawing, dimensions: [{ ...original.drawing.dimensions[0], place: dim.place }] } });
+    await overlap.waitFor({ state: 'detached' });
+    const state = await f.snapshot('02-label-clear');
+    assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === dim.id).value - 9) < 1e-9);
+    const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+    f.report.observations.push({ label: 'move-fixed-output', svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+    await f.runOracle({ svg, dxf, edited: { diameter: 9, at: changed.drawing.details[0].at, place: dim.place } }, 'move-fixed-output');
+    await f.undo();
+    await f.same(original);
+    await overlap.waitFor();
+    await f.redo();
+    await f.same(changed);
+    await overlap.waitFor({ state: 'detached' });
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (edited) {
     await open(Buffer.from(JSON.stringify(doc)));
