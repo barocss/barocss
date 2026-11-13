@@ -1,0 +1,62 @@
+{
+  "decision": "D1029",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "92236ba68d67d0335773e856dbb493d3bcc88f82",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1029-section-baseline02",
+    "D1029_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-occurrence-reuse-browser.mjs <external-evidence>/baseline02",
+    "gate.sh acquire heavy 600 D1029-section-studio01",
+    "D1029_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-occurrence-reuse-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1029-focused",
+    "node --check apps/cad-studio/test/drawing-occurrence-reuse-browser.mjs",
+    "pnpm --filter @barocss/cad-model test assembly-steps drawing-scope drawing-current-contract",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "original": "inst1",
+    "duplicate": "inst1",
+    "insert": "inst1",
+    "duplicateDiameterMM": 12,
+    "insertDiameterMM": 8,
+    "receiptSHA256": "14f9bc6aa26516538b461099f263ab1935efcd3ebdd8d5fcebdca2d2f553a77b",
+    "sourceManifestSHA256": "e5afcf77409bdafd0a42a906f3c56384e497e6dfcfd235246fbb54b92eace551"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "captures": 9,
+    "frozenFiles": 378,
+    "receiptSHA256": "29464f02aae014e163651687280455c08263244b3f04811ac3e3e341b1b87196",
+    "sourceManifestSHA256": "2bf9dfcacb64511f9b74ef37e54cb6df3a92c40244bd22f2d07f90a56def704b",
+    "original": "inst1",
+    "duplicate": "inst2",
+    "insert": "inst2",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 37,
+    "studioPassed": 17,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "notRun": [
+    "overlapping rim choice",
+    "Hidden lines selection",
+    "explicit reattachment",
+    "loss warnings before export",
+    "DIMENSIONS deletion after Redo",
+    "other export formats",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

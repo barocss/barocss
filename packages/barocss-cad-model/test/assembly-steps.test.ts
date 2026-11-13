@@ -13,7 +13,8 @@ import { assembly, part, Location } from '../src/api';
 import { libraryInstance } from '../src/library/libraries';
 import { withFastenerInstance } from '../src/app/fasteners';
 import { withSampleRows } from './person-file';
-import { takenInstanceIds } from '../src/assembly/takenIds';
+import { nextInstanceId, takenInstanceIds } from '../src/assembly/takenIds';
+import { defaultDrawing, type EdgeRef } from '../src/drawing/types';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 
 // Roadmap 10 ⑥: assembly instruction steps. Ordered, presentation only: nothing here changes a placement, a body, the BOM or a file.
@@ -242,6 +243,27 @@ test('a stale id a step, cut, mate or pattern names is never handed to a new par
   assert.equal(addPart(withSeed, { name: 'New', doc: block }).id, 'p4');
   // a cut whose target is gone does not cut the new part
   assert.ok(!doc.instances!.some(i => i.id === 'p5') && added.doc.instances!.every(i => i.id !== 'p5'));
+});
+
+test('part allocation reserves the saved drawing scope and each occurrence-qualified geometry reference', () => {
+  const edge = (name: string): EdgeRef => ({ edge: name, near: [0, 0, 0] });
+  const doc: StudioDoc = { ...emptyDoc(), drawing: { ...defaultDrawing(), scope: { kind: 'part', part: 'inst1' },
+    dimensions: [
+      { id: 'd1', kind: 'diameter', view: 'top', place: [0, 0], ...edge('inst2/n1.top|n2.side') },
+      { id: 'd2', kind: 'angle', view: 'top', place: [0, 0], a: edge('n1.top|n1.side'), b: edge('inst3/child/n1.top|n1.side') },
+      { id: 'd3', kind: 'linear', view: 'top', orient: 'horizontal', place: [0, 0],
+        a: { ...edge('inst4/n1.top|n1.side'), at: 'pcd', ring: [edge('inst5/n1.top|n2.side')] },
+        b: { ...edge('n1.top|n1.side'), at: 'end' } },
+      { id: 'd4', kind: 'pcd', view: 'top', place: [0, 0], ring: [edge('inst6/n1.top|n2.side')] },
+    ],
+    datums: [
+      { id: 'a', letter: 'A', view: 'top', place: [0, 0], edge: edge('inst7/n1.top|n1.side') },
+      { id: 'b', letter: 'B', view: 'top', place: [0, 0], face: { face: 'inst8/n1.top', near: [0, 0, 0] } },
+    ],
+    datumTargets: [{ id: 'a1', letter: 'A', number: 1, view: 'top', place: [0, 0], point: { ...edge('inst9/n1.top|n1.side'), at: 'end' } }],
+  } };
+  assert.deepEqual([...takenInstanceIds(doc)], ['inst1', 'inst2', 'inst3', 'inst4', 'inst5', 'inst6', 'inst7', 'inst8', 'inst9']);
+  assert.equal(nextInstanceId(doc, 'inst'), 'inst10');
 });
 
 test('Open stays tolerant of step ids the editor refuses, and reports them in the right words', () => {
