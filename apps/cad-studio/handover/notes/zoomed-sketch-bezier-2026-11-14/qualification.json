@@ -1,0 +1,126 @@
+{
+  "decision": "D1148",
+  "tier": "FEATURE",
+  "parent": "1ccb7b6d2443889e78c1f571c6e656bc2a3835eb",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1148-<run>",
+    "D1148_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-bezier-zoom-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1061_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-bezier-draft-history-browser.mjs <external-evidence>/draft-history",
+    "D354_SOURCE_FROZEN=1 node apps/cad-studio/test/bezier-sketch-browser.mjs <external-evidence>/authoring-final",
+    "D1143_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-zoom-browser.mjs <external-evidence>/arc",
+    "cd apps/cad-studio && node scripts/test.mjs projectedBezier sketch-outline",
+    "cd apps/cad-studio && node scripts/test.mjs projectedBezier sketch-outline sketch-edit-identity",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-bezier",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check <changed browser drivers>",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 382,
+      "receiptSHA256": "740134191341206630db14b1b5fa6848ee6f94ac71db03a262912268d5e19ba3",
+      "sourceManifestSHA256": "d5cf810460510862a163f1036a5fa4b5b0e1a3cbb6a4210e528baaa0ae6e53bd",
+      "observations": [
+        {
+          "label": "quadratic",
+          "segments": 32,
+          "spanCSS": 282.22220882527915,
+          "maxErrorCSS": 0.05554321951690125,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-base",
+          "segments": 32,
+          "spanCSS": 239.8888834565878,
+          "maxErrorCSS": 0.16484677252452015,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-zoomed",
+          "segments": 32,
+          "spanCSS": 2453.2668122649193,
+          "maxErrorCSS": 1.6858352229284421,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-settled",
+          "segments": 32,
+          "spanCSS": 2453.2668122649193,
+          "maxErrorCSS": 1.6858352229284421,
+          "gapStart": 0,
+          "gapEnd": 0
+        }
+      ]
+    },
+    "adaptive": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 383,
+      "receiptSHA256": "767fb1a93a0c31ac9dd89cbef45f70aa3b27696c9446f4c58b1ee24acc221814",
+      "sourceManifestSHA256": "4fa8590543726d837419fc49806a101bc946971c3fdfbc54529b41b76e10017e",
+      "observations": [
+        {
+          "label": "quadratic",
+          "segments": 27,
+          "spanCSS": 282.22220882527915,
+          "maxErrorCSS": 0.12081771621057441,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-base",
+          "segments": 32,
+          "spanCSS": 239.8888834565878,
+          "maxErrorCSS": 0.16484677252457697,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-zoomed",
+          "segments": 122,
+          "spanCSS": 2453.2668122649193,
+          "maxErrorCSS": 0.18536261282797417,
+          "gapStart": 0,
+          "gapEnd": 0
+        },
+        {
+          "label": "cubic-settled",
+          "segments": 122,
+          "spanCSS": 2453.2668122649193,
+          "maxErrorCSS": 0.18536261282797417,
+          "gapStart": 0,
+          "gapEnd": 0
+        }
+      ]
+    },
+    "draft-history": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 383,
+      "receiptSHA256": "c7d92dcb81e85ee87754852a5ea5c62c1a07ed5cef203e019deb3b56aab7f0f3",
+      "sourceManifestSHA256": "4c5f87ea57b7d97483a04f54e2cd98007e6371737b8da782d2444774519a7af6"
+    },
+    "arc": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 384,
+      "receiptSHA256": "0f5ec2ee4032f7ec25a6969f630122098d00e4cc973eda52b728a00cbe616896",
+      "sourceManifestSHA256": "d910bd56d88c06319818016d93f24e4ee5d9233a64b4f021bcfe32d1cea2bc30"
+    },
+    "authoring-final": {
+      "status": "PASS",
+      "states": 11,
+      "frozenFiles": 760,
+      "receiptSHA256": "e212ab275e739a7dfc873b59a63be569eecdb144fb32bad7eb0ba8186f378ac4",
+      "sourceManifestSHA256": "474f2e1a7ba9b4cc128403e35c278691f4730c39d534760f05e5819133d97ccc"
+    }
+  }
+}

@@ -1,11 +1,11 @@
 // D354 qualification: Bezier control-point authoring in the sketcher (GitHub #2051 section 2). The Bezier tool (button "Bézier", key B) collects control points: the third click makes a quadratic, the fourth a cubic and ends it.
-// The viewport draws the dashed control polygon (polyline.sk-guide), the solid curve (polyline.sk-shape with 33 sampled points) and the control points as dots (circle.sk-point while drawn, circle.sk-end once kept in the done list).
+// The viewport draws the dashed control polygon, the solid Bézier path and the control points as dots.
 // The BÉZIER panel section lists "Control point N X/Y" inputs (Enter or blur applies). Finish keeps a Bezier in the sketch node's construction array (stored { kind: 'bezier', poles }, no construction: true); reopening restores it.
 // "Make curves" (sketch panel button) turns every shape, Beziers included, into exact direct curves named "Sketch curve N · cK": degree = poles - 1, clamped knots, unit weights. Undo / Redo of that step are recorded.
 // Root must freeze all sources first. Run from apps/cad-studio:
 //   D354_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright \
 //   CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/bezier-sketch-browser.mjs /absolute/artifacts
-// Actual Studio UI (New part, palette Sketch, Sketch plane select, Rectangle and Bézier toolbar buttons with canvas clicks via window.__studioScreenOf, Control point inputs, Finish, Save, Open, history Sketch button + Edit sketch,
+// Actual Studio UI (New part, Sketch and drawing toolbar buttons with canvas clicks via window.__studioScreenOf, Sketch plane, Control point inputs, Finish, Save, Open, history Sketch button + Edit sketch,
 // Make curves, Undo / Redo buttons) mutates. Readonly hooks (window.__studioDoc / __studioBodies / __studioSelection / __studioScreenOf) observe only. The document starts EMPTY.
 // Product read: a bundled inspector reads every direct source through the product's reader (direct.ts geometryOf / modelOf) and evaluates the curves with the kernel's evaluateCurve / evaluateCurveD1 (@barocss/cad). It is product code,
 // not an oracle. The Python oracle (python3 -I, Fractions, zero product imports) decides the exact poles, clamped knots, unit weights, B(1/2) = (10, 45, 0), the end tangents and the Bernstein values; the product evaluation must match within 1e-12.
@@ -116,7 +116,14 @@ async function snapshot(label) {
 }
 async function newPage() {
   if (context) { await context.close(); report.cleanup.push('CONTEXT_CLOSED'); }
-  context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 }); page = await context.newPage();
+  const base = new URL(server.resolvedUrls.local[0]).origin;
+  context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, serviceWorkers: 'block' });
+  await context.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+    return url.origin === base ? route.continue() : route.abort();
+  });
+  page = await context.newPage();
   page.on('pageerror', e => report.errors.push(e.stack ?? String(e))); page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push(m.text()); });
   page.on('download', d => report.downloads.push({ phase, suggestedFilename: d.suggestedFilename() })); page.on('dialog', d => d.accept());
   await page.goto(server.resolvedUrls.local[0]); await page.waitForSelector('.viewport[data-renderer="webgpu"]', { timeout: 30000 }); await ready();
@@ -126,7 +133,6 @@ async function openFile(file, nodeCount) {
   await page.waitForFunction(n => window.__studioDoc?.nodes?.length === n, nodeCount, { timeout: 60000 }); await ready();
 }
 async function freshOpen(file, expected, label) { phase = `fresh Open ${label}`; await newPage(); await openFile(file, expected.nodes.length); await same(expected); return snapshot(label); }
-async function command(label) { await page.keyboard.press('Space'); await page.locator('.palette input').fill(label); await page.keyboard.press('Enter'); }
 const screenOf = point => page.evaluate(point => window.__studioScreenOf?.(point), [...point, 0]);
 async function worldClick(point) { const pixel = await screenOf(point); assert.ok(pixel?.length === 2, 'screen position of the point'); await page.mouse.click(pixel[0], pixel[1]); await page.waitForTimeout(60); }
 // Every point must be on the canvas (not under a panel) before the first click; zoom out with the wheel until they are.
@@ -158,7 +164,7 @@ const overlay = () => page.evaluate(() => {
   for (const svg of svgs) {
     const r = svg.getBoundingClientRect(), at = (x, y) => [r.left + x, r.top + y];
     const pts = el => (el.getAttribute('points') ?? '').trim().split(/\s+/).filter(Boolean).map(s => { const [x, y] = s.split(',').map(Number); return at(x, y); });
-    for (const el of svg.querySelectorAll('polyline')) { const cls = el.getAttribute('class') ?? ''; const entry = { class: cls, dash: getComputedStyle(el).strokeDasharray, points: pts(el) };
+    for (const el of svg.querySelectorAll('polyline')) { const cls = el.getAttribute('class') ?? ''; const entry = { class: cls, dash: getComputedStyle(el).strokeDasharray, points: pts(el), curve: el.getAttribute('data-sketch-curve') };
       if (/\bsk-guide\b/.test(cls)) out.guides.push(entry); else if (/\bsk-shape\b/.test(cls)) out.shapes.push(entry); else out.otherClasses.push({ tag: 'polyline', class: cls, count: entry.points.length }); }
     for (const el of svg.querySelectorAll('circle')) { const cls = el.getAttribute('class') ?? ''; if (/\bsk-(point|end)\b/.test(cls)) out.dots.push({ class: cls, at: at(Number(el.getAttribute('cx')), Number(el.getAttribute('cy'))) }); }
     out.otherClasses.push(...[...svg.querySelectorAll('line,path')].map(el => ({ tag: el.tagName, class: el.getAttribute('class') ?? '' })).slice(0, 40));
@@ -166,8 +172,7 @@ const overlay = () => page.evaluate(() => {
   return out;
 });
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-// The Bezier curves drawn: solid polylines of 33 sampled points (bezierSamples n = 32).
-const curvePolylines = o => o.shapes.filter(s => s.points.length === 33);
+const curvePolylines = o => o.shapes.filter(s => s.curve === 'bezier' && s.points.length >= 2);
 async function openSketchEditor() {
   // (A standalone sketch is listed in History by its label, "Sketch · rectangle", as in the D345/D349 drivers.)
   phase = 'open sketch editor'; const target = page.getByRole('group', { name: 'History', exact: true }).getByRole('button', { name: 'Sketch · rectangle', exact: true }); assert.equal(await target.count(), 1, 'one history button for the sketch');
@@ -209,13 +214,14 @@ try {
   frozenFiles = [...initialFiles, ...buildInputs, ...studioFiles, 'apps/cad-studio/vite.config.ts']; report.sourceFrozen = await capsule('frozen', frozenFiles); report.sourceFrozenCount = Object.keys(report.sourceFrozen).length;
   for (const [file, digest] of Object.entries(report.sourceBefore)) assert.equal(report.sourceFrozen[file], digest);
   for (const need of ['packages/barocss-cad-model/src/sketch/bezier.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx']) assert.ok(report.sourceFrozen[need], `${need} is in the frozen capsule`);
-  phase = 'actual Studio start'; server = await createServer({ root: app, configFile: join(app, 'vite.config.ts'), server: { host: '127.0.0.1', port: 0, strictPort: false }, logLevel: 'error' }); server.watcher.on('all', (event, file) => { if (['change', 'add', 'unlink'].includes(event)) report.changes.push({ event, file }); }); await server.listen();
+  phase = 'actual Studio start'; server = await createServer({ root: app, configFile: join(app, 'vite.config.ts'), cacheDir: join(output, 'vite-cache'), server: { host: '127.0.0.1', port: 0, strictPort: false }, logLevel: 'error' }); server.watcher.on('all', (event, file) => { if (['change', 'add', 'unlink'].includes(event)) report.changes.push({ event, file }); }); await server.listen();
   const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright'); browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] }); report.chromeProcessesLaunched = 1;
   const ALL = [[0, 0], [40, 30], [0, 40], [10, 60], [20, 40], [30, 40], [35, 55], [45, 55], [50, 40]];
 
   // Context 1: empty document, rectangle profile, one quadratic Bezier.
   phase = 'empty document'; await newPage(); await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0); await ready(); const empty = await doc(); assert.equal(empty.nodes.length, 0, 'the document starts empty'); await snapshot('00-empty');
-  phase = 'start XY sketch'; await command('Sketch'); await sketchPanel().waitFor(); await sketchPanel().getByLabel('Sketch plane', { exact: true }).selectOption('xy');
+  phase = 'start XY sketch'; await page.getByRole('navigation', { name: 'Tools', exact: true }).getByRole('button', { name: 'Sketch', exact: true }).click();
+  await sketchPanel().waitFor(); await sketchPanel().getByLabel('Sketch plane', { exact: true }).selectOption('xy');
   await frame(ALL);
   phase = 'rectangle'; await tool('Rectangle', 'r'); await worldClick([0, 0]); await worldClick([40, 30]);
   phase = 'quadratic Bezier'; await tool('Bézier', 'b'); for (const p of [[0, 40], [10, 60], [20, 40]]) await worldClick(p);
@@ -225,9 +231,9 @@ try {
   assert.equal(rows01.length, 6, 'three control points x (X, Y)'); assert.deepEqual(rows01.map(r => r.label), ['Control point 1 X', 'Control point 1 Y', 'Control point 2 X', 'Control point 2 Y', 'Control point 3 X', 'Control point 3 Y']);
   assert.deepEqual(polesOf(rows01), [[0, 40], [10, 60], [20, 40]], 'BÉZIER lists the clicked control points'); assert.equal(await alertText(), null);
   assert.ok(marks01.guides.some(g => g.points.length === 3), `a dashed control polygon of three points: ${JSON.stringify(marks01.guides.map(g => g.points.length))}`);
-  const curves01 = curvePolylines(marks01); assert.ok(curves01.length >= 1, `a solid curve polyline of 33 samples: ${JSON.stringify(marks01.shapes.map(s => s.points.length))}`);
+  const curves01 = curvePolylines(marks01); assert.ok(curves01.length >= 1, 'a solid Bézier curve polyline');
   const px01 = await Promise.all([[0, 40], [10, 60], [20, 40]].map(screenOf)), curve01 = curves01[curves01.length - 1].points;
-  const minToMiddle = Math.min(...curve01.map(q => dist(q, px01[1]))), startGap = dist(curve01[0], px01[0]), endGap = dist(curve01[32], px01[2]);
+  const minToMiddle = Math.min(...curve01.map(q => dist(q, px01[1]))), startGap = dist(curve01[0], px01[0]), endGap = dist(curve01.at(-1), px01[2]);
   report.observations.push({ label: '01-geometry', poleScreen: px01, minDistanceToMiddlePole: minToMiddle, startGap, endGap }); await persist();
   assert.ok(minToMiddle > 3, `the curve does not pass through the middle pole (min ${minToMiddle} px)`); assert.ok(startGap <= 2 && endGap <= 2, `the curve runs through the end poles (${startGap}, ${endGap} px)`);
   px01.forEach((p, i) => assert.ok(marks01.dots.some(d => dist(d.at, p) <= 2), `a control point dot at pole ${i + 1}`));
@@ -242,7 +248,11 @@ try {
   // Finish.
   const done03 = await finishSketch('03-finished'), doc03 = done03.doc; assert.equal(doc03.nodes.length, 1, 'one sketch node'); const node03 = doc03.nodes[0]; report.observations.push({ label: '03-sketch', node: node03 }); await persist();
   assert.equal(node03.kind, 'sketch'); assert.ok(Array.isArray(node03.construction), `the node has a construction array: ${JSON.stringify(Object.keys(node03))}`);
-  assert.deepEqual(node03.construction, [{ kind: 'bezier', poles: [[0, 40], [10, 50], [20, 40]] }], 'exactly one stored Bezier, without construction: true'); assert.ok(node03.construction.every(c => c.construction !== true));
+  assert.equal(node03.construction.length, 1);
+  const [stored] = node03.construction;
+  assert.equal(stored.kind, 'bezier');
+  assert.deepEqual(stored.poles, [[0, 40], [10, 50], [20, 40]]);
+  assert.equal(stored.construction, undefined);
   assert.deepEqual(await alerts(), []);
   const saved1 = await save('bezier'); assert.deepEqual(saved1.doc, doc03);
 

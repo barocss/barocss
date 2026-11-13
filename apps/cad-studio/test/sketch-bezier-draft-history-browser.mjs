@@ -6,6 +6,8 @@ const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/draftHistory.ts',
+  'apps/cad-studio/src/viewport/sketchOverlay.tsx',
+  'apps/cad-studio/src/viewport/projectedBezier.ts',
 ];
 const f = await createFlow({
   name: 'sketch-bezier-draft-history', output: process.argv[2], envFrozen: 'D1061_SOURCE_FROZEN',
@@ -18,18 +20,14 @@ const field = () => f.sketchPanel().getByLabel('Control point 2 Y', { exact: tru
 const original = [[10, 10], [20, 42], [34, 42], [44, 10]];
 const settle = () => f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
 
-async function readCurve() {
+async function readCurve(midpoint) {
   await settle();
-  const midpoint = await f.page.locator('.vp-overlay polyline.sk-shape.open').evaluate(line => {
-    const pixel = line.points[Math.floor(line.points.length / 2)];
+  const gap = await f.page.locator('.vp-overlay polyline[data-sketch-curve="bezier"]').evaluate((line, expected) => {
     const box = line.ownerSVGElement.getBoundingClientRect();
-    return [pixel.x + box.left, pixel.y + box.top];
-  });
-  return { value: Number(await field().inputValue()), midpoint };
-}
-
-function checkMidpoint(actual, expected) {
-  assert.ok(Math.hypot(actual[0] - expected[0], actual[1] - expected[1]) < 0.05, JSON.stringify({ actual, expected }));
+    return Math.min(...Array.from(line.points, point => Math.hypot(point.x + box.left - expected[0], point.y + box.top - expected[1])));
+  }, await f.screenOf(midpoint));
+  assert.ok(gap < 0.05, JSON.stringify({ midpoint, gap }));
+  return { value: Number(await field().inputValue()), midpoint, gap };
 }
 
 await f.run(async () => {
@@ -55,9 +53,8 @@ await f.run(async () => {
   await f.frame(original);
   for (const pole of original) await f.worldClick(pole);
   const finish = f.page.locator('.topbar button.finish');
-  const initial = await readCurve();
+  const initial = await readCurve([27, 34]);
   assert.equal(initial.value, 42);
-  checkMidpoint(initial.midpoint, await f.screenOf([27, 34]));
   assert.equal(await button('Undo').isEnabled(), false);
 
   for (const { label, value, commit, undo, redo } of [
@@ -67,27 +64,25 @@ await f.run(async () => {
       undo: () => button('Undo').click(), redo: () => f.page.keyboard.press('Meta+Shift+z') },
   ]) {
     f.phase = label + ' control point history';
-    const before = await readCurve();
+    const old = Number(await field().inputValue());
+    const before = await readCurve([27, (20 + 3 * old + 3 * 42) / 8]);
     await field().fill(String(value));
     await commit();
     await finish.focus();
-    const changed = await readCurve();
+    const midpoint = [27, (20 + 3 * value + 3 * 42) / 8];
+    const changed = await readCurve(midpoint);
     assert.equal(changed.value, value);
-    const expected = await f.screenOf([27, (20 + 3 * value + 3 * 42) / 8]);
-    checkMidpoint(changed.midpoint, expected);
     const undoEnabled = await button('Undo').isEnabled();
     f.report.observations.push({ label, before, changed, undoEnabled });
     await f.snapshot(label + '-edit');
     assert.equal(undoEnabled, true);
     await undo();
-    const undone = await readCurve();
+    const undone = await readCurve(before.midpoint);
     assert.equal(undone.value, before.value);
-    checkMidpoint(undone.midpoint, before.midpoint);
     await finish.focus();
     await redo();
-    const redone = await readCurve();
+    const redone = await readCurve(midpoint);
     assert.equal(redone.value, value);
-    checkMidpoint(redone.midpoint, expected);
     await f.same(source);
   }
   f.phase = 'Convert the last restored Bézier to Direct geometry';

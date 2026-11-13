@@ -22,6 +22,7 @@ import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
 import { orthographicSketchScale, projectSketchCircle, projectSketchEdge, type SketchViewportPick } from './sketchOutlinePick';
+import { projectedBezier } from './projectedBezier';
 
 function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[]): boolean {
   let lo = 0, hi = 1;
@@ -156,7 +157,7 @@ export function drawSketchOverlay({
   (sk.done ?? []).forEach((d, i) => {
     if (sk.hideConstruction && d.construction) return;
     const cls = 'sk-shape done' + (d.construction ? ' construction' : '');
-    if (d.kind === 'bezier') { items.push(...bezierMarks('done' + i, d.poles, P, true)); return; }
+    if (d.kind === 'bezier') { items.push(...bezierMarks('done' + i, d.poles, P, true, cam.ortho)); return; }
     if (d.kind === 'polygon' && !d.closed) {
       items.push(<polyline key={'done' + i} points={sampleOutline(d.points, d.bulges, false).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls + ' open'} />);
       for (const [k, q] of [d.points[0], d.points[d.points.length - 1]].entries()) { const p = P(q[0], q[1]); items.push(<circle key={'de' + i + '.' + k} cx={p[0]} cy={p[1]} r={3} className="sk-end" />); }
@@ -211,7 +212,7 @@ export function drawSketchOverlay({
     if (l > 0) items.push(label((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18, fmtLen(l), 'slot-length'));
     if (s.r > 0) { const e = P(s.b[0], s.b[1] + s.r); items.push(label(e[0] + 34, e[1], 'W ' + fmtLen(s.r * 2), 'slot-width')); }
   } else if (s?.kind === 'bezier') {
-    items.push(...bezierMarks('bz', s.poles, P, false));
+    items.push(...bezierMarks('bz', s.poles, P, false, cam.ortho));
   } else if (s?.kind === 'polygon') {
     const pts = s.points.map(p => P(p[0], p[1])); const cur = draft.cursor;
     const scale = orthographicSketchScale(cam, w, h);
@@ -277,7 +278,7 @@ export function drawSketchOverlay({
   // The Bézier tool's control points so far, and (from the second) the curve they make with the cursor as the next one.
   if (sk.tool === 'bezier' && bezierPoles.length) {
     const cur = draft.cursor, bp = bezierPoles;
-    items.push(...bezierMarks('bzd', cur ? [...bp, cur] : bp, P, false));
+    items.push(...bezierMarks('bzd', cur ? [...bp, cur] : bp, P, false, cam.ortho));
   }
   // The Ellipse tool's draft: the circle of the first axis while its end is chosen, then the ellipse with the pointer as its other semi-axis.
   const ed = sk.tool === 'ellipse' ? ellipse : null, ec = draft.cursor;
@@ -364,13 +365,22 @@ export function drawSketchOverlay({
 
 export const fmtLen = (v: number) => String(Math.round(v * 10) / 10);
 /** A Bézier curve's marks (D354): the control polygon dashed, the curve solid (display samples), the control points as dots; `light`: a finished one. */
-function bezierMarks(key: string, poles: readonly [number, number][], P: (u: number, v: number) => readonly number[], light: boolean): ReactNode[] {
+function bezierMarks(key: string, poles: readonly P2[], P: (u: number, v: number) => readonly number[], light: boolean, ortho: boolean): ReactNode[] {
   // (A malformed stored shape draws nothing.)
   if (!Array.isArray(poles) || poles.length > 4 || !poles.every(q => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]))) return [];
-  const pts = poles.map(q => P(q[0], q[1])), str = (a: readonly (readonly number[])[]) => a.map(p => p[0] + ',' + p[1]).join(' ');
+  const pts = poles.map(([u, v]): P2 => {
+    const [x, y] = P(u, v);
+    return [x, y];
+  });
+  if (pts.some(point => !point.every(Number.isFinite))) return [];
+  const str = (a: readonly (readonly number[])[]) => a.map(p => p[0] + ',' + p[1]).join(' ');
   const out: ReactNode[] = [];
   if (pts.length >= 2) out.push(<polyline key={key + 'g'} points={str(pts)} className="sk-guide" fill="none" />);
-  if (poles.length >= 3) out.push(<polyline key={key + 'c'} points={str(bezierSamples(poles).map(q => P(q[0], q[1])))} className={'sk-shape' + (light ? ' done' : '') + ' open'} style={{ fill: 'none' }} />);
+  if (poles.length >= 3) {
+    const curve = ortho ? projectedBezier(pts) : bezierSamples(poles).map(q => P(q[0], q[1]));
+    out.push(<polyline key={key + 'c'} points={str(curve)} data-sketch-curve="bezier"
+      className={'sk-shape' + (light ? ' done' : '') + ' open'} style={{ fill: 'none' }} />);
+  }
   pts.forEach((p, i) => out.push(<circle key={key + 'p' + i} cx={p[0]} cy={p[1]} r={light ? 3 : 3.5} className={light ? 'sk-end' : 'sk-point'} />));
   return out;
 }
