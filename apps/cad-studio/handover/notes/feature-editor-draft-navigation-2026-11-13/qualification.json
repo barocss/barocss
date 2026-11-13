@@ -1,0 +1,53 @@
+{
+  "decision": "D963",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4882360afc6e82ad994e54894b344ff31f4ba608",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D963-draft-exit",
+    "D963_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent01 --baseline",
+    "D963_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --fixed",
+    "D686_SOURCE_FROZEN=1 node apps/cad-studio/test/feature-mode-exit-browser.mjs <external-evidence>/hud01 --fixed",
+    "pnpm --filter @barocss/cad-studio-app test constraints sketch-edit-identity work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "d0603b7b045f3e37aa224a3442b84a6d19898f6309460eb60611c4be7e259a54",
+    "distanceOnReturnMM": 2
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "9a44e0e55fc3e693d41610cb4c8cff859c33882fb279dc046926cd5cb5c7ab70",
+    "sourceManifestSHA256": "cedb07791ea8808ba295181cf8dc3743c86efd2375bdf9361747787ca43d9381",
+    "boxControlReceiptSHA256": "709e9f4bf348f75e3cb54c742a426f78b67517b3a995da999ad6248e40ddbecf",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "keptDistanceMM": 4,
+    "discardedDistanceMM": 2
+  },
+  "focusedTests": {
+    "pass": 69,
+    "fail": 0
+  },
+  "notRun": [
+    "valid File Open",
+    "other feature entry points",
+    "New part",
+    "template",
+    "Model Undo",
+    "Cmd+S",
+    "3D Sketch",
+    "in-place Cancel",
+    "Mate",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

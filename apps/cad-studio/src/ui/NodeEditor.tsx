@@ -13,7 +13,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -72,6 +72,11 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const changed = draft !== nodes || sourceWidth !== insetSourceWidth;
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
   const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
+  useLayoutEffect(() => {
+    if (!onDraft || (!changed && !Object.keys(typed).length)) return;
+    onDraft({});
+    return () => onDraft(null);
+  }, [onDraft, changed, draft, typed, nodes, index]);
   const apply = () => {
     if (!changed || pending || incompleteInset || request.current) return;
     setModeProblem(null);

@@ -404,7 +404,10 @@ export function App() {
   const footprintRequest = useRef(0);
   const footprintState = useRef<{ ready: boolean; midpointReady: boolean; insetReady: boolean; editor: number | null; selection: Selection | null }>({ ready: false, midpointReady: false, insetReady: false, editor: null, selection: null });
   const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
-  const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => activeStore.get()?.ctx ?? null);
+  const nodeEditorDraft = useRef<object | null>(null);
+  const reportNodeEditorDraft = useCallback((owner: object | null) => { nodeEditorDraft.current = owner; }, []);
+  const commandDraft = () => activeStore.get()?.ctx ?? null;
+  const workspaceModeExit = useWorkspaceModeExit(sketch, sketchGeneration, docNow, () => commandDraft() ?? nodeEditorDraft.current);
   const sketchModeButton = useRef<HTMLButtonElement>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
@@ -1577,24 +1580,27 @@ export function App() {
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
 
-  const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+  const openHistoryFeature = (event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
     if (raw === undefined) return;
     const index = Number(raw), node = doc.nodes[index];
     if (!Number.isInteger(index) || index < 0 || !node) return;
-    footprintRequest.current++;
-    cancelNativeReview();
-    setInstanceSel([]); setDirectSel([]); assembly.cancel();
-    if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'band-surface') {
-      const command = editCommand(index, doc.nodes, doc);
-      if (command) {
-        // Roll forward before the deferred start, so editing retains all later authored features.
-        setMarker(null); setEditNode(null); setActive(null); setPreviewBodies(null); setRestart(command);
-        return;
+    if (index === editNode && nodeEditorDraft.current) return;
+    workspaceModeExit.switchWhenReady(() => {
+      footprintRequest.current++;
+      cancelNativeReview();
+      setInstanceSel([]); setDirectSel([]); assembly.cancel();
+      if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'band-surface') {
+        const command = editCommand(index, doc.nodes, doc);
+        if (command) {
+          // Roll forward before the deferred start, so editing retains all later authored features.
+          setMarker(null); setEditNode(null); setActive(null); setPreviewBodies(null); setRestart(command);
+          return;
+        }
       }
-    }
-    setEditNode(index);
-  }, [doc, assembly, cancelNativeReview]);
+      setEditNode(index);
+    }, { event });
+  };
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
   useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
@@ -2016,14 +2022,20 @@ export function App() {
   const showWorkspace = (mode: 'Model' | 'Drawing' | 'Render') => {
     setSketch(null);
     if (mode !== 'Model') { discardFeatureDraft(); setMeasure(null); }
+    if (mode === 'Render' && nodeEditorDraft.current) setEditNode(null);
     if (mode !== 'Render') setPlaying(false);
     setRendering(mode === 'Render');
     setDrawing(mode === 'Drawing');
   };
   const requestWorkspace = (mode: Parameters<typeof showWorkspace>[0], event: React.MouseEvent<HTMLButtonElement>) =>
-    workspaceModeExit.switchWhenReady(() => showWorkspace(mode), { event, keepFeature: mode === 'Model' });
+    workspaceModeExit.switchWhenReady(() => showWorkspace(mode), {
+      event, ...(mode === 'Model' ? { readFeature: () => null } : mode === 'Drawing' ? { readFeature: commandDraft } : {}),
+    });
   const requestSketchWorkspace = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!sketch) workspaceModeExit.switchWhenReady(() => startRef.current(commands.find(c => c.id === 'sketch')!),
+    if (!sketch) workspaceModeExit.switchWhenReady(() => {
+      if (nodeEditorDraft.current) setEditNode(null);
+      startRef.current(commands.find(c => c.id === 'sketch')!);
+    },
       { event, destinationFocus: sketchModeButton.current });
   };
   const previewReference = (where: string, { edge, candidateNumber, inModel = false }: ReferencePreviewOptions = {}) => {
@@ -2039,7 +2051,7 @@ export function App() {
         setReferencePreview({ owner: doc, dimensionId: dimension.id, edge, candidateNumber });
         showWorkspace('Drawing');
         setBrowserOpen(true);
-      });
+      }, { readFeature: commandDraft });
       return;
     }
     if (!edge || !fresh || busy || section || previewBodies || sketch || mateFaces) { setToast({ title: 'Preview unavailable', hint: 'Show the current model without a section or active tool first.', detail: '' }); return; }
@@ -2769,7 +2781,7 @@ export function App() {
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
+        {editNode !== null && <NodeEditor onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
           onDetachInset={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? () => applyRoundedInsetEdit() : undefined}
           insetSourceWidth={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' && doc.nodes[0]?.kind === 'sketch' ? roundedInsetSourceWidth(doc.nodes[0]) : undefined}
           onRelinkInset={insetSketch?.kind === 'sketch' && insetSketch.association && insetSketch.on ? { start: reviewInsetSource, cancel: insetRelink.cancel, reviewing: !!insetReview } : undefined}
@@ -2957,7 +2969,7 @@ export function App() {
           exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
       <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar busy={historyBusy} doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
-        layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature }} />}</Profiler>
+        layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature, rememberFocus: workspaceModeExit.rememberFocus }} />}</Profiler>
 
       {inPlace && <div className="card in-place-bar" role="status" aria-label="Editing a part in place">
         <span>Editing <b>{inPlace.name}</b>{inPlace.shared > 1 ? ` · shared by ${inPlace.shared}` : ''}</span>

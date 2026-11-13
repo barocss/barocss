@@ -9,7 +9,7 @@ type Request = {
   sketch: SketchState | null;
   sketchVersion: number;
   feature: object | null;
-  keepFeature: boolean;
+  featureDraft(): object | null;
   switchMode(): void;
   keepFocus: HTMLElement | null;
   discardFocus: HTMLElement | null;
@@ -27,7 +27,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   const sketchDraft = sketch && (sketch.shape || sketch.done?.length) ? sketch : null;
   const owns = (entry: Request) => entry.owner === doc.current && entry.sketch === sketchDraft
     && entry.sketchVersion === sketchGeneration.current
-    && (entry.keepFeature || entry.feature === featureDraft());
+    && entry.feature === entry.featureDraft();
   const current = request && owns(request) ? request : null;
   useEffect(() => {
     if (request && !current) {
@@ -39,12 +39,12 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   const rememberFocus = (event: PointerEvent<HTMLButtonElement>) => {
     pointer.current = { trigger: event.currentTarget, focus: activeElement() };
   };
-  const switchWhenReady = (switchMode: () => void, { event, keepFeature = false, destinationFocus }: {
-    event?: MouseEvent<HTMLButtonElement>; keepFeature?: boolean; destinationFocus?: HTMLElement | null;
+  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus }: {
+    event?: MouseEvent<HTMLButtonElement>; readFeature?: () => object | null; destinationFocus?: HTMLElement | null;
   } = {}) => {
     const previous = pointer.current;
     pointer.current = null;
-    const feature = keepFeature ? null : featureDraft();
+    const feature = readFeature();
     if (!sketchDraft && !feature) {
       switchMode();
       destinationFocus?.focus({ preventScroll: true });
@@ -52,7 +52,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     }
     const trigger = event?.currentTarget ?? activeElement();
     const focus = event?.detail && previous?.trigger === trigger ? previous.focus : trigger;
-    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, keepFeature, switchMode, trigger,
+    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger,
       discardFocus: destinationFocus ?? trigger,
       keepFocus: focus?.isConnected && focus !== document.body ? focus : trigger });
   };
