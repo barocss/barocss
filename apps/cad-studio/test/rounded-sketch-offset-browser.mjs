@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
-const sharpCandidate = process.argv[3] === '--sharp-candidate';
+const lostCorner = process.argv[3] === '--lost-corner';
+const sharpCandidate = lostCorner || process.argv[3] === '--sharp-candidate';
 const points = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
 const ids = points.map((_, i) => 'e' + (i + 1));
 const inset = [[2, 1], [18, 1], [19, 2], [19, 8], [18, 9], [2, 9], [1, 8], [1, 2]];
@@ -21,10 +22,16 @@ const initialFiles = [
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/offset.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
+  ...(lostCorner ? [
+    'apps/cad-studio/src/files/documentFile.ts',
+    'packages/barocss-cad-model/src/engine/references.ts',
+    'packages/barocss-cad/src/blend/edge-finish.ts',
+  ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
+  name: 'rounded-sketch-offset', envFrozen: lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: lostCorner ? 'Measure the existing cold Open rematch for a Fillet whose signed inner arc is absent.'
+    : sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
     : sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
     : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
   limits: [sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
@@ -36,6 +43,8 @@ import { readFileSync } from 'node:fs';
 import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { partSnapshot } from '@barocss/cad-model/engine/part';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { captureSignatures } from '@barocss/cad-model/engine/references';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
 if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
   const b = Math.tan(Math.PI / 8), points = ${JSON.stringify(points)};
@@ -48,6 +57,18 @@ if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
   process.exit(0);
 }
 const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+if (process.argv[3] === '"corner-fillet"') {
+  const parent = evaluatePart(doc, 1);
+  assert.ok(parent.ok, JSON.stringify(parent));
+  const name = 'n1.side[e10]|n1.top';
+  const edge = parent.bodies[0].mesh.edges.find(edge => edge.names.includes(name));
+  assert.ok(edge, JSON.stringify(parent.bodies[0].mesh.edges.map(edge => edge.names)));
+  const feature = { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: [name], radius: 0.2 };
+  const signed = captureSignatures(withNode(doc, feature), parent.bodies);
+  assert.ok(signed.nodes[2].sigs?.[name]);
+  console.log(JSON.stringify(signed));
+  process.exit(0);
+}
 const { outputs } = partSnapshot(doc);
 assert.equal(outputs.length, 1);
 const [{ brep }] = outputs;
@@ -69,7 +90,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -78,7 +99,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -213,6 +234,11 @@ async function verifySharpCandidates(stock) {
     stock.nodes[1],
   ] });
   const rounded = nativeDoc(roundedHole, derivedIds);
+  if (lostCorner) {
+    const sharp = nativeDoc([[2.5, 2.5], [17.5, 2.5], [17.5, 7.5], [2.5, 7.5]].map(start => ({ kind: 'line', start })), sharpIds);
+    await verifyLostCorner(rounded, sharp);
+    return;
+  }
   for (const value of [1, 2, 2.5, 1]) {
     f.phase = `Open the independently authored inset ${value} mm candidate`;
     if (value === 1) {
@@ -257,6 +283,64 @@ async function verifySharpCandidates(stock) {
     }
   }
   await f.snapshot('candidate-return-rounded');
+}
+
+async function verifyLostCorner(rounded, sharp) {
+  const signed = await f.inspect('signed-rounded-fixture', rounded, 'corner-fillet');
+  const stored = signed.nodes[2], [edge] = stored.edges;
+  assert.match(edge, /side\[e10\]/);
+  assert.ok(stored.sigs[edge]);
+  const finished = await f.inspect('rounded-fillet-native', signed);
+  const radius = stored.radius, c = radius * radius * (1 - Math.PI / 4);
+  const m = radius ** 3 * (5 / 6 - Math.PI / 4);
+  const innerPerimeter = 2 * (16 + 6) + 2 * Math.PI;
+  const expected = ringVolume - innerPerimeter * c - 2 * Math.PI * m;
+  close(finished.volume, expected);
+  assert.ok(finished.faces.some(face => face.startsWith('n2.face')));
+  await open(signed);
+  close((await f.bodies()).bodies[0].volume, expected);
+  await f.snapshot('01-rounded-fillet-control');
+
+  const missing = { ...signed, nodes: [...sharp.nodes, stored] };
+  f.phase = 'Open the sharp candidate with the signed missing-arc Fillet';
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(missing)) });
+  const replacement = 'n1.side[e2]|n1.top';
+  await f.page.waitForFunction(([replacement, edge]) =>
+    window.__studioDoc?.nodes?.[2]?.rematched?.[replacement] === edge, [replacement, edge], { timeout: 15000 });
+  await f.ready();
+  const rematched = await f.doc();
+  assert.deepEqual(rematched.nodes.slice(0, 2), sharp.nodes);
+  assert.deepEqual(rematched.nodes[2], {
+    ...stored, edges: [replacement], sigs: { [replacement]: stored.sigs[edge] }, rematched: { [replacement]: edge },
+  });
+  const panel = f.page.getByRole('region', { name: 'References', exact: true });
+  await panel.waitFor();
+  await panel.getByText('Technical details', { exact: true }).click();
+  const notice = await panel.innerText();
+  assert.match(notice, /e10/);
+  assert.match(notice, /e2/);
+  const sharpNative = await f.inspect('sharp-rematched-native', rematched);
+  const sharpBase = stockVolume - 10 * 75;
+  const outerPerimeter = 2 * (16 + 6) + 4 * Math.PI;
+  const expectedSharp = sharpBase - outerPerimeter * c + 2 * Math.PI * m;
+  close(sharpNative.volume, expectedSharp);
+  assert.ok(sharpNative.faces.some(face => face.startsWith('n2.face')));
+  assert.equal(sharpNative.faces.some(face => face.includes('side[e10]')), false);
+  close((await f.bodies()).bodies[0].volume, expectedSharp);
+  await f.snapshot('02-sharp-corner-marked-rematch');
+
+  const bytes = await save(rematched);
+  await f.newPage();
+  await open(rematched, bytes);
+  assert.deepEqual(await f.inspect('sharp-rematched-reopened-native', rematched), sharpNative);
+  await f.snapshot('03-sharp-rematched-fresh-open');
+  await open(signed);
+  assert.deepEqual(await f.inspect('original-rounded-restored', signed), finished);
+  await f.snapshot('04-original-rounded-open');
+  f.report.observations.push({ label: 'signed-missing-corner', edge, replacement, notice, refSignature: stored.sigs[edge],
+    roundedVolumeMm3: finished.volume, expectedRoundedVolumeMm3: expected, unfilletedSharpVolumeMm3: sharpBase,
+    sharpVolumeMm3: sharpNative.volume, expectedSharpVolumeMm3: expectedSharp });
 }
 
 await f.run(async () => {

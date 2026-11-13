@@ -1,0 +1,77 @@
+{
+  "decision": "D909",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "298388a878f058d82c8047cdcda0c4f14d42086c",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d909-studio-missing-inset-corner",
+    "D909_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/corner04 --lost-corner",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rematch o19-stored-names offset sketch-associative-inset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "priorRuns": [
+    {
+      "status": "FAIL",
+      "reason": "The observer overcounted the inner straight perimeter by 4 mm.",
+      "receiptSHA256": "b669a74a95cfb3ef92312220fb5a75e59e6ab2e73c27e2f6a3e730f60674be3b"
+    },
+    {
+      "status": "FAIL",
+      "reason": "A held-feature expectation exposed the actual marked outer rim rematch.",
+      "receiptSHA256": "8700db242f1cff9d04b86edbe4e7a8abfad07d45382739d6406061e9aa40bdfd"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Technical details must be opened before checking the visible edge names.",
+      "receiptSHA256": "608d89c2ad85a4f3e493101014266a9d23cee631e0d95583589fbf1c399c5e92"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 92,
+    "studioPass": 16,
+    "fail": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "d5134459bbf5cc23d1b93ebb01c147f9551af9387bba67e26f41bb28316d2524"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Inner and outer Fillet curvature integral, actual cold Open versus future live topology, and exact retired-ID ownership boundary."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "2c78c1c5618742e854b7930c34e0fc01df39b0b8f3f81a815ef3f7e11769ae05",
+    "sourceManifestSHA256": "8450c4d17840ba4dafc3bff5df0cdb56fe460b4e477bef18e848c4ea6c58c6ef",
+    "frozenFiles": 841,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "volumeToleranceMm3": 1e-07,
+    "source": "n1.side[e10]|n1.top",
+    "markedTarget": "n1.side[e2]|n1.top",
+    "originalVolumeMm3": 533.8137355665577,
+    "expectedOriginalVolumeMm3": 533.8137355665644,
+    "expectedUnfilletedSharpVolumeMm3": 1215.6637061435918,
+    "sharpVolumeMm3": 1215.1805457470857,
+    "expectedSharpVolumeMm3": 1215.180545747084,
+    "freshOpen": "PASS",
+    "savedBytes": 3004,
+    "savedSHA256": "4ae002d09391ddc69cb124e52cf73d87f2301e568abf5b49c2221928377715ba"
+  },
+  "notRun": [
+    "live associative topology edit",
+    "confirmation or automatic reference restoration",
+    "retired-ID guard",
+    "full suites",
+    "mobile"
+  ]
+}
