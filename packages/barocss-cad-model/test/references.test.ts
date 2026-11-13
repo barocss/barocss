@@ -6,7 +6,7 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
-import { captureSignatures, referencesOf, refreshSignatures, verifyReferences, type Sig } from '../src/engine/references';
+import { captureSignatures, confirmReference, referencesOf, refreshSignatures, verifyReferences, type Sig } from '../src/engine/references';
 
 // Stored references with their signatures (A1.3b): written with the reference, refreshed only by an accepted
 // edit, verified on open by the one matcher.
@@ -184,6 +184,31 @@ test('a stored Split cap survives a same-side edit and cannot be rematched to a 
   assert.equal(shell.suppressed, true);
   assert.equal(shell.rematched, undefined);
   assert.deepEqual((await bodiesOf(cold.doc)).map(body => body.key).sort(), ['b2_positive', 'b3']);
+});
+
+test('direct Split Fillet and Chamfer stay held until their different edge is confirmed', async () => {
+  const source = withNode(rectanglePart(60, 30, 10), { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', normal: [1, 0, 0], at: 24 });
+  const edge = 'n1.side0|n2.cut.side1', replacement = 'n1.side0|n2.cut.side3';
+  const parent = { node: 2, side: 'negative' } as const, bodies = await bodiesOf(source);
+  for (const node of [
+    { kind: 'fillet', parent, edges: [edge], radius: 1 },
+    { kind: 'chamfer', parent, edges: [edge], distance: 1 },
+  ] as const) {
+    const doc = captureSignatures(withNode(source, { ...node, edges: [...node.edges] }), bodies);
+    await bodiesOf(doc);
+    const flipped = { ...doc, nodes: doc.nodes.map((n, i) => i === 2 && n.kind === 'split' ? { ...n, normal: [-1, 0, 0] as [number, number, number], at: -30 } : n) };
+    const result = await evaluate(flipped);
+    assert.equal(result.ok, false);
+    const held = await verifyReferences(flipped, [], evaluate);
+    assert.deepEqual(held.changes, []);
+    assert.deepEqual(held.problems.map(p => [p.node, p.name, p.candidates]), [[3, edge, [replacement]]]);
+    assert.deepEqual(held.doc.nodes[3], { ...flipped.nodes[3], suppressed: true, held: `"${edge}" could be ${replacement}` });
+    const heldBodies = await bodiesOf(held.doc);
+    const confirmed = await confirmReference(held.doc, held.problems[0].index, heldBodies, evaluate, replacement);
+    assert.deepEqual(confirmed.nodes[3].sigs?.[replacement].p, [30, 0, 5]);
+    const currentBodies = await bodiesOf(confirmed);
+    assert.deepEqual(await verifyReferences(confirmed, currentBodies, evaluate), { doc: confirmed, changes: [], problems: [] });
+  }
 });
 
 test('a Split cap with two descendants refuses a Shell edit and stays held on File Open', async () => {

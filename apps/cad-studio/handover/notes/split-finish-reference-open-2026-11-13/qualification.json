@@ -1,0 +1,56 @@
+{
+  "decision": "D995",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "95f3eeca8aa76bd659b7bc1cf066aea47adfd9e1",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D995-split-native-probe",
+    "node <external-evidence>/probe.mjs",
+    "gate.sh acquire heavy 600 D995-split-finish-open",
+    "D995_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/baseline --baseline",
+    "D995_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/studio02 --fixed",
+    "pnpm --filter @barocss/cad-model test references",
+    "pnpm --filter @barocss/cad-studio-app test document-file",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/split-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "b7cabf3311c9ca778e65f50389eef276a06a15f8b1754d000826c497a0fc0c3a",
+    "original": "n1.side0|n2.cut.side1",
+    "prematureReplacement": "n1.side0|n2.cut.side3"
+  },
+  "firstFix": {
+    "status": "FAIL",
+    "reason": "The confirmed held feature kept the original X24 signature after choosing X30",
+    "receiptSHA256": "d7ab808c7c3cc22c22555e0a12beca3d8cf4dc6e37419b9ef4088209bd8d9126"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "c81a3b6e29676c615001bffda68c14b0e9a11de5c08afb9e5a39fc3ed4f3945d",
+    "sourceManifestSHA256": "c527c16b2f64c0ec2a406e49839278b57082f2d17c64bbb6624b0acb6ed81038",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "observations": 6,
+    "heldSolidVolumesMM3": [9000, 9000],
+    "confirmedSignaturePointMM": [30, 0, 5],
+    "volumeToleranceMM3": 1e-7
+  },
+  "focused": { "modelPass": 41, "studioPass": 13, "fail": 0, "typeChecks": "PASS" },
+  "notRun": [
+    "native Save and candidate-state Undo",
+    "live Split and linked inset edits",
+    "History repick and Draft/Flange/Hole",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

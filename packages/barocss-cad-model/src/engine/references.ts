@@ -21,7 +21,7 @@
 import { frameFace, type FaceTable, type MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import type { DimPoint } from '../drawing/types';
-import { bodyKeyFor } from './ids';
+import { bodyKeyFor, featureId } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
@@ -282,9 +282,12 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     let m = splitCap ? (cands.has(ref.name) && !ambiguous ? ref.name : []) : matchSignature(fromSig(ref.sig), cands, ref.edge);
     // The bounded wrap requires its exact original wall; another match cannot replace it.
     if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
-    // A band's names are strict too (B2, D-c): a name that moved to other geometry is never substituted, not even marked — the
-    // band is held with the candidate, and only the user's explicit Confirm renames it (unless it is the same live display edge).
-    if (typeof m === 'string' && m !== ref.name && ref.node !== null && out.nodes[ref.node]?.kind === 'band-surface') {
+    const node = ref.node === null ? undefined : out.nodes[ref.node];
+    const splitFinish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') &&
+      (node.parent.side === 'negative' || node.parent.side === 'positive') &&
+      ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, node.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
+    // A band's edge and a direct Split finish must keep their authored name until the user chooses a candidate.
+    if (typeof m === 'string' && m !== ref.name && (node?.kind === 'band-surface' || splitFinish)) {
       const live = cands.get(ref.name);
       if (!(live !== undefined && live === cands.get(m))) m = [m];
     }
@@ -322,9 +325,10 @@ export async function confirmReference(doc: StudioDoc, index: number, finals: re
   if (!ref || ref.datumTarget) return doc;
   if (to !== undefined && to !== ref.name) { ref.rename(to, false); ref.name = to; }
   ref.clear();
-  if (ref.node !== null && out.nodes[ref.node].held) { const n = { ...out.nodes[ref.node] }; delete n.held; delete n.suppressed; out.nodes[ref.node] = n; }
   const parents = await parentBodies(out, [ref], evaluate), sig = candidatesOf(ref, finals, parents, tables)?.get(ref.name);
   if (sig) ref.setSig(toSig(sig));
+  // The reference setter owns the current node object. Capture the signature before releasing a held copy.
+  if (ref.node !== null && out.nodes[ref.node].held) { const n = { ...out.nodes[ref.node] }; delete n.held; delete n.suppressed; out.nodes[ref.node] = n; }
   return prefixDoc(out, out.nodes.length);
 }
 /** The faces (edges) reference `index` could be: those alike its stored signature, nearest first (at most `n`). */
