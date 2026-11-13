@@ -1,16 +1,18 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const fileMode = process.argv[3] === '--file';
 const pins = [
   'apps/cad-studio/test/project-finish-reference-browser.mjs',
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/storage/useProject.ts',
   'apps/cad-studio/src/files/documentFile.ts',
+  'apps/cad-studio/src/files/useStudioDocumentFiles.ts',
   'packages/barocss-cad-model/src/engine/references.ts',
 ];
 const f = await createFlow({
-  name: 'project-finish-reference', output: process.argv[2], envFrozen: 'D1005_SOURCE_FROZEN',
-  qualification: 'Project Open admits a valid held repair for a changed signed finish and refuses an unusable repair.',
+  name: 'project-finish-reference', output: process.argv[2], envFrozen: fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
+  qualification: (fileMode ? 'File' : 'Project') + ' Open admits a valid held finish repair and refuses an unusable one.',
   limits: ['Individual signed constant-radius single-edge Fillet in a browser project.'],
   initialFiles: pins, requiredFrozen: pins,
   snapshotExtra: () => ({
@@ -45,6 +47,10 @@ const volume = (state, expected) => {
 };
 const project = 'D1005 project finish';
 const projectOpen = name => button('Open ' + name + '.bcad', panel()).click();
+async function fileOpen(name, doc) {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: name + '.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+}
 async function connectProject() {
   await button('Project and versions').click();
   await panel().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -80,7 +86,7 @@ await f.run(async () => {
   volume(await f.snapshot('accepted-project-stock'), 630);
 
   f.phase = 'open a changed Fillet edge directly from the project';
-  await projectOpen('lost');
+  if (fileMode) await fileOpen('lost', lost); else await projectOpen('lost');
   await f.page.waitForFunction(() => document.querySelector('.doc-tab input')?.value === 'lost');
   await f.page.getByRole('region', { name: 'References', exact: true }).or(f.page.getByText('Base part · not up to date', { exact: true })).waitFor();
   if (await refs().count()) await f.ready();
@@ -89,7 +95,7 @@ await f.run(async () => {
   assert.equal(held.dirty, true);
   assert.equal(held.doc.nodes[2].suppressed, true);
   assert.deepEqual(held.doc.nodes[2].edges, [edge]);
-  assert.match(held.active, /lost\.bcad/);
+  if (fileMode) assert.equal(held.active, undefined); else assert.match(held.active, /lost\.bcad/);
   volume(held, 630);
   await refs().locator('summary').click();
   assert.match(await refs().locator('details').textContent(), new RegExp('Candidate 1: ' + replacement.replaceAll('|', '\\|')));
@@ -106,10 +112,19 @@ await f.run(async () => {
   await f.redo();
   await f.same(confirmed.doc);
 
-  f.phase = 'refuse an unusable project repair before replacing the active file';
+  f.phase = 'refuse an unusable repair before replacing the active document';
   const before = await f.snapshot('before-unusable-project-open');
-  await projectOpen('unusable');
-  await f.waitToast(/Could not open unusable.*unchanged/s);
+  if (fileMode) {
+    await fileOpen('unusable', unusable);
+    const notice = f.page.getByRole('alert').filter({ hasText: /Could not open this file|The selected edge no longer exists|The kernel could not build this/ });
+    await notice.waitFor();
+    const failed = await f.snapshot('file-open-result');
+    assert.match(await notice.textContent(), /Could not open this file.*unchanged/s);
+    assert.equal(failed.title, before.title);
+  } else {
+    await projectOpen('unusable');
+    await f.waitToast(/Could not open unusable.*unchanged/s);
+  }
   const refused = await f.snapshot('unusable-project-refused');
   for (const key of ['doc', 'bodies', 'selection', 'history', 'title', 'dirty', 'active', 'fresh']) assert.deepEqual(refused[key], before[key], key);
   await f.undo();
@@ -118,19 +133,22 @@ await f.run(async () => {
   await f.same(confirmed.doc);
 
   f.phase = 'save confirmed project document and reopen after reload';
+  const savedName = fileMode ? 'file-confirmed' : 'lost';
+  if (fileMode) await f.page.locator('.doc-tab input').fill(savedName);
   await button('Save').click();
+  await panel().locator('li[data-active="true"]').filter({ hasText: savedName + '.bcad' }).waitFor();
   await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
-  const saved = await f.page.evaluate(async project => {
+  const saved = await f.page.evaluate(async ({ project, savedName }) => {
     const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
     const folder = await projects.getDirectoryHandle(project);
-    return (await (await folder.getFileHandle('lost.bcad')).getFile()).text();
-  }, project);
+    return (await (await folder.getFileHandle(savedName + '.bcad')).getFile()).text();
+  }, { project, savedName });
   assert.deepEqual(JSON.parse(saved), confirmed.doc);
   await f.page.reload();
   await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
   await f.ready();
   await connectProject();
-  await projectOpen('lost');
+  await projectOpen(savedName);
   await f.same(confirmed.doc);
   assert.equal(await refs().count(), 0);
   volume(await f.snapshot('confirmed-project-reopened'), 630 - 6 * (4 - Math.PI));

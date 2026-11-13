@@ -1,0 +1,45 @@
+{
+  "decision": "D1006",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "dff62c6a8c18c3abb4f3ab5eaf89693ca30d5126",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1006-file-finish-baseline",
+    "gate.sh acquire heavy 600 D1006-file-finish-studio",
+    "D1006_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/baseline --file",
+    "D1006_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/studio03 --file",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test project-open-ownership.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "File Open replaced the current model before the unusable repair was detected.",
+    "receiptSHA256": "78c47f1c33f6667a672c7c29ea5bc27a22334f762254ec02824fe1e9e5a7d322",
+    "sourceManifestSHA256": "c31be0f506be08e4fdb9a805e7873854290e191bd941493383e3760f174b6599"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "8ec0a00bcc01fbc71b8a4de7db342a9201daa11bfa6fa980799a51ffb00ec8dc",
+    "sourceManifestSHA256": "bca06fe16f195de50fb93ccda7345552fb17887751483d7396ec8baa8af11b75",
+    "frozenFiles": 373,
+    "states": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldVolumeMM3": 630,
+    "confirmedVolumeMM3": 624.8495559215388,
+    "volumeToleranceMM3": 1e-7
+  },
+  "earlierRuns": [
+    { "status": "FAIL", "reason": "The fixture reused an existing project filename.", "receiptSHA256": "1c0116af3d05be08ae1872a421cfb448f4e6b1b9609ab3b160c85fc0b5d60591" },
+    { "status": "FAIL", "reason": "The filename locator did not resolve while dirty.", "receiptSHA256": "fceb3a4913b97fa3de9c04fe23deeea13452441fffd1778b32b7bd163652a852" }
+  ],
+  "focused": { "status": "PASS", "passed": 51, "failed": 0, "typeCheck": "PASS" },
+  "notRun": ["previously saved auto-matched finishes", "shared and multi-edge replacement", "production build", "full suites", "mobile"]
+}

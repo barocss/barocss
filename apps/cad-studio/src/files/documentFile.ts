@@ -123,8 +123,8 @@ export async function verifyDocumentFile(opened: StudioDoc, readPart: (doc: Stud
   return verified;
 }
 
-/** A project file can take the active path only after a signed finish repair builds. */
-export async function prepareProjectFinishOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
+/** A file with a signed finish can open with a held reference only after the repair builds. */
+export async function prepareSignedFinishOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
   current: () => boolean): Promise<{ doc: StudioDoc; problems: Problem[] } | undefined> {
   if (!current() || !opened.nodes.some(node => (node.kind === 'fillet' || node.kind === 'chamfer')
       && node.edges.some(edge => !!node.sigs?.[edge]))) return;

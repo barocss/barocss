@@ -18,7 +18,7 @@ import type { OpenScope } from '../state/openOwnership';
 import { currentDocumentSave } from '../state/saveOwnership';
 import type { useProject } from '../storage/useProject';
 import { placedProposalPreview } from '../viewport/instanceEvaluation';
-import { readDocumentFile, verifyDocumentFile, verifyStoredNativeOpen, writeDocumentFile } from './documentFile';
+import { prepareSignedFinishOpen, readDocumentFile, verifyDocumentFile, verifyStoredNativeOpen, writeDocumentFile } from './documentFile';
 import { isImportedFile, openImportedFile } from './importedFile';
 import { MAX_TASK_CHECKPOINT_BYTES, readTaskCheckpoint, TASK_CHECKPOINT_EXT, verifyTaskCheckpoint, type CheckpointReview } from './taskCheckpoint';
 import { candidateReviewOnBaseline, decodeCandidateReview, matchesCurrentCandidateReview, MAX_TASK_CANDIDATE_BYTES, TASK_CANDIDATE_EXT, verifyCandidateReview, type CandidateReview, type CandidateReviewReceipt } from './taskCandidateReview';
@@ -603,15 +603,19 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, v
         await nativeCheck;
         if (!owner.isCurrent()) return;
       }
-      const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
+      const prepared = await prepareSignedFinishOpen(parsed, d => engine.part(d, nextRevision(), 'refs'), owner.isCurrent);
+      if (!owner.isCurrent()) return;
+      const source = prepared?.doc ?? parsed;
+      const acceptedDoc = { ...source, ...(source.render ? { render: readRender(source.render) } : {}), ...(source.drawing ? { drawing: readDrawing(source.drawing) } : {}) };
       ownership.requestNativeOpen(() => {
         if (!owner.isCurrent() || !replaceDoc(acceptedDoc)) return;
         setFileName(file.name.replace(/\.(bcad|json)$/i, ''));
-        setDirty(read.notes.length > 0);
+        setDirty(read.notes.length > 0 || prepared !== undefined);
+        if (prepared) rememberRefProblems(acceptedDoc, prepared.problems);
         const accepted = currentOpenScope(), dispatch = saveDocumentToken.current;
         if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
         setTimeout(() => { if (isOpenCurrent(accepted)) fit(); }, 300);
-        void verifyOpened(acceptedDoc, accepted, dispatch);
+        if (!prepared) void verifyOpened(acceptedDoc, accepted, dispatch);
       }, focus);
     } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
