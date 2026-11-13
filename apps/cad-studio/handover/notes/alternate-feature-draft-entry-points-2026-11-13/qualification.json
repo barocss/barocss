@@ -1,0 +1,46 @@
+{
+  "decision": "D971",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "6495b4427bca57814e327eea78c3d410c69a0380",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D971-alternate-feature",
+    "D971_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent02 --alternate-baseline",
+    "D971_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --alternate-fixed",
+    "pnpm --filter @barocss/cad-studio-app test work-ownership sketch-edit-identity",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "f9e42605e4528705aa3826f2b405d930487624c8e2e1b505f6de0f376055e576"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "8bf88a350f408d44fbff5706dd57ec74fae2c24578c6230073e89517821a3f8c",
+    "sourceManifestSHA256": "37a01eff296c93694f78e0dbad38f456804efcea9a0711ecca7f56da522ebe09",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "retainedDistanceMM": 4,
+    "targetDistanceMM": 5,
+    "restoredFocus": "Distance"
+  },
+  "focusedTests": {
+    "pass": 45,
+    "fail": 0
+  },
+  "notRun": [
+    "other exchange formats",
+    "other direct-edit controls",
+    "folder projects",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

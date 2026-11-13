@@ -45,7 +45,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
   const takeFocus = (event: MouseEvent<HTMLButtonElement>) => {
     const previous = pointer.current;
     pointer.current = null;
-    return event.detail && previous?.trigger === event.currentTarget ? previous.focus : activeElement();
+    return (event.detail || event.type === 'contextmenu') && previous?.trigger === event.currentTarget ? previous.focus : activeElement();
   };
   const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus, title, onKeep }: {
     event?: MouseEvent<HTMLButtonElement>; readFeature?: () => object | null; destinationFocus?: HTMLElement | null;

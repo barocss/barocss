@@ -673,7 +673,7 @@ export function App() {
   const [objectSnapKinds, setObjectSnapKinds] = useState(defaultObjectSnapKinds);
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
   /** The history chip right-clicked: its menu (edit, edit sketch, roll back here, delete). */
-  const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number } | null>(null);
+  const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number; focus?: HTMLElement | null } | null>(null);
   /**
    * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
    * faces lit (the kernel's split, display only — the model is not changed).
@@ -1586,6 +1586,7 @@ export function App() {
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
 
+  const readFeatureTransitionDraft = () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current;
   const openHistoryFeature = (event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
     if (raw === undefined) return;
@@ -1605,7 +1606,7 @@ export function App() {
         }
       }
       setEditNode(index);
-    }, { event, readFeature: () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current });
+    }, { event, readFeature: readFeatureTransitionDraft });
   };
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
@@ -2583,7 +2584,13 @@ export function App() {
           }}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
         <BodyBrowserRows model={{ doc, evaluated, namesDoc, bodies, fresh, busy }} selection={selection}
-          rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setEditNode, setRowHover }} changes={{ commit, setSelection, setDirectSel, setInstanceSel }} meshBadges={meshBadges} />
+          rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setRowHover }} changes={{ commit, setSelection, setDirectSel, setInstanceSel,
+            rememberFocus: workspaceModeExit.rememberFocus,
+            editFeature: (index, body, event) => workspaceModeExit.switchWhenReady(() => {
+              setEditNode(index);
+              setSelection({ faces: [], edges: [], bodies: [body] });
+            }, { event, readFeature: readFeatureTransitionDraft }),
+          }} meshBadges={meshBadges} />
         {freeSketches.length > 0 && <div className="ol-head">Sketches</div>}
         {freeSketches.map(k => <div key={'s' + k} className={'ol-row' + (selection.sketches?.includes(k) ? ' sel' : '')}>
           <span className="ol-eye"><Icon name="cad-sketch" small /></span>
@@ -3006,7 +3013,7 @@ export function App() {
           exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
       <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar busy={historyBusy} doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
-        layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature, rememberFocus: workspaceModeExit.rememberFocus }} />}</Profiler>
+        layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature, rememberFocus: workspaceModeExit.rememberFocus, takeFocus: workspaceModeExit.takeFocus }} />}</Profiler>
 
       {inPlace && <div className="card in-place-bar" role="status" aria-label="Editing a part in place">
         <span>Editing <b>{inPlace.name}</b>{inPlace.shared > 1 ? ` · shared by ${inPlace.shared}` : ''}</span>
@@ -3040,6 +3047,7 @@ export function App() {
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} extra={PALETTE_EXTRA} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       <FeatureHistoryMenu doc={doc} ctx={ctx} marker={marker} historyMenu={historyMenu} close={() => setHistoryMenu(null)}
+        beforeEdit={action => workspaceModeExit.switchWhenReady(action, { originFocus: historyMenu?.focus, readFeature: readFeatureTransitionDraft })}
         editors={{ setEditNode, setInstanceSel, setDirectSel, editSketch, exportSketchDxf, cancel, beginSkeleton: skel.begin, setSelection }} history={{ toggleSuppress, reorder, setMarker, deleteNode }} />
       <ViewContextMenu model={{ doc, bodies, ctx }} menu={menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
 

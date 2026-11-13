@@ -1,4 +1,4 @@
-import { Fragment, type Dispatch, type SetStateAction, type ReactNode } from 'react';
+import { Fragment, type Dispatch, type SetStateAction, type ReactNode, type MouseEvent, type PointerEventHandler } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { featureLabel } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -10,15 +10,17 @@ import { Icon } from './atoms';
 interface BodyBrowserRowsProps {
   model: { doc: StudioDoc; evaluated: StudioDoc; namesDoc: StudioDoc; bodies: BodyResult[]; fresh: boolean; busy: boolean };
   selection: Selection;
-  rows: { expanded: string[]; setExpanded: Dispatch<SetStateAction<string[]>>; renaming: string | null; setRenaming: Dispatch<SetStateAction<string | null>>; editNode: number | null; setEditNode: Dispatch<SetStateAction<number | null>>; setRowHover: Dispatch<SetStateAction<number | null>> };
-  changes: { commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setDirectSel: Dispatch<SetStateAction<string[]>>; setInstanceSel: Dispatch<SetStateAction<string[]>> };
+  rows: { expanded: string[]; setExpanded: Dispatch<SetStateAction<string[]>>; renaming: string | null; setRenaming: Dispatch<SetStateAction<string | null>>; editNode: number | null; setRowHover: Dispatch<SetStateAction<number | null>> };
+  changes: { commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setDirectSel: Dispatch<SetStateAction<string[]>>; setInstanceSel: Dispatch<SetStateAction<string[]>>;
+    editFeature(index: number, body: number, event: MouseEvent<HTMLButtonElement>): void;
+    rememberFocus: PointerEventHandler<HTMLButtonElement> };
   meshBadges(index: number, body: BodyResult, steps: readonly number[]): ReactNode;
 }
 /** Body rows and their feature lists; row state survives Browser visibility changes in App. */
 export function BodyBrowserRows({ model, selection, rows, changes, meshBadges }: BodyBrowserRowsProps) {
   const { doc, evaluated, namesDoc, bodies, fresh, busy } = model;
-  const { expanded, setExpanded, renaming, setRenaming, editNode, setEditNode, setRowHover } = rows;
-  const { commit, setSelection, setDirectSel, setInstanceSel } = changes;
+  const { expanded, setExpanded, renaming, setRenaming, editNode, setRowHover } = rows;
+  const { commit, setSelection, setDirectSel, setInstanceSel, editFeature, rememberFocus } = changes;
   return <>
         {bodies.length > 0 && <div className="ol-head">Bodies</div>}
         {!fresh && bodies.map(b => <div key={b.key} className="ol-row stale" aria-busy="true" title={busy ? 'Evaluating the part: this is the body before the change' : 'The part did not evaluate: this is the last good body'}>
@@ -42,7 +44,7 @@ export function BodyBrowserRows({ model, selection, rows, changes, meshBadges }:
                 {bodyName(doc, b)}{(() => { const last = lastFeature(doc, b); return last ? <span className="muted"> · {last}</span> : null; })()}</button>}
             {meshBadges(i, b, steps)}
           </div>
-          {open && steps.map(k => <button key={k} className={'ol ol-step' + (editNode === k ? ' sel' : '')} onClick={() => { setEditNode(k); setSelection({ faces: [], edges: [], bodies: [i] }); }}>
+          {open && steps.map(k => <button key={k} className={'ol ol-step' + (editNode === k ? ' sel' : '')} onPointerDown={rememberFocus} onClick={event => editFeature(k, i, event)}>
             <Icon name={iconFor(evaluated.nodes[k])} small />{featureLabel(evaluated.nodes[k], k, evaluated.nodes)}</button>)}
           </Fragment>;
         })}

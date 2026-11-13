@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed'].includes(mode));
 const step = mode.startsWith('--step');
 const openFlow = mode.startsWith('--open') || step;
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
@@ -12,7 +12,9 @@ const skeleton = mode.startsWith('--skeleton');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
 const project = mode.startsWith('--project');
+const alternate = mode.startsWith('--alternate');
 const pins = [
+  ...(alternate ? ['apps/cad-studio/src/ui/BodyBrowserRows.tsx', 'apps/cad-studio/src/ui/FeatureHistoryMenu.tsx'] : []),
   ...(step ? [stepPath, 'apps/cad-studio/src/files/importedFile.ts'] : []),
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
@@ -24,8 +26,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -380,6 +382,50 @@ async function checkMate() {
   f.report.observations.push({ label: 'mate-draft', type: 'distance', stays: picked });
 }
 
+async function checkAlternateFeature() {
+  const candidate = structuredClone(source);
+  candidate.nodes.push({ kind: 'translate', parent: { node: 3, side: 'solid' }, offset: [4, 0, 0], id: 'n4' });
+  candidate.outputs = { b1: candidate.outputs.b1, b4: { node: 4, side: 'solid' } };
+  candidate.nextId = 5;
+  await openCandidate('Feature routes', candidate);
+  await f.same(candidate);
+  await f.page.getByRole('button', { name: 'Show its features', exact: true }).filter({ visible: true }).last().click();
+  const browserStep = f.page.locator('button.ol-step').filter({ hasText: 'Extrude 5' });
+  await browserStep.waitFor();
+  await f.openFeatureEditor(1);
+  await distance().fill('4');
+  const before = await f.snapshot('01-draft');
+  const historyMenu = async () => {
+    await historyStep(3).click({ button: 'right' });
+    await f.page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+  };
+  if (mode.endsWith('baseline')) {
+    f.phase = 'switch to another feature through the History context menu';
+    await historyMenu();
+    await f.page.waitForFunction(() => document.querySelector('.node-editor input[aria-label="Distance"]')?.value === '5');
+    await f.snapshot('02-draft-replaced');
+    assert.fail('The History menu replaced the unapplied 4 mm Distance');
+  }
+
+  for (const [label, action] of [['history-menu', historyMenu], ['browser', () => browserStep.click()]]) {
+    f.phase = 'keep the current Distance at ' + label;
+    await distance().focus();
+    await action();
+    await prompt().getByRole('button', { name: 'Keep editing', exact: true }).click();
+    await prompt().waitFor({ state: 'hidden' });
+    await waitFocus(distance());
+    const kept = await f.snapshot('02-kept-' + label);
+    assert.equal(kept.value, '4');
+    for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[key], before[key], key);
+  }
+  await browserStep.click();
+  await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await f.page.waitForFunction(() => document.querySelector('.node-editor input[aria-label="Distance"]')?.value === '5');
+  await f.same(candidate);
+  const changed = await f.snapshot('03-other-feature');
+  assert.deepEqual(changed.selection.selection.bodies, [1]);
+}
+
 function captureNativeSave() {
   const create = URL.createObjectURL;
   const click = HTMLAnchorElement.prototype.click;
@@ -416,6 +462,7 @@ await f.run(async () => {
   await f.newPage();
   if (inPlace) { await checkInPlace(); return; }
   if (mate) { await checkMate(); return; }
+  if (alternate) { await checkAlternateFeature(); return; }
   await openCandidate('Draft source', source);
   await f.same(source);
   if (openFlow || project) { await checkOpenDraft(); return; }
