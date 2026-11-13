@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D922 — verify straight-face inset re-link on an oblique plane](notes/straight-inset-relink-oblique-2026-11-13/README.md).
 - [D921 — retain the accepted inset when a replacement Extrude fails](notes/straight-inset-relink-dependent-refusal-2026-11-13/README.md).
 - [D920 — verify straight-face inset re-link on the current Studio](notes/straight-inset-relink-current-2026-11-13/README.md).
 - [D919 — verify the remaining rounded inset refusal cases](notes/rounded-inset-refusal-acceptance-2026-11-13/README.md).

@@ -3,8 +3,9 @@ import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const fixed = process.argv[3] === '--fixed';
+const oblique = process.argv[3] === '--oblique';
 const downstream = process.argv[3] === '--downstream';
-const relink = downstream || process.argv[3] === '--relink';
+const relink = oblique || downstream || process.argv[3] === '--relink';
 const pins = [
   'apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -24,13 +25,14 @@ const pins = [
 ];
 const f = await createFlow({
   name: relink ? 'associative-inset-relink' : 'associative-inset-relink-baseline',
-  output: process.argv[2], envFrozen: downstream ? 'D921_SOURCE_FROZEN' : relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
+  output: process.argv[2], envFrozen: oblique ? 'D922_SOURCE_FROZEN' : downstream ? 'D921_SOURCE_FROZEN' : relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: downstream ? 'Refuse a resolved linked inset when its downstream native Extrude fails.'
+  qualification: oblique ? 'Replace a straight-face inset source with an oblique native planar face.'
+    : downstream ? 'Refuse a resolved linked inset when its downstream native Extrude fails.'
     : relink ? 'Preview, replace and persist the earlier native source of one existing linked inset.'
     : fixed ? 'Keep the working document during failed associative inset File and Project Open.'
     : 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
-  limits: ['Two earlier axial native rectangular solids and one 2 mm linked inset.',
+  limits: [oblique ? 'Two native rectangular solids, one oblique replacement top, and one 2 mm linked inset.' : 'Two earlier axial native rectangular solids and one 2 mm linked inset.',
     relink ? 'The linked sketch feeds one final independent straight Extrude.' : 'A prepared candidate file measures the existing reader and evaluator.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -76,12 +78,15 @@ try {
 }
 `,
 });
+const tiltedPlane = { origin: [100, 20, 6], normal: [0, -0.6, 0.8], xAxis: [1, 0, 0] };
+const tiltedWorld = (u, v, h) => [100 + u, 20 + 0.8 * v - 0.6 * h, 6 + 0.6 * v + 0.8 * h];
 const seed = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
     { kind: 'sketch', profile: 'rectangle', min: downstream ? [9930, 0] : [0, 0], max: downstream ? [9970, 24] : [40, 24], id: 'n0' },
     { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
-    { kind: 'sketch', profile: 'rectangle', min: downstream ? [9990, 0] : [100, 0], max: downstream ? [9994.25, 4.25] : [160, 24], id: 'n2' },
+    oblique ? { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 24], plane: tiltedPlane, id: 'n2' }
+      : { kind: 'sketch', profile: 'rectangle', min: downstream ? [9990, 0] : [100, 0], max: downstream ? [9994.25, 4.25] : [160, 24], id: 'n2' },
     { kind: 'extrude', sketch: 2, height: 8, id: 'n3' },
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
@@ -167,6 +172,91 @@ async function verifyDownstreamRefusal(original) {
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 5);
   await f.redo();
   await verify('native-redo-after-refusal', original, 9930, 40, 'n1', 1);
+}
+
+async function verifyObliqueRelink(original) {
+  const candidate = structuredClone(original);
+  candidate.nodes[4].association = association('n3', 3);
+  const verifyNative = async (label, doc, width) => {
+    await f.same(doc);
+    const native = await f.inspect(label, doc);
+    assert.equal(native.stage, 'accepted', native.error);
+    assert.deepEqual(native.sketch.association, association('n3', 3));
+    assert.deepEqual(native.sketch.on, firstSource);
+    const { plane } = native.sketch;
+    const closePoint = (actual, expected) => expected.forEach((value, axis) => near(actual[axis], value));
+    closePoint(plane.origin, [0, -0.48, 0.64]);
+    closePoint(plane.normal, tiltedPlane.normal);
+    closePoint(plane.xAxis, tiltedPlane.xAxis);
+    assert.deepEqual(native.outputs.map(output => output.id), ['n1', 'n3', 'n5']);
+    assert.ok(native.outputs.every(output => output.valid));
+    const [a, b, ring] = native.outputs;
+    near(a.volume, 7680);
+    near(b.volume, width * 24 * 8);
+    const volume = (width * 24 - (width - 4) * 20) * 4;
+    near(ring.volume, volume);
+    near((await f.bodies()).bodies.find(body => body.key === 'b5').volume, volume);
+    for (const h of [8, 12]) for (const i of [0, 2]) for (const u of [i, width - i]) for (const v of [i, 24 - i]) {
+      const wanted = tiltedWorld(u, v, h);
+      assert.ok(ring.corners.some(p => Math.hypot(...p.map((value, axis) => value - wanted[axis])) <= 1e-8), wanted);
+    }
+    assert.equal(ring.corners.length, 16);
+    f.report.observations.push({ label, plane, volume: ring.volume, expectedVolume: volume, stockVolume: b.volume, target: native.sketch.on, corners: ring.corners });
+    await f.snapshot(label);
+  };
+
+  f.phase = 'Pick the oblique native top and preview its ring';
+  await button(f.page.locator('.views'), 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.openFeatureEditor(5, 'linked ring');
+  const point = await f.page.evaluate(world => {
+    const xy = window.__studioScreenOf(world);
+    return xy && document.elementFromPoint(...xy)?.closest('canvas.vp-canvas') ? xy : null;
+  }, tiltedWorld(30, 12, 8));
+  assert.ok(point);
+  await f.page.mouse.click(...point);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
+  const before = await f.snapshot('03-oblique-selected');
+  await button(f.editor(), 'Replace inset source').click();
+  const panel = f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
+  await panel.getByText('n1.top → n3.top', { exact: true }).waitFor();
+  await panel.getByText('Target · n1', { exact: true }).waitFor();
+  await panel.getByText('Normal · 0, -0.6, 0.8', { exact: true }).waitFor();
+  await panel.getByText('Extrude · 1280 mm³', { exact: true }).waitFor();
+  unchanged(await f.snapshot('04-oblique-preview'), before);
+  await button(panel, 'Apply source').click();
+  await verifyNative('05-oblique-applied', candidate, 60);
+  await f.undo();
+  await verify('native-oblique-undo', original, 0, 40, 'n1', 1);
+  await f.redo();
+  await verifyNative('06-oblique-redo', candidate, 60);
+
+  f.phase = 'Save and open the exact oblique association';
+  const name = 'D922-oblique-ring', file = name + '.bcad', project = 'D922 oblique ' + randomUUID();
+  await f.page.locator('.doc-tab input').fill(name);
+  await button(f.page, 'Project and versions').click();
+  const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  await versions.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(versions, 'Project in this browser').click();
+  await versions.getByLabel('Project', { exact: true }).waitFor();
+  await button(f.page, 'Save').click();
+  await versions.getByRole('list', { name: 'Project documents', exact: true }).getByText(file, { exact: true }).waitFor();
+  await f.page.locator('[aria-label="Unsaved changes"]').waitFor({ state: 'hidden' });
+  const saved = Buffer.from(await f.page.evaluate(async ([project, file]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const folder = await projects.getDirectoryHandle(project);
+    return (await (await folder.getFileHandle(file)).getFile()).text();
+  }, [project, file]));
+  assert.deepEqual(JSON.parse(saved), candidate);
+  f.report.observations.push({ label: 'oblique-save', bytes: saved.length, sha256: sha256(saved) });
+  await f.newPage();
+  await chooseFile(file, candidate, saved);
+  await verifyNative('07-oblique-fresh-open', candidate, 60);
+  await f.openFeatureEditor(3, 'oblique source stock');
+  await f.editor().getByLabel('Width', { exact: true }).fill('64');
+  const edited = await f.applyEditor(candidate, '08-oblique-source-width-64');
+  assert.deepEqual(edited.doc.nodes.slice(4), candidate.nodes.slice(4));
+  await verifyNative('09-oblique-fresh-edit', edited.doc, 64);
 }
 
 function holdWorkerReply(type) {
@@ -438,6 +528,11 @@ await f.run(async () => {
   assert.deepEqual(original.nodes[5], { kind: 'extrude', sketch: 4, height: 4, id: 'n5' });
   await verify('native-original', original, downstream ? 9930 : 0, 40, 'n1', 1);
 
+  if (oblique) {
+    await verifyObliqueRelink(original);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (downstream) {
     await verifyDownstreamRefusal(original);
     assert.deepEqual(f.report.downloads, []);
