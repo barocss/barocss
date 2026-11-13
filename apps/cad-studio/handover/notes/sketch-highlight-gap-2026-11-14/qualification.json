@@ -1,0 +1,100 @@
+{
+  "decision": "D1053",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "5eb0e14b560cf368a5a1ce27e42a26cf89f06b85",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1053-sketch-gap-<run>",
+    "D1053_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-highlight-gap-browser.mjs <external-evidence>/<run>",
+    "D1052_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-nearest-curve-browser.mjs <external-evidence>/curve-replay",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/marks --fixed",
+    "pnpm --filter @barocss/cad-studio-app test constraint-list sketch-constraint-mark-layout",
+    "node --check apps/cad-studio/test/sketch-highlight-gap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline03": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 857,
+      "receiptSHA256": "964d52176cd712edffdd2143065101f16c338ae3876787ed4e056a59f6d6c616",
+      "sourceManifestSHA256": "4294a691cbedd06837eb685c202fcb694adcbe893d05c87b1c38e36981bb4d26"
+    },
+    "fixed01": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 857,
+      "receiptSHA256": "ad0fefae20a26a5a8f2c308ba9e40f125657d43a3fd2b6b874c1def246736c8a",
+      "sourceManifestSHA256": "f132dce9f88efd30a3667be27b304b4368b20464ceac6fce5cd6907963d5a463"
+    },
+    "fixed02": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 857,
+      "receiptSHA256": "d2441fa179ab7d8f052135d1edc72afebb4bb053fe4497a67ea3fc9c4c9f5900",
+      "sourceManifestSHA256": "686f61b2109fb1fc0eb94d8d42175a0c71e051432334ad27cf27dbf2e5b96aa0"
+    },
+    "curveReplay": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 857,
+      "receiptSHA256": "2c1b737c7aebb4936ca9646f5d2900456b9e889e53a79119718ec9fdf2dca220",
+      "sourceManifestSHA256": "d898f9a8246a0ca26501a98e6363760f9fcb0b0428a8a30ed86ccc28fdd67474"
+    },
+    "marks": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 856,
+      "receiptSHA256": "6198f69dfc2f2e6ca6f068e209db6f677006e4d618c1c377f3d265bd75a362ac",
+      "sourceManifestSHA256": "c65bbd601af1f50d1b9e2a742861d985b8224d77b770b3594e0a820490bf88f4"
+    }
+  },
+  "measured": {
+    "gapCSS": [
+      3.999981328739864,
+      4.018591001205948
+    ],
+    "columnsCSS": 44,
+    "states": [
+      "selected-and-hovered",
+      "both-selected",
+      "selected-and-inspected"
+    ],
+    "baselineWidthCSS": [
+      4,
+      5,
+      8
+    ],
+    "firstCandidateWidthCSS": [
+      2.25,
+      2.5,
+      3
+    ],
+    "finalWidthCSS": [
+      2,
+      2,
+      2
+    ],
+    "baselineClearDevicePx": [
+      0,
+      0,
+      0
+    ],
+    "finalDpr1": [
+      1,
+      1,
+      1
+    ],
+    "finalDpr2": [
+      3,
+      3,
+      3
+    ]
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 7,
+    "failed": 0
+  }
+}
