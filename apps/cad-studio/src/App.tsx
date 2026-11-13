@@ -1719,7 +1719,7 @@ export function App() {
   }, [ctx]);
 
   const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration,
-    recordTrim: (before, after) => {
+    recordDraft: (before, after) => {
       sketchHistory.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
       liveShape.current = after.shape;
       queuedSketchHistory.current = { doc, generation: sketchGeneration.current, draft: after };

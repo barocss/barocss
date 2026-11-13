@@ -35,7 +35,7 @@ import { preserveConstruction } from './preserveConstruction';
 interface SketchActionOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null };
   editor: { sketch: SketchState | null; setSketch: Dispatch<SetStateAction<SketchState | null>>; sketchGeneration: RefObject<number>;
-    recordTrim?(before: SketchState, after: SketchState): void };
+    recordDraft?(before: SketchState, after: SketchState): void };
   owner: { docNow: RefObject<StudioDoc>; acceptanceScope: object };
   worker: { engine: EngineClient; nextRevision(): number };
   viewport: RefObject<ViewportHandle | null>;
@@ -54,7 +54,7 @@ function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
 /** Sketch placement, editing and Finish retain App's dispatch and sketch generation owner. */
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
   const { doc, bodies, selection, marker } = model;
-  const { sketch, setSketch, sketchGeneration, recordTrim } = editor;
+  const { sketch, setSketch, sketchGeneration, recordDraft } = editor;
   const sketchRenderGeneration = sketchGeneration.current;
   const [finishRefusal, setFinishRefusal] = useState<{ generation: number; message: string } | null>(null);
   const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
@@ -107,20 +107,23 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Edge curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('edges', curves.slice(0, 16)), `Edge curve ${made + 1}`);
     commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id));
   };
+  const ownsSketch = () => docNow.current === doc && sketchGeneration.current === sketchRenderGeneration;
+  const commitDraft = (before: SketchState, next: SketchState) => {
+    setSketch(next);
+    recordDraft?.(before, next);
+  };
   /** Offsets the newest closed shape of the sketch by `d` (out when positive) as a shape beside it. */
   const offsetSketch = (d: number) => {
-    if (!sketch) return;
+    if (!sketch || !ownsSketch()) return;
     const target = sketch.shape && shapeNode(sketch.shape) ? sketch.shape : [...(sketch.done ?? [])].reverse().find(x => !x.construction && shapeNode(x));
     if (!target) { setToast({ title: 'Nothing to offset', hint: 'Draw a closed shape first.', detail: '' }); return; }
     const r = offsetShape(target, d);
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
+    const done = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : []), r.shape];
+    commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, picked: [], editDim: null });
   };
-  const ownsSketch = () => docNow.current === doc && sketchGeneration.current === sketchRenderGeneration;
   const commitTrimDraft = (before: SketchState, shapes: SketchShape[]) => {
-    const next: SketchState = { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null };
-    setSketch(next);
-    recordTrim?.(before, next);
+    commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null });
   };
   const dragTrim = (source: DragTrimOwner, plan: DragTrimPlan) => {
     if (source.sketch !== sketch || source.doc !== doc || source.scope !== acceptanceScope || !ownsSketch()) return;
@@ -130,7 +133,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
-    const ownedTrim = op === 'trim' && recordTrim;
+    const ownedTrim = op === 'trim' && recordDraft;
     if (ownedTrim && !ownsSketch()) return;
     const { shapes, protectedShapes } = sketchCutInputs(sketch);
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);

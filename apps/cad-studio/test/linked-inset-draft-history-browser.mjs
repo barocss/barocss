@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const offset = process.argv.includes('--offset');
 const pins = [
   'apps/cad-studio/test/linked-inset-draft-history-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -8,8 +9,9 @@ const pins = [
   'apps/cad-studio/src/sketch/useSketchActions.ts',
 ];
 const f = await createFlow({
-  name: 'linked-inset-draft-history', output: process.argv[2], envFrozen: 'D1062_SOURCE_FROZEN',
-  qualification: 'Undo and Redo restore both the coordinates and association of a linked inset.',
+  name: 'linked-inset-draft-history', output: process.argv[2], envFrozen: offset ? 'D1063_SOURCE_FROZEN' : 'D1062_SOURCE_FROZEN',
+  qualification: offset ? 'Replay Trim and Offset on a linked inset in order.'
+    : 'Undo and Redo restore both the coordinates and association of a linked inset.',
   limits: ['One straight axial linked ring and one independent Extrude in desktop Studio.'],
   initialFiles: pins, requiredFrozen: pins,
 });
@@ -35,6 +37,55 @@ const link = () => f.sketchPanel().getByText(/Linked face outline and inset/);
 const detached = () => f.sketchPanel().getByText(/Link detached by a geometry/);
 const readX = () => Promise.all([3, 4].map(async point => Number(await field(point).inputValue())));
 
+async function offsetAfterTrim() {
+  const page = f.page;
+  await f.tool('Trim', 't');
+  const point = await page.evaluate(() => window.__studioScreenOf([10, 1, 10]));
+  assert.ok(await page.evaluate(point => document.elementFromPoint(...point)?.matches('canvas.vp-canvas'), point));
+  const cue = page.locator('.vp-overlay .sk-trim');
+  const moveAway = () => page.mouse.move(point[0], point[1] + 40);
+  const expectInnerEdge = async visible => {
+    await moveAway();
+    await page.mouse.move(...point);
+    await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.equal(await cue.count(), visible ? 1 : 0);
+  };
+  await expectInnerEdge(true);
+  await page.mouse.click(...point);
+  await detached().waitFor();
+  await expectInnerEdge(false);
+  const shapes = () => page.locator('.vp-overlay .sk-shape.done').count();
+  const afterTrim = await shapes();
+  f.phase = 'Offset a remaining closed outline after Trim';
+  const distance = f.sketchPanel().getByLabel('Offset distance', { exact: true });
+  const outward = button('Offset outward', f.sketchPanel());
+  await distance.fill('1');
+  await outward.click();
+  const afterOffset = await shapes();
+  assert.equal(afterOffset, afterTrim + 1);
+  const undoEnabled = await button('Undo').isEnabled();
+  f.report.observations.push({ afterTrim, afterOffset, undoEnabled });
+  await f.snapshot('linked-offset-after-trim');
+  assert.equal(undoEnabled, true);
+  await button('Undo').click();
+  assert.equal(await shapes(), afterTrim);
+  await detached().waitFor();
+  await expectInnerEdge(false);
+  await page.keyboard.press('Meta+z');
+  await link().waitFor();
+  await expectInnerEdge(true);
+  await f.same(seed);
+  await button('Redo').click();
+  await detached().waitFor();
+  await expectInnerEdge(false);
+  await page.keyboard.press('Meta+Shift+z');
+  assert.equal(await shapes(), afterOffset);
+  await button('Undo').click();
+  await button('Undo').click();
+  await link().waitFor();
+  await expectInnerEdge(true);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -55,26 +106,30 @@ await f.run(async () => {
   await button('Edit sketch', f.editor()).click();
   await link().waitFor();
   assert.deepEqual(await readX(), [20, 20]);
-  f.phase = 'Detach through a real point edit';
-  await field(3).fill('22');
-  await f.page.locator('.topbar button.finish').focus();
-  await detached().waitFor();
-  assert.deepEqual(await readX(), [22, 22]);
-  await f.same(seed);
+  if (offset) {
+    await offsetAfterTrim();
+  } else {
+    f.phase = 'Detach through a real point edit';
+    await field(3).fill('22');
+    await f.page.locator('.topbar button.finish').focus();
+    await detached().waitFor();
+    assert.deepEqual(await readX(), [22, 22]);
+    await f.same(seed);
 
-  f.phase = 'Undo restores the coordinates and linked owner';
-  await button('Undo').click();
-  const after = { x: await readX(), linked: await link().isVisible(), detached: await detached().isVisible() };
-  f.report.observations.push(after);
-  await f.snapshot('after-undo');
-  assert.deepEqual(after, { x: [20, 20], linked: true, detached: false });
-  await button('Redo').click();
-  await detached().waitFor();
-  assert.deepEqual(await readX(), [22, 22]);
-  await f.page.locator('.topbar button.finish').focus();
-  await f.page.keyboard.press('Meta+z');
-  await link().waitFor();
-  assert.deepEqual(await readX(), [20, 20]);
+    f.phase = 'Undo restores the coordinates and linked owner';
+    await button('Undo').click();
+    const after = { x: await readX(), linked: await link().isVisible(), detached: await detached().isVisible() };
+    f.report.observations.push(after);
+    await f.snapshot('after-undo');
+    assert.deepEqual(after, { x: [20, 20], linked: true, detached: false });
+    await button('Redo').click();
+    await detached().waitFor();
+    assert.deepEqual(await readX(), [22, 22]);
+    await f.page.locator('.topbar button.finish').focus();
+    await f.page.keyboard.press('Meta+z');
+    await link().waitFor();
+    assert.deepEqual(await readX(), [20, 20]);
+  }
   const finished = await f.finishSketch('restored-finish');
   assert.deepEqual(finished.doc, seed);
   const [originalStock, originalRing] = finished.bodies.bodies;

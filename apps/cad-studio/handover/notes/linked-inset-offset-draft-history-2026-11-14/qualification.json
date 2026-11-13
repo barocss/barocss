@@ -1,0 +1,61 @@
+{
+  "decision": "D1063",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "5505fadf813a2028e630ed66ed3417389975cc98",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1063-linked-offset-<run>",
+    "D1063_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-draft-history-browser.mjs <external-evidence>/<run> --offset",
+    "D1062_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-draft-history-browser.mjs <external-evidence>/coordinate-final",
+    "D875_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/trim-select --tool-fixed",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history",
+    "node --check apps/cad-studio/test/linked-inset-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "10b7f53c774f10bb57b423d6e70ec414bf5612433276edae18585acda7eeee6a",
+      "sourceManifestSHA256": "19f2f71a5a838d531d746eda7fb7fa87c90795abef4ce28f30d4165b49688501"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "b5d2acc63ff5175fd2d1fbfdc87bb934617950ce4f0d168707007c18535313b3",
+      "sourceManifestSHA256": "3400a349294d0e56d282309d3e792235d066f2de612327ff5e44f08e73d5b53b"
+    },
+    "coordinate": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "cafb2bd1521185fbe20472a27058d8e4f1f032036bd7218f39cf1f09f21b28bc",
+      "sourceManifestSHA256": "3400a349294d0e56d282309d3e792235d066f2de612327ff5e44f08e73d5b53b"
+    },
+    "trimSelect": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 382,
+      "receiptSHA256": "49169919da4dd7046a9accf89e78a7107426ddc7e3c6715523945283c0f290ac",
+      "sourceManifestSHA256": "d14fc5668e38e82ec59879f32e451d6dcfed37c93f8e79947febe0a6b88a2d05"
+    }
+  },
+  "offset": {
+    "distanceMm": 1,
+    "shapeCountAfterTrim": 2,
+    "shapeCountAfterOffset": 3,
+    "baselineUndoEnabled": false,
+    "fixedUndoEnabled": true,
+    "restoredRingVolumeMm3": 224
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
