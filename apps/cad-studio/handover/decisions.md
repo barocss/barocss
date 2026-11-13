@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1025 — verify Path tracing uses the applied Assembly Cut](notes/assembly-cut-path-trace-accepted-scene-2026-11-13/README.md).
 - [D1024 — export the applied Assembly Cut in Raster PNG](notes/assembly-cut-raster-accepted-scene-2026-11-13/README.md).
 - [D1023 — verify Fixed span end Hole preview and fresh Open](notes/fixed-span-hole-preview-reopen-2026-11-13/README.md).
 - [D1022 — name the dependency order for Pattern and Hole suppression](notes/fixed-span-hole-suppression-order-2026-11-13/README.md).

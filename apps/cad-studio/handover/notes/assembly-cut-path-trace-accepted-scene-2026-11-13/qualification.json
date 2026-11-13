@@ -1,0 +1,69 @@
+{
+  "decision": "D1025",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e4443909a3c7032036085de4b03ce7081f01d0b6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1025-section-studio01",
+    "D1025_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-path-trace-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1025-focused",
+    "pnpm --filter @barocss/cad-studio-app test instance.test instance-pose instance-looks render-shadow-consumer render-focus",
+    "node --check apps/cad-studio/test/assembly-cut-path-trace-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "4cd39b9e5a735349f590a7ba2cd07eae448435b488a408796d765dce4812146c",
+    "sourceManifestSHA256": "bade9b69f99788a267cde9742fb0ab7bfcd9f15d4a116b64f5114a75972e38fd",
+    "frozenFiles": 852,
+    "states": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pngSize": [
+      640,
+      561
+    ],
+    "probeSize": [
+      9,
+      9
+    ],
+    "maxAcceptedProbeDelta": 12,
+    "observedDraftProbeDelta": 0,
+    "nativeVolumeToleranceMM3": 1e-07,
+    "pngSHA256": {
+      "stock": "ee7397b2bc87fbafca40c4bd59ba8fc815881c5bd6536ce62d6010510a640b1d",
+      "creation-draft": "f49bb9e7f65cad9ecfe81ee36820f9d65270e5cff2e16e936355553b259ea938",
+      "creation-cancelled": "3b87b4e042fb34b2e12d7d9b0ea4f2d87a88171d8253cb7ce4985ef0301a4e1c",
+      "applied-eight": "12bc7eb39485d87975b10fdeb5a023d104e013c12c867e19793510529c2d93ac",
+      "edit-draft-twelve": "a508a1d4608d4140725a4e239cc3e0bfbd33aa665c8388ff9e090c3ac7dd3aa6",
+      "edit-cancelled": "624408933d377659192d814509c20903dde6fcdbf7188c99e298159996e6eebf"
+    },
+    "stoppedSamples": {
+      "stock": 54,
+      "creation-draft": 49,
+      "creation-cancelled": 65,
+      "applied-eight": 59,
+      "edit-draft-twelve": 57,
+      "edit-cancelled": 60
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 19,
+    "failed": 0
+  },
+  "notRun": [
+    "STEP",
+    "Drawing",
+    "3MF",
+    "delayed worker handoff",
+    "production build",
+    "type-checks",
+    "full suites",
+    "mobile"
+  ]
+}
