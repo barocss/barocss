@@ -1,0 +1,61 @@
+{
+  "decision": "D919",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2590ad3e28b28fe019eae0b231cacbe36e1fe350",
+  "issue": 2232,
+  "issueDisposition": "CLOSURE_QUALIFIED",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D919-run>",
+    "D919_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/refusals03 --inset-refusals",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership model-rail",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstObserver": {
+    "status": "FAIL",
+    "reason": "Delete correctly refused with the Model-specific message while the observer expected the generic edit warning.",
+    "receiptSHA256": "6fa869626cc510f574fdbf71e4caee17d124ff8d421a23781f1b8b26356a3661"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 105,
+    "studioPass": 119,
+    "fail": 0,
+    "skipped": 0,
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "d4bff32cb4eb1727af99d1695b27d8fd6acc56ac134e42b4e01d10d2eae7fe60"
+  },
+  "issueRows": {
+    "coverage": "PASS",
+    "analyticFixture": "PASS",
+    "identity": "PASS",
+    "downstream": "PASS",
+    "refusalsAndLegacy": "PASS",
+    "detach": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "a15bcacf47d91441b5d874d6c80939372665e05f02480b2944a1a38305176999",
+    "sourceManifestSHA256": "66290358d9093f8970c54622f5f2e0dae1f07b4656acd5a7f9b1270cfcde4b70",
+    "frozenFiles": 845,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "fileRefusals": 15,
+    "deleteRefusals": 1,
+    "redoInsetMM": 2.5,
+    "undoInsetMM": 1
+  },
+  "notRun": [
+    "whole suites",
+    "mobile",
+    "additional consumers or free-form offsets",
+    "damaged-file repair"
+  ]
+}

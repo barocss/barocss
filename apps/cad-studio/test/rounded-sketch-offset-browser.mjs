@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
 const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
-const storedInset = drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
+const storedInset = insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
 const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
@@ -50,8 +51,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
+  name: 'rounded-sketch-offset', envFrozen: insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
+    : detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
     : widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
     : drawnInset ? 'Draw and round all four source corners in desktop Studio.'
     : authorInset ? 'Author a linked inset and direct Extrude together from one finished sketch.'
@@ -442,6 +444,10 @@ async function verifyStoredInset(stock) {
     f.report.observations.push({ label, insetMm: distance, volumeMm3: body.volume, expectedVolumeMm3: expected, derivedFaces: names });
     return body;
   };
+  if (insetRefusals) {
+    await verifyInsetRefusals(candidate, check);
+    return;
+  }
   if (authorInset) {
     await verifyInsetAuthoring(stock, candidate, check);
     return;
@@ -540,6 +546,72 @@ function smallInset(doc) {
     ...segment, start: point(segment.start),
     ...(segment.kind === 'arc' ? { center: point(segment.center) } : {}),
   })) }, ...rest] };
+}
+
+async function verifyInsetRefusals(candidate, check) {
+  const rounded = candidate(1), sharp = candidate(2.5);
+  await open(rounded);
+  await f.openFeatureEditor(2);
+  await f.editor().getByRole('spinbutton', { name: 'Inset distance', exact: true }).fill('2.5');
+  await button(f.editor(), 'Apply').click();
+  await f.changed(rounded);
+  await f.undo();
+  await f.same(rounded);
+  await f.page.locator('.ol-row button.ol[title="Double-click to rename"]').click();
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.bodies[0] === 0);
+  const before = await f.snapshot('00-accepted-with-redo');
+  assert.deepEqual(before.historyControls, [false, false]);
+  const unchanged = after => {
+    for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) assert.deepEqual(after[key], before[key], key);
+  };
+  const refusal = async (label, change, reason) => {
+    f.phase = label;
+    const bad = structuredClone(sharp);
+    change(bad);
+    await chooseFile(bad, label + '.bcad');
+    const notice = await f.waitToast(reason);
+    unchanged(await f.snapshot(label));
+    f.report.observations.push({ label, notice });
+    await f.dismissToasts();
+  };
+  await refusal('01-missing-source', doc => doc.nodes.shift(), /stored recipe is malformed/i);
+  await refusal('02-self-reference', doc => { doc.nodes[1].sourceSketch = 1; doc.nodes[1].sourceFeature = 'n1'; }, /stored recipe is malformed/i);
+  await refusal('03-forward-reference', doc => { doc.nodes[1].sourceSketch = 2; doc.nodes[1].sourceFeature = 'n2'; }, /stored recipe is malformed/i);
+  await refusal('04-duplicate-source-id', doc => { doc.nodes[2].id = 'n0'; }, /distinct explicit feature ID/i);
+  await refusal('05-compound-source', doc => { doc.nodes[0].regions = [doc.nodes[0].segments]; }, /standalone numeric XY/i);
+  await refusal('06-direct-arc-dependent', doc => {
+    doc.nodes.push({ kind: 'chamfer', id: 'n3', parent: { node: 2, side: 'solid' }, distance: 0.2, edges: ['n2.side[e10]|n2.top'] });
+  }, /e10.*retired inset side/i);
+  await refusal('07-nested-inset-dependent', doc => {
+    doc.nodes.push({ ...doc.nodes[1], id: 'n3', sourceSketch: 1, sourceFeature: 'n1' });
+  }, /only one direct Extrude/i);
+  await refusal('08-unsupported-constraint', doc => {
+    doc.nodes[0].outline = { rules: [{ kind: 'coincident', point: 0, arc: 1 }] };
+  }, /stored Round outline.*must match/i);
+  await refusal('09-zero-distance', doc => { doc.nodes[1].insetMM = 0; }, /stored recipe is malformed/i);
+  await refusal('10-reversed-arc', doc => { doc.nodes[0].segments[1].direction = 'cw'; }, /alternating native straight sides and CCW/i);
+  await refusal('11-disconnected-source', doc => { doc.nodes[0].segments[2].start[1] += 0.5; }, /same source circle/i);
+  await refusal('12-ambiguous-output', doc => { doc.outputs.b0 = { node: 0, side: 'solid' }; }, /stored output/i);
+  await refusal('13-concave-source', doc => {
+    const source = doc.nodes[0];
+    source.segments = [[0, 0], [20, 0], [20, 4], [8, 4], [8, 10], [0, 10]].map(start => ({ kind: 'line', start }));
+  }, /eight alternating native straight sides and CCW/i);
+  await refusal('14-crossing-source', doc => {
+    const source = doc.nodes[0];
+    source.segments = [[0, 0], [20, 10], [0, 10], [20, 0]].map(start => ({ kind: 'line', start }));
+  }, /eight alternating native straight sides and CCW/i);
+  await refusal('15-mismatched-tangency', doc => { doc.nodes[0].segments[1].center = [17.75, 2.25]; }, /CCW tangent rounded rectangle/i);
+  f.phase = 'Delete a body with a live linked source';
+  await f.page.evaluate(() => document.activeElement?.blur());
+  await f.page.keyboard.press('Delete');
+  await f.waitToast(/deleting a feature in this stored recipe document is not supported/i);
+  await f.ready();
+  unchanged(await f.snapshot('16-linked-delete-refused'));
+  await f.dismissToasts();
+  await f.redo();
+  await check('17-redo-after-refusals', sharp, 2.5);
+  await f.undo();
+  await check('18-undo-after-refusals', rounded, 1);
 }
 
 function holdInsetCheck() {
