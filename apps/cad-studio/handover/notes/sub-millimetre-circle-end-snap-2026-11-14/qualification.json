@@ -1,0 +1,84 @@
+{
+  "decision": "D1120",
+  "tier": "SMALL",
+  "parent": "573b014022a78bd5b17be9adef70627c5e76ddcf",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1120-small-circle-radius-<run>",
+    "D1120_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --small-circle-radius",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1120_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --small-circle-radius",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "driverFailure": {
+      "status": "FAIL",
+      "states": 1,
+      "frozenFiles": 862,
+      "receiptSHA256": "17fda963a99f2f7ac07f7f116cb37cf213295c4eaf66a18f7bef68d0a2971a46",
+      "sourceManifestSHA256": "f5b58ddac1af6a36fe95b26d103fb217fce6bff911b9fd7b798fbe91fa2fd2cc",
+      "savedFiles": [],
+      "firstFailure": "The first driver aimed at the End projection under a live diameter chip. The passing driver clicks beside the opposite End and checks that the canvas owns the hit."
+    },
+    "actual": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "572ee78e9a54d4458e7d561d2e46c7ea6d2f27e9d95b3199430f4b079ddd947f",
+      "sourceManifestSHA256": "b3a9bdd6d3fb4d1409578957bceb576cc5b29ec36f12aa72017ecd8f45138000",
+      "savedFiles": [
+        {
+          "bytes": 1476,
+          "sha256": "522793d4259a5a443f15aa91762c3dc1ba3a00ece7a47bf0c0f48a966cb7fd89"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "af6cfd0a2276a79a23b004ed280a9823e7c3dc5268e5e7421249aefa7cc5feac",
+      "sourceManifestSHA256": "b3a9bdd6d3fb4d1409578957bceb576cc5b29ec36f12aa72017ecd8f45138000",
+      "savedFiles": [
+        {
+          "bytes": 1476,
+          "sha256": "522793d4259a5a443f15aa91762c3dc1ba3a00ece7a47bf0c0f48a966cb7fd89"
+        }
+      ]
+    }
+  },
+  "constructionEndpointsMM": [
+    [
+      12.5,
+      16.5
+    ],
+    [
+      13.4,
+      17.7
+    ]
+  ],
+  "circleCentreMM": [
+    12.95,
+    17.1
+  ],
+  "radiusMM": 0.75,
+  "extrudeDepthMM": 2,
+  "volumeMM3": 3.5342917352885173,
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}
