@@ -1,0 +1,177 @@
+{
+  "decision": "D1147",
+  "tier": "FEATURE",
+  "parent": "0d35ded3151f2a7cf0dd850a4d58170cac8731fe",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1147-<run>",
+    "D1147_SOURCE_FROZEN=1 node apps/cad-studio/test/band-rail-zoom-browser.mjs <external-evidence>/<run> [--display|--display-equal|--display-webgl2]",
+    "D1145_SOURCE_FROZEN=1 node apps/cad-studio/test/native-cylinder-zoom-browser.mjs <external-evidence>/cylinder-regression",
+    "BAND_SURFACE_SOURCE_FROZEN=1 node apps/cad-studio/test/band-surface-browser.mjs <external-evidence>/band-lifecycle",
+    "cd packages/barocss-cad-model && node scripts/test.mjs band-surface cylinder-display meshWire bodies.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files excluding App.tsx>",
+    "node --check apps/cad-studio/test/band-rail-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "observed": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 864,
+      "receiptSHA256": "9874968f3f8728c8f9da8657ee5da6e206bd19178bbf85a9f3a3ad4900a7866b",
+      "sourceManifestSHA256": "1a6b21950d8ebab35866d60777be8fbdc6d900591c1746fffb0b75a418641847"
+    },
+    "frustum-final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 865,
+      "receiptSHA256": "966335597befcb3a28db70ac7315415ca58fe166a85f2d21ea4643f0ffcf6be2",
+      "sourceManifestSHA256": "bccc1bea6b56dc93ea19f108f8ea8ad72aef15bbf7e8fb1e8704f4e2ed4621bd",
+      "observations": [
+        {
+          "label": "lower",
+          "edge": {
+            "body": 2,
+            "index": 0,
+            "rail": "n4.a|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.a|n4.band0"
+        },
+        {
+          "label": "upper",
+          "edge": {
+            "body": 2,
+            "index": 1,
+            "rail": "n4.b|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.b|n4.band0"
+        },
+        {
+          "label": "zoomed-rail",
+          "name": "n4.b|n4.band0",
+          "segments": 64,
+          "maxChordErrorCSS": 0.03435184891982768
+        }
+      ]
+    },
+    "equal-final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 865,
+      "receiptSHA256": "610f2610e415f8ea6dae3f1c90e3e26dbca888935b5e98b892bb9dd2c01f8ca5",
+      "sourceManifestSHA256": "bccc1bea6b56dc93ea19f108f8ea8ad72aef15bbf7e8fb1e8704f4e2ed4621bd",
+      "observations": [
+        {
+          "label": "lower",
+          "edge": {
+            "body": 2,
+            "index": 1,
+            "rail": "n4.b|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.b|n4.band0"
+        },
+        {
+          "label": "upper",
+          "edge": {
+            "body": 2,
+            "index": 1,
+            "rail": "n4.b|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.b|n4.band0"
+        },
+        {
+          "label": "zoomed-rail",
+          "name": "n4.b|n4.band0",
+          "segments": 64,
+          "maxChordErrorCSS": 0.08058682927396023
+        }
+      ]
+    },
+    "webgl-final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 865,
+      "receiptSHA256": "966335597befcb3a28db70ac7315415ca58fe166a85f2d21ea4643f0ffcf6be2",
+      "sourceManifestSHA256": "bccc1bea6b56dc93ea19f108f8ea8ad72aef15bbf7e8fb1e8704f4e2ed4621bd",
+      "observations": [
+        {
+          "label": "lower",
+          "edge": {
+            "body": 2,
+            "index": 0,
+            "rail": "n4.a|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.a|n4.band0"
+        },
+        {
+          "label": "upper",
+          "edge": {
+            "body": 2,
+            "index": 1,
+            "rail": "n4.b|n4.band0",
+            "segmentCount": 32
+          },
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": []
+          },
+          "selectedRail": "n4.b|n4.band0"
+        },
+        {
+          "label": "zoomed-rail",
+          "name": "n4.b|n4.band0",
+          "segments": 64,
+          "maxChordErrorCSS": 0.03435184891982768
+        }
+      ]
+    },
+    "cylinder-regression": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 386,
+      "receiptSHA256": "9affda04729ce194cdb0b812f42d0f70b3fd7e920f285613113f3d0539912848",
+      "sourceManifestSHA256": "422a53dee25e56090d5072faad3e7a545743da5fea5a15b1965d800e3fea2888"
+    },
+    "band-lifecycle": {
+      "status": "PASS",
+      "states": 11,
+      "frozenFiles": 867,
+      "receiptSHA256": "5d9823c5e2ec46d788c9cef14871c876568875fceee98c3d988e29f0e158f014",
+      "sourceManifestSHA256": "ef4c3a067404c74982e21e89246838340162708ae8c0c521f554a8d5e929ae7d"
+    }
+  }
+}

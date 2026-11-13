@@ -3,12 +3,15 @@ import { createFlow } from './flow-helper.mjs';
 
 const mode = process.argv[3];
 const baseline = mode === '--baseline';
-const equal = mode === '--equal' || mode === '--equal-baseline';
+const checkDisplay = ['--display', '--display-equal', '--display-webgl2'].includes(mode);
+const equal = ['--equal', '--equal-baseline', '--display-equal'].includes(mode);
 const pins = ['apps/cad-studio/test/band-rail-zoom-browser.mjs', 'apps/cad-studio/src/viewport/Viewport.tsx',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts', 'packages/barocss-cad-model/src/engine/evaluate.ts',
-  'packages/barocss-cad-model/src/engine/mesh.ts'];
+  'packages/barocss-cad-model/src/engine/mesh.ts',
+  ...(checkDisplay ? ['packages/barocss-cad-model/src/engine/bandRailDisplay.ts', 'packages/barocss-cad-model/src/app/lookKey.ts',
+    'packages/barocss-cad-model/src/engine/meshWire.ts', 'apps/cad-studio/src/App.tsx'] : [])];
 const f = await createFlow({
-  name: 'band-rail-zoom', output: process.argv[2], envFrozen: 'D1146_SOURCE_FROZEN',
+  name: 'band-rail-zoom', output: process.argv[2], envFrozen: checkDisplay ? 'D1147_SOURCE_FROZEN' : 'D1146_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Read the committed Band sheet, with both source cylinders hidden, and locate its native rails.',
   limits: ['One closed two-patch coaxial Band, native height 30 mm and upright rails.'],
@@ -47,6 +50,11 @@ const project = point => f.page.evaluate(p => window.__studioScreenOf(p), point)
 
 await f.run(async () => {
   await f.newPage();
+  if (mode === '--display-webgl2') {
+    await f.page.goto(f.server.resolvedUrls.local[0] + '?renderer=webgl2');
+    await f.page.locator('.viewport[data-renderer="webgl2"]').waitFor();
+    await f.ready();
+  }
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'D1146-band.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });
   await f.same(source);
@@ -76,6 +84,12 @@ await f.run(async () => {
   for (let i = 0; i < 4 && !(await filter.innerText()).includes('Edges'); i++) await filter.click();
   assert.match(await filter.innerText(), /Edges/);
   await settle();
+  if (checkDisplay) {
+    assert.equal(await button('Hide body', rows.nth(2)).isVisible(), true);
+    await f.page.mouse.move(...await project([0, 0, 40]));
+    await f.page.mouse.wheel(0, 740);
+    await settle();
+  }
   const angle = 0.36, axis = [Math.cos(angle), Math.sin(angle)];
   const world = (r, z) => [...axis.map(component => component * r), z];
   const samples = [['lower', world(radius, 10)], ['upper', world(10, 40)]];
@@ -89,12 +103,52 @@ await f.run(async () => {
     await f.page.mouse.click(...point);
     await settle();
     const selection = await f.page.evaluate(() => window.__studioSelection.selection);
-    observations.push({ label, edge: edge && { body: edge.body, index: edge.edge, segmentCount: edge.segments.length }, selection });
+    const selectedRail = await f.page.evaluate(() => window.__studioSelectedBandRail?.() ?? null);
+    observations.push({ label, edge: edge && { body: edge.body, index: edge.edge, rail: edge.rail, segmentCount: edge.segments.length }, selection, selectedRail });
     await f.snapshot(label + '-band-rail');
   }
   f.report.observations.push({ label: 'native-band', geometry }, ...observations);
   await f.same(accepted);
   assert.deepEqual(geometry.displayEdges, []);
+  if (checkDisplay) {
+    assert.ok(observations.every(shot => shot.edge?.body === 2 && shot.selectedRail === shot.edge.rail && shot.selection.edges.length === 0));
+    if (!equal) {
+      assert.match(observations[0].selectedRail, /^n4\.a\|/);
+      assert.match(observations[1].selectedRail, /^n4\.b\|/);
+    }
+    const last = observations.at(-1);
+    await f.page.mouse.move(...await project(samples.at(-1)[1]));
+    await f.page.mouse.wheel(0, equal ? -925 : -650);
+    await settle();
+    const zoomed = await f.page.evaluate(p => window.__studioEdgeAt(p), samples.at(-1)[1]);
+    assert.equal(zoomed.rail, last.selectedRail);
+    assert.ok(zoomed.segments.length > last.edge.segmentCount);
+    assert.equal(await f.page.evaluate(() => window.__studioSelectedBandRail()), last.selectedRail);
+    const error = await f.page.evaluate(({ segments, z }) => {
+      let max = 0;
+      for (const [x0, y0, z0, x1, y1, z1] of segments) {
+        const x = (x0 + x1) / 2, y = (y0 + y1) / 2;
+        const factor = 10 / Math.hypot(x, y);
+        const projected = window.__studioScreenOf([x, y, (z0 + z1) / 2]);
+        const analytic = window.__studioScreenOf([x * factor, y * factor, z]);
+        max = Math.max(max, Math.hypot(projected[0] - analytic[0], projected[1] - analytic[1]));
+      }
+      return max;
+    }, { segments: zoomed.segments, z: zoomed.rail.includes('.a|') ? 10 : 40 });
+    assert.ok(error <= 0.25, String(error));
+    f.report.observations.push({ label: 'zoomed-rail', name: zoomed.rail, segments: zoomed.segments.length, maxChordErrorCSS: error });
+    await f.snapshot('zoomed-selected-rail');
+    await f.page.keyboard.press('Escape');
+    assert.equal(await f.page.evaluate(() => window.__studioSelectedBandRail()), null);
+    await f.page.mouse.click(...await project(samples.at(-1)[1]));
+    assert.equal(await f.page.evaluate(() => window.__studioSelectedBandRail()), zoomed.rail);
+    await button('Hide body', rows.nth(2)).click();
+    await settle();
+    assert.equal(await f.page.evaluate(() => window.__studioSelectedBandRail()), null);
+    assert.deepEqual((await f.doc()).nodes, accepted.nodes);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   assert.ok(observations.every(shot => shot.edge === null && !shot.selection.edges.length));
   if (baseline || mode === '--equal-baseline') {
     assert.fail('The committed Band has four native circular rails but no viewport edge owner');

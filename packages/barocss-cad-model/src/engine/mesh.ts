@@ -56,6 +56,8 @@ export interface DisplayMesh {
   quality?: number;
   /** Optional display-only packets with the same face and edge owners as this mesh. */
   cylinderDetail?: { baseChordErrorMM: number; tiers: readonly CylinderDisplayTier[] };
+  /** Viewport rails belong to one native face and stay outside the canonical two-face edge table. */
+  bandDetail?: { rails: readonly { name: string; face: number }[]; tiers: readonly CylinderDisplayTier[] };
 }
 export type CylinderDisplayTier = Pick<DisplayMesh, 'positions' | 'normals' | 'faceOfVertex' | 'indices' | 'edgeLines' | 'edgeOfSegment'>
   & { chordErrorMM: number };
@@ -111,7 +113,7 @@ function nativeFaceMetrics(brep: Brep, mesh: BrepMesh): Map<string, NativeDispla
   return out;
 }
 
-export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMesh {
+export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundary?: (edge: string, face: number, points: readonly Vec3[]) => void): DisplayMesh {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
   // Native member signatures must not depend on viewport quality.
   let native: Map<string, NativeDisplayFace> | undefined;
@@ -230,6 +232,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
     for (let k = 0; k < e.points.length; k += 3) pts.push([e.points[k], e.points[k + 1], e.points[k + 2]]);
+    if (fs.length === 1) readBoundary?.(e.edgeId, displayOf.get(fs[0])!, pts);
     if (fs.length !== 2 || find(fs[0]) === find(fs[1])) continue; // a seam, or between merged coplanar faces
     const mid = pts[Math.floor(pts.length / 2)], na = normalAt(fs[0], mid), nb = normalAt(fs[1], mid);
     if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint

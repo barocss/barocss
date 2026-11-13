@@ -25,7 +25,7 @@ export class MeshSender {
       if (token !== undefined) { now.set(mesh, token); return { ...rest, meshRef: token }; }
       const t = this.next++, copy = copyMesh(mesh);
       now.set(mesh, t);
-      for (const packet of [copy, ...(copy.cylinderDetail?.tiers ?? [])]) {
+      for (const packet of [copy, ...(copy.cylinderDetail?.tiers ?? []), ...(copy.bandDetail?.tiers ?? [])]) {
         transfer.push(packet.positions.buffer as ArrayBuffer, packet.normals.buffer as ArrayBuffer, packet.faceOfVertex.buffer as ArrayBuffer,
           packet.indices.buffer as ArrayBuffer, packet.edgeLines.buffer as ArrayBuffer, packet.edgeOfSegment.buffer as ArrayBuffer);
       }
@@ -57,8 +57,9 @@ export class MeshReceiver {
   }
 }
 function copyMesh(m: DisplayMesh): DisplayMesh {
-  const detail = m.cylinderDetail;
-  return { ...copyPacket(m), ...(detail ? { cylinderDetail: { ...detail, tiers: detail.tiers.map(copyPacket) } } : {}) };
+  const cylinder = m.cylinderDetail, band = m.bandDetail;
+  return { ...copyPacket(m), ...(cylinder ? { cylinderDetail: { ...cylinder, tiers: cylinder.tiers.map(copyPacket) } } : {}),
+    ...(band ? { bandDetail: { ...band, tiers: band.tiers.map(copyPacket) } } : {}) };
 }
 function copyPacket<T extends Omit<CylinderDisplayTier, 'chordErrorMM'>>(m: T): T {
   return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };

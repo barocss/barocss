@@ -8,6 +8,7 @@ import { refOf } from './bodyRef';
 export function rootOf(nodes: readonly ModelNode[], index: number): number {
   for (let i = index, guard = 0; guard < 4096; guard++) {
     const n = nodes[i]; if (!n) return index;
+    if (n.kind === 'band-surface') return i;
     const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch' && nodes[p].kind !== 'driven-sketch');
     if (!solids.length) return i;
     i = solids[0];

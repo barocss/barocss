@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1147 — draw and select native circular Band rails](notes/zoomed-committed-band-rails-2026-11-14/README.md).
 - [D1146 — qualify committed Band rail ownership](notes/committed-band-rail-ownership-2026-11-14/README.md).
 - [D1145 — refine native cylinder display on zoom](notes/zoomed-native-cylinder-2026-11-14/README.md).
 - [D1144 — keep the zoomed Sketch dimension editor in view](notes/zoomed-inline-dimension-placement-2026-11-14/README.md).

@@ -7,6 +7,7 @@ import type { FaceTable } from '../assembly/mates';
 import { BarocssError, massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, withoutNativeFaces, type DisplayEdge, type DisplayMesh } from './mesh';
 import { cylinderDisplayMesh } from './cylinderDisplay';
+import { bandRailDisplayMesh } from './bandRailDisplay';
 import { lumpTouches } from './lumps';
 import { friendlyCause, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
@@ -282,6 +283,14 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8, refin
       if (source?.kind === 'sketch' && source.profile === 'circle' && !source.plane) {
         const mesh = cylinderDisplayMesh(body.mesh, snapshot.outputs[0].brep, revision);
         if (mesh !== body.mesh) result.bodies[0] = { ...body, mesh };
+      }
+    }
+    if (refineDisplay && quality === 8) {
+      const band = result.bodies.findIndex(body => body.band?.closed && body.band.exact && body.band.pairs === 2);
+      const body = result.bodies[band];
+      if (body && snapshot.outputs[band]) {
+        const mesh = bandRailDisplayMesh(body.mesh, snapshot.outputs[band].brep, revision);
+        if (mesh !== body.mesh) result.bodies[band] = { ...body, mesh };
       }
     }
     return { ...result, rebuild: rebuildOf(snapshot) };

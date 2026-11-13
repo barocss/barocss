@@ -3250,6 +3250,7 @@ export function App() {
       <SceneViewport ref={viewport} onProjectionChange={setOrtho} onRecoveryNotice={next => setToast(current => viewportRecoveryToast(current, next))}
         poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced: viewportPlacements, cpuInstanceSection }} liveSection={sectionLiveView}
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
+        bandRailPicking={!active && !finishEdgePicking && !section && !measure && !assembly.draft}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
         modelUnavailable={modelUnavailable} bodies={cageInputActive ? cageEd.shown(shownBodies) : viewBodies} selection={cageInputActive ? emptySel : shownSelection}
         ghost={sketchGhost} sketch={sketch} constraintInspection={constraintInspection} regions={regions} threads={threads} profiles={active ? [] : profiles}

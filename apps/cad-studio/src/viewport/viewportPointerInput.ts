@@ -121,6 +121,8 @@ interface PointerInput {
     renderer: RefObject<ViewRenderer | null>;
     rendererBodies: RefObject<readonly BodyResult[]>;
     syncDisplayedBodies(renderer: ViewRenderer): void;
+    isBandRail(hit: EdgeRef | null): boolean;
+    selectBandRail(hit: EdgeRef | null): boolean;
     rendererInstances: RefObject<{ renderer: ViewRenderer; instances: readonly { id: string; bodies: readonly BodyResult[] }[] } | null>;
     request(): void;
     requestRef: RefObject<() => void>;
@@ -221,7 +223,7 @@ function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonl
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
-  const { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, request, requestRef, moving, viewState, hover } = rendering;
+  const { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, isBandRail, selectBandRail, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
   const sketch = propsRef.current.sketch;
 
@@ -456,6 +458,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     let trimEscaped = false;
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        selectBandRail(null);
         if (!e.repeat) trimEscaped = cancelDragTrim();
         if (trimEscaped) { e.stopImmediatePropagation(); e.preventDefault(); return; }
       }
@@ -985,6 +988,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         return;
       }
       const { face, edge } = pickAt(r, x, y);
+      if (isBandRail(edge)) return;
       props.onContextMenu(at, { face, edge, point: surfacePoint(x, y, w, h, face) }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
@@ -1144,6 +1148,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const frontFace = prof ? r.pickFace(x, y, camera.current, viewState()) : undefined;
     if (prof && !frontFace) { propsRef.current.onPickProfile?.(prof.id, e.shiftKey, prof.region); return; }
     const hit = pickAt(r, x, y, frontFace), { face, edge } = hit, vertex = vertexAt(x, y, w, h, hit.front ?? hit);
+    if (selectBandRail(edge)) return;
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     const edgeMesh = edge ? rendererBodies.current[edge.body]?.mesh : undefined;
     propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
@@ -1212,6 +1217,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       return;
     }
     const { x, y } = local(e), { face, edge } = pickAt(r, x, y);
+    if (isBandRail(edge)) return;
     if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body);
   };
   const onContextMenu = (e: MouseEvent<HTMLCanvasElement>) => e.preventDefault();

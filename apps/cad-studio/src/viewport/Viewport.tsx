@@ -110,6 +110,8 @@ interface Props extends ViewportPointerProps, MarkHandlers {
   /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
   onBackend?(backend: 'webgpu' | 'webgl2'): void;
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
+  /** Keep the Band rail within viewport selection while other tools own model picks. */
+  bandRailPicking?: boolean;
   ghost: Set<number>;
   /** Bodies' own colours by index (StudioDoc.bodies). */
   bodyColors?: Map<number, [number, number, number]>;
@@ -354,7 +356,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
   const rendererBodies = useRef<BodyResult[]>(NO_BODIES);
-  const uploadedBodies = useRef<{ renderer: ViewRenderer; source: BodyResult[]; bodies: BodyResult[]; tier: number } | null>(null);
+  const uploadedBodies = useRef<{ renderer: ViewRenderer; source: BodyResult[]; bodies: BodyResult[]; index: number; tier: number } | null>(null);
+  const selectedBandRail = useRef<{ hit: EdgeRef; mesh: BodyResult['mesh']; selection: Props['selection'] } | null>(null);
   const rendererInstances = useRef<{ renderer: ViewRenderer; instances: NonNullable<Props['instances']> } | null>(null);
   const hover = useRef<ViewportHover>({ face: null, edge: null });
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -403,37 +406,74 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     offsetsMemo.current = { from, map };
     return map;
   };
+  const bandRail = (hit: EdgeRef | null) => {
+    const upload = uploadedBodies.current, props = propsRef.current;
+    if (!hit || !props.bandRailPicking || props.modelUnavailable || props.pickFilter === 'face' || props.pickFilter === 'body' || upload?.source !== props.bodies
+      || upload.index !== hit.body || upload.bodies === upload.source || props.hiddenBodies?.has(hit.body)) return undefined;
+    return upload.source[hit.body]?.mesh.bandDetail?.rails[hit.edge];
+  };
+  const readSelectedBandRail = () => {
+    const selected = selectedBandRail.current, p = propsRef.current;
+    return selected && selected.selection === p.selection && p.bodies[selected.hit.body]?.mesh === selected.mesh && bandRail(selected.hit)
+      ? selected.hit : null;
+  };
+  const renderedEdgeSelection = () => {
+    const rail = readSelectedBandRail();
+    return rail ? [rail] : propsRef.current.selection.edges;
+  };
+  const selectBandRail = (hit: EdgeRef | null) => {
+    const rail = bandRail(hit), p = propsRef.current;
+    if (!hit || !rail) {
+      if (selectedBandRail.current) { selectedBandRail.current = null; requestRef.current(); }
+      return false;
+    }
+    selectedBandRail.current = { hit, mesh: p.bodies[hit.body].mesh, selection: p.selection };
+    requestRef.current();
+    return true;
+  };
   const viewState = (): ViewState => ({
     displayMode: propsRef.current.displayMode,
     displayModeUnsupported: displayModeScope(propsRef.current),
     isolatedInstances: displayModeScope(propsRef.current) ? undefined : propsRef.current.isolatedInstances,
     hoverFace: propsRef.current.modelUnavailable ? null : hover.current.face,
     hoverEdge: propsRef.current.modelUnavailable ? null : hover.current.edge,
-    selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
+    selectedFaces: propsRef.current.selection.faces, selectedEdges: renderedEdgeSelection(), selectedBodies: propsRef.current.selection.bodies,
     // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
     offsets: offsetsOf(propsRef.current),
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.modelUnavailable ? undefined : propsRef.current.hoverBody ?? undefined,
   });
   const syncDisplayedBodies = (r: ViewRenderer, p = propsRef.current) => {
-    const source = p.bodies, body = source[0], detail = body?.mesh.cylinderDetail, view = canvas.current, cam = camera.current;
-    let tier = -1;
-    if (source.length === 1 && detail && view && cam.ortho && Math.PI / 2 - cam.pitch < 0.001
+    const source = p.bodies, view = canvas.current, cam = camera.current;
+    let tier = -1, index = -1, packet;
+    if (view && cam.ortho && Math.PI / 2 - cam.pitch < 0.001
       && (p.displayMode ?? 'shaded-with-edges') === 'shaded-with-edges'
       && !displayModeScope(p) && !p.clip && !p.offsets?.size && !p.transforms?.size
       && !p.instances?.length && !p.ghost.size && !p.printActive && !p.camActive) {
       const scale = orthographicSketchScale(cam, view.clientWidth, view.clientHeight);
-      if (scale !== undefined && detail.baseChordErrorMM * scale > 0.25) {
-        const found = detail.tiers.findIndex(packet => packet.chordErrorMM * scale <= 0.25);
+      const cylinder = source.length === 1 ? source[0].mesh.cylinderDetail : undefined;
+      const bandIndex = p.bandRailPicking && !p.modelUnavailable ? source.findIndex((body, i) => body.mesh.bandDetail && !p.hiddenBodies?.has(i)) : -1;
+      const detail = bandIndex >= 0 ? source[bandIndex].mesh.bandDetail : cylinder;
+      if (scale !== undefined && detail && (!cylinder || cylinder.baseChordErrorMM * scale > 0.25)) {
+        index = bandIndex >= 0 ? bandIndex : 0;
+        const found = detail.tiers.findIndex(candidate => candidate.chordErrorMM * scale <= 0.25);
         tier = found >= 0 ? found : detail.tiers.length - 1;
+        packet = detail.tiers[tier];
       }
     }
     const current = uploadedBodies.current;
-    if (current?.renderer === r && current.source === source && current.tier === tier) return;
-    const packet = detail?.tiers[tier];
-    const bodies = packet ? [{ ...body, mesh: { ...body.mesh, ...packet } }] : source;
+    if (current?.renderer === r && current.source === source && current.index === index && current.tier === tier) {
+      if (selectedBandRail.current && !readSelectedBandRail()) selectedBandRail.current = null;
+      return;
+    }
+    const bodies = packet ? source.map((body, i) => i === index ? { ...body, mesh: { ...body.mesh, ...packet } } : body) : source;
+    const previousEdge = hover.current.edge;
+    const priorRail = previousEdge && current?.index === previousEdge.body && current.bodies !== current.source
+      && current.source[previousEdge.body]?.mesh.bandDetail?.rails[previousEdge.edge];
     r.setBodies(bodies);
     rendererBodies.current = source;
-    uploadedBodies.current = { renderer: r, source, bodies, tier };
+    uploadedBodies.current = { renderer: r, source, bodies, index, tier };
+    if (selectedBandRail.current && !readSelectedBandRail()) selectedBandRail.current = null;
+    if (priorRail && !bandRail(hover.current.edge)) hover.current = { ...hover.current, edge: null };
     r.setState(viewState());
   };
 
@@ -469,7 +509,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const input = useViewportPointerInput({
     canvas, camera, propsRef,
-    rendering: { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, request, requestRef, moving, viewState, hover },
+    rendering: { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, isBandRail: hit => !!bandRail(hit), selectBandRail, request, requestRef, moving, viewState, hover },
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
@@ -664,8 +704,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       if (!hit) return null;
       const m = uploadedBodies.current?.bodies[hit.body]?.mesh, segs: number[][] = [];
       if (m) for (let s = 0; s < m.edgeLines.length; s += 6) if (m.edgeOfSegment[s / 3] === hit.edge) segs.push([...m.edgeLines.subarray(s, s + 6)]);
-      return { ...hit, segments: segs };
+      return { ...hit, segments: segs, ...(bandRail(hit) ? { rail: bandRail(hit)!.name } : {}) };
     };
+    w.__studioSelectedBandRail = () => bandRail(readSelectedBandRail())?.name ?? null;
     w.__studioCylinderDisplayBytes = () => propsRef.current.bodies[0]?.mesh.cylinderDetail?.tiers.map(packet =>
       packet.positions.byteLength + packet.normals.byteLength + packet.faceOfVertex.byteLength + packet.indices.byteLength + packet.edgeLines.byteLength + packet.edgeOfSegment.byteLength);
     w.__studioEye = () => camera.current.eye();
