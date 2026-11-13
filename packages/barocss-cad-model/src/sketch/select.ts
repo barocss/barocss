@@ -12,8 +12,8 @@ export type Project = (u: number, v: number) => readonly number[];
 
 
 /**
- * The outline point within `pointPx` of (x, y), else the nearest edge or circle (its rim or centre: the
- * outline's own circles, then the sketch's finished circles in `done`) within `edgePx`; null when nothing is near.
+ * The nearest outline point within `pointPx`, else the nearest edge or circle rim or centre within
+ * `edgePx`. For equal curve distances, prefer the outline edge, then an attached circle.
  */
 export function pickSketch(s: Polygon, project: Project, x: number, y: number, done: readonly SketchShape[] = [], pointPx = 9, edgePx = 7): SketchPick | null {
   const n = s.points.length, at = [x, y];
@@ -21,20 +21,19 @@ export function pickSketch(s: Polygon, project: Project, x: number, y: number, d
   for (let i = 0; i < n; i++) { const q = project(s.points[i][0], s.points[i][1]), d = Math.hypot(q[0] - x, q[1] - y); if (d <= bestD) { bestD = d; best = { kind: 'point', i }; } }
   if (best) return best;
   bestD = edgePx;
-  for (let i = 0; i < n; i++) {
-    const a = s.points[i] as P2, b = s.points[(i + 1) % n] as P2;
-    const pts = [...sampleSegment(a, b, s.bulges?.[i] ?? 0, 16), b].map(p => project(p[0], p[1]));
-    for (let k = 0; k + 1 < pts.length; k++) { const d = toSegment(at, pts[k], pts[k + 1]); if (d <= bestD) { bestD = d; best = { kind: 'edge', i }; } }
-  }
-  if (best) return best;
   const circleDistance = (c: readonly number[], r: number) => {
     const ring = Array.from({ length: 49 }, (_, k) => project(c[0] + r * Math.cos(k * Math.PI / 24), c[1] + r * Math.sin(k * Math.PI / 24)));
     let d = Infinity; for (let k = 0; k + 1 < ring.length; k++) d = Math.min(d, toSegment(at, ring[k], ring[k + 1]));
     const q = project(c[0], c[1]); return Math.min(d, Math.hypot(q[0] - x, q[1] - y));
   };
-  (s.circles ?? []).forEach((c, i) => { const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i }; } });
-  if (best) return best;
+  // Later categories win an exact distance tie.
   done.forEach((c, i) => { if (c.kind !== 'circle') return; const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i, done: true }; } });
+  (s.circles ?? []).forEach((c, i) => { const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i }; } });
+  for (let i = 0; i < n; i++) {
+    const a = s.points[i] as P2, b = s.points[(i + 1) % n] as P2;
+    const pts = [...sampleSegment(a, b, s.bulges?.[i] ?? 0, 16), b].map(p => project(p[0], p[1]));
+    for (let k = 0; k + 1 < pts.length; k++) { const d = toSegment(at, pts[k], pts[k + 1]); if (d <= bestD) { bestD = d; best = { kind: 'edge', i }; } }
+  }
   return best;
 }
 

@@ -1,0 +1,51 @@
+{
+  "decision": "D1052",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "8f8d061b69fc289ea4268cae82a4895922fe58ab",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1052-sketch-curve-baseline01",
+    "D1052_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-nearest-curve-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1052-sketch-curve-fixed01",
+    "D1052_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-nearest-curve-browser.mjs <external-evidence>/fixed01",
+    "gate.sh acquire heavy 600 D1052-sketch-curve-checks01",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model test sketch-nearest-curve sketch-reopen-main-role sketch-band-identity",
+    "node --check apps/cad-studio/test/sketch-nearest-curve-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "states": 6,
+    "firstFailure": "nearer-circle",
+    "receiptSHA256": "ef0a336f8dd78d4dcbed9528ad908fad8cf9c55bc7f68589abdb0e95a60f8973",
+    "sourceManifestSHA256": "2066e3f855852f07f5e0c0c7273c3250f9776be4feb82dd46b40e36bbce690ef"
+  },
+  "studio": {
+    "status": "PASS",
+    "states": 5,
+    "receiptSHA256": "a072654c116607cbc4ea530bcb6dea077ab6fe2092b08299115f73842c98c5da",
+    "sourceManifestSHA256": "9674403d4971ae23d3514b080b5c65d60412a207ba7cf673e1cebae58ff0f52d",
+    "frozenFiles": 857,
+    "gapCSS": 4.000017886573403,
+    "hoverAndClick": [
+      "edge:0",
+      "edge:0",
+      "circle:0",
+      "circle:0",
+      "point:0"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 33,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}
