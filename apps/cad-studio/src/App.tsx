@@ -43,7 +43,7 @@ import { carrySketchSelection } from './state/profileSelection';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
 import { DesignHistory } from './ui/DesignHistory';
-import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
+import { MeasurementInspector, PinnedMeasurement, InterferenceInspector } from './ui/MeasurementInspector';
 import { useInterferenceCheck } from './state/useInterferenceCheck';
 import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
@@ -104,6 +104,7 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
+import { bindMeasureFacePick, capturePinnedFacePair, readPinnedFacePair, type PinnedFacePair } from './app/pinnedFaceMeasure';
 import { hostsOf, nestedCard, renderKeysOf, singleNested, singleTop, viewportInstanceSelection } from './assembly/nestedSelection';
 import { NestedPartPanel } from './ui/NestedPartPanel';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -711,6 +712,10 @@ export function App() {
   const [browserOpen, setBrowserOpen] = useState(() => { try { return localStorage.getItem('cad-studio.browser') !== 'closed'; } catch { return true; } });
   // Measuring: up to two picked faces or edges (null: not measuring).
   const [measure, setMeasure] = useState<MeasurePick[] | null>(null);
+  const measureNativeReady = useRef(false);
+  const [pinnedMeasure, setPinnedMeasure] = useState<{ pair: PinnedFacePair; generation: number; worker: number; project: typeof project.view.store } | null>(null);
+  const pinOwned = pinnedMeasure?.generation === docGeneration && pinnedMeasure.worker === workerSession && pinnedMeasure.project === project.view.store ? pinnedMeasure : null;
+  useEffect(() => { if (pinnedMeasure && !pinOwned) setPinnedMeasure(null); }, [pinnedMeasure, pinOwned]);
   // The SubD cage editor (R8.2, D81): a session on one subd node; Done commits it (see commitRef: commit is defined below).
   const commitRef = useRef<(next: StudioDoc) => void>(() => {});
   const cageEdRef = useRef<ReturnType<typeof useCageEditor>>(null!);
@@ -1544,6 +1549,8 @@ export function App() {
     if (cmd.action === 'measure') {
       // Start from what is selected (one face or edge), then click what to measure to.
       const first: MeasurePick[] = selection.faces[0] ? [{ body: selection.faces[0].body, face: selection.faces[0].face }] : selection.edges[0] ? [{ body: selection.edges[0].body, edge: selection.edges[0].edge }] : [];
+      if (first[0] && selection.faces[0] && measureNativeReady.current
+        && currentNativePlanePick(ctx, selection.faces[0], doc)) bindMeasureFacePick(first[0], doc, bodies[first[0].body]);
       setMeasure(first); setSelection(emptySel); setEditNode(null); return;
     }
     if (!cmd.fields) {
@@ -1676,7 +1683,7 @@ export function App() {
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
   const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, nativePlanePickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
-    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
   const pickProfile = picking.onPickProfile;
@@ -1729,7 +1736,7 @@ export function App() {
   const detachProject = project.detach;
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
     const previous = docNow.current;
-    if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); }
+    if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); setPinnedMeasure(null); }
     else setSelection(selection => carrySketchSelection(selection, previous, entry.doc));
     setDocState(entry.doc);
     setMarker(entry.marker);
@@ -1840,7 +1847,7 @@ export function App() {
       if (mode !== 'in-place') setCheckpointReview(null);
       if (mode === 'detached' || mode === 'new-part') { project.detach(); setCompareBase(null); }
       if (mode === 'new-part') setFileName('Untitled');
-      cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
+      cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setPinnedMeasure(null); setEditNode(null);
     } finally { replacement.current = null; }
   };
   // Roadmap 10 ⑧: a part edited in place. The session swaps the working document for the part's own and back; the other parts are drawn around it
@@ -2278,6 +2285,21 @@ export function App() {
   const sewCandidateShown = !!previewBodies?.length && shownBodies === previewBodies && !cageEd.session;
   const viewportDirect = useMemo(() => sewPreviewDirect(directShown, active?.cmd.id, active?.ctx, sewCandidateShown), [directShown, active?.cmd.id, active?.ctx, sewCandidateShown]);
   viewBodiesRef.current = viewBodies;
+  const pinView = !rendering && !drawing && !sketch;
+  const pinReady = pinView && nativeVertexReady && shownDoc === doc && !workerFailure
+    && !bodyDrag && !ghost && !workingComparison && !cageEd.session && !skel.session
+    && !routePanelOpen && !previewBodies && !routePreviewBodies && !halvesShownRef.current
+    && viewBodies === drawnBodies && sameMeshes(drawnBodies, bodies);
+  measureNativeReady.current = pinReady;
+  const pinOffer = pinReady && measure ? capturePinnedFacePair(doc, bodies, measure) : null;
+  const pinResult = useMemo(() => pinReady && pinOwned ? readPinnedFacePair(doc, bodies, pinOwned.pair) : null,
+    [pinReady, pinOwned, doc, bodies]);
+  const pinMeasurement = () => {
+    if (!pinOffer || !measureNativeReady.current || docNow.current !== doc || workerSessionNow.current !== workerSession) return;
+    setPinnedMeasure({ pair: pinOffer, generation: docGeneration, worker: workerSession, project: project.view.store });
+    setMeasure(null);
+  };
+  const visibleMeasurement = measure ? measured : pinResult;
   const crossingBodies = sketch?.tool === 'rectangle' && fresh && !busy && shownDoc === doc && marker === null && !inPlace && !doc.instances?.length
     && !active && !rendering && !drawing && !section && previewMode === 'none' && !cageEd.session && !skel.session
     && !bodyDrag && !ghost && !workingComparison && shownBodies === drawnBodies
@@ -2652,7 +2674,8 @@ export function App() {
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
-      {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} />}
+      {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} onPin={pinOffer ? pinMeasurement : undefined} />}
+      {pinView && pinOwned && !measure && <PinnedMeasurement distance={pinResult?.normalDistance ?? null} onClear={() => setPinnedMeasure(null)} />}
       {cutDraft && !rendering && !sketch && !measure && <AssemblyCutHud draft={cutDraft} instances={doc.instances ?? NO_INSTANCES} problem={draftProblem(doc, cutDraft) ?? (cutTrial?.key === cutKey ? cutTrial.problem : undefined)}
         onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
         onApply={applyCut} onCancel={() => setCutDraft(null)} />}
@@ -2901,7 +2924,7 @@ export function App() {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
         })() : null}
-        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: measureQuantityText(measured.distance, 2) + ' mm' } : null} />
+        measureLine={visibleMeasurement && visibleMeasurement.distance > 1e-9 ? { a: visibleMeasurement.a, b: visibleMeasurement.b, label: measureQuantityText(visibleMeasurement.distance, 2) + ' mm' } : null} />
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className={'card toolbar' + (sketch ? '' : ' model-toolbar')} aria-label="Tools" hidden={rendering || drawing}>

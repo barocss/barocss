@@ -2,21 +2,24 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const pin = process.argv[3] === '--pin';
 const pins = [
   'apps/cad-studio/test/measure-opposite-face-edit-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/MeasurementInspector.tsx',
   'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'packages/barocss-cad-model/src/app/measure.ts',
+  ...(pin ? ['apps/cad-studio/src/app/pinnedFaceMeasure.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: 'D927_SOURCE_FROZEN',
+  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
-  limits: ['One rectangular Extrude and the existing Measure tool. Each measurement uses fresh explicit picks.'],
+  qualification: pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
+  limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     controls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
+    pinned: document.querySelector('[aria-label="Pinned measurement"]')?.textContent ?? null,
     measure: document.querySelector('[aria-label="Measurement"]')?.textContent ?? null,
     overlay: window.__studioOverlayTexts?.()['measure:label'] ?? [],
   }),
@@ -44,6 +47,7 @@ const source = {
 };
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Measurement', exact: true });
+const pinnedPanel = () => f.page.getByRole('complementary', { name: 'Pinned measurement', exact: true });
 const metric = label => panel().locator('.kv').filter({ hasText: new RegExp('^' + label + '\\b') }).locator('b');
 async function open(name, doc) {
   const buffer = Buffer.from(JSON.stringify(doc));
@@ -67,7 +71,7 @@ async function cap(side, height) {
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel), pixel);
   await f.page.mouse.click(...pixel);
 }
-async function check(label, height, reverse = false) {
+async function check(label, height, reverse = false, keep = false) {
   f.phase = 'measure ' + label;
   const before = await f.snapshot(label + '-before');
   const raw = await f.inspect(label + '-native', before.doc);
@@ -92,9 +96,77 @@ async function check(label, height, reverse = false) {
   const current = await f.snapshot(label);
   for (const field of ['doc', 'bodies', 'history', 'controls', 'dirty']) assert.deepEqual(current[field], before[field], field);
   f.report.observations.push({ label, heightMM: height, nativeVolumeMM3: raw.volume, measurement: current.measure, overlay: current.overlay });
+  if (keep) {
+    await button('Pin measurement').click();
+    await panel().waitFor({ state: 'hidden' });
+    const pinned = await checkPin(label + '-pinned', height);
+    for (const field of ['doc', 'bodies', 'history', 'controls', 'dirty']) assert.deepEqual(pinned[field], before[field], field);
+    return;
+  }
   await button('Done measuring').click();
   await panel().waitFor({ state: 'hidden' });
   await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+}
+
+async function checkPin(label, height) {
+  await pinnedPanel().getByText(height + ' mm', { exact: true }).waitFor();
+  await f.page.waitForFunction(height => window.__studioOverlayTexts?.()['measure:label']?.includes(height + ' mm'), height);
+  const snapshot = await f.snapshot(label);
+  assert.equal(snapshot.measure, null);
+  assert.ok(Math.abs(snapshot.bodies.bodies[0].volume - 240 * height) < 1e-8);
+  f.report.observations.push({ label, pinnedMM: height, volumeMM3: snapshot.bodies.bodies[0].volume });
+  return snapshot;
+}
+
+async function pinFlow() {
+  await check('01-original-8', 8, false, true);
+  f.phase = 'select a face independently of the pinned measurement';
+  await cap('Top', 8);
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.faces.length === 1);
+  const selected = await checkPin('03-independent-selection', 8);
+  assert.equal(selected.selection.selection.faces.length, 1);
+  await f.page.keyboard.press('Escape');
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.faces.length === 0);
+  await checkPin('04-selection-cleared', 8);
+
+  f.phase = 'edit the accepted extrusion while the measure is pinned';
+  await f.openFeatureEditor(1, 'Extrude');
+  const distance = f.editor().getByLabel('Distance', { exact: true });
+  await distance.fill('13.25');
+  const edited = await f.applyEditor(source, '05-apply-distance');
+  assert.equal(edited.doc.nodes[1].height, 13.25);
+  await checkPin('06-pin-after-edit', 13.25);
+  await f.closeEditor();
+
+  await f.undo();
+  await f.same(source);
+  await checkPin('07-pin-after-undo', 8);
+  await f.redo();
+  await f.same(edited.doc);
+  await checkPin('08-pin-after-redo', 13.25);
+
+  f.phase = 'hide the pinned body and restore it without a stale readout';
+  await button('Hide body').click();
+  await pinnedPanel().getByRole('status').getByText('Measurement unavailable.', { exact: true }).waitFor();
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  await f.snapshot('09-hidden-pin-unavailable');
+  await f.undo();
+  await f.same(edited.doc);
+  await checkPin('10-pin-visible-after-undo', 13.25);
+
+  f.phase = 'clear the readout without changing the working document';
+  await pinnedPanel().getByRole('button', { name: 'Clear pinned measurement', exact: true }).click();
+  await pinnedPanel().waitFor({ state: 'hidden' });
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  await f.same(edited.doc);
+  await check('11-repick-13-25', 13.25, true, true);
+
+  f.phase = 'replace the part by File Open with the same feature IDs';
+  await open('D928-same-ids', source);
+  await pinnedPanel().waitFor({ state: 'hidden' });
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  await f.snapshot('12-file-open-clears');
+  await check('13-ordinary-measure-after-open', 8);
 }
 
 await f.run(async () => {
@@ -111,7 +183,8 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  await open('D927-original', source);
+  await open(pin ? 'D928-original' : 'D927-original', source);
+  if (pin) { await pinFlow(); assert.deepEqual(f.report.downloads, []); return; }
   await check('01-original-8', 8);
   f.phase = 'change the existing Extrude distance through History';
   await f.openFeatureEditor(1, 'Extrude');

@@ -1,0 +1,89 @@
+{
+  "decision": "D928",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "37b3382bc0988c69ec88a8bf762cbc34b8b48919",
+  "issue": 2337,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D928-pin",
+    "D928_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/run03 --pin",
+    "gate.sh acquire heavy 600 D928-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure references",
+    "cd apps/cad-studio && node scripts/test.mjs pinned-face-measure document-file workOwnership",
+    "pnpm -C apps/cad-studio run type-check",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "firstFailures": [
+    {
+      "status": "FAIL",
+      "stage": "Studio tsc",
+      "reason": "Array.findLastIndex is outside the configured library target"
+    },
+    {
+      "status": "FAIL",
+      "stage": "Actual Measure pin",
+      "reason": "Deferred mass patch leaves the same ordered meshes in a different body array",
+      "receiptSHA256": "a50d5a1d147467cb765750bf376bde1edf4f5cf78caa5de82d0d78ab2ae9c94d"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 52,
+    "studioPass": 14,
+    "pinPass": 2,
+    "fail": 0,
+    "skipped": 0,
+    "studioTypes": "PASS",
+    "modelTypes": "PASS",
+    "logSHA256": "72aa2ed524410c8050c61b63a10f3b1346017c78bb9af480726edeead57789ff"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Sol High read-only review of cap orientation, identity and active/pending gates. Context menu uses the existing transient measurement."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "3066dfc9174ac70d3c5a249e881e1ee37a0d99456f02714b07e0ec6f135b8e5e",
+    "sourceManifestSHA256": "5390f482d4ad4a9dce40c5bebf9e9c03cc46f699b260f025acdd738c749ff9c2",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pinnedMM": [
+      8,
+      8,
+      8,
+      13.25,
+      8,
+      13.25,
+      null,
+      13.25
+    ],
+    "nativeVolumeMM3": [
+      1920.0000000000007,
+      3180.000000000001
+    ],
+    "expectedVolumeMM3": [
+      1920,
+      3180
+    ],
+    "toleranceMM3": 1e-08
+  },
+  "notRun": [
+    "broader plane or feature families",
+    "context menu pinning",
+    "live worker restart",
+    "held replies",
+    "native Save",
+    "Project Close",
+    "full suites",
+    "production build",
+    "mobile"
+  ]
+}

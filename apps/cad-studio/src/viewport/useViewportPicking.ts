@@ -13,6 +13,7 @@ import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
 import { bindMidpointPick } from '../app/midpointSketch';
+import { bindMeasureFacePick } from '../app/pinnedFaceMeasure';
 import { bindNativeVertexPick } from './vertexPick';
 import type { ScenePickingActions } from './SceneViewport';
 
@@ -24,7 +25,7 @@ export interface ViewportMenu {
 
 export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
+  setDirectSel, setMeasure, measureNativeReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
@@ -36,6 +37,7 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
   activeRef: RefObject<Active | null>; halvesShownRef: RefObject<boolean>; setPick: Dispatch<SetStateAction<Vec3 | null>>;
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
   setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>;
+  measureNativeReady: RefObject<boolean>;
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
   scene: {
     active: Active | null;
@@ -91,6 +93,7 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
     if (measure) {
       if (!hit.face && !hit.edge && !hit.vertex) return;
       const p: MeasurePick = hit.vertex ? { body: hit.vertex.body, vertex: hit.vertex.at } : hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
+      if (p.face !== undefined && measureNativeReady.current) bindMeasureFacePick(p, doc, viewBodiesRef.current[p.body]);
       setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
     }
     // A corner: picked on its own (Shift adds or takes back another).
@@ -112,7 +115,7 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, assembly, doc, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, measureNativeReady, assembly, doc, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {

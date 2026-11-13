@@ -4,12 +4,13 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Selection } from '@barocss/cad-model/app/commands';
 import { measureItem, type measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { bodyName } from '@barocss/cad-model/app/bodies';
+import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon, Kbd } from './atoms';
 import { measureQuantityText } from './quantityText';
 import type { InterferenceReport } from '../app/checkInterference';
-interface MeasurementInspectorProps { bodies: BodyResult[]; measure: MeasurePick[]; measured: ReturnType<typeof measureBetween> | null; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>> }
-export function MeasurementInspector({ bodies, measure, measured, setMeasure }: MeasurementInspectorProps) {
+interface MeasurementInspectorProps { bodies: BodyResult[]; measure: MeasurePick[]; measured: ReturnType<typeof measureBetween> | null; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>; onPin?(): void }
+export function MeasurementInspector({ bodies, measure, measured, setMeasure, onPin }: MeasurementInspectorProps) {
   return <aside className="card props" aria-label="Measurement">
         <div className="card-title">MEASURE <ToolIconButton size="tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></ToolIconButton></div>
         {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
@@ -26,8 +27,17 @@ export function MeasurementInspector({ bodies, measure, measured, setMeasure }: 
           {measured.axes && <div className="kv" aria-label="Axes">Axes <b>{measured.axes.coaxial ? 'coaxial' : `${measureQuantityText(measured.axes.angle, 3)}° apart, ${measureQuantityText(measured.axes.offset, 3)} mm off`}</b></div>}
           <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => measureQuantityText(v - measured.a[k], 2)).join(', ')}</b></div>
         </>}
+        {onPin && <Button size="sm" variant="ghost" onClick={onPin}>Pin measurement</Button>}
         <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>;
+}
+
+export function PinnedMeasurement({ distance, onClear }: { distance: number | null; onClear(): void }) {
+  return <aside className="card props" aria-label="Pinned measurement">
+    <div className="card-title">PINNED MEASUREMENT <ToolIconButton size="tiny" aria-label="Clear pinned measurement" onClick={onClear}><Icon name="close" small /></ToolIconButton></div>
+    {distance === null ? <div className="empty" role="status">Measurement unavailable.</div>
+      : <div className="kv">Normal distance <b>{measureQuantityText(distance, 3)} mm</b></div>}
+  </aside>;
 }
 
 export type InterferenceResult = InterferenceReport | 'busy';
