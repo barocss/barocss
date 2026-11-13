@@ -21,13 +21,18 @@ export interface ViewportMenu {
   at: { x: number; y: number };
   selection: Selection;
   title: string;
+  viewOnly?: true;
 }
 
-export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
   setDirectSel, setMeasure, measureNativeReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
+  sectionPickRef: RefObject<(hit: {
+    face: { body: number; face: number } | null;
+    edge: { body: number; edge: number } | null;
+  }) => { face: { body: number; face: number } | null; cap: boolean }>;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
   doc: StudioDoc; modelUnavailable: boolean; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
@@ -56,15 +61,23 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
     // (G19: a face for a section plane — its plane, the material behind it kept.)
     if (sectionRef.current && sectionFacePickRef.current !== null && hit.face) {
-      const i = sectionFacePickRef.current, f = viewBodiesRef.current[hit.face.body]?.mesh.faces[hit.face.face];
+      const i = sectionFacePickRef.current, target = sectionPickRef.current(hit);
+      const f = target.face && scene.bodies[target.face.body]?.mesh.faces[target.face.face];
       if (f && f.kind === 'plane') { const q = planeFromFace(f, sectionBoxRef.current); setSection(sc => sc && { ...sc, planes: sc.planes.map((p, j) => j === i ? q : p) }); setSectionFacePick(null); }
       else setToast({ title: 'Not a flat face', hint: 'A section plane is taken from a flat face.', detail: '' });
       return;
     }
     const validInstance = !!hit.instance && !!doc.instances?.some(inst => inst.id === hit.instance && !inst.hidden);
     if (hit.instance && !validInstance) return;
-    // Section copies still block base-body edits. A current visible instance keeps its own selection route.
-    if (sectionRef.current && !activeRef.current && !validInstance) return;
+    if (sectionRef.current && !validInstance) {
+      if (activeRef.current || hit.direct) return;
+      const target = sectionPickRef.current(hit);
+      if (!target.face) {
+        if (!additive) { setSelection(emptySel); setPick(null); setDirectSel([]); setInstanceSel([]); }
+        return;
+      }
+      hit = { ...hit, face: target.face, edge: null, vertex: undefined };
+    }
     // (G6: while the mould's halves show, picks reach only them — none here.)
     if (halvesShownRef.current && !activeRef.current) return;
     const cur = activeStore.get();
@@ -94,12 +107,12 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     if (measure) {
       if (!hit.face && !hit.edge && !hit.vertex) return;
       const p: MeasurePick = hit.vertex ? { body: hit.vertex.body, vertex: hit.vertex.at } : hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
-      if (p.face !== undefined && measureNativeReady.current) bindMeasureFacePick(p, doc, viewBodiesRef.current[p.body]);
+      if (p.face !== undefined && measureNativeReady.current) bindMeasureFacePick(p, doc, sectionRef.current ? scene.bodies[p.body] : viewBodiesRef.current[p.body]);
       setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
     }
     // A corner: picked on its own (Shift adds or takes back another).
     if (hit.vertex) { const v = hit.vertex; if (nativeVertexReady) bindNativeVertexPick(v, doc); setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
-    if (hit.face && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
+    if (!sectionRef.current && hit.face && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       // Bodies only: the body under the click (Shift adds or takes it back).
@@ -116,7 +129,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, measureNativeReady, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {
@@ -155,11 +168,23 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     },
     onContextMenu(at, hit) {
       if (modelUnavailable || scene.active || scene.sketch) return;
-      if (hit.face && !hit.edge && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
+      if (scene.section) {
+        const target = sectionPickRef.current(hit);
+        if (!target.face) {
+          setSelection(emptySel);
+          scene.setMenu({ at, selection: emptySel, title: target.cap ? 'SECTION CAP' : 'SECTION VIEW', viewOnly: true });
+          return;
+        }
+        hit = { face: target.face, edge: null };
+      }
+      if (hit.face && !hit.edge && !scene.section && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
       const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }
         : hit.face ? { faces: [hit.face], edges: [], bodies: [] }
         : scene.selection;
-      if (hit.edge || hit.face) setSelection(next);
+      if (hit.edge || hit.face) {
+        setSelection(next);
+        if (scene.section) { setPick(null); setDirectSel([]); setInstanceSel([]); }
+      }
       const count = hit.edge || hit.face ? 0 : selectedBodies(next).length;
       const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : count ? `${count} BOD${count > 1 ? 'IES' : 'Y'}` : 'VIEW';
       scene.setMenu({ at, selection: next, title });

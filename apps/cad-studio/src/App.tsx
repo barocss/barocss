@@ -129,7 +129,7 @@ import { useJoints } from './state/useJoints';
 import { refuseMotionSweep, timedMotion } from './state/motion';
 import { timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
-import { SceneViewport } from './viewport/SceneViewport';
+import { type ScenePickingActions, SceneViewport } from './viewport/SceneViewport';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { useScenePoses } from './state/useScenePoses';
 import type { CamOptions } from './viewport/camDisplay';
@@ -210,7 +210,7 @@ import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import { joinOpen } from '@barocss/cad-model/sketch/trim';
 import { faceProfile } from '@barocss/cad-model/app/faceProfile';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
-import { bodyName, describeChange, rootOf } from '@barocss/cad-model/app/bodies';
+import { bodyName, describeChange, lookOf, rootOf } from '@barocss/cad-model/app/bodies';
 import { readBrief } from '@barocss/cad-model/chat/brief';
 import { BriefPanel } from './ui/BriefPanel';
 import { SpecifyPanel } from './ui/SpecifyPanel';
@@ -1707,6 +1707,9 @@ export function App() {
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
+  const sectionPickRef = useRef<(hit: Parameters<ScenePickingActions['onContextMenu']>[1]) => {
+    face: { body: number; face: number } | null; cap: boolean;
+  }>(() => ({ face: null, cap: false }));
   const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
   const pickExtrudeEndFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
@@ -1758,7 +1761,7 @@ export function App() {
     },
     notice: setToast,
   });
-  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -2444,6 +2447,17 @@ export function App() {
   const sewCandidateShown = !!previewBodies?.length && shownBodies === previewBodies && !cageEd.session;
   const viewportDirect = useMemo(() => sewPreviewDirect(directShown, active?.cmd.id, active?.ctx, sewCandidateShown), [directShown, active?.cmd.id, active?.ctx, sewCandidateShown]);
   viewBodiesRef.current = viewBodies;
+  sectionPickRef.current = hit => {
+    if (!fresh || busy || !sectionExactShown || shownBodies !== sectionBodies || !hit.face || hit.edge) return { face: null, cap: false };
+    const shown = shownBodies[hit.face.body], face = shown?.mesh.faces[hit.face.face];
+    if (!face) return { face: null, cap: false };
+    if (cutAfter(face.name, sectionFrom)) return { face: null, cap: true };
+    const source = sectionExact?.from.get(shown.key);
+    const body = bodies.findIndex(candidate => candidate.key === source);
+    if (body < 0 || lookOf(doc, bodies[body]).hidden) return { face: null, cap: false };
+    const matches = bodies[body].mesh.faces.filter(candidate => candidate.name === face.name);
+    return { face: matches.length === 1 ? { body, face: matches[0].index } : null, cap: false };
+  };
   const pinView = !rendering && !drawing && !sketch;
   const pinReady = pinView && nativeVertexReady && shownDoc === doc && !workerFailure
     && !bodyDrag && !ghost && !workingComparison && !cageEd.session && !skel.session

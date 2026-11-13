@@ -1,0 +1,45 @@
+{
+  "decision": "D1010",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "7b68405fff8c6004f114b452ae98391c177c1a89",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1010-section-baseline",
+    "gate.sh acquire heavy 600 D1010-section-studio",
+    "D1010_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-face-browser.mjs <external-evidence>/baseline",
+    "D1010_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-face-browser.mjs <external-evidence>/studio03",
+    "pnpm --filter @barocss/cad-studio-app test section-span section-planes section-view section-cutout section-hatch selection-edge",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/section-original-face-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Generated cap context menu took original body 0 though the only shown body was b3.",
+    "receiptSHA256": "4a2ef262bf069e189b623c805ec0f958c91c2c7253979dd7160f945abbacda3b",
+    "sourceManifestSHA256": "e4a491b45bd2864cd94c842d079aab1f29fbfefe45a61e09a63c3d11231d6014"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "9f19515cdf6d98cc006911f6b1174a6e13188dacc57f7741f34979f6e5cea564",
+    "sourceManifestSHA256": "b57efaa8fe0e275b74027b2536d553737504d05f3a2a6586ea94dd07f973bca9",
+    "frozenFiles": 372,
+    "states": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sectionXMM": 25,
+    "sourceBody": "b3",
+    "sourceFace": "n3.top",
+    "diameterMM": 4,
+    "centreMM": [38, 40],
+    "volumeToleranceMM3": 1e-7
+  },
+  "earlierRun": { "status": "FAIL", "reason": "The resolver was absent from the hook call.", "receiptSHA256": "25bf76bb64634eeba052d0fd481de806590543b0522e9a79648b79e76ebb377b" },
+  "focused": { "status": "PASS", "passed": 25, "failed": 0, "typeCheck": "PASS" },
+  "notRun": ["Mate and Measure", "face-derived plane position", "hidden-body section sketch", "drag and fallback provenance", "WebGL2", "production build", "full suites", "mobile"]
+}
