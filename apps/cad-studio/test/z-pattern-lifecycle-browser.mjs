@@ -120,9 +120,8 @@ await f.run(async () => {
 
   await f.openFeatureEditor(2, 'zero count refusal');
   await f.editor().getByLabel('Count', { exact: true }).fill('0');
-  await button(f.editor(), 'Apply').click();
-  await f.editor().locator('summary').getByText('Kernel detail', { exact: true }).click();
-  await f.editor().getByText(/count.*(?:integer|whole|number)/i).waitFor();
+  assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
+  await f.editor().getByText(/Count must be a whole number from 2 to 36/i).waitFor();
   await f.same(three);
   await checkPattern('retained-three', three, 3);
   await f.snapshot('03-zero-count-refused');

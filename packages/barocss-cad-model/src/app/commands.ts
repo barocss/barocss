@@ -28,6 +28,7 @@ import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows
 import { duplicateBody } from '../chat/features';
 import { HOLE_PLANE, leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import { linearSpanPatternInput } from '../engine/linearSpanPattern';
+import { circularPatternCountRange, circularPatternStep } from '../engine/circularPatternSpan';
 import { linearSpanHandles } from './linearSpanHandles';
 import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
@@ -196,7 +197,6 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 const RESULT: Field = { key: 'result', label: 'Result', kind: 'choice', options: [{ value: 'one', label: 'One body' }, { value: 'separate', label: 'Separate bodies' }] };
 const LINEAR_PATTERN_COUNT = { min: 2, max: 24 };
 const usesLinearSpan = (values: Values) => values.result !== 'separate' && values.distanceMode === 'span';
-const Z_CIRCULAR_COUNT_MAX = 36;
 /** The axis a mirror plane is across. */
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
 /** The selected edges, when they all belong to one body. */
@@ -925,7 +925,7 @@ const allCommands: Command[] = [
     id: 'circular-pattern', label: 'Circular pattern', icon: 'cad-pattern-circular', hint: 'Copies of a body round an axis', group: 'pattern', keywords: 'polar array',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: (_ctx, v) => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
-      { key: 'count', label: 'Count', kind: 'count', min: 2, max: v?.axis === 'x' || v?.axis === 'y' ? 4 : Z_CIRCULAR_COUNT_MAX },
+      { key: 'count', label: 'Count', kind: 'count', ...circularPatternCountRange(String(v?.axis ?? 'z')) },
       { key: 'span', label: 'Spread over', kind: 'deg', min: 1, max: 360, step: 5, when: v => v.axis === 'z' },
       { key: 'px', label: 'Axis at X', kind: 'mm', when: v => v.axis === 'z' }, { key: 'py', label: 'Axis at Y', kind: 'mm', when: v => v.axis === 'z' }, RESULT],
     defaults: () => ({ axis: 'z', count: 4, span: 360, px: 0, py: 0, result: 'one' }),
@@ -939,15 +939,13 @@ const allCommands: Command[] = [
       return out;
     },
     build: (ctx, v) => {
-      const n = Number(v.count), z = v.axis === 'z';
-      if (!z && (!Number.isInteger(n) || n < 2 || n > 4)) {
-        throw refusal('VALUE', 'X/Y circular patterns use 90° steps and a Count of 2, 3 or 4, including the original.');
+      const n = Number(v.count), z = v.axis === 'z', { min, max } = circularPatternCountRange(String(v.axis));
+      if (!Number.isInteger(n) || n < min || n > max) {
+        const axisRule = z ? 'Z circular patterns' : 'X/Y circular patterns with 90° steps';
+        throw refusal('VALUE', `${axisRule} use a whole-number Count from ${min} to ${max}, including the original.`);
       }
       const span = Number(v.span ?? 360), pivot: [number, number, number] = [Number(v.px ?? 0), Number(v.py ?? 0), 0];
       if (v.result === 'separate') {
-        if (z && (!Number.isInteger(n) || n < 2 || n > Z_CIRCULAR_COUNT_MAX)) {
-          throw refusal('VALUE', `Z circular patterns with separate bodies use a whole-number Count from 2 to ${Z_CIRCULAR_COUNT_MAX}, including the original.`);
-        }
         // Each copy a body of its own, turned about the axis by its share of the spread.
         const body = refOf(oneBody(ctx)!), step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
         let doc = ctx.doc;
@@ -955,7 +953,7 @@ const allCommands: Command[] = [
         return doc;
       }
       return withNode(ctx.doc, z
-        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, span: span >= 360 ? 360 : span, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
+        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: circularPatternStep(span, n), count: n, span: span >= 360 ? 360 : span, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
         : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: n });
     },
   },

@@ -175,7 +175,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min} max={f.integerRange?.max} aria-label={f.label} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min} max={f.integerRange?.max} aria-label={f.label} aria-describedby={f.integerRange && !invalidCounts.includes(f) ? `history-range-${f.key}` : undefined} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();
@@ -193,6 +193,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
               <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
             : f.kind === 'choice' ? <select disabled={ordinaryLocked} aria-label={f.label} value={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.value)); }}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" disabled={ordinaryLocked} aria-label={f.label} checked={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.checked)); }} />}
+          {f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) && <span id={`history-range-${f.key}`} className="muted small col-span-2">Whole number from {f.integerRange.min} to {f.integerRange.max}</span>}
         </div>
       )) : node?.kind !== 'face-end-extrude' && <div className="empty">This feature has no editable dimensions.</div>}
       {node?.kind === 'linear-span-pattern' && <LinearSpanSpacing span={node.span} count={node.count} />}

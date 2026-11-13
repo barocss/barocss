@@ -25,3 +25,7 @@ export function circularPatternSpanProblem(input: unknown): string | null {
   }
   return null;
 }
+/** Count limits for authored circular body-pattern inputs. Saved native nodes have their own admission. */
+export function circularPatternCountRange(axis: string) {
+  return { min: 2, max: axis === 'z' ? 36 : 4 };
+}

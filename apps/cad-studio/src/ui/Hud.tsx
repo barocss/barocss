@@ -50,13 +50,16 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   };
   const renderField = (field: Field, index: number) => {
     const value = active.values[field.key], ref = index === 0 ? captureFirst : undefined;
+    const showCircularCount = active.cmd.id === 'circular-pattern' && field.key === 'count' && field.kind === 'count';
+    const invalidCount = showCircularCount && (!Number.isInteger(Number(value)) || Number(value) < (field.min ?? -Infinity) || Number(value) > (field.max ?? Infinity));
     let control: ReactNode;
     if (field.kind === 'choice') control = <NativeSelect className={FIELD} ref={ref} aria-label={field.label} data-key={field.key} data-kind="choice" value={String(value)} onChange={changeValue}>{field.options.map(renderOption)}</NativeSelect>;
     else if (field.kind === 'text') control = <Input className={FIELD} ref={ref} type="text" aria-label={field.label} data-key={field.key} data-kind="text" maxLength={field.maxLength} value={String(value ?? '')} onChange={changeValue} />;
     else if (field.kind === 'file') control = <span className="min-w-0"><Input className={FIELD} ref={ref} type="file" aria-label={field.label} data-key={field.key} accept={field.accept} disabled={!onFile} onChange={chooseFile} /><span className="muted small">{field.filename(value ?? '') ?? 'No file prepared'}</span></span>;
-    else control = <span className="num"><Input className={FIELD + ' pr-7!'} ref={ref} type="number" aria-label={field.label} data-key={field.key} data-kind={field.kind} step={field.kind === 'count' ? 1 : 'any'} min={field.min} max={field.max} value={String(value ?? '')} onChange={changeValue} />
+    else control = <span className="num"><Input className={FIELD + ' pr-7!'} ref={ref} type="number" aria-label={field.label} aria-invalid={invalidCount || undefined} aria-describedby={showCircularCount ? 'hud-circular-count-range' : undefined} data-key={field.key} data-kind={field.kind} step={field.kind === 'count' ? 1 : 'any'} min={field.min} max={field.max} value={String(value ?? '')} onChange={changeValue} />
       {field.kind === 'mm' && <em>mm</em>}{field.kind === 'deg' && <em>°</em>}{field.kind === 'ratio' && <em>×</em>}</span>;
-    return <label key={field.key} className="field"><span>{field.label}</span>{control}</label>;
+    return <label key={field.key} className="field"><span>{field.label}</span>
+      {showCircularCount ? <span className="min-w-0">{control}<span id="hud-circular-count-range" className="muted small block">Whole number from {field.min} to {field.max}</span></span> : control}</label>;
   };
   return (
     <div className="card hud" role="dialog" aria-label={active.fillet ? 'Fillet' : active.cmd.label}>

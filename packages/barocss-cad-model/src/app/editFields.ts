@@ -1,5 +1,5 @@
 import { sewTolerance } from '../engine/sew';
-import { circularPatternStep } from '../engine/circularPatternSpan';
+import { circularPatternCountRange, circularPatternStep } from '../engine/circularPatternSpan';
 import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
 import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
 import type { StudioDoc } from '../engine/doc';
@@ -14,7 +14,7 @@ import type { BearingAssemblyContext, BearingAssemblyInput } from '../engine/bea
 import type { StudioFits } from '../engine/fits';
 import { bearingHousingOptions, bearingHousingPatch, bearingHousingValue } from './shaftCommands';
 import { helixOf } from '../engine/part';
-import { CadPartLimits, spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
+import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
@@ -659,7 +659,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
         const pattern = n as typeof node;
         if (pattern.axis === 'z' && pattern.span !== undefined) return { ...pattern, count, angle: circularPatternStep(pattern.span, count) };
         return { ...pattern, count, ...(pattern.axis === 'z' ? { angle: 360 / count } : {}) };
-      }, { min: 1, max: CadPartLimits.copies });
+      }, circularPatternCountRange(node.axis));
       break;
     case 'split':
       if (node.normal) (['x', 'y', 'z'] as const).forEach((a, k) => number('n' + a, `Normal ${a.toUpperCase()}`, undefined, n => (n as typeof node).normal?.[k] ?? 0, (n, v) => { const was = (n as typeof node).normal ?? [0, 0, 0], next = was.map((c, j) => j === k ? v : c) as [number, number, number]; return { ...(n as typeof node), normal: next }; }));

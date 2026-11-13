@@ -61,7 +61,7 @@ await f.run(async () => {
     assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
     await count.press('Enter');
     assert.deepEqual(await f.doc(), array);
-    await f.editor().getByText(/whole number from 1 to 64/i).waitFor();
+    await f.editor().getByText(/whole number from 2 to 36/i).waitFor();
     await count.fill('4');
     const { doc, bodies } = await f.applyEditor(array, '03-four-copies');
     assert.equal(doc.nodes[2].count, 4);

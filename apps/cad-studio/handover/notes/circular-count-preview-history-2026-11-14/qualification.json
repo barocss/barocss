@@ -1,0 +1,82 @@
+{
+  "decision": "D1141",
+  "tier": "SMALL",
+  "parent": "83d1fd4195cbe791eace73ec5ee8e433ad201024",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1141-<run>",
+    "D1141_SOURCE_FROZEN=1 node apps/cad-studio/test/circular-count-parity-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1139_SOURCE_FROZEN=1 node apps/cad-studio/test/empty-history-number-browser.mjs <external-evidence>/history-controls --controls",
+    "D821_SOURCE_FROZEN=1 node apps/cad-studio/test/z-pattern-lifecycle-browser.mjs <external-evidence>/z-pattern-lifecycle",
+    "D740_SOURCE_FROZEN=1 node apps/cad-studio/test/circular-pattern-count-browser.mjs <external-evidence>/quarter-turn",
+    "cd packages/barocss-cad-model && node scripts/test.mjs circular-pattern-count editFields feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed Typescript files>",
+    "node --check <each changed JavaScript driver>",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 385,
+      "receiptSHA256": "05cf05561c113d3c39c8247b96a7ab22672acd8e9f34f1bfc5f7ce99f20096c7",
+      "sourceManifestSHA256": "8703dd8551186962f6b3c6fd3e48e2ffe2914167d2016ad1dcb705e55fdcaeba"
+    },
+    "final": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 385,
+      "receiptSHA256": "e2c6aa723b4fba0c038b9db292901f664d86cf577f3927bbe30bf7d1f7e542b7",
+      "sourceManifestSHA256": "fb73222e5f99cf1223f69478febae264933b6d78d5d6d36ed99d0b0f1a439bff"
+    },
+    "history-controls": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "71ba9f88625098f3d2953b9903034cc49e7c3713542a4a39e754e287fd00b17a",
+      "sourceManifestSHA256": "1007034b5f895314b8512e14319ec103ca1575ce3ae4cd18a636d7f725855024"
+    },
+    "z-pattern-lifecycle": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 863,
+      "receiptSHA256": "db1d256841e7deea638808b1685b6533027f5e7239b2ce12a67aa178289d6242",
+      "sourceManifestSHA256": "884e7689b06aaa3f98a73f804fc2f3791fe0ba041df0a2aa08c6860cf6184ddb"
+    },
+    "quarter-turn": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 862,
+      "receiptSHA256": "12ff0bb9480fed2e90b557026e9dca472a67c72cc21ac81d0faa67c93db893b2",
+      "sourceManifestSHA256": "800e9ed7ac6a1ce54b9226bc5b1bacb92fecdbf456aeca71a4984e91b1c25d4d"
+    }
+  },
+  "observations": [
+    {
+      "label": "x",
+      "maximum": 4,
+      "count": 4,
+      "stepDegrees": 90,
+      "volumeMM3": 767.9999999999998
+    },
+    {
+      "label": "z",
+      "maximum": 36,
+      "count": 4,
+      "stepDegrees": 90,
+      "volumeMM3": 768.0000000000055
+    },
+    {
+      "label": "legacy-z",
+      "restoredCount": 37,
+      "volumeMM3": 7104
+    }
+  ],
+  "focused": {
+    "modelPassed": 20,
+    "failed": 0
+  }
+}

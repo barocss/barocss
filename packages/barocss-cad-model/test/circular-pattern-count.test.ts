@@ -19,7 +19,7 @@ function setup(): Ctx {
 }
 const inputs = (ctx: Ctx, axis: string, count: Values['count'], result: string): Values =>
   ({ ...command.defaults!(ctx), axis, count, result });
-const invalid = (error: unknown) => isRefusal(error, 'VALUE') && /90°.*2, 3 or 4/.test(error.message);
+const invalid = (error: unknown) => isRefusal(error, 'VALUE') && /90°.*whole-number Count from 2 to 4/.test(error.message);
 
 test('both X/Y result modes reject unsupported counts before constructing any copies', () => {
   const ctx = setup(), before = structuredClone(ctx.doc);
@@ -48,17 +48,19 @@ test('axis-sensitive Count fields keep the raw values and the existing Z range a
   assert.deepEqual(result.pivot, [2, 3, 0]);
 });
 
-test('separate Z creation refuses invalid counts and accepts both field bounds', () => {
+test('both Z result modes refuse invalid counts and accept both field bounds', () => {
   const ctx = setup(), before = structuredClone(ctx.doc);
-  for (const count of [0, 1, -4, 2.5, 37, Infinity, -Infinity, NaN, '', 'unknown']) {
-    assert.throws(() => command.build!(ctx, inputs(ctx, 'z', count, 'separate')),
-      error => isRefusal(error, 'VALUE') && /whole-number Count from 2 to 36/.test(error.message));
-    assert.deepEqual(ctx.doc, before);
-  }
-  for (const count of [2, 36]) {
-    const doc = command.build!(ctx, inputs(ctx, 'z', count, 'separate'));
-    assert.equal(Object.keys(doc.outputs).length, count);
-    assert.deepEqual(doc.nodes.slice(0, 2), before.nodes);
+  for (const mode of modes) {
+    for (const count of [0, 1, -4, 2.5, 37, Infinity, -Infinity, NaN, '', 'unknown']) {
+      assert.throws(() => command.build!(ctx, inputs(ctx, 'z', count, mode)),
+        error => isRefusal(error, 'VALUE') && /whole-number Count from 2 to 36/.test(error.message));
+      assert.deepEqual(ctx.doc, before);
+    }
+    for (const count of [2, 36]) {
+      const doc = command.build!(ctx, inputs(ctx, 'z', count, mode));
+      assert.equal(Object.keys(doc.outputs).length, mode === 'one' ? 1 : count);
+      assert.deepEqual(doc.nodes.slice(0, 2), before.nodes);
+    }
   }
 });
 
