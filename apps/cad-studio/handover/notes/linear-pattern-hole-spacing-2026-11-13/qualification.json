@@ -1,0 +1,78 @@
+{
+  "decision": "D1018",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "ac26be01d93e9e9ae3cb510d57b4ecf075657a15",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1018-section-baseline",
+    "gate.sh acquire heavy 600 D1018-section-studio06",
+    "D1018_SOURCE_FROZEN=1 node apps/cad-studio/test/pattern-dependent-hole-browser.mjs <external-evidence>/baseline",
+    "D1018_SOURCE_FROZEN=1 node apps/cad-studio/test/pattern-dependent-hole-browser.mjs <external-evidence>/studio06",
+    "gate.sh acquire heavy 600 D1018-feature-checks-final",
+    "gate.sh acquire heavy 600 D1018-types-final",
+    "pnpm --filter @barocss/cad-model test linear-span-pattern face-commands engine.test",
+    "pnpm --filter @barocss/cad-studio-app test document-file linear-span-pattern",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/pattern-dependent-hole-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The native bore stayed at X84 instead of X84.5 after the spacing edit.",
+    "receiptSHA256": "3caaf7e66070371e7d1779bc903e57d4caf28456bea15363c4f2df189d42ddbd",
+    "sourceManifestSHA256": "0677c877edd82a85910af7dbd3f7b69bef2d4242b15ff86adc0d2ca7fe4d2097"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "6a5af997ccaef24e46cf7cd883d7b387849f5c3dc332d74a075c80bd7aa50b2b",
+    "sourceManifestSHA256": "3161d34b41c4006f265186f57027ab6288e4d3879d52e607464bb5b737dce37f",
+    "frozenFiles": 851,
+    "states": 11,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "spacingMM": [
+      16,
+      16.25,
+      16.5,
+      32
+    ],
+    "boreXMM": [
+      84,
+      84.5,
+      85,
+      116
+    ],
+    "boreYMM": 13,
+    "boreRadiusMM": 1,
+    "volumeToleranceMM3": 1e-07,
+    "linearSeparationMM": 4e-07,
+    "patternCoordinateLimitMM": 10000
+  },
+  "setupRun": {
+    "status": "FAIL",
+    "reason": "Clicking the filename did not open the project file.",
+    "receiptSHA256": "2a4cec1c7dab1454cd19ffed7e6108eb41bf3a1b67a310a3848137b76ac05eec"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 64,
+    "studioPassed": 15,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "fixed span Count",
+    "parameters or API spacing edits",
+    "other Hole types",
+    "general patterned-face containment",
+    "pre-Apply model preview",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
