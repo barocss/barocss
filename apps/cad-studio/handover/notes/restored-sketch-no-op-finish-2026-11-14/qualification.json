@@ -1,0 +1,67 @@
+{
+  "decision": "D1057",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "c24dea5663d28cc0911607c3f18648ab2082b891",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1057-no-op-finish-<run>",
+    "D1057_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/<run> --no-op-finish",
+    "D1056_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/numeric --numeric-first",
+    "D1054_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-adjacent-dimensions-browser.mjs <external-evidence>/dimensions",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history preserve-construction",
+    "node --check apps/cad-studio/test/sketch-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baselineFirst": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "f38ac931ad2d796627eaf4222a33fd2e283137fdbe93bd34e58e5d0c44cccde5",
+      "sourceManifestSHA256": "8621f4cfea77478c8615e1c8391923bba746d94da752049f4c4126e4ecc5f4f2"
+    },
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 380,
+      "receiptSHA256": "b3f186765ec2fbfbb7402d0f89e81f2d4b9898aaff623fb67dbcbf9b861ea5a2",
+      "sourceManifestSHA256": "8621f4cfea77478c8615e1c8391923bba746d94da752049f4c4126e4ecc5f4f2"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "c5666eae356a566f145ce3ac4f19a6bff384aa1325f75ac2628dd6b011197382",
+      "sourceManifestSHA256": "fc6994b7d85da036000fd2a14549bf6ac30945cf3d0e1e5e09b69dd7c9f2cece"
+    },
+    "numeric": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 382,
+      "receiptSHA256": "1ecd67c9c9076401cb1fd11736a364f2bd4f7c80aa35edae232ba9f30b4307eb",
+      "sourceManifestSHA256": "2ffc301cb88e8aafcc7f0fc718bd67f36146032cefff019495af772f09d4b03c"
+    },
+    "dimensions": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 856,
+      "receiptSHA256": "f3a0b7693a9bc73dc91885a0ddef34a7af047c48d5b3e3e42d3a20b145fec126",
+      "sourceManifestSHA256": "a062480c6300b0ce7f86b773cca9f47b9cef6411a81d33022508864e17c9266f"
+    }
+  },
+  "noOp": {
+    "baselineRedoEnabled": false,
+    "fixedRedoEnabled": true,
+    "fixedExactDoc": true,
+    "originalVolumeMm3": 1600,
+    "redoVolumeMm3": 2400
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

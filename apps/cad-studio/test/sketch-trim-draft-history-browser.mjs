@@ -5,6 +5,7 @@ const fixed = process.argv[3] === '--fixed';
 const toolFixed = process.argv[3] === '--tool-fixed';
 const toolBoundary = toolFixed || process.argv[3] === '--tool-baseline';
 const numeric = process.argv[3] === '--numeric-first';
+const noOpFinish = process.argv[3] === '--no-op-finish';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/app/sketchControls.ts',
@@ -17,12 +18,13 @@ const pins = [
     'packages/barocss-cad-model/src/sketch/select.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: numeric ? 'D1056_SOURCE_FROZEN' : toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
+  name: 'sketch-trim-draft-history', output: process.argv[2], envFrozen: noOpFinish ? 'D1057_SOURCE_FROZEN' : numeric ? 'D1056_SOURCE_FROZEN' : toolBoundary ? 'D875_SOURCE_FROZEN' : fixed ? 'D874_SOURCE_FROZEN' : 'D873_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: numeric ? 'Undo and redo a point coordinate and a following Trim through both draft history controls'
+  qualification: noOpFinish ? 'Finish a restored draft without consuming document Redo'
+    : numeric ? 'Undo and redo a point coordinate and a following Trim through both draft history controls'
     : toolBoundary ? 'Measure Trim history across activation of the same closed outline in Select'
     : fixed ? 'Undo and Redo one click Trim before Finish' : 'Measure the click Trim draft and its current Undo boundary',
-  limits: [toolBoundary ? 'A reopened native rectangle and one isolated visible construction segment. Desktop Studio.'
+  limits: [toolBoundary || noOpFinish ? 'A reopened native rectangle and one isolated visible construction segment. Desktop Studio.'
     : 'One 40 × 20 mm native rectangle with two straight construction boundaries. Actual desktop Studio.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -37,7 +39,7 @@ const source = {
   nodes: [
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20], id: 'n0',
       sideTags: { outer: ['e1', 'e2', 'e3', 'e4'] },
-      construction: toolBoundary ? [guide] : [boundary(10, ['e5', 'e6']), boundary(30, ['e7', 'e8'])] },
+      construction: noOpFinish ? [{ ...guide, pending: false }] : toolBoundary ? [guide] : [boundary(10, ['e5', 'e6']), boundary(30, ['e7', 'e8'])] },
     { kind: 'extrude', sketch: 0, height: 2, id: 'n1' },
   ],
   outputs: { b1: { node: 1, side: 'solid' } },
@@ -144,6 +146,48 @@ async function numericThenTrim() {
   await f.same(accepted.doc);
 }
 
+async function finishRestoredDraft() {
+  const page = f.page;
+  f.phase = 'Make a pending document Redo';
+  await f.openFeatureEditor(1, 'Extrude');
+  await f.editor().getByLabel('Distance', { exact: true }).fill('3');
+  const applied = await f.applyEditor(source, 'document-redo-target');
+  assert.equal(applied.doc.nodes[1].height, 3);
+  await f.closeEditor();
+  await f.undo();
+  await f.same(source);
+  const before = await f.snapshot('before-sketch');
+  assert.equal(before.controls[1], false);
+  await f.openFeatureEditor(1, 'Extrude');
+  await button(f.editor(), 'Edit sketch').click();
+  await f.sketchPanel().waitFor();
+  await f.tool('Trim', 't');
+  await f.frame([[0, 0], [40, 20], [50, 5], [60, 5]]);
+  f.phase = 'Trim the guide and restore it in Select';
+  await expectSegment([55, 5], [50, 5], [60, 5]);
+  await page.mouse.down();
+  await page.mouse.up();
+  await hover([55, 5]);
+  await cue().waitFor({ state: 'detached' });
+  await f.tool('Select', 's');
+  await button(page, 'Undo').click();
+  await f.tool('Trim', 't');
+  await expectSegment([55, 5], [50, 5], [60, 5]);
+  await f.tool('Select', 's');
+  await f.same(source);
+  const finished = await f.finishSketch('unchanged-finish');
+  f.report.observations.push({ label: 'no-op-finish', beforeControls: before.controls, afterControls: finished.controls,
+    sameDocument: JSON.stringify(finished.doc) === JSON.stringify(source) });
+  await f.persist();
+  assert.deepEqual(finished.doc, source);
+  assert.deepEqual(finished.history, before.history);
+  assert.equal(finished.dirty, before.dirty);
+  assert.deepEqual(finished.controls, before.controls);
+  await f.redo();
+  await f.same(applied.doc);
+  assert.ok(Math.abs((await f.bodies()).bodies[0].volume - 2400) < 1e-8);
+}
+
 async function acrossToolChange() {
   const target = [55, 5], a = [50, 5], b = [60, 5];
   await f.frame([[0, 0], [40, 20], a, b]);
@@ -213,6 +257,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open();
+  if (noOpFinish) {
+    await finishRestoredDraft();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await f.openFeatureEditor(1);
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();

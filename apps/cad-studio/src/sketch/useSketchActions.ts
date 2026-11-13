@@ -14,6 +14,7 @@ import { bandMake } from '../app/bandControls';
 import { bandSketchNode } from '@barocss/cad-model/sketch/band';
 import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
+import { canonical } from '@barocss/cad-model/util/revision';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { bezierCurve, bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { circleCurve, curvesSource, edgeCurve, ellipseCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
@@ -252,6 +253,11 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       // Each bound value the person did not change keeps its parameter.
       const stored = doc.nodes[at], rebound = stored.kind === 'sketch' && placedNode.kind === 'sketch' ? rebindDims(stored, placedNode, doc.parameters) : { node: placedNode, dropped: [] as string[] };
       const replacement = { ...rebound.node, ...keptFields(stored, placedNode) } as ModelNode;
+      // A tool change or an undone draft edit can rebuild the same authored sketch.
+      if (!sketch.positional && stored.kind === 'sketch' && canonical(replacement) === canonical(stored)) {
+        setSketch(null);
+        return;
+      }
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1057 — keep document Redo after a restored Sketch Finish](notes/restored-sketch-no-op-finish-2026-11-14/README.md).
 - [D1056 — keep a numeric Sketch edit before Trim in draft history](notes/numeric-edit-trim-draft-history-2026-11-14/README.md).
 - [D1055 — verify the Sketch circle gap and Fixed point ownership](notes/sketch-curve-gap-fixed-ownership-2026-11-14/README.md).
 - [D1054 — separate overlapping Sketch length labels](notes/adjacent-sketch-dimensions-2026-11-14/README.md).
