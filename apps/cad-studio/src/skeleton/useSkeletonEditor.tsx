@@ -134,8 +134,11 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     select({ ...NO_SELECTION, constraints: [s.draft.constraints.length] });
   }, [step]);
   const setValue = useCallback((k: number, v: number) => {
-    const s = ref.current.session, c = s?.draft.constraints[k]; if (!s || !c || !(v > 0)) return;
-    const next = c.kind === 'angle' ? { ...c, degrees: v } : c.kind === 'length' || c.kind === 'distance' ? { ...c, value: v } : c;
+    const s = ref.current.session, c = s?.draft.constraints[k];
+    if (!s || !c || !Number.isFinite(v) || v <= 0) return;
+    const next = c.kind === 'angle' && c.degrees !== v ? { ...c, degrees: v }
+      : (c.kind === 'length' || c.kind === 'distance') && c.value !== v ? { ...c, value: v } : c;
+    if (next === c) return;
     step(settled({ ...s.draft, constraints: s.draft.constraints.map((x, i) => i === k ? next : x) }, ref.current.params));
   }, [step]);
   const removeSelected = useCallback(() => {

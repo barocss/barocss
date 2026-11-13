@@ -3,12 +3,13 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed'].includes(mode));
 const step = mode.startsWith('--step');
 const openFlow = mode.startsWith('--open') || step;
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
+const skeletonKeys = mode.startsWith('--skeleton-keys');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
 const project = mode.startsWith('--project');
@@ -26,8 +27,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -258,13 +259,14 @@ async function checkSkeleton() {
   await page.locator('.palette input').fill('3d sketch');
   await page.keyboard.press('Enter');
   await panel.waitFor();
-  for (const [index, world] of [[0, [0, 0, 0]], [1, [25, 0, 0]]]) {
+  for (const [index, world] of [[0, [0, 0, 0]], [1, [skeletonKeys ? 30 : 25, 0, 0]]]) {
     const pixel = await page.evaluate(point => window.__studioScreenOf(point), world);
     assert.ok(pixel);
     await page.mouse.click(...pixel);
     await page.waitForFunction(count => Number(document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.points) === count, index + 1);
   }
   assert.equal(await overlay.getAttribute('data-segments'), '1');
+  if (skeletonKeys) { await checkSkeletonKeys(panel, empty); return; }
   await page.keyboard.press('Escape');
   await panel.waitFor();
   const xy = panel.getByRole('button', { name: 'XY', exact: true });
@@ -295,6 +297,55 @@ async function checkSkeleton() {
   await f.same(empty);
   assert.equal(await overlay.count(), 0);
   await f.snapshot('03-skeleton-discarded');
+}
+
+async function checkSkeletonKeys(panel, empty) {
+  const page = f.page;
+  const line = panel.getByRole('button', { name: 'Line', exact: true });
+  const select = panel.getByRole('button', { name: 'Select', exact: true });
+  const xy = panel.getByRole('button', { name: 'XY', exact: true });
+  await select.click();
+  const middle = await page.evaluate(() => window.__studioScreenOf([15, 0, 0]));
+  await page.mouse.click(...middle);
+  await panel.getByRole('button', { name: 'Add Length', exact: true }).click();
+  const length = panel.getByLabel('Constraint 1 value', { exact: true });
+  assert.equal(await length.inputValue(), '30');
+  await length.fill('24');
+  f.phase = 'press Enter from the Length field without applying the sketch';
+  await length.press('Enter');
+  await page.waitForFunction(() => document.querySelector('.skel-mark text')?.textContent.includes('24'));
+  if (mode.endsWith('baseline')) {
+    const lost = await f.snapshot('01-length-focus-lost');
+    assert.notEqual(lost.focused, 'Constraint 1 value');
+    await page.keyboard.press('Enter');
+    await panel.waitFor({ state: 'hidden' });
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1);
+    await f.snapshot('02-unintended-apply');
+    assert.fail('The Length input lost focus and the second Enter applied the whole sketch');
+  }
+  await waitFocus(length);
+  await page.keyboard.press('Enter');
+  await waitFocus(length);
+  assert.equal(await length.inputValue(), '24');
+  await f.same(empty);
+  await f.snapshot('01-length-24-focused');
+
+  f.phase = 'use Tab and Shift+Tab as native focus navigation';
+  await line.focus();
+  await page.keyboard.press('Tab');
+  await waitFocus(select);
+  assert.equal(await xy.getAttribute('aria-pressed'), 'true');
+  await page.keyboard.press('Shift+Tab');
+  await waitFocus(line);
+  assert.equal(await xy.getAttribute('aria-pressed'), 'true');
+
+  f.phase = 'Shift+Enter on Cancel must not apply the sketch';
+  await panel.getByRole('button', { name: 'Cancel 3D sketch', exact: true }).focus();
+  await page.keyboard.press('Shift+Enter');
+  await panel.waitFor({ state: 'hidden' });
+  await f.same(empty);
+  await f.snapshot('02-cancel-without-apply');
+  assert.deepEqual(f.report.downloads, []);
 }
 
 async function checkInPlace() {

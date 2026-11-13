@@ -2,6 +2,7 @@
 // conflict: what is free, redundant or unmet), the constraints the selection offers, the constraints with their
 // values (a bound one shows its parameter), the session's undo, and Apply / Cancel. O16: its actions, fields and
 // values on shadcn (Button, Input, FIELD); the Tool, plane and axis toggles stay the studio's segmented buttons.
+import { useEffect, useState } from 'react';
 import { constraintText, offers, statusText } from '../skeleton/skeletonTool';
 import type { SkeletonEditor } from '../skeleton/useSkeletonEditor';
 import { FIELD } from './panelStyles';
@@ -9,6 +10,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const KIND_NAME: Record<string, string> = { length: 'Length', distance: 'Distance', angle: 'Angle', parallel: 'Parallel', perpendicular: 'Perpendicular', along: 'Along', 'on-axis': 'On axis', 'on-plane': 'On plane', fixed: 'Fixed', coincident: 'Coincident' };
+
+function ConstraintValueField({ index, value, setValue }: { index: number; value: number; setValue: SkeletonEditor['setValue'] }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+
+  const commit = () => {
+    const next = Number(draft);
+    if (Number.isFinite(next) && next > 0 && next !== value) setValue(index, next);
+    else setDraft(String(value));
+  };
+
+  return <Input type="number" aria-label={`Constraint ${index + 1} value`} value={draft} step="any"
+    onChange={event => setDraft(event.currentTarget.value)} onBlur={commit}
+    onKeyDown={event => {
+      if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+      event.preventDefault();
+      event.stopPropagation();
+      commit();
+    }} />;
+}
 
 export function SkeletonPanel({ editor, name }: { editor: SkeletonEditor; name: string }) {
   const s = editor.session; if (!s) return null;
@@ -35,7 +56,7 @@ export function SkeletonPanel({ editor, name }: { editor: SkeletonEditor; name: 
       const v = c.kind === 'angle' ? c.degrees : c.kind === 'length' || c.kind === 'distance' ? c.value : null;
       return <li key={k} className={(unmet.has(k) ? 'bad ' : redundant.has(k) ? 'over ' : '') + (sel.constraints.includes(k) ? 'sel' : '')} aria-label={`Constraint ${k + 1}`}>
         <Button variant="ghost" onClick={() => editor.select({ points: [], segments: [], constraints: [k] })}>{KIND_NAME[c.kind]}</Button>
-        {typeof v === 'number' ? <Input type="number" aria-label={`Constraint ${k + 1} value`} defaultValue={v} key={v} step="any" onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); editor.setValue(k, Number((e.target as HTMLInputElement).value)); } }} onBlur={e => { const n = Number(e.target.value); if (n !== v) editor.setValue(k, n); }} />
+        {typeof v === 'number' ? <ConstraintValueField index={k} value={v} setValue={editor.setValue} />
           : <span className="mono">{constraintText(c)}</span>}
         {unmet.has(k) && <span className="warn small">unmet</span>}{redundant.has(k) && <span className="muted small">redundant</span>}
       </li>;
