@@ -106,7 +106,13 @@ export const extrudeCommand: Command = {
   },
   steps: (ctx, v) => {
     const p = extrudeProfile(ctx);
-    const steps = [{ label: 'Profile', text: !p ? 'pick a flat face or a finished sketch' : p.fresh ? 'the picked face' : `Sketch ${p.index + 1}`, done: !!p }];
+    let text = 'pick a flat face or a finished sketch';
+    if (p?.fresh) text = 'the picked face';
+    else if (p) {
+      text = `Sketch ${p.index + 1}`;
+      if (p.node.regions?.length) text += ` · all ${p.node.regions.length + 1} regions`;
+    }
+    const steps = [{ label: 'Profile', text, done: !!p }];
     if (v.depth === 'to-face') {
       const target = extrudeEndFaceTarget(ctx, v);
       steps.push({ label: 'End face', text: target?.face ?? 'Pick a planar end face', done: !!target });

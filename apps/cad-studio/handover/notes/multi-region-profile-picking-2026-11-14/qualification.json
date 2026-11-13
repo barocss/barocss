@@ -1,0 +1,53 @@
+{
+  "decision": "D1129",
+  "tier": "SMALL",
+  "parent": "eb5484660d53c3cb81626b497dcb04637f3f395b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1129-profile-pick-<run>",
+    "D1129_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/<run>",
+    "cd apps/cad-studio && node scripts/test.mjs camera-projector selection-edge",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters face-commands sketch-profile-precision",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts packages/barocss-cad-model/src/app/profileCommands.ts",
+    "node --check apps/cad-studio/test/multi-region-profile-pick-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "fea55997310b7d76790b1245c180aca41c9e4ba95dfc7d201b8bb8836648a0ff",
+      "sourceManifestSHA256": "9ba48d40aa24644553428678ecbbffdbed4a7ee3b2aed3f86ddd2ebe635f94f8"
+    },
+    "fixed01": {
+      "status": "FAIL",
+      "states": 8,
+      "frozenFiles": 861,
+      "receiptSHA256": "b153013cda9966ee7282051ba61e10d4d241deee804ea83c2ff108a710b447c2",
+      "sourceManifestSHA256": "006af3ed0887149c553b0de0e55e8ebafe14fc621e44c97f175a94c9e3260a2d"
+    },
+    "fixed02": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 861,
+      "receiptSHA256": "378f46367d1c9ee7fb78e78f0c963b54b046f26f4af1d8d73eec4c1c296d0332",
+      "sourceManifestSHA256": "690f77d07ed4ca75ead6d13e1d0d81211d19bf7c38dcc61b6f178b123296954e"
+    }
+  },
+  "nativeOutput": {
+    "label": "native-output",
+    "valid": true,
+    "bodies": 2,
+    "volume": 648,
+    "sourceSketch": 0
+  },
+  "focused": {
+    "studioPassed": 22,
+    "modelPassed": 35,
+    "failed": 0
+  }
+}

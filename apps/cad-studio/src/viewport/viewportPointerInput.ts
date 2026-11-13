@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState, type DragEvent, type Mo
 import { CadPartLimits, ExtrudedProfileLimits } from '@barocss/cad';
 import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { insideRing, segmentDistance } from '@barocss/cad-model/engine/geom2';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { RenderSettings } from '@barocss/cad-model/engine/render';
 import { bandShapes } from '@barocss/cad-model/sketch/band';
@@ -644,21 +645,24 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const out = { lo: lo.map(round) as Vec3, hi: hi.map(round) as Vec3, k, hole, through: { lo: hole && !closed(lo[k]), hi: hole && !closed(hi[k]) } };
     byFace.set(face, out); return out;
   };
-  /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
+  /** Pick the nearest sketch outline or any filled part of a finished sketch. */
   const profileAt = (x: number, y: number, w: number, h: number): number | null => {
-    const list = propsRef.current.profiles; if (!list?.length) return null;
-    let best: number | null = null, bestD = 6;
-    for (const p of list) for (const [k, ring] of p.rings.entries()) {
-      const q = ring.map(v => camera.current.project(v, w, h));
+    let edge: number | null = null, fill: number | null = null, nearest = 6;
+    const point = [x, y];
+    for (const profile of propsRef.current.profiles ?? []) {
       let inside = false;
-      for (let i = 0, j = q.length - 1; i < q.length; j = i++) {
-        const a = q[i], b = q[j], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy, t = l2 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)) : 0;
-        const d = Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy); if (d < bestD) { bestD = d; best = p.id; }
-        if ((a[1] > y) !== (b[1] > y) && x < a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])) inside = !inside;
+      for (const ring of profile.rings) {
+        const projected = ring.map(vertex => camera.current.project(vertex, w, h));
+        // Use the same even-odd rule as the sketch overlay, including holes.
+        if (insideRing(point, projected)) inside = !inside;
+        for (let i = 0, j = projected.length - 1; i < projected.length; j = i++) {
+          const distance = segmentDistance(point, projected[i], projected[j]);
+          if (distance < nearest) { nearest = distance; edge = profile.id; }
+        }
       }
-      if (k === 0 && inside && best === null) best = p.id;
+      if (inside && fill === null) fill = profile.id;
     }
-    return best;
+    return edge ?? fill;
   };
   const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
   /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
@@ -1098,7 +1102,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       }
       return;
     }
-    // A finished sketch's outline (or inside its main loop) comes before the bodies behind it.
+    // Finished sketch outlines and filled areas come before the bodies behind them.
     const prof = profileAt(x, y, w, h);
     if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
     const poles = propsRef.current.poles;
