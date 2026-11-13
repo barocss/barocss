@@ -258,7 +258,7 @@ function linearPayloadGeometryClash(ctx: IssueContext, id: string | undefined, v
   for (const f of fixed) { const polygon = linearMarkPolygon(f); for (const moving of polygons) if (linearPolygonsOverlap(moving, polygon)) return true; }
   return false;
 }
-// Only ordinary automatic rulers may recover from the retained no-safe text-only result.
+// Automatic rulers may recover from the retained no-safe text-only result.
 // Rebuilds reuse current projections and sections; no geometry evaluation occurs in this search.
 const AUTO_LINEAR_MOVE_TRIES = 64;
 function rulerClearOfOtherText(sheet: Sheet, id: string, view: DimView): boolean {
@@ -286,24 +286,54 @@ function issuesNotAdded(before: readonly DrawingIssue[], after: readonly Drawing
   for (const issue of after) { const key = issueIdentity(issue), count = held.get(key) ?? 0; if (!count) return false; held.set(key, count - 1); }
   return true;
 }
+function rightDimensionGroup(sheet: Sheet, id: string): MarkGroup | undefined {
+  return sheet.groups.find(g => g.role === 'dimension' && g.id === id && g.view === 'right');
+}
+function boxedRightRulerClash(sheet: Sheet, id: string): boolean {
+  const group = rightDimensionGroup(sheet, id);
+  const frame = group?.marks.find(m => m.kind === 'polyline' && m.role === 'frame');
+  const ruler = group?.marks.find(m => m.kind === 'line' && m.role === 'dimension');
+  return !!(frame && ruler && linearPolygonsOverlap(linearMarkPolygon(frame), linearMarkPolygon(ruler)));
+}
+function boxedRightRulerClear(ctx: IssueContext, id: string): boolean {
+  const right = ctx.layout.views.right, group = rightDimensionGroup(ctx.sheet, id);
+  if (right.hidden || !group) return false;
+  const strokes = group.marks.filter(m =>
+    (m.kind === 'line' && (m.role === 'dimension' || m.role === 'extension' || m.role === 'leader')) || (m.kind === 'fill' && m.head));
+  const pad = PENS.visible.width / 2;
+  const areas = otherViewAreas(ctx.layout, ctx.sheet, 'right').map(([x0, y0, x1, y1]): Quad =>
+    [[x0 - pad, y0 - pad], [x1 + pad, y0 - pad], [x1 + pad, y1 + pad], [x0 - pad, y1 + pad]]);
+  return strokes.length > 0 && strokes.every(mark => {
+    const ink = linearMarkPolygon(mark);
+    const ruler = mark.kind === 'fill' || (mark.kind === 'line' && mark.role === 'dimension');
+    return (!ruler || ink.every(([, y]) => y < right.box[1] - pad)) &&
+      areas.every(area => !linearPolygonsOverlap(ink, area));
+  });
+}
 function verifiedAutoLinearMove(ctx: IssueContext, id: string | undefined, view: DimView | undefined): { fix?: DrawingFix } {
   // Sourced tables can evaluate geometry through meta.tableContent; they are outside this sheet-only fallback.
   if (!ctx.rebuild || !id || !view || ctx.settings.tables?.length || ctx.settings.standard !== undefined || ctx.settings.units !== undefined || ctx.settings.dual !== undefined || ctx.settings.precision !== undefined) return {};
   let r: Extract<Resolved, { ok: true; kind: 'linear' }> | undefined;
   for (const resolved of ctx.sheet.dimensions) if (resolved.ok && resolved.kind === 'linear' && resolved.dim.id === id && resolved.dim.view === view) { r = resolved; break; }
-  if (!r || r.dim.auto !== true || r.dim.tol !== undefined || r.dim.basic !== undefined || r.dim.count !== undefined || r.alt !== undefined || r.shownPrecision !== undefined || (view !== 'front' && view !== 'top' && view !== 'right')) return {};
+  if (!r || r.dim.auto !== true || r.dim.tol !== undefined || r.dim.count !== undefined || r.alt !== undefined || r.shownPrecision !== undefined || (view !== 'front' && view !== 'top' && view !== 'right')) return {};
+  // A boxed horizontal location on the right view can use the same verified move as a plain ruler.
+  const boxedRight = r.dim.basic === true && r.dim.orient === 'horizontal' && view === 'right';
+  if (r.dim.basic !== undefined && !boxedRight) return {};
   for (const frame of ctx.settings.frames ?? []) if (frame.dim === id) return {};
   const placement = placementOf(ctx.layout, ctx.sheet, view), projection = projectionOf(ctx.views, ctx.sheet, view);
   if (!placement || placement.hidden || !projection) return {};
+  if (boxedRight && (ctx.settings.breaks?.length || r.dim.place[1] <= projection.min[1] || r.dim.place[1] >= projection.max[1] || !boxedRightRulerClash(ctx.sheet, id))) return {};
   // Removing rebuild disables this proposal and all recursive layout searches during verification.
   const before = drawingIssues({ ...ctx, rebuild: undefined }), score = fixScore(before);
   const [x0, y0, x1, y1] = ctx.layout.frame, places = candidates(r, placement.scale, projection, Math.hypot(x1 - x0, y1 - y0));
   for (let k = 0; k < Math.min(AUTO_LINEAR_MOVE_TRIES, places.length); k++) {
     const place = places[k], dimensions: DrawingDimension[] = [];
+    if (boxedRight && place[1] <= projection.max[1]) continue;
     for (const dim of ctx.settings.dimensions) dimensions.push(dim.id === id ? { ...dim, place } : dim);
     const rebuilt = ctx.rebuild({ ...ctx.settings, dimensions }), verification = { ...rebuilt, rebuild: undefined };
     let moved: Resolved | undefined;
     for (const resolved of rebuilt.sheet.dimensions) if (resolved.dim.id === id && resolved.dim.view === view) { moved = resolved; break; }
+    if (boxedRight && !boxedRightRulerClear(rebuilt, id)) continue;
     if (!moved?.ok || moved.kind !== 'linear' || moved.value !== r.value || linearPayloadGeometryClash(verification, id, view) || !rulerClearOfOtherText(rebuilt.sheet, id, view)) continue;
     const after = drawingIssues(verification);
     if (!betterScore(fixScore(after), score) || !issuesNotAdded(before, after)) continue;
@@ -613,10 +643,12 @@ function roundEdgeOf(views: DrawingViews, face: string): { center: readonly numb
  * Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). DR-4: a removed
  * section's area counts as a view's; a revolved one lies on its view, whose area is then its own too.
  */
-function onOtherView(layout: SheetLayout, sheet: Pick<Sheet, 'details' | 'sections'>, b: Quad, own: DimView | undefined): boolean {
+function otherViewAreas(layout: SheetLayout, sheet: Pick<Sheet, 'details' | 'sections'>, own: DimView | undefined): readonly [number, number, number, number][] {
   const host = sheet.sections?.find(x => x.form === 'revolved' && `section:${x.id}` === own)?.on;
-  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && v !== host && !layout.views[v].hidden).map(v => layout.views[v].box).concat((layout.sections ?? []).filter(x => `section:${x.section}` !== own).map(x => x.box), (sheet.sections ?? []).filter(x => x.form === 'removed' && `section:${x.id}` !== own).map(x => x.placement.box), (sheet.details ?? []).filter(x => `detail:${x.id}` !== own).map(x => x.placement.box));
-  return areas.some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
+  return VIEW_IDS.filter(v => v !== own && v !== host && !layout.views[v].hidden).map(v => layout.views[v].box).concat((layout.sections ?? []).filter(x => `section:${x.section}` !== own).map(x => x.box), (sheet.sections ?? []).filter(x => x.form === 'removed' && `section:${x.id}` !== own).map(x => x.placement.box), (sheet.details ?? []).filter(x => `detail:${x.id}` !== own).map(x => x.placement.box));
+}
+function onOtherView(layout: SheetLayout, sheet: Pick<Sheet, 'details' | 'sections'>, b: Quad, own: DimView | undefined): boolean {
+  return otherViewAreas(layout, sheet, own).some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
 }
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);

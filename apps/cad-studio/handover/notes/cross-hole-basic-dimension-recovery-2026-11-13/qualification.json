@@ -1,0 +1,52 @@
+{
+  "decision": "D935",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9a46fdd3c9fd6452e20022d2f7677abc150cd2e9",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D935-final-qualification",
+    "D935_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs <external-evidence>/baseline02 --baseline --cross-hole (parent product source, baseline driver revision)",
+    "D935_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs <external-evidence>/fixed04 --fixed --cross-hole",
+    "D934_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs <external-evidence>/d934-regression-final --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs chat-drawing drawing-linear-clearance drawing-issues tolerance",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "modelStatus": "FAIL",
+    "modelPass": 90,
+    "modelFail": 2,
+    "modelLogSHA256": "2800c25b65e5e89e05b89befcb0dc63da8ba9f99245100b8ef16cfa0c822d244",
+    "remaining": ["r14-tol-row-geometric", "r14-tol-row-plus-minus"],
+    "studioStatus": "PASS",
+    "studioPass": 4,
+    "studioLogSHA256": "9e55352c25f0653faa86b11ba4645f1fa3016e6bbd355cb22b07d3e032d6e390",
+    "modelTypes": "PASS",
+    "studioTypes": "PASS",
+    "sourceReview": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "baselineReceiptSHA256": "9eafdf59e427b257ac1ed4aeda51addeed896a312631381db9dd161afb79d0b7",
+    "receiptSHA256": "3acaf4b945fcc7363a9dc10aa1019fe87273eb5e2481659b53d2218650c826a1",
+    "d934RegressionReceiptSHA256": "4b9e04d633b942816819404a6f269ededa1beacf89c4865223c89d9fb7aa7d7b",
+    "sourceManifestSHA256": "be21a7d0a42531e5cd174d5f365771ca6b6df65c55f03763083d528fdac1f3d2",
+    "oracleSHA256": "02c548ca17a6a12a8993e4498557d58e803f9e2a5e91e963ea8426afbe124e91",
+    "frozenFiles": 1050,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "dimension": "d4",
+    "rulerMM": 15,
+    "rulerY": 107.61862178478972,
+    "rightViewTopY": 115.61862178478972,
+    "boxY": [98.99862178478973, 104.16862178478972],
+    "offsetFromViewMM": 8
+  },
+  "notRun": ["actual Studio Accept all for this fixture", "SVG and DXF output", "production build", "full suites", "PDF", "mobile"]
+}
