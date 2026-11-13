@@ -1,0 +1,37 @@
+{
+  "decision": "D960",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8898b740d3e4dc7e6b8f93a752825a131f9e44c9",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D960-file-controls",
+    "D960_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/controls01 --file-controls",
+    "node --check apps/cad-studio/test/project-open-save-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "9c1e77a25e20e7eee3963d0482e5a3db5307201d8b6463e43c5a469aab39f839",
+    "sourceManifestSHA256": "a9bfe43fb5d99952ea75b9e5520de13d391f452c83e3786b9d4596eb4eea7efc",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "stepSHA256": "c46c4acb7cc5a14984e62b155651b82f2e889a766a77b5048644660f757c0ff0",
+    "stepVolumeMM3": 11497.345175425628,
+    "originalAFileSHA256": "f762c8a89eb3ed915c761ee4892fd101b6c1e605f6e725310d560707d55b7605",
+    "originalBFileSHA256": "5413e6cf7d1e2d00eb4385caf0af197456bfb116c44d765def27546a14179f20",
+    "detachedSaveName": "Detached A.bcad",
+    "detachedSaveSHA256": "f762c8a89eb3ed915c761ee4892fd101b6c1e605f6e725310d560707d55b7605"
+  },
+  "notRun": [
+    "failure after valid preliminary Save",
+    "actual local folder project",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
