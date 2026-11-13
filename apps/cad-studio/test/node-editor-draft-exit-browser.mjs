@@ -1,21 +1,24 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed'].includes(mode));
 const openFlow = mode.startsWith('--open');
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
+const inPlace = mode.startsWith('--in-place');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
+  ...(inPlace ? ['apps/cad-studio/test/fixtures/edit-in-place.bcad', 'apps/cad-studio/src/app/editInPlace.ts'] : []),
   ...(skeleton ? ['apps/cad-studio/src/skeleton/useSkeletonEditor.tsx', 'apps/cad-studio/src/ui/SkeletonPanel.tsx'] : []),
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -218,6 +221,46 @@ async function checkSkeleton() {
   await f.snapshot('03-skeleton-discarded');
 }
 
+async function checkInPlace() {
+  const fixture = JSON.parse(await readFile(new URL('fixtures/edit-in-place.bcad', import.meta.url), 'utf8'));
+  await openCandidate('Assembly', fixture);
+  await f.page.waitForFunction(() => window.__studioDoc?.instances?.length === 2);
+  await f.ready();
+  const original = await f.doc();
+  const banner = f.page.getByRole('status', { name: 'Editing a part in place', exact: true });
+  await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Cube 2' }).click();
+  await f.page.getByRole('complementary', { name: 'Instance', exact: true }).getByRole('button', { name: 'Edit part', exact: true }).click();
+  await banner.waitFor();
+  await f.ready();
+  const part = await f.doc();
+  assert.equal(part.instances, undefined);
+  await f.openFeatureEditor(1);
+  await distance().fill('28');
+  const before = await f.snapshot('01-part-draft');
+  f.phase = 'cancel the in-place edit with no committed part changes';
+  await banner.getByRole('button', { name: 'Cancel', exact: true }).click();
+  if (mode === '--in-place-baseline') {
+    await banner.waitFor({ state: 'hidden' });
+    await f.same(original);
+    await f.snapshot('02-part-draft-lost');
+    assert.fail('Cancel left the part and silently discarded the unapplied Distance');
+  }
+  const confirmation = f.page.getByRole('dialog', { name: 'Discard changes to this part?', exact: true });
+  await confirmation.waitFor();
+  const keep = confirmation.getByRole('button', { name: 'Keep editing', exact: true });
+  await keep.click();
+  await confirmation.waitFor({ state: 'hidden' });
+  await waitFocus(distance());
+  const retained = await f.snapshot('02-part-draft-kept');
+  assert.equal(retained.value, '28');
+  for (const key of ['doc', 'bodies', 'history', 'selection', 'dirty']) assert.deepEqual(retained[key], before[key], key);
+  await banner.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await confirmation.getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await banner.waitFor({ state: 'hidden' });
+  await f.same(original);
+  await f.snapshot('03-exact-assembly-restored');
+}
+
 function captureNativeSave() {
   const create = URL.createObjectURL;
   const click = HTMLAnchorElement.prototype.click;
@@ -252,6 +295,7 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
+  if (inPlace) { await checkInPlace(); return; }
   await openCandidate('Draft source', source);
   await f.same(source);
   if (openFlow) { await checkOpenDraft(); return; }

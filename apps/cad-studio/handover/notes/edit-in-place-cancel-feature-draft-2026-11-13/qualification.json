@@ -1,0 +1,44 @@
+{
+  "decision": "D967",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "579d0b89eee22dec5cab95e547d945b209232a09",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D967-part-cancel",
+    "D967_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent01 --in-place-baseline",
+    "D967_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --in-place-fixed",
+    "pnpm --filter @barocss/cad-studio-app test edit-in-place work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "09ff77de0ca9014df4d39e0eda454e28492a70d382f0d983ca42f76ae0551028"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "fbf8711cdec8d1ef8597a5c2959b52191245f3be00b74c07f2f97d5d5d88fe9d",
+    "sourceManifestSHA256": "d548087306c6ef982c720ed1ad1a2c89c87bdbe761a095003d75b8b0b8171ccc",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "draftDistanceMM": 28,
+    "acceptedDistanceMM": 20,
+    "restoredFocus": "Distance"
+  },
+  "focusedTests": {
+    "pass": 23,
+    "fail": 0
+  },
+  "notRun": [
+    "Mate",
+    "other Open and feature entry points",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

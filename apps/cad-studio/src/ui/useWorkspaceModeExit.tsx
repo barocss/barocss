@@ -14,6 +14,7 @@ type Request = {
   keepFocus: HTMLElement | null;
   discardFocus: HTMLElement | null;
   trigger: HTMLElement | null;
+  title?: string;
 };
 
 const activeElement = () => document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -44,9 +45,9 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     pointer.current = null;
     return event.detail && previous?.trigger === event.currentTarget ? previous.focus : activeElement();
   };
-  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus }: {
+  const switchWhenReady = (switchMode: () => void, { event, readFeature = featureDraft, destinationFocus, originFocus, title }: {
     event?: MouseEvent<HTMLButtonElement>; readFeature?: () => object | null; destinationFocus?: HTMLElement | null;
-    originFocus?: HTMLElement | null;
+    originFocus?: HTMLElement | null; title?: string;
   } = {}) => {
     const previous = pointer.current;
     pointer.current = null;
@@ -58,7 +59,7 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     }
     const trigger = event?.currentTarget ?? activeElement();
     const focus = originFocus ?? (event?.detail && previous?.trigger === trigger ? previous.focus : trigger);
-    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger,
+    setRequest({ owner: doc.current, sketch: sketchDraft, sketchVersion: sketchGeneration.current, feature, featureDraft: readFeature, switchMode, trigger, title,
       discardFocus: destinationFocus ?? trigger,
       keepFocus: focus?.isConnected && focus !== document.body ? focus : trigger });
   };
@@ -70,9 +71,9 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     if (discard && stillOwned) current.switchMode();
   };
 
-  const title = current?.feature
+  const title = current?.title ?? (current?.feature
     ? current.sketch ? 'Discard sketch and feature changes?' : 'Discard feature changes?'
-    : 'Discard sketch changes?';
+    : 'Discard sketch changes?');
   const dialog = <Dialog open={!!current} onOpenChange={open => { if (!open) settle(false); }}>
     <DialogContent className="w-[360px] max-w-[90vw] p-4" aria-describedby={undefined}
       onOpenAutoFocus={event => { event.preventDefault(); keepButton.current?.focus(); }}
@@ -90,5 +91,5 @@ export function useWorkspaceModeExit(sketch: SketchState | null, sketchGeneratio
     </DialogContent>
   </Dialog>;
 
-  return { pending: !!current, rememberFocus, takeFocus, switchWhenReady, dialog };
+  return { pending: !!current, hasDraft: () => !!(sketchDraft || featureDraft()), rememberFocus, takeFocus, switchWhenReady, dialog };
 }

@@ -1907,9 +1907,14 @@ export function App() {
     if (r.held.length) setToast({ title: `${r.held.length} look${r.held.length > 1 ? 's' : ''} held`, hint: r.held.map(h => h.problem).join(' '), detail: '' });
     else if (r.changed) setToast({ title: `${s.name} updated`, hint: s.shared > 1 ? `All ${s.shared} instances share it. Undo restores the assembly as it was.` : 'Undo restores the assembly as it was.', detail: '' });
   };
-  const cancelInPlaceSession = () => {
+  const cancelInPlaceSession = (event: React.MouseEvent<HTMLButtonElement>) => {
     const s = inPlaceNow.current; if (!s) return;
-    // (A session with changes asks first; nothing cancels it by itself, Esc included.)
+    if (!askDiscard && workspaceModeExit.hasDraft()) {
+      workspaceModeExit.switchWhenReady(() => {
+        if (inPlaceNow.current === s) leaveInPlace(s, s.assembly, false);
+      }, { event, title: 'Discard changes to this part?' });
+      return;
+    }
     if (!askDiscard && sessionChanged(s, docNow.current)) { setAskDiscard(true); return; }
     leaveInPlace(s, s.assembly, false);
   };
@@ -3008,7 +3013,7 @@ export function App() {
           <Button size="sm" variant="ghost" onClick={() => setAskDiscard(false)}>Keep editing</Button>
         </> : <>
           <Button size="sm" variant="default" onClick={finishInPlaceSession}>Finish</Button>
-          <Button size="sm" variant="ghost" onClick={cancelInPlaceSession}>Cancel</Button>
+          <Button size="sm" variant="ghost" onPointerDown={workspaceModeExit.rememberFocus} onClick={cancelInPlaceSession}>Cancel</Button>
         </>}
         <details className="in-place-details"><summary>Details</summary>
           <div className="muted small">The other parts are shown see-through where they are relative to this one. Finish updates {inPlace.shared > 1 ? `all ${inPlace.shared} instances` : 'the part'} in one step (Undo restores the assembly). Saving and opening are off until then.</div></details>
