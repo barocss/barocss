@@ -1,0 +1,10 @@
+# D950 — verify the current Detail diameter after a native bore edit
+
+2026-11-13 · P2 rows 11 and 16 · SMALL evidence and issue closeout · [#2322](https://github.com/barocss/barocss/issues/2322)
+
+- **PASS** The desktop Hole editor changed the native bore from Ø8 to Ø9. The existing Detail dimension retained its source edge, near point, signature and 0.15 mm tolerance. It displayed the current Ø9 callout. Moving Detail B changed only the paper position from (310,85) to (328.3,97.6). Moving the label within the source radius kept a single source-arc leader. First Undo and Redo restored the exact documents.
+- **PASS** Four actual SVG/DXF pairs matched an independent intersection and nearest-arc calculation within 0.0001 paper mm. The edited tip was (310.1563,94.9988), then (328.4563,107.5988) after translation. DXF kept the true model measurement and its scaled definition points. Driver syntax and diff check pass.
+- **PASS** Issue acceptance review. D938 and D940 cover original reproduction, exact source ownership, dragging, preview, Cancel, native reopen and independent files. D939, D942, D946 and D948 cover hidden, suppressed, deleted and point-only sources and distinguish their diagnostics. D941 and D945 cover scale, four directions, multiple intervals, seam and crop-edit refusal. D947 covers equal-distance stability and ordinary interior/exterior controls. D944 and D949 cover radius, units, precision, tolerance and actual project Save/Close/reload/Open. D950 adds native bore edit, paper translation and the clipped interior-label transition. Together these qualify the issue's declared true-circle Detail profile.
+- **NOT_RUN** New unit suites for unchanged product source, other clipped annotation families, production build, full suites, PDF and mobile. The interior placement still shows a separate text-over-lines warning. B06 remains 6/7 with PDF held.
+
+Initial scenarios remain 8/10. Whole CAD and core readiness remain **NOT_MEASURED**. [Commands and receipt hashes](qualification.json).

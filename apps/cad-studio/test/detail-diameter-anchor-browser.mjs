@@ -18,6 +18,7 @@ const splitArc = variant === '--split-arc';
 const tangent = variant === '--tangent';
 const diagnosis = variant === '--diagnosis';
 const projectStore = variant === '--project-store';
+const edited = variant === '--edit-source';
 const tie = variant === '--tie';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
@@ -27,7 +28,8 @@ const diameter = { id: 'b-diameter', kind: 'diameter', view: 'detail:B', edge: '
 const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] };
 const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
   views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
-if (deleted || removalNotice) {
+if (edited) drawing.dimensions = [{ ...diameter, place: [24, 16] }];
+if (deleted || removalNotice || edited) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
 }
 if (splitArc || tie) {
@@ -58,7 +60,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: projectStore ? 'D949_SOURCE_FROZEN' : diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: edited ? 'D950_SOURCE_FROZEN' : projectStore ? 'D949_SOURCE_FROZEN' : diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -96,7 +98,9 @@ if d.get('hiddenOff') or d.get('deleted'):
     sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
-if d.get('units') == 'precision':
+if 'edited' in d:
+    assert 'Ø%d THRU' % d['edited']['diameter'] in texts and '0.15' in texts
+elif d.get('units') == 'precision':
     assert re.search(r'Ø0?[.]3150(?:[^0-9]|$)', texts), texts
     assert 'Ø8' in texts
 elif d.get('units') in ('inch', 'dual'):
@@ -111,6 +115,27 @@ if not d.get('creation') and d.get('units') not in ('inch', 'dual', 'precision')
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
 x, y = map(float, m.groups())
 eps = 0.0001
+if 'edited' in d:
+    case = d['edited']
+    radius = case['diameter']/2
+    cx,cy = case['at']
+    u,v = case['place']
+    lo = -math.acos((radius*radius+12)/(8*radius))
+    want = math.atan2(v-16,u-32)
+    theta = max([max(lo,min(0,want+turn)) for turn in [-2*math.pi,0,2*math.pi]],key=lambda t:math.cos(t-want))
+    expected = (cx+5*(radius*math.cos(theta)-4),cy-5*radius*math.sin(theta))
+    assert math.dist((x,y),expected) <= eps
+    assert math.dist((x,y),(cx,cy)) <= 10+eps
+    assert any(abs(float(line.attrib['x1'])-x) <= eps and abs(float(line.attrib['y1'])-y) <= eps for line in dim.findall('s:line',ns))
+    lines = d['dxf'].splitlines()
+    pairs = list(zip(map(int,lines[::2]),(s.strip() for s in lines[1::2]),strict=True))
+    starts = [i for i,(k,v) in enumerate(pairs) if k == 0]
+    [e] = [dict(pairs[i+1:j]) for i,j in zip(starts,starts[1:]) if pairs[i] == (0,'DIMENSION')]
+    assert math.dist((float(e[15]),297-float(e[25])),(x,y)) <= eps
+    assert abs(math.hypot(float(e[10])-x,297-float(e[20])-y)-10*radius) <= 2*eps
+    assert abs(float(e[42])-2*radius) <= eps
+    print(json.dumps({'status':'PASS','tip':[x,y],'diameter':case['diameter'],'paperDetailCenter':case['at']}))
+    sys.exit(0)
 if 'tie' in d:
     assert abs(abs(x-310)-5*math.sqrt(231)/4) <= eps
     assert abs(y-101.25) <= eps
@@ -305,6 +330,61 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (edited) {
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const read = async (label, size) => {
+      await f.page.locator(locator).waitFor();
+      const state = await f.snapshot(label);
+      const [current] = state.doc.drawing.dimensions;
+      assert.deepEqual({ ...current, place: original.drawing.dimensions[0].place }, original.drawing.dimensions[0]);
+      assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === current.id).value - size) < 1e-9);
+      const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+      f.report.observations.push({ label, svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+      await f.runOracle({ svg, dxf, edited: { diameter: size, at: state.doc.drawing.details[0].at, place: current.place } }, label);
+      return state.doc;
+    };
+    await read('01-original-bore', 8);
+    await button('Model').click();
+    await f.openFeatureEditor(2, 'Hole');
+    const field = f.editor().getByLabel('Diameter', { exact: true });
+    assert.equal(await field.inputValue(), '8');
+    await field.fill('9');
+    await f.applyEditor(original, 'hole-size');
+    await button('Drawing').click();
+    const larger = await read('02-larger-bore', 9);
+    assert.equal(larger.nodes[2].radius, 4.5);
+    f.phase = 'translate Detail B on paper without changing its crop';
+    const at = (u, v) => f.page.evaluate(([x,y]) => window.__studioDrawingAt('detail:B', x, y), [u,v]);
+    const grab = await at(37, 17);
+    await f.page.mouse.move(grab.x, grab.y);
+    await f.page.mouse.down();
+    await f.page.mouse.move(grab.x + 32, grab.y + 22, { steps: 8 });
+    await f.page.mouse.up();
+    await f.changed(larger);
+    const translated = await read('03-translated-detail', 9);
+    assert.notDeepEqual(translated.drawing.details[0].at, larger.drawing.details[0].at);
+    assert.deepEqual(translated, { ...larger, drawing: { ...larger.drawing,
+      details: [{ ...larger.drawing.details[0], at: translated.drawing.details[0].at }] } });
+    f.phase = 'drag the diameter label into the bore radius';
+    const from = await f.page.locator(`${locator} text`).boundingBox();
+    const to = await at(33, 15);
+    assert.ok(from && to);
+    await f.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await f.page.mouse.down();
+    await f.page.mouse.move(to.x, to.y, { steps: 8 });
+    await f.page.mouse.up();
+    await f.changed(translated);
+    const interior = await read('04-interior-label', 9);
+    const [u,v] = interior.drawing.dimensions[0].place;
+    assert.ok(Math.hypot(u-32,v-16) < 4.5);
+    await f.undo();
+    await f.same(translated);
+    await f.redo();
+    await f.same(interior);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (projectStore) {
     f.phase = 'edit inch precision in the actual drawing';

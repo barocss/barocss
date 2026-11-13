@@ -1,0 +1,29 @@
+{
+  "decision": "D950",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "5fda3cd89cfeaa91d0fd60f0c0e753b16b2e3115",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D950-studio",
+    "D950_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/edit01 --fixed --edit-source",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "0620e03306d831f26c65a04a846e5b4770c67d795c6287d3ddc7a840d0bf1bd6",
+    "sourceManifestSHA256": "c65bbf23a47e065b3986d2a029f2f475e5190a9664581b9466f2282a4b1cb439",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "filePairs": 4,
+    "diametersMM": [8, 9],
+    "paperDetailCentersMM": [[310, 85], [328.3, 97.6]],
+    "tipsPaperMM": [[307.5, 94.6825], [310.1563, 94.9988], [328.4563, 107.5988], [328.4563, 107.5988]],
+    "coordinateTolerancePaperMM": 0.0001
+  },
+  "notRun": ["new unit suites for the unchanged product", "other clipped annotation families", "production build", "full suites", "PDF", "mobile"]
+}
