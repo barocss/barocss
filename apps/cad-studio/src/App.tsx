@@ -71,7 +71,7 @@ import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyRes
 import { bandEdit, bandRemove } from './app/bandControls';
 import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
-import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
+import { TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { detachRoundedInsetRecipe, resizeRoundedInsetSource, roundedInsetSourceWidth, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { activeKey, type Active } from './app/commandState';
@@ -1540,7 +1540,7 @@ export function App() {
           setSketch({ plane, anchor: { kind: 'midpoint', offset: 0, midpointPlane: plane }, tool: 'rectangle', shape: null, base: null });
           setPreviewBodies(null);
           const [min, max] = sketchRegion(bodies, plane);
-          viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+          viewport.current?.frameSketch(min, max, plane);
         },
       });
       return;
@@ -1566,7 +1566,7 @@ export function App() {
         setEditNode(null);
         setSketch({ plane, anchor: { kind: 'xy', offset: 0 }, tool: 'rectangle', shape, done, base: null });
         const [min, max] = sketchRegion(bodies, plane);
-        viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+        viewport.current?.frameSketch(min, max, plane);
       });
       return;
     }
@@ -1607,7 +1607,7 @@ export function App() {
       discardFeatureDraft();
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
-      viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
+      viewport.current?.frameSketch(min, max, plane); return;
     }
     if (cmd.action === 'assembly-cut') { cancel(); openCut(null); return; }
     if (cmd.action === 'interference') { checkInterference(); return; }
@@ -1918,7 +1918,7 @@ export function App() {
     if (!shapes.length) { setToast({ title: 'The section’s outline could not be read', hint: 'Its edges are not lines and arcs yet.', detail: '' }); return; }
     setSection(null); setSelection(emptySel);
     setSketch({ plane, anchor: { kind: 'face', offset: 0, face: { plane, base: null } }, tool: 'rectangle', shape: null, done: shapes, base: null });
-    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane);
   };
   /**
    * Arrow keys move the picked body: a move of its own, added once and then grown while the body's newest

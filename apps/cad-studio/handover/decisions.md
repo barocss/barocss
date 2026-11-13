@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1041 — frame the projected sketch clear of the tool rail](notes/projected-sketch-rail-clearance-2026-11-13/README.md).
 - [D1040 — start Measure from a static placed face](notes/measure-context-placed-face-2026-11-13/README.md).
 - [D1039 — label shortest distances across hidden curved trims](notes/measure-tangent-trim-provenance-2026-11-13/README.md).
 - [D1038 — pin the native face picked with Measure from here](notes/measure-context-native-pin-2026-11-13/README.md).

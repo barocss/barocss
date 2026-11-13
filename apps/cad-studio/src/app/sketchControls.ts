@@ -45,8 +45,6 @@ export const TOOLS: { tool: SketchTool; key: string; label: string; icon: string
   { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
   { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'cad-sk-dim', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
-/** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
-export const SKETCH_INSETS = { left: 64, right: 272 };
 /**
  * What the sketch camera frames: the bodies' XY extent (at least 60 mm, so the 1 mm snap stays usable),
  * or a 120 × 80 mm working area with the origin near the lower left when the part is empty.

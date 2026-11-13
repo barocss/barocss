@@ -1,0 +1,114 @@
+{
+  "decision": "D1041",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "36a54addf2c7c00d3d6d7a3cd39c3cd368d3008d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1041-section-baseline01",
+    "D1041_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-projection-rail-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1041-section-studio01",
+    "D1041_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-projection-rail-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1041-section-regressions",
+    "D668_SOURCE_FROZEN=1 node apps/cad-studio/test/model-work-area-fit-browser.mjs <external-evidence>/model-fit --fixed",
+    "D792_SOURCE_FROZEN=1 node apps/cad-studio/test/three-vertex-sketch-browser.mjs <external-evidence>/vertex-plane",
+    "D1011_SOURCE_FROZEN=1 node apps/cad-studio/test/section-visible-copy-browser.mjs <external-evidence>/section-sketch",
+    "pnpm --filter @barocss/cad-studio-app test sketch-framing small-camera-scale camera-projector",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/sketch-projection-rail-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "05841e3582930e9c902ade8ba2b00b30bcc96c8693c9e6f49513cfc54c2e9ecd",
+    "sourceManifestSHA256": "03fee9febff48b556ce183fada12ac28571c7664b31da58ae16bc1dd507f7cb1",
+    "frozenFiles": 379,
+    "states": 2,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "viewportCSSpx": [
+      1024,
+      900
+    ],
+    "cornerCSSpx": [
+      97.99766740492565,
+      492.5003584706178
+    ],
+    "railRightCSSpx": 100,
+    "hit": "NAV"
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "7487427cc2094baeec402ca613b60b54f1340371e132bdc79760831779eea481",
+    "sourceManifestSHA256": "6ad3660e43e23d4c2da4deb504ff4d28241902ee4a2dac90c5e1b77be2d450f0",
+    "frozenFiles": 379,
+    "states": 3,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "visualReview": "PASS",
+    "cornerCSSpx": [
+      163.66397208529952,
+      514.5841635825847
+    ],
+    "hit": "CANVAS",
+    "selected": "point:3",
+    "coveredCornerCSSpx": [
+      97.99915184085326,
+      514.5841635825847
+    ],
+    "coveredClickSelectionCount": 0
+  },
+  "regressions": {
+    "model-fit": {
+      "status": "PASS",
+      "receiptSHA256": "3001727abfe3e36b2a0de68c7507c9572b9da4f28972229735d2f9fe59969d0d",
+      "sourceManifestSHA256": "1a1a975ff824cae386e77d81296701bcf25924e4fe1bb4fe56eeafe212df9af1",
+      "frozenFiles": 378,
+      "states": 6,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "vertex-plane": {
+      "status": "PASS",
+      "receiptSHA256": "8f0b7e2e34b9969479e78bda834dbe2a11d63baea542fb018afd34c6e55f751f",
+      "sourceManifestSHA256": "ad34d2f726d8ffd86fa3b994e0d4f64b4f0c1e11e2a1f657910ef109970a9c2e",
+      "frozenFiles": 858,
+      "states": 5,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "section-sketch": {
+      "status": "PASS",
+      "receiptSHA256": "db921bf75427f62a094ee9ad216824fcdc1e1e739fe51ebd3a7841df3b6cd63e",
+      "sourceManifestSHA256": "e9e95492a70de7067a1360d964976dda5fc5e41819f4a52ce9e2595bfe0d3c11",
+      "frozenFiles": 379,
+      "states": 4,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 35,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "900 × 760 Fixed mark and gizmo obstruction",
+    "Frame all with open Display",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

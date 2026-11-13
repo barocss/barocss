@@ -1,5 +1,5 @@
 import { emptyDirect } from '../app/directGeometry';
-import { SKETCH_INSETS, sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
+import { sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
 import { useCallback, useRef, useState } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -71,7 +71,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const plane = offsetPlane(tiltPlane(source, angle), offset);
     setSketch({ ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)), plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
     const [min, max] = sketchRegion(bodies, plane);
-    viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+    viewport.current?.frameSketch(min, max, plane);
   }, [sketch, bodies, setSketch]);
 
   /** The sketch's shapes as curves of the direct geometry (one per shape, through the sketch plane); the sketch is left. */
@@ -166,7 +166,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const draft = startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select');
     reopenedDraft.current = { source: stored, draft };
     setSketch(draft);
-    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane);
   };
   const linkSketchInset = (insetMM: number) => {
     const source = sketch?.anchor?.face?.linkSource;

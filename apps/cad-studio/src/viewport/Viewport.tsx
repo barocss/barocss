@@ -45,7 +45,7 @@ export interface ViewportHandle {
   fit(box?: { min: Vec3; max: Vec3 }): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
   startRectangleAt(owner: SketchState, at: [number, number]): boolean;
   /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
-  frameSketch(min: [number, number], max: [number, number], plane: SketchPlane, insets?: { left: number; right: number }): void;
+  frameSketch(min: [number, number], max: [number, number], plane: SketchPlane): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
@@ -731,16 +731,28 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const instanceFaces = instanceFacesRef.current;
   useEffect(() => { renderer.current?.setInstanceFaces?.([...instanceFaces]); request(); }, [instanceFaces, props.instances, backend]);
 
+  // The sketch rail replaces the Model rail in the same commit as the sketch.
+  const pendingSketchFrame = useRef<{ min: [number, number]; max: [number, number]; plane: SketchPlane } | null>(null);
+  useLayoutEffect(() => {
+    const frame = pendingSketchFrame.current, view = canvas.current;
+    pendingSketchFrame.current = null;
+    if (!frame || !view || frame.plane !== props.sketch?.plane) return;
+    const { min, max, plane } = frame;
+    const w = Math.max(1, view.clientWidth), h = Math.max(1, view.clientHeight);
+    const area = modelFitArea(view), c = camera.current;
+    c.aspect = w / h;
+    c.faceNormal(plane.normal);
+    c.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]),
+      [max[0] - min[0], max[1] - min[1]], area?.left ?? 0, area ? 1 - area.right : 0);
+    request();
+  }, [props.sketch?.plane]);
+
   useImperativeHandle(ref, () => ({
     camera: camera.current,
     startRectangleAt: input.startRectangleAt,
     fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) fitBounds(b); request(); },
     setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) fitBounds(b); request(); },
-    frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
-      const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
-      camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);
-      camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
-    },
+    frameSketch(min, max, plane) { pendingSketchFrame.current = { min, max, plane }; },
     toggleOrtho() { setOrthographic(!camera.current.ortho); request(); return camera.current.ortho; },
     getDisplayModeStatus() {
       const status = renderer.current?.getDisplayModeStatus?.() ?? null;
