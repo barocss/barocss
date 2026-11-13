@@ -11,6 +11,7 @@ const baseline = mode === '--baseline';
 const covered = variant === '--covered';
 const creation = variant === '--create';
 const scaled = variant === '--scaled';
+const deleted = variant === '--delete-source';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -19,6 +20,9 @@ const diameter = { id: 'b-diameter', kind: 'diameter', view: 'detail:B', edge: '
 const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] };
 const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
   views: ['front', 'top'], details: [detail], dimensions: creation ? [] : covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
+if (deleted) {
+  drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
+}
 const part = covered ? {
   ...document,
   nodes: [...document.nodes,
@@ -28,7 +32,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -43,13 +47,17 @@ ns = {'s': 'http://www.w3.org/2000/svg'}
 dim = root.find(".//s:g[@data-dim='%s']" % d.get('id','b-diameter'), ns)
 ink = root.find(".//s:g[@class='detail'][@data-view='detail:B']", ns)
 assert ink is not None
-if d.get('hiddenOff'):
+if d.get('hiddenOff') or d.get('deleted'):
     assert dim is None
     assert not any('A20 20 ' in p.attrib['d'] for p in ink.findall('s:path', ns))
-    assert ink.find("s:line[@stroke-width='0.5']", ns) is not None
+    if d.get('hiddenOff'):
+        assert ink.find("s:line[@stroke-width='0.5']", ns) is not None
+    else:
+        assert not ink.findall("s:path[@stroke-width='0.5']", ns)
+        assert root.find(".//s:g[@data-dim='top-diameter']", ns) is None
     lines = d['dxf'].splitlines()
     assert all(v.strip() != 'DIMENSION' for k,v in zip(lines[::2], lines[1::2]) if int(k) == 0)
-    print(json.dumps({'status':'PASS', 'sourceArc':'hidden', 'dimension':'absent'}))
+    print(json.dumps({'status':'PASS', 'sourceArc':'hidden' if d.get('hiddenOff') else 'deleted', 'dimension':'absent'}))
     sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
@@ -214,6 +222,43 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (deleted) {
+    f.phase = 'open the source and read the current diameter';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    await verify('01-before-delete', false);
+    for (const [action, suppress] of [['Suppress', true], ['Delete', false]]) {
+      f.phase = `${action} the bore through Feature History`;
+      await button('Model').click();
+      await f.page.locator('.history .hs[data-node-index="2"]').click({ button: 'right' });
+      await f.page.getByRole('menuitem', { name: new RegExp(`^${action}\\b`) }).click();
+      await f.changed(original);
+      if (!suppress) await f.page.getByText('Removed 2 drawing dimensions', { exact: true }).waitFor();
+      await button('Drawing').click();
+      const missing = await f.snapshot(`${action.toLowerCase()}-source`);
+      const nodes = suppress ? [...original.nodes.slice(0, 2), { ...original.nodes[2], suppressed: true }] : original.nodes.slice(0, 2);
+      assert.deepEqual(missing.doc.nodes, nodes);
+      assert.deepEqual(missing.doc.drawing, { ...original.drawing, dimensions: suppress ? original.drawing.dimensions : [] });
+      if (suppress) {
+        assert.match(missing.drawing.dimensions.find(d => d.id === diameter.id).lost, /circle it measured is no longer/);
+        assert.ok(missing.drawing.issues.some(i => i.code === 'DIMENSION_LOST'));
+      }
+      assert.ok(missing.drawing.issues.some(i => i.code === 'DETAIL_EMPTY'));
+      assert.equal(await f.page.locator(locator).count(), 0);
+      const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+      const label = `${action.toLowerCase()}-output`;
+      f.report.observations.push({ label, svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+      await f.runOracle({ svg, dxf, deleted: true }, label);
+      f.phase = `restore the exact original bore after ${action}`;
+      await button('Model').click();
+      await f.undo();
+      await f.same(original);
+      await button('Drawing').click();
+      await verify(`restored-after-${action.toLowerCase()}`, false);
+    }
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (scaled) {
     f.phase = 'open the saved Detail diameter and change its scale';

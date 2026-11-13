@@ -1,0 +1,36 @@
+{
+  "decision": "D942",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "009b4b27a730ef2235d12ac03813f58ca4f2a208",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D942-studio",
+    "D942_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/delete05 --fixed --delete-source",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "observerFailureReceiptsSHA256": [
+      "4f792b720801ee456b869f3a4192bd02bb0f99ef54d6f404e5ff8c3566c30307",
+      "eba40d483105bb56c3e54bdd2eb29171cd08ba23da81b5e0ddd0bd46ae0952ff",
+      "9675bf9d828cc4c0cded066eb674c8bc190fd457318669fb6c6f743d2c82b9e6",
+      "dd9ff56bba3fca3c5a5e267d7250c15e3c8b018ecd46bce37eda84820fc6904b"
+    ],
+    "receiptSHA256": "252dd590c79c08211f10d3f440ca20b4835a22eac7542c174e3207ccfcd6a008",
+    "sourceManifestSHA256": "4985f38c3d187c163b34c7a78d624a8a9961fb3b28b8acc54f4531a58293654a",
+    "absenceOracleSHA256": "a1a79fc0670e6780f2791568d4dcfe48cb539dfe7d3c904d3db2630aa1a47e58",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "restoredSvgBytes": 5824,
+    "restoredSvgSHA256": "bcc06cbf91acd5ea6f78679981108757c47d3d1f5551dffaa71e49dcd89844f8",
+    "suppressedOrDeletedSvgBytes": 4539,
+    "suppressedOrDeletedDxfBytes": 13150,
+    "staleRemovalNoticeAfterUndo": "FAIL"
+  },
+  "notRun": ["new unit suites for the unchanged product", "restored DXF", "crop center or radius edits", "remaining alternate-arc and display-profile matrix", "production build", "full suites", "PDF", "mobile"]
+}
