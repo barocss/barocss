@@ -17,6 +17,7 @@ const units = variant === '--units';
 const splitArc = variant === '--split-arc';
 const tangent = variant === '--tangent';
 const diagnosis = variant === '--diagnosis';
+const projectStore = variant === '--project-store';
 const tie = variant === '--tie';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
@@ -42,11 +43,12 @@ if (tangent || diagnosis) {
   drawing.details = [{ ...detail, center: [32, 10] }];
   drawing.dimensions = [{ ...diameter, place: [44, 16] }];
 }
-if (units) drawing.dimensions = [
+if (units || projectStore) drawing.dimensions = [
   { ...diameter, place: [24, 16] },
   control,
   { ...control, id: 'top-radius', kind: 'radius', place: [20, 25] },
 ];
+if (projectStore) Object.assign(drawing, { units: 'inch', dual: true });
 const part = covered ? {
   ...document,
   nodes: [...document.nodes,
@@ -56,7 +58,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: projectStore ? 'D949_SOURCE_FROZEN' : diagnosis ? 'D948_SOURCE_FROZEN' : tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -94,13 +96,16 @@ if d.get('hiddenOff') or d.get('deleted'):
     sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
-if d.get('units') in ('inch', 'dual'):
+if d.get('units') == 'precision':
+    assert re.search(r'Ø0?[.]3150(?:[^0-9]|$)', texts), texts
+    assert 'Ø8' in texts
+elif d.get('units') in ('inch', 'dual'):
     assert re.search(r'Ø0?[.]315(?:[^0-9]|$)', texts)
     if d['units'] == 'dual':
         assert 'Ø8' in texts
 else:
     assert 'Ø8' in texts
-if not d.get('creation') and d.get('units') not in ('inch', 'dual'):
+if not d.get('creation') and d.get('units') not in ('inch', 'dual', 'precision'):
     assert '0.15' in texts
 [head] = dim.findall("s:path[@fill='#000']", ns)
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
@@ -300,6 +305,60 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (projectStore) {
+    f.phase = 'edit inch precision in the actual drawing';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const precision = f.page.getByLabel('Decimals in inch', { exact: true });
+    const panel = f.page.locator('details').filter({ has: precision }).first();
+    await panel.locator('summary').first().click();
+    await precision.fill('4');
+    await f.changed(original);
+    const current = await f.doc();
+    assert.deepEqual(current, { ...original, drawing: { ...original.drawing, precision: { inch: 4 } } });
+    const check = async label => {
+      await f.page.locator(locator).waitFor();
+      const state = await f.snapshot(label);
+      assert.deepEqual(state.doc, current);
+      assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === diameter.id).value - 8) < 1e-9);
+      const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+      f.report.observations.push({ label, svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+      await f.runOracle({ svg, dxf, units: 'precision', opposite: true, expectClipped: false }, label);
+      return { svg, dxf };
+    };
+    const before = await check('01-precision-before-project');
+    f.phase = 'save to OPFS and open the exact saved project after reload';
+    await button('Model').click();
+    const name = 'Detail diameter precision', file = 'detail-anchor.bcad';
+    const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+    const attach = async () => {
+      if (!(await versions().isVisible())) await button('Project and versions').click();
+      await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(name);
+      await versions().getByRole('button', { name: 'Project in this browser', exact: true }).click();
+      await versions().getByLabel('Project', { exact: true }).waitFor();
+    };
+    await attach();
+    await button('Save').click();
+    await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(file, { exact: true }).waitFor();
+    const saved = await f.page.evaluate(async ([name, file]) => {
+      const root = await navigator.storage.getDirectory();
+      const projects = await root.getDirectoryHandle('projects');
+      const dir = await projects.getDirectoryHandle(name);
+      return (await (await dir.getFileHandle(file)).getFile()).text();
+    }, [name, file]);
+    assert.deepEqual(JSON.parse(saved), current);
+    f.report.observations.push({ label: 'project-save', bytes: Buffer.byteLength(saved), sha256: sha256(saved) });
+    await versions().getByRole('button', { name: 'Close project', exact: true }).click();
+    await f.page.reload();
+    await f.ready();
+    await attach();
+    await versions().getByRole('button', { name: 'Open ' + file, exact: true }).click();
+    await f.same(current);
+    await button('Drawing').click();
+    assert.deepEqual(await check('02-project-reopened'), before);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (tie) {
     f.phase = 'open the equal-distance crop and read the ordinary diameter controls';

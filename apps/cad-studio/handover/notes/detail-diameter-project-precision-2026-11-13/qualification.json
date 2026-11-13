@@ -1,0 +1,33 @@
+{
+  "decision": "D949",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "3fe572fb3cb72f7a714f7490b8ea53ef44cad987",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D949-studio",
+    "D949_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/project02 --fixed --project-store",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "observerFailureReceiptSHA256": "cde2605f66faa593427169ade80be50fb1b90084381d0979763f348f18f751eb",
+    "receiptSHA256": "90d2b236f0c19095cf8882e1543bdf32cfdbe3c9db2dea79bf982a1cf6f13134",
+    "sourceManifestSHA256": "cb432645f8428eee8a8712ecc11ff3c02eaed6f558e0fa9e07e4daf668b2666a",
+    "oracleSHA256": "a043a98e8386e3d35cd22d6cb9f1d26e9d5343582831bf7ee30524634ee64969",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "projectBytes": 2220,
+    "projectSHA256": "f4289c6957e5d0de34fdfe6ef669b633a8047c37d39491589c5b0f1da5883292",
+    "svgBytes": 6510,
+    "svgSHA256": "9a4ff8b63e16702fc293e10b7b3d07a00dc354fae8b8ef8f3f201042a928b690",
+    "dxfBytes": 18524,
+    "dxfSHA256": "09e54dadd80399ddb8d1c97df0c9aa1842e705e2b10ec4e1be1c7f2f1a84509a",
+    "tipPaperMM": [307.5, 94.6825]
+  },
+  "notRun": ["new unit suites for the unchanged product", "source bore size edit", "interior label and Detail translation", "production build", "full suites", "PDF", "mobile"]
+}
