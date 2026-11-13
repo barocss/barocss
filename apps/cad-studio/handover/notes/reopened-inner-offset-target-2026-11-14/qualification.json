@@ -1,0 +1,43 @@
+{
+  "decision": "D1102",
+  "tier": "SMALL",
+  "parent": "662ea56da821c0e490d9dbcb31c6c66458e092cc",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1102-rounded-sketch-offset-<run>",
+    "D1102_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/<run> --reopened-target",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "observerFailure": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 860,
+      "receiptSHA256": "aeca3a1213f438c33b861ae504faf0c47afe5d2add368c4aa451a038b5a0dade",
+      "sourceManifestSHA256": "d56955f92408160838f8882059d22324f65b4fb1c79f28002bb60d70ea07d299",
+      "firstFailure": "The first observer retained a locator from the closed pre-Open browser context. The replay resolves controls in the current context."
+    },
+    "actual": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 860,
+      "receiptSHA256": "f0d1301192ce0c6990e5079eee0aa42ad761e447f6de314389fca2bc003e6c20",
+      "sourceManifestSHA256": "f3b41e2a1bef39c1b5149eb8d5fea72797aa53035672b3837a45e91950146f90",
+      "projectFiles": [
+        {
+          "bytes": 3485,
+          "sha256": "8c8b5a14cb432358a3e503d43d67106417d003ff627043fd3951598269221a7a"
+        }
+      ]
+    }
+  },
+  "offsetMM": 1.5,
+  "innerRadiusMM": 1,
+  "outerRadiusMM": 2,
+  "volumeMM3": 534.247779607693,
+  "focused": {
+    "status": "NOT_RUN",
+    "reason": "No production source changed; the Studio driver and diff were checked."
+  }
+}
