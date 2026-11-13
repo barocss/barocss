@@ -9,7 +9,7 @@ import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HOVERED
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { ProposalOverlay } from '../engine/client';
-import type { Vec3 } from '@barocss/cad-model/engine/mesh';
+import { dot, sub, type Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import { invert, multiply } from '@barocss/gpu/viewer';
 import { topologyKey, movedCopy } from './instanceGeometry';
@@ -1192,18 +1192,23 @@ export class Renderer implements ViewRenderer {
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius = 6, frontOnly = false): EdgeRef | null {
     const cw = this.canvas.clientWidth, ch = this.canvas.clientHeight, vp = camera.viewProjection();
     const through = !frontOnly && showsRearEdges(this.resolveDisplayMode(view));
-    let shown: ((p: Vec3) => boolean) | null = null, best: EdgeRef | null = null, bestD = radius;
+    const basis = camera.basis(), tie = 1e-4;
+    let shown: ((p: Vec3) => boolean) | null = null, best: EdgeRef | null = null, bestD = radius, bestDepth = Infinity;
     for (let bi = 0; bi < this.bodies.length; bi++) {
       if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi) || !!view.isolatedInstances?.length) continue;
       placeBody(view, bi, this.model, this.normal);
       const L = this.bodies[bi].result.mesh.edgeLines, E = this.bodies[bi].result.mesh.edgeOfSegment;
-      const near = nearSegments(L, this.model, vp, cw, ch, x, y, bestD);
+      const near = nearSegments(L, this.model, vp, cw, ch, x, y, Math.min(radius, bestD + tie));
       for (let k = 0; k < near.length && k < HIDDEN_TRIES; k++) {
+        const hit = near[k];
+        if (hit.d > bestD + tie) break;
         if (!through) {
           shown ??= this.depthsAround(x, y, radius, camera, view);
-          if (!shown(near[k].at)) continue;
+          if (!shown(hit.at)) continue;
         }
-        bestD = near[k].d; best = { body: bi, edge: E[near[k].s * 2] }; break;
+        const depth = dot(sub(hit.at, basis.eye), basis.forward);
+        if (best && hit.d >= bestD - tie && depth >= bestDepth) continue;
+        bestD = hit.d; bestDepth = depth; best = { body: bi, edge: E[hit.s * 2] };
       }
     }
     return best;

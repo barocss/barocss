@@ -1,0 +1,228 @@
+{
+  "decision": "D1047",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e968710f95057f49ec965d6bb04b443052d08722",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1047-section-baseline01",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/baseline01 --webgl2 --exact-corner",
+    "gate.sh acquire heavy 600 D1047-section-checks",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/gl-exact --webgl2 --exact-corner",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/gpu-exact --exact-corner",
+    "pnpm --filter @barocss/cad-studio-app test vertex-pick-filter selection-edge",
+    "node --check apps/cad-studio/test/rear-edge-picking-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "9da60b77d900263bf9b4bf2cd8d01d995df05c2c6e2812b5a5f6e4eab062a489",
+    "sourceManifestSHA256": "3546f289b9a6e366b955e8cfac571b7e4bf03d25d9cb3b1cb94053b78da5e9fe",
+    "frozenFiles": 380,
+    "states": 8,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "vertexPicks": [
+      {
+        "name": "front-vertex-shaded-with-edges",
+        "point": [
+          301.5729523478612,
+          520.2846959232857
+        ],
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [],
+          "vertices": [
+            {
+              "body": 1,
+              "at": [
+                0,
+                95,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "studio": {
+    "webgl2": {
+      "status": "PASS",
+      "receiptSHA256": "354c318bad4b26fa59775a1fd1c69c6a50067e7882a2a03d4ebc4a4f62fe11b7",
+      "sourceManifestSHA256": "69f235b6e5d26c156cbfb01c59aed179793b469ff88458ce2443a09dfb7ff3d7",
+      "frozenFiles": 380,
+      "states": 9,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "vertexPicks": [
+        {
+          "name": "front-vertex-shaded-with-edges",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "front-vertex-x-ray",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "front-vertex-wireframe",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "webgpu": {
+      "status": "PASS",
+      "receiptSHA256": "354c318bad4b26fa59775a1fd1c69c6a50067e7882a2a03d4ebc4a4f62fe11b7",
+      "sourceManifestSHA256": "69f235b6e5d26c156cbfb01c59aed179793b469ff88458ce2443a09dfb7ff3d7",
+      "frozenFiles": 380,
+      "states": 9,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "vertexPicks": [
+        {
+          "name": "front-vertex-shaded-with-edges",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "front-vertex-x-ray",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "front-vertex-wireframe",
+          "point": [
+            301.5729523478612,
+            520.2846959232857
+          ],
+          "selection": {
+            "faces": [],
+            "edges": [],
+            "bodies": [],
+            "vertices": [
+              {
+                "body": 0,
+                "at": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "visualReview": "PASS",
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "downstream rear-edge feature",
+    "instance edges",
+    "other overlap layouts",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

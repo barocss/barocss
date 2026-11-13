@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const webgl = process.argv.includes('--webgl2');
+const exactCorner = process.argv.includes('--exact-corner');
 const pins = [
   'apps/cad-studio/test/rear-edge-picking-browser.mjs', 'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'apps/cad-studio/src/viewport/displayPolicy.ts', 'apps/cad-studio/src/viewport/gpuRenderer.ts', 'apps/cad-studio/src/viewport/renderer.ts',
@@ -120,7 +121,7 @@ await f.run(async () => {
   await filter('Pick all');
   for (const name of ['Shaded with edges', 'X-ray', 'Wireframe']) {
     await mode(name);
-    const hit = await pick([0,0,0], 'front-vertex-' + name.toLowerCase().replaceAll(' ', '-'), [1,-1]);
+    const hit = await pick([0,0,0], 'front-vertex-' + name.toLowerCase().replaceAll(' ', '-'), exactCorner ? [0,0] : [1,-1]);
     assert.deepEqual(hit.vertices, [{ body: 0, at: [0,0,0] }]);
   }
   await f.same(coincident);
