@@ -1,0 +1,119 @@
+{
+  "decision": "D1040",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "8356fcedfb7f31304209a9814bc754ecc2de4797",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1040-section-baseline01",
+    "D1040_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/baseline01 --context",
+    "gate.sh acquire heavy 600 D1040-section-studio02",
+    "D1040_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/studio02 --context",
+    "gate.sh acquire heavy 600 D1040-section-regressions",
+    "D1036_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/ordinary",
+    "D1038_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-context-pin-browser.mjs <external-evidence>/root-pin",
+    "D1013_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-measure-browser.mjs <external-evidence>/section-root",
+    "D772_SOURCE_FROZEN=1 node apps/cad-studio/test/section-instance-picking-browser.mjs <external-evidence>/section-instance",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text instance-pose placed-sketch-snap-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/measure-placed-face-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "6a7c974225955ca327cd9a4be8f0e34abc9ed5f0cac7b44d9bc135548e9ac81e",
+    "sourceManifestSHA256": "da79464dff80c5bc125d28656fe990a7a95ede01666cbd2d0991a8a91270cba9",
+    "frozenFiles": 379,
+    "states": 2,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "measureActionCount": 0
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "310c96562f8b8006b4c95ed1795a29d79483db4d740c4f0402f7ae83f764f78a",
+    "sourceManifestSHA256": "a586a0151a99920f636de4aea30689752a854f3efca944aa4df435dcaaa675c5",
+    "frozenFiles": 379,
+    "states": 4,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "visualReview": "PASS",
+    "shortestMM": 20.62,
+    "normalMM": 5,
+    "deltaMM": [
+      -20,
+      0,
+      -5
+    ],
+    "owner": "inst1/b1",
+    "explodedMeasureActionCount": 0
+  },
+  "regressions": {
+    "ordinary": {
+      "status": "PASS",
+      "receiptSHA256": "e92b51234275859cf6fa262785f7b25d3a5aae09a83e4ee79129a29c16ff0780",
+      "sourceManifestSHA256": "a586a0151a99920f636de4aea30689752a854f3efca944aa4df435dcaaa675c5",
+      "frozenFiles": 379,
+      "states": 5,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "root-pin": {
+      "status": "PASS",
+      "receiptSHA256": "1b1d66acae8b577497d7914db37041127931500ba2260409126edc43c6015d88",
+      "sourceManifestSHA256": "04f44f436e77611e427c9f688f725d58b74a9998ce7f475c08f3d0c637436146",
+      "frozenFiles": 379,
+      "states": 4,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "section-root": {
+      "status": "PASS",
+      "receiptSHA256": "00af9de285517cfc56eb68875a2328985f51a14eadb341bc57c02133289c10b8",
+      "sourceManifestSHA256": "ee39774b7635b29364257e4e839d5d4d8560412060cc9afb161d6a979752b69e",
+      "frozenFiles": 379,
+      "states": 4,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "section-instance": {
+      "status": "PASS",
+      "receiptSHA256": "f3a755d8e21e54b3a605e94c0b637010e9d1024a4b18c9726b1629dd534a0710",
+      "sourceManifestSHA256": "8f154974577e0fdc74a0e81283b667ef7ebcada88a2fb8db8efc130b07f1b3e1",
+      "frozenFiles": 857,
+      "states": 5,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "audit": {
+    "status": "PASS",
+    "scope": "source review of context eligibility, renderer mesh ownership, event-time guard, and ordinary Measure and Print routing"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 10,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "WebGL2",
+    "rotated or nested placements",
+    "transient renderer transform/clip application",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -15,6 +15,17 @@ export interface MeasureTarget {
   edge?: readonly string[];
 }
 
+export interface PlacedMeasureSource {
+  inst: PartInstance;
+  bodies: BodyResult[];
+  hidden: ReadonlySet<string>;
+}
+
+export function capturePlacedMeasureFace(pick: { body: number; face: number }, doc: StudioDoc, source: PlacedMeasureSource | undefined): MeasureTarget | null {
+  const body = source?.bodies[pick.body];
+  return source && body && !source.hidden.has(body.key) ? captureMeasureTarget(pick, doc, body, false, source.inst) : null;
+}
+
 export function captureMeasureTarget(pick: MeasurePick, doc: StudioDoc, body: BodyResult | undefined, pinReady = false, occurrence?: PartInstance): MeasureTarget | null {
   if (!body || (!occurrence && lookOf(doc, body).hidden)) return null;
   const face = pick.face === undefined ? undefined : body.mesh.faces[pick.face];

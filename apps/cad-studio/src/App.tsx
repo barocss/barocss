@@ -110,7 +110,7 @@ import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeO
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { capturePinnedFacePair, readPinnedFacePair, type PinnedFacePair } from './app/pinnedFaceMeasure';
 import { usesCurvedMeshDistance } from './app/measureProvenance';
-import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget } from './app/measureTargets';
+import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget, type PlacedMeasureSource } from './app/measureTargets';
 import { hostsOf, nestedCard, renderKeysOf, singleNested, singleTop, viewportInstanceSelection } from './assembly/nestedSelection';
 import { NestedPartPanel } from './ui/NestedPartPanel';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -1769,9 +1769,14 @@ export function App() {
     },
     notice: setToast,
   });
-  const measureInstances = useRef<ReadonlyMap<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>>(new Map());
+  const measureInstances = useRef<ReadonlyMap<string, PlacedMeasureSource>>(new Map());
+  const placedMeasureContext = !rendering && !drawing && !sketch && !assembly.draft && !active && !routePanelOpen
+    && marker === null && !inPlace && !cageEd.session && !skel.session && previewMode === 'none';
+  const placedMeasureContextReady = () => placedMeasureContext && docNow.current === doc
+    && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
+    && !activeStore.get() && !halvesShownRef.current;
   const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
-    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, measureInstances, pickFilterRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
   const finishEdgePicking = finishEdgeEditor.current ? {
@@ -2452,8 +2457,8 @@ export function App() {
   }, [sectionExactShown, sectionExact, section, sectionBodies, shownBodies, bodies, sectionFrom]);
   const instanceLooks = useInstanceLooks(doc, instanceBodies);
   const placedMeasureSources = useMemo(() => {
-    const entries = new Map<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>();
-    if (!measure || !fresh || busy || shownDoc !== doc || section || exploded || jointTree || instDrag || cutDraft || stepsDisp || isolatedInstances
+    const entries = new Map<string, PlacedMeasureSource>();
+    if ((!measure && !placedMeasureContext) || !fresh || busy || shownDoc !== doc || section || exploded || jointTree || instDrag || cutDraft || stepsDisp || isolatedInstances
       || ghost || candidateReview?.shown || workingComparison || previewBodies || routePreviewBodies) return entries;
     for (const inst of doc.instances ?? []) {
       const have = instanceBodies.get(inst.id);
@@ -2462,7 +2467,7 @@ export function App() {
       entries.set(inst.id, { inst, bodies: have.bodies, hidden });
     }
     return entries;
-  }, [measure, fresh, busy, shownDoc, doc, section, exploded, jointTree, instDrag, cutDraft, stepsDisp, isolatedInstances, ghost, candidateReview?.shown, workingComparison, previewBodies, routePreviewBodies, instanceBodies, instanceSources, instanceLooks]);
+  }, [measure, placedMeasureContext, fresh, busy, shownDoc, doc, section, exploded, jointTree, instDrag, cutDraft, stepsDisp, isolatedInstances, ghost, candidateReview?.shown, workingComparison, previewBodies, routePreviewBodies, instanceBodies, instanceSources, instanceLooks]);
   measureInstances.current = placedMeasureSources;
   const measurementItems = useMemo(() => measure?.map(target => {
     if (!fresh || busy) return null;
@@ -3242,7 +3247,7 @@ export function App() {
       <FeatureHistoryMenu doc={doc} ctx={ctx} marker={marker} historyMenu={historyMenu} close={() => setHistoryMenu(null)}
         beforeEdit={action => workspaceModeExit.switchWhenReady(action, { originFocus: historyMenu?.focus, readFeature: readFeatureTransitionDraft })}
         editors={{ setEditNode, setInstanceSel, setDirectSel, editSketch, exportSketchDxf, cancel, beginSkeleton: skel.begin, setSelection }} history={{ toggleSuppress, reorder, setMarker, deleteNode }} />
-      <ViewContextMenu model={{ doc, bodies, ctx }} menu={modelUnavailable ? null : menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
+      <ViewContextMenu model={{ doc, bodies, ctx, placed: placedMeasureContext ? placedMeasureSources : undefined, placedMeasureContextReady }} menu={modelUnavailable ? null : menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
 
       {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} nesting={nestCutList(doc, list)} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}

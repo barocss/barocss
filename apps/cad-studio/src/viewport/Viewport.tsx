@@ -348,6 +348,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
   const rendererBodies = useRef<BodyResult[]>(NO_BODIES);
+  const rendererInstances = useRef<{ renderer: ViewRenderer; instances: NonNullable<Props['instances']> } | null>(null);
   const hover = useRef<ViewportHover>({ face: null, edge: null });
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
   // move a full frame is drawn with it, the same as before. (One function, kept for the component's life.)
@@ -438,7 +439,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const input = useViewportPointerInput({
     canvas, camera, propsRef,
-    rendering: { renderer, rendererBodies, request, requestRef, moving, viewState, hover },
+    rendering: { renderer, rendererBodies, rendererInstances, request, requestRef, moving, viewState, hover },
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
@@ -575,7 +576,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     r.setOverlayLabels('pmi:text', l?.plain.labels.length ? l.plain : null); r.setOverlayLabels('pmi:text:selected', l?.selected ?? null);
   };
   useEffect(() => { applyPmiLabels(); request(); }, [props.annotations, props.annotationSelected, backend]);
-  useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
+  useEffect(() => {
+    const r = renderer.current, instances = props.instances ?? [];
+    r?.setInstances?.(instances, props.instanceSelection ?? []);
+    rendererInstances.current = r ? { renderer: r, instances } : null;
+    request();
+  }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setContactLinks?.(props.contactLinks ?? []); request(); }, [props.contactLinks, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);

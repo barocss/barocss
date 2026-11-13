@@ -79,7 +79,7 @@ export interface ViewportPointerProps {
   /** Use projected triangle overlap for crossing boxes in the idle native Model view. */
   meshBoxCrossing?: boolean;
   onBoxSelect(bodies: number[], additive: boolean): void;
-  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
+  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null; instance?: string; instanceFace?: FaceRef; instanceMesh?: BodyResult['mesh']; instanceCap?: { body: number } }): void;
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
   onSketchPick?(hit: SketchPick | null, additive: boolean): void;
   /** Band tool clicks: the index (in done, then the current shape) of the closed shape under the pointer, or null. */
@@ -117,6 +117,7 @@ interface PointerInput {
   rendering: {
     renderer: RefObject<ViewRenderer | null>;
     rendererBodies: RefObject<readonly BodyResult[]>;
+    rendererInstances: RefObject<{ renderer: ViewRenderer; instances: readonly { id: string; bodies: readonly BodyResult[] }[] } | null>;
     request(): void;
     requestRef: RefObject<() => void>;
     moving: RefObject<() => void>;
@@ -212,7 +213,7 @@ function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonl
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
-  const { renderer, rendererBodies, request, requestRef, moving, viewState, hover } = rendering;
+  const { renderer, rendererBodies, rendererInstances, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
   const sketch = propsRef.current.sketch;
 
@@ -845,8 +846,18 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const r = renderer.current;
       if (!r) return;
+      const at = { x: e.clientX, y: e.clientY };
+      const props = propsRef.current;
+      const instance = props.printDisplay || props.printActive ? null : r.pickInstanceFace?.(x, y, camera.current);
+      if (instance && !r.pickDirect?.(x, y, camera.current)) {
+        const packet = rendererInstances.current;
+        const instanceMesh = packet?.renderer === r
+          ? packet.instances.find(item => item.id === instance.id)?.bodies[instance.body]?.mesh : undefined;
+        props.onContextMenu(at, { face: null, edge: null, ...instancePickFields(instance), instanceMesh });
+        return;
+      }
       const { face, edge } = pickAt(r, x, y);
-      propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
+      propsRef.current.onContextMenu(at, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
     if (focusPick.current) {

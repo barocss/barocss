@@ -1,5 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction, type RefObject } from 'react';
-import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -13,7 +13,7 @@ import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
 import { bindMidpointPick } from '../app/midpointSketch';
-import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget } from '../app/measureTargets';
+import { captureMeasureTarget, capturePlacedMeasureFace, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget, type PlacedMeasureSource } from '../app/measureTargets';
 import { bindNativeVertexPick } from './vertexPick';
 import type { EdgeRef, FaceRef } from './renderer';
 import type { ScenePickingActions } from './SceneViewport';
@@ -30,7 +30,7 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, measureNativeReady, measureInstances, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
+  setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   sectionPickRef: RefObject<SectionPick>;
@@ -44,7 +44,8 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
   setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasureTarget[] | null>>;
   measureNativeReady: RefObject<boolean>;
-  measureInstances: RefObject<ReadonlyMap<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>>;
+  measureInstances: RefObject<ReadonlyMap<string, PlacedMeasureSource>>;
+  placedMeasureContextReady(): boolean;
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
   scene: {
     active: Active | null;
@@ -105,14 +106,12 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       });
     };
     if (measure && validInstance && !assembly.draft) {
-      const placed = measureInstances.current.get(hit.instance!);
-      const picked = hit.instanceFace, body = picked && placed?.bodies[picked.body];
-      if (!placed || !picked || !body || placed.hidden.has(body.key)) {
+      const target = hit.instanceFace && capturePlacedMeasureFace(hit.instanceFace, doc, measureInstances.current.get(hit.instance!));
+      if (!target) {
         setToast({ title: 'Placed face unavailable', hint: 'Select a face on a visible part at its accepted placement.', detail: '' });
         return;
       }
-      const target = captureMeasureTarget(picked, doc, body, false, placed.inst);
-      if (target) addMeasurement(target, scene.bodies);
+      addMeasurement(target, scene.bodies);
       return;
     }
     if (validInstance && !hit.instanceFace) {
@@ -196,6 +195,14 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     },
     onContextMenu(at, hit) {
       if (modelUnavailable || scene.active || scene.sketch) return;
+      if (hit.instance) {
+        const placed = placedMeasureContextReady() ? measureInstances.current.get(hit.instance) : undefined;
+        const target = hit.instanceFace && hit.instanceMesh && placed?.bodies[hit.instanceFace.body]?.mesh === hit.instanceMesh
+          ? capturePlacedMeasureFace(hit.instanceFace, doc, placed) : null;
+        scene.setMenu({ at, selection: emptySel, title: target ? 'PLACED FACE' : hit.instanceCap ? 'SECTION CAP' : 'VIEW', viewOnly: true,
+          ...(target ? { measureSource: { doc, target } } : {}) });
+        return;
+      }
       if (scene.section) {
         const target = sectionPickRef.current(hit);
         if (!target.face && !target.edge) {
