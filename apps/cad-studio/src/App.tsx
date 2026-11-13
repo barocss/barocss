@@ -939,7 +939,10 @@ export function App() {
         if (again.current) { setRestart(again.current); again.current = null; }
         chatSelection.current = null;
       }
-      else setToast({ ...result.error, documentSource: { doc: docNow.current, evaluated } });
+      else {
+        setSelection(emptySel); setPick(null); setMeasure(null); setMenu(null);
+        setToast({ ...result.error, documentSource: { doc: docNow.current, evaluated } });
+      }
     };
     void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause), documentSource: { doc: docNow.current, evaluated } }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
     return () => { live = false; workOwnership.current = finishWork(workOwnership.current, work.token); };
@@ -947,6 +950,7 @@ export function App() {
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
   const fresh = bodiesFor === evaluated;
+  const modelUnavailable = !fresh && !busy;
   useEffect(() => {
     const pending = parameterMass.current;
     if (!pending?.target) return;
@@ -1483,6 +1487,11 @@ export function App() {
   const start = useCallback((cmd: Command, initial?: Values) => {
     const request = ++footprintRequest.current;
     cancelNativeReview();
+    if (modelUnavailable && (cmd.build || cmd.action === 'sketch' || cmd.action === 'measure' || cmd.action === 'cage')) {
+      setPalette(false);
+      setToast({ title: `${cmd.label} not started`, hint: 'Fix the model evaluation or undo the last change first.', detail: '', documentSource: { doc, evaluated } });
+      return;
+    }
     if (cmd.id === SKETCH_AT_MIDPOINT.id) {
       setPalette(false);
       const target = midpointFaces(ctx, doc);
@@ -1611,7 +1620,7 @@ export function App() {
       : cmd === LINKED_INSET_EXTRUDE ? { ...ctx, doc } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
+  }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
 
   const readFeatureTransitionDraft = () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current;
   const openHistoryFeature = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1721,7 +1730,7 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
-  const { onPick, picking } = useViewportPicking({ doc, nativeVertexReady, nativePlanePickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -2366,11 +2375,11 @@ export function App() {
     ? { bodies: shownBodies, hidden: hiddenBodies } : null;
   const shownEndFace = active && extrudeTargetScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
     ? shownExtrudeEndFace(active, shownBodies) : null;
-  const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+  const shownSelection = modelUnavailable ? emptySel : sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
     : shownEndFace ? { ...emptySel, faces: [shownEndFace] }
     : bandShown ? bandShown
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
-  const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
+  const measured = fresh && measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   // (An in-place edit's surroundings, roadmap 10 ⑧: ghosted the same way, after the references.)
@@ -2517,7 +2526,7 @@ export function App() {
   } : undefined, [placedSnapsEligible, viewportInstances, doc, instanceBodies, instanceSources, workerSession]);
 
   // CPU sections and previews can replace the displayed bodies without setting a GPU clip plane.
-  const meshBoxCrossing = viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
+  const meshBoxCrossing = !modelUnavailable && viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
     && !active && !sketch && !drawing && !section && !measure && !inPlace && !assembly.draft
     && !cageEd.session && !skel.session && !ghost && !compareOverlay && !bodyDrag && !animatedOffsets?.size;
   const viewportPicking = placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
@@ -2774,7 +2783,7 @@ export function App() {
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
-      {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} onPin={pinOffer ? pinMeasurement : undefined} />}
+      {fresh && !rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} onPin={pinOffer ? pinMeasurement : undefined} />}
       {pinView && pinOwned && !measure && <PinnedMeasurement distance={pinResult?.normalDistance ?? null} onClear={() => setPinnedMeasure(null)} />}
       {cutDraft && !rendering && !sketch && !measure && <AssemblyCutHud draft={cutDraft} instances={doc.instances ?? NO_INSTANCES} problem={draftProblem(doc, cutDraft) ?? (cutTrial?.key === cutKey ? cutTrial.problem : undefined)}
         onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
@@ -3019,7 +3028,7 @@ export function App() {
         poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced: viewportPlacements, cpuInstanceSection }} liveSection={sectionLiveView}
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
-        bodies={cageInputActive ? cageEd.shown(shownBodies) : viewBodies} selection={cageInputActive ? emptySel : shownSelection}
+        modelUnavailable={modelUnavailable} bodies={cageInputActive ? cageEd.shown(shownBodies) : viewBodies} selection={cageInputActive ? emptySel : shownSelection}
         ghost={sketchGhost} sketch={sketch} constraintInspection={constraintInspection} regions={regions} threads={threads} profiles={active ? [] : profiles}
         gizmo={cageInputActive ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageInputActive ? cageEd.overlay : null} onPickCage={cageInputActive ? cageEd.onPick : undefined} tool={skel.tool}
         handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} contactLinks={contactShown && motionContact ? motionContact.links : undefined}
@@ -3034,10 +3043,10 @@ export function App() {
         mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay}
         instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
-        bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies}
+        bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
         picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, placed: placedSketchSnaps, objectKinds: objectSnapKinds }} onCursor={onCursor}
-        boundsBox={showBox ? (() => {
+        boundsBox={fresh && showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
         })() : null}
@@ -3084,7 +3093,7 @@ export function App() {
       : busy && slow && <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working…</span>
         <button className="ghost small" aria-label="Cancel the computation" title="Stop this computation and take the change back" onClick={cancelWork}>Cancel</button></div>}
       <div className="corner-left">
-        <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
+        <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : modelUnavailable ? (bodies.length ? 'Previous result · model evaluation failed' : 'Model evaluation failed') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}{!modelUnavailable && <CursorReadout sink={cursorSink} />}</span>
       </div>
 
       <ViewDisplayControls doc={doc} viewport={viewport} cornerRight={cornerRight}
@@ -3100,7 +3109,7 @@ export function App() {
       <FeatureHistoryMenu doc={doc} ctx={ctx} marker={marker} historyMenu={historyMenu} close={() => setHistoryMenu(null)}
         beforeEdit={action => workspaceModeExit.switchWhenReady(action, { originFocus: historyMenu?.focus, readFeature: readFeatureTransitionDraft })}
         editors={{ setEditNode, setInstanceSel, setDirectSel, editSketch, exportSketchDxf, cancel, beginSkeleton: skel.begin, setSelection }} history={{ toggleSuppress, reorder, setMarker, deleteNode }} />
-      <ViewContextMenu model={{ doc, bodies, ctx }} menu={menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
+      <ViewContextMenu model={{ doc, bodies, ctx }} menu={modelUnavailable ? null : menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
 
       {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} nesting={nestCutList(doc, list)} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}

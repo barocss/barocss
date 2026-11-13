@@ -23,13 +23,13 @@ export interface ViewportMenu {
   title: string;
 }
 
-export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
   setDirectSel, setMeasure, measureNativeReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
-  doc: StudioDoc; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
+  doc: StudioDoc; modelUnavailable: boolean; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
   sectionRef: RefObject<Section | null>; sectionFacePickRef: RefObject<number | null>; viewBodiesRef: RefObject<BodyResult[]>;
   sectionBoxRef: RefObject<{ min: Vec3; max: Vec3 }>; setSection: Dispatch<SetStateAction<Section | null>>;
@@ -49,6 +49,7 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
   };
 }) {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
+    if (modelUnavailable) return;
     if (onExtrudeTargetPick(hit, !!sectionRef.current || halvesShownRef.current)) return;
     // Family attempts retire queued Apply even when an instance was removed or hidden.
     if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
@@ -115,7 +116,7 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, assembly, doc, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, measureNativeReady, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {
@@ -132,13 +133,13 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
     onPick,
     onPickProfile,
     onPickBody(body) {
-      if (scene.active || scene.section) return;
+      if (modelUnavailable || scene.active || scene.section) return;
       setDirectSel([]);
       setInstanceSel([]);
       setSelection({ faces: [], edges: [], bodies: [body] });
     },
     onPickChain(body, edge) {
-      if (scene.active || scene.section || !scene.bodies[body]) return;
+      if (modelUnavailable || scene.active || scene.section || !scene.bodies[body]) return;
       setDirectSel([]);
       setInstanceSel([]);
       setSelection({
@@ -146,14 +147,14 @@ export function useViewportPicking({ doc, nativeVertexReady, nativePlanePickStat
       });
     },
     onBoxSelect(picked, additive) {
-      if (scene.active) return;
+      if (modelUnavailable || scene.active) return;
       setSelection(prev => {
         const base = additive ? selectedBodies(prev) : [];
         return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
       });
     },
     onContextMenu(at, hit) {
-      if (scene.active || scene.sketch) return;
+      if (modelUnavailable || scene.active || scene.sketch) return;
       if (hit.face && !hit.edge && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
       const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }
         : hit.face ? { faces: [hit.face], edges: [], bodies: [] }

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D992 — exclude the previous result after model evaluation fails](notes/failed-model-stale-consumers-2026-11-13/README.md).
 - [D991 — protect dependent Fillet when suppressing from rollback](notes/dependent-fillet-suppression-2026-11-13/README.md).
 - [D990 — refuse a native Open with a missing fit row](notes/native-open-missing-fit-2026-11-13/README.md).
 - [D989 — reject a fit table edit that invalidates the model](notes/fit-table-removal-2026-11-13/README.md).

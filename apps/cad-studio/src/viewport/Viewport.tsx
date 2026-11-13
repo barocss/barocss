@@ -86,6 +86,7 @@ export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R
 const NO_CONSTRAINT_INSPECTION = createConstraintInspection();
 
 interface Props extends ViewportPointerProps, MarkHandlers {
+  modelUnavailable?: boolean;
   constraintInspection?: ConstraintInspectionStore;
   overlaidLine?: OverlaidLine;
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
@@ -397,11 +398,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     displayMode: propsRef.current.displayMode,
     displayModeUnsupported: displayModeScope(propsRef.current),
     isolatedInstances: displayModeScope(propsRef.current) ? undefined : propsRef.current.isolatedInstances,
-    hoverFace: hover.current.face, hoverEdge: hover.current.edge,
+    hoverFace: propsRef.current.modelUnavailable ? null : hover.current.face,
+    hoverEdge: propsRef.current.modelUnavailable ? null : hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
     // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
     offsets: offsetsOf(propsRef.current),
-    transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.hoverBody ?? undefined,
+    transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.modelUnavailable ? undefined : propsRef.current.hoverBody ?? undefined,
   });
 
   /** Turns the camera (eased, about a quarter second) to look at the target from direction `from`. */
@@ -531,7 +533,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const displayScope = displayModeScope(props), hasInstances = !!props.instances?.length;
   useEffect(() => { if (backend) props.onBackend?.(backend); }, [backend, props.onBackend]);
-  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
+  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.modelUnavailable, props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
   // (Handles and gizmos are new objects on every render of the app: drawn again only when they move.)
   const shapeOf = (v: unknown) => JSON.stringify(v, (_k, x) => typeof x === 'function' ? undefined : x);
   const overlayKey = shapeOf([props.gizmo, props.handles]);
@@ -841,7 +843,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     for (const [k, vertex] of (props.pickedVertices ?? []).entries()) {
       const q = cam.project(vertex.at, w, h); items.push(<circle key={'vx' + k} cx={q[0]} cy={q[1]} r={6} className="vertex-mark selected" />);
     }
-    const hoveredVertex = hover.current.vertex;
+    const hoveredVertex = propsRef.current.modelUnavailable ? null : hover.current.vertex;
     let vertexSelected = false;
     if (hoveredVertex) for (const vertex of props.pickedVertices ?? []) {
       if (vertex.body === hoveredVertex.body && vertex.at[0] === hoveredVertex.at[0] && vertex.at[1] === hoveredVertex.at[1] && vertex.at[2] === hoveredVertex.at[2]) { vertexSelected = true; break; }
