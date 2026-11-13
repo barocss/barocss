@@ -1,0 +1,69 @@
+{
+  "decision": "D1017",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "90044754fac8bbf293a2adbc946690575f4e7f36",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1017-section-baseline",
+    "gate.sh acquire heavy 600 D1017-section-studio03",
+    "D1017_SOURCE_FROZEN=1 node apps/cad-studio/test/zebra-vertical-seam-browser.mjs <external-evidence>/baseline",
+    "D1017_SOURCE_FROZEN=1 node apps/cad-studio/test/zebra-vertical-seam-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1017-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test analysis-maps mesh-reuse-ownership selection-edge",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/zebra-vertical-seam-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The sharp vertical faces and tangent fillet show the same Zebra tone at every probe.",
+    "receiptSHA256": "0e2b9164c67ff32e11ba8461bb1a9f8ffcefb6e1e4950d27fea63a3c19a3aa23",
+    "sourceManifestSHA256": "5f0b29c7a2128b051fe98eaf46e357a9b848c8a12638892fce74ecfc66596c53"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "551d0f006860f24edf3344632e0d63b2598b944f9ed82c929abdbd9114bae63e",
+    "sourceManifestSHA256": "90d2932b7bcb0ea11672e08f5db8f8fd358ead59bed377aba28de4869e087b08",
+    "frozenFiles": 373,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "radiusMM": 4,
+    "volumeToleranceMM3": 1e-07,
+    "minLevelRange": 145.33,
+    "orthographicTangentPairsLevelDelta": [
+      0,
+      0
+    ]
+  },
+  "trials": [
+    {
+      "status": "FAIL",
+      "reason": "A near-tangent stripe transition affected one sampled join.",
+      "receiptSHA256": "3f30da9c780f1048a0bf0e14bbc5ebb3e40a458228f15142a5505f0282d3b37c"
+    },
+    {
+      "status": "FAIL",
+      "reason": "A near-tangent stripe transition affected one sampled join.",
+      "receiptSHA256": "535525fc1be66f0e8accded2b42686b21428401913999bbc1e2344ce7fc0474e"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "passed": 50,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "other orientations or radii",
+    "alternate renderers",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

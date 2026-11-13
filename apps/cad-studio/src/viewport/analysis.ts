@@ -9,13 +9,14 @@ export type Analysis = 'zebra' | 'curvature' | { readonly kind: 'overhang'; read
 
 const VIEW = 'select(-frame.forward.xyz, normalize(frame.eye.xyz - world), frame.eye.w > 0.5)';
 
-/** Stripes of a horizontal striped sky reflected in the surface (`stripes` across the sky), softened over a pixel. */
+/** Reflect a tilted stripe pattern so that both upright and horizontal bends can change stripe phase. */
 export const zebra = (stripes = 12): ShaderMaterial => ({
   declarations: /* wgsl */ `
 fn zebraColor(world: vec3f, n: vec3f) -> vec3f {
   let v = ${VIEW};
   let r = reflect(-v, n);
-  let t = acos(clamp(r.z, -1.0, 1.0)) / 3.14159265 * materialParams.slot[0].x;
+  let stripeAxis = normalize(vec3f(0.4, 0.65, 0.646));
+  let t = acos(clamp(dot(r, stripeAxis), -1.0, 1.0)) / 3.14159265 * materialParams.slot[0].x;
   let w = max(fwidth(t), 1e-4);
   let s = smoothstep(0.5 - w, 0.5 + w, abs(fract(t) - 0.5) * 2.0);
   return mix(vec3f(0.04), vec3f(0.92), s);
