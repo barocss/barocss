@@ -10,6 +10,7 @@ const circleEndRadius = process.argv[3] === '--circle-end-radius';
 const slotEndWidth = process.argv[3] === '--slot-end-width';
 const constructionCircleRadius = process.argv[3] === '--construction-circle-radius';
 const smallCircleRadius = process.argv[3] === '--small-circle-radius';
+const nearbyCrossings = process.argv[3] === '--nearby-crossings';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -24,7 +25,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
+  envFrozen: nearbyCrossings ? 'D1121_SOURCE_FROZEN' : smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
     : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
@@ -576,6 +577,73 @@ async function circleAtConstructionEndpoint() {
   f.report.observations.push({ label: 'construction-end-circle', sketch, expectedVolume, volume: cylinder.volume });
 }
 
+async function checkNearbyCrossings() {
+  f.phase = 'select between nearby native edge crossings in the same snap radius';
+  const narrow = { ...source, nodes: [
+    { ...source.nodes[0], max: [target[0] + 0.5, source.nodes[0].max[1]] },
+    source.nodes[1],
+  ] };
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name: fileName, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(narrow)) });
+  await f.same(narrow);
+  const z = (6 - 0.6 * target[1]) / 0.8;
+  const corners = [[...target, z], [target[0] + 0.5, target[1], z]];
+  for (const index of [0, 1]) {
+    await begin(0);
+    await tilt();
+    const points = await Promise.all(corners.map(point => pixel(point)));
+    const gap = Math.hypot(points[0][0] - points[1][0], points[0][1] - points[1][1]);
+    const mouse = points[index].map((coord, axis) => coord * 0.67 + points[1 - index][axis] * 0.33);
+    const distances = points.map(point => Math.hypot(point[0] - mouse[0], point[1] - mouse[1]));
+    assert.ok(distances[index] + 1 < distances[1 - index] && distances.every(value => value < 7.5), JSON.stringify({ gap, distances }));
+    await f.page.mouse.move(...mouse);
+    await cue().waitFor();
+    assert.equal(await cue().textContent(), 'Crossing');
+    const marker = await f.page.locator('.sk-osnap').evaluate(element => {
+      const rect = element.ownerSVGElement.getBoundingClientRect(), box = element.firstElementChild.getBBox();
+      return [rect.left + box.x + box.width / 2, rect.top + box.y + box.height / 2];
+    });
+    assert.ok(Math.hypot(marker[0] - points[index][0], marker[1] - points[index][1]) < 0.02, JSON.stringify({ marker, points }));
+    await f.snapshot('nearby-crossing-' + index);
+    await f.page.mouse.click(...mouse);
+    await f.page.mouse.click(...await hover([1, 5.2, 3.6], null));
+    const finished = (await f.finishSketch('nearby-finished-' + index)).doc;
+    const stored = finished.nodes[2].max;
+    assert.deepEqual(stored, [4.2346 + index * 0.5, 3.4321]);
+    assert.deepEqual(finished.nodes.slice(0, 2), narrow.nodes);
+    assert.deepEqual(finished.outputs, narrow.outputs);
+    f.report.observations.push({ label: 'nearby-crossing', index, gap, distances, stored });
+    await f.undo();
+    await f.same(narrow);
+    await f.redo();
+    await f.same(finished);
+    await f.undo();
+    await f.same(narrow);
+  }
+  f.phase = 'compare near-tie cue and committed coordinates';
+  await begin(0);
+  await tilt();
+  const points = await Promise.all(corners.map(point => pixel(point)));
+  const pointer = points[0].map((value, axis) => (value + points[1][axis]) / 2);
+  await f.page.mouse.move(...pointer);
+  await cue().waitFor();
+  assert.equal(await cue().textContent(), 'Crossing');
+  const selected = await f.page.locator('.sk-osnap').evaluate(element => {
+    const box = element.firstElementChild.getBBox(), rect = element.ownerSVGElement.getBoundingClientRect();
+    return [rect.left + box.x + box.width / 2, rect.top + box.y + box.height / 2];
+  });
+  const index = points.findIndex(point => Math.hypot(selected[0] - point[0], selected[1] - point[1]) < 0.02);
+  assert.notEqual(index, -1);
+  await f.snapshot('nearby-crossing-near-tie');
+  await f.page.mouse.click(...pointer);
+  await f.page.mouse.click(...await hover([1, 5.2, 3.6], null));
+  const finished = (await f.finishSketch('nearby-crossing-near-tie-finished')).doc;
+  assert.deepEqual(finished.nodes[2].max, [4.2346 + index * 0.5, 3.4321]);
+  f.report.observations.push({ label: 'near-tie', pointer, selected, index });
+  await f.undo();
+  await f.same(narrow);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin, newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
@@ -597,6 +665,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (nearbyCrossings) {
+    await checkNearbyCrossings();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (constructionCircleRadius || smallCircleRadius) {
     await circleAtConstructionEndpoint();
     assert.deepEqual(f.report.downloads, []);

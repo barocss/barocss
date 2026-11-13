@@ -1,0 +1,65 @@
+{
+  "decision": "D1121",
+  "tier": "SMALL",
+  "parent": "30434d3f17b730a9fc6e63ee3f7a2decc3e90031",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1121-nearby-crossings-<run>",
+    "D1121_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --nearby-crossings",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1121_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --nearby-crossings",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "actual": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "f80e1e33ab95cdd894e3dd2a67dbb402bc142f4d3777cdb2e49c5a2c1081bbb9",
+      "sourceManifestSHA256": "08f27f9a8b7748ccfa7b0612cf38c7f74c4b61ed5bd4b988ab3c6e2724d3793c",
+      "savedFiles": []
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "27b9d6bb3f4137e2ee337d1ec6f5240a1fe97b120fda8025c1c7d365f9e19e49",
+      "sourceManifestSHA256": "08f27f9a8b7748ccfa7b0612cf38c7f74c4b61ed5bd4b988ab3c6e2724d3793c",
+      "savedFiles": []
+    }
+  },
+  "nativeCrossingSeparationMM": 0.5,
+  "gapCSSPixels": 6.944444353546942,
+  "chosenDistancesCSSPixels": [
+    2.2916666366704703,
+    4.6527777168764715
+  ],
+  "localCrossingsMM": [
+    [
+      4.2346,
+      3.4321
+    ],
+    [
+      4.7346,
+      3.4321
+    ]
+  ],
+  "markerToleranceCSSPixels": 0.02,
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}
