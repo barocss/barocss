@@ -5,6 +5,7 @@ const settingsEscape = process.argv[3] === '--settings-escape';
 const stationaryCrossing = process.argv[3] === '--stationary-crossing';
 const hideCircleSource = process.argv[3] === '--hide-circle-source';
 const crossingToolStatus = process.argv[3] === '--crossing-tool-status';
+const emptySketchGrid = process.argv[3] === '--empty-sketch-grid';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/SketchSnapControls.tsx',
@@ -17,7 +18,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'object-snap-kinds', output: process.argv[2],
-  envFrozen: crossingToolStatus ? 'D1116_SOURCE_FROZEN' : hideCircleSource ? 'D1114_SOURCE_FROZEN'
+  envFrozen: emptySketchGrid ? 'D1118_SOURCE_FROZEN' : crossingToolStatus ? 'D1116_SOURCE_FROZEN' : hideCircleSource ? 'D1114_SOURCE_FROZEN'
     : stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Apply current session object-snap settings to the next sketch input with independent grid fallback.',
@@ -327,6 +328,42 @@ async function checkCrossingToolStatus() {
   await f.same(source);
 }
 
+async function checkEmptySketchGrid() {
+  const first = [21.2, 16.3], second = [31.4, 26.3];
+  for (const label of ['Grid 5 mm', 'Grid off']) {
+    f.phase = 'confirm empty Rectangle grid status and saved coordinates with ' + label;
+    await begin('Rectangle', 'r', [first, second]);
+    await only([]);
+    await setGrid(label);
+    assert.equal(await f.sketchPanel().locator('#sk-width').count(), 0);
+    assert.doesNotMatch(await f.sketchPanelText(), /(?:snap|grid)\s+1\s*mm/i);
+    await f.snapshot('empty-' + label.toLowerCase().replaceAll(' ', '-'));
+    await hover(first, null);
+    await clickAtPointer();
+    await hover(second, null);
+    await clickAtPointer();
+    const finished = (await f.finishSketch('rectangle-' + label.toLowerCase().replaceAll(' ', '-'))).doc;
+    const rectangle = finished.nodes[4];
+    assert.deepEqual(finished.nodes.slice(0, 4), source.nodes);
+    assert.deepEqual(finished.outputs, source.outputs);
+    if (label === 'Grid 5 mm') {
+      assert.deepEqual(rectangle.min, [20, 15]);
+      assert.deepEqual(rectangle.max, [30, 25]);
+    } else {
+      assert.ok(Math.hypot(rectangle.min[0] - first[0], rectangle.min[1] - first[1]) < 0.12);
+      assert.ok(Math.hypot(rectangle.max[0] - second[0], rectangle.max[1] - second[1]) < 0.12);
+      assert.ok([...rectangle.min, ...rectangle.max].every(value => value % 1 !== 0));
+    }
+    f.report.observations.push({ label, min: rectangle.min, max: rectangle.max });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(finished);
+    await f.undo();
+    await f.same(source);
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -342,6 +379,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open(source);
+  if (emptySketchGrid) {
+    await checkEmptySketchGrid();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (crossingToolStatus) {
     await checkCrossingToolStatus();
     assert.deepEqual(f.report.downloads, []);
