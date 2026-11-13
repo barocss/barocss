@@ -1,0 +1,185 @@
+import assert from 'node:assert/strict';
+import { createFlow, sha256 } from './flow-helper.mjs';
+
+const points = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
+const ids = points.map((_, i) => 'e' + (i + 1));
+const inset = [[2, 1], [18, 1], [19, 2], [19, 8], [18, 9], [2, 9], [1, 8], [1, 2]];
+const centers = [[18, 2], [18, 8], [2, 8], [2, 2]];
+const area = (w, h, r) => w * h - (4 - Math.PI) * r * r;
+const stockVolume = 10 * area(20, 10, 2);
+const ringVolume = stockVolume - 10 * area(18, 8, 1);
+const close = (value, expected, tolerance = 1e-7) =>
+  assert.ok(Math.abs(value - expected) <= tolerance, `${value} vs ${expected}`);
+
+const initialFiles = [
+  'apps/cad-studio/test/rounded-sketch-offset-browser.mjs',
+  'apps/cad-studio/src/sketch/useSketchActions.ts',
+  'apps/cad-studio/src/ui/SketchPanel.tsx',
+  'packages/barocss-cad-model/src/sketch/offset.ts',
+  'packages/barocss-cad-model/src/sketch/loops.ts',
+];
+const f = await createFlow({
+  name: 'rounded-sketch-offset', envFrozen: 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
+  limits: ['One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
+  initialFiles, requiredFrozen: initialFiles,
+  inspectorSource: `
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
+import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { partSnapshot } from '@barocss/cad-model/engine/part';
+import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
+if (process.argv[3] === '"fixture"') {
+  const b = Math.tan(Math.PI / 8);
+  const profile = profileOf([{ kind:'polygon', closed:true, points:${JSON.stringify(points)}, ids:${JSON.stringify(ids)},
+    bulges:[0,b,0,b,0,b,0,b] }]);
+  assert.ok('node' in profile);
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind:'extrude', sketch:0, height:10 })));
+  process.exit(0);
+}
+const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const { outputs } = partSnapshot(doc);
+assert.equal(outputs.length, 1);
+const [{ brep }] = outputs;
+assert.ok(checkBrep(brep, { strict:true }).valid);
+assert.equal(brep.shells.length, 1);
+assert.ok(brep.shells[0].closed);
+const cylinders = brep.faces.flatMap(face => {
+  const g = faceGeometry(face);
+  return g.kind === 'cylinder' ? [{ name:face.name, ...g }] : [];
+});
+console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinders,
+  faces:brep.faces.map(face => face.name), vertices:brep.vertices.map(vertex => vertex.point) }));
+`,
+  snapshotExtra: () => ({
+    dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
+    sketchCurves: Array.from(document.querySelectorAll('.vp-overlay .sk-shape'), element =>
+      [element.getAttribute('class'), element.getAttribute('points'), element.getAttribute('d')]),
+  }),
+});
+
+const button = (scope, name) => scope.getByRole('button', { name, exact: true });
+const name = 'D906-rounded-rectangle.bcad';
+
+async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: bytes });
+  await f.same(doc);
+}
+
+async function save(doc) {
+  const project = 'D906 rounded rectangle';
+  await button(f.page, 'Project and versions').click();
+  const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(panel, 'Project in this browser').click();
+  await panel.getByLabel('Project', { exact: true }).waitFor();
+  await button(f.page, 'Save').click();
+  await panel.getByRole('list', { name: 'Project documents' }).getByText(name, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, name]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const folder = await projects.getDirectoryHandle(project);
+    return (await (await folder.getFileHandle(name)).getFile()).text();
+  }, [project, name]));
+  assert.deepEqual(JSON.parse(bytes), doc);
+  f.report.files.push({ bytes: bytes.length, sha256: sha256(bytes) });
+  return bytes;
+}
+
+function checkCylinders(native, radius, tags) {
+  for (const [index, center] of centers.entries()) {
+    const tag = tags[index * 2 + 1];
+    const cylinder = native.cylinders.find(c => c.name === `n1.side[${tag}]`);
+    assert.ok(cylinder, tag);
+    close(cylinder.r, radius, 1e-8);
+    close(cylinder.c[0], center[0], 1e-8);
+    close(cylinder.c[1], center[1], 1e-8);
+    close(Math.abs(cylinder.a[2]), 1, 1e-8);
+  }
+}
+
+async function checkRing(label, doc, stock) {
+  const sketch = doc.nodes[0];
+  assert.deepEqual(doc.nodes.slice(1), stock.nodes.slice(1));
+  assert.deepEqual(doc.outputs, stock.outputs);
+  assert.deepEqual(sketch.segments, stock.nodes[0].segments);
+  assert.deepEqual(sketch.sideTags.outer, ids);
+  assert.equal(sketch.holes.length, 1);
+  assert.equal(sketch.regions?.length ?? 0, 0);
+  const inner = sketch.sideTags.holes[0];
+  assert.equal(inner.length, 8);
+  assert.equal(new Set([...ids, ...inner]).size, 16);
+  const loop = sketch.holes[0];
+  assert.deepEqual(loop.map(segment => segment.start), inset);
+  assert.deepEqual(loop.filter(segment => segment.kind === 'arc').map(segment => segment.center)
+    .map(center => center.map(value => Math.round(value))), centers);
+  const native = await f.inspect(label, doc);
+  assert.equal(native.cylinders.length, 8);
+  checkCylinders(native, 2, ids);
+  checkCylinders(native, 1, inner);
+  for (const [x, y] of [...points, ...inset]) for (const depth of [0, 10]) {
+    assert.ok(native.vertices.some(vertex => Math.hypot(vertex[0] - x, vertex[1] - y, vertex[2] - depth) < 1e-8));
+  }
+  close(native.volume, ringVolume);
+  close((await f.bodies()).bodies[0].volume, ringVolume);
+  f.report.observations.push({ label, sideTags: sketch.sideTags, expectedVolumeMm3: ringVolume, volumeMm3: native.volume });
+}
+
+await f.run(async () => {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const createContext = f.browser.newContext.bind(f.browser);
+  f.browser.newContext = async options => {
+    const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    context.setDefaultTimeout(10000);
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
+    });
+    return context;
+  };
+  const stock = await f.inspect('stock-fixture', {}, 'fixture');
+  const nativeStock = await f.inspect('stock-native', stock);
+  close(nativeStock.volume, stockVolume);
+  assert.equal(nativeStock.cylinders.length, 4);
+  checkCylinders(nativeStock, 2, ids);
+  await f.newPage();
+  await open(stock);
+  await f.openFeatureEditor(1);
+  await button(f.editor(), 'Edit sketch').click();
+  const panel = f.sketchPanel();
+  await panel.waitFor();
+  const distance = panel.getByLabel('Offset distance', { exact: true });
+  const offset = async value => {
+    await distance.fill(String(value));
+    await button(panel, 'Offset inward').click();
+  };
+  const before = await f.snapshot('01-stock-in-sketch');
+  assert.ok(before.sketchCurves.length > 0);
+  for (const [label, value] of [['02-arc-collapse', 2], ['03-past-arc-collapse', 2.5]]) {
+    f.phase = `refuse inward Offset ${value} mm`;
+    await offset(value);
+    const refusal = await f.waitToast(/more than an arc’s radius/);
+    const rejected = await f.snapshot(label);
+    for (const key of ['doc', 'history', 'dirty', 'sketchCurves']) assert.deepEqual(rejected[key], before[key], key);
+    f.report.observations.push({ label, insetMm: value, refusal });
+    await f.dismissToasts();
+  }
+  f.phase = 'accept the 1 mm inward Offset and finish the ring';
+  await offset(1);
+  assert.deepEqual(await f.toasts(), []);
+  const ring = (await f.finishSketch('04-inset-1-ring')).doc;
+  await checkRing('ring-native', ring, stock);
+  await f.undo();
+  await f.same(stock);
+  await f.redo();
+  await f.same(ring);
+  const bytes = await save(ring);
+  await f.newPage();
+  await open(ring, bytes);
+  await checkRing('ring-reopened-native', ring, stock);
+  await f.snapshot('05-ring-fresh-open');
+  assert.deepEqual(f.report.downloads, []);
+});
