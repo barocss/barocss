@@ -4,6 +4,7 @@
 // Tooltip — Radix's placement, kept inside the window — anchored on the hovered element's box; still one layer
 // listening for hovers, so no element carries a tooltip of its own.)
 import { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Kbd } from './atoms';
 
@@ -25,8 +26,22 @@ export function TooltipLayer() {
       if (el) timer = window.setTimeout(() => show(el), 280);
     };
     const hide = () => { current = null; window.clearTimeout(timer); setTip(null); };
-    document.addEventListener('mouseover', over); document.addEventListener('mousedown', hide); window.addEventListener('blur', hide);
-    return () => { document.removeEventListener('mouseover', over); document.removeEventListener('mousedown', hide); window.removeEventListener('blur', hide); window.clearTimeout(timer); };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !current) return;
+      // Remove the hover layer before Radix routes Escape to the active menu or dialog.
+      flushSync(hide);
+    };
+    document.addEventListener('mouseover', over);
+    document.addEventListener('mousedown', hide);
+    window.addEventListener('blur', hide);
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      document.removeEventListener('mouseover', over);
+      document.removeEventListener('mousedown', hide);
+      window.removeEventListener('blur', hide);
+      window.removeEventListener('keydown', onKeyDown, true);
+      window.clearTimeout(timer);
+    };
   }, []);
   if (!tip) return null;
   const { box } = tip;

@@ -1,0 +1,52 @@
+{
+  "decision": "D978",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2dfde7488db126b191d23e077533aabcd4a6baf8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D978-tooltip-escape",
+    "D978_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence>/baseline02 --tooltip-escape-baseline",
+    "D978_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence>/fixed01 --tooltip-escape-fixed",
+    "gate.sh acquire heavy 600 D978-regression",
+    "D685_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence>/d685-regression --fixed",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/top-toolbar-overflow-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "f68d3a7e004d28275b538d35306dab3a045220bb2cec7c88314135e244189f5e"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "cb5d4c4cea6f7733dfddb6ff5dcdf02fabece0a486b6b6f96816358eff8f17b5",
+    "sourceManifestSHA256": "ed5f97f5a008962a8ea4742fad674371362f1ebc90ca94748e85e70c33d47d5f",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "escapePresses": 1,
+    "widths": [
+      1024,
+      1280
+    ],
+    "restoredFocus": "More tools"
+  },
+  "d685Regression": {
+    "status": "PASS",
+    "receiptSHA256": "6ff4c327c9d0e106dbb67b172628897b4cbc3d76c0608b57c8bcb391646e9848",
+    "toolsReachable": 14
+  },
+  "notRun": [
+    "splitter drag",
+    "selecting a file",
+    "downloads",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

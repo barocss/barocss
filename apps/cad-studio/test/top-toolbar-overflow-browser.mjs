@@ -6,14 +6,15 @@ const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 const resizeFocus = mode.startsWith('--resize-focus-');
-assert.ok(['--baseline', '--fixed', '--resize-focus-baseline', '--resize-focus-fixed'].includes(mode));
+const tooltipEscape = mode.startsWith('--tooltip-escape-');
+assert.ok(['--baseline', '--fixed', '--resize-focus-baseline', '--resize-focus-fixed', '--tooltip-escape-baseline', '--tooltip-escape-fixed'].includes(mode));
 const pins = [
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ToolsTray.tsx', 'apps/cad-studio/src/styles.css',
   'apps/cad-studio/src/components/ui/tool-button.tsx', 'apps/cad-studio/test/top-toolbar-overflow-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'top-toolbar-overflow', envFrozen: resizeFocus ? 'D977_SOURCE_FROZEN' : 'D685_SOURCE_FROZEN', output,
-  initialFiles: pins, requiredFrozen: pins, qualification: resizeFocus ? 'Retain focus and close More tools through desktop resize' : `D685 desktop toolbar reachability ${mode}`,
+  name: 'top-toolbar-overflow', envFrozen: tooltipEscape ? 'D978_SOURCE_FROZEN' : resizeFocus ? 'D977_SOURCE_FROZEN' : 'D685_SOURCE_FROZEN', output,
+  initialFiles: pins, requiredFrozen: pins, qualification: tooltipEscape ? 'Escape dismisses More tools while Undo tooltip is visible' : resizeFocus ? 'Retain focus and close More tools through desktop resize' : `D685 desktop toolbar reachability ${mode}`,
 });
 const toolbar = () => f.page.getByRole('toolbar', { name: 'Tools bar', exact: true });
 const trigger = () => toolbar().getByRole('button', { name: 'More tools', exact: true });
@@ -108,9 +109,9 @@ async function verifyAccess(label, inventory) {
   f.report.observations.push({ label, geometry, menuGeometry, inlineEnabled, keyboardMenu: keys, pointerAndKeyboardOpenedPartChooser: true });
 }
 
-async function verifyResizeFocus() {
+async function makeBox() {
   const page = f.page;
-  f.phase = 'create the toolbar resize fixture';
+  f.phase = 'create the toolbar Box fixture';
   await toolbar().getByRole('button', { name: 'New part', exact: true }).click();
   await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
@@ -119,7 +120,12 @@ async function verifyResizeFocus() {
   await page.getByRole('dialog', { name: 'Box', exact: true }).getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.__studioDoc.nodes.length === 2);
   await f.ready();
-  const accepted = await f.doc();
+  return f.doc();
+}
+
+async function verifyResizeFocus() {
+  const page = f.page;
+  const accepted = await makeBox();
   const insert = toolbar().getByRole('button', { name: 'Insert part', exact: true });
   const chat = toolbar().getByRole('button', { name: 'Chat', exact: true });
   const size = width => page.setViewportSize({ width, height: 900 });
@@ -169,6 +175,50 @@ async function verifyResizeFocus() {
   }
 }
 
+async function verifyTooltipEscape() {
+  const page = f.page;
+  const accepted = await makeBox();
+  const chat = toolbar().getByRole('button', { name: 'Chat', exact: true });
+  const undo = toolbar().getByRole('button', { name: 'Undo', exact: true });
+  const tooltip = page.locator('[data-slot="tooltip-content"].tooltip').filter({ hasText: /Undo/ });
+  const results = [];
+  for (const [name, width] of [['chat-closed', 1024], ['chat-open', 1280]]) {
+    f.phase = 'dismiss More tools with a visible Undo tooltip (' + name + ')';
+    await page.setViewportSize({ width, height: 900 });
+    if (name === 'chat-open') {
+      await chat.click();
+      await page.locator('.chat-col.open').waitFor();
+    }
+    await trigger().focus();
+    await openWithKey();
+    const exportStep = menu().getByRole('menuitem', { name: 'Export STEP', exact: true });
+    await exportStep.focus();
+    await waitFocus('Export STEP');
+    await undo.hover();
+    await tooltip.waitFor();
+    assert.equal(await selectedLabel(), 'Export STEP');
+    await f.snapshot(name + '-undo-tooltip-and-menu');
+    await page.keyboard.press('Escape');
+    await settle();
+    if (mode.endsWith('fixed')) {
+      await menu().waitFor({ state: 'hidden' });
+      await waitFocus('More tools');
+      await tooltip.waitFor({ state: 'hidden' });
+    }
+    const menuAfterEscape = await menu().isVisible();
+    const focusAfterEscape = await selectedLabel();
+    results.push({ name, width, menuAfterEscape, focusAfterEscape });
+    await f.same(accepted);
+    await f.snapshot(name + '-after-escape');
+    if (menuAfterEscape) await page.mouse.click(550, 500);
+  }
+  f.report.observations.push(...results);
+  if (mode.endsWith('baseline')) {
+    assert.ok(results.every(row => row.menuAfterEscape), JSON.stringify(results));
+    assert.fail('The Undo tooltip consumed Escape while More tools held keyboard focus');
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -188,6 +238,7 @@ await f.run(async () => {
   };
   await f.newPage();
   if (resizeFocus) { await verifyResizeFocus(); return; }
+  if (tooltipEscape) { await verifyTooltipEscape(); return; }
   await f.page.setViewportSize({ width: 1440, height: 900 });
   await f.page.locator('.chat-col:not(.open)').waitFor();
   await settle();
