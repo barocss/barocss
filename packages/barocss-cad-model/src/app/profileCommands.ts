@@ -16,6 +16,7 @@ import type { Command, Ctx, Field, Values } from './commands';
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
 import { refOf } from './bodyRef';
 import { refusal } from '../engine/refusal';
+import { captureExtrudeRegion, resolveExtrudeRegion } from '../engine/regionExtrude';
 import { isFaceEndExtrudeSketch } from '../engine/faceEndExtrude';
 import { extrudeEndFaceTarget, extrudeEndFaceValues } from './extrudeEndFacePick';
 
@@ -76,6 +77,11 @@ function canExtrudeToFace(ctx: Ctx, p: ReturnType<typeof extrudeProfile>): boole
 
 const fixedExtrudeDepth = (v: Values) => v.depth !== 'to-face' && !(v.op === 'cut' && v.depth === 'through');
 
+const regionValue = (v: Values) => v.region === undefined || v.region === 'all' ? null
+  : /^(0|[1-9]\d*)$/.test(String(v.region)) ? Number(v.region) : NaN;
+
+const hasRegionExtrude = (ctx: Ctx, sketch: number) => ctx.doc.nodes.some(node => node.kind === 'region-extrude' && node.sketch === sketch);
+
 export const extrudeCommand: Command = {
   id: 'extrude', label: 'Extrude', icon: 'cad-extrude', shortcut: 'E', group: 'create', keywords: 'pull push pad boss cut pocket press',
   hint: 'Pull a flat face or a finished sketch along its normal: drag the arrow or type the distance',
@@ -89,22 +95,29 @@ export const extrudeCommand: Command = {
     const p = extrudeProfile(ctx), base = !!(p && baseOf(ctx, p.node));
     const fields: Field[] = [
       { key: 'h', label: 'Distance', kind: 'mm', min: 0.1, when: fixedExtrudeDepth },
-      { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.depth !== 'to-face' },
-      ...opFields(base),
+      { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.depth !== 'to-face' && regionValue(v) === null },
+      ...opFields(base).map(field => ({ ...field, when: (v: Values) => regionValue(v) === null })),
     ];
+    if (p && !p.fresh && p.node.regions?.length) fields.unshift({ key: 'region', label: 'Region', kind: 'choice',
+      options: [
+        ...(hasRegionExtrude(ctx, p.index) ? [{ value: '', label: 'Choose a region' }] : []),
+        { value: 'all', label: 'All regions' },
+        ...Array.from({ length: p.node.regions.length + 1 }, (_, i) => ({ value: String(i), label: `Region ${i + 1}` }))] });
     const distance = { value: 'distance', label: 'Distance' };
-    if (base) fields.push({ key: 'depth', label: 'Depth', kind: 'choice', options: [distance, { value: 'through', label: 'Through all' }], when: v => v.op === 'cut' });
+    if (base) fields.push({ key: 'depth', label: 'Depth', kind: 'choice', options: [distance, { value: 'through', label: 'Through all' }], when: v => v.op === 'cut' && regionValue(v) === null });
     else if (canExtrudeToFace(ctx, p)) fields.push({ key: 'depth', label: 'Depth', kind: 'choice', options: [distance, { value: 'to-face', label: 'To face' }] });
     return fields;
   },
   defaults: ctx => {
     const p = extrudeProfile(ctx);
-    return { h: 8, draft: 0, ...(canExtrudeToFace(ctx, p) ? { depth: 'distance' } : {}),
+    return { h: 8, draft: 0, ...(p && !p.fresh && p.node.regions?.length ? { region: hasRegionExtrude(ctx, p.index) ? '' : 'all' } : {}), ...(canExtrudeToFace(ctx, p) ? { depth: 'distance' } : {}),
       ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) };
   },
   derive: (_ctx, v, changed) => {
-    if (!changed.includes('depth') || (v.endBody === undefined && v.endFace === undefined)) return v;
+    const regionChanged = changed.includes('region');
+    if (!regionChanged && (!changed.includes('depth') || (v.endBody === undefined && v.endFace === undefined))) return v;
     const next = { ...v };
+    if (regionChanged && regionValue(next) !== null && next.depth !== undefined) next.depth = 'distance';
     delete next.endBody;
     delete next.endFace;
     return next;
@@ -115,7 +128,10 @@ export const extrudeCommand: Command = {
     if (p?.fresh) text = 'the picked face';
     else if (p) {
       text = `Sketch ${p.index + 1}`;
-      if (p.node.regions?.length) text += ` · all ${p.node.regions.length + 1} regions`;
+      const selected = regionValue(v);
+      if (Number.isFinite(selected)) text += ` · Region ${Number(selected) + 1}`;
+      else if (selected !== null) text += ' · Choose a region';
+      else if (p.node.regions?.length) text += ` · all ${p.node.regions.length + 1} regions`;
     }
     const steps = [{ label: 'Profile', text, done: !!p }];
     if (v.depth === 'to-face') {
@@ -130,6 +146,12 @@ export const extrudeCommand: Command = {
     return next ?? { error: 'Pick one original planar face of a current solid.' };
   },
   build: (ctx, v) => {
+    const region = regionValue(v);
+    if (region !== null) {
+      const p = extrudeProfile(ctx);
+      if (!p || p.fresh || !Number.isSafeInteger(region)) throw refusal('BAD_REFERENCE', 'Select one region of a finished sketch.');
+      return withNode(ctx.doc, captureExtrudeRegion(ctx.doc.nodes, p.index, region, ctx.doc.parameters, Number(v.h)));
+    }
     if (v.depth === 'to-face') {
       const profile = extrudeProfile(ctx);
       if (!profile || !canExtrudeToFace(ctx, profile) || (v.op !== undefined && v.op !== 'new')) throw refusal('VALUE', 'Extrude to face requires a finished XY rectangle and a new body.');
@@ -148,8 +170,16 @@ export const extrudeCommand: Command = {
   // The distance: an arrow from the profile's middle along the normal (into the body for a cut).
   handles: (ctx, v) => {
     const p = extrudeProfile(ctx); if (!p || !fixedExtrudeDepth(v)) return [];
-    const plane = planeOf(p.node), n = plane.normal, sign = v.op === 'cut' ? -1 : 1, h = Number(v.h);
-    let c: Vec3; try { c = toWorld(plane, profileMiddle(p.node, ctx.doc.parameters)); } catch { return []; }
+    const region = regionValue(v), h = Number(v.h);
+    let profile = p.node, c: Vec3;
+    try {
+      if (region !== null) {
+        const recipe = captureExtrudeRegion(ctx.doc.nodes, p.index, region, ctx.doc.parameters, h);
+        profile = resolveExtrudeRegion(recipe, ctx.doc.nodes, ctx.doc.parameters);
+      }
+      c = toWorld(planeOf(profile), profileMiddle(profile, ctx.doc.parameters));
+    } catch { return []; }
+    const n = planeOf(profile).normal, sign = region === null && v.op === 'cut' ? -1 : 1;
     return [{ key: 'h', at: [c[0] + n[0] * sign * h, c[1] + n[1] * sign * h, c[2] + n[2] * sign * h], dir: [n[0] * sign, n[1] * sign, n[2] * sign], min: 0.1 }];
   },
 };

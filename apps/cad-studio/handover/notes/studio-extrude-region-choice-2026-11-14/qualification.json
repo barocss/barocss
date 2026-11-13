@@ -1,0 +1,159 @@
+{
+  "decision": "D1133",
+  "tier": "FEATURE",
+  "parent": "b0d20adbdebbab8d5e05bd192861a4fc6e6c06e4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1133-profile-pick-<run>",
+    "D1133_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/repeat --choose-region",
+    "D1129_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/whole-final",
+    "D1130_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-multiple-sketch-refusal-browser.mjs <external-evidence>/two-final",
+    "cd apps/cad-studio && node scripts/test.mjs camera-projector selection-edge",
+    "cd packages/barocss-cad-model && node scripts/test.mjs region-extrude profiles-parameters face-commands face-end-extrude",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/repeat-build",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/profileCommands.ts packages/barocss-cad-model/src/app/profiles.ts packages/barocss-cad-model/src/engine/regionExtrude.ts packages/barocss-cad-model/test/region-extrude.test.ts",
+    "node --check apps/cad-studio/test/multi-region-profile-pick-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "first": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "a4c515b824492f3f00ce17fceb4c738a229f5f53716e4190435bd766dbec360d",
+      "sourceManifestSHA256": "bed58484d24a9b3defb148faf94dfb3b7a31721984d0f018fc9748a1e9db6afb"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "c08e583669c32580e9185f3541906d9e877e131fc4d7bec7423af008c5b8c657",
+      "sourceManifestSHA256": "93e8746a36dbfb1b8db193c9ed2532f74c545b73b59cdfaba9113a316884a198"
+    },
+    "repeat": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 862,
+      "receiptSHA256": "e6e31c5044cfc62078b480ce0aa91fef7f2295424c87d883d9f59780b69ad0eb",
+      "sourceManifestSHA256": "fb77e112be3742adcbd4167d95feb2923e0d3d1b116bc1fb88b01b6e0b0dd8ee"
+    },
+    "whole-final": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "b1f3d931dfcdc5674178cfc00d855d0fef8d81d9bfbd94d92d58f1562cad9b4a",
+      "sourceManifestSHA256": "fb77e112be3742adcbd4167d95feb2923e0d3d1b116bc1fb88b01b6e0b0dd8ee"
+    },
+    "two-final": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "2d35c04c430f2541f32c3ab221858bbbe22ae483616d5d468ab24bc9d2be7972",
+      "sourceManifestSHA256": "dd5317f99106135a7dccbeccca02e63d5ae457f0cccdc84a357e322fbe3740ee"
+    }
+  },
+  "observations": [
+    {
+      "label": "individual-region",
+      "valid": true,
+      "bodies": 1,
+      "volume": 240.00000000000003,
+      "mass": 0.24000000000000005,
+      "centroid": [
+        19.000000000000004,
+        12.000000000000002,
+        1
+      ],
+      "method": "closed-form",
+      "inertia": [
+        [
+          2.959999999999993,
+          7.275957614183426e-15,
+          0
+        ],
+        [
+          7.275957614183426e-15,
+          2.0799999999999854,
+          0
+        ],
+        [
+          0,
+          0,
+          4.879999999999979
+        ]
+      ],
+      "boundary": [
+        {
+          "side": "e5",
+          "ends": [
+            [
+              14,
+              6
+            ],
+            [
+              24,
+              6
+            ]
+          ]
+        },
+        {
+          "side": "e6",
+          "ends": [
+            [
+              24,
+              6
+            ],
+            [
+              24,
+              18
+            ]
+          ]
+        },
+        {
+          "side": "e7",
+          "ends": [
+            [
+              14,
+              18
+            ],
+            [
+              24,
+              18
+            ]
+          ]
+        },
+        {
+          "side": "e8",
+          "ends": [
+            [
+              14,
+              6
+            ],
+            [
+              14,
+              18
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "two-individual-regions",
+      "centersX": [
+        19.000000000000004,
+        32.99999999999999
+      ],
+      "volumesMM3": [
+        240.00000000000003,
+        240.00000000000003
+      ]
+    }
+  ],
+  "focused": {
+    "studioPassed": 22,
+    "modelPassed": 53,
+    "failed": 0
+  }
+}

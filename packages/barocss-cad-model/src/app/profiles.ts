@@ -42,8 +42,8 @@ export function boundParameters(nodes: readonly ModelNode[], picked: readonly nu
 }
 
 /** Sketch nodes no later node uses: the profiles waiting for a feature. */
-export function unusedSketches(nodes: readonly ModelNode[]): number[] {
-  const used = new Set(nodes.flatMap(parentsOf));
+export function unusedSketches(nodes: readonly ModelNode[], includeRegionSources = false): number[] {
+  const used = new Set(nodes.flatMap(node => includeRegionSources && node.kind === 'region-extrude' ? [] : parentsOf(node)));
   return nodes.flatMap((n, i) => (n.kind === 'sketch' || n.kind === 'driven-sketch') && !used.has(i) ? [i] : []);
 }
 /** The sketches a profile command works on: the picked ones, else the newest unused one. */

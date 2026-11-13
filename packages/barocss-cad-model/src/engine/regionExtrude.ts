@@ -85,6 +85,23 @@ export function resolveExtrudeRegion(node: RegionExtrudeNode, nodes: readonly Mo
     ...(sketch.plane ? { plane: sketch.plane } : {}) };
 }
 
+/** Capture a source boundary for the Extrude region control. */
+export function captureExtrudeRegion(nodes: readonly ModelNode[], sketch: number, region: number,
+  parameters: Readonly<Record<string, number>>, height: number): RegionExtrudeNode {
+  const source = nodes[sketch];
+  if (source?.kind !== 'sketch' || !source.id || source.profile === 'band' || !source.regions?.length)
+    throw fail('select one region of a finished multi-region sketch.');
+  const current = resolveSketchDims(source, parameters);
+  const loop = region === 0 ? loopOf(current) : current.regions?.[region - 1];
+  const tags = region === 0 ? current.sideTags?.outer : current.sideTags?.regions?.[region - 1];
+  const boundary = loop && boundaryOf(loop, tags);
+  if (!boundary) throw fail('the selected region needs four tagged straight sides.');
+  const result: RegionExtrudeNode = { kind: 'region-extrude', sketch, sourceFeature: source.id,
+    plane: current.plane ?? xyPlane(), height, boundary };
+  resolveExtrudeRegion(result, nodes, parameters);
+  return result;
+}
+
 export function regionExtrudeProblem(input: unknown, checkSource = false): string | null {
   const stack: unknown[] = [input], seen = new Set<object>();
   while (stack.length) {

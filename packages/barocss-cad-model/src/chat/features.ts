@@ -511,7 +511,9 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
     return { error: 'Rounded inset: deleting a feature in this stored recipe document is not supported.' };
   }
-  for (const s of parentsOf(nodes[index])) if ((nodes[s]?.kind === 'sketch' || nodes[s]?.kind === 'driven-sketch') && users(s).every(k => k === index)) removed.add(s);
+  if (nodes[index].kind !== 'region-extrude') {
+    for (const s of parentsOf(nodes[index])) if ((nodes[s]?.kind === 'sketch' || nodes[s]?.kind === 'driven-sketch') && users(s).every(k => k === index)) removed.add(s);
+  }
   // The explicit target is independent of the geometry source. A removed index must not bind it to a different body.
   const linkedTargetUser = nodes.findIndex((node, i) => !removed.has(i) && node.kind === 'sketch' && node.association
     && node.on && node.on.node !== node.association.source.node && removed.has(node.on.node));

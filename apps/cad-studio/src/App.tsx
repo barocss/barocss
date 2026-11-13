@@ -1453,7 +1453,8 @@ export function App() {
     const active = activeStore.get();
     if (!active?.cmd.build || !canChangeDocument()) return;
     const toFace = isExtrudeToFace(active.cmd.id, active.values);
-    if ((active.fillet || toFace) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
+    if ((active.fillet || toFace || region) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1846,7 +1847,7 @@ export function App() {
   } : null;
   const pickProfile = picking.onPickProfile;
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
-  const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
+  const freeSketches = useMemo(() => unusedSketches(evaluated.nodes, true), [evaluated.nodes]);
   // The steps inside a part made in several (a bolt's head, shank and their union): one history entry, the last.
   const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => 'made' in n && n.made?.nodes ? Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k) : [])), [doc.nodes]);
   const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: ringsOf(evaluated.nodes[i] as SketchNode, shownDoc.parameters), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, sketch]);
@@ -3146,7 +3147,8 @@ export function App() {
   const changeHudValue = (key: string, value: number | string) => {
     const current = activeStore.get();
     if (!current) return;
-    if (current.cmd.id === 'extrude' && key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face')) {
+    if (current.cmd.id === 'extrude' && (key === 'region'
+      || (key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face')))) {
       applyWhenReady.current = null;
       again.current = null;
       commandPreview.retire();
@@ -3160,7 +3162,8 @@ export function App() {
   const applyHud = (owner: Active) => {
     const current = activeStore.get();
     if (!current || !filletApplyCurrent(owner, current)) return;
-    if (owner !== current && (isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values))) return;
+    if (owner !== current && (isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
+      || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();
   };
   const hud = active && <Hud store={activeStore} onChange={changeHudValue} onFilletType={changeFillet}

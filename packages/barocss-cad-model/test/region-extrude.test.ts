@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
-import { duplicateBody, renumber } from '../src/chat/features';
+import { deleteFeature, duplicateBody, renumber } from '../src/chat/features';
 import { encodeStudioFile } from '../src/engine/container';
 import type { LoopSegment, RegionExtrudeNode, SketchNode, StudioDoc } from '../src/engine/doc';
 import { flattenAssembly } from '../src/engine/flatten';
@@ -82,4 +82,11 @@ test('suppression and duplication preserve graph ownership', () => {
   const flattenedOutputs = evaluate(flattened);
   assert.equal(flattenedOutputs.length, 2);
   assert.ok(flattenedOutputs.every(output => checkOutput(output).valid && Math.abs(massPropertiesOf(output).volume - 240) < 1e-9));
+});
+
+test('deleting the last individual extrusion preserves the authored sketch', () => {
+  const deleted = deleteFeature(doc, 1);
+  assert.ok('doc' in deleted);
+  assert.deepEqual(deleted.doc.nodes, [source]);
+  assert.deepEqual(deleted.doc.outputs, {});
 });
