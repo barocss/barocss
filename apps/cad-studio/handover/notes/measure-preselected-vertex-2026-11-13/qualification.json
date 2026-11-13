@@ -1,0 +1,64 @@
+{
+  "decision": "D1015",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "bfa3a4090c0e54eea9b26719e565e4d98b88b32e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1015-section-baseline",
+    "gate.sh acquire heavy 600 D1015-section-studio01",
+    "D1015_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-preselected-vertex-browser.mjs <external-evidence>/baseline",
+    "D1015_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-preselected-vertex-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1015-feature-checks",
+    "pnpm --filter @barocss/cad-model test measure",
+    "pnpm --filter @barocss/cad-studio-app test vertex-pick-filter pinned-face-measure measure-quantity",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/measure-preselected-vertex-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The selected native vertex did not seed the Measure panel.",
+    "receiptSHA256": "2913adda6814bef0fb0ac0f65bc68f8f8735c23f8286a12aa7c49e86b684dd2c",
+    "sourceManifestSHA256": "38486fef6e68a161d7576b35bd68604e3d23359aa2ae448d5e26713885bcaa19"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "99d669939d734d23bc05d0de5be5412fad9f8bc10b6304e42e3a8333eecc4742",
+    "sourceManifestSHA256": "f0298f0e4c83dd8cedb06ac2dc102b1abeb69dad9f210d26829e8d5f206505e3",
+    "frozenFiles": 372,
+    "states": 3,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "fromMM": [
+      0,
+      0,
+      10
+    ],
+    "toMM": [
+      30,
+      40,
+      10
+    ],
+    "distanceMM": 50
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 12,
+    "studioPassed": 10,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "multiple preselected vertices",
+    "clipped edges",
+    "Zebra seam",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

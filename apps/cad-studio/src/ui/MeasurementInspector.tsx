@@ -28,7 +28,7 @@ export function MeasurementInspector({ bodies, measure, measured, setMeasure, on
           <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => measureQuantityText(v - measured.a[k], 2)).join(', ')}</b></div>
         </>}
         {onPin && <Button size="sm" variant="ghost" onClick={onPin}>Pin measurement</Button>}
-        <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
+        <div className="empty">{measure.length < 2 ? `Click a face, edge, or vertex to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>;
 }
 

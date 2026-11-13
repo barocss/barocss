@@ -1604,10 +1604,11 @@ export function App() {
     if (cmd.action === 'interference') { checkInterference(); return; }
     if (cmd.action === 'cage') { const n = subdNodeOf(ctx); if (n !== null) { cageEd.begin(n); setSelection(emptySel); setEditNode(null); } return; }
     if (cmd.action === 'measure') {
-      // Start from what is selected (one face or edge), then click what to measure to.
-      const first: MeasurePick[] = selection.faces[0] ? [{ body: selection.faces[0].body, face: selection.faces[0].face }] : selection.edges[0] ? [{ body: selection.edges[0].body, edge: selection.edges[0].edge }] : [];
-      if (first[0] && selection.faces[0] && measureNativeReady.current
-        && currentNativePlanePick(ctx, selection.faces[0], doc)) bindMeasureFacePick(first[0], doc, bodies[first[0].body]);
+      // Start from the selected face, edge, or vertex.
+      const face = selection.faces[0], edge = selection.edges[0], vertex = selection.vertices?.[0];
+      const first: MeasurePick[] = face ? [face] : edge ? [edge] : vertex && bodies[vertex.body] ? [{ body: vertex.body, vertex: vertex.at }] : [];
+      if (face && measureNativeReady.current && currentNativePlanePick(ctx, face, doc))
+        bindMeasureFacePick(face, doc, bodies[face.body]);
       setMeasure(first); setSelection(emptySel); setEditNode(null); return;
     }
     if (!cmd.fields) {
