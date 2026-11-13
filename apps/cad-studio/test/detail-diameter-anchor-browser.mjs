@@ -3,21 +3,30 @@ import { readFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2);
+const [output, mode, variant] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && relative(repo, resolve(output)).startsWith('../'));
 assert.ok(['--baseline', '--fixed'].includes(mode));
 const baseline = mode === '--baseline';
+const covered = variant === '--covered';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
 const diameter = { id: 'b-diameter', kind: 'diameter', view: 'detail:B', edge: 'n1.top|n2.side0#1',
   near: [32, 16, 8], place: [44, 16], tol: { kind: 'symmetric', value: 0.15 } };
 const control = { ...diameter, id: 'top-diameter', view: 'top', place: [58, 25] };
-const doc = { ...document, drawing: { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
-  views: ['front', 'top'], details: [detail], dimensions: [diameter, control] } };
+const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', scale: 2, hidden: false,
+  views: ['front', 'top'], details: [detail], dimensions: covered ? [{ ...diameter, place: [24, 16] }] : [diameter, control] };
+const part = covered ? {
+  ...document,
+  nodes: [...document.nodes,
+    { id: 'n3', kind: 'sketch', profile: 'rectangle', min: [27, 10], max: [37, 22], plane: { origin: [0, 0, 10], normal: [0, 0, 1], xAxis: [1, 0, 0] } },
+    { id: 'n4', kind: 'extrude', sketch: 3, height: 2 }],
+  nextId: 5, outputs: { ...document.outputs, b4: { node: 4, side: 'solid' } },
+} : document;
+const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -30,6 +39,16 @@ d = json.load(sys.stdin)
 root = ET.fromstring(d['svg'])
 ns = {'s': 'http://www.w3.org/2000/svg'}
 dim = root.find(".//s:g[@data-dim='b-diameter']", ns)
+ink = root.find(".//s:g[@class='detail'][@data-view='detail:B']", ns)
+assert ink is not None
+if d.get('hiddenOff'):
+    assert dim is None
+    assert not any('A20 20 ' in p.attrib['d'] for p in ink.findall('s:path', ns))
+    assert ink.find("s:line[@stroke-width='0.5']", ns) is not None
+    lines = d['dxf'].splitlines()
+    assert all(v.strip() != 'DIMENSION' for k,v in zip(lines[::2], lines[1::2]) if int(k) == 0)
+    print(json.dumps({'status':'PASS', 'sourceArc':'hidden', 'dimension':'absent'}))
+    sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
 assert 'Ø8' in texts and '0.15' in texts
@@ -47,8 +66,9 @@ else:
     if d['opposite']:
         assert abs(x-307.5) <= eps and abs(abs(y-85)-5*math.sqrt(15)/2) <= eps
 assert any(abs(float(line.attrib['x1'])-x) <= eps and abs(float(line.attrib['y1'])-y) <= eps for line in dim.findall('s:line', ns))
-ink = root.find(".//s:g[@class='detail'][@data-view='detail:B']", ns)
 assert any('A20 20 ' in p.attrib['d'] for p in ink.findall('s:path', ns))
+if d.get('covered'):
+    assert any('A20 20 ' in p.attrib['d'] and p.get('stroke-dasharray') == '3 1.5' for p in ink.findall('s:path', ns))
 if 'dxf' in d:
     lines = d['dxf'].splitlines()
     pairs = list(zip(map(int, lines[::2]), (s.strip() for s in lines[1::2]), strict=True))
@@ -99,7 +119,7 @@ await f.run(async () => {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.details?.length === 1);
     await f.ready();
     await button('Drawing').click();
-    await f.page.locator(locator).waitFor();
+    await f.page.locator(covered ? 'g.detail[data-view="detail:B"]' : locator).waitFor();
   }
   async function capture(action) {
     const index = await f.page.evaluate(() => window.__detailAnchorFiles.length);
@@ -115,7 +135,39 @@ await f.run(async () => {
     f.report.observations.push({ label, sha256: sha256(svg), bytes: Buffer.byteLength(svg) });
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
-    return f.runOracle({ svg, dxf, expectClipped, opposite }, label);
+    return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (covered) {
+    f.phase = 'open the saved covered bore with hidden lines off';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    assert.equal(original.nodes.length, 5);
+    assert.equal((await f.bodies()).bodies.length, 2);
+    const off = async label => {
+      const snapshot = await f.snapshot(label);
+      assert.match(snapshot.drawing.dimensions.find(d => d.id === diameter.id).lost, /No drawable circular arc/);
+      assert.ok(snapshot.drawing.issues.some(i => i.code === 'DIMENSION_LOST'));
+      assert.equal(await f.page.locator(locator).count(), 0);
+      await f.runOracle({ svg: await capture('Export SVG'), dxf: await capture('Export DXF'), hiddenOff: true }, label);
+    };
+    await off('01-hidden-off');
+    f.phase = 'show hidden lines and restore the same authored diameter';
+    await f.page.getByLabel('Hidden lines', { exact: true }).check();
+    const shown = { ...original, drawing: { ...original.drawing, hidden: true } };
+    await f.same(shown);
+    await verify('02-hidden-on', false, true);
+    await f.undo();
+    await f.same(original);
+    await off('03-undo-hidden-off');
+    await f.redo();
+    await f.same(shown);
+    const saved = await capture('Save');
+    assert.deepEqual(JSON.parse(saved), shown);
+    await open(Buffer.from(saved));
+    await f.same(shown);
+    await verify('04-reopened-hidden-on', false, true);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   f.phase = 'open a native starter plate with the partial Top Detail';
   await open(Buffer.from(JSON.stringify(doc)));
