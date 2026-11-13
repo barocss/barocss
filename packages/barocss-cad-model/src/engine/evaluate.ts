@@ -322,14 +322,43 @@ function withFitNotes(bodies: BodyResult[], doc: StudioDoc, outputs: CadPartSnap
 const PREVIEW = { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES };
 /** The previews' caches: a command's, and the section view's (each reuses its own last snapshot). */
 const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { preview: null, section: null };
+
+/** Test the transient Cut's native intersection. Its operands are reused from the current preview. */
+function emptyExtrudeCut(snapshot: CadPartSnapshot, doc: StudioDoc, cutFeature: string): boolean {
+  const cut = doc.nodes.at(-1);
+  const tool = cut?.kind === 'difference' ? doc.nodes[cut.tool.node] : undefined;
+  if (cut?.kind !== 'difference' || cut.id !== cutFeature || tool?.kind !== 'extrude' || tool.draft) return false;
+  const stock = doc.nodes[cut.parent.node];
+  const profile = doc.nodes[tool.sketch];
+  if (cut.parent.side !== 'solid' || cut.tool.side !== 'solid' || !stock?.id || profile?.kind !== 'sketch') return false;
+  const native = snapshot.document.features.at(-1);
+  if (native?.kind !== 'difference' || native.id !== cutFeature || native.target !== stock.id || native.tool !== tool.id) return false;
+  // A whole-stock cut has no Difference body and can still have a positive intersection.
+  const result = snapshot.outputs.find(output => output.feature === cutFeature);
+  if (result?.representation !== 'upright') return false;
+  try {
+    const intersection = reevaluate(snapshot, { document: { ...snapshot.document,
+      features: [...snapshot.document.features.slice(0, -1), { ...native, kind: 'intersect' }] } });
+    return !intersection.outputs.some(output => output.feature === cutFeature);
+  } catch {
+    // An unqualified probe does not certify an empty cut.
+    return false;
+  }
+}
+
 /**
  * A command's preview: through its own cache (the features it leaves alone are not built again while
  * it is dragged) and without mass properties (worked out when the part is evaluated).
  */
-export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
+export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview', cutFeature?: string): EvalResult {
   const t0 = performance.now();
   try {
     const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
+    if (slot === 'preview' && cutFeature && emptyExtrudeCut(snapshot, doc, cutFeature)) {
+      return { ok: false, revision, wallTime: (performance.now() - t0) / 1000,
+        error: { code: 'CUT_NO_MATERIAL', feature: cutFeature, title: 'Cut does not remove any material',
+          hint: 'Move the profile or change the distance so the cutter intersects the target.', detail: '' } };
+    }
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volume: null, mass: null }));
     return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {

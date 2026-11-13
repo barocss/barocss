@@ -1,0 +1,57 @@
+{
+  "decision": "D1154",
+  "tier": "FEATURE",
+  "parent": "e0ca967c75f6211ab2da1826ff9912706c61290d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1154-<run>",
+    "D1154_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-empty-cut-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1152_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-through-all-history-browser.mjs <external-evidence>/through-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs throughCut engine.test profiles-parameters union-touch",
+    "cd apps/cad-studio && node scripts/test.mjs failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/extrude-empty-cut-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 386,
+      "receiptSHA256": "3f9b82f1f51d62d9ab8c9ac766d432c1df87d9817d79719d45de59f0a2001420",
+      "sourceManifestSHA256": "ec8eafd7f3b0fe2c70dc2e1c5716819f82b5b304f996f5e8966c7db48202d495"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 868,
+      "receiptSHA256": "dd5f5755db5f0d8fd6ab2384abbe8348fb39606f5edd2ca4afe2cf7dcbf27f16",
+      "sourceManifestSHA256": "63ca00bf36b0a9a7c3348ffe8f963c23b36b24de8761937a650700775b640cdb",
+      "observations": [
+        {
+          "label": "crossing-native",
+          "native": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11936,
+            "floors": [
+              8,
+              10
+            ]
+          },
+          "removedVolume": 64
+        }
+      ]
+    },
+    "through-regression": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 870,
+      "receiptSHA256": "1190e9e3a75979a459b9d2463b48b277747b4e54fdd976deb2f29f7c52e52097",
+      "sourceManifestSHA256": "74b8add302c669cdc1fad073fd647d0d264c173a4e5a293c3ee92786af7b80b4"
+    }
+  }
+}

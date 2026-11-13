@@ -107,7 +107,10 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         }
         window.clearTimeout(fullTimer.current);
         const t0 = performance.now(), revision = nextRevision();
-        const reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, revision));
+        const cut = candidate.nodes.at(-1);
+        const cutFeature = shown === candidate && cmd.id === 'extrude' && values.op === 'cut'
+          && candidate.nodes.length > ctx.doc.nodes.length && cut?.kind === 'difference' ? cut.id : undefined;
+        const reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, revision, cutFeature));
         if (reply.stale) return; const result = reply.result;
         if (!rolled) wholeCost.current = { doc: ctx.doc, ms: performance.now() - t0 };
         if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== currentBearingDoc()) return;
