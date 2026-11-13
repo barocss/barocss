@@ -628,7 +628,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
-      if (e.key === 'Escape') { onClearReferencePreview(); if (pending || targetChoices.length || reselectTarget) cancel(); else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); } return; }
+      if (e.key === 'Escape') {
+        setDrag(null);
+        onClearReferencePreview();
+        if (pending || targetChoices.length || reselectTarget) cancel();
+        else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); }
+        return;
+      }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrame) {
         e.preventDefault();
         const frames = (settings.frames ?? []).filter(frame => frame.dim === undefined && frame.id === selectedFrame);

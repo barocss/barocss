@@ -1,0 +1,64 @@
+{
+  "decision": "D954",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "bd87c53f7a5cc8feab6b33dfd093e8d52728c974",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D954-detached-views",
+    "gate.sh acquire heavy 600 D954-fixed",
+    "D954_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/{parent01,fixed01} --detached-views (separate runs)",
+    "node apps/cad-studio/scripts/test.mjs drawing-commit-roundtrip",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "d9fbccc2192c79540ae10e25f4f7a440d3f1b7269c8268a2204fb5788f0ba220",
+    "firstFailure": "Escape followed by release committed the removed section preview."
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "cd956738a9e79466e94c171554897a5bbe7a2c77124c76fe6bb2c7cf8fb0fc0c",
+    "sourceManifestSHA256": "00ac1d914d06043f9b19135375bcef28de19332782ab59376bbd47bdc475b603",
+    "frozenFiles": 372,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "removedSectionPaperMM": {
+      "before": [
+        295,
+        95
+      ],
+      "moved": [
+        314.4,
+        81.9
+      ]
+    },
+    "detailPaperMM": {
+      "before": [
+        302,
+        165
+      ],
+      "moved": [
+        321.4,
+        151.9
+      ]
+    },
+    "removedSectionMovedSvgSHA256": "a65700573b123d765f73e6061e32f3e408fee3f473a7a5e52041181969b4086c",
+    "detailMovedSvgSHA256": "cee8edfb78ae1bd5d10309604008a06148e454e2d16d8e9714c295db77f27374"
+  },
+  "focusedTests": {
+    "pass": 4,
+    "fail": 0
+  },
+  "notRun": [
+    "browser-level pointer cancellation",
+    "sheet and document switch",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

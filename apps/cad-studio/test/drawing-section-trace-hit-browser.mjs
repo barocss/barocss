@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen', '--annotations'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
 const annotations = mode === '--annotations';
+const detachedViews = mode === '--detached-views';
 const pins = [
   'apps/cad-studio/test/drawing-section-trace-hit-browser.mjs',
   'apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'apps/cad-studio/src/drawing/drawing.css',
@@ -21,7 +22,11 @@ const source = {
   outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
   drawing: {
     sheet: 'A3', scope: { kind: 'part' }, scale: 2, projection: 'third', hidden: true,
-    section: { y: 6 }, title: 'Cutting plane and dimension',
+    ...(detachedViews ? {
+      sections: [{ id: 'A', view: 'front', at: 6, removed: { at: [295, 95], scale: 2 } }],
+      details: [{ id: 'B', view: 'top', center: [2, 6], radius: 4, scale: 3, at: [302, 165] }],
+    } : { section: { y: 6 } }),
+    title: 'Cutting plane and dimension',
     dimensions: [{ id: 'width', view: 'top', kind: 'linear', a: end(0), b: end(20),
       orient: 'horizontal', place: [10, 6] },
       ...(reopen ? [{ id: 'ordinary', view: 'front', kind: 'linear', a: end(0), b: end(20),
@@ -34,10 +39,10 @@ const source = {
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+  name: 'drawing-section-trace-hit', output, envFrozen: detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
     : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
-  limits: [annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
+  limits: [detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
     : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
   snapshotExtra: () => ({
     box: document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox'),
@@ -223,6 +228,83 @@ async function annotationFlow(initial) {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function detachedViewFlow() {
+  const original = await f.doc();
+  const detail = sheet().locator('g.detail[data-view="detail:B"]');
+  await detail.waitFor();
+  const groups = [
+    { label: 'removed-section', locator: cut(), selector: 'g.section:not([data-view])[data-dim="A"]',
+      start: original.drawing.sections[0].removed.at, move: (doc, at) => { doc.drawing.sections[0].removed.at = at; } },
+    { label: 'detail', locator: detail, selector: 'g.detail[data-view="detail:B"]',
+      start: original.drawing.details[0].at, move: (doc, at) => { doc.drawing.details[0].at = at; } },
+  ];
+  const sectionMarkup = await trace().innerHTML();
+  const widthMarkup = await dimension().innerHTML();
+  const before = await f.snapshot('01-detached-views');
+  const beforeSvg = await exportSvg();
+  const expectedKeys = () => f.page.evaluate(() =>
+    ['Undo', 'Redo'].map(name => !document.querySelector(`button[aria-label="${name}"]`)?.disabled));
+  const originalKeys = await expectedKeys();
+  const siteAt = at => sheet().evaluate((svg, at) => {
+    const ctm = svg.getScreenCTM();
+    const p = new DOMPoint(...at).matrixTransform(ctm);
+    return { pixel: [p.x, p.y], scale: ctm.a };
+  }, at);
+  for (const { label, locator, selector, start, move } of groups) {
+    const site = await siteAt(start);
+    const delta = [34, -23];
+    const at = start.map((value, axis) => Math.round((value + delta[axis] / site.scale) * 10) / 10);
+    const expected = structuredClone(original);
+    move(expected, at);
+    const oldMarkup = await locator.innerHTML();
+    const other = groups.find(group => group.label !== label);
+    const otherMarkup = await other.locator.innerHTML();
+    const begin = async () => {
+      await f.page.mouse.move(...site.pixel);
+      await f.page.mouse.down();
+      await f.page.mouse.move(site.pixel[0] + delta[0], site.pixel[1] + delta[1], { steps: 5 });
+      await f.page.waitForFunction(({ selector, oldMarkup }) =>
+        document.querySelector(selector)?.innerHTML !== oldMarkup, { selector, oldMarkup });
+      assert.deepEqual(await f.doc(), original, 'preview is not committed');
+      assert.equal(await other.locator.innerHTML(), otherMarkup);
+    };
+    f.phase = `drag the ${label} using the desktop pointer`;
+    await begin();
+    await f.page.mouse.up();
+    await f.ready();
+    const moved = await f.snapshot(`02-${label}-moved`);
+    assert.deepEqual(moved.doc, expected);
+    assert.equal(moved.box, before.box);
+    assert.deepEqual(moved.selected, []);
+    assert.equal(await trace().innerHTML(), sectionMarkup);
+    assert.equal(await dimension().innerHTML(), widthMarkup);
+    const movedSvg = await exportSvg();
+    assert.notEqual(movedSvg, beforeSvg);
+    await f.undo();
+    assert.deepEqual(await f.doc(), original);
+    assert.equal(await exportSvg(), beforeSvg);
+    await f.redo();
+    assert.deepEqual(await f.doc(), expected);
+    await f.undo();
+    assert.deepEqual(await f.doc(), original);
+
+    f.phase = `cancel a live ${label} preview with Escape`;
+    const historyBeforeCancel = await expectedKeys();
+    await begin();
+    await f.page.keyboard.press('Escape');
+    await f.page.mouse.up();
+    await f.ready();
+    const canceled = await f.snapshot(`03-${label}-canceled`);
+    assert.deepEqual(canceled.doc, original, 'Escape and pointer-up must leave the document unchanged');
+    assert.deepEqual(await expectedKeys(), historyBeforeCancel);
+    assert.equal(canceled.box, before.box);
+    assert.equal(await locator.innerHTML(), oldMarkup);
+    assert.equal(await exportSvg(), beforeSvg);
+    f.report.observations.push({ label, at, originalKeys, historyBeforeCancel, movedSvgSHA256: sha256(movedSvg) });
+  }
+  assert.deepEqual(f.report.downloads, []);
+}
+
 async function exportSvg() {
   const count = await f.page.evaluate(() => window.__d932Exports.length);
   await button('Export SVG').click();
@@ -266,6 +348,10 @@ await f.run(async () => {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.datumTargets?.length === 1);
     await f.ready();
     assert.deepEqual(await f.doc(), source);
+  } else if (detachedViews) {
+    await f.page.waitForFunction(() => window.__studioDoc?.drawing?.details?.[0]?.id === 'B');
+    await f.ready();
+    assert.deepEqual(await f.doc(), source);
   } else await f.same(source);
   await button('Drawing').click();
   await dimension().waitFor();
@@ -273,6 +359,7 @@ await f.run(async () => {
   await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
   if (annotations) { await annotationFlow(source); return; }
+  if (detachedViews) { await detachedViewFlow(); return; }
   if (reopen) { await reopenFlow(); return; }
   const before = await f.snapshot('01-drawing-before');
   f.phase = 'find the painted overlap and exercise actual pointer input';
