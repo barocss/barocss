@@ -1,0 +1,215 @@
+{
+  "decision": "D1155",
+  "tier": "FEATURE",
+  "parent": "632e815fc5417db98c9fee2600c785c9222eb8f3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1155-<run>",
+    "D1155_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-join-pieces-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1154_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-empty-cut-browser.mjs <external-evidence>/final-cut",
+    "D849_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-preview-ownership-browser.mjs <external-evidence>/final-endface --change-saved",
+    "cd packages/barocss-cad-model && node scripts/test.mjs meshWire throughCut union-touch",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/final-build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/extrude-join-pieces-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 7,
+      "frozenFiles": 868,
+      "receiptSHA256": "a93db08d8ffd90f54b2562b374e507d37088cfdf79227a81d0cc29356ad1ef5b",
+      "sourceManifestSHA256": "1b1d9c210182562cb9e1a6ee4b5106902500ac4f3a12eb56f309f3080de70800",
+      "observations": [
+        {
+          "label": "face-contact",
+          "shown": {
+            "count": 0,
+            "target": 0
+          },
+          "native": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 1000.0000000000001,
+            "touching": []
+          }
+        },
+        {
+          "label": "edge-contact",
+          "shown": {
+            "count": 0,
+            "target": 0
+          },
+          "native": {
+            "valid": true,
+            "pieces": 2,
+            "volume": 1000,
+            "touching": [
+              [
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "label": "separated",
+          "shown": {
+            "count": 0,
+            "target": 0
+          },
+          "native": {
+            "valid": true,
+            "pieces": 2,
+            "volume": 1000.0000000000001,
+            "touching": []
+          }
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 868,
+      "receiptSHA256": "f8d3021548263444dbbd330be330b649baff20e8ebf21a8fd9118eaaeafacdb0",
+      "sourceManifestSHA256": "2d829b7e6d27f7dd5f01261be361a0ef293d790bb32bf5022a1648cbe0a805eb",
+      "observations": [
+        {
+          "label": "face-contact",
+          "shown": {
+            "count": 1,
+            "target": 1
+          },
+          "native": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 1000.0000000000001,
+            "touching": []
+          }
+        },
+        {
+          "label": "edge-contact",
+          "shown": {
+            "count": 1,
+            "target": 1
+          },
+          "native": {
+            "valid": true,
+            "pieces": 2,
+            "volume": 1000,
+            "touching": [
+              [
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "label": "separated",
+          "shown": {
+            "count": 1,
+            "target": 1
+          },
+          "native": {
+            "valid": true,
+            "pieces": 2,
+            "volume": 1000.0000000000001,
+            "touching": []
+          }
+        }
+      ]
+    },
+    "final-cut": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 868,
+      "receiptSHA256": "e2fda825d91077b3cbc41b764e92f5f7af75bdbae8a34841e7587ec028151c99",
+      "sourceManifestSHA256": "f7f9a97b54c04525dd106ab0b1f0dae4d32c2fda31ad80d345a3e4985c501b74",
+      "observations": [
+        {
+          "label": "crossing-native",
+          "native": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11936,
+            "floors": [
+              8,
+              10
+            ]
+          },
+          "removedVolume": 64
+        }
+      ]
+    },
+    "final-endface": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 869,
+      "receiptSHA256": "f008a95500f58cea32caf018774b425e9f9f7de93f793ed19c47881900ec73db",
+      "sourceManifestSHA256": "b6ced00329a3a5b7da9305ea1ee2b46ebcc7d6c5078b46f4326e89ff3ff00102",
+      "observations": [
+        {
+          "label": "original-bound-target",
+          "target": "n1.bottom",
+          "height": 20,
+          "extrusionVolumeMm3": 2000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "changed-bound-target",
+          "target": "n3.bottom",
+          "height": 30,
+          "extrusionVolumeMm3": 3000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "first-undo-old-target",
+          "target": "n1.bottom",
+          "height": 20,
+          "extrusionVolumeMm3": 2000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "first-redo-new-target",
+          "target": "n3.bottom",
+          "height": 30,
+          "extrusionVolumeMm3": 3000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "old-target-moved-independent",
+          "target": "n3.bottom",
+          "height": 30,
+          "extrusionVolumeMm3": 3000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "new-target-moved-associative",
+          "target": "n3.bottom",
+          "height": 40,
+          "extrusionVolumeMm3": 4000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "reopened-old-target-independent",
+          "target": "n3.bottom",
+          "height": 40,
+          "extrusionVolumeMm3": 4000,
+          "nativeCorners": 24
+        },
+        {
+          "label": "reopened-new-target-associative",
+          "target": "n3.bottom",
+          "height": 45,
+          "extrusionVolumeMm3": 4500,
+          "nativeCorners": 24
+        }
+      ]
+    }
+  }
+}

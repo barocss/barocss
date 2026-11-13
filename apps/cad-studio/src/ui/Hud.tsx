@@ -82,6 +82,10 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
           </div>;
         })}
       </div>}
+      {active.preview === 'ok' && active.extrudeResult && <div className="hud-steps" aria-label="Extrude result">
+        <div className="field"><span>Target</span><span>{active.extrudeResult.target}</span></div>
+        <div className="field"><span>Result</span><span>{active.extrudeResult.pieces}{active.extrudeResult.solid ? ' solid' : ''} piece{active.extrudeResult.pieces === 1 ? '' : 's'}</span></div>
+      </div>}
       <div className="hud-fields">
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}
         {fields.map(renderField)}

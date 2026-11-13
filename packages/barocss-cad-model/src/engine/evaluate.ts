@@ -359,7 +359,8 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
         error: { code: 'CUT_NO_MATERIAL', feature: cutFeature, title: 'Cut does not remove any material',
           hint: 'Move the profile or change the distance so the cutter intersects the target.', detail: '' } };
     }
-    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volume: null, mass: null }));
+    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality),
+      ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), volume: null, mass: null }));
     return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {
     lastPreview[slot] = null;

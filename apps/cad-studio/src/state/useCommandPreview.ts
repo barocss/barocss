@@ -3,6 +3,8 @@ import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import { prefixDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { patchValues, shownFields, type Values } from '@barocss/cad-model/app/commands';
+import { bodyName } from '@barocss/cad-model/app/bodies';
+import { refOf } from '@barocss/cad-model/app/bodyRef';
 import { awaitingExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { missingCommandField, type Active } from '../app/commandState';
@@ -107,9 +109,9 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         }
         window.clearTimeout(fullTimer.current);
         const t0 = performance.now(), revision = nextRevision();
-        const cut = candidate.nodes.at(-1);
+        const terminal = candidate.nodes.at(-1);
         const cutFeature = shown === candidate && cmd.id === 'extrude' && values.op === 'cut'
-          && candidate.nodes.length > ctx.doc.nodes.length && cut?.kind === 'difference' ? cut.id : undefined;
+          && candidate.nodes.length > ctx.doc.nodes.length && terminal?.kind === 'difference' ? terminal.id : undefined;
         const reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, revision, cutFeature));
         if (reply.stale) return; const result = reply.result;
         if (!rolled) wholeCost.current = { doc: ctx.doc, ms: performance.now() - t0 };
@@ -141,7 +143,28 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
             return;
           }
         }
-        if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
+        if (result.ok) {
+          let extrudeResult: Active['extrudeResult'];
+          if (shown === candidate && cmd.id === 'extrude' && candidate.nodes.length > ctx.doc.nodes.length
+            && ((values.op === 'join' && terminal?.kind === 'union') || (values.op === 'cut' && terminal?.kind === 'difference'))) {
+            const ref = terminal.kind === 'union' ? terminal.left : terminal.parent;
+            const target = ctx.bodies.find(body => {
+              const source = refOf(body);
+              return ref.node === source.node && ref.side === source.side;
+            });
+            const outputs = result.bodies.filter(body => body.ref?.node === candidate.nodes.length - 1);
+            const pieces = outputs.reduce((total, body) => total + (body.pieces ?? 1), 0);
+            if (target) extrudeResult = { target: bodyName(ctx.doc, target), pieces,
+              solid: outputs.length > 0 && outputs.every(body => body.family === 'upright') };
+          }
+          previewFor.current = rolled ? '' : JSON.stringify(values);
+          setPreviewBodies(result.bodies);
+          setActive(a => {
+            if (!a || a.cmd !== cmd || a.ctx !== ctx) return a;
+            const ready = !rolled && JSON.stringify(a.values) === JSON.stringify(values);
+            return { ...a, preview: ready ? 'ok' : 'busy', error: undefined, extrudeResult: ready && a.values === values ? extrudeResult : undefined };
+          });
+        }
         else if (live && current?.cmd === cmd && current.ctx === ctx && current.values === values) {
           const failedFeature = result.revision === revision ? failedFeatureText(result.error.feature, shown.nodes, ctx.doc.nodes) : undefined;
           setPreviewBodies(null);
