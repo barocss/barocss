@@ -128,7 +128,7 @@ export function startPicking(s: SketchState, tool: 'select' | 'dimension'): Sket
   // A Bézier curve drawn last goes aside like a circle; the profile is then picked as it would be without it.
   if (shape?.kind === 'bezier') { done = [...done, shape]; shape = null; }
   // A circle or slot drawn last goes beside the outline; the last finished outline or rectangle is edited.
-  else if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
+  else if (shape?.kind === 'circle' || shape?.kind === 'slot' && !(s.editNode !== undefined && shape.ids && shape.ids === s.mainIds)) {
     const k = done.map(d => d.kind === 'rectangle' || isSettled(d)).lastIndexOf(true);
     if (k >= 0) { done = [...done.slice(0, k), ...done.slice(k + 1), shape]; shape = s.done![k]; }
   }

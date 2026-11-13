@@ -1,0 +1,62 @@
+{
+  "decision": "D1092",
+  "tier": "FEATURE",
+  "parent": "00dbd8da4396c2686e172101dedf261473e65648",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1092-slot-reopen-<run>",
+    "D1092_SOURCE_FROZEN=1 node apps/cad-studio/test/slot-draft-browser.mjs <external-evidence>/<run> --reopen-slot",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-reopen sketch-profile-precision",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/doc.ts packages/barocss-cad-model/src/engine/part.ts packages/barocss-cad-model/src/sketch/loops.ts packages/barocss-cad-model/src/sketch/reopen.ts packages/barocss-cad-model/src/sketch/select.ts packages/barocss-cad-model/test/sketch-reopen-main-role.test.ts packages/barocss-cad-model/test/sketch-reopen-side-ids.test.ts",
+    "node --check apps/cad-studio/test/slot-draft-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 14,
+      "frozenFiles": 857,
+      "receiptSHA256": "d9e5b0ea7da8a9146b6564033b16a769ae9ef15b1e0ec57c2bc1a67323cd3cb4",
+      "sourceManifestSHA256": "00879b8960c356be3105f371785f9e862763d9ac8a6d90083b67a76f80956f7f",
+      "firstFailure": "Fresh Open followed by Edit sketch shows generic outline fields instead of Slot Length, Width and Angle."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 14,
+      "frozenFiles": 858,
+      "receiptSHA256": "85fa602dfc5c00d38deeeda7f0ada74f5b6f0e57dc1ea5fe9e2747f9e98b9e9b",
+      "sourceManifestSHA256": "aa2edd87a974f27c44c680054b6d3b4c3483478b512f1b8c1688b7809d7e3a58"
+    }
+  },
+  "metrics": {
+    "reopened": [
+      45,
+      14,
+      30
+    ],
+    "editedWidthMm": 16,
+    "endRadiiMm": [
+      8,
+      8
+    ],
+    "extrudeMm": 3,
+    "originalVolumeMm3": 2351.812549841714,
+    "editedVolumeMm3": 2763.183994933828
+  },
+  "notRun": [
+    "desktop editing of a Slot stored as a region or hole",
+    "desktop malformed hint path",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 31,
+    "modelPassed": 56,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}

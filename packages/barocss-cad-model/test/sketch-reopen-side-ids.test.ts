@@ -7,7 +7,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import type { SketchNode, StudioDoc } from '../src/engine/doc';
 import { profileOf } from '../src/sketch/loops';
 import { xyPlane } from '../src/sketch/plane';
-import { sketchShapes } from '../src/sketch/reopen';
+import { rebindDims, sketchShapes } from '../src/sketch/reopen';
 import { rectangleOutline, startPicking } from '../src/sketch/select';
 import { joinOpen } from '../src/sketch/trim';
 import type { SketchShape } from '../src/sketch/types';
@@ -78,4 +78,25 @@ test('D355: a fillet on a named side edge survives reopen and Finish with no cha
   assert.ok(e0.length > 0);
   assert.deepEqual(e1, e0);
   assert.equal(part('x', after).mass({ density: 1 }).volume, part('x', before).mass({ density: 1 }).volume);
+});
+
+test('Slot editing requires matching literal authored metadata and leaves legacy loops ordinary', () => {
+  const result = profileOf([{ kind: 'slot', a: [10, 15], b: [48.9711, 37.5], r: 7 }]);
+  assert.ok('node' in result && result.node.profile === 'loop');
+  const node = result.node;
+  const bytes = JSON.stringify(node);
+  const reopened = sketchShapes(JSON.parse(bytes));
+  assert.deepEqual(reopened.shape, { kind: 'slot', ...node.slot, ids: node.sideTags?.outer });
+  assert.deepEqual(finish(reopened.shape, reopened.done, true), node);
+  const { slot, ...legacy } = node;
+  assert.ok(slot);
+  assert.equal(sketchShapes(legacy).shape?.kind, 'polygon');
+  assert.equal(sketchShapes({ ...node, slot: { ...slot, r: 8 } }).shape?.kind, 'polygon');
+
+  const bound = structuredClone(node);
+  bound.segments[0].start[0] = { parameter: 'X' };
+  assert.equal(sketchShapes(bound, { X: Number(node.segments[0].start[0]) }).shape?.kind, 'polygon');
+  const invalidHint = { ...node, slot: { ...slot, r: { parameter: 'missing' } } } as unknown as SketchNode;
+  assert.equal(sketchShapes(invalidHint).shape?.kind, 'polygon');
+  assert.deepEqual(rebindDims(invalidHint, legacy).dropped, []);
 });

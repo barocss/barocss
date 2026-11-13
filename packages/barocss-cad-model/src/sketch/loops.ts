@@ -25,7 +25,7 @@ export function shapeNode(s: SketchShape): SketchNode | null {
     : { kind: 'sketch', profile: 'rectangle', min: [Math.min(s.a[0], s.b[0]), Math.min(s.a[1], s.b[1])], max: [Math.max(s.a[0], s.b[0]), Math.max(s.a[1], s.b[1])] };
   if (s.kind === 'circle') return { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r };
   if (s.kind === 'bezier') return null;
-  if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null;
+  if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r), slot: { a: [...s.a], b: [...s.b], r: s.r } } : null;
   if (!s.closed || s.pending) return null;
   const rect = rectangleNode(s); if (rect) return rect;
   // Straight convex outlines keep the polygon path (all features); concave or curved ones become a line + arc loop.

@@ -363,7 +363,7 @@ export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
-  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[]; slot?: { a: [number, number]; b: [number, number]; r: number } } & OnPlane)
   | ({ kind: 'sketch'; profile: 'band'; band: SketchBand } & OnPlane);
 
 /** Numeric authored geometry for the one-line named driving-length contract. */

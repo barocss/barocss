@@ -2,7 +2,7 @@
 // shape (its kept outline with all constraints when it has one), more regions and holes beside it.
 import type { LoopSegment, SketchBand, SketchNode, SketchOutline } from '../engine/doc';
 import type { SketchShape } from './types';
-import type { P2 } from './profile';
+import { slotSegments, type P2 } from './profile';
 import { rulesWithoutCircle, type Polygon } from './rules';
 import { loopOf } from './loops';
 import { nextIdOf, tagsOf } from './entityIds';
@@ -13,6 +13,13 @@ import { refusal } from '../engine/refusal';
 
 type Params = Readonly<Record<string, number>>;
 const isRef = (v: unknown): v is { parameter: string } => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && typeof (v as { parameter?: unknown }).parameter === 'string';
+
+function withoutSlotHint(node: SketchNode): SketchNode {
+  if (node.profile !== 'loop' || !Object.hasOwn(node, 'slot')) return node;
+  const geometry = { ...node };
+  delete geometry.slot;
+  return geometry;
+}
 
 /** The sketch node with every `{ parameter }` reference replaced by its value now; a missing or non-finite parameter is refused. */
 export function resolveSketchDims(node: SketchNode, params: Params = {}): SketchNode {
@@ -27,7 +34,10 @@ export function resolveSketchDims(node: SketchNode, params: Params = {}): Sketch
     if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
     return v;
   };
-  return walk(node) as SketchNode;
+  // The authored Slot hint has no parameter fields. Resolve geometry independently.
+  const resolved = walk(withoutSlotHint(node)) as SketchNode;
+  if (resolved.profile === 'loop' && node.profile === 'loop' && Object.hasOwn(node, 'slot')) resolved.slot = node.slot;
+  return resolved;
 }
 
 const sameIds = (a: readonly string[] | undefined, b: readonly string[]) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
@@ -122,7 +132,7 @@ export function rebindDims(stored: SketchNode, next: SketchNode, params: Params 
     const [o] = old.splice(i, 1);
     n.put(out, walk(o.value, n.value));
   }
-  const dropped = [...new Set(refsIn(stored).filter(r => !kept.has(r)).map(r => r.parameter))];
+  const dropped = [...new Set(refsIn(withoutSlotHint(stored)).filter(r => !kept.has(r)).map(r => r.parameter))];
   return { node: out as unknown as SketchNode, dropped };
 }
 
@@ -168,6 +178,26 @@ export function loopShape(segments: readonly LoopSegment[]): SketchShape | null 
     return Math.tan(sweep / 4);
   });
   return { kind: 'polygon', points, closed: true, bulges };
+}
+
+/** Restore Slot editing only if its authored data reproduces the authoritative loop. */
+function authoredSlot(node: SketchNode): Extract<SketchShape, { kind: 'slot' }> | null {
+  if (node.profile !== 'loop' || node.outline || !node.slot || node.segments.length !== 4) return null;
+  const { a, b, r } = node.slot;
+  const point = (value: unknown): value is P2 => Array.isArray(value) && value.length === 2 && Number.isFinite(value[0]) && Number.isFinite(value[1]);
+  if (!point(a) || !point(b) || !Number.isFinite(r) || r <= 0) return null;
+  const distance = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (!Number.isFinite(distance) || distance === 0) return null;
+  const samePoint = (actual: unknown, expected: unknown): boolean => point(actual) && point(expected)
+    && actual[0] === expected[0] && actual[1] === expected[1];
+  const expected = slotSegments(a, b, r);
+  if (!expected.every((want, i) => {
+    const actual = node.segments[i];
+    if (!actual || !samePoint(actual.start, want.start)) return false;
+    if (actual.kind === 'line') return want.kind === 'line';
+    return actual.kind === 'arc' && want.kind === 'arc' && actual.direction === want.direction && samePoint(actual.center, want.center);
+  })) return null;
+  return { kind: 'slot', a: [...a], b: [...b], r };
 }
 
 /** The node's main profile as a shape. */
@@ -230,7 +260,7 @@ export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: 
     out.forEach((t, i) => { positional[name(i)] = `side[${t}]`; });
     return out;
   };
-  const main = mainShape(node), outer = idsFor(loopOf(node).length, tags?.outer, i => `side${i}`);
+  const main = authoredSlot(stored) ?? mainShape(node), outer = idsFor(loopOf(node).length, tags?.outer, i => `side${i}`);
   const regions = (node.regions ?? []).map((l, r) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.regions?.[r], i => `region${r}.side${i}`) }));
   const holes = (node.holes ?? []).map((l, h) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.holes?.[h], i => `hole${h}.side${i}`) }));
   const loops = [...regions, ...holes];

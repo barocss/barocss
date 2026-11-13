@@ -47,9 +47,12 @@ test('a radius bound to a parameter stays bound and nothing is dropped', () => {
 test('a slot main + rectangle region keeps the slot as main', () => {
   const first = profileOf([{ kind: 'slot', a: [0, 0], b: [10, 0], r: 3 }, rectPoly]); assert.ok('node' in first);
   const stored = first.node as SketchNode, again = round(stored);
-  // (The slot is rebuilt from its own loop, so numbers may differ in the last digits.)
-  const shape = (n: SketchNode) => JSON.stringify(strip(n), (_, v) => typeof v === 'number' ? Math.round(v * 1e6) / 1e6 + 0 : v);
-  assert.equal(shape(again), shape(stored)); assert.equal(shape(round(again)), shape(stored));
+  const { shape, done } = sketchShapes(stored);
+  assert.equal(shape?.kind, 'slot');
+  const draft: SketchState = { plane: xyPlane(), tool: 'select', shape, done, editNode: 0, mainIds: shape.ids };
+  assert.equal(startPicking(draft, 'select').shape, shape);
+  assert.deepEqual(strip(again), strip(stored));
+  assert.deepEqual(strip(round(again)), strip(stored));
   assert.deepEqual(again.sideTags, stored.sideTags);
 });
 
