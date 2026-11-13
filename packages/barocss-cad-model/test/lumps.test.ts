@@ -78,6 +78,7 @@ test('O8: the exports a lump at a time — 3MF objects named "<body> / lump k", 
   const doc = cubes(10, 10, 0), b = bodyOf(doc), name = bodyName(doc, b);
   const model = threeMfModelOf(doc, [{ doc, bodies: [b] }], 'touch');
   assert.ok(typeof model !== 'string');
+  assert.equal(model.groupedSolids, undefined);
   assert.deepEqual(model.objects.map(o => o.name), [`${name} / lump 1`, `${name} / lump 2`]);
   const w = await write3mf(model); assert.ok(!('error' in w), 'error' in w ? w.error : '');
   assert.deepEqual([w.stats.objects, w.stats.openEdges, w.stats.repeatedEdges], [2, 0, 0]);
@@ -99,6 +100,11 @@ test('O8: the exports a lump at a time — 3MF objects named "<body> / lump k", 
   // (Lumps apart: one object, as before — welded, nothing touches.)
   const apart = cubes(20, 0, 0), ab = bodyOf(apart), am = threeMfModelOf(apart, [{ doc: apart, bodies: [ab] }], 'apart'); assert.ok(typeof am !== 'string');
   assert.ok(am.objects.length === 1 && am.objects[0].positions === ab.mesh.positions);
+  assert.deepEqual(am.groupedSolids, { objects: 1, pieces: 2 });
+  const shown = threeMfModelOf(apart, [{ doc: apart, bodies: [ab], looks: [{ hidden: true }] }, { doc: plate, bodies: [pb] }], 'visible');
+  assert.ok(typeof shown !== 'string');
+  assert.equal(shown.groupedSolids, undefined);
+  assert.equal(shown.objects.length, 1);
 });
 
 test('O8: the manufacturability result warns that the lumps only touch, naming them as the 3MF objects; lumps apart and one lump, no warning', async () => {

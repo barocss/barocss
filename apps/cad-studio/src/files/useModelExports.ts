@@ -170,13 +170,20 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
     })];
     try {
       const model = threeMfModelOf(captured, parts, owner.name);
-      const r = typeof model === 'string' ? { error: model } : await write3mf(model);
+      if (typeof model === 'string') {
+        if (current()) latest.onNotice({ title: 'Could not write 3MF', hint: model, detail: '' });
+        return;
+      }
+      const r = await write3mf(model);
       if (!current()) return;
       if ('error' in r) { latest.onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
       downloadBytes(r.bytes, `${owner.name}.3mf`, 'model/3mf');
       const s = r.stats, open = s.openEdges + s.repeatedEdges;
+      const grouped = model.groupedSolids;
+      const count = grouped ? `${s.objects} object${s.objects === 1 ? '' : 's'}` : `${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}`;
       const assemblyLoss = captured.instances?.length ? 'Assembly hierarchy, mates and variant definitions are omitted.' : null;
       const hints = [
+        grouped ? `${grouped.objects} 3MF ${grouped.objects === 1 ? 'object contains' : 'objects contain'} ${grouped.pieces} separate solid pieces.` : null,
         draftWarning(captured),
         captured.print ? 'Turned the way it prints and set on the bed.' : 'As modelled (choose a print direction to have it turned for printing).',
         'The on-screen mesh, in millimetres, with materials and colours.',
@@ -185,7 +192,7 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
         !assemblyLoss && captured.variability ? 'Variant definitions are omitted.' : null,
         open ? `${open} edges are not closed: the slicer may repair it.` : null,
       ];
-      latest.onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: hints.filter(Boolean).join(' '), detail: '' });
+      latest.onNotice({ title: `3MF written: ${count}, ${s.triangles.toLocaleString()} triangles`, hint: hints.filter(Boolean).join(' '), detail: '' });
     } catch (e) {
       if (current()) latest.onNotice({ title: 'Could not write 3MF', hint: e instanceof Error ? e.message : String(e), detail: '' });
     }

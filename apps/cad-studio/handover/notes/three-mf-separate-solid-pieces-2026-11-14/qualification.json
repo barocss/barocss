@@ -1,0 +1,271 @@
+{
+  "decision": "D1156",
+  "tier": "FEATURE",
+  "parent": "f6e5b7796ee7f7c61a9fc72d901174aaa6c769a0",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1156-<run>",
+    "D1156_SOURCE_FROZEN=1 node apps/cad-studio/test/three-mf-solid-pieces-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D688_SOURCE_FROZEN=1 node apps/cad-studio/test/three-mf-variant-browser.mjs <external-evidence>/variant-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs lumps threemf o9-source instance-looks",
+    "cd apps/cad-studio && node scripts/test.mjs three-mf-export-ownership",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/three-mf-solid-pieces-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 386,
+      "receiptSHA256": "704854429b7da8288a27153c48e74112f6d5e0fd48be1a70534123e5fa15da53",
+      "sourceManifestSHA256": "ea01e35c17c268613d9f6f452d45a0192fcacd89e0de2be35deac603ff316146",
+      "independentReads": 3,
+      "observations": [
+        {
+          "label": "face-contact",
+          "notice": "3MF written: 1 body, 12 trianglesAs modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 1,
+            "items": 1,
+            "triangles": 12,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  10
+                ],
+                "volume": 1000,
+                "triangles": 12
+              }
+            ]
+          }
+        },
+        {
+          "label": "edge-contact",
+          "notice": "3MF written: 2 bodies, 24 trianglesAs modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 2,
+            "items": 2,
+            "triangles": 24,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  5
+                ],
+                "volume": 500,
+                "triangles": 12
+              },
+              {
+                "min": [
+                  10,
+                  0,
+                  5
+                ],
+                "max": [
+                  20,
+                  10,
+                  10
+                ],
+                "volume": 500,
+                "triangles": 12
+              }
+            ]
+          }
+        },
+        {
+          "label": "separated",
+          "notice": "3MF written: 1 body, 24 trianglesAs modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 1,
+            "items": 1,
+            "triangles": 24,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  5
+                ],
+                "volume": 500,
+                "triangles": 12
+              },
+              {
+                "min": [
+                  12,
+                  0,
+                  5
+                ],
+                "max": [
+                  22,
+                  10,
+                  10
+                ],
+                "volume": 500,
+                "triangles": 12
+              }
+            ]
+          }
+        }
+      ],
+      "artifactHashes": {
+        "face-contact": "67a3edbc826e4e567f9aaf327204287f840a7338709e78ced4b0d79093d08230",
+        "edge-contact": "c244fcd9f046380294f8ca42f53c746b934fccd4c4fbe369a323dda8a92248f0",
+        "separated": "4dcce7d35a8478872c0c3cb53119e263c604bf38084b17fcf6e4430dcc756bbb"
+      }
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 386,
+      "receiptSHA256": "7d592b5e2ee408da4096d63db101f56c06db4411b16369b6bd7797cc87355378",
+      "sourceManifestSHA256": "adefbdc68696b237639b2c2c43c9d6b653ea32c4acbfffdd0ca2f88b02e6cd62",
+      "independentReads": 3,
+      "observations": [
+        {
+          "label": "face-contact",
+          "notice": "3MF written: 1 body, 12 trianglesAs modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 1,
+            "items": 1,
+            "triangles": 12,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  10
+                ],
+                "volume": 1000,
+                "triangles": 12
+              }
+            ]
+          }
+        },
+        {
+          "label": "edge-contact",
+          "notice": "3MF written: 2 bodies, 24 trianglesAs modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 2,
+            "items": 2,
+            "triangles": 24,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  5
+                ],
+                "volume": 500,
+                "triangles": 12
+              },
+              {
+                "min": [
+                  10,
+                  0,
+                  5
+                ],
+                "max": [
+                  20,
+                  10,
+                  10
+                ],
+                "volume": 500,
+                "triangles": 12
+              }
+            ]
+          }
+        },
+        {
+          "label": "separated",
+          "notice": "3MF written: 1 object, 24 triangles1 3MF object contains 2 separate solid pieces. As modelled (choose a print direction to have it turned for printing). The on-screen mesh, in millimetres, with materials and colours. Editable features, parameters and history are omitted.",
+          "oracle": {
+            "status": "PASS",
+            "objects": 1,
+            "items": 1,
+            "triangles": 24,
+            "components": [
+              {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  10,
+                  10,
+                  5
+                ],
+                "volume": 500,
+                "triangles": 12
+              },
+              {
+                "min": [
+                  12,
+                  0,
+                  5
+                ],
+                "max": [
+                  22,
+                  10,
+                  10
+                ],
+                "volume": 500,
+                "triangles": 12
+              }
+            ]
+          }
+        }
+      ],
+      "artifactHashes": {
+        "face-contact": "5555fe6f3efb285c295cc1bd59690f4a5ce3adf217fd3581e6b06156568d0b60",
+        "edge-contact": "24a9ff9879613aa8b693b0450a66b17bfb4ce2299512b2422b8b12419a64ce74",
+        "separated": "0501f3d82ec78da11481510090f0276c4b2182ddc0654e7ed5a3d7d2542a671e"
+      }
+    },
+    "variant-regression": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 389,
+      "receiptSHA256": "ccb6457c4308cad41303c9e22b14f5e9b423d6445b51cfdaa8149dc3e9c72460",
+      "sourceManifestSHA256": "0f8cb531903a5a0ceba3aa0753f009fe2ff73b84de3d243754c1ecb9d37f41d6",
+      "independentReads": 3
+    }
+  }
+}

@@ -35,9 +35,14 @@ function lumpObjects(whole: ThreeMfObject, mesh: DisplayMesh, triangleColors: (s
     return { ...rest, name: lumpName(whole.name, k), positions: c.positions, indices: c.indices, ...(triangleColors ? { triangleColors: t.map(i => triangleColors[i]) } : {}) };
   });
 }
+interface VisibleThreeMfModel extends ThreeMfModel {
+  /** Notice-only counts for objects that each contain multiple separate native solids. */
+  readonly groupedSolids?: { readonly objects: number; readonly pieces: number };
+}
 /** The 3MF model of the parts' visible bodies (meshes as shown: placed instances' already in place). */
-export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], title: string): ThreeMfModel | string {
+export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], title: string): VisibleThreeMfModel | string {
   const objects: ThreeMfObject[] = [];
+  let groupedObjects = 0, groupedPieces = 0;
   for (const part of parts) for (const [bi, b] of part.bodies.entries()) {
     const look = part.looks?.[bi] ?? lookOf(part.doc, b);
     if (look.hidden) continue;
@@ -52,11 +57,16 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
     // (O8: a body whose lumps touch only along a line or at a point, an object a lump — welded by position, one object of
     // both has an edge of four faces. Named as the manufacturability warning names them. Lumps apart, one object as before.)
     if (b.lumpTouch?.length) objects.splice(objects.length - 1, 1, ...lumpObjects(objects[objects.length - 1], m, triangleColors));
+    else if (b.family === 'upright' && b.pieces && b.pieces > 1) {
+      groupedObjects++;
+      groupedPieces += b.pieces;
+    }
   }
   if (!objects.length) return 'there is no visible body to write';
   // (O9: the source revision the model was made from, in its metadata.)
   const source = revisionOf(doc);
-  if (!doc.print) return { title, objects, items: objects.map((o, k) => ({ object: k, name: o.name })), source };
+  const model = { title, objects, source, ...(groupedObjects ? { groupedSolids: { objects: groupedObjects, pieces: groupedPieces } } : {}) };
+  if (!doc.print) return { ...model, items: objects.map((o, k) => ({ object: k, name: o.name })) };
   // Turned so the print direction is up, its lowest point on the bed, centred on the printer's bed when chosen.
   const R = rotationToUp(doc.print.direction), lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const o of objects) {
@@ -66,5 +76,5 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
   const bed = printerProfile(doc.printer)?.buildVolume;
   const t = bed ? [bed[0] / 2 - (lo[0] + hi[0]) / 2, bed[1] / 2 - (lo[1] + hi[1]) / 2, -lo[2]] : [0, 0, -lo[2]];
   const transform = toThreeMfTransform(R, t);
-  return { title, objects, items: objects.map((o, k) => ({ object: k, transform, name: o.name })), source };
+  return { ...model, items: objects.map((o, k) => ({ object: k, transform, name: o.name })) };
 }
