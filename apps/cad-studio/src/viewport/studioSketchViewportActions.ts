@@ -10,6 +10,14 @@ import { opposingLengthConflict } from '../sketch/constraintList';
 import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
+const outlinePickIssues = {
+  dimension: 'Pick two points on the same outline to add a distance constraint.',
+  select: 'Select points on one outline at a time.',
+  inactive: 'Pick a point on the active outline.',
+};
+export const isOutlinePickIssue = (reason: string | undefined) =>
+  reason === outlinePickIssues.dimension || reason === outlinePickIssues.select || reason === outlinePickIssues.inactive;
+
 interface ReopenedSketchSource { source: SketchNode; recoveredLengths: WeakSet<Polygon> }
 
 interface SketchViewportInputs {
@@ -18,6 +26,7 @@ interface SketchViewportInputs {
   currentSketchSource(): ReopenedSketchSource | undefined;
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
   setSketchError(reason: string): void;
+  clearOutlinePickIssue(): void;
   setLengthConflict(reason: string, source: Polygon, edge: number): void;
   updateShape: SceneSketchActions['onSketchShape'];
   trimSketch: NonNullable<SceneSketchActions['onSketchTrim']>;
@@ -37,7 +46,7 @@ function canRecoverLength(sketch: SketchState | null, opened: ReopenedSketchSour
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */
-export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
+export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, clearOutlinePickIssue, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
   const applyDimension = (opened: ReopenedSketchSource | undefined, source: Polygon, key: string, value: number) => {
     const result = opened ? commitInlineDimension(source, key, value) : commitDimension(source, key, value);
     if (!result.ok) {
@@ -62,6 +71,20 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
     onSketchTrim: trimSketch,
     onSketchPick(hit, additive) {
       const source = liveShape.current;
+      if (hit?.kind === 'parked-outline-point') {
+        if (!sketch || source !== sketch.shape || !sketch.done?.includes(hit.outline)) return;
+        if (sketch.tool === 'dimension' && sketch.picked?.some(pick => pick.kind === 'point')) {
+          setSketchError(outlinePickIssues.dimension);
+          return;
+        }
+        if (sketch.tool === 'select' && additive && sketch.picked?.length) {
+          setSketchError(outlinePickIssues.select);
+          return;
+        }
+        setSketchError(outlinePickIssues.inactive);
+        return;
+      }
+      clearOutlinePickIssue();
       if (sketch?.tool === 'dimension' && hit?.kind === 'edge' && source === sketch.shape
         && source?.kind === 'polygon' && ellipseMatches(source)) {
         setSketchError('Edit Rx or Ry in the Ellipse section.');

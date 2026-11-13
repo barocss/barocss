@@ -20,6 +20,7 @@ import type { PathGapDraft } from '../sketch/usePathGap';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
+import type { SketchViewportPick } from './sketchOutlinePick';
 
 function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[]): boolean {
   let lo = 0, hi = 1;
@@ -40,7 +41,7 @@ function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[
 
 export interface SketchOverlayDraft {
   cursor: P2 | null;
-  hover?: SketchPick | null;
+  hover?: SketchViewportPick | null;
   bandHover?: number | null;
   snap?: SnapPoint | null;
   extension?: boolean;
@@ -237,12 +238,17 @@ export function drawSketchOverlay({
     }
     if (isSettled(s)) {
       const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, referenceAnchors, rail, done: sk.done,
-        project: P, picked: sk.picked ?? [], inspected, hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
+        project: P, picked: sk.picked ?? [], inspected, hover: picking && draft.hover?.kind !== 'parked-outline-point' ? draft.hover ?? null : null, editDim: sk.editDim,
         onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit });
       items.splice(underIndex, 0, ...marks.under);
       items.push(...marks.svg);
       editor = marks.html;
     }
+  }
+  const hover = draft.hover;
+  if (picking && hover?.kind === 'parked-outline-point' && sk.done?.includes(hover.outline)) {
+    const [cx, cy] = P(...hover.point);
+    items.push(<circle key="parked-outline-point" data-sketch-entity="point:parked" cx={cx} cy={cy} r={7} className="sk-pick-point hover" />);
   }
   // The Bézier tool's control points so far, and (from the second) the curve they make with the cursor as the next one.
   if (sk.tool === 'bezier' && bezierPoles.length) {

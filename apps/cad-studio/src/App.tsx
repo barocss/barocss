@@ -1,7 +1,7 @@
 import { viewportRecoveryToast } from './viewport/viewportRecovery';
 import { useSpecificationActions } from './state/useSpecificationActions';
 import { type SectionPick, useViewportPicking, type ViewportMenu } from './viewport/useViewportPicking';
-import { studioSketchViewportActions } from './viewport/studioSketchViewportActions';
+import { isOutlinePickIssue, studioSketchViewportActions } from './viewport/studioSketchViewportActions';
 import { sewPreviewDirect } from './viewport/sewPreviewDirect';
 import { useSectionState } from './viewport/useSectionState';
 import { useSectionEvaluation } from './viewport/useSectionEvaluation';
@@ -1753,6 +1753,7 @@ export function App() {
   };
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, setActiveOutline);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError,
+    clearOutlinePickIssue: () => setSketchIssue(issue => isOutlinePickIssue(issue?.reason) ? null : issue),
     setLengthConflict: (reason, source, edge) => setSketchIssue({ reason, conflict: { doc, source, edge } }), updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 

@@ -28,6 +28,7 @@ function commit(source: Polygon, sketch: SketchState | null, storedSketch?: Sket
     liveShape: { current: live }, sketch, currentSketchSource: () => drafts.length === 0 && storedSketch ? { source: storedSketch, recoveredLengths } : undefined,
     updateShape: shape => { shapes.push(shape); },
     setSketch: setter => { drafts.push(typeof setter === 'function' ? setter(sketch) : setter); },
+    clearOutlinePickIssue: () => undefined,
     setSketchError: reason => { errors.push(reason); }, setLengthConflict: reason => { errors.push(reason); }, trimSketch: () => undefined,
   });
   actions.onDimCommit?.('len2', value, source);

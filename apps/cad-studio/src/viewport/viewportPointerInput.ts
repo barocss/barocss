@@ -10,8 +10,7 @@ import { nearestSnap, shapeSnaps, type SnapPoint } from '@barocss/cad-model/sket
 import { currentModelSketchSnaps, modelSketchSnaps, type ModelSketchSnaps } from './modelSketchSnaps';
 import { rayOnPlane, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { bulgeThrough } from '@barocss/cad-model/sketch/profile';
-import { isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
-import { pickShapeAt, pickSketch } from '@barocss/cad-model/sketch/select';
+import { pickShapeAt } from '@barocss/cad-model/sketch/select';
 import { respline, splineEditError, splineOutline, type SplineDef } from '@barocss/cad-model/sketch/spline';
 import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -29,6 +28,7 @@ import type { PrintDisplay } from './printDisplay';
 import type { EdgeRef, FaceRef, SectionClip, ViewRenderer, ViewState } from './renderer';
 import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
+import { pickSketchViewport, type SketchViewportPick } from './sketchOutlinePick';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
 import { enabledObjectSnaps, type ObjectSnapKinds } from '../sketch/objectSnapKinds';
@@ -82,7 +82,7 @@ export interface ViewportPointerProps {
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; instance?: string; instanceFace?: FaceRef; instanceMesh?: BodyResult['mesh']; instanceCap?: { body: number } }): void;
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
-  onSketchPick?(hit: SketchPick | null, additive: boolean): void;
+  onSketchPick?(hit: SketchViewportPick | null, additive: boolean): void;
   /** Band tool clicks: the index (in done, then the current shape) of the closed shape under the pointer, or null. */
   onSketchBandPick?(index: number | null): void;
   /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
@@ -760,7 +760,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       if (sk.tool !== 'spline') splineFit.current = null;
       else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current, c], closed: false } }); }
       if (banding(sk)) sketchDraft.current.bandHover = pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y);
-      if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
+      if (picking(sk)) sketchDraft.current.hover = pickSketchViewport(sk, s, sketchProject(sk.plane), x, y);
       else if (sk.tool === 'carc') {
         const d = carc.current;
         if (d && c) {
@@ -911,7 +911,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       const c: [number, number] = target?.at ?? [snap(p[0]), snap(p[1])];
       if (guide?.stage === 'guide') snaps?.extension.consume(sk);
       const s = liveShape.current;
-      if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
+      if (picking(sk)) { propsRef.current.onSketchPick?.(pickSketchViewport(sk, s, sketchProject(sk.plane), x, y), e.shiftKey); return; }
       if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }
       if (cutting(sk)) {
         const input = propsRef.current.pathGap, gap = input?.read(sk);

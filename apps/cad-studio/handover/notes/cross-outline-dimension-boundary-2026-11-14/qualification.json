@@ -1,0 +1,48 @@
+{
+  "decision": "D1097",
+  "tier": "FEATURE",
+  "parent": "f17e6c69061a95cbeb5035688973e3eee5fdc557",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1097-cross-outline-dimension-<run>",
+    "D1097_SOURCE_FROZEN=1 node apps/cad-studio/test/cross-outline-dimension-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/viewport/{sketchOutlinePick,studioSketchViewportActions,viewportPointerInput}.ts apps/cad-studio/src/viewport/sketchOverlay.tsx",
+    "node --check apps/cad-studio/test/cross-outline-dimension-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 380,
+      "receiptSHA256": "645f52ea6e005b5aa630cb30266bdf6b2e00945f67a0bd69aeb4738ab394b462",
+      "sourceManifestSHA256": "a046ad77ecab0901e0de61aef3cd8158a88017141ce3d9745bcc2fe8411e0a6d",
+      "firstFailure": "The second point click on a separate outline produced no editor and no guidance."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 382,
+      "receiptSHA256": "61ce310f74ce297bfeb59ee2c192a010afa3b207a1ff4f67bc07ce583cac14dc",
+      "sourceManifestSHA256": "98f266da60972580141be62628d04ef671b3266f0decfda943a4e851bea7f26f"
+    }
+  },
+  "viewportCSS": [
+    1440,
+    1000
+  ],
+  "sameOutlineDistance": 15,
+  "crossOutlineDistanceConstraintsCreated": 0,
+  "intermediateStudioTypeCheck": {
+    "status": "FAIL",
+    "firstFailure": "The fixed triangle test harness needed the new outline-pick error callback."
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 35,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
