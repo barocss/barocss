@@ -1,0 +1,59 @@
+{
+  "decision": "D921",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e03e50f1beada4f431fcb8841f27a11fd37170a5",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D921-run>",
+    "D921_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/downstream02 --downstream",
+    "D870_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/healthy-regression --relink",
+    "cd packages/barocss-cad-model && node scripts/test.mjs associative-inset-relink sketch-associative-inset drawing-associative-sketch",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketch-edit-identity workOwnership",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "firstObserver": {
+    "status": "FAIL",
+    "reason": "Projected X was passed as a value without the corresponding browser callback parameter.",
+    "receiptSHA256": "584a62ad15de33b8d9404754a6b0cec84a6a27b4c585a48588ac5a69dcfa37ca"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 22,
+    "studioPass": 44,
+    "fail": 0,
+    "skipped": 0,
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "34b4cfaa7cf7d8f834bbe41749fb66cba22b97b616a1516e8b48ede39bd0f768"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "One valid stock face, 0.0625 mm\u00b2 resolved hole, 0.0998450600625 mm\u00b2 downstream area floor"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "1458bd05d4f624e4fdf6176c22e0af45a81f4fb33d908d130b1944e8e718cd0e",
+    "sourceManifestSHA256": "fed8f74a4b86dddfc976c01dece72500664a32d1a0d4c0b1e1d9385435cee7c5",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "holeAreaMM2": 0.0625,
+    "nativeFloorMM2": 0.0998450600625,
+    "nativeSourceVolumeMM3": 144.50000000001455,
+    "error": "n5: Extruded profile: The loop encloses no area",
+    "healthyRegressionSHA256": "fa09a794494ec9374e95122e88993fb0dcceafb45478c7a4cf31bf5a1e601a98"
+  },
+  "notRun": [
+    "nonaxial re-link",
+    "damaged-file repair",
+    "whole suites",
+    "mobile"
+  ]
+}

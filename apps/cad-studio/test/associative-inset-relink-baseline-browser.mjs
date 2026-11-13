@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const fixed = process.argv[3] === '--fixed';
-const relink = process.argv[3] === '--relink';
+const downstream = process.argv[3] === '--downstream';
+const relink = downstream || process.argv[3] === '--relink';
 const pins = [
   'apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -23,9 +24,10 @@ const pins = [
 ];
 const f = await createFlow({
   name: relink ? 'associative-inset-relink' : 'associative-inset-relink-baseline',
-  output: process.argv[2], envFrozen: relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
+  output: process.argv[2], envFrozen: downstream ? 'D921_SOURCE_FROZEN' : relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: relink ? 'Preview, replace and persist the earlier native source of one existing linked inset.'
+  qualification: downstream ? 'Refuse a resolved linked inset when its downstream native Extrude fails.'
+    : relink ? 'Preview, replace and persist the earlier native source of one existing linked inset.'
     : fixed ? 'Keep the working document during failed associative inset File and Project Open.'
     : 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
   limits: ['Two earlier axial native rectangular solids and one 2 mm linked inset.',
@@ -38,13 +40,30 @@ const f = await createFlow({
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { referencesOf } from '@barocss/cad-model/engine/references';
 import { resolveAssociativeSketch, toPartDocument } from '@barocss/cad-model/engine/part';
 const text = readFileSync(process.argv[2], 'utf8'), read = readStudioDoc(text);
 if ('error' in read) { console.log(JSON.stringify({ stage: 'read', error: read.error })); process.exit(0); }
 try {
-  const { doc } = read, sketch = resolveAssociativeSketch(doc, 4), outputs = evaluateCadPart(toPartDocument(doc)).outputs;
+  let { doc } = read;
+  if (process.argv[3] === '"downstream"') {
+    const source = evaluateCadPart(toPartDocument(doc)).outputs.find(output => output.id === 'n3');
+    const face = source?.brep.faces.find(face => face.name === 'n3.top');
+    if (!source || !checkOutput(source).valid || !face) throw new Error('The replacement source must be a valid native stock.');
+    const result = relinkAssociativeInset(doc, 4, { bodyKey:'b3', faceId:face.id, faceName:face.name });
+    const sketch = result.resolved;
+    try {
+      evaluateCadPart(toPartDocument(result.doc));
+      console.log(JSON.stringify({ stage:'resolved-and-extruded', sketch }));
+    } catch (error) {
+      console.log(JSON.stringify({ stage:'downstream-refused', sketch, sourceVolume:massPropertiesOf(source).volume,
+        error:error instanceof Error ? error.message : String(error) }));
+    }
+    process.exit(0);
+  }
+  const sketch = resolveAssociativeSketch(doc, 4), outputs = evaluateCadPart(toPartDocument(doc)).outputs;
   console.log(JSON.stringify({
     stage: 'accepted', sketch, sketchRefs: referencesOf(doc, true).refs.filter(ref => ref.node === 4),
     outputs: outputs.map(output => ({
@@ -60,9 +79,9 @@ try {
 const seed = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
   nodes: [
-    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 24], id: 'n0' },
+    { kind: 'sketch', profile: 'rectangle', min: downstream ? [9930, 0] : [0, 0], max: downstream ? [9970, 24] : [40, 24], id: 'n0' },
     { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
-    { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [160, 24], id: 'n2' },
+    { kind: 'sketch', profile: 'rectangle', min: downstream ? [9990, 0] : [100, 0], max: downstream ? [9994.25, 4.25] : [160, 24], id: 'n2' },
     { kind: 'extrude', sketch: 2, height: 8, id: 'n3' },
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
@@ -100,7 +119,7 @@ async function verify(label, doc, x, width, id, sourceIndex, bodyZ = 8) {
   const [a, b, ring] = read.outputs;
   assert.ok(read.outputs.every(body => body.valid));
   near(a.volume, 40 * 24 * 8);
-  near(b.volume, (sourceIndex === 3 ? width : 60) * 24 * bodyZ);
+  near(b.volume, (downstream ? 4.25 ** 2 : (sourceIndex === 3 ? width : 60) * 24) * bodyZ);
   const area = width * 24 - (width - 4) * 20;
   near(ring.volume, area * 4);
   near((await f.bodies()).bodies.find(body => body.key === 'b5').volume, area * 4);
@@ -109,6 +128,45 @@ async function verify(label, doc, x, width, id, sourceIndex, bodyZ = 8) {
   }
   f.report.observations.push({ label, area, ...read });
   return read;
+}
+
+async function verifyDownstreamRefusal(original) {
+  f.phase = 'Resolve the replacement profile before native Extrude refusal';
+  const outcome = await f.inspect('replacement-native-stage', original, 'downstream');
+  assert.equal(outcome.stage, 'downstream-refused', outcome.error);
+  assert.match(outcome.error, /loop encloses no area/i);
+  assert.deepEqual(outcome.sketch.association, association('n3', 3));
+  assert.deepEqual(outcome.sketch.on, firstSource);
+  near(outcome.sourceVolume, 4.25 ** 2 * 8);
+  const [hole] = outcome.sketch.holes;
+  assert.equal(hole.length, 4);
+  for (const [x, y] of [[9992, 2], [9992.25, 2], [9992.25, 2.25], [9992, 2.25]]) {
+    assert.ok(hole.some(segment => Math.hypot(segment.start[0] - x, segment.start[1] - y) < 1e-8));
+  }
+  f.report.observations.push({ label: 'resolved-before-extrude-refusal', holeAreaMm2: 0.0625, kernelAreaFloorMm2: 1e-9 * 9992.25 ** 2, ...outcome });
+  f.phase = 'Preview the same failed candidate in Studio';
+  await button(f.page.locator('.views'), 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.openFeatureEditor(5, 'linked ring');
+  const point = await f.page.evaluate(() => {
+    const xy = window.__studioScreenOf([9992.125, 2.125, 8]);
+    return xy && document.elementFromPoint(...xy)?.closest('canvas.vp-canvas') ? xy : null;
+  });
+  assert.ok(point);
+  await f.page.mouse.click(...point);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
+  const before = await f.snapshot('03-before-dependent-refusal');
+  await button(f.editor(), 'Replace inset source').click();
+  await f.waitToast(/loop encloses no area/i);
+  const review = f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
+  await review.waitFor({ state: 'hidden' });
+  unchanged(await f.snapshot('04-dependent-refusal'), before);
+  await f.dismissToasts();
+  await f.closeEditor();
+  await f.undo();
+  await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 5);
+  await f.redo();
+  await verify('native-redo-after-refusal', original, 9930, 40, 'n1', 1);
 }
 
 function holdWorkerReply(type) {
@@ -358,10 +416,10 @@ await f.run(async () => {
   f.phase = 'select the original top face and start the existing linked inset';
   await button(f.page.locator('.views'), 'Top').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
-  const p = await f.page.evaluate(() => {
-    const xy = window.__studioScreenOf([20, 12, 8]);
+  const p = await f.page.evaluate(x => {
+    const xy = window.__studioScreenOf([x, 12, 8]);
     return xy && document.elementFromPoint(...xy)?.closest('canvas.vp-canvas') ? xy : null;
-  });
+  }, downstream ? 9950 : 20);
   assert.ok(p);
   await f.page.mouse.click(...p);
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
@@ -378,8 +436,13 @@ await f.run(async () => {
   const applied = await f.applyExtrude({ distance: 4, previous: linked, label: '02-original-ring' });
   const original = applied.doc;
   assert.deepEqual(original.nodes[5], { kind: 'extrude', sketch: 4, height: 4, id: 'n5' });
-  await verify('native-original', original, 0, 40, 'n1', 1);
+  await verify('native-original', original, downstream ? 9930 : 0, 40, 'n1', 1);
 
+  if (downstream) {
+    await verifyDownstreamRefusal(original);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (relink) {
     await replaceSource(original);
     assert.deepEqual(f.report.downloads, []);
