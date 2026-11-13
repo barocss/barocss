@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const settingsEscape = process.argv[3] === '--settings-escape';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/SketchSnapControls.tsx',
@@ -12,7 +13,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/osnap.ts',
 ];
 const f = await createFlow({
-  name: 'object-snap-kinds', output: process.argv[2], envFrozen: 'D872_SOURCE_FROZEN',
+  name: 'object-snap-kinds', output: process.argv[2], envFrozen: settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Apply current session object-snap settings to the next sketch input with independent grid fallback.',
   limits: ['One XY rectangle and circle as native snap sources. Desktop Chrome WebGPU.'],
@@ -130,6 +131,7 @@ async function number(name, expected) {
 }
 
 async function cancel() {
+  await f.page.evaluate(() => document.activeElement?.blur());
   await f.page.keyboard.press('Escape');
   await f.sketchPanel().waitFor({ state: 'hidden' });
   await expectCue(null);
@@ -158,6 +160,44 @@ async function save(doc) {
   return bytes;
 }
 
+async function preserveCircleOnSettingsEscape() {
+  f.phase = 'close Object snaps from a focused toggle while preserving the Circle draft';
+  await begin('Circle', 'c', [[8, 8], [11, 8]]);
+  await f.worldClick([8, 8]);
+  await hover([11, 8], null);
+  await number('Centre X', 8);
+  await number('Centre Y', 8);
+  await number('Diameter', 6);
+  await kind('Centre').focus();
+  await f.snapshot('circle-before-settings-escape');
+  await f.page.keyboard.press('Escape');
+  assert.ok(await f.sketchPanel().isVisible(), 'Escape in Object snaps must keep Sketch open');
+  const summary = details().locator('summary');
+  assert.equal(await details().evaluate(element => element.open), false);
+  assert.ok(await summary.evaluate(element => element === document.activeElement));
+  await f.page.keyboard.press('Enter');
+  assert.equal(await details().evaluate(element => element.open), true);
+  await f.page.keyboard.down('Escape');
+  await f.page.keyboard.down('Escape');
+  await f.page.keyboard.up('Escape');
+  assert.ok(await f.sketchPanel().isVisible(), 'Escape on the focused Object snaps summary must keep Sketch open');
+  assert.equal(await details().evaluate(element => element.open), false);
+  await number('Centre X', 8);
+  await number('Centre Y', 8);
+  await number('Diameter', 6);
+  await f.same(source);
+  await f.snapshot('circle-after-settings-escape');
+  await f.worldClick([12, 8]);
+  const finished = (await f.finishSketch('circle-after-settings-finish')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 4), source.nodes);
+  assert.deepEqual(finished.nodes[4].center, [8, 8]);
+  assert.equal(finished.nodes[4].radius, 4);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -173,6 +213,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open(source);
+  if (settingsEscape) {
+    await preserveCircleOnSettingsEscape();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'keep the completed circle and filter a nearer disabled endpoint';
   await begin('Circle', 'c');

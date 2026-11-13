@@ -16,6 +16,14 @@ interface Props {
 export function SketchSnapControls({ twoPoint, extension, objectKinds, onToggleObjectKind, onExitObjectKinds }: Props) {
   return <>
     <details className="sk-object-snaps" data-sketch-dimension-focus
+      onKeyDown={event => {
+        if (event.key !== 'Escape' || event.nativeEvent.isComposing) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const details = event.currentTarget;
+        details.open = false;
+        details.querySelector('summary')?.focus();
+      }}
       onBlur={event => { if (!keepsDimensionDraft(event.relatedTarget)) onExitObjectKinds?.(); }}>
       <summary>Object snaps · {objectKinds.size}/{OBJECT_SNAP_KINDS.length}</summary>
       <div className="sk-object-snap-kinds" role="group" aria-label="Object snap kinds">

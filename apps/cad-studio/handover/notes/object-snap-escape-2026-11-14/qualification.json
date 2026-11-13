@@ -1,0 +1,63 @@
+{
+  "decision": "D1112",
+  "tier": "SMALL",
+  "parent": "4762c2d05102ba5ff510dd1638f61f8fe47b3f60",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1112-settings-escape-<run>",
+    "D1112_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/<run> --settings-escape",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/sketch/SketchSnapControls.tsx",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/settings-final",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 381,
+      "receiptSHA256": "c3f442c17e2ed2b8d8a157925b11da1f07399a3744712bbeab5688b49ae7d1c9",
+      "sourceManifestSHA256": "ce26ed562c4ad80f32984954f67332e9bb6208c79c63accde699293294055e96",
+      "savedFiles": [],
+      "firstFailure": "Escape from the focused Centre toggle closed Sketch while the Circle radius was still in progress."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "c5a339db1e9b90f2713eec71b3f2a4c66bd04b50e5144de84e021ef89ec2acdb",
+      "sourceManifestSHA256": "8d805bee08a41a3c57a4dfd7d2694ee8d6f3c39c1afc0277c66f985fc37be857",
+      "savedFiles": []
+    },
+    "settingsControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 381,
+      "receiptSHA256": "c1b30befa47c77fae880225b5fc65ad67f4ad8ff6bad6fd528d82096f561eaf1",
+      "sourceManifestSHA256": "8d805bee08a41a3c57a4dfd7d2694ee8d6f3c39c1afc0277c66f985fc37be857",
+      "savedFiles": []
+    }
+  },
+  "centreMM": [
+    8,
+    8
+  ],
+  "previewDiameterMM": 6,
+  "finishedRadiusMM": 4,
+  "desktopViewportCSS": [
+    1440,
+    1000
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}
