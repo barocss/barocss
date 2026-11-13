@@ -1,0 +1,66 @@
+{
+  "decision": "D1095",
+  "tier": "SMALL",
+  "parent": "20f5005bcee68816bba7e16cf56e8c1ed4cae4af",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1095-overlaid-label-hit-<run>",
+    "D1095_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/<run> --pick-at-label",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraints.test constraint-list",
+    "D1054_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-adjacent-dimensions-browser.mjs <external-evidence>/adjacent-regression",
+    "pnpm exec eslint apps/cad-studio/src/viewport/sketchOverlay.tsx",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 857,
+      "receiptSHA256": "939ac09b6c5b28c423178c81712741c3b8e94d2dafe7dcc79304828c6ff76c70",
+      "sourceManifestSHA256": "3a097e8a9b3f1ef2983516034bd4827160115fb0e93988e66f3e87183f6c722a",
+      "firstFailure": "The shared midpoint hits a reference label rect and leaves the edge unselected."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 857,
+      "receiptSHA256": "0bb75735acbf9f471deff7f496c7ce793a21e5791b0c745abdd39b7245cbf803",
+      "sourceManifestSHA256": "f1c0e345a15f4b5b9f203de65e8739232b8d9b146c78855c867879ffcb556a2d"
+    },
+    "adjacentRegression": {
+      "status": "PASS",
+      "receiptSHA256": "5b35d0674970a0bbd3d82714258435cb1020f7204954030278a17bee484c818c",
+      "sourceManifestSHA256": "1b3501cfcbe9eba6f64f800c40b5c2b7dd590b10d2a41217b37a61e55c80b538"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1024,
+      800
+    ],
+    "worldMm": [
+      14,
+      11
+    ],
+    "sharedPixel": [
+      310.0550155270488,
+      438.75033532545046
+    ],
+    "adjacentGapCssPx": 3.999981328739864,
+    "adjacentOverlapCssPx2": 0
+  },
+  "notRun": [
+    "general dense annotation layout",
+    "other viewport sizes and planes",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 30,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -21,6 +21,23 @@ import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
 
+function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[]): boolean {
+  let lo = 0, hi = 1;
+  const min = [box.x, box.y], max = [box.x + box.width, box.y + box.height];
+  for (let axis = 0; axis < 2; axis++) {
+    const delta = b[axis] - a[axis];
+    if (!delta) {
+      if (a[axis] < min[axis] || a[axis] > max[axis]) return false;
+      continue;
+    }
+    const enter = (min[axis] - a[axis]) / delta, exit = (max[axis] - a[axis]) / delta;
+    lo = Math.max(lo, Math.min(enter, exit));
+    hi = Math.min(hi, Math.max(enter, exit));
+    if (lo > hi) return false;
+  }
+  return true;
+}
+
 export interface SketchOverlayDraft {
   cursor: P2 | null;
   hover?: SketchPick | null;
@@ -102,15 +119,20 @@ export function drawSketchOverlay({
       onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); dimensions.onDimEdit?.(key); } }}>
       <rect {...box} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>;
   };
-  const lengthLabel = (x: number, y: number, text: string, key: string) => {
+  const lengthLabel = (x: number, y: number, text: string, key: string, points: readonly (readonly number[])[], shape: Polygon) => {
     const overlaps = (box: ScreenBox) => outlineLabels.some(other => box.x < other.x + other.width && other.x < box.x + box.width
       && box.y < other.y + other.height && other.y < box.y + box.height);
-    const above = labelBox(x, y - 20);
-    const moved = overlaps(labelBox(x, y + 20)) && above.y >= 0 && !overlaps(above);
-    const centerY = y + (moved ? -20 : 20);
-    if (moved) {
+    const blocked = (box: ScreenBox) => points.some((point, i) =>
+      !shape.bulges?.[i] && coversSegment(box, point, points[(i + 1) % points.length]));
+    const offsets = [20, -20, 44, -44, 68, -68];
+    const offset = offsets.find(offset => {
+      const box = labelBox(x, y + offset);
+      return box.y >= 0 && box.y + box.height <= h && !overlaps(box) && !blocked(box);
+    }) ?? 20;
+    const centerY = y + offset;
+    if (offset !== 20) {
       referenceAnchors.set(key, [x, centerY]);
-      items.push(<line key={key + '-leader'} x1={x} y1={y} x2={x} y2={centerY + 11} className="dim-ext" />);
+      items.push(<line key={key + '-leader'} x1={x} y1={y} x2={x} y2={centerY - Math.sign(offset) * 11} className="dim-ext" />);
     }
     return label(x, centerY, text, key);
   };
@@ -204,7 +226,7 @@ export function drawSketchOverlay({
       glyph(a, b, 'p' + i, i);
       if (s.closed && !s.pending && !driving.has('len' + i)) {
         const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
-        items.push(lengthLabel(m[0], m[1], fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i));
+        items.push(lengthLabel(m[0], m[1], fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i, pts, s));
       }
     }
     if (!s.closed && !s.pending && cur && n) {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const pickAtLabel = process.argv[3] === '--pick-at-label';
 const chooseEdge = process.argv[3] === '--choose-edge';
 const storedIdMode = process.argv[3] === '--stored-ids';
 const dragMode = process.argv[3] === '--spline-drag';
@@ -18,7 +19,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'overlaid-lines', output: process.argv[2], envFrozen: chooseEdge ? 'D1094_SOURCE_FROZEN' : dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'overlaid-lines', output: process.argv[2], envFrozen: pickAtLabel ? 'D1095_SOURCE_FROZEN' : chooseEdge ? 'D1094_SOURCE_FROZEN' : dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: dragMode ? 'Retire the scan on spline pointer-down and prevent scans until release or cancellation.'
     : storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
     : 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
@@ -246,7 +247,7 @@ await f.run(async () => {
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
   const empty = await f.doc();
-  if (chooseEdge) await f.page.setViewportSize({ width: 1024, height: 800 });
+  if (chooseEdge || pickAtLabel) await f.page.setViewportSize({ width: 1024, height: 800 });
   if (storedIdMode) { await checkStoredIds(empty); return; }
   await button(f.page.locator('.mode'), 'Sketch').click();
   await f.sketchPanel().waitFor();
@@ -278,6 +279,35 @@ await f.run(async () => {
   assert.deepEqual(await shapeGraphics(), graphics);
   assert.deepEqual(await controls(), original);
   await f.snapshot('01-two-original-directions');
+
+  if (pickAtLabel) {
+    const pixel = await f.screenOf([14, 11]);
+    const hit = await f.page.evaluate(([x, y]) => {
+      const node = document.elementFromPoint(x, y);
+      return { tag: node?.tagName, label: node?.closest('g.dim')?.textContent ?? null };
+    }, pixel);
+    f.report.observations.push({ label: 'shared-midpoint', pixel, hit });
+    f.phase = 'click the shared midpoint at the original zoom';
+    await f.page.mouse.click(...pixel);
+    await f.snapshot('02-click-shared-midpoint');
+    assert.match(await f.sketchPanel().locator('.cons-sel').innerText(), /Picked edge 4/);
+    await f.same(empty);
+    const length = f.page.locator('.dim:not(.driving)').filter({ hasText: /^10$/ });
+    const label = await length.evaluateAll(labels => labels.map(g => {
+      const r = g.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    }).find(at => document.elementFromPoint(at.x, at.y)?.closest('g.dim')?.textContent === '10'));
+    assert.ok(label);
+    await f.page.mouse.dblclick(label.x, label.y);
+    const input = f.page.locator('.dim-editor input');
+    await input.waitFor();
+    assert.equal(await input.inputValue(), '10');
+    await input.press('Escape');
+    await input.waitFor({ state: 'hidden' });
+    await f.same(empty);
+    await f.snapshot('03-label-remains-editable');
+    return;
+  }
 
   if (chooseEdge) {
     await first.press('Enter');
