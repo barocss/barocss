@@ -1,0 +1,55 @@
+{
+  "decision": "D1049",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "6675a65bde085b08c4287bf4fdc5cd854e3b536f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1049-window-verification01",
+    "D719_SOURCE_FROZEN=1 node apps/cad-studio/test/crossing-box-selection-browser.mjs <external-evidence>/crossing",
+    "D714_SOURCE_FROZEN=1 node apps/cad-studio/test/hidden-box-selection-browser.mjs <external-evidence>/hidden",
+    "D713_SOURCE_FROZEN=1 node apps/cad-studio/test/perspective-box-selection-browser.mjs <external-evidence>/perspective",
+    "pnpm --filter @barocss/cad-studio-app test box-crossing-selection box-selection-depth",
+    "git diff --check"
+  ],
+  "studio": {
+    "crossing": {
+      "status": "PASS",
+      "states": 22,
+      "receiptSHA256": "242d05156a16effddd1cfc7bd6daba3c60ee17477a21088bb4ae5a2f6c6f6662",
+      "sourceManifestSHA256": "6188dcf08ade1e64885cb47c4a055e2dbcf2e5dc1b3f08d539d410cbca006fcf",
+      "frozenFiles": 856,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    },
+    "hidden": {
+      "status": "PASS",
+      "states": 16,
+      "receiptSHA256": "4bfa865b2817d44b62574fae6415f1f38316743a5cdac633e32ad3b881a10011",
+      "sourceManifestSHA256": "1ec68436f8c60e523294d4b3bd74dadd07f37ca6c1c125a98066aaa9ead6499c",
+      "frozenFiles": 856,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    },
+    "perspective": {
+      "status": "PASS",
+      "states": 18,
+      "receiptSHA256": "6aa8c2bff92212e2a68c86099d9cdfb0a1d681539e6abf19f8cf792da07dda3f",
+      "sourceManifestSHA256": "f6c63f8ba9ded92d1cf7c92ac9d1c3a9b959828f54cf9b1ffa3443985c9eefbe",
+      "frozenFiles": 856,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0
+  }
+}
