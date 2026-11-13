@@ -850,7 +850,7 @@ export function App() {
   const referenceLabels = referenceLabelCache?.owner === referenceLabelOwner ? referenceLabelCache.labels : [];
 
   const { gpuSection, sectionExactShown, sectionBodies } = useSectionEvaluation({ section, sectionDragFrom, sectionDebug, sectionExact,
-    setSectionExact, evaluated, bodies, viewport, engine, revision, lanes });
+    setSectionExact, doc, evaluated, bodies, viewport, engine, revision, lanes });
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // A display-only commit does not rerun the main effect: release its reservation on the same exact input.

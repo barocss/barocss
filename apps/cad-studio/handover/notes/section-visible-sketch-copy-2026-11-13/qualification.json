@@ -1,0 +1,68 @@
+{
+  "decision": "D1011",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "1f8da2c0f2f1f9c9e32b4c93954822205d36a5ee",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1011-section-baseline02",
+    "gate.sh acquire heavy 600 D1011-section-studio01",
+    "D1011_SOURCE_FROZEN=1 node apps/cad-studio/test/section-visible-copy-browser.mjs <external-evidence>/baseline02",
+    "D1011_SOURCE_FROZEN=1 node apps/cad-studio/test/section-visible-copy-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1011-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test section-span section-planes section-view section-cutout section-hatch selection-edge",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/section-visible-copy-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Both original sources remained after b3 was hidden.",
+    "receiptSHA256": "286d0b56db3fdd314b4a1e82502a7e2323b0e767df0d65b9aa848594ba2a3b48",
+    "sourceManifestSHA256": "cbec55a7382105bb6eb4212bab032324e09623d4bdf867fa91e641f67b4aa3eb"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "97615b6f0d189fbffc95ecf2adf16956d6c4e6d663157195aaf4f827b5e0dfab",
+    "sourceManifestSHA256": "85bd7506a8c18e3741051241d17341cb1354f169b000327a08a75559ba4c2569",
+    "frozenFiles": 372,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sectionXMM": 25,
+    "volumeBeforeAndAfterHideMM3": [
+      9600,
+      3600
+    ],
+    "volumeToleranceMM3": 1e-07,
+    "copyOutlineMM": [
+      20,
+      12
+    ]
+  },
+  "setupRun": {
+    "status": "FAIL",
+    "reason": "The driver turned off the default hatch.",
+    "receiptSHA256": "dd58aff738fcad192e285aee949e8b05f6d13216c6c0a5de2d20846f28d06466"
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 25,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "drag and fallback transitions",
+    "placed instances",
+    "all-hidden input",
+    "Mate and Measure",
+    "face-derived position",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
