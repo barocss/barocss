@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D933 — verify section-trace hit testing after Project Open](notes/drawing-section-trace-project-reopen-2026-11-13/README.md).
 - [D932 — let a drawing dimension receive input through a section trace](notes/drawing-section-trace-dimension-hit-2026-11-13/README.md).
 - [D931 — keep pinned face measurements out of saved projects](notes/pinned-face-measure-project-session-2026-11-13/README.md).
 - [D930 — retain the pinned target identity through removal](notes/pinned-face-measure-target-removal-2026-11-13/README.md).

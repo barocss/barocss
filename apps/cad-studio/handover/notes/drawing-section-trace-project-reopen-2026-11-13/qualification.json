@@ -1,0 +1,54 @@
+{
+  "decision": "D933",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "0331ab03d6e440aee818b275f582916973b4c5c1",
+  "node": "22.19.0",
+  "issue": 2367,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D933-reopen",
+    "D933_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/run01 --reopen",
+    "gate.sh acquire heavy 600 D933-focused",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip project-open",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPass": 46,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "faad4b54b10e6a11dc22cafed5f35be4c69375c7a9d12fff3fcfbc8f08f764cb"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "f3341b14cb3f0966f294e84a824cb4ded5a1d56d741cb28423b0f5d1c6385d2b",
+    "sourceManifestSHA256": "92955a7fe596a75e174906ed26eb24fab70928afc061f8900d6174668741ec42",
+    "frozenFiles": 372,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "savedBytes": 1913,
+    "savedSHA256": "7c337ccfef1b4c5be77dba6500121ee834ec4905ddf4792437c06c2a376ec6a3",
+    "oldPlaceMM": [
+      10,
+      6
+    ],
+    "newPlaceMM": [
+      10.520002092633916,
+      14.428571428571423
+    ]
+  },
+  "notRun": [
+    "datum target",
+    "standalone frame",
+    "removed section and detail drag",
+    "multi-sheet identity",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

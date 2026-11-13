@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen'].includes(mode));
+const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
 const pins = [
   'apps/cad-studio/test/drawing-section-trace-hit-browser.mjs',
@@ -21,11 +22,14 @@ const source = {
     sheet: 'A3', scope: { kind: 'part' }, scale: 2, projection: 'third', hidden: true,
     section: { y: 6 }, title: 'Cutting plane and dimension',
     dimensions: [{ id: 'width', view: 'top', kind: 'linear', a: end(0), b: end(20),
-      orient: 'horizontal', place: [10, 6] }], views: ['front', 'top'],
+      orient: 'horizontal', place: [10, 6] },
+      ...(reopen ? [{ id: 'ordinary', view: 'front', kind: 'linear', a: end(0), b: end(20),
+        orient: 'horizontal', place: [10, 13] }] : [])], views: ['front', 'top'],
+    ...(reopen ? { notes: [{ id: 'n1', text: 'KEEP NOTE', at: [80, 75] }] } : {}),
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'drawing-section-trace-hit', output, envFrozen: reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: 'Select and drag the existing width dimension at the painted cutting-plane trace.',
   limits: ['One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
   snapshotExtra: () => ({
@@ -78,6 +82,77 @@ async function drag(pixel, offset) {
   await f.page.mouse.up();
 }
 
+async function reopenFlow() {
+  const project = 'D933 section trace', file = 'D932-section-hit.bcad';
+  const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  const mode = name => f.page.locator('.mode').getByRole('button', { name, exact: true });
+  const attach = async () => {
+    if (!(await versions().isVisible())) await button('Project and versions').click();
+    await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+    await versions().getByRole('button', { name: 'Project in this browser', exact: true }).click();
+    await versions().getByLabel('Project', { exact: true }).waitFor();
+  };
+
+  f.phase = 'save the overlap fixture to the real browser project';
+  await mode('Model').click();
+  await attach();
+  await button('Save').click();
+  await versions().getByRole('list', { name: 'Project documents', exact: true }).getByText(file, { exact: true }).waitFor();
+  const bytes = Buffer.from(await f.page.evaluate(async ([project, file]) => {
+    const root = await navigator.storage.getDirectory();
+    const projects = await root.getDirectoryHandle('projects');
+    const dir = await projects.getDirectoryHandle(project);
+    return Array.from(new Uint8Array(await (await (await dir.getFileHandle(file)).getFile()).arrayBuffer()));
+  }, [project, file]));
+  assert.deepEqual(JSON.parse(bytes), source);
+  f.report.observations.push({ label: 'project-save', bytes: bytes.length, sha256: sha256(bytes) });
+
+  f.phase = 'close and reload Studio, reopen the saved drawing';
+  await versions().getByRole('button', { name: 'Close project', exact: true }).click();
+  await f.page.reload();
+  await f.ready();
+  await attach();
+  await versions().getByRole('button', { name: 'Open ' + file, exact: true }).click();
+  await f.same(source);
+  await mode('Drawing').click();
+  await dimension().waitFor();
+  await trace().waitFor();
+  await cut().waitFor();
+  const before = await f.snapshot('01-project-reopened');
+
+  f.phase = 'keep ordinary dimension, Note and trace-only pan input';
+  const regular = sheet().locator('g.dimension[data-dim="ordinary"] text');
+  const note = sheet().locator('g.note[data-dim="n1"] text');
+  await regular.click();
+  assert.equal(await sheet().locator('g.dimension.sel[data-dim="ordinary"]').count(), 1);
+  await note.click();
+  assert.equal(await sheet().locator('g.note.sel[data-dim="n1"]').count(), 1);
+  const originalSite = await hitSites();
+  assert.ok(originalSite.traceOnly);
+  await drag(originalSite.traceOnly.pixel, [30, 20]);
+  assert.deepEqual(await f.doc(), source);
+  assert.notEqual(await sheet().getAttribute('viewBox'), before.box);
+  await button('Fit sheet').click();
+
+  f.phase = 'move the overlapped dimension from the saved position';
+  const overlap = (await hitSites()).overlap;
+  assert.ok(overlap);
+  await drag(overlap.pixel, [0, -32]);
+  await f.changed(source);
+  const moved = await f.snapshot('02-reopened-dimension-drag');
+  assert.equal(moved.box, before.box);
+  assert.deepEqual(moved.selected, ['width']);
+  const expected = structuredClone(source);
+  expected.drawing.dimensions[0].place = moved.doc.drawing.dimensions[0].place;
+  assert.notDeepEqual(expected.drawing.dimensions[0].place, source.drawing.dimensions[0].place);
+  assert.deepEqual(moved.doc, expected);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(expected);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -116,6 +191,7 @@ await f.run(async () => {
   await trace().waitFor();
   await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
+  if (reopen) { await reopenFlow(); return; }
   const before = await f.snapshot('01-drawing-before');
   f.phase = 'find the painted overlap and exercise actual pointer input';
   const site = await hitSites();
