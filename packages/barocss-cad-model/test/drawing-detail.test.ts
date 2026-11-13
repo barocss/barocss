@@ -77,6 +77,20 @@ test('a circular arc against a circle: the crossing at π/3 in closed form; an e
   assert.ok(near(pieces[0].t0, want[0], 1e-12) && near(pieces[0].t1, want[1], 1e-12) && near(pieces[1].t0, want[2], 1e-12) && near(pieces[1].t1, want[3], 1e-12));
 });
 
+test('a circular arc keeps positive spans and excludes a lone tangent point', () => {
+  const arc: Extract<ProjectedCurve, { kind: 'arc' }> = { kind: 'arc', center: [0, 0], u: [4, 0], v: [0, 4], t0: -Math.PI, t1: 0 };
+  assert.deepEqual(clipCurveToDisk(arc, [0, -6], 2), []);
+  assert.deepEqual(clipCurveToDisk(arc, [0, -6], 2 - 1e-8), []);
+  assert.deepEqual(clipCurveToDisk(arc, [0, -2], 2), []);
+  assert.deepEqual(clipCurveToDisk({ ...arc, t0: 0, t1: -Math.PI }, [0, -6], 2), []);
+  assert.deepEqual(clipCurveToDisk(arc, [0, -2], 6), [arc]);
+  assert.deepEqual(clipCurveToDisk(arc, [0, 0], 4), [arc]);
+  assert.deepEqual(clipCurveToDisk({ ...arc, v: [0, 4 + 1e-12] }, [0, 0], 4), []);
+  const radius = 2 + 1e-8, half = Math.acos((52 - radius * radius) / 48);
+  const [sliver] = clipCurveToDisk(arc, [0, -6], radius);
+  assert.ok(sliver?.kind === 'arc' && near(sliver.t0, -Math.PI / 2 - half, 1e-12) && near(sliver.t1, -Math.PI / 2 + half, 1e-12));
+});
+
 test('a polyline against a circle: its inside runs, each cut at the crossings', () => {
   // (In at x = −3 on y = 4, out at x = 3; again on y = −4: two runs.)
   const runs = clipCurveToDisk({ kind: 'polyline', points: [[-10, 4], [10, 4], [10, -4], [-10, -4]] }, [0, 0], 5);

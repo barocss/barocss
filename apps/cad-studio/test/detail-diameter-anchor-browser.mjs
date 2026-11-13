@@ -15,6 +15,7 @@ const deleted = variant === '--delete-source';
 const removalNotice = variant === '--removal-notice';
 const units = variant === '--units';
 const splitArc = variant === '--split-arc';
+const tangent = variant === '--tangent';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -30,6 +31,10 @@ if (splitArc) {
   drawing.details = [{ ...detail, center: [32, 18], radius: 5 }];
   drawing.dimensions = [{ ...diameter, place: [32 + 12 * Math.cos(-2.2), 16 + 12 * Math.sin(-2.2)] }];
 }
+if (tangent) {
+  drawing.details = [{ ...detail, center: [32, 10] }];
+  drawing.dimensions = [{ ...diameter, place: [44, 16] }];
+}
 if (units) drawing.dimensions = [
   { ...diameter, place: [24, 16] },
   control,
@@ -44,7 +49,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -60,6 +65,14 @@ ns = {'s': 'http://www.w3.org/2000/svg'}
 dim = root.find(".//s:g[@data-dim='%s']" % d.get('id','b-diameter'), ns)
 ink = root.find(".//s:g[@class='detail'][@data-view='detail:B']", ns)
 assert ink is not None
+if d.get('tangent'):
+    paths = [p.attrib['d'] for p in ink.findall("s:path[@stroke-width='0.5']", ns)]
+    assert dim is None and not paths
+    lines = d['dxf'].splitlines()
+    assert all(v.strip() != 'DIMENSION' for k,v in zip(lines[::2], lines[1::2]) if int(k) == 0)
+    assert math.dist((32,16),(32,10)) == 4+2
+    print(json.dumps({'status':'PASS', 'visiblePaths':paths, 'dimensionPresent':dim is not None}))
+    sys.exit(0)
 if d.get('hiddenOff') or d.get('deleted'):
     assert dim is None
     assert not any('A20 20 ' in p.attrib['d'] for p in ink.findall('s:path', ns))
@@ -185,7 +198,7 @@ await f.run(async () => {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.details?.length === 1);
     await f.ready();
     await button('Drawing').click();
-    await f.page.locator(covered || creation ? 'g.detail[data-view="detail:B"]' : locator).waitFor();
+    await f.page.locator(covered || creation || tangent ? 'g.detail[data-view="detail:B"]' : locator).waitFor();
   }
   if (creation) {
     f.phase = 'select the surviving arc and preview opposite-side placement';
@@ -264,6 +277,22 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (tangent) {
+    f.phase = 'open the exact point-contact-only crop';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const state = await f.snapshot('01-tangent-only');
+    assert.deepEqual(state.doc, original);
+    const resolved = state.drawing.dimensions.find(d => d.id === diameter.id);
+    assert.ok(resolved.lost);
+    assert.ok(state.drawing.issues.some(i => i.code === 'DIMENSION_LOST'));
+    assert.ok(state.drawing.issues.some(i => i.code === 'DETAIL_EMPTY'));
+    const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+    f.report.observations.push({ label: 'tangent-output', svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+    await f.runOracle({ svg, dxf, tangent: true }, 'tangent-output');
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (splitArc) {
     f.phase = 'open a Detail with two surviving intervals on one source edge';

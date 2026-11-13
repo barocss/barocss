@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D946 — reject a point-only contact when cropping an exact circular arc](notes/detail-circular-crop-tangency-2026-11-13/README.md).
 - [D945 — verify two surviving intervals on one Detail diameter source](notes/detail-diameter-split-source-arc-2026-11-13/README.md).
 - [D944 — verify Detail diameter attachment across drawing units](notes/detail-diameter-display-units-2026-11-13/README.md).
 - [D943 — retire the drawing-dimension removal notice after Undo](notes/drawing-dimension-removal-notice-2026-11-13/README.md).

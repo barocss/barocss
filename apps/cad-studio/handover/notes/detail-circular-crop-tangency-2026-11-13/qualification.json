@@ -1,0 +1,46 @@
+{
+  "decision": "D946",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "f9ddf74dfce541f756b30c6278648e41e32aba03",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D946-final-qualification",
+    "D946_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/tangent-fixed02 --fixed --tangent",
+    "D945_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/split-final --fixed --split-arc",
+    "cd packages/barocss-cad-model && node scripts/test.mjs drawing-detail drawing-issues drawing-linear-clearance tolerance dxf",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "parentModelPass": 21,
+    "parentModelFail": 1,
+    "parentModelLogSHA256": "1dfa1f065886252f46e2f1ae1fe2aa3260344bdd178d1677d7659b2dd660af10",
+    "modelStatus": "PASS",
+    "modelPass": 144,
+    "modelLogSHA256": "3db8b49ba7c9bc5c5a36871998506494cf030330f4ebfc1ce395925486f7d3ea",
+    "modelTypes": "PASS",
+    "studioTypes": "PASS",
+    "sourceReview": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "parentObserverFailureReceiptSHA256": "2c19f090030ee326e0e16ad73f785a9bf0638e688ed6ac3bfa203d66c2276f83",
+    "receiptSHA256": "50c1dce754916a729fbe3949585e1aebcd26e2ea54a74cab954787a50a48836e",
+    "splitArcRegressionReceiptSHA256": "bbda9595b93201601dc1713c53c5bbd8d1724cd3a5fe2af6c7ebbe6c7e1cd1c7",
+    "sourceManifestSHA256": "8256b47bdc067f395333e0dcbf7b1214e8aad2cfb3c5ab2bf5f892924b3b75b9",
+    "oracleSHA256": "e98bee871f8b8058caead8162cf3381044facf4b37689eced63b7f86030fd8b8",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 4957,
+    "svgSHA256": "e408baee2e60a1b2a35af500e4b0fd02cc636e48ba4160f133d3bba9ebbcde2a",
+    "dxfBytes": 13805,
+    "dxfSHA256": "f9150b54b2c92fb0c5b4786ea598188165871fd0adb497406dc6d0dc1931585b"
+  },
+  "notRun": ["exact mid-arc failure through native desktop projection", "production build", "full suites", "PDF", "mobile"]
+}

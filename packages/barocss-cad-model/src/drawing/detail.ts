@@ -60,16 +60,25 @@ const arcAt = (c: Extract<ProjectedCurve, { kind: 'arc' }>, t: number): XY => [c
 const distOut = (c: Extract<ProjectedCurve, { kind: 'arc' }>, t: number, o: readonly number[], r: number) => { const p = arcAt(c, t); return (p[0] - o[0]) ** 2 + (p[1] - o[1]) ** 2 - r * r; };
 /** An arc's samples when its roots are bracketed (an elliptic arc): enough that two crossings never share a step. */
 const ARC_SAMPLES = 720;
+function circularDiskEquation(c: Extract<ProjectedCurve, { kind: 'arc' }>, o: readonly number[], r: number) {
+  const uu = c.u[0] * c.u[0] + c.u[1] * c.u[1], vv = c.v[0] * c.v[0] + c.v[1] * c.v[1], uv = c.u[0] * c.v[0] + c.u[1] * c.v[1];
+  const tolerance = 1e-12 * Math.max(1, uu);
+  if (!(Math.abs(uu - vv) <= tolerance && Math.abs(uv) <= tolerance)) return null;
+  const wx = c.center[0] - o[0], wy = c.center[1] - o[1];
+  const A = 2 * (wx * c.u[0] + wy * c.u[1]), B = 2 * (wx * c.v[0] + wy * c.v[1]);
+  return { A, B, K: r * r - wx * wx - wy * wy - uu, R: Math.hypot(A, B), exact: uu === vv && uv === 0 };
+}
 /**
  * The parameters in (t0, t1) where an arc crosses the circle (o, r), sorted. A circular arc's in closed form
  * (A cos t + B sin t = K); an elliptic one's by sign changes over samples, each refined by bisection to the last bit.
  */
 export function arcCrossings(c: Extract<ProjectedCurve, { kind: 'arc' }>, o: readonly number[], r: number): number[] {
-  const uu = c.u[0] * c.u[0] + c.u[1] * c.u[1], vv = c.v[0] * c.v[0] + c.v[1] * c.v[1], uv = c.u[0] * c.v[0] + c.u[1] * c.v[1];
+  return crossingParameters(c, o, r, circularDiskEquation(c, o, r));
+}
+function crossingParameters(c: Extract<ProjectedCurve, { kind: 'arc' }>, o: readonly number[], r: number, circle: ReturnType<typeof circularDiskEquation>): number[] {
   const lo = Math.min(c.t0, c.t1), hi = Math.max(c.t0, c.t1), out: number[] = [];
-  if (Math.abs(uu - vv) <= 1e-12 * Math.max(1, uu) && Math.abs(uv) <= 1e-12 * Math.max(1, uu)) {
-    const wx = c.center[0] - o[0], wy = c.center[1] - o[1];
-    const A = 2 * (wx * c.u[0] + wy * c.u[1]), B = 2 * (wx * c.v[0] + wy * c.v[1]), K = r * r - wx * wx - wy * wy - uu, R = Math.hypot(A, B);
+  if (circle) {
+    const { A, B, K, R } = circle;
     if (R < EPS || Math.abs(K) >= R) return out;
     const phi = Math.atan2(B, A), a = Math.acos(K / R);
     for (const base of [phi + a, phi - a]) for (let k = Math.ceil((lo - base) / (2 * Math.PI)); base + 2 * Math.PI * k < hi; k++) { const t = base + 2 * Math.PI * k; if (t > lo) out.push(t); }
@@ -100,7 +109,14 @@ export function clipCurveToDisk(c: ProjectedCurve, o: readonly number[], r: numb
     return [{ kind: 'line', a: lerp(c.a, c.b, t[0]), b: lerp(c.a, c.b, t[1]) }];
   }
   if (c.kind === 'arc') {
-    const lo = Math.min(c.t0, c.t1), hi = Math.max(c.t0, c.t1), cuts = [lo, ...arcCrossings(c, o, r), hi], out: ProjectedCurve[] = [];
+    const lo = Math.min(c.t0, c.t1), hi = Math.max(c.t0, c.t1), circle = circularDiskEquation(c, o, r);
+    if (hi - lo <= 1e-12) return [];
+    if (circle?.exact) {
+      // A minimum on the crop boundary contributes a point, even when it is exactly at the arc midpoint.
+      if (circle.K >= circle.R) return [c];
+      if (circle.K <= -circle.R) return [];
+    }
+    const cuts = [lo, ...crossingParameters(c, o, r, circle), hi], out: ProjectedCurve[] = [];
     for (let k = 1; k < cuts.length; k++) {
       if (cuts[k] - cuts[k - 1] <= 1e-12) continue;
       if (distOut(c, (cuts[k - 1] + cuts[k]) / 2, o, r) > 0) continue;
