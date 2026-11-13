@@ -9,7 +9,7 @@ import { brepsFor } from '../src/engine/evaluate';
 import { starterDoc, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { layoutSheet, toSheet } from '../src/drawing/views';
-import { buildSheet, type Mark, type Sheet } from '../src/drawing/sheet';
+import { buildSheet, dimensionMarks, type Mark, type Sheet } from '../src/drawing/sheet';
 import { buildSheets } from '../src/drawing/sheetSet';
 import { arcCrossings, clipCurveToDisk, clipProjectionToDisk, clipRingsToDisk, detailScale, segmentInDisk } from '../src/drawing/detail';
 import { applyFix, drawingIssues, issueContext } from '../src/drawing/issues';
@@ -161,6 +161,23 @@ test('a detail of the top view: the Ø8 hole alone, a diameter dimension on it r
   // The issue list: clean of detail issues.
   const ctx = ctxFor(settings);
   assert.deepEqual(drawingIssues(ctx).filter(x => x.code.startsWith('DETAIL') || x.code === 'DIMENSION_LOST').map(x => x.code), []);
+});
+
+test('a clipped detail diameter uses the current label and the surviving source arc', () => {
+  const dim = { id: 'd1', view: 'detail:B', kind: 'diameter', edge: 'n1.top|n2.side0#1', near: [32, 16, 8], place: [24, 16] } as const;
+  const settings: DrawingSettings = { ...defaultDrawing(), sheet: 'A3',
+    details: [{ id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] }],
+    dimensions: [{ ...dim, near: [...dim.near], place: [...dim.place] }] };
+  const { sheet } = sheetOf(settings);
+  const [resolved] = sheet.dimensions, [detail] = sheet.details!;
+  assert.ok(resolved.ok && resolved.kind === 'diameter' && near(resolved.value, 8));
+  const heads = (marks: readonly Mark[]) => marks.flatMap(m => m.kind === 'fill' && m.head ? [m.head.tip] : []);
+  const [farTip] = heads(sheet.groups.find(g => g.role === 'dimension' && g.id === dim.id)!.marks);
+  assert.ok(near(farTip[0], 307.5) && near(Math.abs(farTip[1] - 85), 5 * Math.sqrt(15) / 2));
+  const onArc: [number, number] = [36, 16];
+  const moved = dimensionMarks(detail.placement, { ...resolved, dim: { ...resolved.dim, place: onArc } });
+  assert.deepEqual(heads(moved), [[310, 85]]);
+  assert.equal(moved.filter(m => m.kind === 'line' && m.role === 'leader').length, 1);
 });
 
 test('a detail of a section: the cut faces clipped and hatched; its parent removed, the detail is an issue with a fix that takes it and its dimensions away', () => {

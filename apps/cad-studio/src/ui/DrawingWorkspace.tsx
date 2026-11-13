@@ -788,7 +788,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         ? { id: 'preview', view: pending.view, kind: 'linear', a: pending.a, b: pending.b!, orient: orientFor(pointIn(R(pending.view), pending.a), pointIn(R(pending.view), pending.b!), at), place: at }
         : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
-      const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
+      const detail = settings.details?.find(detail => `detail:${detail.id}` === pending.view);
+      const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d, detail, !!(settings.hidden && detail && !isSectionRef(detail.view)));
       if (r.ok) { const preset = presetFor(settings); parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), withShownText(r, undefined, preset) as typeof r, preset))}</g>`); }
     } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
       for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
@@ -803,7 +804,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       }
     }
     return parts.join('');
-  }, [layout, views, bodies, hover, pending, tool]);
+  }, [layout, views, bodies, hover, pending, tool, settings]);
 
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {

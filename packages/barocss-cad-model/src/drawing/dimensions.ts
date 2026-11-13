@@ -6,6 +6,7 @@ import type { CentreRef, DimPoint, DimView, DrawingDimension, EdgeRef, Vec3, XY 
 import { dot } from '../engine/vec3';
 import { nextFreeId } from '../util/ids';
 import { formatNumber, type LengthFormat, type UnitPrecision } from './standard';
+import type { DrawingDetail } from './detail';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dist3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -105,7 +106,7 @@ const cross3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[1] * b[2
 /** `alt` (11 ③b): on a dual drawing, the same text in the other unit; the sheet sets it, resolving never does. */
 export type Resolved = (
   | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string; alt?: string }
-  | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string; alt?: string }
+  | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string; alt?: string; detailArcs?: readonly CircularArc[] }
   /** `vertex`: where the two lines meet; `from`/`to`: the sector's bounding directions (counter-clockwise from → to); `ends`: each edge's far end from the vertex. */
   | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string }
   /** A pitch circle (R14.5): `center` in the view, `center3` in the model, `radius` (mm), `members` in the view; `value` its diameter. */
@@ -163,7 +164,24 @@ export function angleBetween(a: [XY, XY], b: [XY, XY], place: XY): { vertex: XY;
   return { vertex: X, from: from.r, to: to.r, ends: [far(a), far(b)], degrees };
 }
 
-export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>, dim: DrawingDimension): Resolved {
+type CircularArc = Extract<ProjectedCurve, { kind: 'arc' }>;
+/** Nearest point to the current label on the selected edge's drawable, clipped circular pieces. */
+export function closestDetailRim(arcs: readonly CircularArc[], label: XY): XY | undefined {
+  const turn = 2 * Math.PI;
+  let best: XY | undefined, distance = Infinity;
+  for (const curve of arcs) {
+    const [dx, dy] = [label[0] - curve.center[0], label[1] - curve.center[1]];
+    const angle = Math.atan2(dx * curve.v[0] + dy * curve.v[1], dx * curve.u[0] + dy * curve.u[1]);
+    const lo = Math.min(curve.t0, curve.t1), hi = Math.max(curve.t0, curve.t1);
+    const lifted = angle + turn * Math.round(((lo + hi) / 2 - angle) / turn);
+    const t = Math.max(lo, Math.min(hi, lifted)), cos = Math.cos(t), sin = Math.sin(t);
+    const point: XY = [curve.center[0] + curve.u[0] * cos + curve.v[0] * sin, curve.center[1] + curve.u[1] * cos + curve.v[1] * sin];
+    const d = Math.hypot(label[0] - point[0], label[1] - point[1]);
+    if (d < distance - 1e-10) { best = point; distance = d; }
+  }
+  return best;
+}
+export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>, dim: DrawingDimension, detail?: Pick<DrawingDetail, 'center' | 'radius'>, showHidden = false): Resolved {
   const pr = views[dim.view];
   if (!pr) return { ok: false, dim, reason: `Its view (${dim.view}) is not on the sheet.` };
   if (dim.kind === 'angle') {
@@ -191,7 +209,20 @@ export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>
   if (!best?.circle) return { ok: false, dim, reason: 'The circle it measured is no longer in the part.' };
   if (!roundIn(pr, best)) return { ok: false, dim, reason: 'The circle no longer shows round in this view.' };
   const r = best.circle.radius, value = dim.kind === 'diameter' ? 2 * r : r;
-  return { ok: true, kind: dim.kind, dim, center: inView(pr, best.circle.center), radius: r, value, text: valueText({ kind: dim.kind, value }, fmtMM) };
+  const center = inView(pr, best.circle.center);
+  let detailArcs: CircularArc[] | undefined;
+  if (dim.kind === 'diameter' && detail && Math.hypot(center[0] - detail.center[0], center[1] - detail.center[1]) + r > detail.radius + 1e-9) {
+    detailArcs = [];
+    const radius2 = r * r, tolerance = 1e-10 * radius2;
+    for (const { curve, visible } of best.pieces) {
+      if (curve.kind !== 'arc' || (!visible && !showHidden)) continue;
+      const [ux, uy] = curve.u, [vx, vy] = curve.v;
+      if (Math.abs(ux * ux + uy * uy - radius2) <= tolerance && Math.abs(vx * vx + vy * vy - radius2) <= tolerance
+        && Math.abs(ux * vx + uy * vy) <= tolerance) detailArcs.push(curve);
+    }
+    if (!detailArcs.length) return { ok: false, dim, reason: 'No drawable circular arc of the referenced edge remains in this detail.' };
+  }
+  return { ok: true, kind: dim.kind, dim, center, radius: r, value, text: valueText({ kind: dim.kind, value }, fmtMM), ...(detailArcs ? { detailArcs } : {}) };
 }
 
 /**

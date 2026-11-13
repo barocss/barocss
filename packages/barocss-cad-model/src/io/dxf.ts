@@ -6,7 +6,7 @@
 import { writeDxf, type BrepProjection, type DxfDocument, type DxfEntity, type DxfLayer, type DxfVersion, type DxfWriteResult, type DxfXY, type ProjectedCurve } from '@barocss/cad';
 import { dimensionLine, hatchGroups, placementOf, type Mark, type MarkGroup, type Pen, type Sheet } from '../drawing/sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from '../drawing/views';
-import type { Resolved } from '../drawing/dimensions';
+import { closestDetailRim, type Resolved } from '../drawing/dimensions';
 import { presetFor, type StandardPreset } from '../drawing/standard';
 import type { XY } from '../drawing/types';
 
@@ -119,8 +119,11 @@ function dimensionEntity(r: Extract<Resolved, { ok: true }>, v: ViewPlacement, g
     geometry = { kind: 'angular', line1: [X, [X[0] + f[0] * R, X[1] + f[1] * R]], line2: [X, [X[0] + r.to[0] * R, X[1] + r.to[1] * R]], arc: [X[0] + mid[0] * R, X[1] + mid[1] * R] };
   } else {
     const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace: XY = [place[0] - C[0], place[1] - C[1]], e = Math.hypot(toPlace[0], toPlace[1]) > 1e-9 ? unit(toPlace) : [1, 0] as XY;
-    const rim = up(H, [C[0] + e[0] * R, C[1] + e[1] * R]);
-    geometry = r.kind === 'diameter' ? { kind: 'diameter', rim, opposite: up(H, [C[0] - e[0] * R, C[1] - e[1] * R]) } : { kind: 'radius', center: up(H, C), rim };
+    const detailRim = r.kind === 'diameter' && r.detailArcs && closestDetailRim(r.detailArcs, r.dim.place);
+    const tip = detailRim ? toSheet(v, detailRim) : [C[0] + e[0] * R, C[1] + e[1] * R] as XY;
+    const rim = up(H, tip);
+    const opposite = detailRim ? up(H, [2 * C[0] - tip[0], 2 * C[1] - tip[1]]) : up(H, [C[0] - e[0] * R, C[1] - e[1] * R]);
+    geometry = r.kind === 'diameter' ? { kind: 'diameter', rim, opposite } : { kind: 'radius', center: up(H, C), rim };
   }
   return { type: 'dimension', geometry, block, text, textAt, measurement: r.value, layer: 'DIMENSIONS' };
 }

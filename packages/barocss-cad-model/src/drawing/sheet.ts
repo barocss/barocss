@@ -9,7 +9,7 @@ import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
 import type { Bom } from '../bom/core';
 import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import { fmtMM, resolveDimension, resolveLine, valueText, type Resolved } from './dimensions';
+import { closestDetailRim, fmtMM, resolveDimension, resolveLine, valueText, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
@@ -627,7 +627,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     const ref: DetailRef = `detail:${d.id}`;
     groups.push({ role: 'detail', id: d.id, view: ref, marks });
     for (const dim of settings.dimensions) if (dim.view === ref) {
-      const r = resolveDimension({ [ref]: projection }, dim), shown = r.ok ? withShownText(r, callout, p) : r;
+      const r = resolveDimension({ [ref]: projection }, dim, d, showHidden), shown = r.ok ? withShownText(r, callout, p) : r;
       resolved.set(dim.id, shown);
       if (!shown.ok) continue;
       const dm = dimensionMarks(placement, shown, p); if (dim.basic) dm.push(...basicBox(dm));
@@ -1040,13 +1040,16 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     return marks;
   }
   const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
-  const e = dist > 1e-9 ? unit(toPlace) : [1, 0] as XY, rim = add(C, e, R);
-  if (dist > R + 1) {
+  const detailRim = r.detailArcs && closestDetailRim(r.detailArcs, r.dim.place);
+  const e = dist > 1e-9 ? unit(toPlace) : [1, 0] as XY, rim = detailRim ? toSheet(v, detailRim) : add(C, e, R);
+  if (dist > R + 1 || detailRim) {
     // A leader from the rim out to the text, with a short shoulder.
     const start = r.kind === 'radius' ? C : rim;
-    marks.push({ kind: 'line', a: start, b: place, pen: 'thin', role: 'leader' });
-    marks.push(r.kind === 'radius' ? arrow(rim, e, p) : arrow(rim, [-e[0], -e[1]], p));
     const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
+    const hasLead = !detailRim || Math.hypot(...sub(rim, place)) > 1e-9;
+    if (hasLead) marks.push({ kind: 'line', a: start, b: place, pen: 'thin', role: 'leader' });
+    const towardRim: XY = detailRim ? sub(rim, hasLead ? place : shoulder) : [-e[0], -e[1]];
+    marks.push(r.kind === 'radius' ? arrow(rim, e, p) : arrow(rim, towardRim, p));
     marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin', role: 'leader' });
     marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol, '', p, r.alt, r.value));
     if (r.kind === 'radius') marks.push(dot(C));
