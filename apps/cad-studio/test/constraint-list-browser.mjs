@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const removalFocus = process.argv[3] === '--removal-focus';
 const pins = [
   'apps/cad-studio/test/constraint-list-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -12,7 +13,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -26,6 +27,13 @@ import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+if (input.narrow) {
+  const profile = profileOf([{ kind: 'polygon', closed: true, points: [[0,0],[40,0],[40,20],[0,20]],
+    hv: { h: [0,2], v: [1,3] }, lengths: { 0: 40, 1: 20, 2: 40 } }]);
+  assert.ok('node' in profile);
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 2 })));
+  process.exit(0);
+}
 if (input.format) {
   const [body] = evaluateCadPart(toPartDocument(input)).outputs;
   const mass = massPropertiesOf(body);
@@ -58,6 +66,7 @@ if (input.format) {
     solver: document.querySelector('.sk-panel .solver')?.textContent ?? null,
     kind: document.querySelector('[aria-label="Constraint kind"]')?.value ?? null,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
+    focus: document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.tagName,
     controls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
   }),
 });
@@ -159,6 +168,46 @@ await f.run(async () => {
     });
     return context;
   };
+  if (removalFocus) {
+    const source = await f.inspect('source', { narrow: true });
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    await open(source);
+    await native('source-native', source);
+    await edit(1);
+    await f.tool('Select', 's');
+    await f.frame([[20, 20], [20, 0]]);
+    await kind().selectOption('Length');
+    await pickedOnly().check();
+    await f.worldClick([20, 20]);
+    await show(['len:2'], 8);
+    const removeUpper = remove('Length edge 3 = 40');
+    await row('len:2').focus();
+    await f.page.keyboard.press('Tab');
+    assert.equal(await removeUpper.evaluate(el => el === document.activeElement), true);
+    const before = await f.snapshot('01-before-keyboard-removal');
+    f.phase = 'return focus to the filters after keyboard removal';
+    await f.page.keyboard.press('Enter');
+    await show([], 7);
+    const after = await f.snapshot('02-after-keyboard-removal');
+    assert.equal(after.focus, 'Constraint kind');
+    assert.deepEqual(after.doc, before.doc);
+    assert.deepEqual(after.history, before.history);
+    assert.deepEqual(after.bodies, before.bodies);
+    assert.equal(after.kind, 'Length');
+    assert.equal(await pickedOnly().isChecked(), true);
+    await f.page.keyboard.press('Tab');
+    assert.equal(await pickedOnly().evaluate(el => el === document.activeElement), true);
+    await f.page.keyboard.press('Space');
+    await show(['len:0', 'len:1'], 7);
+    await f.undo();
+    await show(['len:0', 'len:1', 'len:2'], 8);
+    await f.redo();
+    await show(['len:0', 'len:1'], 7);
+    await cancel();
+    await f.same(source);
+    return;
+  }
   const source = await f.inspect('source', {});
   assert.deepEqual(source.nodes.map(node => node.id), ['n0', 'n1', 'n2', 'n3']);
   f.report.observations.push({ label: 'source', sha256: sha256(Buffer.from(JSON.stringify(source))) });

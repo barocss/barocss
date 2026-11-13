@@ -1,0 +1,59 @@
+{
+  "decision": "D1086",
+  "tier": "SMALL",
+  "parent": "cbcba8c157e569ab5a457605edbeca38ef91456a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1086-constraint-removal-focus-<run>",
+    "D1086_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --removal-focus",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraint-inspection",
+    "pnpm exec eslint apps/cad-studio/src/ui/ConstraintList.tsx",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 857,
+      "receiptSHA256": "9d4169cacb529b6a512c63ffb9d5b47de83e5b8224d708fb7d2269f54c978fc6",
+      "sourceManifestSHA256": "2c7212eaa6a49dcd32a2bc511dfb21f15e0b781a854c84d04fbc9351d2995a21",
+      "firstFailure": "Pressing Enter on Remove Length edge 3 sends focus to BODY after the row disappears."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 857,
+      "receiptSHA256": "599cbabd40e497648fb943ae520eb04c4d65eddd384cb8d013cc9a1be6ed0026",
+      "sourceManifestSHA256": "9a81307b65dcea8df47a6a4135423b1ce55c94146e92f50f57f2308297e7d274"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1024,
+      800
+    ],
+    "beforeRows": [
+      1,
+      8
+    ],
+    "afterRows": [
+      0,
+      7
+    ],
+    "nativeVolumeMm3": 1600
+  },
+  "notRun": [
+    "Picked only selection across Undo",
+    "other widths",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 4,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NativeSelect } from '@/components/ui/native-select';
 import { removeConstraint, type ConstraintEntry, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
@@ -29,6 +29,7 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
   onShape(shape: Polygon): void;
   onEditDim(key: string | null): void;
 }) {
+  const kindControl = useRef<HTMLSelectElement>(null);
   const [stored, setFilters] = useState(() => initialFilters(documentScope, owner));
   const inScope = stored.document === documentScope && stored.plane === owner.plane
     && stored.editNode === owner.editNode && stored.mainIds === owner.mainIds;
@@ -65,7 +66,7 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
         if (undo) event.preventDefault();
         if (undo || event.key === 'Enter' || event.key === 'Escape' || event.key === ' ') event.stopPropagation();
       }}>
-      <label className={FIELD}><span>Kind</span><NativeSelect className={CONTROL} aria-label="Constraint kind" value={kind}
+      <label className={FIELD}><span>Kind</span><NativeSelect ref={kindControl} className={CONTROL} aria-label="Constraint kind" value={kind}
         onChange={event => setFilters({ ...filters, kind: event.target.value })}>
         <option value="">All kinds</option>
         {kinds.map(label => <option key={label}>{label}</option>)}
@@ -91,7 +92,11 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
           <div className="kv">{row.label}<b>{row.detail}</b></div>
           <button type="button" data-sketch-action className={'x' + (row.removable ? '' : ' off')} disabled={!row.removable}
             aria-label={`Remove ${row.label} ${row.detail}`} title={row.removable ? 'Remove this constraint' : undefined}
-            onClick={() => onShape(removeConstraint(shape, row.id))}>×</button>
+            onClick={event => {
+              // Keyboard activation can remove the focused control from the list.
+              if (event.detail === 0) kindControl.current?.focus();
+              onShape(removeConstraint(shape, row.id));
+            }}>×</button>
         </div>;
       })}
     </div>
