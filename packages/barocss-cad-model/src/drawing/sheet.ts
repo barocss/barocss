@@ -453,6 +453,20 @@ function placeShortLinearText(groups: MarkGroup[], dimensions: readonly Resolved
       if (i !== 0 && !connector) continue;
       best = candidate; bestConnector = connector; bestDistance = squared;
     }
+    // A basic box can be trapped between adjacent rulers on its usual side. Try the other side at
+    // the same station, while keeping the dimension line, arrowheads and extension lines fixed.
+    if (!best && r.dim.basic && r.dim.auto && r.dim.orient === 'vertical' && !payload.groups.length
+      && settings.standard === undefined && settings.units === undefined && !settings.dual && settings.precision === undefined
+      && dot2(textUp(axis), outward) > 0) {
+      const rulerLine = payload.fixed.find(mark => mark.kind === 'line' && mark.role === 'dimension')!;
+      const frame = payload.marks.find(mark => mark.kind === 'polyline')!;
+      const ownRulerClash = labelPolygonsOverlap(labelPolygon(frame), labelPolygon(rulerLine));
+      const opposite: XY = [-outward[0], -outward[1]];
+      const ruler = joinedLabelRect([...heads, rulerLine]);
+      const amount = labelProjection(ruler, opposite)[1] + normalClear - labelProjection(payload.box, opposite)[0];
+      const alternate: XY = [opposite[0] * amount, opposite[1] * amount];
+      if (ownRulerClash && amount > 0 && !labelBlocked(shiftedLabelRect(payload.box, alternate), relevant, layout.frame, true)) best = alternate;
+    }
     if (best) { commitLabelTranslation(payload, best); if (bestConnector) payload.own.marks.push(bestConnector); }
   }
 }

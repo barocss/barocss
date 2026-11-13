@@ -1,0 +1,128 @@
+import assert from 'node:assert/strict';
+import { join } from 'node:path';
+import { createFlow, sha256 } from './flow-helper.mjs';
+
+const [output, mode] = process.argv.slice(2);
+assert.ok(['--baseline', '--fixed'].includes(mode));
+const baseline = mode === '--baseline';
+const sample = 'packages/barocss-cad-model/samples/rows/fastener-sizes.json';
+const pins = [
+  'apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs',
+  'apps/cad-studio/src/ui/DrawingWorkspace.tsx',
+  'packages/barocss-cad-model/test/chat-drawing.test.ts',
+  'packages/barocss-cad-model/src/chat/drawing.ts',
+  'packages/barocss-cad-model/src/drawing/issues.ts',
+  'packages/barocss-cad-model/src/drawing/sheet.ts', sample,
+];
+const f = await createFlow({
+  name: 'drawing-tolerance-overlap', output, envFrozen: 'D934_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: 'Open the accepted chat-drawing tolerance proposal and inspect its actual drawing warning.',
+  oracleSource: `
+import json, math, sys
+d = json.load(sys.stdin)
+marks = d['target']['marks']
+[line] = [m for m in marks if m.get('role') == 'dimension']
+[frame] = [m for m in marks if m.get('role') == 'frame']
+[line_x, line_y] = line['a']
+assert line['b'][0] == line_x
+assert math.isclose(abs(line_y - line['b'][1]), 12, abs_tol=1e-8)
+xs, ys = zip(*frame['points'])
+assert math.isclose(max(xs) - min(xs), 5.17, abs_tol=1e-8)
+assert math.isclose((min(ys) + max(ys))/2, (line_y + line['b'][1])/2, abs_tol=1e-8)
+assert math.isclose(line_x, d['layout']['views']['top']['box'][0] - 10, abs_tol=1e-8)
+half_stroke = 0.125
+if d['baseline']:
+    assert min(xs) < line_x < max(xs)
+else:
+    [lower_head, upper_head] = [m for m in marks if m.get('head')]
+    head_x = max(p[0] for m in [lower_head, upper_head] for p in m['points'])
+    assert min(xs) - half_stroke - head_x >= 1.2 - 1e-8
+    assert d['layout']['views']['top']['box'][0] - max(xs) - half_stroke >= 1.2 - 1e-8
+print(json.dumps({'status':'PASS', 'rulerX':line_x, 'rulerLength':12, 'boxX':[min(xs), max(xs)]}))
+`,
+  limits: ['The exact existing 100 × 40 × 10 mm plate, four-hole pattern and local fastener-size fixture.'],
+  inspectorSource: `
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { acceptProposal, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { drawingInputs } from '@barocss/cad-model/chat/drawing';
+import { loadPersonRows } from '@barocss/cad-model/chat/rows';
+import { drawingIssues, issueContext, textBox } from '@barocss/cad-model/drawing/issues';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
+
+const rowPath = JSON.parse(process.argv[3]);
+const files = receivePersonRowFiles('0123456789abcdef01234567', [{ name: 'fastener-sizes.json', text: readFileSync(rowPath, 'utf8'), turn: 1 }], 1);
+const loaded = loadPersonRows(withNode(rectanglePart(100, 40, 10), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [20, 12], radius: 3.3,
+  pattern: { count: 4, step: [20, 0] } }), 'fastener-sizes', files.files[0].id, undefined, files);
+assert.ok('doc' in loaded);
+const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
+const result = await evaluate(loaded.doc);
+assert.ok(result.ok);
+const state: ChatState = { doc: loaded.doc, bodies: result.bodies };
+const proposal = await runTool(state, 'propose', { title: 'Drawing: dimensions and tolerances', plan: 'Auto layout and dimensions, then geometric tolerancing.',
+  ops: [{ tool: 'auto_dimension', args: {} }, { tool: 'accept_tolerances', args: { mode: 'geometric' } }] }, evaluate);
+assert.ok(!proposal.isError && !proposal.state.doc.drawing);
+const accepted = await acceptProposal(proposal.state, 'P1', evaluate);
+assert.ok(!('error' in accepted));
+const doc = accepted.state.doc, input = drawingInputs(doc);
+assert.ok(typeof input !== 'string');
+const ctx = issueContext(input);
+const issues = drawingIssues(ctx);
+const group = ctx.sheet.groups.find(g => g.role === 'dimension' && g.marks.some(m => m.kind === 'text' && m.text === '12'));
+assert.ok(group);
+const texts = group.marks.filter(m => m.kind === 'text').map(mark => ({ mark, box: textBox(mark) }));
+console.log(JSON.stringify({ doc, issues, target: group, texts, groups: ctx.sheet.groups, layout: ctx.layout }));
+`,
+  snapshotExtra: () => ({
+    drawing: window.__studioDrawing?.() ?? null,
+    issues: [...document.querySelectorAll('.dw-issue')].map(node => node.textContent),
+  }),
+});
+
+const button = name => f.page.getByRole('button', { name, exact: true });
+await f.run(async () => {
+  const origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  const newContext = f.browser.newContext.bind(f.browser);
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    context.setDefaultTimeout(10000);
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
+    });
+    return context;
+  };
+  f.phase = 'build the existing local approved drawing fixture';
+  const native = await f.inspect('approved-proposal', {}, join(f.repo, sample));
+  assert.equal(native.target.view, 'top');
+  const dimension = native.doc.drawing.dimensions.find(d => d.id === native.target.id);
+  assert.equal(dimension.basic, true);
+  assert.deepEqual(dimension.place, [-10, 6]);
+  assert.equal(dimension.tol, undefined);
+  await f.runOracle({ target: native.target, layout: native.layout, baseline }, 'paper-mm-clearance');
+  const issue = native.issues.find(item => item.code === 'TEXT_OVER_LINES' && item.dims?.includes(native.target.id));
+  assert.equal(!!issue, baseline);
+  const seed = Buffer.from(JSON.stringify(native.doc));
+  f.report.observations.push({ label: 'exact-approval', sha256: sha256(seed), bytes: seed.length, dimensionId: native.target.id, issue: issue ?? null });
+
+  await f.newPage();
+  f.phase = 'open the accepted drawing and compare current desktop diagnostics';
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: 'D934-approved-drawing.bcad', mimeType: 'application/json', buffer: seed });
+  await f.page.waitForFunction(() => window.__studioDoc?.nodes?.length === 3);
+  await f.ready();
+  const current = await f.doc();
+  assert.deepEqual(current.nodes, native.doc.nodes);
+  assert.deepEqual(current.drawing, native.doc.drawing);
+  await button('Drawing').click();
+  await f.page.waitForFunction(id => window.__studioDrawing?.()?.dimensions.some(d => d.id === id), native.target.id);
+  const snapshot = await f.snapshot(baseline ? '01-warning-baseline' : '01-current-drawing');
+  assert.equal(snapshot.issues.some(text => text.includes('The text of dimension 12 lies over lines of the drawing.')), baseline);
+  const rendered = await f.page.locator(`g.dimension[data-dim="${native.target.id}"]`).textContent();
+  assert.match(rendered, /12/);
+  assert.equal(snapshot.doc.drawing.frames[0].value, 0.6);
+  assert.deepEqual(f.report.downloads, []);
+});

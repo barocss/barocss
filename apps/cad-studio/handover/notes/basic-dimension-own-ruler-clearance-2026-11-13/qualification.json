@@ -1,0 +1,75 @@
+{
+  "decision": "D934",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4c000a5d27a95fb96109fd1363e0bdd92859a4fe",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D934-qualification",
+    "D934_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs <external-evidence>/baseline01 --baseline",
+    "D934_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs <external-evidence>/fixed03 --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs chat-drawing drawing-linear-clearance drawing-issues tolerance",
+    "bundle tolerance.test.ts with exact parent sheet.ts using an esbuild onLoad override; run node --test on the external bundle",
+    "cd packages/barocss-cad-model && node scripts/test.mjs chat-drawing drawing-linear-clearance drawing-issues",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 75,
+    "studioPass": 4,
+    "modelTypes": "PASS",
+    "studioTypes": "PASS",
+    "logSHA256": "82e426c6b69c0bc22b6988df4a00d506d40c0a3911fd1b1b6f71ec56daba2e3d"
+  },
+  "expanded": {
+    "status": "FAIL",
+    "currentPass": 89,
+    "currentFail": 3,
+    "parentTolerancePass": 6,
+    "parentToleranceFail": 4,
+    "remaining": [
+      "r14-tol-cross-hole-geometric",
+      "r14-tol-row-geometric",
+      "r14-tol-row-plus-minus"
+    ],
+    "currentSHA256": "7f3ccb56cccb95b5beed9e1b8dc112710fdca038a20814f3a4d593001e42664f",
+    "parentSHA256": "44d3fef5e85056f3988c9d5dbed011b960338df35b4d0e226435a7b35e5cd8d5"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Sol High, true basic frame versus own ruler clash, stationary fallback and unchanged clearance"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "baselineReceiptSHA256": "4ac4800a38fd51147054d141b4972bd9c1c2446fcb443c687e539e6743098c06",
+    "receiptSHA256": "0e98cd9ce408b6d8acc9ab28f230d01b6ee5ef60a4481d8f5e87ce73fd3f1220",
+    "sourceManifestSHA256": "2058e1e9675986cd9de8b979d32650c73fb5e8d03d9515630a14afe8c4c3d905",
+    "frozenFiles": 1048,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "dimension": "d3",
+    "rulerMM": 12,
+    "rulerX": 28.00252531694167,
+    "boxX": [
+      29.927525316941672,
+      35.09752531694167
+    ],
+    "shiftMM": 6.725,
+    "clearanceMM": 1.2
+  },
+  "notRun": [
+    "other tolerance corrections",
+    "SVG and DXF output",
+    "production build",
+    "full suites",
+    "PDF",
+    "mobile"
+  ]
+}
