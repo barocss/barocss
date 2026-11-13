@@ -1,0 +1,56 @@
+{
+  "decision": "D1030",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8040750c49f49514e95c3c2ea3b7e14663d7026a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1030-section-baseline03",
+    "D1030_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-visibility-browser.mjs <external-evidence>/baseline03",
+    "gate.sh acquire heavy 600 D1030-section-studio01",
+    "D1030_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-visibility-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1030-focused",
+    "node --check apps/cad-studio/test/drawing-diameter-visibility-browser.mjs",
+    "pnpm --filter @barocss/cad-model test drawing.test drawing-scope drawing-detail drawing-breaks",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "hiddenOffLowerEdge": "p1/n1.top|n2.side0#2",
+    "receiptSHA256": "8a0b16b8bc222c661a655d20f6897c42996e49c3d7e02b91f9b46e8a6f716b16",
+    "sourceManifestSHA256": "fced8b03502b9d7365e2a7907ceb9b7df980c01ecf2c992f7c74e6a70f7d807d"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "controls": 4,
+    "frozenFiles": 378,
+    "receiptSHA256": "ae036cfbe4e18775e4c0ea8fc3d8d715cc22985b976743c5cd1167a2b31ac6fa",
+    "sourceManifestSHA256": "ece32c2d1e170768897ab57b32493dc9e02ba7aa9989ab571e070bcff3aa0b05",
+    "hiddenOffLowerEdge": null,
+    "hiddenOnLowerOwner": "p1",
+    "upperOwner": "p2",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 85,
+    "studioPassed": 17,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "fully coincident rim choice",
+    "explicit reattachment",
+    "pre-export loss warnings",
+    "Redo row deletion",
+    "other desktop view and annotation tools",
+    "full suites",
+    "production build",
+    "mobile"
+  ]
+}

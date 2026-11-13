@@ -41,6 +41,7 @@ import { VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocs
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
 import { DETAIL_PARENTS, type DetailParent, type DrawingDetail } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
+import { clipProjectionOutside } from '@barocss/cad-model/drawing/breaks';
 import { BreaksList } from './drawing/BreaksList';
 import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
@@ -91,7 +92,7 @@ type Pending =
   | { kind: 'detail'; view: DetailParent; center: XY; moving?: DetailMove };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
-interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
+interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null; visibleRimOnly?: boolean }
 
 const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 const detailFor = (settings: DrawingSettings, view: DimView) => isDetailRef(view) ? settings.details?.find(d => d.id === detailLetter(view)) : undefined;
@@ -324,6 +325,20 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const at = fromSheet(v, q), tol = 9 * mmPerPx() / v.scale;
     if (tool === 'diameter' && isDetailRef(view)) {
       return { q, view, at, snap: null, edge: edgeAt(pr, at, 6 * mmPerPx() / v.scale, !showDetailHidden(settings, view)) };
+    }
+    if (tool === 'diameter' && isViewId(view)) {
+      const visibleRimOnly = !settings.hidden || view === 'iso';
+      const projection = v.breaks ? clipProjectionOutside(pr, v.breaks) : pr;
+      const circles = { ...projection, edges: projection.edges.filter(e => e.circle && e.pieces.some(p => !visibleRimOnly || p.visible)) };
+      const rim = edgeAt(circles, at, 6 * mmPerPx() / v.scale, visibleRimOnly);
+      let centre: ProjectedEdge | null = null, best = tol;
+      if (!rim) for (const edge of circles.edges) {
+        if (!roundIn(circles, edge)) continue;
+        const [u, v] = inView(circles, edge.circle!.center);
+        const distance = Math.hypot(u - at[0], v - at[1]);
+        if (distance < best) { centre = edge; best = distance; }
+      }
+      return { q, view, at, snap: null, edge: rim ?? centre, visibleRimOnly };
     }
     let snap: SnapPoint | null = null, best = tol;
     for (const s of snaps[view] ?? []) { const d = Math.hypot(s.at[0] - at[0], s.at[1] - at[1]); if (d < best) { best = d; snap = s; } }
@@ -934,7 +949,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (hover.snap && tool === 'linear') { const q = toSheet(v, hover.snap.at); parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`); }
       else if (hover.edge && (tool !== 'linear' || !pending)) {
         const ok = tool === 'linear' || tool === 'angle' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(R(hover.view), hover.edge);
-        const pieces = tool === 'diameter' && isDetailRef(hover.view) && !showDetailHidden(settings, hover.view)
+        const pieces = hover.visibleRimOnly || (tool === 'diameter' && isDetailRef(hover.view) && !showDetailHidden(settings, hover.view))
           ? hover.edge.pieces.filter(piece => piece.visible) : hover.edge.pieces;
         if (ok) parts.push(`<g class="dw-hover">${marksSvg(pieces.map(p => curveMark(v, p.curve, 'visible')))}</g>`);
       }

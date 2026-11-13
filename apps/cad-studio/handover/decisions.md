@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1030 — honor Hidden lines in Drawing Diameter selection](notes/drawing-diameter-hidden-rim-2026-11-13/README.md).
 - [D1029 — reserve occurrence ids named in saved drawings](notes/drawing-occurrence-id-reservation-2026-11-13/README.md).
 - [D1028 — verify STEP during an Assembly Cut edit](notes/assembly-cut-step-edit-2026-11-13/README.md).
 - [D1027 — draw the applied Assembly Cut](notes/assembly-cut-drawing-worker-2026-11-13/README.md).
