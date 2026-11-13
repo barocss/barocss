@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
-const storedInset = process.argv[3] === '--stored-inset';
+const editInset = process.argv[3] === '--edit-inset';
+const storedInset = editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
 const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
@@ -30,6 +31,11 @@ const initialFiles = [
     'packages/barocss-cad-model/src/engine/migrate.ts',
     'packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts',
   ] : []),
+  ...(editInset ? [
+    'apps/cad-studio/src/App.tsx',
+    'apps/cad-studio/src/ui/NodeEditor.tsx',
+    'packages/barocss-cad-model/src/app/editFields.ts',
+  ] : []),
   ...(plannedInset ? ['packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts'] : []),
   ...(lostCorner ? [
     'apps/cad-studio/src/files/documentFile.ts',
@@ -38,14 +44,15 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: storedInset ? 'Open and validate a versioned rounded inset through File and Project.'
+  name: 'rounded-sketch-offset', envFrozen: editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: editInset ? 'Edit a loaded rounded inset through its direct Extrude editor.'
+    : storedInset ? 'Open and validate a versioned rounded inset through File and Project.'
     : plannedInset ? 'Generate bounded inset plans from one source and verify their native Studio readback.'
     : lostCorner ? 'Measure the existing cold Open rematch for a Fillet whose signed inner arc is absent.'
     : sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
     : sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
     : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
-  limits: [storedInset ? 'Read-only stored recipe for one native rounded XY source and one direct Extrude.'
+  limits: [storedInset ? 'One stored recipe with a native rounded XY source and one direct Extrude.'
     : plannedInset ? 'Plans are generated outside Studio. Studio reads their native documents without a persisted recipe.'
     : sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
     : 'One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
@@ -123,7 +130,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = storedInset ? 'D912-rounded-inset.bcad' : plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = editInset ? 'D913-rounded-inset.bcad' : storedInset ? 'D912-rounded-inset.bcad' : plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function chooseFile(doc, filename = name, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -135,7 +142,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = storedInset ? 'D912 rounded inset' : plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = editInset ? 'D913 rounded inset' : storedInset ? 'D912 rounded inset' : plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -411,6 +418,7 @@ async function verifyStoredInset(stock) {
     close(body.volume, expected);
     close((await f.bodies()).bodies[0].volume, expected);
     assert.equal(body.cylinders.length, r > 0 ? 8 : 4);
+    assert.equal(body.faces.length, r > 0 ? 18 : 14);
     const names = (r > 0 ? derivedIds : sharpIds).map(id => `n2.side[${id}]`);
     for (const side of [...ids.map(id => `n2.side[${id}]`), ...names]) assert.ok(body.faces.includes(side), side);
     for (const id of derivedIds.filter(id => !sharpIds.includes(id))) {
@@ -418,6 +426,10 @@ async function verifyStoredInset(stock) {
     }
     f.report.observations.push({ label, insetMm: distance, volumeMm3: body.volume, expectedVolumeMm3: expected, derivedFaces: names });
   };
+  if (editInset) {
+    await verifyInsetEdits(stock, candidate, check);
+    return;
+  }
   for (const [index, distance] of [1, 2, 2.5, 1].entries()) {
     f.phase = `Open stored recipe at ${distance} mm`;
     const doc = candidate(distance);
@@ -438,12 +450,7 @@ async function verifyStoredInset(stock) {
   missingArc.nodes.push({ kind: 'fillet', id: 'n3', parent: { node: 2, side: 'solid' }, radius: 0.2, edges: ['n2.side[e10]|n2.top'] });
   missingArc.nextId = 4;
   missingArc.outputs = { b3: { node: 3, side: 'solid' } };
-  const nativeInvalid = candidate(0.02);
-  const tinyPoint = ([x, y]) => [9990 + x / 40, 9990 + y / 40];
-  nativeInvalid.nodes[0] = { ...nativeInvalid.nodes[0], segments: nativeInvalid.nodes[0].segments.map(segment => ({
-    ...segment, start: tinyPoint(segment.start),
-    ...(segment.kind === 'arc' ? { center: tinyPoint(segment.center) } : {}),
-  })) };
+  const nativeInvalid = smallInset(candidate(0.02));
   const unchanged = async (label, previous, reason) => {
     await f.waitToast(reason);
     const after = await f.snapshot(label);
@@ -502,11 +509,144 @@ async function verifyStoredInset(stock) {
   await f.snapshot('07-stored-fresh-open');
 }
 
+function smallInset(doc) {
+  const point = ([x, y]) => [9990 + x / 40, 9990 + y / 40];
+  const [source, ...rest] = doc.nodes;
+  return { ...doc, nodes: [{ ...source, segments: source.segments.map(segment => ({
+    ...segment, start: point(segment.start),
+    ...(segment.kind === 'arc' ? { center: point(segment.center) } : {}),
+  })) }, ...rest] };
+}
+
+function holdInsetCheck() {
+  const worker = Worker.prototype, send = worker.postMessage;
+  const onmessage = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  let armed, target, held, deliver;
+  worker.postMessage = function (request, ...args) {
+    if (armed && request.type === 'verifyStoredInsets') {
+      armed = false;
+      target = { worker: this, id: request.id };
+    }
+    return Reflect.apply(send, this, [request, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true, get: onmessage.get,
+    set(callback) {
+      onmessage.set.call(this, callback && function (event) {
+        if (target?.worker === this && target.id === event.data?.id) {
+          held = event.data;
+          deliver = () => callback.call(this, event);
+          target = undefined;
+          return;
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+  window.__holdInset = {
+    arm() { armed = true; held = undefined; },
+    held: () => held,
+    release() { deliver(); deliver = undefined; },
+  };
+}
+
+async function verifyInsetEdits(stock, candidate, check) {
+  const editor = () => f.editor().getByRole('spinbutton', { name: 'Inset distance', exact: true });
+  const openEditor = async expected => {
+    await f.openFeatureEditor(2, 'rounded inset Extrude');
+    assert.deepEqual(await f.editorFields(), [{ label: 'Inset distance', value: String(expected), disabled: false }]);
+    assert.equal(await button(f.editor(), 'Edit sketch').count(), 0);
+    assert.equal(await button(f.editor(), 'Delete feature').count(), 0);
+  };
+  const apply = async distance => {
+    f.phase = 'Apply inset distance ' + distance;
+    await editor().fill(String(distance));
+    await button(f.editor(), 'Apply').click();
+  };
+  const selected = async () => {
+    await f.page.waitForFunction(() => window.__studioSelection?.selection.bodies.length === 1);
+    assert.deepEqual((await f.page.evaluate(() => window.__studioSelection.selection)).bodies, [0]);
+  };
+  const valid = async (from, to, label) => {
+    await openEditor(from);
+    await apply(to);
+    await check(label, candidate(to), to);
+    await f.editor().waitFor({ state: 'hidden' });
+    await selected();
+    await f.snapshot(label);
+  };
+  const unchanged = (after, before) => {
+    for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) assert.deepEqual(after[key], before[key], key);
+  };
+  const refuse = async (distance, reason, label) => {
+    const before = await f.snapshot(label + '-before');
+    await apply(distance);
+    await f.waitToast(reason);
+    await f.ready();
+    unchanged(await f.snapshot(label), before);
+    await f.dismissToasts();
+    await f.closeEditor();
+  };
+  await open(candidate(1));
+  await f.page.locator('.ol-row button.ol[title="Double-click to rename"]').click();
+  await selected();
+  await check('01-open-rounded', candidate(1), 1);
+  await openEditor(1);
+  const beforeBlank = await f.snapshot('02-editor');
+  await editor().fill('2');
+  await editor().fill('');
+  assert.ok(await button(f.editor(), 'Apply').isDisabled());
+  await editor().press('Enter');
+  unchanged(await f.snapshot('03-blank-retains-part'), beforeBlank);
+  await button(f.editor(), 'Reset').click();
+  assert.equal(await editor().inputValue(), '1');
+  await f.closeEditor();
+  await valid(1, 2, '04-exact-corner-collapse');
+  await valid(2, 2.5, '05-sharp-inset');
+  await f.undo();
+  await check('06-undo-to-collapse', candidate(2), 2);
+  await openEditor(2);
+  await refuse(1.995, /minimum offset radius/i, '07-floor-refused');
+  await openEditor(2);
+  await refuse(5, /closes the rectangle/i, '08-closure-refused');
+  await f.redo();
+  await check('09-redo-sharp', candidate(2.5), 2.5);
+  const saved = await save(candidate(2.5));
+  await f.newPage();
+  await open(candidate(2.5), saved);
+  await check('10-saved-sharp-fresh-open', candidate(2.5), 2.5);
+  await f.page.locator('.ol-row button.ol[title="Double-click to rename"]').click();
+  await valid(2.5, 1, '11-restored-arc-identities');
+  await f.undo();
+  await check('12-undo-to-saved-sharp', candidate(2.5), 2.5);
+  await f.redo();
+  await check('13-redo-to-restored', candidate(1), 1);
+
+  f.phase = 'Open a small translated inset for a native-only refusal';
+  await open(smallInset(candidate(0.005)));
+  await openEditor(0.005);
+  await refuse(0.02, /loop encloses no area/i, '14-native-only-refused');
+
+  f.phase = 'Replace the document while a valid inset reply is held';
+  await open(candidate(1));
+  await openEditor(1);
+  await f.page.evaluate(() => window.__holdInset.arm());
+  await apply(2.5);
+  await f.page.waitForFunction(() => window.__holdInset.held()?.ok === true);
+  await open(stock);
+  const replacement = await f.snapshot('15-replacement-before-late-reply');
+  await f.page.evaluate(() => window.__holdInset.release());
+  const after = await f.snapshot('16-replacement-after-late-reply');
+  unchanged(after, replacement);
+  assert.deepEqual(after.notices, replacement.notices);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    if (editInset) await context.addInitScript(holdInsetCheck);
     context.setDefaultTimeout(10000);
     context.setDefaultNavigationTimeout(30000);
     await context.route('**/*', route => {

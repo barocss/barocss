@@ -1,0 +1,101 @@
+{
+  "decision": "D913",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "18a5bba061d036b48a5306a7e991f0c40aff154e",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D913-run>",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/edit02 --edit-inset",
+    "D912_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/open02 --stored-inset",
+    "D868_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/straight02 --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership direct-curve",
+    "cd apps/cad-studio && node test/rounded-inset-recipe-mutations.mjs <external-evidence>/mutations",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/engine/engine.worker.ts packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstObserver": {
+    "status": "FAIL",
+    "reason": "Selected body assertion read body count instead of selected indices.",
+    "receiptSHA256": "eaa42df84f32e53b74c3048f833d892df12aa5d92ea952c05d32ae2919a1467d"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 101,
+    "studioPass": 124,
+    "fail": 0,
+    "skipped": 0,
+    "types": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "9aaaf3e3e9b278b864db529a1a74e8aca10347cacbb8b5392507068bf43952fe"
+  },
+  "appLint": {
+    "status": "FAIL",
+    "newDiagnostics": 0,
+    "existingDiagnostic": "@typescript-eslint/no-unused-vars: '_k' is assigned a value but never used.",
+    "parentSHA256": "56544e165eac2c3071662b56a4ccf82769811af6b67464d245e1c452b95ba67e",
+    "currentSHA256": "db1e6a3686308a4f117bc79cc61473847c52a2726223773eea8d1661a4a7f8d1"
+  },
+  "independentReviews": {
+    "status": "PASS",
+    "count": 2,
+    "scope": "Radius and closure bounds, stable side IDs, exact native output and owned candidate cancellation"
+  },
+  "mutations": {
+    "status": "PASS",
+    "controlPass": 4,
+    "killed": 5,
+    "receiptSHA256": "9f730a56c62b79e1d9ab22f324b6ad83b61a704232cdf2358e2f2100b34ac7bd"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "f349dd032d37581f716c989ea70c0414e53d624935e5010a12b8c25e42b2b270",
+    "sourceManifestSHA256": "054ae05a073508c5d945ef7d99d47fe7fe6d824660a02f20b9ce94f516a6922b",
+    "frozenFiles": 845,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "distancesMM": [
+      1,
+      2,
+      2.5,
+      1
+    ],
+    "measuredVolumeMM3": [
+      534.247779607693,
+      1005.6637061435913,
+      1215.663706143591,
+      534.247779607693
+    ],
+    "expectedVolumeMM3": [
+      534.2477796076939,
+      1005.6637061435918,
+      1215.6637061435918,
+      534.2477796076939
+    ],
+    "savedBytes": 2195,
+    "savedSHA256": "bb3e8929595f5600560e69879cb8dc72eaf3309d0786cb80e0704bfe42e83f57",
+    "storedOpenReceiptSHA256": "5db27bd711cf850b8366fa14f23d921248f264ed4007f53acdb9e8a171fa0521",
+    "straightInsetReceiptSHA256": "e62d08b516fcbd9935599c4b49f4443a2ef6b4f3f62f19ee906a2eee5ab4d113"
+  },
+  "notRun": [
+    "Studio recipe creation and source geometry edits",
+    "detach and dependent features",
+    "whole suites",
+    "mobile"
+  ]
+}

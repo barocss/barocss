@@ -4,6 +4,7 @@ import { checkBrep, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, prefixDoc, type LoopSegment, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { partSnapshot } from '../src/engine/part';
+import { editFields } from '../src/app/editFields';
 import { resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
 const outer = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'];
@@ -58,6 +59,28 @@ test('a saved rounded inset resolves the current native source and preserves its
     assert.deepEqual(partSnapshot(prefix).outputs, []);
   }
   assert.throws(() => validateRoundedInsetDocument(prefixDoc(doc, 2), true), /one direct numeric Extrude/);
+});
+
+test('the stored inset editor exposes only the numeric distance and preserves the rest of the graph', () => {
+  const doc = fixture();
+  assert.deepEqual(editFields(doc.nodes, 0), []);
+  assert.deepEqual(editFields(doc.nodes, 1), []);
+  const fields = editFields(doc.nodes, 2, { Width: 20 });
+  assert.equal(fields.length, 1);
+  const [field] = fields;
+  assert.ok(field.kind === 'number' && !('bind' in field));
+  assert.equal(field.label, 'Inset distance');
+  assert.equal(field.get(doc.nodes), 1);
+  const nodes = field.set(doc.nodes, 2.5);
+  assert.equal(nodes[0], doc.nodes[0]);
+  assert.equal(nodes[2], doc.nodes[2]);
+  assert.deepEqual(nodes, fixture(2.5).nodes);
+  assert.equal(field.get(doc.nodes), 1);
+  assert.equal(field.get(nodes), 2.5);
+  for (const [distance, reason] of [[1.995, /minimum offset radius/], [5, /closes the rectangle/]] as const) {
+    const rejected = { ...doc, nodes: field.set(doc.nodes, distance) };
+    assert.throws(() => validateRoundedInsetDocument(rejected, true), reason);
+  }
 });
 
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {

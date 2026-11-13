@@ -2,7 +2,7 @@
 import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, exportStudioStep, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
-import { currentFaceEndDistance, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
+import { bodyKeyOf, currentFaceEndDistance, partSnapshot, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
 import { planeOf, profileRings } from '@barocss/cad-model/app/profiles';
@@ -17,7 +17,7 @@ import { receiveStepMetadata, type StepMetadata } from './stepMetadata';
 import { mouldView } from './mouldView';
 import { proposalDiffFor } from '@barocss/cad-model/chat/proposalDiff';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
+import { checkOutput, diagnoseMesh, massPropertiesOf, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
 
 /** The STEP reply over the wire: the file, or the refusal's words (R7.3c: exportStudioStep throws; the wire keeps `{ error }`). */
 function stepReply(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): ReturnType<typeof exportStudioStep> | { error: string } {
@@ -134,12 +134,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     try {
       if (doc.nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
         validateRoundedInsetDocument(doc, true);
-        const result = evaluatePart(doc, 0, 8, 'read');
-        if (!result.ok) throw new Error(result.error.detail || result.error.hint || result.error.title);
-        const [body] = result.bodies;
-        if (result.bodies.length !== 1 || !Object.hasOwn(doc.outputs, body.key) || body.volume === null
-          || !Number.isFinite(body.volume) || body.volume <= 0) {
-          throw new Error('Rounded rectangle inset: the stored extrusion must produce one solid with positive volume.');
+        const { outputs } = partSnapshot(doc);
+        const [output] = outputs;
+        if (outputs.length !== 1 || output.feature !== doc.nodes[2].id || !Object.hasOwn(doc.outputs, bodyKeyOf(output.id, doc.nodes))
+          || output.brep.bodies.length !== 1 || output.brep.bodies[0].kind !== 'solid' || output.brep.shells.length !== 1 || !output.brep.shells[0].closed
+          || !checkOutput(output).valid) {
+          throw new Error('Rounded rectangle inset: the extrusion must produce one valid closed solid.');
+        }
+        const { volume } = massPropertiesOf(output);
+        if (!Number.isFinite(volume) || volume <= 0) {
+          throw new Error('Rounded rectangle inset: the extrusion must have positive volume.');
         }
       }
       for (const [index, node] of doc.nodes.entries()) {

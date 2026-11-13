@@ -45,7 +45,7 @@ for (const [name, file, from, to] of [['control'], ...mutations]) {
   assert.equal(run.signal, null, name);
   const count = Number(/^# tests (\d+)$/m.exec(run.stdout)?.[1]);
   const failures = Number(/^# fail (\d+)$/m.exec(run.stdout)?.[1]);
-  assert.equal(count, 3, name);
+  assert.equal(count, 4, name);
   assert.equal(run.status, file ? 1 : 0, name);
   assert.ok(file ? failures > 0 : failures === 0, name);
   results.push({ name, status: file ? 'KILLED' : 'PASS', tests: count, failures });

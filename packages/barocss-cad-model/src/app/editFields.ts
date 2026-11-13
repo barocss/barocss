@@ -125,6 +125,13 @@ export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nod
  */
 export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> & Partial<Pick<StudioDoc, 'parameters'>> }
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
+  const node = nodes[i], recipe = nodes[1];
+  if (recipe?.kind === 'rounded-rectangle-inset') {
+    if (i !== 2 || node?.kind !== 'extrude' || node.sketch !== 1) return [];
+    return [{ kind: 'number', key: 'insetMM', label: 'Inset distance', unit: 'mm',
+      get: n => n[1]?.kind === 'rounded-rectangle-inset' ? n[1].insetMM : NaN,
+      set: (n, insetMM) => replace(n, 1, { ...recipe, insetMM }) }];
+  }
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params || nodes[i]?.kind === 'linear-span-pattern') return raw;
   return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {

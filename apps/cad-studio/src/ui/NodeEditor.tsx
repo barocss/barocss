@@ -70,8 +70,9 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
+  const incompleteInset = typed.insetMM === '';
   const apply = () => {
-    if (!changed || pending || request.current) return;
+    if (!changed || pending || incompleteInset || request.current) return;
     setModeProblem(null);
     const ticket = {};
     request.current = ticket;
@@ -137,7 +138,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={remove}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); }}>Reset</button></div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || incompleteInset || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );
 }
