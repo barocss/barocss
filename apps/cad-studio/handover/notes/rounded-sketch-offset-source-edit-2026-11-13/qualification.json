@@ -1,0 +1,79 @@
+{
+  "decision": "D907",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "73fc417f19156ed02ea300d8239838791de0d9ca",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d907-studio-independent-offset",
+    "D907_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/source-edit03 --source-edit",
+    "D906_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/offset-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "observerFailures": [
+    {
+      "status": "FAIL",
+      "reason": "Bitwise equality was used for the numerically solved outer coordinates.",
+      "receiptSHA256": "60da21761e94ce681ecd508bcfa1d5ff8747fbf9d8d2c9e6765503d965e35b37"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Center X error 1.145e-8 mm exceeded the initial 1e-8 mm test tolerance.",
+      "receiptSHA256": "9861dffb56989378597c05d28331a55c6437958274378db5a12d1eb79f899cc4"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 119,
+    "studioPass": 4,
+    "fail": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "3db887c1fa857f1527296c3891fddf693e4b5fd5e2ff3ecd54f4bc0e747839e3"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Fixed-chord CCW circle center, circular-segment area change and unchanged inner loop."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "410bb4ecd59a85f82b762574789ac22990dc5102448200aad2bc706d3be44f97",
+    "sourceManifestSHA256": "1fa847214472217d15e3ae22ab5cdc6ad8a9b11c5b342bcfe10f04fc80fa4a07",
+    "frozenFiles": 841,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "editedOuterRadiusMm": 2.25,
+    "innerRadiusMm": 1,
+    "innerGeometry": "EXACT_EQUAL",
+    "sideTags": "EXACT_EQUAL",
+    "coordinateToleranceMm": 1e-07,
+    "volumeToleranceMm3": 1e-06,
+    "expectedVolumeMm3": 532.4916028124967,
+    "nativeVolumeMm3": 532.4916022460035,
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "savedBytes": 5626,
+    "savedSHA256": "a64e4e49d7239d70c88e7ea3298ad87c46456ff0d541cfedb710f6af70d4be47"
+  },
+  "regression": {
+    "status": "PASS",
+    "scope": "D906 inward Offset limit and ring persistence",
+    "receiptSHA256": "07758788853bd97d0b75c200f597bb226c67495742502810fa163b1275257b69"
+  },
+  "notRun": [
+    "persisted associative offset",
+    "corner ID retirement and restoration",
+    "direct references to a retired arc",
+    "full suites",
+    "mobile"
+  ]
+}

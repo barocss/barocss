@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const sourceEdit = process.argv[3] === '--source-edit';
 const points = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
 const ids = points.map((_, i) => 'e' + (i + 1));
 const inset = [[2, 1], [18, 1], [19, 2], [19, 8], [18, 9], [2, 9], [1, 8], [1, 2]];
@@ -19,8 +20,9 @@ const initialFiles = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
+  name: 'rounded-sketch-offset', envFrozen: sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
+    : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
   limits: ['One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
   initialFiles, requiredFrozen: initialFiles,
   inspectorSource: `
@@ -30,10 +32,12 @@ import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { partSnapshot } from '@barocss/cad-model/engine/part';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
-if (process.argv[3] === '"fixture"') {
-  const b = Math.tan(Math.PI / 8);
-  const profile = profileOf([{ kind:'polygon', closed:true, points:${JSON.stringify(points)}, ids:${JSON.stringify(ids)},
-    bulges:[0,b,0,b,0,b,0,b] }]);
+if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
+  const b = Math.tan(Math.PI / 8), points = ${JSON.stringify(points)};
+  const pins = process.argv[3] === '"pinned"'
+    ? { hv:{ h:[], v:[] }, rules:points.slice(1).map((at, index) => ({ kind:'fix', point:index+1, at })) } : {};
+  const profile = profileOf([{ kind:'polygon', closed:true, points, ids:${JSON.stringify(ids)},
+    bulges:[0,b,0,b,0,b,0,b], ...pins }]);
   assert.ok('node' in profile);
   console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind:'extrude', sketch:0, height:10 })));
   process.exit(0);
@@ -60,7 +64,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = 'D906-rounded-rectangle.bcad';
+const name = sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -69,7 +73,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = 'D906 rounded rectangle';
+  const project = sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -127,6 +131,72 @@ async function checkRing(label, doc, stock) {
   f.report.observations.push({ label, sideTags: sketch.sideTags, expectedVolumeMm3: ringVolume, volumeMm3: native.volume });
 }
 
+async function editOuterRadius(stock, ring) {
+  const radius = 2.25, chord = Math.sqrt(8);
+  // The existing numerical sketch solver uses a 1e-7 mm linear residual.
+  const coordinateTolerance = 1e-7, volumeTolerance = 1e-6;
+  const delta = Math.sqrt(radius * radius - 2) / Math.sqrt(2);
+  const expectedCenter = [19 - delta, 1 + delta];
+  const segmentArea = r => {
+    const sweep = 2 * Math.asin(chord / (2 * r));
+    return r * r * (sweep - Math.sin(sweep)) / 2;
+  };
+  const expectedVolume = ringVolume + 10 * (segmentArea(radius) - segmentArea(2));
+  const check = async (label, doc) => {
+    const sketch = doc.nodes[0], previous = ring.nodes[0];
+    assert.deepEqual(doc.nodes.slice(1), stock.nodes.slice(1));
+    assert.deepEqual(doc.outputs, stock.outputs);
+    assert.equal(sketch.association, undefined);
+    assert.deepEqual(sketch.holes, previous.holes);
+    assert.deepEqual(sketch.sideTags, previous.sideTags);
+    assert.equal(sketch.segments.length, points.length);
+    for (const [index, segment] of sketch.segments.entries()) {
+      const expected = previous.segments[index];
+      assert.equal(segment.kind, expected.kind);
+      assert.equal(segment.direction, expected.direction);
+      segment.start.forEach((value, axis) => close(value, points[index][axis], coordinateTolerance));
+      if (index !== 1 && segment.kind === 'arc') {
+        segment.center.forEach((value, axis) => close(value, expected.center[axis], coordinateTolerance));
+      }
+    }
+    assert.equal(sketch.outline.radii[1], radius);
+    const native = await f.inspect(label, doc);
+    assert.equal(native.cylinders.length, 8);
+    const edited = native.cylinders.find(c => c.name === 'n1.side[e2]');
+    assert.ok(edited);
+    close(edited.r, radius, coordinateTolerance);
+    close(edited.c[0], expectedCenter[0], coordinateTolerance);
+    close(edited.c[1], expectedCenter[1], coordinateTolerance);
+    close(Math.abs(edited.a[2]), 1, coordinateTolerance);
+    checkCylinders(native, 1, sketch.sideTags.holes[0]);
+    close(native.volume, expectedVolume, volumeTolerance);
+    close((await f.bodies()).bodies[0].volume, expectedVolume, volumeTolerance);
+    f.report.observations.push({ label, radiusMm: radius, centerMm: expectedCenter, expectedVolumeMm3: expectedVolume,
+      coordinateToleranceMm: coordinateTolerance, volumeToleranceMm3: volumeTolerance,
+      volumeMm3: native.volume, sideTags: sketch.sideTags });
+  };
+
+  f.phase = 'edit only the outer Arc 2 radius';
+  await f.openFeatureEditor(1);
+  await button(f.editor(), 'Edit sketch').click();
+  const panel = f.sketchPanel();
+  const field = panel.getByLabel('Arc 2 radius', { exact: true });
+  await field.fill(String(radius));
+  assert.equal(await field.inputValue(), String(radius));
+  assert.equal(await f.sketchAlert(), null);
+  const edited = (await f.finishSketch('02-source-R2.25')).doc;
+  await check('source-edit-native', edited);
+  await f.undo();
+  await f.same(ring);
+  await f.redo();
+  await f.same(edited);
+  const bytes = await save(edited);
+  await f.newPage();
+  await open(edited, bytes);
+  await check('source-edit-reopened-native', edited);
+  await f.snapshot('03-source-edit-fresh-open');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -140,7 +210,7 @@ await f.run(async () => {
     });
     return context;
   };
-  const stock = await f.inspect('stock-fixture', {}, 'fixture');
+  const stock = await f.inspect('stock-fixture', {}, sourceEdit ? 'pinned' : 'fixture');
   const nativeStock = await f.inspect('stock-native', stock);
   close(nativeStock.volume, stockVolume);
   assert.equal(nativeStock.cylinders.length, 4);
@@ -156,6 +226,14 @@ await f.run(async () => {
     await distance.fill(String(value));
     await button(panel, 'Offset inward').click();
   };
+  if (sourceEdit) {
+    await offset(1);
+    const ring = (await f.finishSketch('01-independent-inset')).doc;
+    await checkRing('independent-inset-native', ring, stock);
+    await editOuterRadius(stock, ring);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   const before = await f.snapshot('01-stock-in-sketch');
   assert.ok(before.sketchCurves.length > 0);
   for (const [label, value] of [['02-arc-collapse', 2], ['03-past-arc-collapse', 2.5]]) {
