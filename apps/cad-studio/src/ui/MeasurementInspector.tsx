@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon, Kbd } from './atoms';
 import { measureQuantityText } from './quantityText';
+import { measureAxesBasis } from '../app/measureProvenance';
 import type { MeasureTarget } from '../app/measureTargets';
 import type { InterferenceReport } from '../app/checkInterference';
-interface MeasurementInspectorProps { targets: MeasureTarget[]; items: ({ pick: MeasurePick; mesh: DisplayMesh } | null)[]; measured: ReturnType<typeof measureBetween> | null; onClose(): void; onPin?(): void }
-export function MeasurementInspector({ targets, items, measured, onClose, onPin }: MeasurementInspectorProps) {
+interface MeasurementInspectorProps { targets: MeasureTarget[]; items: ({ pick: MeasurePick; mesh: DisplayMesh } | null)[]; measured: ReturnType<typeof measureBetween> | null; approximateDistance?: boolean; onClose(): void; onPin?(): void }
+export function MeasurementInspector({ targets, items, measured, approximateDistance, onClose, onPin }: MeasurementInspectorProps) {
   return <aside className="card props" aria-label="Measurement">
         <div className="card-title">MEASURE <ToolIconButton size="tiny" aria-label="Done measuring" onClick={onClose}><Icon name="close" small /></ToolIconButton></div>
         {targets.map((target, k) => {
@@ -28,10 +29,10 @@ export function MeasurementInspector({ targets, items, measured, onClose, onPin 
         </div>; })}
         {measured && <>
           <div className="card-title" style={{ marginTop: 10 }}>BETWEEN</div>
-          <div className="kv">Distance <b>{measureQuantityText(measured.distance, 3)} mm</b></div>
+          <div className="kv">Distance <b>{measureQuantityText(measured.distance, 3)} mm{approximateDistance ? ' (mesh approximation)' : ''}</b></div>
           {measured.normalDistance !== undefined && <div className="kv">Normal distance <b>{measureQuantityText(measured.normalDistance, 3)} mm</b></div>}
           {measured.angle !== undefined && <div className="kv">Angle <b>{measureQuantityText(measured.angle, 2)}°</b></div>}
-          {measured.axes && <div className="kv" aria-label="Axes">Axes <b>{measured.axes.coaxial ? 'coaxial' : `${measureQuantityText(measured.axes.angle, 3)}° apart, ${measureQuantityText(measured.axes.offset, 3)} mm off`}</b></div>}
+          {measured.axes && <div className="kv" aria-label="Axes">Axes <b>{measured.axes.coaxial ? 'coaxial' : `${measureQuantityText(measured.axes.angle, 3)}° apart, ${measureQuantityText(measured.axes.offset, 3)} mm off`} <span className="muted">({measureAxesBasis})</span></b></div>}
           <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => measureQuantityText(v - measured.a[k], 2)).join(', ')}</b></div>
         </>}
         {onPin && <Button size="sm" variant="ghost" onClick={onPin}>Pin measurement</Button>}

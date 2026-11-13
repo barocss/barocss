@@ -37,7 +37,7 @@ test('Measure passes every scalar to the existing nonzero display policy before 
   assert.match(html, /Distance <b>4\.00e-3 mm<\/b>/);
   assert.match(html, /Normal distance <b>4\.00e-4 mm<\/b>/);
   assert.match(html, /Angle <b>4\.00e-3°<\/b>/);
-  assert.match(html, /Axes <b>4\.00e-4° apart, 4\.00e-3 mm off<\/b>/);
+  assert.match(html, /Axes <b>4\.00e-4° apart, 4\.00e-3 mm off.*mesh fit.*<\/b>/);
   assert.match(html, /ΔX ΔY ΔZ <b>-4\.00e-3, 4\.00e-3, 0<\/b>/);
   assert.deepEqual(measured, before);
 
@@ -52,7 +52,7 @@ test('Measure keeps exact zeros, ordinary values, missing values and the coaxial
     distance: 1.234, a: [0, 0, 0], b: [0, -0, 1.234], axes: { angle: 0.0004, offset: 0.0004, coaxial: true },
   });
   assert.match(ordinary, /Distance <b>1\.23 mm<\/b>/);
-  assert.match(ordinary, /Axes <b>coaxial<\/b>/);
+  assert.match(ordinary, /Axes <b>coaxial.*mesh fit.*<\/b>/);
   assert.match(ordinary, /ΔX ΔY ΔZ <b>0, 0, 1\.23<\/b>/);
   assert.doesNotMatch(ordinary, /Normal distance|Angle <b>/);
   const zero = inspector({ distance: -0, normalDistance: 0, angle: -0, a: [0, 0, 0], b: [0, -0, 0] });

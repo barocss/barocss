@@ -109,6 +109,7 @@ import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { capturePinnedFacePair, readPinnedFacePair, type PinnedFacePair } from './app/pinnedFaceMeasure';
+import { usesCurvedMeshDistance } from './app/measureProvenance';
 import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget } from './app/measureTargets';
 import { hostsOf, nestedCard, renderKeysOf, singleNested, singleTop, viewportInstanceSelection } from './assembly/nestedSelection';
 import { NestedPartPanel } from './ui/NestedPartPanel';
@@ -2485,6 +2486,7 @@ export function App() {
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : liveMeasurePicks ? { faces: liveMeasurePicks.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: liveMeasurePicks.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const [measureFrom, measureTo] = measurementItems ?? [];
   const measured = measureFrom && measureTo ? measureBetween(measureFrom.mesh, measureFrom.pick, measureTo.mesh, measureTo.pick) : null;
+  const approximateMeasure = !!measureFrom && !!measureTo && (usesCurvedMeshDistance(measureFrom) || usesCurvedMeshDistance(measureTo));
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   // (An in-place edit's surroundings, roadmap 10 ⑧: ghosted the same way, after the references.)
@@ -2907,7 +2909,7 @@ export function App() {
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
-      {fresh && !rendering && !sketch && measure && <MeasurementInspector targets={measure} items={measurementItems ?? []} measured={measured} onClose={() => setMeasure(null)} onPin={pinOffer ? pinMeasurement : undefined} />}
+      {fresh && !rendering && !sketch && measure && <MeasurementInspector targets={measure} items={measurementItems ?? []} measured={measured} approximateDistance={approximateMeasure} onClose={() => setMeasure(null)} onPin={pinOffer ? pinMeasurement : undefined} />}
       {pinView && pinOwned && !measure && <PinnedMeasurement distance={pinResult?.normalDistance ?? null} onClear={() => setPinnedMeasure(null)} />}
       {cutDraft && !rendering && !sketch && !measure && <AssemblyCutHud draft={cutDraft} instances={doc.instances ?? NO_INSTANCES} problem={draftProblem(doc, cutDraft) ?? (cutTrial?.key === cutKey ? cutTrial.problem : undefined)}
         onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
@@ -3181,7 +3183,7 @@ export function App() {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;
           return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null;
         })() : null}
-        measureLine={visibleMeasurement && visibleMeasurement.distance > 1e-9 ? { a: visibleMeasurement.a, b: visibleMeasurement.b, label: measureQuantityText(visibleMeasurement.distance, 2) + ' mm' } : null} />
+        measureLine={visibleMeasurement && visibleMeasurement.distance > 1e-9 ? { a: visibleMeasurement.a, b: visibleMeasurement.b, label: (measure && approximateMeasure ? '≈' : '') + measureQuantityText(visibleMeasurement.distance, 2) + ' mm' } : null} />
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className={'card toolbar' + (sketch ? '' : ' model-toolbar')} aria-label="Tools" hidden={rendering || drawing}>

@@ -1,0 +1,57 @@
+{
+  "decision": "D1037",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "470a028e4f0517e3b6b8e7429d5a99d59b72dda2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1037-section-baseline01",
+    "D1037_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-curved-provenance-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1037-final",
+    "D1037_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-curved-provenance-browser.mjs <external-evidence>/studio02 --fixed",
+    "D1036_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/placed-planar-control",
+    "node --check apps/cad-studio/test/measure-curved-provenance-browser.mjs",
+    "pnpm --filter @barocss/cad-model test measure",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "7314dbc0ded7a7c6c8ff693404e51ba0fb74b0b4bdcaf32ae143fe43cdc43ada",
+    "sourceManifestSHA256": "8d14da9766ef2f0d0d526350a4e7c8c5828226818fe6ac0a6e03cc441cb175d3"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "frozenFiles": 380,
+    "receiptSHA256": "dda1e13ee7e573c19f7c0ba533aac01bc8c2363bf20749690051480b8fe4673a",
+    "sourceManifestSHA256": "176a2a95f6f4650fa175fc55f21ffe531694978fd61d9d1e0dd06dc9c73b3153",
+    "nativeDistanceMM": 5.385164807134504,
+    "meshDistanceMM": 5.381595540432823,
+    "displayedDistanceMM": 5.38,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "planarControl": {
+    "status": "PASS",
+    "receiptSHA256": "8aa6573e5cd3cf589baa1841b737fc3da02011614355314d65d0dbd83ac036be",
+    "sourceManifestSHA256": "a676d4199e60ec79a43e076b9cbc97fac07c7de05573277171c99a668b748f6a"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 12,
+    "studioPassed": 5,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "curved tangent trims absent from the display edge table",
+    "native shortest distance",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
