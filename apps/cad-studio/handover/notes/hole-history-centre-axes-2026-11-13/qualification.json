@@ -1,0 +1,60 @@
+{
+  "decision": "D1000",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "dde37d2d9913233a1027a21719bf6885fbc12c81",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1000-hole-axis-baseline",
+    "gate.sh acquire heavy 600 D1000-hole-axis-studio",
+    "D1000_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-history-centre-browser.mjs <external-evidence>/baseline",
+    "D1000_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-history-centre-browser.mjs <external-evidence>/studio01",
+    "pnpm --filter @barocss/cad-model test editFields",
+    "pnpm --filter @barocss/cad-studio-app test chat.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/hole-history-centre-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "actualLabels": ["Centre X", "Centre Y"],
+    "expectedLabels": ["Centre Y", "Centre Z"],
+    "receiptSHA256": "be23eabf7c8b66c111a422a7638edf54065995deec72c3f51c6165f3d55bc447",
+    "sourceManifestSHA256": "3d819dfdb0a02c548009b40ea7a150039f996f78bd5c441aa578fb00fa68ab90"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "28a1fc1e39b349af7d9407f4cd0f7096c2840ae970ac8ad1629e74cf24a3ad6a",
+    "sourceManifestSHA256": "70aa07ac0b349aec663e6c7f1b1f29bf923cdad24bce2b0b4952d8786727a06f",
+    "frozenFiles": 375,
+    "states": 12,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "stockMM": [40, 30, 20],
+    "radiusMM": 2,
+    "centreEditMM": [7, 9],
+    "volumeToleranceMM3": 1e-7,
+    "maxVolumeErrorMM3": 5.093170329928398e-11,
+    "centroidToleranceMM": 1e-8,
+    "maxCentroidErrorMM": 3.776586443654626e-14
+  },
+  "focused": {
+    "model": { "status": "PASS", "passed": 3, "failed": 0 },
+    "studioChat": {
+      "status": "FAIL",
+      "passed": 27,
+      "failed": 1,
+      "holeEdit": "PASS",
+      "failure": "Existing Mirror field parity assertion: solid context has plane and at; the command schema also includes sheet-only result.",
+      "parentReplay": "FAIL on the same assertion after esbuild loads commands.ts, editFields.ts and doc.ts from the parent SHA via git show. Run from apps/cad-studio with node --test --test-name-pattern='tool schemas: every buildable command' <external-evidence>/parent-chat.mjs."
+    },
+    "typeCheck": "PASS",
+    "driverSyntax": "PASS",
+    "diffCheck": "PASS"
+  },
+  "notRun": ["Draft and Flange comparison", "Hole face rematch", "production build", "full suites", "mobile"]
+}

@@ -701,6 +701,8 @@ type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode |
 /** A fillet's section between its contacts (R10.5b, D103): a conic of rho in (0, 1), or G2 (tension in (0, 1), default 0.5). */
 export type FilletSection = { kind: 'conic'; rho: number } | { kind: 'g2'; tension?: number };
 export type HolePattern = { count: number; step: [number, number] } | { count: number; about: [number, number] };
+/** The stored centre coordinate order for a hole along each axis. */
+export const HOLE_PLANE = { x: ['y', 'z'], y: ['x', 'z'], z: ['x', 'y'] } as const satisfies Record<Axis, readonly [Axis, Axis]>;
 /** The centres of a hole's copies (just its centre without a pattern). */
 export function holeCentres(center: readonly number[], p?: HolePattern): [number, number][] {
   const c: [number, number] = [Number(center[0]), Number(center[1])], r6 = (v: number) => Math.round(v * 1e6) / 1e6;

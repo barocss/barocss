@@ -26,7 +26,7 @@ import { fastenerCommand } from './fasteners';
 import { mountCommand } from './mounts';
 import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
-import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
+import { HOLE_PLANE, leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import { linearSpanPatternInput } from '../engine/linearSpanPattern';
 import { linearSpanHandles } from './linearSpanHandles';
 import type { BodyResult } from '../engine/evaluate';
@@ -199,8 +199,6 @@ const usesLinearSpan = (values: Values) => values.result !== 'separate' && value
 const Z_CIRCULAR_COUNT_MAX = 36;
 /** The axis a mirror plane is across. */
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
-/** A hole's centre coordinates per axis (the kernel's order). */
-const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
 /** The selected edges, when they all belong to one body. */
 const unit3 = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 /**

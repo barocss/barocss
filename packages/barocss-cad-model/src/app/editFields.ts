@@ -6,7 +6,7 @@ import type { StudioDoc } from '../engine/doc';
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
-import { frameGeometry, withExtrusionHeight, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
+import { frameGeometry, HOLE_PLANE, withExtrusionHeight, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { outlineOf } from '../sketch/loops';
 import { mainShape, resolveSketchDims } from '../sketch/reopen';
@@ -205,7 +205,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       break;
     case 'hole':
       number('dia', 'Diameter', 'mm', n => num((n as typeof node).radius) * 2, (n, v) => ({ ...(n as typeof node), radius: v / 2 }));
-      [0, 1].forEach(k => number('c' + k, 'Centre ' + 'XY'[k], 'mm', n => num((n as typeof node).center[k]), (n, v) => { const c = [...(n as typeof node).center] as [Dim, Dim]; c[k] = v; return { ...(n as typeof node), center: c }; }));
+      HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number('c' + k, 'Centre ' + axis.toUpperCase(), 'mm', n => num((n as typeof node).center[k]), (n, v) => { const c = [...(n as typeof node).center] as [Dim, Dim]; c[k] = v; return { ...(n as typeof node), center: c }; }));
       if (node.depth !== undefined) number('depth', 'Depth', 'mm', n => num((n as typeof node).depth), (n, v) => ({ ...(n as typeof node), depth: v }));
       if (node.countersink !== undefined) number('csk', 'Countersink Ø', 'mm', n => (n as typeof node).countersink ?? 0, (n, v) => ({ ...(n as typeof node), countersink: v }));
       if (node.pattern) number('count', 'Copies', undefined, n => (n as typeof node).pattern?.count ?? 1, (n, v) => ({ ...(n as typeof node), pattern: { ...(n as typeof node).pattern!, count: Math.max(1, Math.round(v)) } }));
