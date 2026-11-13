@@ -32,7 +32,7 @@ function withMould(doc: StudioDoc, patch: { pull?: [number, number, number]; fin
   if (m.pull || m.finish) next.mould = m; else delete next.mould;
   return next;
 }
-export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void; /** Writes the injection-moulding quote package (IM6). */ onQuote?(): void }) {
+export function LibraryPanel({ doc, onCommit, onFitTableCommit, onError, onClose, onQuote }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onFitTableCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void; /** Writes the injection-moulding quote package (IM6). */ onQuote?(): void }) {
   const [, setTick] = useState(0), refresh = () => setTick(t => t + 1);
   const [variant, setVariant] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -101,7 +101,7 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
     {/* (FRc, O117: the person's own frame sections.) */}
     <FrameSections doc={doc} onCommit={onCommit} onError={onError} />
     {/* (R12c.2, D155: the person's own fit tables.) */}
-    <FitTables doc={doc} onCommit={onCommit} onError={onError} />
+    <FitTables doc={doc} onCommit={onFitTableCommit} onError={onError} />
     {/* (R12c.4, D158: the person's own bearing rows.) */}
     <BearingRows doc={doc} onCommit={onCommit} onError={onError} />
     {/* (R12c.5, D159: the person's own O-ring rows.) */}

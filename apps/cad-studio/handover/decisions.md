@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D989 — reject a fit table edit that invalidates the model](notes/fit-table-removal-2026-11-13/README.md).
 - [D988 — qualify Delete for overlapping Drawing annotations](notes/drawing-overlap-delete-ownership-2026-11-13/README.md).
 - [D987 — cancel a Drawing Note edit with Escape](notes/drawing-note-edit-escape-2026-11-13/README.md).
 - [D986 — retain Sheet 2 ownership when detaching or duplicating a Note](notes/drawing-note-sheet-ownership-2026-11-13/README.md).

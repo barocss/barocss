@@ -1027,6 +1027,29 @@ export function App() {
     return true;
   }, [doc, marker, bodies, acceptanceScope]);
   commitRef.current = commit; cageEdRef.current = cageEd;
+  const fitTableRequest = useRef<object | null>(null);
+  const commitFitTables = async (next: StudioDoc) => {
+    if (project.opening() || !canChangeDocument()) return;
+    if (shownVariant.current) {
+      setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' });
+      return;
+    }
+    const request = {}, open = openIntent.current, generation = workOwnership.current.generation;
+    fitTableRequest.current = request;
+    const current = () => fitTableRequest.current === request && docNow.current === doc &&
+      openIntent.current === open && workOwnership.current.generation === generation &&
+      workerSessionNow.current === workerSession && evaluatedRef.current === evaluated;
+    // The library commit returns to the end of History. Check that full model before changing it.
+    const candidate = inPlace ? resolveShopRows(next, inPlace.assembly).doc : next;
+    try {
+      const reply = await engine.part(prefixDoc(candidate, candidate.nodes.length), revision.current++, 'read');
+      if (!current()) return;
+      if (!reply.ok) { setToast({ ...reply.error, documentSource: { doc } }); return; }
+      commit(next, false);
+    } catch (cause) {
+      if (current()) setToast({ title: 'Fit tables not changed', hint: 'The current tables are still in use.', detail: String(cause), documentSource: { doc } });
+    }
+  };
   /** One undoable change of the render settings (the model and the rollback marker stay). */
   const commitRender = useCallback((next: RenderSettings) => {
     if (!canChangeDocument()) return;
@@ -2710,7 +2733,7 @@ export function App() {
         onCaptureView={id => { const c = viewport.current?.getCamera(); if (c) stepChange({ id, view: viewOfCamera(c) }); }} onResetView={applyStepView}
         onMove={(id, to) => stepEdit(() => moveAssemblyStep(doc, id, to), () => setStepIndex(to))} onDelete={id => stepEdit(() => deleteAssemblyStep(doc, id), () => setStepIndex(k => Math.max(0, Math.min(k, stepCount - 2))))} onClose={() => setStepsOpen(false)} />}
       {variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VariantsPanel doc={doc} variants={variants} onCommit={next => commit(next, false)} onError={hint => setToast({ title: 'Variants: refused', hint, detail: '' })} onClose={() => setVariantsOpen(false)} />}
-      {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
+      {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onFitTableCommit={next => { void commitFitTables(next); }} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {
           const ownCandidate = workOwnership.current.run?.candidate && parameterEdit?.base === doc && parameterEdit.baseInput === evaluated && docNow.current === doc && acceptanceScope === workOwnership.current.scope;
