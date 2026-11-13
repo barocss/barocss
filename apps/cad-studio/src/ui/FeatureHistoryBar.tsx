@@ -26,7 +26,12 @@ export function FeatureHistoryBar({ busy = false, doc, selection, editNode, mark
         aria-disabled={busy || undefined} title={busy ? 'Finish or cancel the command or sketch to use the History' : undefined}
         onClickCapture={busy ? swallow : undefined} onDoubleClickCapture={busy ? swallow : undefined} onContextMenuCapture={busy ? swallow : undefined}>
         <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') e.stopPropagation(); }} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
-        {doc.nodes.map((n, i) => innerSteps.has(i) ? null : (n.kind === 'sketch' || n.kind === 'driven-sketch') ? (freeSketches.includes(i) ? (
+        {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'rounded-rectangle-inset' ? (
+          <button key={i} type="button" aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '')}
+            title={featureLabel(n, i, doc.nodes)} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}>
+            <Icon name="cad-sketch" small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}
+          </button>
+        ) : (n.kind === 'sketch' || n.kind === 'driven-sketch') ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
           <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
             onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}

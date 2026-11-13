@@ -15,6 +15,7 @@ import type { StudioDoc } from './doc';
 import { isRefusal, refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
 import { assertSavedDrawingDocument } from './savedDrawing';
+import { validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
 import { canonical, fnv64 } from '../util/revision';
 
 const MAGIC = 'BCADPACK', VERSION = 1;
@@ -23,6 +24,7 @@ const pad8 = (n: number) => (n + 7) & ~7;
 
 /** The file's bytes: plain JSON (indented, as before) without blobs; the container with them. Throws when a named blob is missing. */
 export function encodeStudioFile(doc: StudioDoc): Uint8Array {
+  validateRoundedInsetDocument(doc, true);
   assertSavedDrawingDocument(doc);
   assertRouteBundleDocument(doc);
   return encodeDocument(doc);

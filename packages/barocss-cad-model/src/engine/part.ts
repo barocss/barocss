@@ -37,6 +37,7 @@ import { sketchShapes } from '../sketch/reopen';
 import { offsetShape } from '../sketch/offset';
 import { profileOf } from '../sketch/loops';
 import { bandProfile } from '../sketch/band';
+import { resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -117,6 +118,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'skeleton': throw new Error('a skeleton makes no kernel feature');
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
     case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch requires document parameter resolution before kernel conversion.');
+    case 'rounded-rectangle-inset': throw refusal('BAD_REFERENCE', 'Rounded inset requires source resolution before kernel conversion.');
     case 'sketch': {
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
       if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
@@ -534,6 +536,7 @@ export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
 }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  validateRoundedInsetDocument(doc, false);
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
   const faceEndProblem = faceEndExtrudeProblem(doc);
@@ -574,6 +577,10 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     prefixEnds.set(i, features.length);
     if (node.kind === 'driven-sketch') { features.push(...featuresOf(resolveDrivenSketch(node, params), i, CadPartLimits.features - features.length)); return; }
     if (node.kind === 'skeleton') return;
+    if (node.kind === 'rounded-rectangle-inset') {
+      features.push(...featuresOf(resolveRoundedInsetRecipe(doc, i), i, CadPartLimits.features - features.length));
+      return;
+    }
     if (node.kind === 'face-end-extrude') {
       if (node.suppressed) { gone.add(i); return; }
       if (hasText) checkTextExpansion(features);

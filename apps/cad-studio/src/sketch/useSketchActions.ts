@@ -148,6 +148,10 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
     const stored = doc.nodes[index];
+    if (doc.nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
+      setToast({ title: 'Rounded inset is read-only', hint: 'Open another part to edit it.', detail: '' });
+      return;
+    }
     if (stored?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
     if (stored?.kind !== 'sketch') return;
     let node: SketchNode;

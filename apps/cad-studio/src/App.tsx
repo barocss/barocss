@@ -69,6 +69,7 @@ import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
+import { validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { activeKey, type Active } from './app/commandState';
 import { canUseHolePresets } from './app/holePresets';
 import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
@@ -317,6 +318,11 @@ export function App() {
     const intent = undoFor.current; undoFor.current = null;
     const why = !replacement.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacement.current?.scope ?? intent?.scope ?? acceptanceScope, workCompletion.current);
     if (why) { setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' }); return false; }
+    if (!replacement.current && (docNow.current.nodes.some(node => node.kind === 'rounded-rectangle-inset')
+      || next.nodes.some(node => node.kind === 'rounded-rectangle-inset'))) {
+      setToast({ title: 'Rounded inset is read-only', hint: 'Open another part to edit it.', detail: '' });
+      return false;
+    }
     const pathProblem = curvePatternDocumentProblem(next);
     if (pathProblem) { setToast({ title: 'Change not applied', hint: pathProblem, detail: 'The document is unchanged.' }); return false; }
     if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return false; }
@@ -1762,6 +1768,18 @@ export function App() {
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // A detached replacement clears the project document. Editing a part in place retains the root's checkpoint review.
   const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project' | 'in-place' | 'new-part' = 'detached') => {
+    try {
+      if (next.nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
+        if (!next.outputs || !next.parameters || (next.schema !== 3 && next.schema !== 4) || next.units !== 'mm') {
+          throw new Error('The rounded inset must have a complete model document.');
+        }
+        validateRoundedInsetDocument(next, true);
+      }
+    }
+    catch (error) {
+      setToast({ title: 'Could not open rounded inset', hint: 'The document is unchanged.', detail: error instanceof Error ? error.message : String(error) });
+      return;
+    }
     cancelStepExportRef.current(); invalidateDocumentWork();
     replacement.current = { scope: workOwnership.current.scope, ...(mode === 'new-part' ? { identity: currentDocumentIdentity() } : {}) };
     try {
@@ -2545,7 +2563,8 @@ export function App() {
         candidate={candidateReview ? { ...candidateReview, available: candidateAvailable, toggle: toggleCandidatePreview,
           decide: candidateReview.review.localRun ? decision => decideTaskRunCandidate(candidateReview.review, decision) : undefined } : undefined}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
-        onOpen={d => { setCompareBase(null); replaceDoc(d, 'project'); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
+        onOpen={d => { replaceDoc(d, 'project'); if (docNow.current !== d) return;
+          setCompareBase(null); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
         onGo={k => setStepIndex(stepAfter(k, 0, stepCount))} onFaded={setStepsFaded} onNew={newStep}
         onRename={(id, name) => stepChange({ id, name })} onNote={(id, note) => stepChange({ id, note: note.trim() ? note : null })} onExplode={(id, explode) => stepChange({ id, explode: explode || null })}
@@ -2906,7 +2925,8 @@ export function App() {
               if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
               // (A whole document replaced, as New and Open do: a running command, its preview and the picks of the
               // document shown before do not carry into the restored one. The project link is kept, as before.)
-              replaceDoc(recovery.doc, 'project'); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
+              replaceDoc(recovery.doc, 'project'); if (docNow.current !== recovery.doc) return;
+              setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
             }}>Restore</button>
             <button className="ghost" onClick={() => { settleRecovery(); setRecovery(null); void collectRecoveryBlobs(dirty ? doc : null); }}>Discard</button>
           </div></div>

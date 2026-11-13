@@ -438,6 +438,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: map(r.node) });
   const n = { ...node } as Record<string, unknown> & ModelNode;
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);
+  if (n.kind === 'rounded-rectangle-inset') n.sourceSketch = map(n.sourceSketch);
   if (n.kind === 'loft') { (n as Extract<ModelNode, { kind: 'loft' }>).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if ((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if (n.kind === 'sketch' && n.association !== undefined) { parentsOf(n); n.association = { ...n.association, source: ref(n.association.source) }; }
@@ -506,6 +507,9 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
   const users = (i: number) => nodes.flatMap((n, k) => usesOf(n).includes(i) ? [k] : []);
   const removed = new Set([index]);
+  if (nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
+    return { error: 'Rounded inset: deleting a feature in this stored recipe document is not supported.' };
+  }
   for (const s of parentsOf(nodes[index])) if ((nodes[s]?.kind === 'sketch' || nodes[s]?.kind === 'driven-sketch') && users(s).every(k => k === index)) removed.add(s);
   // The explicit target is independent of the geometry source. A removed index must not bind it to a different body.
   const linkedTargetUser = nodes.findIndex((node, i) => !removed.has(i) && node.kind === 'sketch' && node.association

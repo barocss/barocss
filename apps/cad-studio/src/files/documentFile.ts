@@ -71,7 +71,8 @@ export function verifyStoredStepCavities(opened: StudioDoc, readPart: (doc: Stud
 export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
   readInsets: (doc: StudioDoc) => Promise<StoredInsetReply>, current: () => boolean): Promise<void> | undefined {
   if (!current()) return;
-  const hasInsets = opened.nodes.some(node => node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined);
+  const hasInsets = opened.nodes.some(node => node.kind === 'rounded-rectangle-inset' ||
+    (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined));
   if (!hasInsets) return verifyStoredStepCavities(opened, readPart, current);
   return readInsets(opened).then(result => {
     if (!current()) return;

@@ -19,6 +19,7 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(
 export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
+  if (doc.nodes.some(n => n.kind === 'rounded-rectangle-inset')) throw refusal('BAD_REFERENCE', 'Rounded inset: flattening the stored recipe is not supported.');
   if (doc.nodes.some(n => n.kind === 'driven-sketch')) throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
@@ -52,6 +53,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.sigs) node = { ...node, sigs: Object.fromEntries(Object.entries(node.sigs).map(([n, v]) => [name(n), v])) };
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
+    case 'rounded-rectangle-inset': throw refusal('BAD_REFERENCE', 'Rounded inset: flattening the stored recipe is not supported.');
     case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
     case 'face-end-extrude': throw refusal('BAD_REFERENCE', 'Extrude to face: flattening a placed recipe is not supported.');
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;

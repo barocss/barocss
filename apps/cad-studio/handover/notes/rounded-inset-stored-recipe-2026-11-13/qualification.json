@@ -1,0 +1,116 @@
+{
+  "decision": "D912",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "7faecba0859060576c54ffcd0409fc9d23af0e6b",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D912-run>",
+    "D912_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/stored03 --stored-inset",
+    "D909_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/generic-rematch03 --lost-corner",
+    "D868_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/legacy-inset03 --fixed",
+    "cd apps/cad-studio && node test/rounded-inset-recipe-mutations.mjs <external-evidence>/mutations",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist03",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts packages/barocss-cad-model/src/engine/migrate.ts apps/cad-studio/src/files/documentFile.ts apps/cad-studio/src/ui/FeatureHistoryBar.tsx",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check",
+    "git show 7faecba0859060576c54ffcd0409fc9d23af0e6b:packages/barocss-cad-model/src/engine/migrate.ts; esbuild with those exact bytes substituted into readStudioDoc; node --input-type=module tests Studio-saved bytes and ordinary-sketch control"
+  ],
+  "initialFailures": [
+    {
+      "status": "FAIL",
+      "reason": "Model type check: static recipe ID was required in generic graph drafts that clear it.",
+      "logSHA256": "dd64236465ef22e674cb7783c9ad86de06e82c23c015825bf4dbd06a2150db68"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Observer regex missed the actual source feature ID refusal. The accepted part was retained.",
+      "receiptSHA256": "2cb59b4bd0f693ceb361d2b28a62b844593e106971f62a370f5f150cf91b224d"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 97,
+    "studioPass": 117,
+    "fail": 0,
+    "skipped": 0,
+    "types": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "8730477d43fb40cdffa1fc694ebb9f16c3dd29f24883b2f9bf57c67d8ea5149e"
+  },
+  "independentReviews": {
+    "status": "PASS",
+    "count": 2,
+    "scope": "Stored admission, exact geometry and topology, worker pre-adoption and document replacement"
+  },
+  "mutations": {
+    "status": "PASS",
+    "controlPass": 3,
+    "killed": [
+      "source-binding",
+      "native-arc-center",
+      "retired-reference",
+      "reader-admission",
+      "native-lowering"
+    ],
+    "receiptSHA256": "5b49fb3cb91b637f49599c5e708c97e4ba3916c0f06bef60523530ca3493590b"
+  },
+  "legacyReader": {
+    "status": "PASS",
+    "schema": 3,
+    "recipe": "REFUSED_UNKNOWN_KIND",
+    "ordinarySketch": "ACCEPTED",
+    "readerSHA256": "37ceccecf20f792a1fd174a96d891406c302a9e583416970664ecd6d90f17818",
+    "logSHA256": "ad61491269478043d4eed7a2ff8efa2e84c346fc3e44cf8f3338d007ab66514f"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "844d96cf03c67658d6eb403d0e216a1aa93756d50b032882ae8bd41b4ad88816",
+    "sourceManifestSHA256": "2078db624ffe93187e24504b33366d206e6c12fbf9667930ebfd2dab11cbc95e",
+    "frozenFiles": 844,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "distancesMM": [
+      1,
+      2,
+      2.5,
+      1
+    ],
+    "measuredVolumeMM3": [
+      534.247779607693,
+      1005.6637061435913,
+      1215.663706143591,
+      534.247779607693
+    ],
+    "expectedVolumeMM3": [
+      534.2477796076939,
+      1005.6637061435918,
+      1215.6637061435918,
+      534.2477796076939
+    ],
+    "savedBytes": 891,
+    "savedSHA256": "51a5e0b808157278ccc66d062c35d7916f18795df477206c022c0373d19b9a9d",
+    "genericRematchReceiptSHA256": "14c12a82d77736ece16b15f1282eb3ba06605e097bb3e5a24a62df8273a80d31",
+    "straightInsetReceiptSHA256": "05aeb7ec4ab13bdd3fcc6023357c34a42161e63a33d9004953a35681d6122eb3"
+  },
+  "notRun": [
+    "recovery and version native pre-adoption",
+    "old desktop product",
+    "whole suites",
+    "mobile",
+    "live editing and Studio authoring",
+    "detach and general geometry or dependents"
+  ]
+}

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const storedInset = process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
 const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
@@ -23,6 +24,12 @@ const initialFiles = [
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/offset.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
+  ...(storedInset ? [
+    'apps/cad-studio/src/files/documentFile.ts',
+    'apps/cad-studio/src/engine/engine.worker.ts',
+    'packages/barocss-cad-model/src/engine/migrate.ts',
+    'packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts',
+  ] : []),
   ...(plannedInset ? ['packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts'] : []),
   ...(lostCorner ? [
     'apps/cad-studio/src/files/documentFile.ts',
@@ -31,13 +38,15 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: plannedInset ? 'Generate bounded inset plans from one source and verify their native Studio readback.'
+  name: 'rounded-sketch-offset', envFrozen: storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: storedInset ? 'Open and validate a versioned rounded inset through File and Project.'
+    : plannedInset ? 'Generate bounded inset plans from one source and verify their native Studio readback.'
     : lostCorner ? 'Measure the existing cold Open rematch for a Fillet whose signed inner arc is absent.'
     : sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
     : sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
     : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
-  limits: [plannedInset ? 'Plans are generated outside Studio. Studio reads their native documents without a persisted recipe.'
+  limits: [storedInset ? 'Read-only stored recipe for one native rounded XY source and one direct Extrude.'
+    : plannedInset ? 'Plans are generated outside Studio. Studio reads their native documents without a persisted recipe.'
     : sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
     : 'One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
   initialFiles, requiredFrozen: initialFiles,
@@ -106,22 +115,27 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 `,
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
+    title: document.querySelector('.doc-tab input')?.value ?? null,
+    historyControls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`)?.disabled),
     sketchCurves: Array.from(document.querySelectorAll('.vp-overlay .sk-shape'), element =>
       [element.getAttribute('class'), element.getAttribute('points'), element.getAttribute('d')]),
   }),
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = storedInset ? 'D912-rounded-inset.bcad' : plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
-async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
+async function chooseFile(doc, filename = name, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
-  await chooser.setFiles({ name, mimeType: 'application/json', buffer: bytes });
+  await chooser.setFiles({ name: filename, mimeType: 'application/json', buffer: bytes });
+}
+async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
+  await chooseFile(doc, name, bytes);
   await f.same(doc);
 }
 
 async function save(doc) {
-  const project = plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = storedInset ? 'D912 rounded inset' : plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -382,6 +396,112 @@ async function verifyLostCorner(rounded, sharp) {
     sharpVolumeMm3: sharpNative.volume, expectedSharpVolumeMm3: expectedSharp });
 }
 
+async function verifyStoredInset(stock) {
+  const sideMap = Object.fromEntries(ids.map((id, i) => [id, derivedIds[i]]));
+  const recipe = { kind: 'rounded-rectangle-inset', version: 1, sourceSketch: 0, sourceFeature: 'n0', insetMM: 1, sideMap, id: 'n1' };
+  const candidate = distance => ({ ...stock,
+    nodes: [stock.nodes[0], { ...recipe, insetMM: distance }, { kind: 'extrude', sketch: 1, height: 10, id: 'n2' }],
+    outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3,
+  });
+  const check = async (label, doc, distance) => {
+    await f.same(doc);
+    const body = await f.inspect(label, doc);
+    const r = Math.max(2 - distance, 0);
+    const expected = stockVolume - 10 * area(20 - 2 * distance, 10 - 2 * distance, r);
+    close(body.volume, expected);
+    close((await f.bodies()).bodies[0].volume, expected);
+    assert.equal(body.cylinders.length, r > 0 ? 8 : 4);
+    const names = (r > 0 ? derivedIds : sharpIds).map(id => `n2.side[${id}]`);
+    for (const side of [...ids.map(id => `n2.side[${id}]`), ...names]) assert.ok(body.faces.includes(side), side);
+    for (const id of derivedIds.filter(id => !sharpIds.includes(id))) {
+      assert.equal(body.faces.includes(`n2.side[${id}]`), r > 0);
+    }
+    f.report.observations.push({ label, insetMm: distance, volumeMm3: body.volume, expectedVolumeMm3: expected, derivedFaces: names });
+  };
+  for (const [index, distance] of [1, 2, 2.5, 1].entries()) {
+    f.phase = `Open stored recipe at ${distance} mm`;
+    const doc = candidate(distance);
+    await open(doc);
+    await check('stored-inset-' + index, doc, distance);
+  }
+  const rounded = candidate(1), sharp = candidate(2.5);
+  const history = f.page.getByRole('group', { name: 'History', exact: true });
+  await history.getByRole('button', { name: 'Sketch · rounded inset', exact: true }).waitFor();
+  await f.openFeatureEditor(2);
+  assert.equal(await button(f.editor(), 'Edit sketch').count(), 0);
+  await f.closeEditor();
+  const before = await f.snapshot('01-stored-rounded');
+
+  const wrong = structuredClone(sharp);
+  wrong.nodes[1].sourceFeature = 'n9';
+  const missingArc = structuredClone(sharp);
+  missingArc.nodes.push({ kind: 'fillet', id: 'n3', parent: { node: 2, side: 'solid' }, radius: 0.2, edges: ['n2.side[e10]|n2.top'] });
+  missingArc.nextId = 4;
+  missingArc.outputs = { b3: { node: 3, side: 'solid' } };
+  const nativeInvalid = candidate(0.02);
+  const tinyPoint = ([x, y]) => [9990 + x / 40, 9990 + y / 40];
+  nativeInvalid.nodes[0] = { ...nativeInvalid.nodes[0], segments: nativeInvalid.nodes[0].segments.map(segment => ({
+    ...segment, start: tinyPoint(segment.start),
+    ...(segment.kind === 'arc' ? { center: tinyPoint(segment.center) } : {}),
+  })) };
+  const unchanged = async (label, previous, reason) => {
+    await f.waitToast(reason);
+    const after = await f.snapshot(label);
+    for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) assert.deepEqual(after[key], previous[key], key);
+    await f.dismissToasts();
+  };
+  f.phase = 'refuse a wrong source and a missing arc on File Open';
+  await chooseFile(wrong, 'wrong-source.bcad');
+  await unchanged('02-wrong-source-refused', before, /rounded rectangle inset.*source/i);
+  await chooseFile(missingArc, 'retired-corner.bcad');
+  await unchanged('03-retired-corner-refused', before, /retired.*e10|e10.*retired/i);
+  await chooseFile(nativeInvalid, 'native-invalid-inset.bcad');
+  await unchanged('03b-native-invalid-refused', before, /loop encloses no area/i);
+
+  f.phase = 'check prepared valid and invalid recipes through Project Open';
+  const project = 'D912 rounded inset candidates';
+  await f.page.evaluate(async ([project, valid, invalid]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects', { create: true });
+    const folder = await projects.getDirectoryHandle(project, { create: true });
+    for (const [name, doc] of [['sharp.bcad', valid], ['retired.bcad', invalid]]) {
+      const handle = await folder.getFileHandle(name, { create: true });
+      const writer = await handle.createWritable();
+      await writer.write(JSON.stringify(doc));
+      await writer.close();
+    }
+  }, [project, sharp, missingArc]);
+  await button(f.page, 'Project and versions').click();
+  const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+  await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
+  await button(panel, 'Project in this browser').click();
+  await panel.getByLabel('Project', { exact: true }).waitFor();
+  const beforeProject = await f.snapshot('04-before-project-refusal');
+  await button(panel, 'Open retired.bcad').click();
+  await unchanged('05-project-retired-refused', beforeProject, /retired.*e10|e10.*retired/i);
+  await button(panel, 'Open sharp.bcad').click();
+  await check('stored-project-sharp', sharp, 2.5);
+  await f.undo();
+  await f.same(rounded);
+  await f.redo();
+  await f.same(sharp);
+  await f.snapshot('06-project-sharp');
+  const savedName = await f.page.locator('.doc-tab input').inputValue() + '.bcad';
+  await button(f.page, 'Save').click();
+  await panel.getByRole('list', { name: 'Project documents' }).getByText(savedName, { exact: true }).waitFor();
+  await f.page.getByLabel('Unsaved changes', { exact: true }).waitFor({ state: 'hidden' });
+  const saved = Buffer.from(await f.page.evaluate(async ([project, filename]) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const folder = await projects.getDirectoryHandle(project);
+    return (await (await folder.getFileHandle(filename)).getFile()).text();
+  }, [project, savedName]));
+  assert.deepEqual(JSON.parse(saved), sharp);
+  f.report.files.push({ bytes: saved.length, sha256: sha256(saved) });
+  await f.newPage();
+  await open(sharp, saved);
+  await check('stored-saved-fresh-open', sharp, 2.5);
+  await f.snapshot('07-stored-fresh-open');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -402,6 +522,10 @@ await f.run(async () => {
   assert.equal(nativeStock.cylinders.length, 4);
   checkCylinders(nativeStock, 2, ids);
   await f.newPage();
+  if (storedInset) {
+    await verifyStoredInset(stock);
+    return;
+  }
   if (sharpCandidate) {
     await verifySharpCandidates(stock);
     return;

@@ -3,6 +3,7 @@ import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evalu
 import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { currentFaceEndDistance, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
+import { validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
 import { planeOf, profileRings } from '@barocss/cad-model/app/profiles';
 import { toLocal } from '@barocss/cad-model/sketch/plane';
@@ -131,6 +132,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   if (request.type === 'verifyStoredInsets') {
     try {
+      if (doc.nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
+        validateRoundedInsetDocument(doc, true);
+        const result = evaluatePart(doc, 0, 8, 'read');
+        if (!result.ok) throw new Error(result.error.detail || result.error.hint || result.error.title);
+        const [body] = result.bodies;
+        if (result.bodies.length !== 1 || !Object.hasOwn(doc.outputs, body.key) || body.volume === null
+          || !Number.isFinite(body.volume) || body.volume <= 0) {
+          throw new Error('Rounded rectangle inset: the stored extrusion must produce one solid with positive volume.');
+        }
+      }
       for (const [index, node] of doc.nodes.entries()) {
         if (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined) resolveAssociativeSketch(doc, index);
       }

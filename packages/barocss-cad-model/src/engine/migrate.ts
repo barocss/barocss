@@ -1,4 +1,5 @@
 import { assertDrivenSketchNode } from '../sketch/driven';
+import { validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
 import { MATERIALS } from '../library/materials';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
@@ -28,7 +29,7 @@ import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d'
 // Only schemas 3 and 4 are read; explicit route bundles require reader support for 4.
 export const SCHEMA = 3;
 const MAX_READ_SCHEMA = 4;
-const KINDS = new Set(['driven-sketch', 'skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'face-end-extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-span-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'fill-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'band-surface', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
+const KINDS = new Set(['driven-sketch', 'rounded-rectangle-inset', 'skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'face-end-extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-span-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'fill-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'band-surface', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
   let raw: unknown;
@@ -67,7 +68,10 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const parameters = o.parameters && typeof o.parameters === 'object' ? o.parameters as Record<string, number> : (notes.push('no parameters list: started empty'), {});
   const bad = Object.entries(parameters).filter(([, v]) => typeof v !== 'number' || !Number.isFinite(v)).map(([k]) => k);
   if (bad.length) return { error: `Parameters without a number: ${bad.join(', ')}.` };
-  try { assertDrivenDocuments({ ...o, parameters }); }
+  try {
+    assertDrivenDocuments({ ...o, parameters });
+    assertRoundedInsetDocuments(o);
+  }
   catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   const idProblem = instanceIdProblem(o, '');
   if (idProblem) return { error: refusal('VALUE', idProblem).message };
@@ -315,4 +319,15 @@ function assertDrivenDocuments(value: unknown): void {
   if (Array.isArray(value.nodes)) for (const node of value.nodes) if (record(node) && node.kind === 'driven-sketch') assertDrivenSketchNode(node, parameters);
   if (Array.isArray(value.instances)) for (const instance of value.instances) if (record(instance)) assertDrivenDocuments(instance.doc);
   if (record(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (record(pending)) assertDrivenDocuments(pending.doc);
+}
+
+/** A loaded rounded inset is an independent part; nested definitions must not bypass raw admission. */
+function assertRoundedInsetDocuments(value: unknown, nested = false): void {
+  if (!record(value)) return;
+  if (Array.isArray(value.nodes) && value.nodes.some(node => record(node) && node.kind === 'rounded-rectangle-inset')) {
+    if (nested) throw refusal('BAD_REFERENCE', 'Rounded inset: placed or pending recipes are not supported.');
+    validateRoundedInsetDocument(value as unknown as StudioDoc, true);
+  }
+  if (Array.isArray(value.instances)) for (const instance of value.instances) if (record(instance)) assertRoundedInsetDocuments(instance.doc, true);
+  if (record(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (record(pending)) assertRoundedInsetDocuments(pending.doc, true);
 }
