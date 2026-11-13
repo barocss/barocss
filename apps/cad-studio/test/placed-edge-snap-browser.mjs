@@ -8,6 +8,7 @@ const quarterTurn = mode === '--quarter-turn' || mode === '--quarter-turn-baseli
 const quarterTurnFixed = mode === '--quarter-turn';
 const sourceRevision = mode === '--source-revision';
 const lifecycle = mode === '--lifecycle';
+const rotationLimits = mode === '--rotation-limits';
 
 const pins = [
   'apps/cad-studio/test/placed-edge-snap-browser.mjs',
@@ -17,7 +18,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/doc.ts',
   'packages/barocss-cad-model/src/engine/evaluate.ts',
   'packages/barocss-cad-model/src/sketch/osnap.ts',
-  ...(fixed || quarterTurn || sourceRevision || lifecycle ? [
+  ...(fixed || quarterTurn || sourceRevision || lifecycle || rotationLimits ? [
     'apps/cad-studio/src/viewport/placedBoxSnap.ts',
     'apps/cad-studio/src/viewport/placedSketchSnaps.ts',
     'apps/cad-studio/src/viewport/SceneViewport.tsx',
@@ -27,7 +28,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'placed-edge-snap', output: process.argv[2],
-  envFrozen: lifecycle ? 'D885_SOURCE_FROZEN' : sourceRevision ? 'D884_SOURCE_FROZEN'
+  envFrozen: rotationLimits ? 'D1115_SOURCE_FROZEN' : lifecycle ? 'D885_SOURCE_FROZEN' : sourceRevision ? 'D884_SOURCE_FROZEN'
     : quarterTurn ? 'D883_SOURCE_FROZEN' : fixed ? 'D882_SOURCE_FROZEN' : 'D881_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: lifecycle ? 'Reject stale placed snaps after hiding, evaluation failure, removal, New and same-ID Open.'
@@ -264,6 +265,36 @@ async function movedOccurrence(solid) {
   await hover(rightEnd, 'End', 'right');
   await f.snapshot('12-hidden-left-keeps-current-right');
   await cancel();
+}
+
+async function checkRotationLimits() {
+  const place = angle => ({ ...source, instances: [{ ...instances[0], rotation: [0, 0, angle] }, instances[1]] });
+  const supportText = 'Placed box End and Middle snaps support exact 90° Z rotations.';
+  const at = (angle, x) => [endAt[0] + x * Math.cos(angle * Math.PI / 180), endAt[1] + x * Math.sin(angle * Math.PI / 180)];
+  await f.newPage();
+  for (const angle of [89.999, 90]) {
+    f.phase = 'compare placed snap support at ' + angle + ' degrees';
+    const doc = place(angle);
+    await open(doc);
+    await begin();
+    const end = at(angle, 20), middle = at(angle, 10);
+    await f.frame([end, middle, middleAt]);
+    await hover(end, angle === 90 ? 'End' : null, angle === 90 ? 'left' : null);
+    await hover(middle, angle === 90 ? 'Middle' : null, angle === 90 ? 'left' : null);
+    await hover(middleAt, 'Middle', 'right');
+    const disclosure = f.sketchPanel().locator('details.sk-object-snaps');
+    await disclosure.locator('summary').click();
+    const support = disclosure.getByText(supportText, { exact: true });
+    await f.snapshot('placed-rotation-' + angle);
+    assert.equal(await support.isVisible(), angle === 89.999, 'the support limit must be visible only for the unsupported rotation');
+    if (angle === 89.999) {
+      const left = (await f.inspect('near-quarter-turn-native', doc)).placed[0].bodies[0];
+      assert.ok(left.valid && Math.abs(left.volume - 1440) < 1e-8);
+      assert.ok(left.corners.some(point => close(point, [...end, 0])));
+    }
+    await cancel();
+    await f.same(doc);
+  }
 }
 
 async function checkQuarterTurn() {
@@ -647,6 +678,10 @@ await f.run(async () => {
   }
   if (quarterTurn) {
     await checkQuarterTurn();
+    return;
+  }
+  if (rotationLimits) {
+    await checkRotationLimits();
     return;
   }
 

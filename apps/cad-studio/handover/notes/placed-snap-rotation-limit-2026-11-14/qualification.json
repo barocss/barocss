@@ -1,0 +1,57 @@
+{
+  "decision": "D1115",
+  "tier": "SMALL",
+  "parent": "4bf3ead61f627e326899a5d4898eb8f58d584311",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1115-rotation-limits-<run>",
+    "D1115_SOURCE_FROZEN=1 node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/<run> --rotation-limits",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs placed-box-snap placed-sketch-snap-ownership object-snap-kinds",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/sketch/SketchSnapControls.tsx apps/cad-studio/src/viewport/placedBoxSnap.ts",
+    "D883_SOURCE_FROZEN=1 node apps/cad-studio/test/placed-edge-snap-browser.mjs <external-evidence>/quarter-turn-control --quarter-turn",
+    "node --check apps/cad-studio/test/placed-edge-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "094748e6f29ad82e6849d04b2aee55ee9f04399992bec321bc123b0389defbd7",
+      "sourceManifestSHA256": "8e8f6ea218e13e989fda7233006ad882abc5b9f10274e1cf36e6f102eb4c15ce",
+      "savedFiles": [],
+      "firstFailure": "At 89.999 degrees the visible placed box did not provide End or Middle, and Object snaps gave no rotation limit."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "06cb0ac04074fd69c69b9bde8c272d4badfe11e1a6820934b1834460fe5fe659",
+      "sourceManifestSHA256": "97e7a90170de19f7461f7cfa60b1257bffa88c4b56bc0dbc24f79b18bfcb2463",
+      "savedFiles": []
+    },
+    "quarterTurnControl": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "36bebc732ac760fb60f0720a02f6b005ef1ccf03762e74aeb3aec49def7cb767",
+      "sourceManifestSHA256": "97e7a90170de19f7461f7cfa60b1257bffa88c4b56bc0dbc24f79b18bfcb2463",
+      "savedFiles": []
+    }
+  },
+  "supportedZDegrees": 90,
+  "unsupportedZDegrees": 89.999,
+  "nearTurnNativeVolumeMM3": 1440,
+  "quarterTurnConsumerVolumeMM3": 1923.75,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

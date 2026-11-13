@@ -9,11 +9,12 @@ interface Props {
   twoPoint: ReturnType<typeof useTwoPointSnap>;
   extension: ReturnType<typeof useArcExtensionSnap>;
   objectKinds: ObjectSnapKinds;
+  placedRotationLimited?: boolean;
   onToggleObjectKind(kind: ObjectSnapKind): void;
   onExitObjectKinds?(): void;
 }
 
-export function SketchSnapControls({ twoPoint, extension, objectKinds, onToggleObjectKind, onExitObjectKinds }: Props) {
+export function SketchSnapControls({ twoPoint, extension, objectKinds, placedRotationLimited, onToggleObjectKind, onExitObjectKinds }: Props) {
   return <>
     <details className="sk-object-snaps" data-sketch-dimension-focus
       onKeyDown={event => {
@@ -33,6 +34,7 @@ export function SketchSnapControls({ twoPoint, extension, objectKinds, onToggleO
             onClick={() => onToggleObjectKind(kind)}>{label}</Button>;
         })}
       </div>
+      {placedRotationLimited && <p>Placed box End and Middle snaps support exact 90° Z rotations.</p>}
     </details>
     <TwoPointSnapControls snap={{ ...twoPoint, begin: () => { extension.cancel(); twoPoint.begin(); } }} />
     {extension.available && <Button variant="ghost" aria-pressed={!!extension.stage}

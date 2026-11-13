@@ -28,11 +28,14 @@ const equals = (a: ArrayLike<number>, b: ArrayLike<number>) => axes.every(i => a
 const nodeId = (id: unknown): id is string => typeof id === 'string' && /^n(?:0|[1-9]\d*)$/.test(id) && Number.isSafeInteger(Number(id.slice(1)));
 const cardinal = (v: Vec3) => axes.find(i => Math.abs(v[i]) === 1 && axes.every(j => j === i || v[j] === 0));
 
+export function supportsPlacedBoxSnapRotation(rotation: Vec3): boolean {
+  return point(rotation) && rotation[0] === 0 && rotation[1] === 0 && Math.abs(rotation[2]) <= 3600 && rotation[2] % 90 === 0;
+}
+
 function authoredBox(instance: PartInstance, body: BodyResult): Box | null {
   const doc = instance.doc;
   if (typeof instance.id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(instance.id) || instance.hidden || instance.pattern || instance.savedPlacement || instance.joints
-    || !point(instance.position) || !point(instance.rotation)
-    || instance.rotation[0] !== 0 || instance.rotation[1] !== 0 || Math.abs(instance.rotation[2]) > 3600 || instance.rotation[2] % 90 !== 0
+    || !point(instance.position) || !supportsPlacedBoxSnapRotation(instance.rotation)
     || doc.format !== 'barocss-cad-model' || doc.schema !== 3 || doc.units !== 'mm' || doc.nodes.length !== 2
     || doc.instances?.length || doc.mates?.length || doc.instancePatterns?.length || doc.assemblyCuts?.length
     || doc.assemblySteps?.length || doc.robot || doc.variability || doc.configurations || doc.routeBundles || doc.direct) return null;
