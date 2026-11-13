@@ -1,0 +1,75 @@
+{
+  "decision": "D1020",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "89d306bdee523b40dfbc18b2a06be9792188dd7e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1020-section-baseline",
+    "gate.sh acquire heavy 600 D1020-section-studio03",
+    "D1020_SOURCE_FROZEN=1 node apps/cad-studio/test/fixed-span-end-hole-browser.mjs <external-evidence>/baseline",
+    "D1020_SOURCE_FROZEN=1 node apps/cad-studio/test/fixed-span-end-hole-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1020-feature-checks",
+    "pnpm --filter @barocss/cad-model test linear-span-pattern face-commands engine.test",
+    "pnpm --filter @barocss/cad-studio-app test document-file linear-span-pattern failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/fixed-span-end-hole-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Count 4 left the Hole reference at @2 while the bore cut the end at @3.",
+    "receiptSHA256": "d5446ac970e6460971e495b7e999239ec6a8a716e16ae5d1e7f11ba8e80de6b5",
+    "sourceManifestSHA256": "9f30861a77b58a7bcff15775a9ea9f2bf00545a7d8ee0453c94fefa222788750"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "904f9490ed96d3ba7db2bef8fd689bab3112610d083ec963ecfd8a363676a6dd",
+    "sourceManifestSHA256": "d5b1b0dba35cf69901b84340471783c0bc46d4325fe8e913fdbc7e8e873930a6",
+    "frozenFiles": 851,
+    "states": 7,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "spanMM": 32,
+    "counts": [
+      3,
+      4,
+      2
+    ],
+    "faces": [
+      "n1.top@2",
+      "n1.top@3",
+      "n1.top@1"
+    ],
+    "boreCenterMM": [
+      84,
+      13
+    ],
+    "roundedSpanMM": 20.02,
+    "roundedCount": 6,
+    "roundedFace": "n1.top@5",
+    "volumeToleranceMM3": 1e-07
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 64,
+    "studioPassed": 18,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "span-only edits",
+    "suppression order",
+    "other Hole and stock families",
+    "parameter or API changes",
+    "fresh Open after Count retarget",
+    "no-material cut",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
