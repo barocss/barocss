@@ -1,0 +1,57 @@
+{
+  "decision": "D1101",
+  "tier": "SMALL",
+  "parent": "6418806aee87a7abb6b74c251fd91ac97b4fc8f2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1101-rounded-sketch-offset-<run>",
+    "D1101_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/<run> --radius-floor",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset.test sketch-reopen driven-sketch",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/offset.ts",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 860,
+      "receiptSHA256": "9c1969348373c033ac4962b8842d4b9b625a36d18350cdcd06c12e502f6149ac",
+      "sourceManifestSHA256": "ac45a2439c7762ad478abe0626f41ce766dd918ae6023b1bdd69cd229205d776",
+      "firstFailure": "At In 1.99 mm the draft gained an Undo entry. The Offset was admitted before the output arc radius was checked."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 860,
+      "receiptSHA256": "8cf962140658c601f4298398cd3054fb16cb525ec14796809f7439f3fa18da60",
+      "sourceManifestSHA256": "93a2628c2330357405de9de34a492cc1052a5934b62c58b0ec4b2b6b596faa5b",
+      "projectFiles": [
+        {
+          "bytes": 3607,
+          "sha256": "79f264453ba6034b63502ecbaf0fa7aaf73a57eb6c12db6d89e8979146b18297"
+        }
+      ]
+    }
+  },
+  "refusedOffsetMM": [
+    1.99,
+    1.990001
+  ],
+  "acceptedOffsetMM": 1.989999,
+  "existingKernelFloorMM": 0.01,
+  "refusedNominalRadiusMM": 0.010000000000000009,
+  "refusedEmittedRadiusMM": 0.00999999999999801,
+  "acceptedArcRadiusMM": 0.010001,
+  "acceptedVolumeMM3": 1001.2601239225877,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 32,
+    "modelPassed": 83,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}

@@ -3,6 +3,7 @@
 // Rectangles, circles and slots keep their kind; an outline has each edge moved out along its normal — a
 // line parallel, an arc about its centre — with new corners where the moved pieces meet (cut back, or run on
 // to meet across the gap); where an arc joins its neighbour tangentially (a rounded corner) they still meet there.
+import { ExtrudedProfileLimits } from '@barocss/cad';
 import type { SketchShape } from './types';
 import { arcOf } from './profile';
 import { r6Signed as r6 } from '../util/round';
@@ -102,7 +103,7 @@ function offsetArcs(pts: P2[], bulges: number[], d: number): { shape: SketchShap
     const arc = arcOf(p, q, bulges[i]), sg = Math.sign(arc.sweep), at = (ang: number): P2 => [-Math.sin(ang) * sg, Math.cos(ang) * sg];
     const radius = arc.radius + d * out * sg;
     // Check the signed radius before rebuilding endpoints in world coordinates.
-    if (!Number.isFinite(radius) || radius <= 0.01) return null;
+    if (!Number.isFinite(radius) || radius <= ExtrudedProfileLimits.minimumRadiusMM) return null;
     return { a: at(arc.start), b: at(arc.start + arc.sweep), arc, moved: { kind: 'circle', c: arc.center, r: radius } as Moved };
   });
   if (pieces.some(x => !x)) return { error: 'That offset is more than an arc’s radius: use a smaller one.' };
@@ -135,6 +136,13 @@ function offsetArcs(pts: P2[], bulges: number[], d: number): { shape: SketchShap
     if (Math.abs(sw) < 1e-6 || Math.abs(sw) > Math.abs(sw0) + Math.PI) return { error: 'That offset cuts an arc of the outline away: use a smaller one.' };
     out2.push(Math.round(Math.tan(sw / 4) * 1e9) / 1e9);
   }
+  // The exported loop uses these quantized endpoints and bulges. Check the radius that
+  // the profile reader will measure from them as well as the unrounded offset above.
+  if (out2.some((bulge, i) => {
+    if (!bulge) return false;
+    const { radius } = arcOf(corners[i], corners[(i + 1) % n], bulge);
+    return !Number.isFinite(radius) || radius < ExtrudedProfileLimits.minimumRadiusMM;
+  })) return { error: `That offset leaves an arc radius below ${ExtrudedProfileLimits.minimumRadiusMM} mm: use a smaller offset.` };
   if (arcOutlineWinding(corners, out2) !== out) return { error: 'That offset turns the outline inside out: use a smaller one.' };
   return { shape: { kind: 'polygon', points: corners, closed: true, bulges: out2 } };
 }

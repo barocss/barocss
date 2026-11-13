@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1101 — check the emitted arc radius before accepting Offset](notes/sketch-offset-final-arc-radius-2026-11-14/README.md).
 - [D1100 — retain source constraints when outward Offset makes a hole](notes/outward-offset-hole-constraints-2026-11-14/README.md).
 - [D1099 — refuse nested inward Offset before changing the draft](notes/nested-sketch-offset-admission-2026-11-14/README.md).
 - [D1098 — edit a standalone circle diameter directly](notes/standalone-circle-direct-diameter-2026-11-14/README.md).

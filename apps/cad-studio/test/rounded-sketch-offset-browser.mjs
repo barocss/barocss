@@ -4,6 +4,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const sourceEdit = process.argv[3] === '--source-edit';
 const nestedOffset = process.argv[3] === '--nested-offset';
 const outwardSource = process.argv[3] === '--outward-source';
+const radiusFloor = process.argv[3] === '--radius-floor';
 const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
@@ -59,8 +60,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: outwardSource ? 'Preserve the authored source radius, tangent and H/V constraints when outward Offset makes it a hole.'
+  name: 'rounded-sketch-offset', envFrozen: radiusFloor ? 'D1101_SOURCE_FROZEN' : outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: radiusFloor ? 'Verify the inward Offset radius floor and its adjacent admissible input.'
+    : outwardSource ? 'Preserve the authored source radius, tangent and H/V constraints when outward Offset makes it a hole.'
     : nestedOffset ? 'Refuse a third nested outline at Offset and retain the valid ring draft.'
     : dependentInset ? 'Qualify the stored linked inset boundary for a retired dependent finish edge.' : insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
     : detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
@@ -1150,6 +1152,44 @@ await f.run(async () => {
     await distance.fill(String(value));
     await button(panel, 'Offset inward').click();
   };
+  if (radiusFloor) {
+    const before = await f.snapshot('01-stock');
+    for (const value of [1.99, 1.990001]) {
+      f.phase = `refuse inward Offset ${value} at the command`;
+      await offset(value);
+      const attempted = await f.snapshot(`02-refused-${value}`);
+      for (const key of ['doc', 'history', 'historyControls', 'dirty', 'sketchCurves']) assert.deepEqual(attempted[key], before[key], key);
+      const refusal = await f.waitToast(/arc.*radius/i);
+      f.report.observations.push({ label: 'radius-floor-refusal', offset: value, refusal });
+      await f.dismissToasts();
+    }
+    f.phase = 'accept the adjacent 1.989999 mm inset';
+    await offset(1.989999);
+    const draft = await f.snapshot('03-accepted-draft');
+    assert.equal(draft.sketchCurves.length, 2);
+    await f.undo();
+    const undone = await f.snapshot('04-undo-accepted-draft');
+    assert.deepEqual(undone.sketchCurves, before.sketchCurves);
+    await f.redo();
+    const ring = (await f.finishSketch('05-accepted-ring')).doc;
+    const native = await f.inspect('radius-floor-native', ring);
+    const radius = 0.010001;
+    const expected = 10 * (area(20, 10, 2) - area(20 - 2 * 1.989999, 10 - 2 * 1.989999, radius));
+    close(native.volume, expected);
+    checkCylinders(native, 2, ids);
+    checkCylinders(native, radius, ring.nodes[0].sideTags.holes[0]);
+    f.report.observations.push({ label: 'radius-floor-native', offset: 1.989999, radius, volume: native.volume });
+    await f.undo();
+    await f.same(stock);
+    await f.redo();
+    await f.same(ring);
+    const bytes = await save(ring);
+    await f.newPage();
+    await open(ring, bytes);
+    const reopened = await f.inspect('radius-floor-reopened-native', ring);
+    assert.deepEqual(reopened, native);
+    return;
+  }
   if (outwardSource) {
     assert.deepEqual(stock.nodes[0].outline.radii, { 1: 2, 3: 2, 5: 2, 7: 2 });
     await f.snapshot('01-source-locks');

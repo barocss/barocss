@@ -32,6 +32,18 @@ test('offset: a rounded rectangle (tangent arcs) moves out piece by piece; its a
   const a = arcOf(r.shape.points[1], r.shape.points[2], r.shape.bulges![1]);
   assert.deepEqual([Math.round(a.center[0] * 1e6) / 1e6, Math.round(a.center[1] * 1e6) / 1e6, Math.round(a.radius * 1e6) / 1e6], [18, 2, 3]);
   assert.ok('error' in offsetShape({ kind: 'polygon', points: pts, closed: true, bulges }, -2.5), 'past the R2 corners');
+  const source = { kind: 'polygon' as const, points: pts, closed: true, bulges };
+  for (const distance of [-1.99, -1.990001]) {
+    const result = offsetShape(source, distance);
+    assert.ok('error' in result && /arc.*radius/i.test(result.error));
+  }
+  const nearFloor = offsetShape(source, -1.989999);
+  assert.ok('shape' in nearFloor && nearFloor.shape.kind === 'polygon');
+  const rebuilt = nearFloor.shape;
+  for (const i of [1, 3, 5, 7]) {
+    const arc = arcOf(rebuilt.points[i], rebuilt.points[(i + 1) % pts.length], rebuilt.bulges![i]);
+    assert.ok(Math.abs(arc.radius - 0.010001) < 1e-12);
+  }
 });
 
 test('offset: arcs meeting their neighbours at corners — the moved pieces cut back or run on to meet', async () => {
