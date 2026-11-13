@@ -1,5 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction, type RefObject } from 'react';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -13,7 +13,7 @@ import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
 import { bindMidpointPick } from '../app/midpointSketch';
-import { captureMeasureTarget, readMeasureTarget, type MeasureTarget } from '../app/measureTargets';
+import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget } from '../app/measureTargets';
 import { bindNativeVertexPick } from './vertexPick';
 import type { EdgeRef, FaceRef } from './renderer';
 import type { ScenePickingActions } from './SceneViewport';
@@ -29,7 +29,7 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, measureNativeReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
+  setDirectSel, setMeasure, measureNativeReady, measureInstances, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   sectionPickRef: RefObject<SectionPick>;
@@ -43,6 +43,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
   setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasureTarget[] | null>>;
   measureNativeReady: RefObject<boolean>;
+  measureInstances: RefObject<ReadonlyMap<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>>;
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
   scene: {
     active: Active | null;
@@ -90,6 +91,29 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       if ('error' in r && typeof r.error === 'string' && Object.keys(r).length === 1) { setToast({ title: `${cur.cmd.label}: not that one`, hint: r.error, detail: '' }); return; }
       setActive(a => a && { ...a, values: r as Values, preview: 'busy' }); return;
     }
+    const addMeasurement = (target: MeasureTarget, root: readonly BodyResult[]) => {
+      setMeasure(current => {
+        if (!current?.length) return [target];
+        const missing = current.findIndex(previous => {
+          if (!previous.occurrence) return !readMeasureTarget(previous, doc, root);
+          const part = measureInstances.current.get(previous.occurrence.id);
+          return !part || !sameMeasureOccurrence(previous.occurrence, part.inst) || part.hidden.has(previous.body) || !readMeasureTarget(previous, doc, part.bodies);
+        });
+        if (missing >= 0) return current.map((previous, index) => index === missing ? target : previous);
+        return current.length >= 2 ? [target] : [...current, target];
+      });
+    };
+    if (measure && validInstance && !assembly.draft) {
+      const placed = measureInstances.current.get(hit.instance!);
+      const picked = hit.instanceFace, body = picked && placed?.bodies[picked.body];
+      if (!placed || !picked || !body || placed.hidden.has(body.key)) {
+        setToast({ title: 'Placed face unavailable', hint: 'Select a face on a visible part at its accepted placement.', detail: '' });
+        return;
+      }
+      const target = captureMeasureTarget(picked, doc, body, false, placed.inst);
+      if (target) addMeasurement(target, scene.bodies);
+      return;
+    }
     if (validInstance && !hit.instanceFace) {
       setPick(null); setInstanceSel([hit.instance!]); setSelection(emptySel); setDirectSel([]);
       if (hit.instanceCap) setToast({ title: 'Instance selected', hint: 'The section cap selects this instance. Use an original face for face operations.', detail: '' });
@@ -110,12 +134,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       const source = sectionRef.current ? scene.bodies : viewBodiesRef.current;
       const target = captureMeasureTarget(p, doc, source[p.body], measureNativeReady.current);
       if (!target) return;
-      setMeasure(current => {
-        if (!current?.length) return [target];
-        const missing = current.findIndex(previous => !readMeasureTarget(previous, doc, source));
-        if (missing >= 0) return current.map((previous, index) => index === missing ? target : previous);
-        return current.length >= 2 ? [target] : [...current, target];
-      });
+      addMeasurement(target, source);
       return;
     }
     // A corner: picked on its own (Shift adds or takes back another).
@@ -137,7 +156,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean) => {

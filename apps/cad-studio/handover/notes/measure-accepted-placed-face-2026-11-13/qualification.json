@@ -1,0 +1,58 @@
+{
+  "decision": "D1036",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "4f4691bee28e81641a2d40499d2cd3bbe00fd4ab",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1036-section-baseline01",
+    "D1036_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1036-section-studio03",
+    "D1036_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1036-focused",
+    "pnpm --filter @barocss/cad-model test measure",
+    "gate.sh acquire heavy 600 D1036-final-focused",
+    "node --check apps/cad-studio/test/measure-placed-face-browser.mjs",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text instance-pose",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "placedToPresent": false,
+    "receiptSHA256": "bcee289428fc6e908f000e2ee6a4b419e1f8c4ecdf2610c2c02bf3bf79ba433e",
+    "sourceManifestSHA256": "e321186780b486efe1bd1fec1561f9ca215c941f0c58e818651ef49d39623ee6"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "states": 5,
+    "frozenFiles": 378,
+    "receiptSHA256": "a52c9d8a7ba58e24f99389841789525b5c0568bb406684cce02157dd47c13bbd",
+    "sourceManifestSHA256": "fd09c7cf9b9c4b68ae513df52354997fc793779f946c1b676ad4aae1f1a24935",
+    "distanceDisplayedMM": 20.62,
+    "normalDistanceMM": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 12,
+    "studioPassed": 8,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "placed context-menu Measure",
+    "placed edge or vertex",
+    "rotated or nested occurrence in Studio",
+    "replacement of a freed occurrence ID in Studio",
+    "live pose/preview browser controls",
+    "curved distance provenance",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

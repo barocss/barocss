@@ -12,7 +12,7 @@ function inspector(measured: MeasureResult, bodies: BodyResult[] = []) {
   const picks: MeasurePick[] = bodies.length ? [{ body: 0, edge: 0 }, { body: 0, face: 0 }] : [];
   const targets = picks.map(pick => ({ pick, body: bodies[0].key, label: 'Test body', mesh: bodies[0].mesh }));
   return renderToStaticMarkup(createElement(MeasurementInspector, {
-    bodies, targets, picks, measured, onClose() {},
+    targets, items: targets.map(({ pick, mesh }) => ({ pick, mesh })), measured, onClose() {},
   }));
 }
 

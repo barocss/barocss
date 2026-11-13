@@ -109,7 +109,7 @@ import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { capturePinnedFacePair, readPinnedFacePair, type PinnedFacePair } from './app/pinnedFaceMeasure';
-import { captureMeasureTarget, readMeasureTarget, type MeasureTarget } from './app/measureTargets';
+import { captureMeasureTarget, readMeasureTarget, sameMeasureOccurrence, type MeasureTarget } from './app/measureTargets';
 import { hostsOf, nestedCard, renderKeysOf, singleNested, singleTop, viewportInstanceSelection } from './assembly/nestedSelection';
 import { NestedPartPanel } from './ui/NestedPartPanel';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -1768,8 +1768,9 @@ export function App() {
     },
     notice: setToast,
   });
+  const measureInstances = useRef<ReadonlyMap<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>>(new Map());
   const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
-    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, pickFilterRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, measureInstances, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
   const finishEdgePicking = finishEdgeEditor.current ? {
@@ -2448,8 +2449,31 @@ export function App() {
       return body < 0 ? null : { body, edges: retainedSectionEdges(bodies[body].mesh, shown.mesh, section.planes[0], sectionFrom) };
     });
   }, [sectionExactShown, sectionExact, section, sectionBodies, shownBodies, bodies, sectionFrom]);
-  const measurePicks = useMemo(() => measure?.map(target => fresh && !busy ? readMeasureTarget(target, doc, bodies) : null), [measure, fresh, busy, doc, bodies]);
-  const liveMeasurePicks = measurePicks?.filter((pick): pick is MeasurePick => pick !== null);
+  const instanceLooks = useInstanceLooks(doc, instanceBodies);
+  const placedMeasureSources = useMemo(() => {
+    const entries = new Map<string, { inst: PartInstance; bodies: BodyResult[]; hidden: ReadonlySet<string> }>();
+    if (!measure || !fresh || busy || shownDoc !== doc || section || exploded || jointTree || instDrag || cutDraft || stepsDisp || isolatedInstances
+      || ghost || candidateReview?.shown || workingComparison || previewBodies || routePreviewBodies) return entries;
+    for (const inst of doc.instances ?? []) {
+      const have = instanceBodies.get(inst.id);
+      if (inst.hidden || !have || !instanceEvaluationCurrent(have, inst, instanceSources.get(inst.id))) continue;
+      const hidden = new Set(have.bodies.filter(body => instanceLooks.get(inst.id)?.get(body.key)?.hidden).map(body => body.key));
+      entries.set(inst.id, { inst, bodies: have.bodies, hidden });
+    }
+    return entries;
+  }, [measure, fresh, busy, shownDoc, doc, section, exploded, jointTree, instDrag, cutDraft, stepsDisp, isolatedInstances, ghost, candidateReview?.shown, workingComparison, previewBodies, routePreviewBodies, instanceBodies, instanceSources, instanceLooks]);
+  measureInstances.current = placedMeasureSources;
+  const measurementItems = useMemo(() => measure?.map(target => {
+    if (!fresh || busy) return null;
+    const occurrence = target.occurrence ? placedMeasureSources.get(target.occurrence.id) : undefined;
+    if (target.occurrence && (!occurrence || !sameMeasureOccurrence(target.occurrence, occurrence.inst) || occurrence.hidden.has(target.body))) return null;
+    const source = occurrence ? occurrence.bodies : bodies;
+    const pick = readMeasureTarget(target, doc, source);
+    return pick ? { pick, mesh: source[pick.body].mesh, instance: target.occurrence?.id } : null;
+  }), [measure, fresh, busy, doc, bodies, placedMeasureSources]);
+  const liveMeasurePicks = measurementItems?.flatMap(item => item && !item.instance ? [item.pick] : []);
+  const measuredInstanceFaces = measurementItems?.flatMap(item =>
+    item?.instance && item.pick.face !== undefined ? [{ id: item.instance, body: item.pick.body, face: item.pick.face }] : []);
   const shownSectionEdges = sectioned ? (liveMeasurePicks ?? selection.edges).flatMap(pick =>
     sectionEdgeSources.flatMap((source, body) => {
       if (!source || source.body !== pick.body || pick.edge === undefined) return [];
@@ -2459,8 +2483,8 @@ export function App() {
     : shownEndFace ? { ...emptySel, faces: [shownEndFace] }
     : bandShown ? bandShown
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : liveMeasurePicks ? { faces: liveMeasurePicks.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: liveMeasurePicks.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
-  const [measureFrom, measureTo] = measurePicks ?? [];
-  const measured = measureFrom && measureTo ? measureBetween(bodies[measureFrom.body].mesh, measureFrom, bodies[measureTo.body].mesh, measureTo) : null;
+  const [measureFrom, measureTo] = measurementItems ?? [];
+  const measured = measureFrom && measureTo ? measureBetween(measureFrom.mesh, measureFrom.pick, measureTo.mesh, measureTo.pick) : null;
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   // (An in-place edit's surroundings, roadmap 10 ⑧: ghosted the same way, after the references.)
@@ -2570,7 +2594,6 @@ export function App() {
   }, [bodies, evaluated.nodes, doc.fastenerSizes, rendering, section, previewBodies]);
   // (The placed parts' rings go with their meshes, G1: posed and exploded by the same matrix.)
   // Roadmap 10 ①: each placed part's bodies in the definition's colours (or this occurrence's own), face colours and hidden bodies.
-  const instanceLooks = useInstanceLooks(doc, instanceBodies);
   const instancesDrawn = useMemo(() => {
     if (section) return cpuInstanceSection && sectionHatchOn
       ? instancesShown.map(it => ({ ...it, hatch: sectionHatch(it.bodies, sectionPlanes(section), hatchStep) }))
@@ -2884,7 +2907,7 @@ export function App() {
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
-      {fresh && !rendering && !sketch && measure && <MeasurementInspector bodies={bodies} targets={measure} picks={measurePicks ?? []} measured={measured} onClose={() => setMeasure(null)} onPin={pinOffer ? pinMeasurement : undefined} />}
+      {fresh && !rendering && !sketch && measure && <MeasurementInspector targets={measure} items={measurementItems ?? []} measured={measured} onClose={() => setMeasure(null)} onPin={pinOffer ? pinMeasurement : undefined} />}
       {pinView && pinOwned && !measure && <PinnedMeasurement distance={pinResult?.normalDistance ?? null} onClear={() => setPinnedMeasure(null)} />}
       {cutDraft && !rendering && !sketch && !measure && <AssemblyCutHud draft={cutDraft} instances={doc.instances ?? NO_INSTANCES} problem={draftProblem(doc, cutDraft) ?? (cutTrial?.key === cutKey ? cutTrial.problem : undefined)}
         onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
@@ -3149,7 +3172,7 @@ export function App() {
         isolatedInstances={displayScopeReason ? undefined : stepsDisp?.opaque ?? isolatedInstances}
         clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined}
         mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay}
-        instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : measuredInstanceFaces}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
         snapStep={snapStep} pickFilter={finishEdgePicking ? 'edge' : active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
