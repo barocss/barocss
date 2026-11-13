@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1143 — share the zoomed Sketch arc path](notes/zoomed-sketch-arc-path-2026-11-14/README.md).
 - [D1142 — refuse zero before Box, Extrude and Fillet Apply](notes/creation-history-numeric-parity-2026-11-14/README.md).
 - [D1141 — match Circular Pattern Count in preview and history](notes/circular-count-preview-history-2026-11-14/README.md).
 - [D1140 — refuse invalid 3D Sketch constraint values](notes/3d-sketch-number-admission-2026-11-14/README.md).

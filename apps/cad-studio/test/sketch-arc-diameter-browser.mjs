@@ -99,9 +99,13 @@ await f.run(async () => {
   };
   const button = name => f.page.getByRole('button', { name, exact: true });
   const inline = () => f.page.locator('input.dim-edit');
-  const open = async (path, doc) => {
+  const open = async (path, doc, discardDraft = false) => {
     const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
     await chooser.setFiles(path);
+    if (discardDraft) {
+      await f.page.getByRole('dialog', { name: 'Discard sketch changes?', exact: true })
+        .getByRole('button', { name: 'Discard changes', exact: true }).click();
+    }
     await f.same(doc);
   };
   const fixture = async (name, options = {}) => {
@@ -273,7 +277,7 @@ await f.run(async () => {
   assert.equal(await radiusMode().getAttribute('aria-pressed'), 'true');
   await switchToDiameter(16);
   await inline().fill('10');
-  await open(arc.path, arc.doc);
+  await open(arc.path, arc.doc, true);
   await inline().waitFor({ state: 'detached' });
   await editSketch();
   await openField('rad1', radius);

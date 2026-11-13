@@ -14,8 +14,10 @@ export type Project = (u: number, v: number) => readonly number[];
 /**
  * The nearest outline point within `pointPx`, else the nearest edge or circle rim or centre within
  * `edgePx`. For equal curve distances, prefer the outline edge, then an attached circle.
+ * A viewport can supply its displayed outline paths in screen coordinates.
  */
-export function pickSketch(s: Polygon, project: Project, x: number, y: number, done: readonly SketchShape[] = [], pointPx = 9, edgePx = 7): SketchPick | null {
+export function pickSketch(s: Polygon, project: Project, x: number, y: number, done: readonly SketchShape[] = [], pointPx = 9, edgePx = 7,
+  outlinePath?: (index: number) => readonly (readonly number[])[]): SketchPick | null {
   const n = s.points.length, at = [x, y];
   let best: SketchPick | null = null, bestD = pointPx;
   for (let i = 0; i < n; i++) { const q = project(s.points[i][0], s.points[i][1]), d = Math.hypot(q[0] - x, q[1] - y); if (d <= bestD) { bestD = d; best = { kind: 'point', i }; } }
@@ -31,7 +33,7 @@ export function pickSketch(s: Polygon, project: Project, x: number, y: number, d
   (s.circles ?? []).forEach((c, i) => { const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i }; } });
   for (let i = 0; i < n; i++) {
     const a = s.points[i] as P2, b = s.points[(i + 1) % n] as P2;
-    const pts = [...sampleSegment(a, b, s.bulges?.[i] ?? 0, 16), b].map(p => project(p[0], p[1]));
+    const pts = outlinePath ? outlinePath(i) : [...sampleSegment(a, b, s.bulges?.[i] ?? 0, 16), b].map(p => project(p[0], p[1]));
     for (let k = 0; k + 1 < pts.length; k++) { const d = toSegment(at, pts[k], pts[k + 1]); if (d <= bestD) { bestD = d; best = { kind: 'edge', i }; } }
   }
   return best;

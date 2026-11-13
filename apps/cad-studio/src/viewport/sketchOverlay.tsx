@@ -21,7 +21,7 @@ import type { PathGapDraft } from '../sketch/usePathGap';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
-import { projectSketchCircle, type SketchViewportPick } from './sketchOutlinePick';
+import { orthographicSketchScale, projectSketchCircle, projectSketchEdge, type SketchViewportPick } from './sketchOutlinePick';
 
 function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[]): boolean {
   let lo = 0, hi = 1;
@@ -213,7 +213,11 @@ export function drawSketchOverlay({
     items.push(...bezierMarks('bz', s.poles, P, false));
   } else if (s?.kind === 'polygon') {
     const pts = s.points.map(p => P(p[0], p[1])); const cur = draft.cursor;
-    const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
+    const scale = orthographicSketchScale(cam, w, h);
+    const paths = Array.from({ length: s.closed ? s.points.length : Math.max(0, s.points.length - 1) }, (_, i) => projectSketchEdge(s, i, P, scale));
+    const ring = paths.flatMap(path => path.slice(0, -1));
+    const last = pts.at(-1);
+    if (!s.closed && last) ring.push([last[0], last[1]]);
     const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
     const shapeClass = 'sk-shape' + (s.construction ? ' construction' : '');
     items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={shapeClass} />
@@ -255,7 +259,7 @@ export function drawSketchOverlay({
     }
     if (isSettled(s)) {
       const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, referenceAnchors, rail, done: sk.done,
-        project: P, picked: sk.picked ?? [], inspected,
+        project: P, outlinePath: index => paths[index], picked: sk.picked ?? [], inspected,
         hover: picking && draft.hover?.kind !== 'parked-outline-point' && draft.hover?.kind !== 'active-circle' ? draft.hover ?? null : null,
         editDim: sk.editDim,
         onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit });

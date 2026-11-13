@@ -30,7 +30,7 @@ import type { PrintDisplay } from './printDisplay';
 import type { EdgeRef, FaceRef, SectionClip, ViewRenderer, ViewState } from './renderer';
 import { renderFocusDistance } from './renderFocus';
 import type { CentreArcDraft, SketchOverlayDraft } from './sketchOverlay';
-import { pickSketchViewport, type SketchViewportPick } from './sketchOutlinePick';
+import { orthographicSketchScale, pickSketchViewport, type SketchViewportPick } from './sketchOutlinePick';
 import { closedSplineOf, draggedSpline, sameSplineDef, splineDragStarted, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import { arcExtensionPoint, uniqueArcTerminal } from '../sketch/arcExtension';
 import { enabledObjectSnaps, type ObjectSnapKinds } from '../sketch/objectSnapKinds';
@@ -416,6 +416,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
+  const sketchHit = (sketch: SketchState, shape: SketchShape | null, x: number, y: number) => {
+    const view = canvas.current!;
+    const scale = orthographicSketchScale(camera.current, view.clientWidth, view.clientHeight);
+    return pickSketchViewport(sketch, shape, sketchProject(sketch.plane), x, y, scale);
+  };
   const pathGapAt = (draft: PathGapDraft, sk: SketchState, point: [number, number], x: number, y: number) => {
     const plan = planPathGap(draft.source, point, Number(draft.length));
     if (!plan) return null;
@@ -860,7 +865,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       if (sk.tool !== 'spline') splineFit.current = null;
       else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current, c], closed: false } }); }
       if (banding(sk)) sketchDraft.current.bandHover = pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y);
-      if (picking(sk)) sketchDraft.current.hover = pickSketchViewport(sk, s, sketchProject(sk.plane), x, y);
+      if (picking(sk)) sketchDraft.current.hover = sketchHit(sk, s, x, y);
       else if (sk.tool === 'carc') {
         const d = carc.current;
         if (d && c) {
@@ -1012,7 +1017,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       const c: [number, number] = target?.at ?? [snap(p[0]), snap(p[1])];
       if (guide?.stage === 'guide') snaps?.extension.consume(sk);
       const s = liveShape.current;
-      if (picking(sk)) { propsRef.current.onSketchPick?.(pickSketchViewport(sk, s, sketchProject(sk.plane), x, y), e.shiftKey); return; }
+      if (picking(sk)) { propsRef.current.onSketchPick?.(sketchHit(sk, s, x, y), e.shiftKey); return; }
       if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }
       if (cutting(sk)) {
         const input = propsRef.current.pathGap, gap = input?.read(sk);

@@ -3,7 +3,7 @@
 // points and edges, and the inline dimension editor.
 import type { ReactNode } from 'react';
 import type { SketchShape } from '../viewport/Viewport';
-import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
+import { arcOf, type P2 } from '@barocss/cad-model/sketch/profile';
 import { dimensionLabel, dimensionValue, drivingDimensionValue, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { Project } from '@barocss/cad-model/sketch/select';
 import { InlineSketchDimension, type DimensionAxis } from './InlineSketchDimension';
@@ -15,7 +15,7 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number, source: Polygon | Extract<SketchShape, { kind: 'circle' }>): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+interface Args extends MarkHandlers { shape: Polygon; project: Project; outlinePath(index: number): readonly XY[]; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
   done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
@@ -34,11 +34,10 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, view, outlineLabels, referenceAnchors, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, outlinePath, view, outlineLabels, referenceAnchors, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
   const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map(referenceAnchors);
-  const edgePath = (i: number) => [...sampleSegment(s.points[i] as P2, s.points[(i + 1) % n] as P2, s.bulges?.[i] ?? 0, 16), s.points[(i + 1) % n]].map(P);
   const mid = (i: number): XY => {
     const b = s.bulges?.[i] ?? 0, a = s.points[i] as P2, c = s.points[(i + 1) % n] as P2;
     if (!b) return P([(a[0] + c[0]) / 2, (a[1] + c[1]) / 2]);
@@ -67,7 +66,7 @@ export function sketchMarks({ shape: s, project, view, outlineLabels, referenceA
       const q = pts[p.i];
       if (q) under.push(<circle key={key} data-sketch-entity={entity} cx={q[0]} cy={q[1]} r={cls === 'inspected' ? 10 : 7} className={'sk-pick-point ' + cls} />);
     } else if (p.i >= 0 && p.i < n) {
-      under.push(<polyline key={key} data-sketch-entity={entity} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+      under.push(<polyline key={key} data-sketch-entity={entity} points={outlinePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
     }
   };
   inspected.forEach((p, index) => { if (!inspected.slice(0, index).some(q => samePick(p, q))) mark(p, 'inspected'); });

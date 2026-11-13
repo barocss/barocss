@@ -1,0 +1,92 @@
+{
+  "decision": "D1143",
+  "tier": "SMALL",
+  "parent": "432e8bb8d85932fb242fd4701bc4aba026236277",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1143-<run>",
+    "D1143_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-zoom-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1052_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-nearest-curve-browser.mjs <external-evidence>/nearest-curve",
+    "D718_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-diameter-browser.mjs <external-evidence>/diameter-replay",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-nearest-curve",
+    "cd apps/cad-studio && node scripts/test.mjs constraints",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check <each changed browser driver>",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 383,
+      "receiptSHA256": "51db51fe58fc59742595273aea1fee769b6652d9ae7fa227eab8adbea052a5c0",
+      "sourceManifestSHA256": "488e42355c70cce8d2a848a88d5342f06a4724c40f22a6d46e71b58b5cbe5ace"
+    },
+    "final": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 383,
+      "receiptSHA256": "cda35f3776cdb6c7d55ace9ca3130cb60d326990cc7bb4bad824bd3512536397",
+      "sourceManifestSHA256": "f8e9125a38dd6d7db84e629f97c6feea70f54d89620b90f70a42a1d17810ccbe"
+    },
+    "nearest-curve": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 863,
+      "receiptSHA256": "4ec3016dbd60a30f059c2a0b743f31a641303389d05cd1708ce646b3521d0006",
+      "sourceManifestSHA256": "257c76407540cbfc0067b35175aebbbb7b2f9fd60bef05d8a86bdf127510e443"
+    },
+    "diameter": {
+      "status": "FAIL",
+      "states": 8,
+      "frozenFiles": 866,
+      "receiptSHA256": "5604adfa202b48a37a4481a08051965cfed78749d23c4c8faa0d293948c0b800",
+      "sourceManifestSHA256": "fb3a9bfdefb9ae5617402e9b81d45cb0f7b66a8dc29f785c615770e4047a3822"
+    },
+    "diameter-replay": {
+      "status": "PASS",
+      "states": 13,
+      "frozenFiles": 866,
+      "receiptSHA256": "73ed3e093a5c0346bc922bc693c02fd0488725b4f9fe854775748580028eb037",
+      "sourceManifestSHA256": "1cedbfcd0cf783b135c4719cccb436c50761b398630ab1d76a50e86a3f9d31c6"
+    }
+  },
+  "observations": {
+    "baseline": [
+      {
+        "radiusCSS": 138.88888992369175,
+        "segments": 16,
+        "hoverSegments": 32,
+        "maxErrorCSS": 0.6684574359350736
+      },
+      {
+        "radiusCSS": 670.9363505244254,
+        "segments": 16,
+        "hoverSegments": 32,
+        "maxErrorCSS": 3.2291452013845063
+      }
+    ],
+    "final": [
+      {
+        "radiusCSS": 138.88888992369175,
+        "segments": 27,
+        "hoverSegments": 27,
+        "maxErrorCSS": 0.23497801963014808
+      },
+      {
+        "radiusCSS": 670.9363505244254,
+        "segments": 58,
+        "hoverSegments": 58,
+        "maxErrorCSS": 0.24604159341421142
+      }
+    ]
+  },
+  "focused": {
+    "studioPassed": 24,
+    "modelPassed": 2,
+    "failed": 0
+  }
+}
