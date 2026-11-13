@@ -69,3 +69,18 @@ test('three native picks retain document and mesh identity and refuse overlappin
   bindNativeVertexPick(hidden!, doc);
   assert.equal(currentNativeVertexPoints(doc, evaluated.bodies, [hidden!, picks[1], picks[2]]), null);
 });
+
+test('orthographic vertex overlap uses camera depth and leaves separated endpoints alone', () => {
+  const doc = rectanglePart(60, 30, 10), evaluated = evaluatePart(doc, 1);
+  assert.ok(evaluated.ok);
+  const mesh = evaluated.bodies[0].mesh;
+  const edge = mesh.edges.find(edge => edge.nativeVertices && edge.a[2] !== edge.b[2])!;
+  const source = { mesh, edge: edge.index };
+  const project = (point: readonly number[]) => [point[2] / 500, 0, point[2] / 10];
+  const front = edge.a[2] < edge.b[2] ? edge.a : edge.b;
+  const rear = edge.a[2] > edge.b[2] ? edge.a : edge.b;
+  assert.deepEqual(pickVertex('all', 0, [edge], 0.02, 0, project, undefined, source, true)?.at, front);
+  assert.deepEqual(pickVertex('all', 0, [edge], 0.02, 0, project, undefined, source)?.at, rear);
+  const separated = (point: readonly number[]) => [point[2] / 2, 0, point[2] / 10];
+  assert.deepEqual(pickVertex('all', 0, [edge], 5, 0, separated, undefined, source, true)?.at, rear);
+});

@@ -6,6 +6,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
 const refusalReasons = process.argv[3] === '--refusal-reasons';
+const topOverlap = process.argv[3] === '--top-overlap';
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 await mkdir(output);
 const fixture = 'apps/cad-studio/test/fixtures/linear-cut-pattern.bcad';
@@ -21,7 +22,7 @@ const pins = [fixture, 'apps/cad-studio/test/three-vertex-sketch-browser.mjs', '
   'packages/barocss-cad-model/src/sketch/plane.ts', 'packages/barocss-cad-model/src/sketch/types.ts',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx'];
 const f = await createFlow({
-  name: 'three-vertex-sketch', envFrozen: refusalReasons ? 'D1126_SOURCE_FROZEN' : 'D792_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'three-vertex-sketch', envFrozen: topOverlap ? 'D1127_SOURCE_FROZEN' : refusalReasons ? 'D1126_SOURCE_FROZEN' : 'D792_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   qualification: 'Start a Sketch on the exact plane of three ordered native box vertices selected in the desktop viewport.',
   limits: ['One owned native box; ordered real pointer picks on two cameras.'],
   snapshotExtra: () => ({ plane: document.querySelector('select[aria-label="Sketch plane"]')?.value ?? null }),
@@ -37,7 +38,7 @@ console.log(JSON.stringify(evaluateCadPart(toPartDocument(doc)).outputs.map(body
 });
 const button = (parent, name) => parent.getByRole('button', { name, exact: true });
 const points = [[0, 0, 10], [60, 30, 10], [60, 0, 0]];
-const orthographic = process.env.D792_ORTHO === '1';
+const orthographic = topOverlap || process.env.D792_ORTHO === '1';
 f.report.projection = orthographic ? 'orthographic' : 'perspective';
 const unit = (values, denominator) => values.map(value => value / denominator);
 const xAxis = unit([2, 1, 0], Math.sqrt(5)), normal = unit([-1, 2, -6], Math.sqrt(41));
@@ -135,6 +136,16 @@ await f.run(async () => {
   }
   await button(views, 'Top').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  if (topOverlap) {
+    f.phase = 'use the visible upper vertex at the nearly coincident Top projection';
+    const [lower, upper] = await f.page.evaluate(() => [[0, 0, 0], [0, 0, 10]].map(point => window.__studioScreenOf(point)));
+    const separation = Math.hypot(lower[0] - upper[0], lower[1] - upper[1]);
+    assert.ok(separation > 0 && separation < 0.1);
+    await f.page.mouse.click(...lower);
+    const first = await f.snapshot('top-overlap-first-pick');
+    assert.deepEqual(first.selection.selection.vertices.map(vertex => vertex.at), [points[0]]);
+    f.report.observations.push({ label: 'top-overlap', separation, lower, upper, stored: first.selection.selection.vertices[0].at });
+  }
   if (!orthographic) {
     f.phase = 'refuse a hidden endpoint plus two visible picks';
     const hidden = [[0, 0, 0], points[1], points[2]];
@@ -152,7 +163,7 @@ await f.run(async () => {
     await button(views, 'Top').click();
   }
   f.phase = 'pick three native box corners in order with real pointer clicks';
-  await pickVertex(points[0], [30, 15, 10], 1);
+  if (!topOverlap) await pickVertex(points[0], [30, 15, 10], 1);
   f.phase = 'refuse an incomplete native vertex selection';
   await button(f.page.locator('.mode'), 'Sketch').click();
   await f.waitToast(/select three distinct, non-collinear native vertices/i);

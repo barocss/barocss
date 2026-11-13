@@ -1,0 +1,83 @@
+{
+  "decision": "D1127",
+  "tier": "SMALL",
+  "parent": "ee66c98146f1c26495f0986cac15b2d1456297f4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1127-top-overlap-<run>",
+    "D1127_SOURCE_FROZEN=1 node apps/cad-studio/test/three-vertex-sketch-browser.mjs <external-evidence>/<run> --top-overlap",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs vertex-pick-filter midpoint-sketch camera-projector",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-plane-precision",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts apps/cad-studio/src/viewport/vertexPick.ts apps/cad-studio/test/vertex-pick-filter.test.ts",
+    "D792_SOURCE_FROZEN=1 node apps/cad-studio/test/three-vertex-sketch-browser.mjs <external-evidence>/perspective",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/rear-webgpu --exact-corner",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/rear-webgl2 --webgl2 --exact-corner",
+    "node --check apps/cad-studio/test/three-vertex-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "1b52b89bd555418a86f50eb0e77c5a58997b7ace23c379136c6a21f36b06998a",
+      "sourceManifestSHA256": "1a53e96327d1221caad7a42998453ebb606cf42fea78bbb241408210b6a070f2",
+      "savedFiles": [],
+      "firstFailure": "A click at the nearly coincident lower projection selected (0, 0, 0) instead of the visible (0, 0, 10) mm corner."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "ecd06676adf283a16d063e301c5b73676ac001926e553add018903ed5ddb0ff0",
+      "sourceManifestSHA256": "96427385e4eb5c3da526c40d2a74e85094b1d765ee7419da6fc45c8de04f0e84",
+      "savedFiles": []
+    },
+    "perspective": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "36d55e1123abe471b7ed1c36fe222f339f50947c921f867f38883fac8cc3f784",
+      "sourceManifestSHA256": "96427385e4eb5c3da526c40d2a74e85094b1d765ee7419da6fc45c8de04f0e84",
+      "savedFiles": []
+    },
+    "rearWebGPU": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 382,
+      "receiptSHA256": "5ce3a4c8696420952e95b85644f62f31796612e3bf86663c9761e9121fc63a59",
+      "sourceManifestSHA256": "db703266a232caf26570ca8b7d282d15b8a4903f640dc7414a20343d807c1885",
+      "savedFiles": []
+    },
+    "rearWebGL2": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 382,
+      "receiptSHA256": "5ce3a4c8696420952e95b85644f62f31796612e3bf86663c9761e9121fc63a59",
+      "sourceManifestSHA256": "db703266a232caf26570ca8b7d282d15b8a4903f640dc7414a20343d807c1885",
+      "savedFiles": []
+    }
+  },
+  "projectionSeparationCSSPixels": 0.03871816271282569,
+  "overlapApertureCSSPixels": 0.1,
+  "selectedMM": [
+    0,
+    0,
+    10
+  ],
+  "extrudeVolumeMM3": 96,
+  "review": {
+    "model": "GPT-6.1 Sol High",
+    "status": "PASS"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 26,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 8
+  }
+}
