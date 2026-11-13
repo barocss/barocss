@@ -93,13 +93,15 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const changed = draft !== nodes || sourceWidth !== insetSourceWidth;
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
   const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
+  const missingNumbers = fields.flatMap(field => field.kind === 'number' && typed[field.key]?.trim() === '' ? [field] : []);
+  const hasMissingNumber = missingNumbers.length > 0;
   useLayoutEffect(() => {
     if (!onDraft || (!changed && !Object.keys(typed).length)) return;
     onDraft({});
     return () => onDraft(null);
   }, [onDraft, changed, draft, typed, nodes, index]);
   const apply = () => {
-    if (!changed || pending || edgeReplacement?.draft || incompleteInset || lengthProblem || request.current) return;
+    if (!changed || pending || edgeReplacement?.draft || incompleteInset || hasMissingNumber || lengthProblem || request.current) return;
     setModeProblem(null);
     const ticket = {};
     request.current = ticket;
@@ -160,11 +162,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         </div>
       </> : <button className="ghost" type="button" disabled={pending || changed} onClick={() => { retireEvaluation(); edgeReplacement.start(); }}>Replace edge</button>)}
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
+      {hasMissingNumber && <div className="hud-error" role="status">Enter a number for {missingNumbers.map(field => field.label).join(', ')}.</div>}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} aria-invalid={f.key === 'olen2' && !!lengthProblem || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} aria-invalid={typed[f.key]?.trim() === '' || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();
@@ -189,7 +192,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {onDelete && <button className="ghost danger" disabled={ordinaryLocked} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={event => remove(event.currentTarget)}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasMissingNumber || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasMissingNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
     </div>
   );
 }

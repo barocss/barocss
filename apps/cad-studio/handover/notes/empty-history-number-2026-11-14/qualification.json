@@ -1,0 +1,42 @@
+{
+  "decision": "D1138",
+  "tier": "SMALL",
+  "parent": "98befbf071eb097ad99b083eaa9132e96104c803",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1138-empty-history-<run>",
+    "D1138_SOURCE_FROZEN=1 node apps/cad-studio/test/empty-history-number-browser.mjs <external-evidence>/<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters face-commands face-end-extrude",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/empty-history-number-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 382,
+      "receiptSHA256": "fadc9558cf4e87a026f26d74cdde32d55dbfc53c938ae1a6a8a0e099c386933f",
+      "sourceManifestSHA256": "28408ffdfef4c51033054bdff78af2c0e84c06b98b1bcc9af4d1f724729f9ed0"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 382,
+      "receiptSHA256": "a2e8d865120546116a7db530a3861f8c6165fc967e3382ef1b386fdc97f29330",
+      "sourceManifestSHA256": "6b863a477188495c026f4f853727860d384eb9af5b69188f351e703484e1c360"
+    }
+  },
+  "observation": {
+    "baselineWidthMM": 42,
+    "baselineDistanceMM": 14,
+    "expectedWidthMM": 42,
+    "expectedDistanceMM": 10,
+    "volumeMM3": 12600
+  },
+  "focused": {
+    "modelPassed": 48,
+    "failed": 0
+  }
+}
