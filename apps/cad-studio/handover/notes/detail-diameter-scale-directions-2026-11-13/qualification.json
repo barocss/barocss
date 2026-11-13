@@ -1,0 +1,34 @@
+{
+  "decision": "D941",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8a128b508818d9761a8ba07612d382c8e4ad842b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D941-studio",
+    "D941_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/scale02 --fixed --scaled",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "firstObserverFailureSHA256": "03a0662b721469b131e8a75be406f7c6744008794aff0384613febeced84d8f0",
+    "receiptSHA256": "7d7f1cba4420b2a77990471b4eee75c23aa547b4ce1977572d339464dadabd55",
+    "sourceManifestSHA256": "914c170feb60a4f922697d336484647235b857ce5f9c16fd0635918a742a08a9",
+    "oraclesSHA256": [
+      "613647792188a7bcdba772cfd45c71364c150c1d59a134fe72e8177798cf6580",
+      "613647792188a7bcdba772cfd45c71364c150c1d59a134fe72e8177798cf6580",
+      "0501351b1eae85e43b7691eaaf6bbbafa2bab0864fc4dee28eccc7df161e73a8",
+      "0501351b1eae85e43b7691eaaf6bbbafa2bab0864fc4dee28eccc7df161e73a8"
+    ],
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "diameterMM": 8,
+    "tipsPaperMM": [[310, 85], [310, 85], [309, 88.873], [309, 88.873]],
+    "coordinateTolerancePaperMM": 0.0001
+  },
+  "notRun": ["new unit suites for the unchanged product", "2:1 DXF", "crop center or radius edits", "source deletion", "remaining negative matrix", "production build", "full suites", "PDF", "mobile"]
+}

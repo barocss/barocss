@@ -10,6 +10,7 @@ assert.ok(['--baseline', '--fixed'].includes(mode));
 const baseline = mode === '--baseline';
 const covered = variant === '--covered';
 const creation = variant === '--create';
+const scaled = variant === '--scaled';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -27,7 +28,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -59,6 +60,18 @@ if not d.get('creation'):
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
 x, y = map(float, m.groups())
 eps = 0.0001
+if 'scaled' in d:
+    scale, u, v = d['scaled']
+    center = (310-4*scale, 85)
+    theta = min(0.0, max(-math.acos(7/8), math.atan2(v-16, u-32)))
+    expected = (center[0]+4*scale*math.cos(theta), 85-4*scale*math.sin(theta))
+    assert math.dist((x,y), expected) <= eps
+    assert abs(math.dist((x,y),center)-4*scale) <= eps
+    assert math.dist((x,y),(310,85)) <= 2*scale+eps
+    assert any(abs(float(line.attrib['x1'])-x) <= eps and abs(float(line.attrib['y1'])-y) <= eps for line in dim.findall('s:line', ns))
+    assert any(('A%g %g ' % (4*scale,4*scale)) in p.attrib['d'] for p in ink.findall('s:path', ns))
+    print(json.dumps({'status':'PASS', 'tip':[x,y], 'expected':expected, 'scale':scale, 'texts':texts}))
+    sys.exit(0)
 assert abs(math.hypot(x-290, y-85)-20) <= eps
 crop = math.hypot(x-310, y-85)
 if d['expectClipped']:
@@ -201,6 +214,45 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (scaled) {
+    f.phase = 'open the saved Detail diameter and change its scale';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const scale = f.page.getByLabel('Detail B scale', { exact: true });
+    await scale.selectOption('2');
+    const reduced = { ...original, drawing: { ...original.drawing, details: [{ ...original.drawing.details[0], scale: 2 }] } };
+    await f.same(reduced);
+    await f.undo();
+    await f.same(original);
+    await f.redo();
+    await f.same(reduced);
+    const sites = [[44,16], [32,28], [24,16], [32,4]];
+    for (const [i, [u,v]] of sites.entries()) {
+      f.phase = `check source membership at label position ${i + 1}`;
+      const before = await f.doc();
+      if (i > 0) {
+        const from = await f.page.locator(`${locator} text`).boundingBox();
+        const to = await f.page.evaluate(([x,y]) => window.__studioDrawingAt('detail:B', x, y), [u,v]);
+        assert.ok(from && to);
+        await f.page.mouse.move(from.x+from.width/2, from.y+from.height/2);
+        await f.page.mouse.down();
+        await f.page.mouse.move(to.x, to.y, { steps: 8 });
+        await f.page.mouse.up();
+        await f.changed(before);
+      }
+      const state = await f.snapshot(`0${i + 1}-scale-2`);
+      const [actual] = state.doc.drawing.dimensions;
+      assert.ok(Math.hypot(actual.place[0]-u, actual.place[1]-v) < 1, JSON.stringify(actual.place));
+      assert.deepEqual(state.doc, { ...reduced, drawing: { ...reduced.drawing,
+        dimensions: [{ ...reduced.drawing.dimensions[0], place: actual.place }, reduced.drawing.dimensions[1]] } });
+      assert.ok(Math.abs(state.drawing.dimensions.find(d => d.id === diameter.id).value - 8) < 1e-9);
+      const svg = await capture('Export SVG');
+      f.report.observations.push({ label: `scaled-${i + 1}`, bytes: Buffer.byteLength(svg), sha256: sha256(svg) });
+      await f.runOracle({ svg, scaled: [2, ...actual.place] }, `scale-2-${i + 1}`);
+    }
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (covered) {
     f.phase = 'open the saved covered bore with hidden lines off';
