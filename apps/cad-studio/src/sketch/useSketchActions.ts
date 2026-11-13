@@ -10,7 +10,7 @@ import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
 import { rebindDims, sketchShapes } from '@barocss/cad-model/sketch/reopen';
-import { bandMake } from '../app/bandControls';
+import { bandEdit, bandMake, bandRemove } from '../app/bandControls';
 import { bandSketchNode } from '@barocss/cad-model/sketch/band';
 import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
@@ -149,6 +149,16 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const r = bandMake(sketch, offset, width);
     if ('error' in r) { setToast({ title: 'Cannot make the band', hint: r.error, detail: '' }); return; }
     commitDraft(sketch, r.state);
+  };
+  const editSketchBand = (patch: Parameters<typeof bandEdit>[1]) => {
+    if (!sketch?.band || !ownsSketch()) return;
+    const next = bandEdit(sketch, patch);
+    if (next.band?.offset === sketch.band.offset && next.band?.width === sketch.band.width) return;
+    commitDraft(sketch, next);
+  };
+  const removeSketchBand = () => {
+    if (!sketch?.band || !ownsSketch()) return;
+    commitDraft(sketch, bandRemove(sketch));
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
@@ -289,5 +299,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const finishError = sketch && finishRefusal?.generation === sketchGeneration.current ? finishRefusal.message : null;
-  return { currentSketchSource, makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
+  return { currentSketchSource, makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, finishSketch, finishError };
 }

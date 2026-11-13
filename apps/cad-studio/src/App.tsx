@@ -68,7 +68,6 @@ import { ModelExportDialogs } from './files/ModelExportDialogs';
 import { StepExportPanel } from './files/StepExportPanel';
 import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
-import { bandEdit, bandRemove } from './app/bandControls';
 import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
@@ -1726,7 +1725,7 @@ export function App() {
     },
   }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
-  const { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
+  const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, updateShape);
   const finishSketch = () => {
     if (circleChord.input.read(sketch)) return;
@@ -2875,7 +2874,7 @@ export function App() {
       {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelNativeReview} adopt={midpointSketch.adopt} />}
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} constraintDocument={doc} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
         onToggleObjectKind={kind => setObjectSnapKinds(kinds => toggleObjectSnapKind(kinds, kind))}
-        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={shape => updateShape(shape, false, true)} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={shape => updateShape(shape, false, true)} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: editSketchBand, remove: removeSketchBand }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}

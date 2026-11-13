@@ -1,0 +1,49 @@
+{
+  "decision": "D1068",
+  "tier": "SMALL",
+  "parent": "d696fb65b7a3d2679365975f38ba28103d378417",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1068-edit-band-<run>",
+    "D1068_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-edit-band-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history sketch-band-studio",
+    "node --check apps/cad-studio/test/sketch-edit-band-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "3de1a43055f60f13557add1267f52cb7c97ef48dd31fb8c35f2b552e3bc01628",
+      "sourceManifestSHA256": "a0c6b71408ffb0e5ff27583c029f9d2dc6ee689f53804d7d54fffd013c3514ce",
+      "firstFailure": "Cmd+Z after Remove band leaves the draft strip absent."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 379,
+      "receiptSHA256": "5786a97b188f69a3a7b98e638f080b03adcea765660c4a80bd3db124a249ce2a",
+      "sourceManifestSHA256": "93ad2838651908c5e5e22afe87d8bb94ebb504ad0ed7852a8c179aa1dd56fa31"
+    }
+  },
+  "widthMm": [
+    3,
+    5
+  ],
+  "offsetMm": [
+    0,
+    2
+  ],
+  "extrudeMm": 4,
+  "initialVolumeMm3": 970.0884539600077,
+  "finalVolumeMm3": 1993.8052083641214,
+  "absoluteVolumeToleranceMm3": 1e-07,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 16,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
