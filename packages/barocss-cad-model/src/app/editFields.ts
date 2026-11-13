@@ -169,7 +169,7 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
 /** Legacy attached Cut encoded as a positive, untapered tool ending on its sketch. */
 export function isSketchAnchoredCut(nodes: Nodes, index: number): boolean {
   const tool = nodes[index], cut = nodes[index + 1];
-  if (tool?.kind !== 'extrude' || tool.made || tool.draft || typeof tool.height !== 'number'
+  if (tool?.kind !== 'extrude' || tool.cutDepth || tool.made || tool.draft || typeof tool.height !== 'number'
     || !Number.isFinite(tool.height) || tool.height <= 0 || tool.from !== -tool.height
     || cut?.kind !== 'difference' || cut.tool.node !== index || cut.tool.side !== 'solid') return false;
   const sketch = nodes[tool.sketch];
@@ -191,6 +191,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       break;
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
+      if (node.cutDepth === 'through') break;
       out.push({ kind: 'number', key: 'h', label: 'Distance', unit: 'mm', get: n => num(self<typeof node>(n).height),
         set: (n, height) => {
           const current = self<typeof node>(n);

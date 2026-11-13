@@ -506,7 +506,7 @@ function rekey<T>(rec: Record<string, T>, gone: ReadonlySet<string>, moved: Read
 export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; removed: number[]; droppedDimensions: number } | { error: string } {
   const nodes = doc.nodes;
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
-  const users = (i: number) => nodes.flatMap((n, k) => usesOf(n).includes(i) ? [k] : []);
+  const users = (i: number) => nodes.flatMap((n, k) => usesOf(n, nodes).includes(i) ? [k] : []);
   const removed = new Set([index]);
   if (nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
     return { error: 'Rounded inset: deleting a feature in this stored recipe document is not supported.' };
@@ -573,7 +573,7 @@ export function featureDependents(doc: StudioDoc, index: number): number[] {
   const nodes = doc.nodes, gone = new Set([index]);
   for (let k = index + 1; k < nodes.length; k++) {
     const n = nodes[k];
-    if (usesOf(n).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
+    if (usesOf(n, nodes).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
   }
   return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch' && nodes[k].kind !== 'driven-sketch').sort((a, b) => a - b);
 }
@@ -608,7 +608,7 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   const [early, late] = dir < 0 ? [other, all[at]] : [all[at], other];
   const inEarly = (k: number) => k >= early[0] && k <= early[1];
   for (let k = late[0]; k <= late[1]; k++) {
-    const n = nodes[k], uses = [...usesOf(n), ...((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on ? [n.on.node] : [])].filter(inEarly);
+    const n = nodes[k], uses = [...usesOf(n, nodes), ...((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on ? [n.on.node] : [])].filter(inEarly);
     const names = named(n).flatMap(name => nodesOfName(nodes, name)).filter(inEarly);
     if (uses.length || names.length) return { error: `${dir < 0 ? 'It' : 'The next step'} is built on ${dir < 0 ? 'the step before it' : 'it'}: it cannot come first.` };
   }
@@ -642,7 +642,12 @@ export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { do
  */
 export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, number, number] | ((copy: BodyRef) => ModelNode)): { doc: StudioDoc; top: number } {
   const nodes = doc.nodes, chain = new Set<number>(), stack = [body.node];
-  while (stack.length) { const i = stack.pop()!; if (chain.has(i) || !nodes[i]) continue; chain.add(i); stack.push(...parentsOf(nodes[i])); }
+  while (stack.length) {
+    const i = stack.pop()!, node = nodes[i];
+    if (chain.has(i) || !node) continue;
+    chain.add(i);
+    stack.push(...(node.kind === 'extrude' && node.cutDepth === 'through' ? usesOf(node, nodes) : parentsOf(node)));
+  }
   if ([...chain].some(i => nodes[i].kind === 'face-end-extrude')) throw refusal('BAD_REFERENCE', 'Extrude to face: duplicating a body with a bound end face is not supported.');
   const order = [...chain].sort((a, b) => a - b), at = new Map(order.map((old, k) => [old, nodes.length + k]));
   const map = (i: number) => at.get(i) ?? i;

@@ -423,7 +423,7 @@ export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_F
 type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | RegionExtrudeNode
-  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
+  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made; cutDepth?: 'through' }
   | FaceEndExtrudeNode
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
   | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
@@ -1035,11 +1035,17 @@ export interface RackMesh { gear: number; direction?: number; centerDistance?: D
  * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
  * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
  */
-export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [node.gland] : node.kind === 'connector-body' ? [node.opening] : node.kind === 'gusset' || node.kind === 'end-cap' ? [node.frame] : node.kind === 'belt' ? [...node.wheels] : node.kind === 'bearing' ? [node.shaft, ...(node.housing !== undefined ? [node.housing] : [])] : node.kind === 'key' ? [node.shaft, ...(node.hub !== undefined ? [node.hub] : [])] : node.kind === 'retaining-ring' || node.kind === 'pin' ? [node.shaft]
+export const usesOf = (node: ModelNode, nodes?: readonly ModelNode[]): number[] => node.kind === 'oring' ? [node.gland] : node.kind === 'connector-body' ? [node.opening] : node.kind === 'gusset' || node.kind === 'end-cap' ? [node.frame] : node.kind === 'belt' ? [...node.wheels] : node.kind === 'bearing' ? [node.shaft, ...(node.housing !== undefined ? [node.housing] : [])] : node.kind === 'key' ? [node.shaft, ...(node.hub !== undefined ? [node.hub] : [])] : node.kind === 'retaining-ring' || node.kind === 'pin' ? [node.shaft]
   : (node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh ? [node.mesh.gear]
   // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
   : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])]
-  : node.kind === 'face-end-extrude' ? [node.sketch, node.target.body.node] : parentsOf(node);
+  : node.kind === 'face-end-extrude' ? [node.sketch, node.target.body.node]
+  : node.kind === 'extrude' && node.cutDepth === 'through' ? throughCutSources(node, nodes) : parentsOf(node);
+
+function throughCutSources(node: Extract<ModelNode, { kind: 'extrude' }>, nodes?: readonly ModelNode[]): number[] {
+  const sketch = nodes?.[node.sketch];
+  return sketch?.kind === 'sketch' && sketch.on ? [node.sketch, sketch.on.node] : [node.sketch];
+}
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
@@ -1204,6 +1210,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'face-end-extrude': return 'Extrude to face';
     case 'region-extrude': return `Extrude region ${n(node.height)}`;
     case 'extrude': {
+      if (node.cutDepth === 'through') return 'Extrude · Through all';
       const s = nodes[node.sketch];
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;

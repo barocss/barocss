@@ -1,0 +1,330 @@
+{
+  "decision": "D1152",
+  "tier": "FEATURE",
+  "parent": "d558d0fb86e1d23ccfc9cb0e2efb920a0601d397",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1152-<run>",
+    "D1152_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-through-all-history-browser.mjs <external-evidence>/<run> [--baseline|--fixed-fallback]",
+    "D847_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-legacy-modes-browser.mjs <external-evidence>/legacy-modes",
+    "D1151_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-cut-distance-browser.mjs <external-evidence>/fixed-distance",
+    "cd packages/barocss-cad-model && node scripts/test.mjs throughCut editFields face-end-extrude region-extrude fields.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-final",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/extrude-through-all-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "reproduced": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 868,
+      "receiptSHA256": "76be9de22430fbf4f30dc7bfa98660f2c0303c3d11b3bc53b30225db2670ec9d",
+      "sourceManifestSHA256": "35e077d14748147e24b3583f537d8b5472575b9a6cf44d44c88be68bf06e5870",
+      "observations": [
+        {
+          "label": "through-10",
+          "expected": 11360,
+          "bottom": 0,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 11360.000000000004,
+            "planes": [
+              {
+                "z": 0,
+                "normal": -1,
+                "loops": 2
+              },
+              {
+                "z": 10,
+                "normal": 1,
+                "loops": 2
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 11,
+              "from": -11
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10
+          }
+        },
+        {
+          "label": "through-14",
+          "expected": 15904,
+          "bottom": -4,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 16096.000000000005,
+            "planes": [
+              {
+                "z": -4,
+                "normal": -1,
+                "loops": 1
+              },
+              {
+                "z": -1,
+                "normal": 1,
+                "loops": 1
+              },
+              {
+                "z": 10,
+                "normal": 1,
+                "loops": 2
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 11,
+              "from": -11
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "from": -4
+          }
+        }
+      ]
+    },
+    "qualify-final": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 870,
+      "receiptSHA256": "76b31ce5c99f3447ba258fe49c9798424f5e1a11706124440c641640a07026c7",
+      "sourceManifestSHA256": "74b9a148fa8128cffd5d9cfe48c61a586e9f27592425a1471f6f2fbdf3b11106",
+      "observations": [
+        {
+          "label": "through-10",
+          "expected": 11360,
+          "bottom": 0,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 11360.000000000004,
+            "planes": [
+              {
+                "z": 0,
+                "normal": -1,
+                "loops": 2
+              },
+              {
+                "z": 10,
+                "normal": 1,
+                "loops": 2
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 11,
+              "from": -11
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "cutDepth": "through",
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10
+          }
+        },
+        {
+          "label": "through-14",
+          "expected": 15904,
+          "bottom": -4,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 15904.000000000007,
+            "planes": [
+              {
+                "z": -4,
+                "normal": -1,
+                "loops": 2
+              },
+              {
+                "z": 10,
+                "normal": 1,
+                "loops": 2
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 15,
+              "from": -15
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "cutDepth": "through",
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "from": -4
+          }
+        },
+        {
+          "label": "through-14-reopened",
+          "expected": 15904,
+          "bottom": -4,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 15904.000000000007,
+            "planes": [
+              {
+                "z": -4,
+                "normal": -1,
+                "loops": 2
+              },
+              {
+                "z": 10,
+                "normal": 1,
+                "loops": 2
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 15,
+              "from": -15
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "cutDepth": "through",
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "from": -4
+          }
+        }
+      ]
+    },
+    "fixed-fallback": {
+      "status": "PASS",
+      "states": 1,
+      "frozenFiles": 870,
+      "receiptSHA256": "f0ffe877d7d93d0dd98bf53ba5e5b3d81b3ddda1936de03aa6fc886ca65727d3",
+      "sourceManifestSHA256": "74b9a148fa8128cffd5d9cfe48c61a586e9f27592425a1471f6f2fbdf3b11106",
+      "observations": [
+        {
+          "label": "through-10",
+          "expected": 16160,
+          "bottom": 0,
+          "result": {
+            "valid": true,
+            "count": 1,
+            "volume": 16160.000000000004,
+            "planes": [
+              {
+                "z": 0,
+                "normal": -1,
+                "loops": 2
+              },
+              {
+                "z": 10,
+                "normal": -1,
+                "loops": 1
+              },
+              {
+                "z": 14,
+                "normal": 1,
+                "loops": 1
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 11,
+              "from": -11
+            }
+          },
+          "savedTool": {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 11,
+            "from": -11,
+            "id": "n3"
+          },
+          "stock": {
+            "id": "n1",
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14
+          }
+        }
+      ]
+    },
+    "legacy-modes": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 869,
+      "receiptSHA256": "090408fb3967ac41600b38b266a9ee11eda512cffde7064088cd6c32b4e6bacf",
+      "sourceManifestSHA256": "dd72aa6515a9bcb76b97df4b805202d6ecd7c938f6c37711088a9512e64c23df"
+    },
+    "fixed-distance": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 869,
+      "receiptSHA256": "e8ce18953f9609bec84870089693334933e2f31fa201a92fba411f179c7224e9",
+      "sourceManifestSHA256": "cda1ec7b25a876b71c01917ba2eb3c66836e77a13f8c1d52971998d0f76adf6c"
+    }
+  }
+}

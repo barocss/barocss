@@ -18,6 +18,7 @@ import { refOf } from './bodyRef';
 import { refusal } from '../engine/refusal';
 import { captureExtrudeRegion, resolveExtrudeRegion } from '../engine/regionExtrude';
 import { isFaceEndExtrudeSketch } from '../engine/faceEndExtrude';
+import { throughCutPlane, throughCutSide } from '../engine/throughCut';
 import { extrudeEndFaceTarget, extrudeEndFaceValues } from './extrudeEndFacePick';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
@@ -68,6 +69,17 @@ function throughDepth(ctx: Ctx, node: SketchNode): number {
     deepest = Math.max(deepest, (o[0] - c[0]) * n[0] + (o[1] - c[1]) * n[1] + (o[2] - c[2]) * n[2]);
   }
   return Math.ceil(deepest) + 1;
+}
+
+/** Historical one-sided cuts remain available when the persistent rule cannot prove the stock extent. */
+function persistThroughCut(ctx: Ctx, sketch: SketchNode, draft: number): boolean {
+  const base = baseOf(ctx, sketch);
+  if (!base || base.ref.side !== 'solid' || draft || sketch.association || !throughCutPlane(sketch.plane)) return false;
+  const target = ctx.bodies[base.index];
+  if (target.family !== 'upright' || target.pieces) return false;
+  const { origin, normal } = planeOf(sketch), { min, max } = target.mesh.bounds;
+  const closest = normal[2] === 1 ? max[2] : min[2];
+  return throughCutSide((origin[2] - closest) * normal[2]);
 }
 
 function canExtrudeToFace(ctx: Ctx, p: ReturnType<typeof extrudeProfile>): boolean {
@@ -136,6 +148,9 @@ export const extrudeCommand: Command = {
       else if (p.node.regions?.length) text += ` · all ${p.node.regions.length + 1} regions`;
     }
     const steps = [{ label: 'Profile', text, done: !!p }];
+    if (p && v.op === 'cut' && v.depth === 'through' && !persistThroughCut(ctx, p.node, Number(v.draft))) {
+      steps.push({ label: 'Depth', text: 'Fixed at this depth after Apply', done: false });
+    }
     if (v.depth === 'to-face') {
       const target = extrudeEndFaceTarget(ctx, v);
       steps.push({ label: 'End face', text: target?.face ?? 'Pick a planar end face', done: !!target });
@@ -163,12 +178,15 @@ export const extrudeCommand: Command = {
       return withNode(ctx.doc, { kind: 'face-end-extrude', sketch: profile.index, target });
     }
     const selected = extrudeProfile(ctx)!, p = selected.fresh ? { ...selected, node: nativeExtrudeFace(ctx, selected.node) } : selected;
-    const cut = v.op === 'cut', height = cut && v.depth === 'through' ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
+    const cut = v.op === 'cut', through = cut && v.depth === 'through';
+    const base = baseOf(ctx, p.node), height = through ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
+    const persistentThrough = through && persistThroughCut(ctx, p.node, draft);
     const doc = p.fresh ? withNode(ctx.doc, p.node) : ctx.doc;
     // A cut goes down from the face (with a draft its walls lean in away from the opening); join/new go up.
-    const node: ModelNode = cut ? (draft ? { kind: 'extrude', sketch: p.index, height: -height, draft } : { kind: 'extrude', sketch: p.index, height, from: -height })
+    const node: ModelNode = cut ? (draft ? { kind: 'extrude', sketch: p.index, height: -height, draft }
+      : { kind: 'extrude', sketch: p.index, height, from: -height, ...(persistentThrough ? { cutDepth: 'through' } : {}) })
       : { kind: 'extrude', sketch: p.index, height, ...(draft ? { draft } : {}) };
-    return combine(withNode(doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
+    return combine(withNode(doc, node), base?.ref ?? null, v.op);
   },
   // The distance: an arrow from the profile's middle along the normal (into the body for a cut).
   handles: (ctx, v) => {

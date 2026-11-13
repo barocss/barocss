@@ -4,6 +4,7 @@ import { MATERIALS } from '../library/materials';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
 import { faceEndExtrudeProblem } from './faceEndExtrude';
+import { throughCutProblem } from './throughCut';
 import { regionExtrudeProblem } from './regionExtrude';
 import { linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
@@ -96,6 +97,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (regionProblem) return { error: refusal('BAD_REFERENCE', `Extrude region: ${regionProblem}`).message };
   const faceEndProblem = faceEndExtrudeProblem(o);
   if (faceEndProblem) return { error: refusal('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`).message };
+  const cutDepthProblem = throughCutProblem(o);
+  if (cutDepthProblem) return { error: refusal('BAD_REFERENCE', cutDepthProblem).message };
   const linearSpanProblem = linearSpanPatternProblem(o);
   if (linearSpanProblem) return { error: refusal(linearSpanProblem.code, linearSpanProblem.message).message };
   const textProblem = textDocumentProblem({ ...o, parameters });

@@ -2,6 +2,7 @@ import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
 import { faceEndExtrudeHeight, faceEndExtrudeProblem } from './faceEndExtrude';
+import { throughCutHeight, throughCutProblem } from './throughCut';
 import { regionExtrudeProblem, resolveExtrudeRegion } from './regionExtrude';
 import { linearSpanPatternInput, linearSpanPatternProblem } from './linearSpanPattern';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
@@ -127,7 +128,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       if (profile.profile === 'loop') delete profile.slot;
       return { ...at, ...profile } as CadPartFeature;
     }
-    case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
+    case 'extrude':
+      if (node.cutDepth !== undefined) throw coded('BAD_REFERENCE', 'Through all requires the current native document prefix.');
+      return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
     case 'region-extrude': throw coded('BAD_REFERENCE', 'Extrude region requires the current source sketch.');
     case 'face-end-extrude': throw coded('BAD_REFERENCE', 'Extrude to face requires the current native document prefix.');
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
@@ -546,6 +549,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   if (regionProblem) throw coded('BAD_REFERENCE', `Extrude region: ${regionProblem}`);
   const faceEndProblem = faceEndExtrudeProblem(doc);
   if (faceEndProblem) throw coded('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`);
+  const cutDepthProblem = throughCutProblem(doc);
+  if (cutDepthProblem) throw coded('BAD_REFERENCE', cutDepthProblem);
   const linearSpanProblem = linearSpanPatternProblem(doc);
   if (linearSpanProblem) throw coded(linearSpanProblem.code, linearSpanProblem.message);
   const fillProblem = fillPatternDocumentProblem(doc);
@@ -601,6 +606,15 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       if (hasText) checkTextExpansion(features);
       const height = faceEndExtrudeHeight(doc, node, features);
       features.push(featureOf({ kind: 'extrude', sketch: node.sketch, height }, i));
+      return;
+    }
+    if (node.kind === 'extrude' && node.cutDepth === 'through') {
+      const sketch = doc.nodes[node.sketch] as SketchNode;
+      const target = sketch.on!;
+      if (node.suppressed || gone.has(target.node)) { gone.add(i); return; }
+      if (hasText) checkTextExpansion(features);
+      const height = throughCutHeight(doc, features, ref(target), sketch.plane);
+      features.push({ id: id(i), kind: 'extrude', sketch: id(node.sketch), height, from: -height });
       return;
     }
     if (node.kind === 'sketch') {
