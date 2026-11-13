@@ -111,8 +111,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const plane = offsetPlane(tiltPlane(source, angle), offset);
     const next = { ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)),
       plane, base, anchor: { ...anchor, kind, offset, angle } };
-    if (sketch.association || sketch.associationDetached) commitDraft(sketch, next);
-    else setSketch(next);
+    commitDraft(sketch, next);
     const [min, max] = sketchRegion(bodies, plane);
     viewport.current?.frameSketch(min, max, plane);
   };

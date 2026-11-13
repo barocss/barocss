@@ -1,0 +1,49 @@
+{
+  "decision": "D1076",
+  "tier": "SMALL",
+  "parent": "fa328c1c8d06c576b2fe79c99aab59e17bb0b66f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1076-plane-<run>",
+    "D1076_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-plane-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-plane-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "33686d830ca55e3462dde4923fde9c64d9eafeb357197f0a6f6732e1d15806b9",
+      "sourceManifestSHA256": "cb0184adf031a5f39d0551e9d556167549af84aad6dc35b55d6a70d0ce3b0f2b",
+      "firstFailure": "First Cmd+Z restores X26 while leaving the newer Z7 plane in place."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 379,
+      "receiptSHA256": "f01e306216dfb6ed4439c0d887187e0c9cc0ce8a533d131088736029c9963bde",
+      "sourceManifestSHA256": "d83f6c4be861933260ee42fc39564038a7e46afc352e40ca1e30ff32350a0853"
+    }
+  },
+  "point2XMm": [
+    26,
+    30
+  ],
+  "planeOffsetMm": [
+    0,
+    7
+  ],
+  "extrudeMm": 3,
+  "volumeMm3": 840,
+  "centroidZMm": 8.5,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
