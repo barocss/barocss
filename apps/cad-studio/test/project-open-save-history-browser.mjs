@@ -2,17 +2,19 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed'].includes(mode));
-const baseline = mode === '--baseline';
+assert.ok(['--baseline', '--fixed', '--version-baseline', '--version-fixed'].includes(mode));
+const baseline = mode.endsWith('baseline');
+const version = mode.startsWith('--version');
 const pins = [
   'apps/cad-studio/test/project-open-save-history-browser.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/storage/useProject.ts', 'apps/cad-studio/src/state/workOwnership.ts',
   'apps/cad-studio/src/storage/project.ts', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
 ];
 const f = await createFlow({
-  name: 'project-open-save-history', output, envFrozen: 'D958_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Restore the project Save destination with the exact document through Undo and Redo.',
-  limits: ['Two rectangular native parts in one browser project. Version refusal is a separate case.'],
+  name: 'project-open-save-history', output, envFrozen: version ? 'D959_SOURCE_FROZEN' : 'D958_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: version ? 'A semantic version refusal preserves the actual project file and version log.' : 'Restore the project Save destination with the exact document through Undo and Redo.',
+  limits: [version ? 'Duplicate version name and a valid follow-up in one browser project.'
+    : 'Two rectangular native parts in one browser project. Version refusal is a separate case.'],
   snapshotExtra: () => ({
     title: document.querySelector('.doc-tab input')?.value,
     active: document.querySelector('[aria-label="Project documents"] [data-active="true"]')?.textContent ?? null,
@@ -66,6 +68,50 @@ async function projectOpen(name, doc) {
   await files().getByRole('button', { name: 'Open ' + name + '.bcad', exact: true }).click();
   await f.same(doc);
 }
+async function versionFlow(original) {
+  const name = panel().getByRole('textbox', { name: 'Version name', exact: true });
+  const make = value => name.fill(value).then(() => panel().getByRole('button', { name: 'Make version', exact: true }).click());
+  const readLog = () => f.page.evaluate(async projectName => {
+    const root = await navigator.storage.getDirectory();
+    const project = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(projectName);
+    const versions = await (await project.getDirectoryHandle('.barocss')).getDirectoryHandle('versions');
+    return (await (await versions.getFileHandle('A.bcad.json')).getFile()).text();
+  }, projectName);
+  f.phase = 'create the first named version through the actual project panel';
+  await check('00-active-a', a, 48, 'A', 'A', false);
+  await make('Reference A');
+  await panel().getByLabel('Version Reference A', { exact: true }).waitFor();
+  const beforeLog = await readLog();
+  await f.openFeatureEditor(1, 'Extrude');
+  await f.editor().getByLabel('Distance', { exact: true }).fill('3');
+  const { doc: edited } = await f.applyEditor(a, '01-edit-a-after-version');
+  await dirty().waitFor();
+
+  f.phase = 'refuse a duplicate version name with dirty accepted geometry';
+  await make('Reference A');
+  await f.waitToast(/No version made.*already named/s);
+  const state = await f.snapshot('02-refused-version');
+  assert.deepEqual(state.doc, edited);
+  assert.equal(state.active, 'A.bcad');
+  assert.equal(await readLog(), beforeLog);
+  const afterRefusal = await readPart('A');
+  f.report.observations.push({ label: 'refused-version', beforeSHA256: sha256(original),
+    afterSHA256: sha256(afterRefusal), logSHA256: sha256(beforeLog), dirty: state.dirty });
+  assert.equal(afterRefusal, original, 'the refused version must preserve the primary project file bytes');
+  assert.equal(state.dirty, true, 'the edit remains dirty after refusal');
+  assert.equal(baseline, false, 'baseline must reproduce the unsafe write');
+
+  f.phase = 'accept a unique version name and save the same accepted geometry';
+  await make('Reference A edited');
+  await panel().getByLabel('Version Reference A edited', { exact: true }).waitFor();
+  await check('03-successful-version', edited, 72, 'A', 'A', false);
+  const after = await readPart('A');
+  assert.deepEqual(JSON.parse(after), edited);
+  const afterLog = await readLog();
+  assert.equal(JSON.parse(afterLog).versions.length, 2);
+  f.report.observations.push({ label: 'valid-version', nativeSHA256: sha256(after), logSHA256: sha256(afterLog) });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -88,6 +134,7 @@ await f.run(async () => {
   await panel().getByLabel('Project', { exact: true }).waitFor();
   await openNative('A', a);
   await save('A');
+  if (version) { await versionFlow(await readPart('A')); return; }
   await openNative('B', b);
   await save('B');
   const before = await Promise.all(['A', 'B'].map(readPart));

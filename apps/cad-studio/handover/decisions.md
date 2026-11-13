@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D959 — validate a proposed project version before saving](notes/project-version-refusal-save-order-2026-11-13/README.md).
 - [D958 — restore the correct project Save destination across Open history](notes/project-open-save-destination-history-2026-11-13/README.md).
 - [D957 — keep a measurement pin cleared after a held reply](notes/pinned-face-measure-clear-held-2026-11-13/README.md).
 - [D956 — retire a pinned face measurement when its Worker fails](notes/pinned-face-measure-worker-retry-2026-11-13/README.md).

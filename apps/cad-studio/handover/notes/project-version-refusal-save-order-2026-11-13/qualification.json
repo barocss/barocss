@@ -1,0 +1,51 @@
+{
+  "decision": "D959",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "007cfef77b8379aeca7a1fe0fa1f9656aa4436f4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D959-version-refusal",
+    "D959_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/parent02 --version-baseline",
+    "gate.sh acquire heavy 600 D959-version-fixed",
+    "D959_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/fixed01 --version-fixed",
+    "node apps/cad-studio/scripts/test.mjs project-version-ownership project-open-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-open-save-history-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "62e4b77070cb0cf39b925e3fc51bac6d84a95ff5865cd5702521c812dfba9c89",
+    "dirtyAfterRefusal": false
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "c73cf8490eff323779e411df9c21b28f269051cfe26857a8a03bc45c9cb5e4f5",
+    "sourceManifestSHA256": "ab88cbdbc3f35ed7d7a148c5f8ab639a48d2468fb222f91ba57194bbb49f83ee",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "dirtyAfterRefusal": true,
+    "workingVolumeMM3": 72,
+    "retainedPartSHA256": "f762c8a89eb3ed915c761ee4892fd101b6c1e605f6e725310d560707d55b7605",
+    "retainedLogSHA256": "833c005efa998ef2c19f1aad56b368b3cd675b03fb9d9da797386ffa8f98da48",
+    "savedPartSHA256": "b11e1edca9b8755ae64f1fa7e63e59ffc9790f19a3b73f302ce21e0ab01599bc",
+    "versionCountAfterValidName": 2
+  },
+  "focusedTests": {
+    "pass": 65,
+    "fail": 0
+  },
+  "notRun": [
+    "browser storage failure after valid preflight",
+    "other Studio refusal inputs",
+    "STEP and detached Open",
+    "New part and same-name collision",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

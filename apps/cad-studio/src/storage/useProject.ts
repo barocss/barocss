@@ -123,8 +123,7 @@ export function useProject(cb: ProjectCallbacks) {
     // A completed write still owns its log/tag after a document edit, but cannot return a replacement document.
     const currentVersion = (owner: OpenOwner) => currentOpen({ ...owner, scope: undefined });
     /** The log written back; stale receipts and conflict reloads cannot enter another document's project view. */
-    const keepLog = async (store: ProjectStore, part: string, log: VersionLog, owner = versionOwner()) => {
-      const expect = tags.current.log;
+    const keepLog = async (store: ProjectStore, part: string, log: VersionLog, owner = versionOwner(), expect = tags.current.log) => {
       try {
         const written = await writeVersions(store, part, log, { expect });
         if (!currentVersion(owner)) return false;
@@ -296,18 +295,28 @@ export function useProject(cb: ProjectCallbacks) {
         const f = await store.read(path).catch(e => { fail(`Could not read ${path}`, e); return null; });
         return f ? new File([f.bytes as BlobPart], path.split('/').pop()!) : null;
       },
-      /** A version of the document: saved first (a version is a save with a name), then recorded. */
+      /** Validate a proposed version before saving its document. Publish the version after the Save succeeds. */
       async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string; onSaved?: () => void } = {}) {
         const owner = versionOwner();
+        const { store, part } = live.current;
+        if (!store) return false;
+        const path = part ?? partPathOf(name);
+        let next: VersionLog, expect: string | null;
+        try {
+          // An Open or first Save may not have installed the destination's log yet.
+          const stored = await readVersions(store, path);
+          if (!currentOpen(owner)) return false;
+          if (stored && 'error' in stored) return fail('No version made', new Error(stored.error));
+          const options = { at: now(), name: o.versionName, note: o.note };
+          expect = stored?.tag ?? null;
+          const log = stored?.log;
+          next = log ? makeVersion(log, doc, options).log : makeVersions(doc, options);
+        } catch (e) { return currentOpen(owner) ? fail('No version made', e) : false; }
         if (!(await actions.save(doc, name, o.onSaved))) return false;
         // A first Save may assign this session's path. It must not borrow a newer Open or document edit.
-        if (!currentOpen({ ...owner, path: undefined })) return false;
-        owner.path = live.current.part;
-        const { store, part, log } = live.current;
-        try {
-          const next = log ? makeVersion(log, doc, { at: now(), name: o.versionName, note: o.note }).log : makeVersions(doc, { at: now(), name: o.versionName, note: o.note });
-          return keepLog(store!, part!, next, owner);
-        } catch (e) { return fail('No version made', e); }
+        if (!currentOpen({ ...owner, path: undefined }) || live.current.part !== path) return false;
+        owner.path = path;
+        return keepLog(store, path, next, owner, expect);
       },
       /** A version's document, to work on (history is not rewound: saving it makes a new version). */
       restore(id: string): StudioDoc | null { const { log } = live.current; try { return log ? readVersion(log, id) : null; } catch (e) { fail('Could not restore', e); return null; } },
