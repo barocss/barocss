@@ -3,14 +3,17 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed'].includes(mode));
-const openFlow = mode.startsWith('--open');
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed'].includes(mode));
+const step = mode.startsWith('--step');
+const openFlow = mode.startsWith('--open') || step;
+const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
 const project = mode.startsWith('--project');
 const pins = [
+  ...(step ? [stepPath, 'apps/cad-studio/src/files/importedFile.ts'] : []),
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
@@ -21,8 +24,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -67,7 +70,23 @@ async function checkOpenDraft() {
   const height = hud.getByRole('spinbutton', { name: 'Height Z', exact: true });
   const replacement = structuredClone(source);
   replacement.nodes[1].height = 7;
-  let requestOpen = () => openCandidate('New geometry', replacement);
+  const stepBytes = step ? await readFile(new URL('../../../' + stepPath, import.meta.url)) : null;
+  const requestOpen = async () => {
+    if (!stepBytes) return openCandidate('New geometry', replacement);
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'New geometry.step', mimeType: 'application/step', buffer: stepBytes });
+  };
+  const checkReplacement = async () => {
+    if (!stepBytes) return f.same(replacement);
+    await f.page.waitForFunction(() => window.__studioDoc?.nodes?.[0]?.kind === 'import');
+    await f.ready();
+    const loaded = await f.doc();
+    assert.equal(loaded.nodes[0].step, stepBytes.toString());
+    assert.equal(loaded.nodes.length, 1);
+    const bodies = (await f.bodies()).bodies;
+    assert.equal(bodies.length, 1);
+    assert.ok(Math.abs(bodies[0].volume - (40 * 30 * 10 - Math.PI * 4 ** 2 * 10)) < 1e-7);
+  };
   const title = f.page.locator('.doc-tab input');
   let activePath;
   if (project) {
@@ -87,11 +106,11 @@ async function checkOpenDraft() {
     await files.getByRole('button', { name: 'Open Draft source.bcad', exact: true }).click();
     await f.same(source);
     await activePath.getByText('Draft source.bcad', { exact: true }).waitFor();
-    requestOpen = () => files.getByRole('button', { name: 'Open New geometry.bcad', exact: true }).click();
+    const openProject = () => files.getByRole('button', { name: 'Open New geometry.bcad', exact: true }).click();
     await f.openFeatureEditor(1);
     await distance().fill('4');
     const before = await f.snapshot('01-project-draft');
-    await requestOpen();
+    await openProject();
     f.phase = 'request a valid project Open with an unapplied Distance';
     if (mode.endsWith('baseline')) {
       await f.same(replacement);
@@ -107,7 +126,7 @@ async function checkOpenDraft() {
     for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[field], before[field], field);
     assert.equal(await title.inputValue(), 'Draft source');
     assert.equal(await activePath.textContent(), 'Draft source.bcad');
-    await requestOpen();
+    await openProject();
     await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
     await f.same(replacement);
     assert.equal(await activePath.textContent(), 'New geometry.bcad');
@@ -124,7 +143,7 @@ async function checkOpenDraft() {
   f.phase = 'open valid native file while a Box preview is active';
   if (mode.endsWith('baseline')) {
     await requestOpen();
-    await f.same(replacement);
+    await checkReplacement();
     await hud.waitFor({ state: 'hidden' });
     await f.snapshot('02-open-lost-box');
     assert.fail('Open replaced the document and discarded the unapplied Box without confirmation');
@@ -149,7 +168,7 @@ async function checkOpenDraft() {
   f.phase = 'explicitly discard the Box and complete the previously checked Open';
   await requestOpen();
   await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
-  await f.same(replacement);
+  await checkReplacement();
   await hud.waitFor({ state: 'hidden' });
   assert.equal(await f.page.locator('.doc-tab input').inputValue(), 'New geometry');
   if (activePath) assert.equal(await activePath.textContent(), 'New geometry.bcad');

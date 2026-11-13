@@ -24,7 +24,7 @@ function harness() {
     doc: emptyDoc(), worker,
     ownership: { isCurrent: () => current },
     mesh: { setStage(value: unknown) { events.push(`stage:${value}`); }, setMeshAsk() { events.push('meshAsk'); }, setRepairAsk() { events.push('repairAsk'); } },
-    changes: { onOpened() { events.push('opened'); return true; }, commitDirect() { events.push('commit'); return false; }, fitLater() { events.push('fit'); } },
+    changes: { onOpened(_doc: unknown, _name: string, accept: () => void) { events.push('opened'); accept(); }, commitDirect() { events.push('commit'); return false; }, fitLater() { events.push('fit'); } },
     onNotice() { events.push('notice'); },
   };
   return { events, worker, options: options as unknown as Parameters<typeof openImportedFile>[1], invalidate() { current = false; } };
@@ -140,7 +140,7 @@ test('current STEP file rejection clears its stage and shows an error', async ()
 test('current STEP acceptance can change ownership before the success notice', async () => {
   const h = harness();
   h.options.worker.engine.part = async (_doc, revision) => ({ ok: true, revision, wallTime: 0, bodies: [] });
-  h.options.changes.onOpened = () => { h.events.push('opened'); h.invalidate(); return true; };
+  h.options.changes.onOpened = (_doc, _name, accept) => { h.events.push('opened'); h.invalidate(); accept(); };
   await openImportedFile({ name: 'current.step', text: async () => 'ISO-10303-21;' } as File, h.options);
   assert.deepEqual(h.events.slice(-2), ['opened', 'notice']);
 });

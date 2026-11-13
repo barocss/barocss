@@ -67,7 +67,7 @@ test('real STEP import handler formats total volume after the existing metre con
     doc: rectanglePart(10, 10, 10), ownership: { isCurrent: () => true },
     worker: { nextRevision: () => 1, engine: { async stepMeshes() { return null; }, async part() { return { ok: true, bodies: [{ volume: 4.1887902e-18 }] }; } } },
     mesh: { setStage() {}, setRepairAsk() {}, setMeshAsk() {} },
-    changes: { onOpened(doc: unknown) { opened.push(doc); return true; }, commitDirect() { return true; }, fitLater() {} },
+    changes: { onOpened(doc: unknown, _name: string, accept: () => void) { opened.push(doc); accept(); }, commitDirect() { return true; }, fitLater() {} },
     onNotice(n: { hint: string }) { notices.push(n.hint); },
   } as unknown as Parameters<typeof openImportedFile>[1];
   await openImportedFile({ name: 'metre.step', text: async () => source } as File, options);

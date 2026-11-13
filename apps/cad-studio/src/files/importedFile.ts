@@ -17,7 +17,7 @@ interface ImportedFileOptions {
   ownership: ImportOwner;
   worker: { engine: EngineClient; nextRevision(): number };
   mesh: Pick<MeshImportController, 'setStage' | 'setRepairAsk' | 'setMeshAsk'>;
-  changes: { onOpened(doc: StudioDoc, name: string): boolean; commitDirect(next: DirectGeometry, selection?: string[]): boolean; fitLater(): void };
+  changes: { onOpened(doc: StudioDoc, name: string, onAccepted: () => void): void; commitDirect(next: DirectGeometry, selection?: string[]): boolean; fitLater(): void };
   onNotice(notice: FriendlyError): void;
 }
 /** Format-specific import routes, valid only while their Open intent still owns the document. */
@@ -64,9 +64,10 @@ export async function openImportedFile(file: File, { doc, ownership, worker, mes
         // In other units than millimetres: each solid scaled about the origin to its true size.
         const n = read.bodies.length;
         if (unit.to !== 1) for (let k = 0; k < n; k++) next = withNode(next, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as Side : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
-        if (!onOpened(next, name)) return;
-        const vol = read.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) * unit.to ** 3;
-        setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.to !== 1 ? `, scaled ×${unit.to} to millimetres` : ''}; ${quantityText(vol, Math.round(vol).toLocaleString('en-US'))} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
+        onOpened(next, name, () => {
+          const vol = read.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) * unit.to ** 3;
+          setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.to !== 1 ? `, scaled ×${unit.to} to millimetres` : ''}; ${quantityText(vol, Math.round(vol).toLocaleString('en-US'))} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
+        });
         return;
       }
       // An STL or OBJ file starts a new part from its closed mesh, once its unit is chosen (the files say none).

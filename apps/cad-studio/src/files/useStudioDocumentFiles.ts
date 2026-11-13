@@ -563,7 +563,11 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       }
       if (isImportedFile(file.name)) {
         await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision }, mesh: meshImport, onNotice: setToast,
-          changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });
+          changes: { commitDirect, fitLater: fitImportedLater, onOpened: (next, name, onAccepted) => {
+            ownership.requestNativeOpen(() => {
+              if (owner.isCurrent() && openedImport(next, name)) onAccepted();
+            }, focus);
+          } } });
         return;
       }
       // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
