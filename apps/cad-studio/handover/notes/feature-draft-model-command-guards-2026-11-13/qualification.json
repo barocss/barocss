@@ -1,0 +1,48 @@
+{
+  "decision": "D965",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "eac4b826dc48cc050f6f9b88276987d719bd7fee",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D965-model-draft-commands",
+    "D965_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/parent01 --commands-baseline",
+    "D965_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --commands-fixed",
+    "gate.sh acquire heavy 600 D965-focused",
+    "pnpm --filter @barocss/cad-studio-app test work-ownership draft-sketch-history save-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "00032f959a458b5216ba67d60a09ce33abf6fd4762c2a2984e6fdb0b5ecd0ce1"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "868b756d8989e79e68b148b4fbb3cd6a3aae4cd67102fd447e7e8a27d759ec19",
+    "sourceManifestSHA256": "8d29a7dfc9f7a78b2eb649f1d35fd90332ebfaa5542f7c94f44d98475f86deb3",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "widthMM": 48,
+    "heightMM": 18,
+    "focus": "Height Z",
+    "savedFilename": "Draft source.bcad"
+  },
+  "focusedTests": {
+    "pass": 27,
+    "fail": 0
+  },
+  "notRun": [
+    "other template and history variants",
+    "3D Sketch exit",
+    "in-place Cancel",
+    "Mate",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -12,13 +12,13 @@ interface TemplatePickerProps {
   inOverflow?: boolean;
   doc: StudioDoc;
   state: { templatesOpen: boolean; setTemplatesOpen: Dispatch<SetStateAction<boolean>>; templateName: string; setTemplateName: Dispatch<SetStateAction<string>> };
-  onTemplate(doc: StudioDoc): void;
-  fitLater(): void;
+  onTemplate(doc: StudioDoc, focus: HTMLElement | null): void;
   open(file: File): Promise<void>;
   onNotice(notice: FriendlyError): void;
 }
-export function TemplatePicker({ doc, state, onTemplate, fitLater, open, onNotice: setToast, inOverflow }: TemplatePickerProps) {
+export function TemplatePicker({ doc, state, onTemplate, open, onNotice: setToast, inOverflow }: TemplatePickerProps) {
   const { templatesOpen, setTemplatesOpen, templateName, setTemplateName } = state;
+  const originFocus = useRef<HTMLElement | null>(null);
   const panel = useRef<HTMLDivElement>(null), focusOnOpen = useRef(false);
   useEffect(() => {
     if (inOverflow) return () => setTemplatesOpen(false);
@@ -31,7 +31,12 @@ export function TemplatePicker({ doc, state, onTemplate, fitLater, open, onNotic
   }, [templatesOpen, inOverflow]);
   const button = <ToolIconButton state={templatesOpen ? 'on' : 'idle'} aria-label="New from a template" aria-haspopup="menu"
     aria-expanded={templatesOpen} data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template"
-    onClick={event => { focusOnOpen.current = event.detail === 0; setTemplatesOpen(value => !value); }}>
+    onPointerDown={() => { originFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
+    onClick={event => {
+      focusOnOpen.current = event.detail === 0;
+      if (event.detail === 0) originFocus.current = event.currentTarget;
+      setTemplatesOpen(value => !value);
+    }}>
     <Icon name="library_add" />
   </ToolIconButton>;
   return <span className="tpl-anchor">
@@ -40,7 +45,7 @@ export function TemplatePicker({ doc, state, onTemplate, fitLater, open, onNotic
             onKeyDown={inOverflow ? event => event.stopPropagation() : undefined}>
             <div className="card-title">NEW FROM A TEMPLATE</div>
             {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
-              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { onTemplate({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setTemplatesOpen(false); fitLater(); }}>{t.name}</Button>
+              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { onTemplate({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }, originFocus.current); setTemplatesOpen(false); }}>{t.name}</Button>
               {t.own && <ToolIconButton size="tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></ToolIconButton>}
             </div>)}
             {/* (RS1: the robot samples, each with a demo motion in its Joints card; opened as Open opens a file.) */}

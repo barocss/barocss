@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed'].includes(mode));
 const openFlow = mode.startsWith('--open');
+const commands = mode.startsWith('--commands');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
@@ -11,8 +12,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -96,6 +97,88 @@ async function checkOpenDraft() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkModelCommands() {
+  const hud = f.page.getByRole('dialog', { name: 'Box', exact: true });
+  const height = hud.getByRole('spinbutton', { name: 'Height Z', exact: true });
+  const width = hud.getByRole('spinbutton', { name: 'Width X', exact: true });
+  const box = async () => {
+    await f.page.keyboard.press('b');
+    await hud.waitFor();
+    await width.fill('48');
+    await height.fill('18');
+    await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+  };
+  await box();
+  const before = await f.snapshot('01-box-before-commands');
+  f.phase = 'request New part with a Box draft';
+  if (mode === '--commands-baseline') {
+    await button('New part').click();
+    await hud.waitFor({ state: 'hidden' });
+    await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await f.snapshot('02-new-part-lost-draft');
+    assert.fail('New part discarded an unapplied Box without asking');
+  }
+  const keep = async (label, action) => {
+    f.phase = 'keep Box during ' + label;
+    await height.focus();
+    await action();
+    await prompt().waitFor();
+    await prompt().getByRole('button', { name: 'Keep editing', exact: true }).click();
+    await prompt().waitFor({ state: 'hidden' });
+    await waitFocus(height);
+    assert.deepEqual([await width.inputValue(), await height.inputValue()], ['48', '18']);
+    assert.equal(await hud.locator('.status').textContent(), 'preview');
+    const after = await f.snapshot('02-kept-' + label);
+    for (const field of ['doc', 'bodies', 'history', 'selection', 'dirty']) assert.deepEqual(after[field], before[field], field);
+  };
+  await keep('new-part', () => button('New part').click());
+  await keep('model-undo', () => button('Undo').click());
+  const template = f.page.getByRole('menuitem', { name: 'New from Empty part', exact: true });
+  const showTemplates = () => button('New from a template').click();
+  await keep('template', async () => { await showTemplates(); await template.click(); });
+  if (await template.isVisible()) await showTemplates();
+
+  f.phase = 'Cmd+S keeps the draft and emits the accepted document';
+  await height.focus();
+  await f.page.keyboard.press('Meta+s');
+  await f.page.waitForFunction(() => window.__d965Saves.length === 1);
+  const saved = await f.page.evaluate(() => window.__d965Saves[0]);
+  assert.equal(saved.name, 'Draft source.bcad');
+  assert.deepEqual(JSON.parse(saved.text), source);
+  await waitFocus(height);
+  assert.deepEqual([await width.inputValue(), await height.inputValue()], ['48', '18']);
+  assert.equal(await hud.locator('.status').textContent(), 'preview');
+
+  f.phase = 'discard a Box explicitly and let the requested template replace the document';
+  await showTemplates();
+  await template.click();
+  await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await hud.waitFor({ state: 'hidden' });
+  await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+  await f.ready();
+  assert.equal(await f.page.locator('.doc-tab input').inputValue(), 'Untitled');
+  await f.snapshot('03-template-accepted');
+  assert.deepEqual(f.report.downloads, []);
+}
+
+function captureNativeSave() {
+  const create = URL.createObjectURL;
+  const click = HTMLAnchorElement.prototype.click;
+  const blobs = new Map();
+  window.__d965Saves = [];
+  URL.createObjectURL = function (blob) {
+    const url = create.call(this, blob);
+    blobs.set(url, blob);
+    return url;
+  };
+  HTMLAnchorElement.prototype.click = function () {
+    const blob = blobs.get(this.href);
+    if (!blob || !this.download.endsWith('.bcad')) return click.call(this);
+    const name = this.download;
+    void blob.text().then(text => window.__d965Saves.push({ name, text }));
+  };
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -103,6 +186,7 @@ await f.run(async () => {
     const context = await newContext({ ...options, serviceWorkers: 'block', acceptDownloads: false });
     context.setDefaultTimeout(15000);
     context.setDefaultNavigationTimeout(60000);
+    if (commands) await context.addInitScript(captureNativeSave);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -114,6 +198,7 @@ await f.run(async () => {
   await openCandidate('Draft source', source);
   await f.same(source);
   if (openFlow) { await checkOpenDraft(); return; }
+  if (commands) { await checkModelCommands(); return; }
   await f.openFeatureEditor(1);
   await distance().fill('4');
   const before = await f.snapshot('01-dirty-node-editor');

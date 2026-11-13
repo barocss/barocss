@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D965 — protect a Box draft at New part, templates and Model Undo](notes/feature-draft-model-command-guards-2026-11-13/README.md).
 - [D964 — protect a Box draft at native File Open](notes/feature-draft-native-open-2026-11-13/README.md).
 - [D963 — protect unapplied feature editor inputs on navigation](notes/feature-editor-draft-navigation-2026-11-13/README.md).
 - [D962 — recover a failed first version and retain newer file bytes](notes/project-version-first-save-recovery-2026-11-13/README.md).

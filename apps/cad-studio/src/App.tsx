@@ -2108,8 +2108,15 @@ export function App() {
   // that click's selection, not the one before it (effects run only after the frame is painted).
   const sketchHistoryGeneration = sketchGeneration.current;
   const sketchHistoryAvailable = sketch ? sketchHistory.available(draftHistoryState(doc, sketch)) : null;
-  const replayHistory = (forward: boolean) => {
-    if (!sketch) { if (forward) doRedo(); else doUndo(); return; }
+  const replayHistory = (forward: boolean, event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (!sketch) {
+      if (!(forward ? redo : undo).length) return;
+      workspaceModeExit.switchWhenReady(() => {
+        setEditNode(null);
+        if (forward) doRedo(); else doUndo();
+      }, { event });
+      return;
+    }
     if (docNow.current !== doc) return;
     const queued = queuedSketchHistory.current, generation = sketchGeneration.current;
     // Consecutive history keys may arrive before React renders the preceding full draft.
@@ -2897,11 +2904,22 @@ export function App() {
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
         <ToolsTray items={[
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
-          <ToolIconButton key="tool1" aria-label="Undo" data-tip={sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.undo : !undo.length} onClick={() => replayHistory(false)}><Icon name="undo" /></ToolIconButton>,
-          <ToolIconButton key="tool2" aria-label="Redo" data-tip={sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.redo : !redo.length} onClick={() => replayHistory(true)}><Icon name="redo" /></ToolIconButton>,
-          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { if (sessionBlocked('starting a new part')) return; replaceDoc(emptyDoc(), 'new-part'); }}><Icon name="add_box" /></ToolIconButton>,
+          <ToolIconButton key="tool1" aria-label="Undo" data-tip={sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.undo : !undo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(false, event)}><Icon name="undo" /></ToolIconButton>,
+          <ToolIconButton key="tool2" aria-label="Redo" data-tip={sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={sketchHistoryAvailable ? !sketchHistoryAvailable.redo : !redo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(true, event)}><Icon name="redo" /></ToolIconButton>,
+          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onPointerDown={workspaceModeExit.rememberFocus}
+            onClick={event => {
+              if (sessionBlocked('starting a new part')) return;
+              workspaceModeExit.switchWhenReady(() => replaceDoc(emptyDoc(), 'new-part'), { event });
+            }}><Icon name="add_box" /></ToolIconButton>,
           <TemplatePicker key="tool4" doc={doc} state={{ templatesOpen, setTemplatesOpen, templateName, setTemplateName }} open={open} onNotice={setToast}
-            onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
+            onTemplate={(next, focus) => {
+              if (sessionBlocked('starting from a template')) return;
+              workspaceModeExit.switchWhenReady(() => {
+                if (!replaceDoc(next)) return;
+                setFileName('Untitled');
+                setTimeout(() => viewport.current?.fit(), 300);
+              }, { originFocus: focus });
+            }} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
           <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A model, worker file or supported exchange file" onPointerDown={workspaceModeExit.rememberFocus}
