@@ -1,0 +1,137 @@
+{
+  "decision": "D1108",
+  "tier": "FEATURE",
+  "parent": "26898a4874eca3260f9314c4f55d539eb9f96652",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1108-anchor-tools-<run>",
+    "D1108_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --anchor-tools",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1108_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --anchor-tools",
+    "D864_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/rectangle-final",
+    "D799_SOURCE_FROZEN=1 node apps/cad-studio/test/arc-extension-snap-browser.mjs <external-evidence>/extension",
+    "D878_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/chord",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "cd29936b1a40453d38e630e5e2b76c6caa808f80d7052a7f0c66166967858602",
+      "sourceManifestSHA256": "db3190f84dc0b06b280ae4e31c40bf1ad04c993d3bce43f101a18864edbc3889",
+      "savedFiles": [],
+      "firstFailure": "At two CSS pixels from the projected tilted crossing, Line showed no Crossing cue on the first point."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "b18bcb6d27b848fce2a52312114fa3ada5b45eb6e24aae0ee480c6801705e77b",
+      "sourceManifestSHA256": "ca702731db38e70c6132dcb017880880f465c1dfacdecea55b4d34cd43fffaae",
+      "savedFiles": [
+        {
+          "bytes": 1536,
+          "sha256": "18549c4024e7c2fd8d40d1a93a48f2cc6b5e249916c5554e565c40fba6ebedd4"
+        },
+        {
+          "bytes": 1555,
+          "sha256": "5db3c7a0c6cfe21f0882f0c3b5def8d1bce787bf87599f175730b8bd7f3df916"
+        },
+        {
+          "bytes": 993,
+          "sha256": "39239096b1004149c555b791c3abe2ccc8e1536edfab0c1dd105ec8236658b2d"
+        }
+      ]
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "b67e1bf480ae6998dff58d7a5786f9603025d33ce65f07d822599aea0667f1ba",
+      "sourceManifestSHA256": "ca702731db38e70c6132dcb017880880f465c1dfacdecea55b4d34cd43fffaae",
+      "savedFiles": [
+        {
+          "bytes": 1536,
+          "sha256": "18549c4024e7c2fd8d40d1a93a48f2cc6b5e249916c5554e565c40fba6ebedd4"
+        },
+        {
+          "bytes": 1555,
+          "sha256": "5db3c7a0c6cfe21f0882f0c3b5def8d1bce787bf87599f175730b8bd7f3df916"
+        },
+        {
+          "bytes": 993,
+          "sha256": "39239096b1004149c555b791c3abe2ccc8e1536edfab0c1dd105ec8236658b2d"
+        }
+      ]
+    },
+    "rectangle": {
+      "status": "PASS",
+      "states": 13,
+      "frozenFiles": 862,
+      "receiptSHA256": "63ce7bc1e0844dcd84f7e92dc5d9ca5610203724a6713d8c5a354a8cfb821e44",
+      "sourceManifestSHA256": "ca702731db38e70c6132dcb017880880f465c1dfacdecea55b4d34cd43fffaae",
+      "savedFiles": [
+        {
+          "bytes": 1181,
+          "sha256": "1f67780f89559a13dc8726d6c6fc4fb1a728f0d834f594f07faedaea13619215"
+        }
+      ]
+    },
+    "arcExtension": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 861,
+      "receiptSHA256": "d587308c548fb9c13762f8c1ca76a903724dc630bd73aea65fdc80d7fe128a36",
+      "sourceManifestSHA256": "d88cf11c685f5953845990e2e77fe3e0de163410b5b02ff77307afa2bf2e71af",
+      "savedFiles": []
+    },
+    "circleChord": {
+      "status": "PASS",
+      "states": 19,
+      "frozenFiles": 860,
+      "receiptSHA256": "efd9a430e1b61f3764e16f6329899acc44edf5eb84542933fc0a733af70719cc",
+      "sourceManifestSHA256": "d76538d796328cec0fcacd19d6cb8a30bb4156899a334f23becd2af56a8b0f9e",
+      "savedFiles": []
+    }
+  },
+  "localAnchorMM": [
+    [
+      4.2346,
+      3.4321
+    ],
+    [
+      24.2346,
+      3.4321
+    ]
+  ],
+  "firstWorldZMM": 2.7407415,
+  "planeNormal": [
+    0,
+    0.6,
+    0.8
+  ],
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "arcBulgeDPR1": -0.25692266749793674,
+  "circleRadiusControlMM": 8,
+  "review": {
+    "model": "GPT-6.1 Sol High",
+    "status": "PASS"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

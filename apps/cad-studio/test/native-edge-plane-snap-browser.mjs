@@ -4,8 +4,10 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const anchorTools = process.argv[3] === '--anchor-tools';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
+  'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/viewport/modelSketchSnaps.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'apps/cad-studio/src/viewport/sketchOverlay.tsx',
@@ -16,7 +18,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/edgePlaneCrossing.ts',
 ];
 const f = await createFlow({
-  name: 'native-edge-plane-snap', output: process.argv[2], envFrozen: 'D864_SOURCE_FROZEN',
+  name: 'native-edge-plane-snap', output: process.argv[2], envFrozen: anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
   limits: ['One original top-level native prism on the desktop WebGPU viewport, with XY and tilted sketch planes.'],
@@ -164,7 +166,7 @@ async function draw(z, label, expectedCue, accepted) {
 }
 
 
-async function saveInProject(doc) {
+async function saveInProject(doc, artifact = 'saved-crossing.bcad') {
   const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   const project = 'D864 crossing ' + randomUUID();
   if (!(await versions.isVisible())) await button(f.page, 'Project and versions').click();
@@ -181,7 +183,7 @@ async function saveInProject(doc) {
     return Array.from(new Uint8Array(await file.arrayBuffer()));
   }, [project, fileName]));
   assert.deepEqual(JSON.parse(bytes), doc);
-  const path = join(f.output, 'saved-crossing.bcad');
+  const path = join(f.output, artifact);
   await writeFile(path, bytes);
   f.report.files.push({ bytes: bytes.length, sha256: sha256(bytes) });
   return path;
@@ -219,11 +221,80 @@ async function tiltedControl() {
   await f.same(source);
 }
 
+async function tiltedAnchorTools() {
+  const y = 1.25 * target[1] - 4.5, z = (6 - 0.6 * target[1]) / 0.8;
+  const first = [target[0], target[1], z], second = [source.nodes[0].max[0], target[1], z];
+  const localToWorld = ([x, y]) => [x, 3.6 + 0.8 * y, 4.8 - 0.6 * y];
+  const expectA = [4.2346, 3.4321], expectB = [24.2346, 3.4321];
+  const caseLabels = [['Line', 'l'], ['Arc', 'a'], ['Circle', 'c']];
+  for (const [tool, key] of caseLabels) {
+    f.phase = tool + ' tilted native crossing';
+    await begin(0);
+    await tilt();
+    if (tool !== 'Circle') {
+      await f.page.mouse.click(...await hover(localToWorld([1, 8]), null));
+      await f.page.mouse.click(...await hover(localToWorld([8, 12]), null));
+      await f.tool(tool, key);
+      await button(f.page, 'Construction').click();
+    } else await f.tool(tool, key);
+    const [x, py] = await pixel(first);
+    await f.page.mouse.move(x + 2, py);
+    await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+    const state = await f.snapshot(tool + '-anchor-hover');
+    assert.equal(state.cue, 'Crossing', tool + ' first point');
+    assert.deepEqual(state.doc, source);
+    await f.page.mouse.click(x + 2, py);
+    if (tool === 'Circle') {
+      await cue().waitFor({ state: 'hidden' });
+      await hover(second, null);
+      await f.page.mouse.click(...await hover(localToWorld([12, y]), null));
+    } else {
+      await f.page.mouse.click(...await hover(second, 'Crossing'));
+      if (tool === 'Arc') {
+        await cue().waitFor({ state: 'hidden' });
+        // A distinct crossing on the bottom edge would otherwise be eligible.
+        await hover([source.nodes[0].max[0], 10, 0], null);
+        const bend = await pixel(localToWorld([14, 6]));
+        await f.page.mouse.move(...bend);
+        await f.page.mouse.click(...bend);
+      }
+    }
+    const finished = (await f.finishSketch(tool + '-finish')).doc;
+    const sketch = finished.nodes[2];
+    assert.deepEqual(finished.nodes.slice(0, 2), source.nodes);
+    assert.deepEqual(finished.outputs, source.outputs);
+    sketch.plane.normal.forEach((value, axis) => near(value, [0, 0.6, 0.8][axis]));
+    if (tool === 'Circle') {
+      assert.equal(sketch.profile, 'circle');
+      assert.deepEqual(sketch.center, expectA);
+      assert.equal(sketch.radius, 8);
+    } else {
+      assert.equal(sketch.construction.length, 1);
+      const [reference] = sketch.construction;
+      assert.deepEqual(reference.points, [expectA, expectB]);
+      assert.equal(reference.closed, false);
+      assert.equal(reference.construction, true);
+      if (tool === 'Arc') assert.ok(Math.abs(reference.bulges[0]) > 0.01);
+      else assert.ok(reference.bulges.every(bulge => bulge === 0));
+    }
+    f.report.observations.push({ label: tool, expectedLocal: [target[0], y], sketch });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(finished);
+    const saved = await saveInProject(finished, `saved-crossing-${tool.toLowerCase()}.bcad`);
+    await f.freshOpen(saved, finished, tool + '-reopened');
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+    await chooser.setFiles({ name: fileName, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });
+    await f.same(source);
+  }
+}
+
 async function visibilityControl() {
   f.phase = 'retire the crossing cue when the drawing tool changes';
   await begin(3);
   await hover([...target, 3], 'Crossing');
-  await f.tool('Circle', 'c');
+  await f.tool('Slot', 'o');
   await cue().waitFor({ state: 'hidden' });
   await hover([...target, 3], null);
   await f.tool('Rectangle', 'r');
@@ -300,6 +371,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (anchorTools) {
+    await tiltedAnchorTools();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'certified interior crossing wins over the grid';
   const accepted = endpoint;

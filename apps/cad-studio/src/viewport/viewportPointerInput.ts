@@ -295,6 +295,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const { crossingBodies, objectKinds, placed } = propsRef.current.sketchSnaps ?? {};
   const placedSources = placed?.current() ? placed.sources : undefined;
   const extensionDraft = propsRef.current.sketchSnaps?.extension.read(sketch);
+  const chordActive = !!propsRef.current.circleChord?.read(sketch);
   const clearSketchSnap = useCallback(() => {
     const draft = sketchDraft.current;
     if (!draft.snap) return;
@@ -306,6 +307,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     requestRef.current();
   }, [propsRef, requestRef]);
   useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.plane, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft, objectKinds]);
+  useLayoutEffect(() => {
+    if (chordActive && sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
+  }, [chordActive, clearSketchSnap]);
   useLayoutEffect(() => {
     const snap = sketchDraft.current.snap;
     if (!livePolygonMiddle.current || !snap) return;
@@ -341,13 +345,14 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
   /** The sketch point for the pointer: an eligible object snap within 8 px, then grid fallback. */
   const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null; liveMiddle?: boolean; extension?: boolean; terminal?: boolean } => {
-    const { bodies, hiddenBodies, sketchSnaps } = propsRef.current;
+    const { bodies, hiddenBodies, sketchSnaps, circleChord } = propsRef.current;
     const model = modelSnapCache.current = modelSketchSnaps(modelSnapCache.current, bodies, hiddenBodies, sk.plane, sketchSnaps?.crossingBodies);
     const live = liveShape.current;
     const livePoints = live ? shapeSnaps(live, drafting.current) : [];
     const guide = sketchSnaps?.extension.read(sk);
-    // Arc Extension keeps its existing endpoint and continuation candidates.
-    const crossings = guide ? [] : model.crossings;
+    const circleRadiusOrChord = sk.tool === 'circle' && (drafting.current || circleChord?.read(sk));
+    const arcBend = sk.tool === 'arc' && live?.kind === 'polygon' && live.pending;
+    const crossings = guide || circleRadiusOrChord || arcBend ? [] : model.crossings;
     const placed = guide ? [] : currentPlacedPoints(sk);
     const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...model.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d)), ...livePoints, ...crossings, ...placed];
     const project = (q: [number, number]): [number, number] => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; };
@@ -972,7 +977,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         if (!drafting.current) startRectangleAt(sk, c);
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
       } else if (sk.tool === 'circle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }, true); }
+        if (!drafting.current) {
+          drafting.current = true;
+          if (sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
+          emit({ kind: 'circle', c, r: 1 }, true);
+        }
         else {
           drafting.current = false;
           if (s?.kind === 'circle') {
@@ -1000,6 +1009,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         const arc = sk.tool === 'arc' && pts.length > 0;
         const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
         const origin = sk.tool === 'polygon' ? 'line-point' : undefined;
+        if (arc && sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
         if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc }, false, origin);
         else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc }, !open, origin);
       }
