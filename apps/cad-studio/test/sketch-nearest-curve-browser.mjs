@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
 
+const verifyGap = process.argv.includes('--gap');
 const pins = [
   'apps/cad-studio/test/sketch-nearest-curve-browser.mjs',
   'apps/cad-studio/src/ui/SketchMarks.tsx',
@@ -92,4 +95,39 @@ await f.run(async () => {
     assert.equal(expected === 'circle' ? hover[0].split(':')[0] : hover[0], expected);
     assert.equal(expected === 'circle' ? clicked[0].split(':')[0] : clicked[0], expected);
   }
+  if (!verifyGap) return;
+
+  f.phase = 'Keep background between the selected line and circle';
+  const { PNG } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright-core/lib/utilsBundle');
+  const clip = { x: Math.floor(edge[0]) - 5, y: Math.floor(rim[1]) - 3, width: 11, height: 11 };
+  const clearAt = [edge[0] + 8, edge[1] + 50];
+  const crop = async () => PNG.sync.read(await f.page.screenshot({ clip, scale: 'css' }));
+  await f.page.mouse.click(...clearAt);
+  await settle();
+  const neutral = await crop();
+  await f.page.mouse.click(...edge);
+  await f.page.mouse.move(...rim);
+  await settle();
+  assert.deepEqual(await entities('hover'), ['circle:0']);
+  const hover = await crop();
+  await f.page.keyboard.down('Shift');
+  try { await f.page.mouse.click(...rim); }
+  finally { await f.page.keyboard.up('Shift'); }
+  await settle();
+  assert.deepEqual(await entities('on'), ['edge:0', 'circle:0']);
+  const both = await crop();
+  const columns = [hover, both].map(active => Array.from({ length: active.width }, (_, x) => {
+    let clear = 0;
+    for (let y = 0; y < active.height; y++) {
+      const pixelY = clip.y + y + 0.5;
+      if (pixelY < rim[1] + 1 || pixelY > edge[1] - 1) continue;
+      const i = (y * active.width + x) * 4;
+      if ([0, 1, 2].every(channel => Math.abs(neutral.data[i + channel] - active.data[i + channel]) < 12)) clear++;
+    }
+    return clear;
+  }));
+  f.report.observations.push({ label: 'circle-line-gap', minClearCSS: columns.map(column => Math.min(...column)) });
+  await f.snapshot('circle-and-line-selected');
+  assert.ok(columns.every(column => column.every(pixels => pixels > 0)), JSON.stringify(columns));
+  await f.same(doc);
 });

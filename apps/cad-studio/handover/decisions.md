@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1055 — verify the Sketch circle gap and Fixed point ownership](notes/sketch-curve-gap-fixed-ownership-2026-11-14/README.md).
 - [D1054 — separate overlapping Sketch length labels](notes/adjacent-sketch-dimensions-2026-11-14/README.md).
 - [D1053 — keep the gap between Sketch highlights](notes/sketch-highlight-gap-2026-11-14/README.md).
 - [D1052 — pick the closest Sketch curve](notes/sketch-nearest-curve-2026-11-14/README.md).

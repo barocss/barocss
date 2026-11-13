@@ -118,6 +118,28 @@ await f.run(async () => {
   assert.deepEqual(first.doc, doc);
   assert.equal(first.dirty, false);
   for (const point of [2, 3]) await button('Remove Fixed point ' + point, f.sketchPanel()).waitFor();
+  if (!baseline && process.argv.includes('--individual-fixed')) {
+    f.phase = 'Read and remove each Fixed constraint through its own point';
+    const pickedOnly = f.sketchPanel().getByRole('checkbox', { name: 'Picked only' });
+    await pickedOnly.check();
+    for (const [point, coordinate] of [[2, [20, 0]], [3, [22, 2]]]) {
+      const other = point === 2 ? 3 : 2;
+      await f.page.mouse.click(...await f.screenOf(coordinate));
+      const remove = button('Remove Fixed point ' + point, f.sketchPanel());
+      await remove.waitFor();
+      assert.equal(await button('Remove Fixed point ' + other, f.sketchPanel()).count(), 0);
+      await remove.click();
+      await remove.waitFor({ state: 'detached' });
+      await f.page.keyboard.press('Meta+z');
+      await pickedOnly.uncheck();
+      await remove.waitFor();
+      await button('Remove Fixed point ' + other, f.sketchPanel()).waitFor();
+      await pickedOnly.check();
+      await f.same(doc);
+      await f.snapshot('fixed-point-' + point + '-restored');
+    }
+    await pickedOnly.uncheck();
+  }
   f.phase = 'the existing driving dimension remains editable';
   await f.page.locator('.vp-overlay [data-dim="len3"] .dim-text').dblclick();
   const dimension = f.page.locator('.dim-edit');

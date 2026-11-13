@@ -1,0 +1,72 @@
+{
+  "decision": "D1055",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "0ecdb4b4c7bb8de4e4fd82112f94997db7693ec8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1055-sketch-verification01",
+    "D1052_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-nearest-curve-browser.mjs <external-evidence>/circle-gap --gap",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/fixed --fixed --individual-fixed",
+    "D1042_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-fixed-mark-rail-browser.mjs <external-evidence>/rail",
+    "pnpm --filter @barocss/cad-studio-app test sketch-constraint-mark-layout constraint-list",
+    "node --check apps/cad-studio/test/sketch-nearest-curve-browser.mjs",
+    "node --check apps/cad-studio/test/constraint-mark-spacing-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "circleGap": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 857,
+      "receiptSHA256": "f68f17df63cc73ddf23988362c4d20820a09b7b8076be4ac8821191f7bc6e58c",
+      "sourceManifestSHA256": "00990bcce282fe134e03df4bc0b785af3b4c1ade1ec948d61502c1819d919340",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 856,
+      "receiptSHA256": "39a09aa4cefb9ee48f3791a3116bd104bc9454f3d62f577a47d6fd2bcdfe2038",
+      "sourceManifestSHA256": "d4342212f2977229b8af4d8d82b0ae7ff5716fa679819f90d6d424b057699044",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "rail": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 856,
+      "receiptSHA256": "e0562d447e255f35165a1aa78109dff99d4059dbcdd7b73b85b585ab94116dd9",
+      "sourceManifestSHA256": "812f1b7a296a5c3f438464cd0031168e184d60902fd2289a50a637d7e64b057a",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "circleGap": {
+    "separationCSS": 4.000017886573403,
+    "sampleColumns": 11,
+    "minimumClearPixels": [
+      1,
+      1
+    ]
+  },
+  "fixed": {
+    "overlapCSS2": 0,
+    "pointsReadRemovedAndRestored": [
+      2,
+      3
+    ]
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 7,
+    "failed": 0
+  }
+}
