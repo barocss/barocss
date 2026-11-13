@@ -1,0 +1,42 @@
+{
+  "decision": "D1048",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "12ae77d837d8f70222724d548be1e15deaad0ab8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1048-mixed-shift-baseline01",
+    "D1048_SOURCE_FROZEN=1 node apps/cad-studio/test/mixed-shift-pick-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1048-mixed-shift-fixed01",
+    "D1048_SOURCE_FROZEN=1 node apps/cad-studio/test/mixed-shift-pick-browser.mjs <external-evidence>/fixed01",
+    "gate.sh acquire heavy 600 D1048-mixed-shift-checks",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test vertex-pick-filter selection-edge",
+    "node --check apps/cad-studio/test/mixed-shift-pick-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "b9639f32e2fdb3d78d598a52fdaa69522f2d1fb82aaf225cc679600a87b1eb49",
+    "sourceManifestSHA256": "f8eb814485e1740fc307dc8c9843e42d084deff33884e8fa6dee1912705a4ad3",
+    "frozenFiles": 379,
+    "sameBodyTypedCombinations": 0,
+    "differentBodyTypedCombinations": 0,
+    "firstFailure": "same-body-face-edge"
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "cde08d52593a0e8ad6e2504ac730460c1a8c3e9b0e678b0a4da2a4c1896c0476",
+    "sourceManifestSHA256": "d20deb0a10fddd57e7eee2bd2977fbc62dc085acc3a624c2f7246f08623bbc60",
+    "frozenFiles": 379,
+    "sameBodyTypedCombinations": 2,
+    "differentBodyTypedCombinations": 2,
+    "typedToggleRemovals": 4,
+    "visualReview": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0
+  },
+  "focused": { "status": "PASS", "studioPassed": 11, "failed": 0, "typeChecks": 1 }
+}

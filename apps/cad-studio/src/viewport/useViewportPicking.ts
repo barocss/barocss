@@ -145,12 +145,12 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       // Bodies only: the body under the click (Shift adds or takes it back).
       if (pickFilterRef.current === 'body') { const b = hit.face?.body ?? hit.edge!.body, list = selectedBodies(prev); return { faces: [], edges: [], bodies: additive ? (list.includes(b) ? list.filter(x => x !== b) : [...list, b]) : [b] }; }
       if (additive) {
-        // Shift-click adds (or takes back) another of what is selected: edges to round or chamfer, faces to
-        // open in a shell; with bodies picked (or a mix), the clicked body (two for a Boolean).
+        // Toggle the hit by type unless the selection already contains explicit bodies.
         const toggle = <T,>(list: T[], x: T, same: (a: T, b: T) => boolean) => list.some(y => same(x, y)) ? list.filter(y => !same(x, y)) : [...list, x];
-        const none = !prev.faces.length && !prev.edges.length && !prev.bodies.length;
-        if (hit.edge && !prev.faces.length && !prev.bodies.length) return { ...emptySel, edges: toggle(prev.edges, hit.edge, (a, b) => a.body === b.body && a.edge === b.edge) };
-        if (hit.face && !prev.edges.length && !prev.bodies.length && (none || prev.faces.length)) return { ...emptySel, faces: toggle(prev.faces, hit.face, (a, b) => a.body === b.body && a.face === b.face) };
+        if (!prev.bodies.length) {
+          if (hit.edge) return { ...emptySel, faces: prev.faces, edges: toggle(prev.edges, hit.edge, (a, b) => a.body === b.body && a.edge === b.edge) };
+          return { ...emptySel, faces: toggle(prev.faces, hit.face!, (a, b) => a.body === b.body && a.face === b.face), edges: prev.edges };
+        }
         const b = hit.face?.body ?? hit.edge!.body; const list = selectedBodies(prev);
         return { faces: [], edges: [], bodies: list.includes(b) ? list.filter(x => x !== b) : [...list, b] };
       }

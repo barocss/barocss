@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1048 — preserve mixed Shift selections](notes/mixed-shift-pick-2026-11-14/README.md).
 - [D1047 — keep the front vertex at an exact WebGL2 silhouette tie](notes/webgl2-coincident-vertex-depth-2026-11-13/README.md).
 - [D1046 — pick visible rear edges in X-ray and Wireframe](notes/visible-rear-edge-picking-2026-11-13/README.md).
 - [D1045 — preserve the gap between selected and hovered edges](notes/adjacent-edge-selection-gap-2026-11-13/README.md).

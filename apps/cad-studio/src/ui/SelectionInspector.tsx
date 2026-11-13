@@ -41,6 +41,8 @@ export function SelectionInspector({ model, selection, materialSettings, display
   };
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
     : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
+  const { length: faces } = selection.faces;
+  const { length: edges } = selection.edges;
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
   return <aside className="card props" aria-label="Selection">
         {selection.vertices?.length ? (<>
@@ -48,7 +50,7 @@ export function SelectionInspector({ model, selection, materialSettings, display
           {selection.vertices.map((v, k) => <div key={k} className="kv">{selection.vertices!.length > 1 ? `Point ${k + 1}` : 'X Y Z'} <b>{v.at.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div>)}
           {selection.vertices.length === 2 && (() => { const [a, b] = selection.vertices!.map(v => v.at), d = [0, 1, 2].map(k => b[k] - a[k]); return <><div className="kv">Distance <b>{fmt(Math.round(Math.hypot(d[0], d[1], d[2]) * 1000) / 1000)} mm</b></div><div className="kv">ΔX ΔY ΔZ <b>{d.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div></>; })()}
         </>) : sel1?.kind === 'face' && sel1.face ? (<>
-          <div className="card-title">SELECTION · FACE</div>
+          <div className="card-title">SELECTION · {edges ? `${faces} FACE${faces === 1 ? '' : 'S'}, ${edges} EDGE${edges === 1 ? '' : 'S'}` : 'FACE'}</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
           {sel1.face.kind === 'plane' && <div className="kv">Normal <b>{sel1.face.normal.map(v => fmt(Math.round(v * 1000) / 1000)).join(', ')}</b></div>}
           <div className="kv">Area <b>{fmt(Math.round(sel1.face.area * 100) / 100)} mm²</b></div>
