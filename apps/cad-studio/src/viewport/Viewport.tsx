@@ -1,4 +1,5 @@
 import type { MarkHandlers } from '../ui/SketchMarks';
+import type { ScreenBox } from '../ui/sketchConstraintMarkLayout';
 import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
@@ -731,6 +732,23 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const instanceFaces = instanceFacesRef.current;
   useEffect(() => { renderer.current?.setInstanceFaces?.([...instanceFaces]); request(); }, [instanceFaces, props.instances, backend]);
 
+  const sketchRail = useRef<ScreenBox | undefined>(undefined);
+  useLayoutEffect(() => {
+    const view = canvas.current, rail = view?.closest('.stage')?.querySelector('nav.toolbar');
+    if (!sketching || !view || !rail) return;
+    const read = () => {
+      const canvasBox = view.getBoundingClientRect(), railBox = rail.getBoundingClientRect();
+      sketchRail.current = { x: railBox.left - canvasBox.left, y: railBox.top - canvasBox.top,
+        width: railBox.width, height: railBox.height };
+      requestRef.current();
+    };
+    const observer = new ResizeObserver(read);
+    observer.observe(view);
+    observer.observe(rail);
+    read();
+    return () => { observer.disconnect(); sketchRail.current = undefined; };
+  }, [sketching]);
+
   // The sketch rail replaces the Model rail in the same commit as the sketch.
   const pendingSketchFrame = useRef<{ min: [number, number]; max: [number, number]; plane: SketchPlane } | null>(null);
   useLayoutEffect(() => {
@@ -815,7 +833,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const referenceHit = reference?.preview ? { at: reference.preview, kind: 'calculated' as const }
       : reference?.picking && twoPointHover.current?.points === reference.points ? twoPointHover.current.hit : null;
     const editor = sk ? drawSketchOverlay({
-      sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h,
+      sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h, rail: sketchRail.current,
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,

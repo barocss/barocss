@@ -1,0 +1,107 @@
+{
+  "decision": "D1042",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "f05b1cf8fd48da2ec7b4ce310133542b87ca05fa",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1042-section-baseline01",
+    "D1042_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-fixed-mark-rail-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1042-section-studio01",
+    "D1042_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-fixed-mark-rail-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1042-section-regressions",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/adjacent-fixed --fixed",
+    "D1041_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-projection-rail-browser.mjs <external-evidence>/projection",
+    "pnpm --filter @barocss/cad-studio-app test sketch-constraint-mark-layout sketch-framing",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/sketch-fixed-mark-rail-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "60d744e4ac74661f09a47dc7c73787b0abbe3ffdf43d415e318eb769bb15f90f",
+    "sourceManifestSHA256": "e63b88672cd1bd791b69af258bf7e22803c99ac9e26eada90e38a1d96f6ba616",
+    "frozenFiles": 856,
+    "states": 2,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "viewportCSSpx": [
+      900,
+      760
+    ],
+    "pointCSSpx": [
+      111.99819090425149,
+      448.8900088745424
+    ],
+    "markLeftCSSpx": 86.9981918334961,
+    "railRightCSSpx": 100,
+    "markCovered": true
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "4973491f602804a380aaf06915625109beeff6c961452da6b8d9fed9cb495824",
+    "sourceManifestSHA256": "9b42db9434d09463f54f215f45207809575c1d4ab3cff4d9cc5c650789627292",
+    "frozenFiles": 856,
+    "states": 3,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "visualReview": "PASS",
+    "pointCSSpx": [
+      111.99819090425149,
+      448.8900088745424
+    ],
+    "markLeftCSSpx": 106.9981918334961,
+    "leaderOriginCSSpx": [
+      111.99819090425149,
+      448.8900088745424
+    ],
+    "selected": "point:0",
+    "coveredPointCSSpx": [
+      97.99977787483236,
+      448.8900088745424
+    ],
+    "coveredClickSelectionCount": 0
+  },
+  "regressions": {
+    "adjacent-fixed": {
+      "status": "PASS",
+      "receiptSHA256": "d0264276315fab892109014c6aeb779da864f8fdd9245106277abf3b52df824e",
+      "sourceManifestSHA256": "f164a1b20da988d676c9bdd49a3e271e2a4d0d47a8cb329ce9c02d37ba13c75f",
+      "frozenFiles": 856,
+      "states": 5,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "projection": {
+      "status": "PASS",
+      "receiptSHA256": "cd6b21059d79306124aa3497397c3f9e8fb8e8281ad062ee74bbf9e14414a2db",
+      "sourceManifestSHA256": "82257603da68deabc8324d5c4122cc0afbfa29d3b61b95ca0a067a247591e8ed",
+      "frozenFiles": 379,
+      "states": 3,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 4,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "Frame all with hidden bodies and open Display",
+    "gizmo obstruction",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
