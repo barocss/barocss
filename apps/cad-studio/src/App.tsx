@@ -469,7 +469,7 @@ export function App() {
   /** The picked pole of the one selected direct object, and how far its gizmo has dragged it. */
   const [pole, setPole] = useState<{ id: string; key: string } | null>(null);
   const [poleDrag, setPoleDrag] = useState<Vec3 | null>(null);
-  const [sketchIssue, setSketchIssue] = useState<{ reason: string; conflict?: { doc: StudioDoc; source: SketchShape; id: string } } | null>(null);
+  const [sketchIssue, setSketchIssue] = useState<{ reason: string; conflict?: { doc: StudioDoc; source: SketchShape; ids: readonly string[] } } | null>(null);
   const setSketchError = useCallback((reason: string | null) => setSketchIssue(reason ? { reason } : null), []);
   // The last shape handed to the sketch, ahead of React's batched re-render (rapid pointer events).
   const liveShape = useRef<SketchShape | null>(null);
@@ -1759,7 +1759,7 @@ export function App() {
       if (owner.draft !== sketch || owner.generation !== sketchGeneration.current) return;
       updateShape({ ...shape, r: diameter / 2 }, false, 'panel');
     },
-    setConstraintConflict: (reason, source, id) => setSketchIssue({ reason, conflict: { doc, source, id } }), updateShape, trimSketch }),
+    setConstraintConflict: (reason, source, ids) => setSketchIssue({ reason, conflict: { doc, source, ids } }), updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
@@ -2907,7 +2907,7 @@ export function App() {
           const next = activateDraftOutline(sketch, draftShapeOrder(sketch).indexOf(source));
           if (next && next !== sketch) setActiveOutline(next);
         } : undefined}
-        conflictId={!sketchFinishError && sketchIssue?.conflict?.doc === doc && sketchIssue.conflict.source === sketch.shape ? sketchIssue?.conflict?.id : undefined} onShape={shape => updateShape(shape, false, 'panel')} onDrivingLength={sketchViewportActions.recoverPanelLength} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: editSketchBand, remove: removeSketchBand }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        conflictIds={!sketchFinishError && sketchIssue?.conflict?.doc === doc && sketchIssue.conflict.source === sketch.shape ? sketchIssue?.conflict?.ids : undefined} onShape={shape => updateShape(shape, false, 'panel')} onDrivingLength={sketchViewportActions.recoverPanelLength} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: editSketchBand, remove: removeSketchBand }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? useFaceOutline : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}

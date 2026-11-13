@@ -1,0 +1,60 @@
+{
+  "decision": "D1104",
+  "tier": "FEATURE",
+  "parent": "2f674736a18ae349d0e136312c8996abc4393e91",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1104-edge-circle-distance-<run>",
+    "D1104_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --edge-circle-conflict",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/{sketch/constraintList.ts,ui/ConstraintList.tsx,ui/ConstraintTools.tsx,ui/SketchPanel.tsx,viewport/studioSketchViewportActions.ts}",
+    "D1089_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/opposite-length-control --conflict-focus",
+    "D1103_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/circle-distance-control --circle-conflict",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 860,
+      "receiptSHA256": "fbfecc0e06b6b823c6b8292067014a95522f2b60ae865a92fe2a5fafdfa36a9c",
+      "sourceManifestSHA256": "ec5cbd7f9032aa8157ac88750430b7d1a3b09ee14b0d4f13a1def27eb8b4fc68",
+      "firstFailure": "The refused 19 mm distance leaves the draft intact but supplies no action for either stored constraint."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 860,
+      "receiptSHA256": "fea36116f0f380d2b55a24984449c54ed96c0888caabfde1da8db5c3721d083b",
+      "sourceManifestSHA256": "9b33a12aa99a99adc0b5e3041cf0035a2f9364bb05974ad2c4e3dac23a7ceaf7"
+    },
+    "oppositeLengthControl": {
+      "status": "PASS",
+      "receiptSHA256": "d79c729c33ea9e439bd360636a1419e94648adf6165bfee9c9ac22d8be61065d",
+      "sourceManifestSHA256": "9b33a12aa99a99adc0b5e3041cf0035a2f9364bb05974ad2c4e3dac23a7ceaf7"
+    },
+    "circleDistanceControl": {
+      "status": "PASS",
+      "receiptSHA256": "65ceb31da00251b4af9e95a12d5d9e9d0b64c5e5a3db04e4cc471ae3b248c374",
+      "sourceManifestSHA256": "9b33a12aa99a99adc0b5e3041cf0035a2f9364bb05974ad2c4e3dac23a7ceaf7"
+    }
+  },
+  "spanMM": 40,
+  "oppositeDistanceMM": 22,
+  "requestedDistanceMM": 19,
+  "impliedSpansMM": [
+    41,
+    3
+  ],
+  "proofMarginMM": 1.6e-06,
+  "finalCentreYMM": 21,
+  "volumeMM3": 11607.30091830126,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 35,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

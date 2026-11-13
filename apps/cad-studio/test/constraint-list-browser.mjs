@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const edgeCircleConflict = process.argv[3] === '--edge-circle-conflict';
 const circleConflict = process.argv[3] === '--circle-conflict';
 const conflictFocus = process.argv[3] === '--conflict-focus';
 const circleDimension = process.argv[3] === '--circle-dimension';
@@ -19,7 +20,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: circleConflict ? 'D1103_SOURCE_FROZEN' : conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: edgeCircleConflict ? 'D1104_SOURCE_FROZEN' : circleConflict ? 'D1103_SOURCE_FROZEN' : conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -33,6 +34,17 @@ import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+if (input.edgeCircle) {
+  const shape: Polygon = { kind: 'polygon', closed: true, points: [[0,0],[60,0],[60,40],[0,40]],
+    hv: { h: [0,2], v: [1,3] }, lengths: { 0: 60, 1: 40 },
+    circles: [{ c: [30,22], r: 5 }],
+    rules: [{ kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 22 }] };
+  assert.ok(solveShape(shape).ok);
+  const profile = profileOf([shape]);
+  assert.ok('node' in profile);
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 5 })));
+  process.exit(0);
+}
 if (input.circles) {
   const b = input.conflict ? [48, 22 + Math.sqrt(35 ** 2 - 24 ** 2)] as [number, number] : [50, 22] as [number, number];
   const profile = profileOf([{ kind: 'polygon', closed: true, points: [[0,0],[90,0],[90,60],[0,60]],
@@ -185,6 +197,74 @@ await f.run(async () => {
     });
     return context;
   };
+  if (edgeCircleConflict) {
+    const source = await f.inspect('source', { edgeCircle: true });
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await open(source);
+    await edit(1);
+    await f.tool('Dimension', 'd');
+    await f.frame([[24,40], [30,22]]);
+    await kind().selectOption('Vertical');
+    await pickedOnly().check();
+    const openDistance = async () => {
+      await f.worldClick([24,40]);
+      await f.worldClick([30,22]);
+      await dimension().waitFor();
+    };
+    await openDistance();
+    assert.equal(await dimension().inputValue(), '18');
+    const before = await f.snapshot('01-before-conflict');
+    await dimension().fill('19');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    const refused = await f.snapshot('02-refused-19');
+    for (const key of ['doc', 'bodies', 'history', 'controls', 'dirty', 'solver']) assert.deepEqual(refused[key], before[key], key);
+    f.phase = 'locate both stored locks participating in the 19 mm refusal';
+    assert.ok(await f.sketchAlert());
+    const inspect = async (label, id, marks) => {
+      const find = button(f.sketchPanel(), label);
+      assert.equal(await find.count(), 1);
+      await find.press('Enter');
+      await f.page.waitForFunction(id => document.activeElement?.getAttribute('data-constraint-id') === id, id);
+      await f.page.waitForFunction(wanted => {
+        const entities = [...document.querySelectorAll('.vp-overlay .inspected')].map(mark => mark.getAttribute('data-sketch-entity'));
+        return entities.length === wanted.length && wanted.every(mark => entities.includes(mark));
+      }, marks);
+    };
+    await inspect('Find conflicting length on edge 2', 'len:1', ['edge:1']);
+    await f.snapshot('03-span-focused');
+    await inspect('Find conflicting distance between edge 1 and circle 1', 'rule:0', ['edge:0', 'circle:0']);
+    await f.snapshot('04-opposite-distance-focused');
+    await f.page.keyboard.press('Tab');
+    await f.page.keyboard.press('Enter');
+    assert.equal(await button(f.sketchPanel(), 'Find conflicting length on edge 2').count(), 0);
+    await f.same(source);
+    await openDistance();
+    await dimension().fill('19');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    const accepted = (await f.finishSketch('05-distance-19')).doc;
+    assert.deepEqual(accepted.nodes[0].outline.rules, [{ kind: 'cedge', edge: 2, circle: 0, axis: 1, value: 19 }]);
+    assert.deepEqual(accepted.nodes[0].outline.lengths, source.nodes[0].outline.lengths);
+    assert.deepEqual(accepted.nodes[0].outline.points, source.nodes[0].outline.points);
+    assert.deepEqual(accepted.nodes[0].sideTags, source.nodes[0].sideTags);
+    assert.deepEqual(accepted.nodes[1], source.nodes[1]);
+    assert.ok(Math.abs(accepted.nodes[0].outline.circles[0].c[1] - 21) < 1e-7);
+    const native = await f.inspect('accepted-native', accepted);
+    assert.equal(native.valid, true);
+    assert.ok(Math.abs(native.volume - 5 * (60 * 40 - Math.PI * 5 ** 2)) < 1e-7);
+    f.report.observations.push({ label: 'recovered-native', ...native });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(accepted);
+    await f.newPage();
+    await open(accepted);
+    await edit(1);
+    assert.equal(await list().getByText('edge 3 – circle 1 = 19', { exact: true }).count(), 1);
+    return;
+  }
   if (circleConflict) {
     const source = await f.inspect('source', { circles: true, conflict: true });
     const centres = () => source.nodes[0].outline.circles.map(circle => circle.c);

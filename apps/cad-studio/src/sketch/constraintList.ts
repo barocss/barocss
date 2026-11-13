@@ -3,6 +3,9 @@ import { CadNumericPolicy } from '@barocss/cad';
 import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import { circlePairKeys, constraintEntries, hvOf, samePick, solveShape, type ConstraintEntry, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 
+const isSolverLength = (value: number | undefined): value is number =>
+  value !== undefined && value >= 0.001 && value <= 2 * CadNumericPolicy.coordinateAbs * Math.SQRT2;
+
 export function constraintListRows(shape: Polygon): ConstraintEntry[] {
   const rows = constraintEntries(shape);
   if (!shape.ellipse || !ellipseMatches(shape)) return rows;
@@ -54,8 +57,7 @@ export function opposingLengthConflict(shape: Polygon, key: string, value: numbe
 /** A centre distance cannot be shorter than a projection of that same pair. */
 export function circleDistanceConflict(shape: Polygon, key: string, value: number) {
   const match = /^ccdist(\d+)_(\d+)$/.exec(key);
-  const maxDistance = 2 * CadNumericPolicy.coordinateAbs * Math.SQRT2;
-  if (!match || !shape.closed || shape.pending || !Number.isFinite(value) || value < 0.001 || value > maxDistance) return;
+  if (!match || !shape.closed || shape.pending || !isSolverLength(value)) return;
   const a = Number(match[1]), b = Number(match[2]);
   if (a >= b || !shape.circles?.[a] || !shape.circles[b]) return;
   // The axis projection can spend two tie residuals, one run residual and one length
@@ -63,10 +65,35 @@ export function circleDistanceConflict(shape: Polygon, key: string, value: numbe
   const margin = 6 * CadNumericPolicy.linearTolerance;
   let conflict: { id: string; axis: 'horizontal' | 'vertical'; value: number } | undefined;
   for (const [i, rule] of (shape.rules ?? []).entries()) {
-    if ((rule.kind !== 'ccdx' && rule.kind !== 'ccdy') || !Number.isFinite(rule.value) || rule.value > maxDistance
+    if ((rule.kind !== 'ccdx' && rule.kind !== 'ccdy') || !isSolverLength(rule.value)
       || !(rule.a === a && rule.b === b || rule.a === b && rule.b === a)
       || rule.value - value <= margin || (conflict && rule.value <= conflict.value)) continue;
     conflict = { id: `rule:${i}`, axis: rule.kind === 'ccdx' ? 'horizontal' : 'vertical', value: rule.value };
   }
   return conflict;
+}
+
+/** Find a locked span and opposite distance that jointly rule out either absolute-distance branch. */
+export function edgeCircleDistanceConflict(shape: Polygon, key: string, value: number) {
+  const match = /^cedge([0-3])_(\d+)$/.exec(key);
+  if (!match || !shape.closed || shape.pending || shape.points.length !== 4 || !isSolverLength(value)) return;
+  const edge = Number(match[1]), circle = Number(match[2]), opposite = (edge + 2) % 4;
+  if (!shape.circles?.[circle] || shape.bulges?.[edge] || shape.bulges?.[opposite]) return;
+  const hv = hvOf(shape);
+  const axisOf = (i: number) => hv.h.includes(i) === hv.v.includes(i) ? undefined : hv.h.includes(i) ? 1 : 0;
+  const axis = axisOf(edge);
+  if (axis === undefined || axisOf(opposite) !== axis) return;
+  // Two helper distances, one side projection and one endpoint tie can spend up to
+  // eleven linear residuals in total. Keep extra space for binary64 roundoff.
+  const margin = 16 * CadNumericPolicy.linearTolerance;
+  for (const spanEdge of [(edge + 1) % 4, (edge + 3) % 4]) {
+    const span = shape.lengths?.[spanEdge];
+    if (!isSolverLength(span) || shape.bulges?.[spanEdge] || axisOf(spanEdge) !== 1 - axis) continue;
+    for (const [index, rule] of (shape.rules ?? []).entries()) {
+      if (rule.kind !== 'cedge' || rule.edge !== opposite || rule.circle !== circle || rule.axis !== axis || !isSolverLength(rule.value)) continue;
+      if (Math.abs(span - (value + rule.value)) > margin && Math.abs(span - Math.abs(value - rule.value)) > margin) {
+        return { ids: [`len:${spanEdge}`, `rule:${index}`], span, spanEdge, opposite, oppositeDistance: rule.value };
+      }
+    }
+  }
 }

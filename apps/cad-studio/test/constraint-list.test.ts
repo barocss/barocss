@@ -2,12 +2,33 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ELLIPSE_POINTS, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { commitDimension, removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
-import { activeCircleDistanceRow, circleDistanceConflict, constraintListRows, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
+import { activeCircleDistanceRow, circleDistanceConflict, constraintListRows, edgeCircleDistanceConflict, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
 
 const rectangle: Polygon = {
   kind: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]], closed: true, hv: { h: [0, 2], v: [1, 3] },
 };
 const ids = (rows: ReturnType<typeof constraintListRows>) => rows.map(row => row.id);
+
+test('D1104 proves both sign branches conflict with an opposite distance and a locked span', () => {
+  const shape: Polygon = { ...rectangle, points: [[0, 0], [60, 0], [60, 40], [0, 40]], lengths: { 1: 40 },
+    circles: [{ c: [30, 22], r: 5 }, { c: [40, 20], r: 4 }],
+    rules: [{ kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 22 }] };
+  const proof = edgeCircleDistanceConflict(shape, 'cedge2_0', 19);
+  assert.deepEqual(proof, { ids: ['len:1', 'rule:0'], span: 40, spanEdge: 1, opposite: 0, oppositeDistance: 22 });
+  for (const value of [18, 18 + 1.5e-6, 62, 62 + 1.5e-6, 0, 30000, NaN]) {
+    assert.equal(edgeCircleDistanceConflict(shape, 'cedge2_0', value), undefined);
+  }
+  for (const key of ['cedge2_1', 'cedge2_2', 'cedge0_0', 'cedge1_0']) assert.equal(edgeCircleDistanceConflict(shape, key, 19), undefined);
+  for (const other of [
+    { ...shape, lengths: {} },
+    { ...shape, hv: { h: [0, 2], v: [] } },
+    { ...shape, bulges: [0, 0.2, 0, 0] },
+    { ...shape, rules: [{ kind: 'cedge', edge: 0, circle: 0, axis: 0, value: 22 }] } satisfies Polygon,
+  ]) assert.equal(edgeCircleDistanceConflict(other, 'cedge2_0', 19), undefined);
+  const vertical: Polygon = { ...shape, lengths: { 2: 60 },
+    rules: [{ kind: 'cedge', edge: 3, circle: 0, axis: 0, value: 30 }] };
+  assert.deepEqual(edgeCircleDistanceConflict(vertical, 'cedge1_0', 31)?.ids, ['len:2', 'rule:0']);
+});
 
 test('D1103 attributes only a proven same-pair projection that exceeds the requested aligned distance', () => {
   const shape: Polygon = { ...rectangle, circles: [

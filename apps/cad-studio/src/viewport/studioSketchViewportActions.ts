@@ -6,7 +6,7 @@ import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, commitInlineDimension, dimensionLabel, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
-import { circleDistanceConflict, opposingLengthConflict } from '../sketch/constraintList';
+import { circleDistanceConflict, edgeCircleDistanceConflict, opposingLengthConflict } from '../sketch/constraintList';
 import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
@@ -28,7 +28,7 @@ interface SketchViewportInputs {
   setSketchError(reason: string): void;
   clearOutlinePickIssue(): void;
   updateCircleDiameter(shape: Extract<SketchShape, { kind: 'circle' }>, diameter: number): void;
-  setConstraintConflict(reason: string, source: Polygon, id: string): void;
+  setConstraintConflict(reason: string, source: Polygon, ids: readonly string[]): void;
   updateShape: SceneSketchActions['onSketchShape'];
   trimSketch: NonNullable<SceneSketchActions['onSketchTrim']>;
 }
@@ -53,8 +53,12 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
     if (!result.ok) {
       const edge = opposingLengthConflict(source, key, value);
       const circle = circleDistanceConflict(source, key, value);
-      if (circle) setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the stored ${circle.axis} distance of ${circle.value} mm.`, source, circle.id);
-      else if (edge !== undefined) setConstraintConflict(result.reason, source, `len:${edge}`);
+      const edgeCircle = edgeCircleDistanceConflict(source, key, value);
+      if (edgeCircle) {
+        const { ids, span, spanEdge, opposite, oppositeDistance } = edgeCircle;
+        setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the ${span} mm length of edge ${spanEdge + 1} and the ${oppositeDistance} mm distance from edge ${opposite + 1}.`, source, ids);
+      } else if (circle) setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the stored ${circle.axis} distance of ${circle.value} mm.`, source, [circle.id]);
+      else if (edge !== undefined) setConstraintConflict(result.reason, source, [`len:${edge}`]);
       else setSketchError(result.reason);
       return;
     }

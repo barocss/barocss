@@ -19,10 +19,17 @@ function initialFilters(document: object, owner: SketchState): FilterState {
   return { document, plane: owner.plane, editNode: owner.editNode, mainIds: owner.mainIds, kind: '', pickedOnly: false };
 }
 
-export function ConstraintList({ shape, owner, conflictId, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
+function conflictActionLabel(row: ConstraintEntry): string {
+  const [first, second] = row.involves;
+  if (row.label === 'Length') return `Find conflicting length on edge ${first.i + 1}`;
+  const pair = first.kind === 'edge' ? `edge ${first.i + 1} and circle ${second.i + 1}` : `circles ${first.i + 1} and ${second.i + 1}`;
+  return `Find conflicting ${row.label.toLowerCase()} between ${pair}`;
+}
+
+export function ConstraintList({ shape, owner, conflictIds, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
   shape: Polygon;
   owner: SketchState;
-  conflictId?: string;
+  conflictIds?: readonly string[];
   documentScope: object;
   inspection: ConstraintInspectionStore;
   inspectedId: string | null;
@@ -44,16 +51,13 @@ export function ConstraintList({ shape, owner, conflictId, documentScope, inspec
   if (kind && !kinds.includes(kind)) kinds.push(kind);
   const activeId = activeCircleDistanceRow(shape, owner.editDim);
   const visible = filterConstraintList(rows, kind, pickedOnly, picked, activeId);
-  const conflictRow = rows.find(row => row.id === conflictId);
-  const conflictLabel = conflictRow?.label === 'Length'
-    ? `Find conflicting length on edge ${conflictRow.involves[0].i + 1}`
-    : conflictRow && `Find conflicting ${conflictRow.label.toLowerCase()} between circles ${conflictRow.involves.map(pick => pick.i + 1).join(' and ')}`;
+  const conflictRows = (conflictIds ?? []).flatMap(id => rows.filter(row => row.id === id));
   useLayoutEffect(() => {
     const id = focusTarget.current;
     focusTarget.current = null;
-    if (!id || id !== conflictRow?.id) return;
+    if (!id || !conflictIds?.includes(id)) return;
     listControl.current?.querySelector<HTMLElement>(`[data-constraint-id="${id}"]`)?.focus();
-  }, [filters, conflictRow]);
+  }, [filters, conflictIds]);
   const hiddenInspection = inspectedId !== null && !visible.some(row => row.id === inspectedId);
   useLayoutEffect(() => {
     if (hiddenInspection) clearConstraintInspection(inspection, owner);
@@ -69,11 +73,11 @@ export function ConstraintList({ shape, owner, conflictId, documentScope, inspec
   };
 
   return <>
-    {conflictRow && <button type="button" data-sketch-action className="ghost"
+    {conflictRows.map(row => <button key={row.id} type="button" data-sketch-action className="ghost"
       onClick={() => {
-        focusTarget.current = conflictRow.id;
-        setFilters({ ...filters, kind: conflictRow.label, pickedOnly: false });
-      }}>{conflictLabel}</button>}
+        focusTarget.current = row.id;
+        setFilters({ ...filters, kind: row.label, pickedOnly: false });
+      }}>{conflictActionLabel(row)}</button>)}
     <div className="card-title" style={{ marginTop: 10 }} role="status" aria-label="Constraint count">
       CONSTRAINTS · {visible.length}/{rows.length}
     </div>
