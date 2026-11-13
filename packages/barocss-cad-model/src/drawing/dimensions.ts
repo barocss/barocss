@@ -166,6 +166,15 @@ export function angleBetween(a: [XY, XY], b: [XY, XY], place: XY): { vertex: XY;
 }
 
 type CircularArc = Extract<ProjectedCurve, { kind: 'arc' }>;
+const noDrawableDetailArc = 'No drawable circular arc of the referenced edge remains in this detail.';
+function closestCircleEdge(pr: BrepProjection, dim: Pick<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'edge' | 'near'>): ProjectedEdge | undefined {
+  let closest: ProjectedEdge | undefined, distance = Infinity;
+  for (const edge of pr.edges) if (edge.name === dim.edge && edge.circle) {
+    const next = dist3(edge.circle.center, dim.near);
+    if (next < distance) { distance = next; closest = edge; }
+  }
+  return closest;
+}
 /** Nearest point to the current label on the selected edge's drawable, clipped circular pieces. */
 export function closestDetailRim(arcs: readonly CircularArc[], label: XY): XY | undefined {
   const turn = 2 * Math.PI;
@@ -182,7 +191,7 @@ export function closestDetailRim(arcs: readonly CircularArc[], label: XY): XY | 
   }
   return best;
 }
-export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>, dim: DrawingDimension, detail?: Pick<DrawingDetail, 'center' | 'radius'>, showHidden = false): Resolved {
+export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>, dim: DrawingDimension, detail?: Pick<DrawingDetail, 'center' | 'radius'>, showHidden = false, detailParent?: BrepProjection): Resolved {
   const pr = views[dim.view];
   if (!pr) return { ok: false, dim, reason: `Its view (${dim.view}) is not on the sheet.` };
   if (dim.kind === 'angle') {
@@ -205,9 +214,11 @@ export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>
     if (value < 1e-9) return { ok: false, dim, reason: 'Its two points now coincide in this view.' };
     return { ok: true, kind: 'linear', dim, a: inView(pr, a), b: inView(pr, b), value, text: valueText({ kind: 'linear', value }, fmtMM) };
   }
-  let best: ProjectedEdge | null = null, bestD = Infinity;
-  for (const e of pr.edges) if (e.name === dim.edge && e.circle) { const d = dist3(e.circle.center, dim.near); if (d < bestD) { bestD = d; best = e; } }
-  if (!best?.circle) return { ok: false, dim, reason: 'The circle it measured is no longer in the part.' };
+  const best = closestCircleEdge(pr, dim);
+  if (!best?.circle) {
+    const source = dim.kind === 'diameter' && detail && detailParent && closestCircleEdge(detailParent, dim);
+    return { ok: false, dim, reason: source ? noDrawableDetailArc : 'The circle it measured is no longer in the part.' };
+  }
   if (!roundIn(pr, best)) return { ok: false, dim, reason: 'The circle no longer shows round in this view.' };
   const r = best.circle.radius, value = dim.kind === 'diameter' ? 2 * r : r;
   const center = inView(pr, best.circle.center);
@@ -221,7 +232,7 @@ export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>
       if (Math.abs(ux * ux + uy * uy - radius2) <= tolerance && Math.abs(vx * vx + vy * vy - radius2) <= tolerance
         && Math.abs(ux * vx + uy * vy) <= tolerance) detailArcs.push(curve);
     }
-    if (!detailArcs.length) return { ok: false, dim, reason: 'No drawable circular arc of the referenced edge remains in this detail.' };
+    if (!detailArcs.length) return { ok: false, dim, reason: noDrawableDetailArc };
   }
   return { ok: true, kind: dim.kind, dim, center, radius: r, value, text: valueText({ kind: dim.kind, value }, fmtMM), ...(detailArcs ? { detailArcs } : {}) };
 }

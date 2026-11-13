@@ -627,7 +627,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     const ref: DetailRef = `detail:${d.id}`;
     groups.push({ role: 'detail', id: d.id, view: ref, marks });
     for (const dim of settings.dimensions) if (dim.view === ref) {
-      const r = resolveDimension({ [ref]: projection }, dim, d, showHidden), shown = r.ok ? withShownText(r, callout, p) : r;
+      const r = resolveDimension({ [ref]: projection }, dim, d, showHidden, parent.projection), shown = r.ok ? withShownText(r, callout, p) : r;
       resolved.set(dim.id, shown);
       if (!shown.ok) continue;
       const dm = dimensionMarks(placement, shown, p); if (dim.basic) dm.push(...basicBox(dm));

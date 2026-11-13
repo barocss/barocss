@@ -1,0 +1,42 @@
+{
+  "decision": "D948",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "1fa88129176b9520f3a249b9587b497b688b0c0a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D948-qualification",
+    "D948_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/diagnosis01 --fixed --diagnosis",
+    "D942_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/d942-regression --fixed --delete-source",
+    "cd packages/barocss-cad-model && node scripts/test.mjs drawing-detail drawing-issues",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "checks": {
+    "modelPass": 31,
+    "modelTypes": "PASS",
+    "modelLogSHA256": "c5ed601b1cf919069c1cd0691db5df55f481360957343ddef881a33c08c2e131",
+    "studioPass": 4,
+    "studioTypes": "PASS",
+    "studioLogSHA256": "053ae36df93b4d61031593a11e0f5bfd41c3e0e1d2b4ae30c0037fc76c4a0ca3"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "parentD946ReceiptSHA256": "50c1dce754916a729fbe3949585e1aebcd26e2ea54a74cab954787a50a48836e",
+    "receiptSHA256": "c0a255e142846a7fadfe3e6a62ff947f9bc7b913d02bd476bba9262a79880e2e",
+    "deletionRegressionReceiptSHA256": "d7c0ae0caa8b441d471320e1bd05a293d75749d4632f82ce3d90796071e5e135",
+    "sourceManifestSHA256": "a7e36ae3375e105ad3933dd14bb3fceac8f91cc14735a75b5fb89082fd96af4d",
+    "oracleSHA256": "e98bee871f8b8058caead8162cf3381044facf4b37689eced63b7f86030fd8b8",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 4957,
+    "dxfBytes": 13805
+  },
+  "notRun": ["project-store Save/Open", "explicit precision overrides", "production build", "full suites", "PDF", "mobile"]
+}
