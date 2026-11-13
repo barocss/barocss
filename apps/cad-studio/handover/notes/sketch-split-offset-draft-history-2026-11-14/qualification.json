@@ -1,0 +1,37 @@
+{
+  "decision": "D1078",
+  "tier": "SMALL",
+  "parent": "691441d7896fcad22e90897a40bede41894c6f1e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1078-split-offset-<run>",
+    "D1078_SOURCE_FROZEN=1 node apps/cad-studio/test/split-circle-offset-browser.mjs <external-evidence>/<run> --draft-history",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/split-circle-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "current": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 857,
+      "receiptSHA256": "df79178162fe86cf19e93c1305388d5c4cf43fda22412bd79888cc327943f0bb",
+      "sourceManifestSHA256": "965c0d7116641843a147fc4402adc3bc3d1880de37eee7f9106590bfb40ecfd2"
+    }
+  },
+  "splitArcCount": 2,
+  "radiiMm": [
+    10,
+    12
+  ],
+  "outwardOffsetMm": 2,
+  "refusedInwardOffsetMm": 12,
+  "extrudeMm": 2,
+  "volumeMm3": 276.46015351590177,
+  "nativeVolumeToleranceMm3": 1e-05,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0
+  }
+}

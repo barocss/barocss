@@ -5,6 +5,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const [output, mode] = process.argv.slice(2);
 const baseline = mode === '--baseline';
 const rotated = mode === '--rotated';
+const draftHistory = mode === '--draft-history';
 const pins = [
   'apps/cad-studio/test/split-circle-offset-browser.mjs',
   'apps/cad-studio/src/sketch/useSketchActions.ts',
@@ -15,9 +16,9 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'split-circle-offset', output, envFrozen: 'D854_SOURCE_FROZEN',
+  name: 'split-circle-offset', output, envFrozen: draftHistory ? 'D1078_SOURCE_FROZEN' : 'D854_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Reproduce Out and In reversing direction after splitting a circle'
+  qualification: draftHistory ? 'Replay Split and Offset in reverse and forward draft order.' : baseline ? 'Reproduce Out and In reversing direction after splitting a circle'
     : 'Verify outward and inward offset geometry on a real Split circle sketch',
   limits: ['One XY radius-10 circle split into two semicircles. Existing ordinary sketch and Extrude paths.'],
   inspectorSource: `
@@ -57,7 +58,7 @@ async function clickSketch(point) {
   await f.page.mouse.click(...pixel);
 }
 
-async function drawSplit() {
+async function drawSplit(beforeSplit = () => {}) {
   await openBytes(Buffer.from(JSON.stringify(empty)));
   await f.same(empty);
   await button(f.page.locator('.mode'), 'Sketch').click();
@@ -71,6 +72,7 @@ async function drawSplit() {
   await clickSketch(center);
   await clickSketch([10, 0]);
   await f.tool('Split', 'k');
+  await beforeSplit();
   await clickSketch(start);
   await f.snapshot('split-' + f.phase);
 }
@@ -134,7 +136,68 @@ async function saveOwned(doc) {
   return bytes;
 }
 
+async function replayDraftHistory() {
+  const outline = () => f.page.locator('.vp-overlay .sk-shape.done').evaluateAll(nodes => nodes.map(node => node.outerHTML));
+  const keyboard = async key => {
+    await f.page.locator('.topbar button.finish').focus();
+    await f.page.keyboard.press(key);
+  };
+  const newContext = f.browser.newContext.bind(f.browser), origin = new URL(f.server.resolvedUrls.local[0]).origin;
+  f.browser.newContext = async options => {
+    const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
+      return url.origin === origin ? route.continue() : route.abort();
+    });
+    return context;
+  };
+  await f.newPage();
+  f.phase = 'draft-history';
+  let circle;
+  await drawSplit(async () => { circle = await outline(); });
+  const split = await outline();
+  assert.equal(circle.length, 1);
+  assert.equal(split.length, 1);
+  assert.notDeepEqual(split, circle);
+  await offset('out', 2);
+  const ring = await outline();
+  assert.equal(ring.length, 2);
+  await f.snapshot('01-outward-ring');
+
+  f.phase = 'Undo Offset before Split';
+  await keyboard('Meta+z');
+  assert.deepEqual(await outline(), split);
+  await button(f.page, 'Undo').click();
+  assert.deepEqual(await outline(), circle);
+  await f.same(empty);
+  await f.snapshot('02-restored-circle');
+
+  f.phase = 'Redo Split and keep Offset Redo through a refusal';
+  await button(f.page, 'Redo').click();
+  assert.deepEqual(await outline(), split);
+  await offset('in', 12);
+  await f.waitToast(/Cannot offset.*more than an arc’s radius/i);
+  assert.deepEqual(await outline(), split);
+  await f.same(empty);
+  await keyboard('Meta+Shift+z');
+  assert.deepEqual(await outline(), ring);
+  await f.snapshot('03-restored-ring');
+
+  const sketched = (await f.finishSketch('04-ring')).doc;
+  checkRing(sketched, 12, 10);
+  await f.openExtrudeHud();
+  const extruded = (await f.applyExtrude({ distance: 2, previous: sketched, label: '05-ring' })).doc;
+  await inspect('05-native-ring', extruded, 12, 10);
+  await f.undo();
+  await f.same(sketched);
+  await f.redo();
+  await f.same(extruded);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
+  if (draftHistory) { await replayDraftHistory(); return; }
   for (const direction of rotated ? ['out'] : ['out', 'in']) {
     f.phase = 'draw-circle-split-' + direction;
     await f.newPage();

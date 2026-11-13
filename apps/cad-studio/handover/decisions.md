@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1078 — verify ordered circle Split and Offset draft history](notes/sketch-split-offset-draft-history-2026-11-14/README.md).
 - [D1077 — verify ordered coordinate and inward profile Offset history](notes/sketch-profile-offset-draft-history-2026-11-14/README.md).
 - [D1076 — replay an unlinked sketch plane edit before its earlier coordinate change](notes/sketch-plane-draft-history-2026-11-14/README.md).
 - [D1075 — replay a confirmed Circle from chord candidate](notes/sketch-circle-chord-draft-history-2026-11-14/README.md).
