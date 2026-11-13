@@ -1,0 +1,162 @@
+{
+  "decision": "D1039",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8094a0321ec604837357b03c8c4c144957da9cdb",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1039-section-baseline03",
+    "D1039_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-tangent-trim-browser.mjs <external-evidence>/baseline03",
+    "gate.sh acquire heavy 600 D1039-section-studio01",
+    "D1039_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-tangent-trim-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1039-section-regressions",
+    "D1037_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-curved-provenance-browser.mjs <external-evidence>/cylinder --fixed",
+    "D1036_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-placed-face-browser.mjs <external-evidence>/planar",
+    "pnpm --filter @barocss/cad-model test engine.test measure meshWire",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/measure-tangent-trim-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "d9d0cc11271c967de64aa2a240b91e9e834114e0bce26e27cdf2720bf8950ec3",
+    "sourceManifestSHA256": "f4c5972382dbdeb00dd8b5d15d641a935fbfa7adf2c0a8f3962618ae53c7236c",
+    "frozenFiles": 859,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "distance": "5.11 mm",
+    "overlay": [
+      "5.11 mm"
+    ]
+  },
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "17f6da3e6c189450c212adbfd213fdb5778637a14fa706b79bb1bbc071b77337",
+    "sourceManifestSHA256": "a166f2ca977b1ce6b360957de6b67bd79049bc6a4c0714130e4095d9a97dc8af",
+    "frozenFiles": 859,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "visualReview": "PASS",
+    "distance": "5.11 mm (mesh approximation)",
+    "normalDistance": "5 mm",
+    "overlay": [
+      "≈5.11 mm"
+    ]
+  },
+  "nativeAndMesh": {
+    "analyticDistance": 5.099019513592785,
+    "caps": [
+      {
+        "name": "n1.top",
+        "trims": [
+          2,
+          2
+        ],
+        "valid": true
+      },
+      {
+        "name": "n3.bottom",
+        "trims": [
+          2,
+          2
+        ],
+        "valid": true
+      }
+    ],
+    "results": [
+      {
+        "quality": 4,
+        "distance": 5.121810656747322,
+        "normal": 5.000000000000002,
+        "edges": [
+          0,
+          0
+        ],
+        "kinds": [
+          "plane",
+          "plane"
+        ],
+        "curvedBoundaries": [
+          true,
+          true
+        ]
+      },
+      {
+        "quality": 8,
+        "distance": 5.106714044481332,
+        "normal": 4.9999999999999964,
+        "edges": [
+          0,
+          0
+        ],
+        "kinds": [
+          "plane",
+          "plane"
+        ],
+        "curvedBoundaries": [
+          true,
+          true
+        ]
+      },
+      {
+        "quality": 16,
+        "distance": 5.099019513592392,
+        "normal": 4.999999999999991,
+        "edges": [
+          0,
+          0
+        ],
+        "kinds": [
+          "plane",
+          "plane"
+        ],
+        "curvedBoundaries": [
+          true,
+          true
+        ]
+      }
+    ]
+  },
+  "regressions": {
+    "cylinder": {
+      "status": "PASS",
+      "receiptSHA256": "d64d0af00ff6d313390594a175114220bebc068fbe2558bd433d914a9309365c",
+      "sourceManifestSHA256": "9e5449594d7246d93619bc9888159cb622e80eccecd86936692abc458f13c66a",
+      "frozenFiles": 380,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    },
+    "planar": {
+      "status": "PASS",
+      "receiptSHA256": "8c68abfa2d3dc45d961e80d1999f0a4767ecf17544b37c3f273f4fd785b49ec4",
+      "sourceManifestSHA256": "f34feb18c6d51cdbe6b44017a89a3129d946671808e9a816eb7b04f55f0807f2",
+      "frozenFiles": 379,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 59,
+    "studioPassed": 5,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "notRun": [
+    "placed context-menu Measure",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

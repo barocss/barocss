@@ -8,7 +8,8 @@ export function usesCurvedMeshDistance({ pick, mesh }: MeasureGeometry): boolean
   if (pick.face !== undefined) {
     const face = mesh.faces[pick.face];
     if (!face || face.facet) return false;
-    return face.kind === 'curved' || mesh.edges.some(edge => !edge.straight && edge.faces.includes(face.index));
+    return face.kind === 'curved' || face.curvedBoundary === true
+      || mesh.edges.some(edge => !edge.straight && edge.faces.includes(face.index));
   }
   return pick.edge !== undefined && mesh.edges[pick.edge]?.straight === false;
 }

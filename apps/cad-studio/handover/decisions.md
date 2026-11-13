@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1039 — label shortest distances across hidden curved trims](notes/measure-tangent-trim-provenance-2026-11-13/README.md).
 - [D1038 — pin the native face picked with Measure from here](notes/measure-context-native-pin-2026-11-13/README.md).
 - [D1037 — label mesh approximation in curved Measure results](notes/measure-curved-distance-provenance-2026-11-13/README.md).
 - [D1036 — measure accepted placed faces in world coordinates](notes/measure-accepted-placed-face-2026-11-13/README.md).

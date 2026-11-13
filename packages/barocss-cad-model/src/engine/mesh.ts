@@ -20,6 +20,8 @@ export interface NativeDisplayFace { name: string; kind: 'plane' | 'curved'; nor
 export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The full native name of an unmerged planar face in the root body mesh. */
   nativePlaneName?: string;
+  /** A non-linear B-rep boundary of this planar face, including hidden tangent joints. */
+  curvedBoundary?: true;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
   /** Diameter in millimetres, verified on the current group of native B-rep faces. */
@@ -190,6 +192,18 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
       // (O59: the edge-sag bound is exact only at constant curvature along circles; a freeform face is measured instead.)
       // (Measured only on request, measureChords: twenty times the tessellation's own time.)
       if (members.every(id => analyticFace(faceById.get(id)!))) df.analytic = true; else df.freeform = [...members];
+    }
+  }
+
+  // Measure uses the sampled boundary even when the viewport hides a tangent edge.
+  for (const edge of brep.edges) {
+    if (edge.curve.degree <= 1) continue;
+    const incident = facesOfEdge.get(edge.id) ?? [];
+    if (incident.length === 2 && displayOf.get(incident[0]) === displayOf.get(incident[1])) continue;
+    for (const id of incident) {
+      const index = displayOf.get(id);
+      const face = index === undefined ? undefined : b.faces[index];
+      if (face?.kind === 'plane' && !face.facet) face.curvedBoundary = true;
     }
   }
 
