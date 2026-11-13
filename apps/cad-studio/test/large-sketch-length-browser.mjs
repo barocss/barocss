@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-const recover = mode === '--recover';
+const panelRecovery = mode === '--panel-recovery';
+const recover = mode === '--recover' || panelRecovery;
 const name = 'large-sketch-length';
 const project = 'D857 driving line length';
 const pins = [
+  'apps/cad-studio/test/large-sketch-length-browser.mjs',
+  'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/ui/InlineSketchDimension.tsx',
   'apps/cad-studio/src/viewport/studioSketchViewportActions.ts',
   'apps/cad-studio/src/sketch/useSketchActions.ts',
@@ -16,8 +19,9 @@ const pins = [
   ...(recover ? ['packages/barocss-cad-model/src/sketch/fixedTriangleLength.ts'] : []),
 ];
 const f = await createFlow({
-  name, output, envFrozen: recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: recover ? 'Recover a feasible fixed-vertex triangle length in one desktop edit'
+  name, output, envFrozen: panelRecovery ? 'D1080_SOURCE_FROZEN' : recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: panelRecovery ? 'Commit the exact fixed triangle length through the Sketch panel.'
+    : recover ? 'Recover a feasible fixed-vertex triangle length in one desktop edit'
     : 'Measure current driving line edits on independently solvable XY profiles',
   limits: ['Existing line lengths on two straight XY triangle fixtures, existing Extrude, desktop Studio and local project Save.'],
   inspectorSource: `
@@ -308,6 +312,67 @@ async function qualify(case_) {
   verifyPart(edited, case_, case_.afterOpen, source);
 }
 
+async function qualifyPanel() {
+  const { from, to, invalid, label } = circleTriangle;
+  const shape = { kind: 'polygon', closed: true, points: circleTriangle.points(from),
+    lengths: circleTriangle.lengths(from), hv: circleTriangle.hv, rules: circleTriangle.rules };
+  const fixture = await f.inspect(label, {}, { shape, height });
+  const source = fixture.doc;
+  await f.newPage();
+  await open(Buffer.from(fixture.base64, 'base64'));
+  await f.same(source);
+  await edit();
+  await f.frame([...circleTriangle.points(from), ...circleTriangle.points(to)]);
+  const field = () => f.sketchPanel().getByLabel('Edge 3 length', { exact: true });
+  const finish = () => f.page.locator('.topbar button.finish');
+  const editLength = async (value, trigger) => {
+    await field().fill(String(value));
+    if (trigger === 'enter') await field().press('Enter');
+    else await finish().focus();
+  };
+  const checkLength = async expected => near(Number(await field().inputValue()), expected, 1e-5);
+  await checkLength(from);
+  const before = await sketchFields();
+  f.phase = 'Commit the feasible 124.05 mm length in the panel';
+  await editLength(to, 'enter');
+  await f.snapshot('01-panel-target');
+  await checkLength(to);
+  assert.equal(await f.sketchAlert(), null);
+  const after = await sketchFields();
+  await f.same(source);
+  await finish().focus();
+  await f.page.keyboard.press('Meta+z');
+  assert.deepEqual(await sketchFields(), before);
+  await button(f.page, 'Redo').click();
+  assert.deepEqual(await sketchFields(), after);
+
+  f.phase = 'Refuse an impossible panel length and preserve the accepted edit';
+  await editLength(invalid, 'blur');
+  assert.ok(await f.sketchAlert());
+  assert.deepEqual(await sketchFields(), after);
+  await f.same(source);
+  await f.snapshot('02-impossible-refused');
+
+  const accepted = await f.finishSketch('03-finished-panel-length');
+  verifyPart(accepted, circleTriangle, to, source);
+  const nativeBefore = await f.inspect('panel-native-before', source, { native: true });
+  const nativeAfter = await f.inspect('panel-native-after', accepted.doc, { native: true });
+  assert.deepEqual(nativeAfter, nativeBefore);
+  near(accepted.bodies.bodies[0].volume, height * doubleArea(circleTriangle.points(to)) / 2, 1e-6);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(accepted.doc);
+  const bytes = await save();
+  await f.newPage();
+  await open(bytes);
+  await f.same(accepted.doc);
+  await edit();
+  await checkLength(to);
+  await f.snapshot('04-reopened-panel-length');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -321,6 +386,7 @@ await f.run(async () => {
     });
     return context;
   };
+  if (panelRecovery) { await qualifyPanel(); return; }
   await qualify(angleTriangle);
   await qualify(circleTriangle);
 });

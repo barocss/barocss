@@ -27,7 +27,8 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, constraintInspection, constraintDocument, toolLabel, error, toolControls, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; constraintInspection: ConstraintInspectionStore; constraintDocument: StudioDoc; toolLabel: string; error: string | null; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, constraintInspection, constraintDocument, toolLabel, error, toolControls, onShape, onDrivingLength, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; constraintInspection: ConstraintInspectionStore; constraintDocument: StudioDoc; toolLabel: string; error: string | null; toolControls?: ReactNode; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+  onDrivingLength?(source: Polygon, edge: number, value: number): boolean;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
@@ -56,6 +57,8 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
   const constraints = s && !isSettled(s) ? (ell ? ellipseConstraintRows(inferred(s)) : inferred(s)) : [];
 
   const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
+    if (value !== null && poly[key]?.[i] === value) return;
+    if (key === 'lengths' && value !== null && onDrivingLength?.(poly, i, value)) return;
     const next = { ...(poly[key] ?? {}) };
     if (value === null) delete next[i]; else next[i] = value;
     onShape({ ...poly, [key]: next });

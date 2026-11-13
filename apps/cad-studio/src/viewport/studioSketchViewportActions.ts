@@ -38,8 +38,18 @@ function canRecoverLength(sketch: SketchState | null, node: ModelNode | undefine
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */
-export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions {
+export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
   return {
+    recoverPanelLength(source: Polygon, edge: number, value: number): boolean {
+      if (edge !== 2) return false;
+      if (liveShape.current !== source) return true;
+      if (!canRecoverLength(sketch, currentSketchSource(), source)) return false;
+      if (value === source.lengths?.[edge]) return true;
+      const result = commitInlineDimension(source, 'len2', value);
+      if (result.ok) updateShape(result.shape);
+      else setSketchError(result.reason);
+      return true;
+    },
     onSketchShape: updateShape,
     onSketchTrim: trimSketch,
     onSketchPick: (hit, additive) => setSketch(sketch => sketch && sketchClick(sketch, hit, additive)),

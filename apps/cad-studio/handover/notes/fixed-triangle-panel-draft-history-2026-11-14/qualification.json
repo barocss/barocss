@@ -1,0 +1,68 @@
+{
+  "decision": "D1080",
+  "tier": "SMALL",
+  "parent": "da3cc1f1bfe4c4f775a15fe06f8495db8613cafe",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1080-fixed-triangle-panel-<run>",
+    "D1080_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/<run> --panel-recovery",
+    "D858_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/inline-regression --recover",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx apps/cad-studio/src/viewport/studioSketchViewportActions.ts",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history fixed-triangle-inline-ownership",
+    "node --check apps/cad-studio/test/large-sketch-length-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 861,
+      "receiptSHA256": "54672707d81908ac8a42f21b893aedeb226f66d24cd4d4e47efd8f63bdf947be",
+      "sourceManifestSHA256": "ff352bc4a9f9c979e92060f4194fb18d3c6b3d3413092ec01ceff414e4f117ee",
+      "firstFailure": "The panel refuses 124.05 mm and leaves the driving length at 131.95 mm."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "0796205d1de4580b86c9873ba986bc6b25889551fcc56587519016ddbc86a2cb",
+      "sourceManifestSHA256": "e3a60ef6356786716bf8532bfc4932494d69fb4a57a2e094468742c625259646"
+    },
+    "inlineRegression": {
+      "status": "PASS",
+      "states": 11,
+      "receiptSHA256": "840742478478d46036ff43c36dfaf616e4bf6e7abf776e306cbba431801c0d78",
+      "sourceManifestSHA256": "e3a60ef6356786716bf8532bfc4932494d69fb4a57a2e094468742c625259646"
+    }
+  },
+  "lengthsMm": [
+    131.95,
+    124.05
+  ],
+  "refusedLengthMm": 132.05,
+  "fixedPointsMm": [
+    [
+      0,
+      0
+    ],
+    [
+      4,
+      0
+    ]
+  ],
+  "expectedThirdPointMm": [
+    -122.4496875,
+    19.861433260274737
+  ],
+  "nativeLinearToleranceMm": 1e-07,
+  "extrudeMm": 6,
+  "expectedVolumeMm3": 238.33719912329684,
+  "volumeToleranceMm3": 1e-06,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 8,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

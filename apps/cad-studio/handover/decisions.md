@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1080 — recover the verified fixed-triangle length in the Sketch panel](notes/fixed-triangle-panel-draft-history-2026-11-14/README.md).
 - [D1079 — verify draft history through Trim without a cut](notes/sketch-no-cut-draft-history-2026-11-14/README.md).
 - [D1078 — verify ordered circle Split and Offset draft history](notes/sketch-split-offset-draft-history-2026-11-14/README.md).
 - [D1077 — verify ordered coordinate and inward profile Offset history](notes/sketch-profile-offset-draft-history-2026-11-14/README.md).
