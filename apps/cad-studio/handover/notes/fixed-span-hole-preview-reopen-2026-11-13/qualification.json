@@ -1,0 +1,57 @@
+{
+  "decision": "D1023",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "8212c3b0adb250a491bd882da40419e79a3effa7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1023-section-studio01",
+    "D1023_SOURCE_FROZEN=1 node apps/cad-studio/test/fixed-span-hole-lifecycle-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1023-focused",
+    "pnpm --filter @barocss/cad-studio-app test document-file linear-span-pattern failed-feature",
+    "node --check apps/cad-studio/test/fixed-span-hole-lifecycle-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "42e311941418b2e5d2e5f8141163c7927c64f6087e8e24d171e0d1c551fe387e",
+    "sourceManifestSHA256": "97db86a58bf6ef9c7083bf0ced9daf74d449c5d65f98d7ce08d97a84efb573a4",
+    "frozenFiles": 852,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "boreCenterMM": [
+      84,
+      13
+    ],
+    "diameterMM": 2,
+    "spanMM": 32,
+    "counts": [
+      3,
+      4
+    ],
+    "faces": [
+      "n1.top@2",
+      "n1.top@3"
+    ],
+    "previewVolumeMM3": 551.028438781936,
+    "previewToleranceMM3": 0.2,
+    "nativeVolumeToleranceMM3": 1e-07
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 18,
+    "failed": 0
+  },
+  "notRun": [
+    "other Hole, pattern and stock families",
+    "general History preview",
+    "production build",
+    "type-checks",
+    "full suites",
+    "mobile"
+  ]
+}
