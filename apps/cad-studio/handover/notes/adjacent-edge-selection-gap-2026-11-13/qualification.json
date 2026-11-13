@@ -1,0 +1,152 @@
+{
+  "decision": "D1045",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9b939c7252ec6a920ec2692c9c1574e35d799555",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1045-section-baseline05",
+    "D1045_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-edge-gap-browser.mjs <external-evidence>/baseline05",
+    "gate.sh acquire heavy 600 D1045-section-gpu-wide-final",
+    "D1045_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-edge-gap-browser.mjs <external-evidence>/gpu-wide-final",
+    "gate.sh acquire heavy 600 D1045-section-regressions03",
+    "D1045_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-edge-gap-browser.mjs <external-evidence>/gpu-narrow-light03 --narrow --light",
+    "D1045_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-edge-gap-browser.mjs <external-evidence>/gl-wide03 --webgl2",
+    "D1045_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-edge-gap-browser.mjs <external-evidence>/gl-narrow-light03 --webgl2 --narrow --light",
+    "pnpm --filter @barocss/cad-studio-app test selection-edge hidden-line instance-pose",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/adjacent-edge-gap-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "dba7f07a61e65f14d1425c35e7eedb3828b5b2428bfcb37b5a39e28aeb88eb7f",
+    "sourceManifestSHA256": "0e92246c159815e2d5a8e7d9cd3beeaf755f5a713432c063883ea56879e5a09a",
+    "frozenFiles": 380,
+    "states": 3,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "backend": "webgpu",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "dpr": 1,
+    "theme": "dark",
+    "gap": 3.999999967161557,
+    "hoverPixels": 2,
+    "mixedHoverPixels": 4,
+    "mixedClearDevicePixels": 0,
+    "selectedClearDevicePixels": 0
+  },
+  "studio": [
+    {
+      "status": "PASS",
+      "receiptSHA256": "83f3dc997d2461d3af46f8179a557635be07ec68a9657cfdd58ee39a10e8820b",
+      "sourceManifestSHA256": "70e9fe55ba5118d6f7a4d5373a1e762545e88711e5520b665363a502f83525d7",
+      "frozenFiles": 380,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dpr": 1,
+      "theme": "dark",
+      "gap": 4.004884228315291,
+      "hoverPixels": 2,
+      "mixedHoverPixels": 2,
+      "mixedClearDevicePixels": 2,
+      "selectedClearDevicePixels": 2
+    },
+    {
+      "status": "PASS",
+      "receiptSHA256": "afeb9cca12a3e637edf10e44f633c63fe5dfa20f1c40d015566dcc12209e6ce9",
+      "sourceManifestSHA256": "70e9fe55ba5118d6f7a4d5373a1e762545e88711e5520b665363a502f83525d7",
+      "frozenFiles": 380,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1024,
+        "height": 800
+      },
+      "dpr": 2,
+      "theme": "light",
+      "gap": 3.9839471803754805,
+      "hoverPixels": 3,
+      "mixedHoverPixels": 3,
+      "mixedClearDevicePixels": 6,
+      "selectedClearDevicePixels": 6
+    },
+    {
+      "status": "PASS",
+      "receiptSHA256": "cf50500b8f8440f2509dd17e9877c1fd1492f019e7122891f8d191dd2e6aac8d",
+      "sourceManifestSHA256": "70e9fe55ba5118d6f7a4d5373a1e762545e88711e5520b665363a502f83525d7",
+      "frozenFiles": 380,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "backend": "webgl2",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dpr": 1,
+      "theme": "dark",
+      "gap": 4.004884228315291,
+      "hoverPixels": 2,
+      "mixedHoverPixels": 2,
+      "mixedClearDevicePixels": 2,
+      "selectedClearDevicePixels": 2
+    },
+    {
+      "status": "PASS",
+      "receiptSHA256": "4ec6472aa891f568a0c3bc889c8123211c92a8718bd4ce4b4ff7fc0e391c9c02",
+      "sourceManifestSHA256": "70e9fe55ba5118d6f7a4d5373a1e762545e88711e5520b665363a502f83525d7",
+      "frozenFiles": 380,
+      "states": 2,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "sourceChanges": 0,
+      "backend": "webgl2",
+      "viewport": {
+        "width": 1024,
+        "height": 800
+      },
+      "dpr": 2,
+      "theme": "light",
+      "gap": 3.9839471803754805,
+      "hoverPixels": 4,
+      "mixedHoverPixels": 4,
+      "mixedClearDevicePixels": 4,
+      "selectedClearDevicePixels": 4
+    }
+  ],
+  "visualReview": "PASS",
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "placed edges or direct geometry",
+    "other gaps",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

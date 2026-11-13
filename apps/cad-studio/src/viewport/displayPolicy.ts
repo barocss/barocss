@@ -26,6 +26,9 @@ export const SELECT_MIX = 0.42;
 export const SELECTION_MIX = 0.64;
 export const SELECTION_HOVER_MIX = 0.22;
 export const SELECTION_EDGE_WIDTH = 3.4;
+/** Individual edge strokes in CSS pixels, independent of other selected edges. */
+export const PICKED_EDGE_WIDTH = 2;
+export const HOVERED_EDGE_WIDTH = 2;
 export const SELECTION_OUTLINE_WIDTH = 3;
 
 /** The colours both renderers' themes share. */

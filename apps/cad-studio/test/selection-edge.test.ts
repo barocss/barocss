@@ -18,7 +18,7 @@ function rig() {
 function state(extra = {}) { return { displayMode: 'shaded-with-edges', selectedBodies: [], selectedFaces: [], selectedEdges: [], hoverBody: null, ghostBodies: new Set(), offsets: new Map(), ...extra }; }
 function body(): any {
   const geometry = { positions: new Float32Array([0,0,0, 10,0,0]) };
-  return { result: { key: 'b', mesh: { positions: geometry.positions } }, surface: { material: {}, geometry }, edges: { material: {}, geometry }, highlight: null, state: '' };
+  return { result: { key: 'b', mesh: { positions: geometry.positions } }, surface: { material: {}, geometry }, edges: { material: {}, geometry }, highlights: [], state: '' };
 }
 test('D514 body selection and hover use the existing native line geometry, and clear both on deselection', () => {
   const r = rig(), b = body(), geometry = b.edges.geometry; r.bodies = [b];

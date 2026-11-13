@@ -5,7 +5,7 @@ import type { ViewportRecoveryNotice } from './viewportRecovery';
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
 import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
-import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { ProposalOverlay } from '../engine/client';
@@ -293,7 +293,7 @@ void main(){ if(uInstanceId>0u){ uint v=uInstanceId+uint(vFace); id=vec4(float(v
 // Wide lines: one instance per segment, expanded to a screen-space quad.
 const LINE_VS = `#version 300 es
 layout(location=0) in vec2 aCorner; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB; layout(location=3) in float aState;
-uniform mat4 uVP; uniform mat4 uModel; uniform vec2 uViewport; uniform float uWidth; uniform float uSelectedWidth; out float vState;
+uniform mat4 uVP; uniform mat4 uModel; uniform vec2 uViewport; uniform float uWidth; uniform float uSelectedWidth; uniform float uHoveredWidth; out float vState;
 flat out vec2 vLineOrigin; flat out vec2 vLineDirection;
 void main(){
   vState=aState;
@@ -301,7 +301,7 @@ void main(){
   vec2 sa=a.xy/a.w*uViewport, sb=b.xy/b.w*uViewport; vec2 d=sb-sa; float l=length(d);
   vec2 dir=l>1e-6? d/l : vec2(1.0,0.0); vec2 nrm=vec2(-dir.y,dir.x);
   vLineOrigin=sa+uViewport; vLineDirection=dir;
-  float w=aState>1.5?uSelectedWidth:uWidth*(aState>0.5?1.9:1.0);
+  float w=aState>1.5?uSelectedWidth:(aState>0.5?uHoveredWidth:uWidth);
   vec4 p=mix(a,b,aCorner.x);
   p.xy+=nrm*aCorner.y*w/uViewport*p.w;
   p.z-=0.00008*p.w;
@@ -946,7 +946,8 @@ export class Renderer implements ViewRenderer {
     gl.useProgram(this.line); gl.uniformMatrix4fv(this.u(this.line, 'uVP'), false, vp);
     gl.uniform3fv(this.u(this.line, 'uSelection'), t.selection); gl.uniform3fv(this.u(this.line, 'uSelectionHover'), t.selectionHover);
     gl.uniform2f(this.u(this.line, 'uViewport'), w / 2, h / 2); gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
-    gl.uniform1f(this.u(this.line, 'uSelectedWidth'), SELECTION_EDGE_WIDTH / 2 * dpr);
+    gl.uniform1f(this.u(this.line, 'uSelectedWidth'), PICKED_EDGE_WIDTH / 2 * dpr);
+    gl.uniform1f(this.u(this.line, 'uHoveredWidth'), HOVERED_EDGE_WIDTH / 2 * dpr);
     gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
     // Appearance passes never replace the nearest surface depth used to classify the next edge.
     if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(false);

@@ -6,7 +6,7 @@ import { createViewportRecovery, type ViewportRecoveryNotice } from './viewportR
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
-import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { BASE } from '@barocss/cad-model/assembly/mates';
@@ -98,7 +98,7 @@ interface PlacedInstance {
 }
 /** Copies' one tessellation (G10): a reference copy's display mesh, the inverse of its placement, the geometries made from it and the meshes drawing them. */
 interface Shape { key: string; ref: DisplayMesh; inverse: Float64Array; surface: Geometry; edges: Geometry | null; users: Set<Mesh>; colorKey: string | null }
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: MeshSignature; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlights: Mesh[]; geometries: Geometry[]; sig: MeshSignature; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
 /** Owned upload inputs. Callers can reuse or mutate their buffers after a previous set. */
 interface MeshSignature { key: string; mesh: DisplayMesh }
@@ -222,7 +222,10 @@ export class GpuRenderer implements ViewRenderer {
   setTheme(name: ThemeName): void {
     this.theme = THEMES[name];
     this.applyLook();
-    if (this.view) this.setState(this.view);
+    if (this.view) {
+      for (const body of this.bodies) body.state = '';
+      this.setState(this.view);
+    }
     for (const direct of this.direct) if (direct.selected) {
       direct.mesh.material = direct.kind === 'surface'
         ? { color: this.theme.selection, roughness: 0.5, doubleSided: true }
@@ -274,7 +277,7 @@ export class GpuRenderer implements ViewRenderer {
       if (old) { if (was[bi] !== old) old.state = ''; old.result = result; return old; }
       return this.makeBody(result, signature(result));
     });
-    for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
+    for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlights(b); b.geometries.forEach(g => g.dispose()); }
     this.placeGround();
     this.applyClip();
     this.applyMaps();
@@ -531,7 +534,7 @@ export class GpuRenderer implements ViewRenderer {
   private applyClip(): void {
     if (!this.clip) return;
     const bodies = this.clip.bodies, cut = new Set<Mesh>(), spacing = this.clip.hatch ?? 0;
-    for (const b of this.bodies) for (const m of [b.surface, b.edges, b.highlight]) if (m) { m.clipped = bodies; cut.add(m); }
+    for (const b of this.bodies) for (const m of [b.surface, b.edges, ...b.highlights]) if (m) { m.clipped = bodies; cut.add(m); }
     // (G19.3: each surface's cap hatched at its angle by its turn — the bodies', then the placed parts'.)
     let turn = 0;
     for (const b of this.bodies) { b.surface.cap = true; b.surface.capHatch = spacing > 0 && bodies ? { angle: hatchAngle(turn), spacing } : null; turn++; }
@@ -572,7 +575,7 @@ export class GpuRenderer implements ViewRenderer {
       geometries.push(g);
       edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, visible: this.settings ? this.settings.environment.edges : true });
     }
-    return { result, surface, edges, highlight: null, geometries, sig, state: '', runs: faceRuns(m.faceOfVertex), painted: null };
+    return { result, surface, edges, highlights: [], geometries, sig, state: '', runs: faceRuns(m.faceOfVertex), painted: null };
   }
 
   /**
@@ -638,25 +641,31 @@ export class GpuRenderer implements ViewRenderer {
       const edgeState = edgeStateOf(view, bi);
       // (Only a body whose look changed is painted again: a hover repaints one body, not all.)
       const t = view.transforms?.get(bi), faces = view.faceColors?.get(bi);
-      const state = JSON.stringify([mode, [...faceState], [...edgeState], view.selectedEdges.length > 0, view.bodyColors?.get(bi) ?? null, faces ? [...faces] : null,
+      const state = JSON.stringify([mode, [...faceState], [...edgeState], view.bodyColors?.get(bi) ?? null, faces ? [...faces] : null,
         view.ghostBodies.has(bi), !!view.isolatedInstances?.length, !!view.hiddenBodies?.has(bi), view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0, t ? Array.from(t) : view.offsets.get(bi) ?? null]);
       if (state === b.state) return;
       b.state = state;
       this.paint(b, faceState, view.bodyColors?.get(bi), faces);
       // (Its cap as the CPU's section painted its cut face: selected, the body's own colour or the base mixed with the accent; G2b.)
       b.surface.capColor = mix(this.settings ? [1, 1, 1] : view.bodyColors?.get(bi) ?? this.theme.base, ACCENT, SELECT_MIX);
-      this.dropHighlight(b);
+      this.dropHighlights(b);
       if (edgeState.size) {
-        const L = b.result.mesh.edgeLines, E = b.result.mesh.edgeOfSegment, pts: number[] = [], colors: number[] = [];
-        for (let s = 0; s < L.length / 6; s++) {
-          const st = edgeState.get(E[2 * s]);
-          if (!st) continue;
-          for (let k = 0; k < 6; k++) pts.push(L[6 * s + k]);
-          const c = st > 1 ? this.theme.selection : this.theme.selectionHover;
-          colors.push(...c, ...c);
+        const lines = b.result.mesh.edgeLines, edgeOf = b.result.mesh.edgeOfSegment;
+        const hovered: number[] = [], picked: number[] = [];
+        for (let segment = 0; segment < lines.length / 6; segment++) {
+          const state = edgeState.get(edgeOf[2 * segment]);
+          if (!state) continue;
+          const positions = state === 2 ? picked : hovered;
+          for (let k = 0; k < 6; k++) positions.push(lines[6 * segment + k]);
         }
-        const g = this.viewer.createGeometry({ positions: pts, colors, topology: 'lines' });
-        b.highlight = this.viewer.add(g, { material: { color: '#ffffff', unlit: true, lineWidth: view.selectedEdges.length ? SELECTION_EDGE_WIDTH : 2.2 }, pickable: false, castShadow: false });
+        for (const [positions, color, lineWidth] of [
+          [hovered, this.theme.selectionHover, HOVERED_EDGE_WIDTH],
+          [picked, this.theme.selection, PICKED_EDGE_WIDTH],
+        ] as const) {
+          if (!positions.length) continue;
+          const geometry = this.viewer.createGeometry({ positions, topology: 'lines' });
+          b.highlights.push(this.viewer.add(geometry, { material: { color, unlit: true, lineWidth }, pickable: false, castShadow: false }));
+        }
       }
       const isolated = !!view.isolatedInstances?.length, ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
@@ -674,14 +683,14 @@ export class GpuRenderer implements ViewRenderer {
       // Keep the surface outline for contact warnings only; hover must not restore a halo.
       b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
-      for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
+      for (const mesh of [b.surface, b.edges, ...b.highlights]) if (mesh) mesh.transform = moved;
       // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
       const hatch = this.hatchLines.get(bi);
       if (hatch) { hatch.transform = moved; hatch.visible = !hidden && !lineOnly; hatch.material = { opacity: HATCH_OPACITY * (ghost ? GHOST_OPACITY : 1) * (isolated ? FADED : 1) }; }
       const edgeStyle = { lineOver: mode === 'wireframe', lineDash: null, lineHidden: mode === 'hidden-lines-dashed' ? HIDDEN_LINE_SHARE : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? HIDDEN_DASH : null };
       const bodyState = !isolated && !ghost && !this.contactLinks.has(BASE) ? view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0 : 0;
       if (b.edges) { b.edges.material = { color: bodyState === 2 ? this.theme.selection : bodyState === 1 ? this.theme.selectionHover : this.theme.edge, lineWidth: bodyState === 2 ? SELECTION_EDGE_WIDTH : bodyState === 1 ? 2.2 : 1.2, opacity: (ghost ? GHOST_OPACITY : EDGE_OPACITY) * (isolated ? FADED : 1), ...edgeStyle }; b.edges.pickable = !ghost && !isolated && !hidden && !halvesOn; b.edges.visible = !hidden && (bodyState > 0 || (this.settings ? this.settings.environment.edges : true)); }
-      if (b.highlight) { b.highlight.material = edgeStyle; b.highlight.visible = !hidden && !isolated; }
+      for (const highlight of b.highlights) { highlight.material = edgeStyle; highlight.visible = !hidden && !isolated; }
     });
     const isolationKey = JSON.stringify(view.isolatedInstances ?? null);
     const isolationChanged = this.instanceIsolationKey !== isolationKey && (this.instanceIsolationKey !== undefined || !!view.isolatedInstances?.length);
@@ -690,9 +699,12 @@ export class GpuRenderer implements ViewRenderer {
     this.applyClip();
   }
 
-  private dropHighlight(b: Body): void {
-    if (!b.highlight) return;
-    b.highlight.remove(); b.highlight.geometry.dispose(); b.highlight = null;
+  private dropHighlights(b: Body): void {
+    for (const highlight of b.highlights) {
+      highlight.remove();
+      highlight.geometry.dispose();
+    }
+    b.highlights.length = 0;
   }
 
   /** Lights that follow the camera, as the WebGL renderer's: a key from upper left, a fill from the right. */
@@ -750,9 +762,9 @@ export class GpuRenderer implements ViewRenderer {
     return this.tally.report('webgpu', shown);
   }
   /** A body's surface with its silhouette, edges and highlight counted under its record. */
-  private countMeshes(r: CostRecord, surface: Mesh, other: Mesh | null, highlight: Mesh | null): void {
+  private countMeshes(r: CostRecord, surface: Mesh, other: Mesh | null, highlights: readonly Mesh[] = []): void {
     const T = this.tally, costs = this.viewer.meshCosts();
-    T.addMesh(r, costs.get(surface)); if (other) T.addMesh(r, costs.get(other)); if (highlight) T.addMesh(r, costs.get(highlight));
+    T.addMesh(r, costs.get(surface)); if (other) T.addMesh(r, costs.get(other)); for (const highlight of highlights) T.addMesh(r, costs.get(highlight));
     const line = this.silhouettes?.get(surface)?.line; if (line) T.addMesh(r, costs.get(line));
   }
   /** After a tracked frame: every mesh into the scene, then each body's taken off it into its own record. */
@@ -760,9 +772,9 @@ export class GpuRenderer implements ViewRenderer {
     const T = this.tally, costs = this.viewer.meshCosts(), meshes = this.viewer.meshList;
     T.begin(this.displayMode.effective);
     for (let i = 0; i < meshes.length; i++) T.addMesh(null, costs.get(meshes[i]));
-    for (const b of this.bodies) this.countMeshes(T.recordOf(b) ?? T.recordNew(b, b.result.key), b.surface, b.edges, b.highlight);
+    for (const b of this.bodies) this.countMeshes(T.recordOf(b) ?? T.recordNew(b, b.result.key), b.surface, b.edges, b.highlights);
     for (const it of this.instances) {
-      for (let bi = 0; bi < it.surfaces.length; bi++) this.countMeshes(T.recordOf(it.surfaces[bi]) ?? T.recordNew(it.surfaces[bi], it.id + '/' + it.bodies[bi].key), it.surfaces[bi], null, null);
+      for (let bi = 0; bi < it.surfaces.length; bi++) this.countMeshes(T.recordOf(it.surfaces[bi]) ?? T.recordNew(it.surfaces[bi], it.id + '/' + it.bodies[bi].key), it.surfaces[bi], null);
       for (let e = 0; e < it.edges.length; e++) { const r = T.recordOf(it.surfaces[it.edgeBody[e]]); if (r) T.addMesh(r, costs.get(it.edges[e])); }
       if (it.threads && it.surfaces.length) { const r = T.recordOf(it.surfaces[0]); if (r) T.addMesh(r, costs.get(it.threads)); }
     }
