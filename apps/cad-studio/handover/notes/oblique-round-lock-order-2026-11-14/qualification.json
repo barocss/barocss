@@ -1,0 +1,39 @@
+{
+  "decision": "D1106",
+  "tier": "SMALL",
+  "parent": "1c90c61c556606864ce67c9dc8217d3a6e248af3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1106-round-oblique-lock-order-<run>",
+    "D1106_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/<run> --oblique-lock-order",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "observerFailure": {
+      "status": "FAIL",
+      "states": 8,
+      "frozenFiles": 861,
+      "receiptSHA256": "dacdeb12f3e7cc712fd5c60802d1eba314ecf1f806650d4215a1411302437862",
+      "sourceManifestSHA256": "460aff4bfc8f91de423c1e6f51367ef7741c580e7ebdd1b429f48d7f9d168cd6",
+      "firstFailure": "The observer compared the two solved documents bit-for-bit. One solved vertex differed by 2.303e-11 mm and both passed the existing independent native checks."
+    },
+    "actual": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 861,
+      "receiptSHA256": "1ca026e158d47620c7d47ac02e21ae07faa54c1a51faa5a22680e4beae550a51",
+      "sourceManifestSHA256": "dda666c13c261ed2d9a13d223ea447e0c6db20c33eb9677e2063a0dc346304e2"
+    }
+  },
+  "pointGapMM": 2.3026935291809266e-11,
+  "bulgeGap": 3.645972412869014e-13,
+  "sourceFirstVolumeMM3": 7054.301379805947,
+  "filletFirstVolumeMM3": 7054.301379812658,
+  "pointToleranceMM": 1e-08,
+  "volumeToleranceMM3": 1e-07,
+  "focused": {
+    "status": "NOT_RUN",
+    "reason": "No production code changed; driver syntax and diff passed."
+  }
+}

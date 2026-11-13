@@ -3,14 +3,15 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
-const oblique = mode === '--oblique';
+const obliqueLockOrder = mode === '--oblique-lock-order';
+const oblique = mode === '--oblique' || obliqueLockOrder;
 const restoreTangent = mode === '--restore-tangent';
 const tangentRefusal = mode === '--tangent-refusal';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
 const relockBaseline = mode === '--fillet-relock-baseline';
 const filletRelock = relockBaseline || mode === '--fillet-relock';
-const lockOrder = mode === '--lock-order';
+const lockOrder = mode === '--lock-order' || obliqueLockOrder;
 const freeFillet = mode === '--free-fillet';
 const reversed = mode === '--reversed' || mode === '--reversed-baseline' || filletRelock || lockOrder || freeFillet;
 const reversedBaseline = mode === '--reversed-baseline';
@@ -37,10 +38,11 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: restoreTangent ? 'D1090_SOURCE_FROZEN' : freeFillet ? 'D1084_SOURCE_FROZEN' : lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: obliqueLockOrder ? 'D1106_SOURCE_FROZEN' : restoreTangent ? 'D1090_SOURCE_FROZEN' : freeFillet ? 'D1084_SOURCE_FROZEN' : lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: freeFillet ? 'Verify the source radius limit while the fillet is unlocked.' : lockOrder ? 'Verify both radius lock orders on the reversed pinned XY Round.' : tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
+  qualification: obliqueLockOrder ? 'Verify both radius lock orders on the reversed pinned Round on a translated oblique plane.'
+    : freeFillet ? 'Verify the source radius limit while the fillet is unlocked.' : lockOrder ? 'Verify both radius lock orders on the reversed pinned XY Round.' : tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
     : oblique ? 'Verify the pinned line–arc Round on one translated oblique working plane.'
     : filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
     : reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
@@ -50,7 +52,8 @@ const f = await createFlow({
     : mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
     : fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
     : 'Measure the finite line–circular-arc Round boundary and the existing straight-corner control.',
-  limits: [oblique ? 'One pinned CCW outline on a translated tilted plane with a 10 mm native extrusion.' : mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
+  limits: [obliqueLockOrder ? 'One pinned clockwise outline on a translated tilted plane with a 10 mm native extrusion.'
+    : oblique ? 'One pinned CCW outline on a translated tilted plane with a 10 mm native extrusion.' : mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
     : 'One convex closed XY outline with one native R20 quarter arc and a 10 mm Extrude. The admitted fixture pins both carriers.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -684,7 +687,8 @@ async function checkObliqueRound() {
 }
 
 async function checkReversedRound() {
-  const doc = await f.inspect('reversed-fixture', {}, 'reversed');
+  const seed = await f.inspect('reversed-fixture', {}, 'reversed');
+  const doc = obliqueLockOrder ? { ...seed, nodes: [{ ...seed.nodes[0], plane: obliquePlane }, seed.nodes[1]] } : seed;
   assert.deepEqual(doc.nodes[0].sideTags.outer, ['e4', 'e3', 'e2', 'e1']);
   assert.equal(doc.nodes[0].segments[2].direction, 'cw');
   const stock = await f.inspect('reversed-stock-native', doc);
@@ -709,6 +713,7 @@ async function checkReversedRound() {
     assert.deepEqual(current.nodes.slice(1), doc.nodes.slice(1));
     assert.deepEqual(current.outputs, doc.outputs);
     const outline = current.nodes[0], expected = independentRound(r, source);
+    if (obliqueLockOrder) assert.deepEqual(outline.plane, obliquePlane);
     const points = [expected.polygon[0], ...expected.polygon.slice(1).reverse()];
     assert.deepEqual(outline.sideTags.outer, ['e4', 'e3', 'e2', 'e5', 'e1']);
     assert.deepEqual(outline.outline.radii, { 2: source, 3: r });
@@ -721,7 +726,8 @@ async function checkReversedRound() {
     for (const [i, segment] of outline.segments.entries()) {
       segment.start.forEach((value, axis) => near(value, points[i][axis]));
       for (const depth of [0, 10]) {
-        assert.ok(native.vertices.some(([x, y, z]) => Math.hypot(x - points[i][0], y - points[i][1], z - depth) <= 1e-8));
+        const target = obliqueLockOrder ? obliqueWorld(points[i], depth) : [...points[i], depth];
+        assert.ok(native.vertices.some(vertex => Math.hypot(...vertex.map((value, axis) => value - target[axis])) <= 1e-8));
       }
     }
     for (const [i, tag, radius, center] of [[2, 'e2', source, expected.source], [3, 'e5', r, expected.fillet]]) {
@@ -730,11 +736,19 @@ async function checkReversedRound() {
       const cylinder = native.cylinders.find(face => face.name === `n1.side[${tag}]`);
       assert.ok(cylinder);
       near(cylinder.r, radius);
-      cylinder.a.forEach((value, axis) => near(value, [0, 0, 1][axis]));
-      center.forEach((value, axis) => {
-        near(cylinder.c[axis], value);
-        near(outline.segments[i].center[axis], value);
-      });
+      if (obliqueLockOrder) {
+        const [x, y, z] = cylinder.a;
+        near(x, 0);
+        near(Math.abs(0.6 * y + 0.8 * z), 1);
+        near(0.8 * y - 0.6 * z, 0);
+        const [dx, dy, dz] = cylinder.c.map((value, axis) => value - obliqueWorld(center)[axis]);
+        near(dx, 0);
+        near(0.8 * dy - 0.6 * dz, 0);
+      } else {
+        cylinder.a.forEach((value, axis) => near(value, [0, 0, 1][axis]));
+        center.forEach((value, axis) => near(cylinder.c[axis], value));
+      }
+      center.forEach((value, axis) => near(outline.segments[i].center[axis], value));
     }
     assert.ok(['e1', 'e3', 'e4'].every(tag => native.faces.includes(`n1.side[${tag}]`)));
     near(native.volume, expected.volume, 1e-7);
@@ -843,6 +857,17 @@ async function checkReversedRound() {
     await fullyDefined();
     const filletFirst = (await f.finishSketch('05-fillet-first-R5')).doc;
     await check('fillet-first-R5', filletFirst, 5);
+    if (obliqueLockOrder) {
+      const first = sourceFirst.nodes[0], second = filletFirst.nodes[0];
+      const { points: a, bulges: u, ...firstLocks } = first.outline;
+      const { points: b, bulges: v, ...secondLocks } = second.outline;
+      assert.deepEqual(firstLocks, secondLocks);
+      const pointGap = Math.max(...a.map((point, i) => Math.hypot(point[0] - b[i][0], point[1] - b[i][1])));
+      const bulgeGap = Math.max(...u.map((bulge, i) => Math.abs(bulge - v[i])));
+      near(pointGap, 0);
+      near(bulgeGap, 0);
+      f.report.observations.push({ label: 'lock-order-delta', pointGap, bulgeGap });
+    }
     await f.undo();
     await f.same(r4);
     await f.redo();
@@ -1123,7 +1148,7 @@ await f.run(async () => {
     await checkTangentRefusal();
     return;
   }
-  if (oblique) {
+  if (oblique && !obliqueLockOrder) {
     await checkObliqueRound();
     return;
   }
