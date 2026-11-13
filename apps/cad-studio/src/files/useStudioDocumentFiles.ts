@@ -2,6 +2,7 @@ import { useRef, type Dispatch, type RefObject, type SetStateAction } from 'reac
 import { stripHistory } from '@barocss/cad-model/chat/proposals';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { collectRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
+import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import { encodeStudioFile, readStudioWorkingCopy } from '@barocss/cad-model/engine/container';
 import { placedDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -72,6 +73,7 @@ interface StudioDocumentFileOptions {
     commit(doc: StudioDoc): boolean;
     commitDirect(direct: DirectGeometry, selection?: string[]): boolean;
   };
+  validateSave(): Promise<EvalResult> | undefined;
   fit(): void;
   onNotice: Dispatch<SetStateAction<FriendlyError | null>>;
 }
@@ -81,7 +83,7 @@ const OPEN_READS = 'Open reads models (.bcad, .json), worker files (.bcad-task, 
 const CANDIDATE_REVIEW_REFUSED = 'Could not review the worker candidate';
 
 /** File actions use the App's current document, dispatch and Worker ownership. */
-export function useStudioDocumentFiles({ document, ownership, worker, changes, fit, onNotice: setToast }: StudioDocumentFileOptions) {
+export function useStudioDocumentFiles({ document, ownership, worker, changes, validateSave, fit, onNotice: setToast }: StudioDocumentFileOptions) {
   const { doc, docNow, fileName, fileNameNow, recoveryDoc, project } = document;
   const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
@@ -106,24 +108,43 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, f
       setDirty(false); clearRecovery();
     };
   };
+  const checkedSave = (title: string, write: (name: string) => boolean | Promise<boolean>): boolean | Promise<boolean> => {
+    const owner = captureImportOwner(), name = fileNameNow.current;
+    const current = () => owner.isCurrent() && docNow.current === doc && fileNameNow.current === name;
+    if (!current()) return false;
+    const refuse = (detail: string, hint = 'Fix the model evaluation or undo the last change, then try again.') => {
+      if (current()) setToast({ title, hint, detail });
+      return false;
+    };
+    try {
+      const check = validateSave();
+      if (!check) return write(name);
+      return check.then(result => {
+        if (!current()) return false;
+        if (result.ok) return write(name);
+        return refuse(result.error.detail, `${result.error.title}. ${result.error.hint} Fix the model and try again.`);
+      }, error => refuse(String(error)));
+    } catch (error) { return refuse(String(error)); }
+  };
   // (A copy still offered keeps its blobs: Restore can still bring it back.)
   const save = () => {
     if (sessionBlocked('saving')) return;
-    // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
-    if (project.view.store) {
-      const name = fileNameNow.current;
-      void project.save(doc, name, projectSaveReceipt(name));
-      return;
-    }
-    if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recoveryDoc);
+    void checkedSave('Could not save the model', name => {
+      if (project.view.store) return project.save(doc, name, projectSaveReceipt(name));
+      if (!writeFile(doc, `${name}.bcad`)) return false;
+      setDirty(false); clearRecovery(); void collectRecoveryBlobs(recoveryDoc);
+      return true;
+    });
   };
   const makeVersion = async (versionName?: string) => {
     if (sessionBlocked('saving a version')) return false;
-    const name = fileNameNow.current;
-    return project.makeVersion(doc, name, { versionName, onSaved: projectSaveReceipt(name) });
+    return checkedSave('No version made', name => project.makeVersion(doc, name, { versionName, onSaved: projectSaveReceipt(name) }));
   };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
-  const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
+  const saveShared = () => {
+    if (sessionBlocked('saving')) return;
+    void checkedSave('Could not save the model', name => writeFile(stripHistory(doc), `${name}-shared.bcad`));
+  };
 
   const withTaskRunHandoff = async <T>(offer: TaskRunOffer, sourceKey: string, action: string,
     use: (handoff: Uint8Array, file: string, current: () => boolean) => T, replaces?: TaskRunReplanSelection) => {

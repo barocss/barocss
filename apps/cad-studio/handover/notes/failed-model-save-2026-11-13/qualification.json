@@ -1,0 +1,49 @@
+{
+  "decision": "D993",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "06b19fec8cc008020a12bc559c0968dbc7d16395",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D993-model-save",
+    "D993_SOURCE_FROZEN=1 node apps/cad-studio/test/failed-model-save-browser.mjs <external-evidence>/baseline --baseline",
+    "D993_SOURCE_FROZEN=1 node apps/cad-studio/test/failed-model-save-browser.mjs <external-evidence>/studio02 --fixed",
+    "pnpm --filter @barocss/cad-studio-app test late-save-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/failed-model-save-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "f1477edecdfbc84a81c6115c294cf15b2243acb0c61d96d3a4cef345da88db37",
+    "overwrittenFileSHA256": "89c8ca6d7e54d63845dcbf5ad2735e1f42df64fdc559cedea2eb29dac3374361"
+  },
+  "firstFix": {
+    "status": "FAIL",
+    "reason": "The harness expected a generic evaluation phrase and received the precise missing-edge refusal",
+    "receiptSHA256": "4fba1a450cd3bfbdc7ae6ca81af56d0e460d0b0a0e91f2cf1f5dae39e43d73ff"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "fec7febfc81fef76d345bcd5d75eb336bf0ce7ff0ef44bca51ecc2cc850adef2",
+    "sourceManifestSHA256": "3bcb54257d2b2d09364ba11b3f8d182f985a807f030c7eac8e60377140b6afcd",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "protectedFileSHA256": "0585efa2014d8a226493d2a805597c4c52dd758832e4beefcd4b59053b7a235d",
+    "repairedFileSHA256": "85018c8f6e2a13c50cc3dd151e7b219b0cf893b6699c598c82363d0a1177166d"
+  },
+  "focused": { "pass": 9, "fail": 0, "typeCheck": "PASS" },
+  "notRun": [
+    "standalone Save and Save Shared",
+    "invalid placed children",
+    "Drawing PDF",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -2023,6 +2023,11 @@ export function App() {
         return local && retiresTaskRunReview(status, local.request, local.revision) ? null : value;
       }),
       setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
+    validateSave: () => {
+      // Save serializes the authored master, including steps beyond the visible History marker.
+      if (fresh && !busy && markerNow.current === null && shownDocNow.current === doc) return;
+      return engine.part(prefixDoc(doc, doc.nodes.length), revision.current++, 'read');
+    },
     fit: () => viewport.current?.fit(),
     onNotice: setToast,
   });
