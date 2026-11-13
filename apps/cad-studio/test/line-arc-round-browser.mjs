@@ -4,6 +4,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
 const oblique = mode === '--oblique';
+const restoreTangent = mode === '--restore-tangent';
 const tangentRefusal = mode === '--tangent-refusal';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
@@ -36,7 +37,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: freeFillet ? 'D1084_SOURCE_FROZEN' : lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: restoreTangent ? 'D1090_SOURCE_FROZEN' : freeFillet ? 'D1084_SOURCE_FROZEN' : lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: freeFillet ? 'Verify the source radius limit while the fillet is unlocked.' : lockOrder ? 'Verify both radius lock orders on the reversed pinned XY Round.' : tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
@@ -535,6 +536,53 @@ async function checkMirrored() {
   const r5 = (await f.finishSketch('04-clockwise-R5')).doc;
   await checkRound('clockwise-R5-native', r5, doc, 5);
   assert.deepEqual(f.report.downloads, []);
+}
+
+async function checkRestoreTangent() {
+  const doc = await f.inspect('pinned-source-fixture', {}, 'pinned');
+  await f.newPage();
+  await open(doc);
+  await edit();
+  await applyRound([40, 20], 4);
+  const saved = (await f.finishSketch('01-round-start')).doc;
+  await checkRound('round-start-native', saved, doc, 4);
+  const bytes = await save(saved);
+  await f.newPage();
+  await open(saved, bytes);
+  await edit();
+  const panel = f.sketchPanel();
+  const outline = saved.nodes[0].outline;
+  const remove = button(panel, 'Remove Tangent point 2');
+  await remove.click();
+  await remove.waitFor({ state: 'hidden' });
+  const [a, b, c] = outline.points;
+  const bulge = outline.bulges[1];
+  const line = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const arc = [(b[0] + c[0] + bulge * (c[1] - b[1])) / 2, (b[1] + c[1] - bulge * (c[0] - b[0])) / 2];
+  await f.frame([line, arc]);
+  await f.worldClick(line);
+  await f.page.keyboard.down('Shift');
+  try { await f.worldClick(arc); } finally { await f.page.keyboard.up('Shift'); }
+  await panel.getByText('edge 1, arc 2', { exact: true }).waitFor();
+  const tangent = button(panel, 'Tangent');
+  f.phase = 'restore the removed shared-endpoint tangent from two edge picks';
+  await f.snapshot('02-picked-line-and-arc');
+  assert.equal(await tangent.isEnabled(), true);
+  await tangent.click();
+  await remove.waitFor();
+  assert.equal(await f.sketchAlert(), null);
+  await f.same(saved);
+  await f.undo();
+  await remove.waitFor({ state: 'hidden' });
+  await f.redo();
+  await remove.waitFor();
+  const restored = (await f.finishSketch('03-round-restored')).doc;
+  await checkRound('round-restored-native', restored, doc, 4);
+  assert.deepEqual(restored.nodes[0].outline.tangents, saved.nodes[0].outline.tangents);
+  const reopenedBytes = await save(restored);
+  await f.newPage();
+  await open(restored, reopenedBytes);
+  await checkRound('round-restored-reopened', restored, doc, 4);
 }
 
 async function checkTangentRefusal() {
@@ -1067,6 +1115,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (restoreTangent) {
+    await checkRestoreTangent();
+    return;
+  }
   if (tangentRefusal) {
     await checkTangentRefusal();
     return;

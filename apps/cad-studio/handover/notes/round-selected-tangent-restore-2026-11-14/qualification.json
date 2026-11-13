@@ -1,0 +1,54 @@
+{
+  "decision": "D1090",
+  "tier": "FEATURE",
+  "parent": "3b1f5af68e9855e13ec831725b72dc17ae9a3b63",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1090-round-tangent-restore-<run>",
+    "D1090_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/<run> --restore-tangent",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraints.test constraint-list",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/rules.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 858,
+      "receiptSHA256": "0750b856d11adc2ce86393db0b6a8708d3fdfc4690ef276ff4e90d80b60cc859",
+      "sourceManifestSHA256": "b6a29a6c8ee9cc7f19417cadc7cb107a23b64e39353296c6fe53f0fc5b8728ba",
+      "firstFailure": "The selected line and adjacent R4 arc are both visible as picked after tangent removal, but Tangent remains disabled."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 858,
+      "receiptSHA256": "87c53815e0e18be8864bfacc34f2c44388f1cc9d7b10030664a1cc420040e86f",
+      "sourceManifestSHA256": "b661b5248de801c48b19225b1f73b552f36a9e392fa4fd5f2c153fd357769e27"
+    }
+  },
+  "metrics": {
+    "filletRadiusMm": 4,
+    "sourceRadiusMm": 20,
+    "extrudeMm": 10,
+    "expectedVolumeMm3": 7091.948937557186,
+    "nativeVolumeMm3": 7091.948937557187
+  },
+  "notRun": [
+    "arc-to-arc selection authoring",
+    "other desktop working planes",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 30,
+    "modelPassed": 66,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}

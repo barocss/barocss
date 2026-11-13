@@ -3,7 +3,7 @@
 // or a constraint the others already imply (it would over-define the sketch) is refused with a reason,
 // so the shape on screen always satisfies exactly what the list shows.
 import type { SketchShape } from './types';
-import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
+import { arcOf, canBeTangent, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
 import { edgeAngle, type SketchRule } from './terms';
 import { circleRelation } from './loops';
 import { fixedTriangleLengthSeed } from './fixedTriangleLength';
@@ -90,6 +90,18 @@ const hasRule = (s: Polygon, test: (r: SketchRule) => boolean) => (s.rules ?? []
 const pairRule = (kind: SketchRule['kind'], a: number, b: number) => (r: SketchRule) =>
   r.kind === kind && 'b' in r && ((r.a === a && r.b === b) || (r.a === b && r.b === a));
 
+const tangentSelectionHint = 'Select a line and arc with a shared endpoint, or a line and a circle';
+
+function selectedLineArcJoint(s: Polygon, picks: readonly SketchPick[]): number | null {
+  const n = s.points.length;
+  if (!isSettled(s) || n < 3 || picks.length !== 2
+    || !picks.every(p => p.kind === 'edge' && !p.done && Number.isInteger(p.i) && p.i >= 0 && p.i < n)) return null;
+  const [a, b] = picks.map(p => p.i);
+  if (isArc(s, a) === isArc(s, b)) return null;
+  const joint = (a + 1) % n === b ? b : (b + 1) % n === a ? a : null;
+  return joint !== null && canBeTangent(s.points, s.bulges, joint) ? joint : null;
+}
+
 /** Why each constraint cannot apply to the selection (null: it can). */
 export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Record<ConstraintKind, string | null> {
   if (picks.some(p => p.kind === 'circle')) {
@@ -105,6 +117,7 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident, tangent, symmetric: why };
   }
   const { points, edges, lines, arcs } = split(s, picks), hv = hvOf(s);
+  const tangentJoint = selectedLineArcJoint(s, picks);
   const onlyLines = (min: number, max = Infinity) => points.length === 0 && arcs.length === 0 && lines.length >= min && lines.length <= max;
   const axis = (key: 'h' | 'v', name: string) => !onlyLines(1) ? 'Select one or more straight edges'
     : lines.every(i => hv[key].includes(i)) ? `Already ${name}` : null;
@@ -119,7 +132,7 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     parallel: pair('parallel'), perpendicular: pair('perpendicular'),
     equal: points.length || edges.length < 2 || (lines.length && arcs.length) ? 'Select two or more lines (same length) or arcs (same radius)' : null,
     fix: !points.length || edges.length ? 'Select one or more points' : !fixable.length ? (points.includes(0) && points.length === 1 ? 'Point 1 is the sketch anchor: it is already fixed' : 'Already fixed') : null,
-    coincident, tangent: 'Select a straight edge and a circle (the edge touching it)',
+    coincident, tangent: tangentJoint === null ? tangentSelectionHint : s.tangents?.includes(tangentJoint) ? 'Already tangent' : null,
     symmetric: points.length !== 2 || lines.length !== 1 || arcs.length ? 'Select two points and a straight edge (the line they mirror across)'
       : [lines[0], (lines[0] + 1) % s.points.length].some(i => points.includes(i)) ? 'The points must not be the edge’s own ends'
         : hasRule(s, r => r.kind === 'symmetric' && r.line === lines[0] && ((r.a === points[0] && r.b === points[1]) || (r.a === points[1] && r.b === points[0]))) ? 'Already symmetric' : null,
@@ -198,7 +211,12 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
       return checkEdit({ ...s, hv, rules: [...rules, ...add.map((i): SketchRule => ({ kind: 'fix', point: i, at: [...s.points[i]] as P2 }))] }, s,
         `Fix ${list(add.map(i => `point ${i + 1}`))}`);
     }
-    case 'tangent': return { ok: false, reason: 'Select a straight edge and a circle (the edge touching it)' };
+    case 'tangent': {
+      const joint = selectedLineArcJoint(s, picks);
+      if (joint === null) return { ok: false, reason: tangentSelectionHint };
+      const tangents = [...(s.tangents ?? []), joint].sort((a, b) => a - b);
+      return checkEdit({ ...s, hv, tangents }, s, `Tangent at point ${joint + 1}`);
+    }
     case 'coincident':
       if (arcs.length === 2) return checkEdit({ ...s, hv, concentric: [...(s.concentric ?? []), pairOf(arcs[0], arcs[1])] }, s, `Concentric ${edgeName(s, arcs[0])} and ${edgeName(s, arcs[1])}`);
       return checkEdit({ ...s, hv, rules: [...rules, { kind: 'coincident', point: points[0], arc: arcs[0] }] }, s, `Point ${points[0] + 1} on the centre of arc ${arcs[0] + 1}`);

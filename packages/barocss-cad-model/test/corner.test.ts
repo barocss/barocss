@@ -9,7 +9,7 @@ import { planPinnedLineArcRadiusEdit } from '../src/sketch/internal/pinnedLineAr
 import { profileOf } from '../src/sketch/loops';
 import { arcOf, type P2 } from '../src/sketch/profile';
 import { sketchShapes } from '../src/sketch/reopen';
-import { checkEdit, commitDimension, commitInlineDimension, removeConstraint, type Polygon } from '../src/sketch/rules';
+import { applyConstraint, checkEdit, commitDimension, constraintOptions, commitInlineDimension, removeConstraint, type Polygon } from '../src/sketch/rules';
 import { settleShape } from '../src/sketch/settle';
 
 test('rounding a corner: an arc tangent to both edges, ends cut back, constraints renumbered', () => {
@@ -516,4 +516,31 @@ test('line–arc Round refuses unpinned, ambiguous and unsupported profiles with
 
   // On the open reverse chain, the last point has an incoming arc and no outgoing side.
   refused({ ...reversedPinned(), closed: false }, 3, /between two edges/);
+});
+
+test('selected adjacent line and arc restore the same Round tangent joint', () => {
+  for (const reverse of [false, true]) {
+    const rounded = roundCorner(reverse ? reversedPinned() : pinned(), reverse ? 3 : 1, 4);
+    if ('error' in rounded) assert.fail(rounded.error);
+    const line = reverse ? 4 : 0, arc = reverse ? 3 : 1, joint = reverse ? 4 : 1;
+    const outline = removeConstraint(rounded.shape, `tan:${joint}`);
+    const pick = (i: number) => ({ kind: 'edge' as const, i });
+    for (const pair of [[pick(line), pick(arc)], [pick(arc), pick(line)]]) {
+      assert.equal(constraintOptions(outline, pair).tangent, null);
+      const restored = applyConstraint(outline, pair, 'tangent');
+      if (!restored.ok) assert.fail(restored.reason);
+      assert.deepEqual(restored.shape.tangents, rounded.shape.tangents);
+      assert.equal(constraintOptions(restored.shape, pair).tangent, 'Already tangent');
+      checkRoundedGeometry(restored.shape, 4, 1, 20, 20, reverse);
+    }
+    for (const invalid of [[pick(arc), pick(arc)], [pick(arc), pick(0 === line ? 4 : 0)], [pick(arc), pick(7)], [pick(arc), pick(2)]]) {
+      assert.ok(constraintOptions(outline, invalid).tangent);
+      assert.equal(applyConstraint(outline, invalid, 'tangent').ok, false);
+    }
+  }
+  const wrap: Polygon = { kind: 'polygon', closed: true, points: [[4, 0], [40, 0], [40, 30], [0, 30], [0, 4]],
+    bulges: [0, 0, 0, 0, Math.SQRT2 - 1], hv: { h: [0, 2], v: [1, 3] } };
+  const seam = applyConstraint(wrap, [{ kind: 'edge', i: 4 }, { kind: 'edge', i: 0 }], 'tangent');
+  if (!seam.ok) assert.fail(seam.reason);
+  assert.deepEqual(seam.shape.tangents, [0]);
 });
