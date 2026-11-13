@@ -1,0 +1,66 @@
+{
+  "decision": "D925",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "b8fb2b71a59512f6a183990e37afff0490f41f96",
+  "node": "22.19.0",
+  "issue": 2321,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D925-file-open",
+    "D925_SOURCE_FROZEN=1 node apps/cad-studio/test/two-point-snap-file-open-browser.mjs <external-evidence>/run01",
+    "gate.sh acquire heavy 600 D925-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs osnap",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketch-edit-identity workOwnership",
+    "node --check apps/cad-studio/test/two-point-snap-file-open-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 9,
+    "studioPass": 44,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "0d918c899683e816bb4b23e0b1b1d443c6ed7c5273eecf64d99d97359c82173b"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "679a8e4cf743bcecfc6cf9b47b2f5f00820e1c5ecf8193918ca59077f50dd32e",
+    "sourceManifestSHA256": "f610c5b5a319623d8e88c1f2b919e1ecc0c79164fdbe492f980f3f68dac0c0ae",
+    "frozenFiles": 845,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceFileSHA256": "7c8e1fe365cbacbfb1de93613c6c99e631d2dda0f51eeaf8573009ffd0e21bf9",
+    "replacementFileSHA256": "9136178ba5c5c089c85edd86666a975c4bd9ceb93f558bf3d2fa71146fc06e2a",
+    "refusedFileSHA256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+    "pendingSourceMM": [
+      7.75,
+      3.25
+    ],
+    "replacementMidpointMM": [
+      11,
+      5
+    ],
+    "replacementSecondCornerMM": [
+      18,
+      9
+    ],
+    "nativeCorners": 8,
+    "measuredVolumeMM3": 56.00000000000001,
+    "expectedVolumeMM3": 56,
+    "lengthToleranceMM": 1e-08,
+    "volumeToleranceMM3": 1e-08
+  },
+  "notRun": [
+    "full suites",
+    "type checks",
+    "build",
+    "mobile",
+    "other sketch planes",
+    "source mutation while picking",
+    "Project Open during a pending snap"
+  ]
+}
