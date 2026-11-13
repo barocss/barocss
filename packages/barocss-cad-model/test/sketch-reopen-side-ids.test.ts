@@ -140,3 +140,48 @@ test('D1096 restores authored Length only on the matching literal region', () =>
   bound.regions![0][0].start[0] = { parameter: 'X' };
   assert.equal(polygon(bound, { X: 20 }).lengths, undefined);
 });
+
+test('D1100 restores radius and tangency only on the exact literal native hole', () => {
+  const hole: SketchShape = { kind: 'polygon', closed: true,
+    points: [[4, 2], [16, 2], [18, 4], [18, 6], [16, 8], [4, 8], [2, 6], [2, 4]],
+    bulges: Array.from({ length: 8 }, (_, i) => i % 2 ? Math.tan(Math.PI / 8) : 0),
+    radii: { 1: 2, 3: 2, 5: 2, 7: 2 }, tangents: [0, 1, 2, 3, 4, 5, 6, 7], hv: { h: [0, 4], v: [2, 6] } };
+  const result = profileOf([{ kind: 'rectangle', a: [0, 0], b: [20, 10] }, hole]);
+  assert.ok('node' in result);
+  const node: SketchNode = JSON.parse(JSON.stringify(result.node));
+  const recipes = node.holeOutlines;
+  assert.equal(recipes?.length, 1);
+  const reopened = (source: SketchNode, params = {}) => {
+    const shape = sketchShapes(source, params).done[0];
+    assert.equal(shape.kind, 'polygon');
+    return shape;
+  };
+  assert.deepEqual(reopened(node).radii, hole.radii);
+  assert.deepEqual(reopened(node).tangents, hole.tangents);
+  assert.deepEqual(reopened(node).hv, hole.hv);
+  assert.deepEqual(reopenFinish(node as unknown as Node).holeOutlines, recipes);
+  const { radii: _unlocked, ...unlocked } = reopened(node);
+  const remade = profileOf([{ kind: 'rectangle', a: [0, 0], b: [20, 10] }, unlocked]);
+  assert.ok('node' in remade);
+  assert.deepEqual(reopened(remade.node).tangents, hole.tangents);
+  assert.deepEqual(reopened(remade.node).hv, hole.hv);
+  assert.equal(reopened(remade.node).radii, undefined);
+  const { holeOutlines: _, ...legacy } = node;
+  assert.equal(reopened(legacy).radii, undefined);
+  const recipe = recipes[0], outline = recipe.outline;
+  for (const bad of [
+    { ...recipe, sides: [...recipe.sides].reverse() },
+    { ...recipe, outline: { ...outline, bulges: outline.bulges?.map(b => -b) } },
+    { ...recipe, outline: { ...outline, tangents: [0, 8] } },
+    { ...recipe, outline: { ...outline, radii: { 1: 3 } } },
+    { ...recipe, outline: { ...outline, radii: { 1: { parameter: 'missing' } } } },
+  ]) {
+    const malformed = { ...node, holeOutlines: [bad] } as SketchNode;
+    assert.equal(reopened(malformed).radii, undefined);
+    assert.deepEqual(rebindDims(malformed, legacy).dropped, []);
+  }
+  assert.equal(reopened({ ...node, holeOutlines: [recipe, recipe] }).radii, undefined);
+  const bound = structuredClone(node);
+  bound.holes![0][0].start[0] = { parameter: 'X' };
+  assert.equal(reopened(bound, { X: 4 }).radii, undefined);
+});

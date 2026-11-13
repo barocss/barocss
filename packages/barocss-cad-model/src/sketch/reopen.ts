@@ -11,15 +11,18 @@ import type { SplineDef } from './spline';
 import { ellipseMatches, wellFormedEllipse } from './ellipse';
 import { refusal } from '../engine/refusal';
 import { matchesRegionLengths } from './internal/regionLengths';
+import { matchesHoleOutline } from './internal/holeOutline';
 
 type Params = Readonly<Record<string, number>>;
 const isRef = (v: unknown): v is { parameter: string } => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && typeof (v as { parameter?: unknown }).parameter === 'string';
 
 function withoutOutlineHints(node: SketchNode): SketchNode {
-  if (!Object.hasOwn(node, 'regionLengths') && !(node.profile === 'loop' && Object.hasOwn(node, 'slot'))) return node;
+  if (!Object.hasOwn(node, 'regionLengths') && !Object.hasOwn(node, 'holeOutlines')
+    && !(node.profile === 'loop' && Object.hasOwn(node, 'slot'))) return node;
   const geometry = { ...node };
   if (geometry.profile === 'loop') delete geometry.slot;
   delete geometry.regionLengths;
+  delete geometry.holeOutlines;
   return geometry;
 }
 
@@ -40,6 +43,7 @@ export function resolveSketchDims(node: SketchNode, params: Params = {}): Sketch
   const resolved = walk(withoutOutlineHints(node)) as SketchNode;
   if (resolved.profile === 'loop' && node.profile === 'loop' && Object.hasOwn(node, 'slot')) resolved.slot = node.slot;
   if (Object.hasOwn(node, 'regionLengths')) resolved.regionLengths = node.regionLengths;
+  if (Object.hasOwn(node, 'holeOutlines')) resolved.holeOutlines = node.holeOutlines;
   return resolved;
 }
 
@@ -255,6 +259,15 @@ function regionShape(stored: SketchNode, index: number, loop: LoopSegment[], ids
   return { ...shape, hv: { h: [...hv.h], v: [...hv.v] }, lengths: { ...recipe.lengths } };
 }
 
+function holeShape(stored: SketchNode, index: number, loop: LoopSegment[], ids: string[]): SketchShape | null {
+  const raw = stored.holes?.[index], saved = stored.sideTags?.holes?.[index];
+  if (raw && sameIds(saved, ids) && Array.isArray(stored.holeOutlines)) {
+    const matching = stored.holeOutlines.filter(recipe => Array.isArray(recipe?.sides) && sameIds(recipe.sides, ids));
+    if (matching.length === 1 && matchesHoleOutline(matching[0], raw, ids)) return outlinePolygon(structuredClone(matching[0].outline));
+  }
+  return loopShape(loop);
+}
+
 /**
  * The shapes of a sketch node: the main profile, then its other regions and holes — each with its sides' ids (R10a,
  * D86): the node's `sideTags`, or, for a node from before them, new ones in the order its loops run, with `positional`
@@ -280,7 +293,10 @@ export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: 
     const ids = idsFor(loop.length, tags?.regions?.[r], i => `region${r}.side${i}`);
     return { s: regionShape(stored, r, loop, ids), ids };
   });
-  const holes = (node.holes ?? []).map((l, h) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.holes?.[h], i => `hole${h}.side${i}`) }));
+  const holes = (node.holes ?? []).map((loop, h) => {
+    const ids = idsFor(loop.length, tags?.holes?.[h], i => `hole${h}.side${i}`);
+    return { s: holeShape(stored, h, loop, ids), ids };
+  });
   const loops = [...regions, ...holes];
   // Native rectangle sides run in canonical order; an authored outline may start at
   // another corner or run clockwise. Reattach its IDs by endpoints, not by array index.

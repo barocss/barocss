@@ -9,6 +9,7 @@ import { flattenAssembly } from '../src/engine/flatten';
 import { emptyDirect, importSource } from '../src/engine/direct';
 import { createRouteBundle, routeBundleDocumentIdentity, type CreateRouteBundleMemberInput } from '../src/engine/routeBundle';
 import { assertDrivenSketchNode } from '../src/sketch/driven';
+import { outlineSegments } from '../src/sketch/profile';
 
 const points: [number, number][] = [[0, 0], [60, 0], [60, 20], [20, 20], [20, 40], [0, 40]];
 const fixture = (): StudioDoc => ({ ...emptyDoc(), parameters: { L: 64, B: 68 }, nextId: 2, nodes: [
@@ -123,6 +124,33 @@ test('D1096 a main-outline binding retains a separate region Length through solv
   assert.equal(solved.outline?.lengths?.[0], 68);
   assert.throws(() => assertDrivenSketchNode({ ...node, seed: { ...node.seed,
     regionLengths: [{ ...source.regionLengths![0], lengths: { 0: 45 } }] } }, bound.parameters), /literal source region/);
+});
+
+test('D1100 a main-outline binding retains an exact rounded hole recipe through solve and unbind', () => {
+  const doc = fixture(), source = doc.nodes[0];
+  assert.ok(source.kind === 'sketch' && source.profile === 'loop' && source.sideTags);
+  const points: [number, number][] = [[26, 4], [34, 4], [36, 6], [36, 10], [34, 12], [26, 12], [24, 10], [24, 6]];
+  const bulges = Array.from({ length: 8 }, (_, i) => i % 2 ? Math.tan(Math.PI / 8) : 0);
+  const sides = points.map((_, i) => `e${7 + i}`);
+  const segments = outlineSegments(points, bulges);
+  source.holes = [segments];
+  source.sideTags.holes = [sides];
+  source.holeOutlines = [{ sides, outline: { points, bulges, radii: { 1: 2, 3: 2, 5: 2, 7: 2 },
+    tangents: [0, 1, 2, 3, 4, 5, 6, 7], hv: { h: [0, 4], v: [2, 6] } } }];
+  const bound = bindSketchLength(doc, 'n0', 'e1', 'L');
+  const node = bound.nodes[0];
+  assert.equal(node.kind, 'driven-sketch');
+  assert.deepEqual(node.seed.holeOutlines, source.holeOutlines);
+  const roundtrip = readStudioDoc(JSON.stringify(withParameters(bound, { L: 68 })));
+  assert.ok('doc' in roundtrip);
+  const solved = unbindSketchLength(roundtrip.doc, 'n0').nodes[0];
+  assert.equal(solved.kind, 'sketch');
+  assert.deepEqual(solved.holes, source.holes);
+  assert.deepEqual(solved.holeOutlines, source.holeOutlines);
+  assert.equal(solved.outline?.lengths?.[0], 68);
+  assert.throws(() => assertDrivenSketchNode({ ...node, seed: { ...node.seed,
+    holeOutlines: [{ ...source.holeOutlines![0], outline: { ...source.holeOutlines![0].outline, radii: { 1: 3 } } }] } }, bound.parameters),
+  /literal source hole/);
 });
 
 

@@ -1,0 +1,54 @@
+{
+  "decision": "D1100",
+  "tier": "FEATURE",
+  "parent": "e02d314f0b888961a27b846d1d1f4924e206845f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1100-rounded-sketch-offset-<run>",
+    "D1100_FIXED=1 D1100_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/<run> --outward-source",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset.test sketch-reopen driven-sketch",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/{driven,loops,reopen,internal/holeOutline}.ts packages/barocss-cad-model/src/engine/{doc,part}.ts",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 859,
+      "receiptSHA256": "dc91a524757a9e211e752fd60f4e853c0810cd5de767ee55e6b6556d09957627",
+      "sourceManifestSHA256": "c1dd0e8a1355c0157bb3ef5fd669d1bc665da4eff3f8cf6da0fab35790ee95f2",
+      "firstFailure": "After Save and Open the original hole retains the native R2 arcs but the first radius field is unlocked."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 860,
+      "receiptSHA256": "ee8e9d1f58c0543a4242403ee31164b739e2cfa845dbf65aa3bb985f36096304",
+      "sourceManifestSHA256": "5474b9047ef4f4a5122cd6e0d88bc03f2eaa9dd7e6f021e4bb60b165c64b48bf",
+      "projectFiles": [
+        {
+          "bytes": 5090,
+          "sha256": "f90d1b82ec76ed51a2e2cc58b42e2de53acd8b95edc5abb6b3ba20e7ac207aea"
+        }
+      ]
+    }
+  },
+  "offsetMM": 1,
+  "sourceArcRadiusMM": 2,
+  "newOuterArcRadiusMM": 3,
+  "sourceRadiusLocks": 4,
+  "sourceTangentLocks": 8,
+  "sourceAxisLocks": 4,
+  "volumeMM3": 597.0796326794891,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 32,
+    "modelPassed": 83,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}

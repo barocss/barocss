@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
 const nestedOffset = process.argv[3] === '--nested-offset';
+const outwardSource = process.argv[3] === '--outward-source';
 const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
@@ -33,6 +34,11 @@ const initialFiles = [
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/offset.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
+  ...(outwardSource && process.env.D1100_FIXED ? [
+    'packages/barocss-cad-model/src/sketch/internal/holeOutline.ts',
+    'packages/barocss-cad-model/src/sketch/reopen.ts',
+    'packages/barocss-cad-model/src/sketch/driven.ts',
+  ] : []),
   ...(storedInset ? [
     'apps/cad-studio/src/files/documentFile.ts',
     'apps/cad-studio/src/engine/engine.worker.ts',
@@ -53,8 +59,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: nestedOffset ? 'Refuse a third nested outline at Offset and retain the valid ring draft.'
+  name: 'rounded-sketch-offset', envFrozen: outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: outwardSource ? 'Preserve the authored source radius, tangent and H/V constraints when outward Offset makes it a hole.'
+    : nestedOffset ? 'Refuse a third nested outline at Offset and retain the valid ring draft.'
     : dependentInset ? 'Qualify the stored linked inset boundary for a retired dependent finish edge.' : insetRefusals ? 'Retain the accepted solid through malformed linked-inset files and Delete.'
     : detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
     : widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
@@ -100,10 +107,11 @@ if (requested === 'inset-plan') {
   process.exit(0);
 }
 ` : ''}
-if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
+if (['"fixture"', '"pinned"', '"rounded-locks"'].includes(process.argv[3])) {
   const b = Math.tan(Math.PI / 8), points = ${JSON.stringify(points)};
   const pins = process.argv[3] === '"pinned"'
-    ? { hv:{ h:[], v:[] }, rules:points.slice(1).map((at, index) => ({ kind:'fix', point:index+1, at })) } : {};
+    ? { hv:{ h:[], v:[] }, rules:points.slice(1).map((at, index) => ({ kind:'fix', point:index+1, at })) }
+    : process.argv[3] === '"rounded-locks"' ? { radii:{ 1:2, 3:2, 5:2, 7:2 }, hv:{ h:[0,4], v:[2,6] }, tangents:[0,1,2,3,4,5,6,7] } : {};
   const profile = profileOf([{ kind:'polygon', closed:true, points, ids:${JSON.stringify(ids)},
     bulges:[0,b,0,b,0,b,0,b], ...pins }]);
   assert.ok('node' in profile);
@@ -1114,7 +1122,7 @@ await f.run(async () => {
     });
     return context;
   };
-  const stock = await f.inspect('stock-fixture', {}, sourceEdit ? 'pinned' : 'fixture');
+  const stock = await f.inspect('stock-fixture', {}, outwardSource ? 'rounded-locks' : sourceEdit ? 'pinned' : 'fixture');
   const nativeStock = await f.inspect('stock-native', stock);
   close(nativeStock.volume, stockVolume);
   assert.equal(nativeStock.cylinders.length, 4);
@@ -1142,6 +1150,49 @@ await f.run(async () => {
     await distance.fill(String(value));
     await button(panel, 'Offset inward').click();
   };
+  if (outwardSource) {
+    assert.deepEqual(stock.nodes[0].outline.radii, { 1: 2, 3: 2, 5: 2, 7: 2 });
+    await f.snapshot('01-source-locks');
+    await distance.fill('1');
+    await button(panel, 'Offset outward').click();
+    const ring = (await f.finishSketch('02-outward-ring')).doc;
+    assert.deepEqual(ring.nodes[0].holes, [stock.nodes[0].segments]);
+    assert.deepEqual(ring.nodes[0].sideTags.holes, [ids]);
+    assert.deepEqual(ring.nodes[1], stock.nodes[1]);
+    const expected = 10 * (area(22, 12, 3) - area(20, 10, 2));
+    const inspect = async label => {
+      const native = await f.inspect(label, ring);
+      close(native.volume, expected);
+      checkCylinders(native, 2, ids);
+      checkCylinders(native, 3, ring.nodes[0].sideTags.outer);
+      f.report.observations.push({ label, volume: native.volume, faces: native.faces });
+    };
+    await inspect('outward-ring-native');
+    await f.undo();
+    await f.same(stock);
+    await f.redo();
+    await f.same(ring);
+    const bytes = await save(ring);
+    await f.newPage();
+    await open(ring, bytes);
+    await f.openFeatureEditor(1);
+    await button(f.editor(), 'Edit sketch').click();
+    const reopened = f.sketchPanel();
+    await reopened.getByLabel('Active outline', { exact: true }).selectOption('1');
+    f.phase = 'restore the source R2, tangent and H/V locks on the reopened hole';
+    await f.snapshot('03-reopened-source-hole');
+    for (const edge of [2, 4, 6, 8]) {
+      const radius = reopened.getByLabel(`Arc ${edge} radius`, { exact: true });
+      assert.equal(await radius.inputValue(), '2');
+      assert.equal(await radius.evaluate(el => el.classList.contains('locked')), true);
+    }
+    assert.equal(await reopened.getByRole('button', { name: /^Tangent at point /, pressed: true }).count(), 8);
+    assert.deepEqual(ring.nodes[0].holeOutlines?.[0]?.outline.hv, stock.nodes[0].outline.hv);
+    await f.finishSketch('04-no-op-finish');
+    await f.same(ring);
+    await inspect('outward-ring-reopened-native');
+    return;
+  }
   if (nestedOffset) {
     const before = await f.snapshot('01-stock');
     await offset(1);

@@ -9,6 +9,7 @@ import { splineMatches } from './spline';
 import { ellipseMatches } from './ellipse';
 import { bezierSamples, wellFormedBezier } from './bezier';
 import { matchesRegionLengths } from './internal/regionLengths';
+import { matchesHoleOutline } from './internal/holeOutline';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -204,5 +205,12 @@ function tagged(node: SketchNode, main: SketchShape, regions: SketchShape[], hol
     const recipe = loop && sides && regionLengthRecipe(shape, loop, sides, shape.kind === 'polygon' && !!rectangleNode(shape));
     return recipe ? [recipe] : [];
   });
-  return { ...node, sideTags: tags, ...(recipes.length ? { regionLengths: recipes } : {}) };
+  const holeOutlines = holes.flatMap((shape, i) => {
+    if (shape.kind !== 'polygon') return [];
+    const loop = node.holes?.[i], sides = tags.holes?.[i], outline = outlineOf(shape);
+    const recipe = sides && outline && { sides: [...sides], outline };
+    return loop && sides && matchesHoleOutline(recipe, loop, sides) ? [recipe] : [];
+  });
+  return { ...node, sideTags: tags, ...(recipes.length ? { regionLengths: recipes } : {}),
+    ...(holeOutlines.length ? { holeOutlines } : {}) };
 }

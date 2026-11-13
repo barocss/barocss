@@ -360,7 +360,8 @@ export interface PlanarFaceOutlineInsetAssociation {
 export interface SketchBand { version: 1; id: string; sources: string[]; offset?: Dim; width?: Dim }
 /** Driving lengths and axis locks for a secondary material loop, in its native side order. */
 export interface RegionLengths { sides: string[]; points: [number, number][]; lengths: Record<number, number>; hv: { h: number[]; v: number[] } }
-type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; regionLengths?: RegionLengths[]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
+export interface HoleOutline { sides: string[]; outline: Pick<SketchOutline, 'points' | 'bulges' | 'lengths' | 'radii' | 'tangents' | 'hv'> }
+type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; regionLengths?: RegionLengths[]; holes?: LoopSegment[][]; holeOutlines?: HoleOutline[]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -376,6 +377,7 @@ export type NumericDrivenSketchSeed = {
   sideTags: NonNullable<Extract<SketchNode, { profile: 'loop' }>['sideTags']>;
   holes?: NumericSketchValue<LoopSegment>[][]; regions?: NumericSketchValue<LoopSegment>[][];
   regionLengths?: RegionLengths[];
+  holeOutlines?: HoleOutline[];
   construction?: unknown[];
 };
 export type DrivenSketchNode = {

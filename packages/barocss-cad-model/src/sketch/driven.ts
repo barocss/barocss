@@ -8,6 +8,7 @@ import { sketchShapes } from './reopen';
 import { commitDimension } from './rules';
 import { edgeAngle } from './terms';
 import { matchesRegionLengths } from './internal/regionLengths';
+import { matchesHoleOutline } from './internal/holeOutline';
 
 type Params = Readonly<Record<string, number>>;
 type Obj = Record<string, unknown>;
@@ -178,7 +179,7 @@ function attachedCircles(seed: NumericDrivenSketchSeed): Attached[] {
     input(!used.has(key), 'attached circles must not share one original loop'); used.add(key); return match;
   });
 }
-const seedFields = ['profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction', 'regionLengths'];
+const seedFields = ['profile', 'segments', 'outline', 'holes', 'regions', 'sideTags', 'construction', 'regionLengths', 'holeOutlines'];
 const requiredSeedFields = ['profile', 'segments', 'outline', 'sideTags'];
 function assertSeed(x: unknown): asserts x is NumericDrivenSketchSeed {
   keys(x, seedFields, requiredSeedFields, 'numeric seed');
@@ -198,6 +199,15 @@ function assertSeed(x: unknown): asserts x is NumericDrivenSketchSeed {
       const owner = seed.regions?.findIndex((region, i) =>
         matchesRegionLengths(recipe, region, seed.sideTags.regions![i])) ?? -1;
       input(owner >= 0 && !used.has(owner), 'region lengths must describe a distinct literal source region');
+      used.add(owner);
+    }
+  }
+  if (x.holeOutlines !== undefined) {
+    input(Array.isArray(x.holeOutlines), 'source hole outlines must be a list');
+    const used = new Set<number>();
+    for (const recipe of x.holeOutlines) {
+      const owner = seed.holes?.findIndex((hole, i) => matchesHoleOutline(recipe, hole, seed.sideTags.holes![i])) ?? -1;
+      input(owner >= 0 && !used.has(owner), 'hole outline must describe a distinct literal source hole');
       used.add(owner);
     }
   }
@@ -264,7 +274,8 @@ export function resolveDrivenSketch(node: DrivenSketchNode, parameters: Params):
       if (!kept) throw refusal('REFUSED', 'Driven sketch: the edit changes an untouched hole or region, or loses an attached circle', { phase: 'profile' });
     }
     return { ...next, ...(node.seed.construction === undefined ? {} : { construction: copy(node.seed.construction) }),
-      ...(node.seed.regionLengths === undefined ? {} : { regionLengths: copy(node.seed.regionLengths) }), ...context(node) } as SketchNode & NodeExtras;
+      ...(node.seed.regionLengths === undefined ? {} : { regionLengths: copy(node.seed.regionLengths) }),
+      ...(node.seed.holeOutlines === undefined ? {} : { holeOutlines: copy(node.seed.holeOutlines) }), ...context(node) } as SketchNode & NodeExtras;
   } catch (cause) {
     if (isRefusal(cause)) throw cause;
     throw refusal('REFUSED', `Driven sketch: ${cause instanceof Error ? cause.message : String(cause)}`, { phase: 'resolve' });
