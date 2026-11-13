@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
-const sharpCandidate = lostCorner || process.argv[3] === '--sharp-candidate';
+const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
 const points = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
 const ids = points.map((_, i) => 'e' + (i + 1));
 const inset = [[2, 1], [18, 1], [19, 2], [19, 8], [18, 9], [2, 9], [1, 8], [1, 2]];
@@ -22,6 +23,7 @@ const initialFiles = [
   'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/offset.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
+  ...(plannedInset ? ['packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts'] : []),
   ...(lostCorner ? [
     'apps/cad-studio/src/files/documentFile.ts',
     'packages/barocss-cad-model/src/engine/references.ts',
@@ -29,12 +31,14 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: lostCorner ? 'Measure the existing cold Open rematch for a Fillet whose signed inner arc is absent.'
+  name: 'rounded-sketch-offset', envFrozen: plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: plannedInset ? 'Generate bounded inset plans from one source and verify their native Studio readback.'
+    : lostCorner ? 'Measure the existing cold Open rematch for a Fillet whose signed inner arc is absent.'
     : sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
     : sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
     : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
-  limits: [sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
+  limits: [plannedInset ? 'Plans are generated outside Studio. Studio reads their native documents without a persisted recipe.'
+    : sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
     : 'One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
   initialFiles, requiredFrozen: initialFiles,
   inspectorSource: `
@@ -46,6 +50,24 @@ import { partSnapshot } from '@barocss/cad-model/engine/part';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { captureSignatures } from '@barocss/cad-model/engine/references';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
+${plannedInset ? "import { planRoundedRectangleInset } from '../../packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts';" : ''}
+${plannedInset ? `
+const args = JSON.parse(process.argv[3] ?? 'null');
+const [requested, inset] = Array.isArray(args) ? args : [];
+if (requested === 'inset-plan') {
+  const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+  const b = Math.tan(Math.PI / 8), ids = ${JSON.stringify(ids)};
+  const source = { kind:'polygon', closed:true, points:${JSON.stringify(points)}, ids, bulges:[0,b,0,b,0,b,0,b] };
+  const mapped = new Map(ids.map((id, index) => [id, ${JSON.stringify(derivedIds)}[index]]));
+  const result = planRoundedRectangleInset(source, inset, mapped);
+  if ('error' in result) { console.log(JSON.stringify(result)); process.exit(0); }
+  const profile = profileOf([source, result.shape]);
+  assert.ok('node' in profile, JSON.stringify(profile));
+  const sketch = { ...profile.node, id:doc.nodes[0].id };
+  console.log(JSON.stringify({ doc:{ ...doc, nodes:[sketch, doc.nodes[1]] }, retiredIds:result.retiredIds }));
+  process.exit(0);
+}
+` : ''}
 if (process.argv[3] === '"fixture"' || process.argv[3] === '"pinned"') {
   const b = Math.tan(Math.PI / 8), points = ${JSON.stringify(points)};
   const pins = process.argv[3] === '"pinned"'
@@ -90,7 +112,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -99,7 +121,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -234,21 +256,32 @@ async function verifySharpCandidates(stock) {
     stock.nodes[1],
   ] });
   const rounded = nativeDoc(roundedHole, derivedIds);
+  const produced = async (value, analytic, retired) => {
+    if (!plannedInset) return analytic;
+    const planned = await f.inspect('inset-plan-' + value + '-' + f.report.observations.length, stock, ['inset-plan', value]);
+    assert.ok('doc' in planned, JSON.stringify(planned));
+    assert.deepEqual(planned.doc.nodes[0].sideTags, analytic.nodes[0].sideTags);
+    assert.deepEqual(planned.retiredIds, retired);
+    assert.deepEqual(planned.doc.nodes[0].holes[0].map(segment => segment.start), analytic.nodes[0].holes[0].map(segment => segment.start));
+    return planned.doc;
+  };
   if (lostCorner) {
     const sharp = nativeDoc([[2.5, 2.5], [17.5, 2.5], [17.5, 7.5], [2.5, 7.5]].map(start => ({ kind: 'line', start })), sharpIds);
     await verifyLostCorner(rounded, sharp);
     return;
   }
+  const retired = derivedIds.filter(tag => !sharpIds.includes(tag));
   for (const value of [1, 2, 2.5, 1]) {
-    f.phase = `Open the independently authored inset ${value} mm candidate`;
+    f.phase = `Open the ${value} mm inset ${plannedInset ? 'plan' : 'analytic candidate'}`;
     if (value === 1) {
-      await open(rounded);
-      await checkRing('candidate-rounded-' + f.report.observations.length, rounded, stock);
+      const doc = await produced(value, rounded, []);
+      await open(doc);
+      await checkRing('candidate-rounded-' + f.report.observations.length, doc, stock);
       continue;
     }
     const lo = value, hiX = 20 - value, hiY = 10 - value;
     const corners = [[lo, lo], [hiX, lo], [hiX, hiY], [lo, hiY]];
-    const sharp = nativeDoc(corners.map(start => ({ kind: 'line', start })), sharpIds);
+    const sharp = await produced(value, nativeDoc(corners.map(start => ({ kind: 'line', start })), sharpIds), retired);
     await open(sharp);
     const check = async label => {
       const actual = await f.doc();
@@ -258,7 +291,6 @@ async function verifySharpCandidates(stock) {
       assert.equal(native.cylinders.length, 4);
       checkCylinders(native, 2, ids);
       for (const tag of [...ids, ...sharpIds]) assert.ok(native.faces.includes(`n1.side[${tag}]`), tag);
-      const retired = derivedIds.filter(tag => !sharpIds.includes(tag));
       for (const tag of retired) assert.ok(!native.faces.includes(`n1.side[${tag}]`), tag);
       assert.equal(native.faces.length, 14);
       assert.equal(native.vertices.length, 24);
@@ -283,6 +315,13 @@ async function verifySharpCandidates(stock) {
     }
   }
   await f.snapshot('candidate-return-rounded');
+  if (plannedInset) {
+    for (const value of [1.995, 5]) {
+      const rejected = await f.inspect('inset-plan-refused-' + value, stock, ['inset-plan', value]);
+      assert.equal(typeof rejected.error, 'string');
+      f.report.observations.push({ label: 'private-plan-refusal', insetMm: value, refusal: rejected.error });
+    }
+  }
 }
 
 async function verifyLostCorner(rounded, sharp) {
@@ -349,6 +388,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    context.setDefaultNavigationTimeout(30000);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
