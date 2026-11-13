@@ -1,0 +1,46 @@
+{
+  "decision": "D1077",
+  "tier": "SMALL",
+  "parent": "98998a3ec15672d632063bd9537051498a8f5fe7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1077-profile-offset-<run>",
+    "D1077_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-profile-offset-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-profile-offset-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "current": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "d7d8c97d1a717aafbec3a3612ba689a53d153120399451d3486eb80d6c4d5f54",
+      "sourceManifestSHA256": "1a6726d8a2282ef1a447e271fd1989a4f7a4aa430ac284d2962291a3257c7069"
+    }
+  },
+  "point2XMm": [
+    60,
+    66
+  ],
+  "outsideMm": [
+    46,
+    25
+  ],
+  "insideMm": [
+    42,
+    21
+  ],
+  "profileOffsetMm": 2,
+  "extrudeMm": 3,
+  "volumesMm3": [
+    3000,
+    804
+  ],
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0
+  }
+}
