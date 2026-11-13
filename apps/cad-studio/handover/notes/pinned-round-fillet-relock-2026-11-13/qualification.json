@@ -1,0 +1,95 @@
+{
+  "decision": "D903",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "6b7a1880e097c7c14f3cb1313f94982578b42ebb",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D903_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/parent --fillet-relock-baseline",
+    "D903_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/fixed --fillet-relock",
+    "D892_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/source-regression --source-edit",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "PASS",
+    "productOutcome": "FAIL_ACCEPTED_EXACT_LIMIT_DRAFT",
+    "committedDocument": "RETAINED_AFTER_CANCEL",
+    "receiptSHA256": "67e2eaa5ebd302f7a897e7d93c76d4ba86e74e2194fd025ac4ed7c5d02eb7684",
+    "sourceManifestSHA256": "ec82f15dba195bf3293f72e5fe3624bb0f707c1b5e7a1178586d3b4542262ad3"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 64,
+    "studioPass": 45,
+    "fail": 0,
+    "skipped": 0,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "20324c113ee2e0e4bfb1821601b50b47d5b88ed7a87416a576939c6dbca27fd5"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Independent parent Model reproduction, exact finite-branch recognition and required remaining lock."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "8e282ad91990306805313a9c1b9f4e7279a89c9be628d13e9d764b41e67d220e",
+    "sourceManifestSHA256": "49538367d8e59d9896f94d008448add8f450099e91e0e8d4a17dfdd1a6ffca98",
+    "frozenFiles": 842,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "inlineRefusal": "PASS",
+    "panelRefusal": "PASS",
+    "unlockedFreshOpen": "PASS",
+    "reopenedRefusal": "PASS",
+    "validRelock": "PASS",
+    "undoRedo": "PASS",
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "sideTags": [
+      "e4",
+      "e3",
+      "e2",
+      "e5",
+      "e1"
+    ],
+    "expectedVolumesMm3": [
+      7091.948937557186,
+      7054.301379805951
+    ],
+    "nativeVolumesMm3": [
+      7091.948937557189,
+      7054.301379805947
+    ],
+    "savedBytes": 2275,
+    "savedSHA256": "db582668564210da074e69ba872287b16c9e7c05577c18cf8979352cfdaf6efd"
+  },
+  "sourceRegression": {
+    "status": "PASS",
+    "receiptSHA256": "e8b0439471def61ac9ad7c59d7d7e85af34a794bb9727ecd10d08417057641ca"
+  },
+  "notRun": [
+    "forward fillet re-lock in actual Studio",
+    "both locks cleared in actual Studio",
+    "oblique working planes",
+    "general Round",
+    "full suites",
+    "mobile"
+  ]
+}

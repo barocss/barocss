@@ -5,10 +5,11 @@ import { emptyDoc, withNode, type DocPlane } from '../src/engine/doc';
 import { partBreps } from '../src/engine/evaluate';
 import { partSnapshot } from '../src/engine/part';
 import { roundCorner } from '../src/sketch/corner';
+import { planPinnedLineArcRadiusEdit } from '../src/sketch/internal/pinnedLineArcRound';
 import { profileOf } from '../src/sketch/loops';
 import { arcOf, type P2 } from '../src/sketch/profile';
 import { sketchShapes } from '../src/sketch/reopen';
-import { checkEdit, commitDimension, type Polygon } from '../src/sketch/rules';
+import { checkEdit, commitDimension, commitInlineDimension, removeConstraint, type Polygon } from '../src/sketch/rules';
 import { settleShape } from '../src/sketch/settle';
 
 test('rounding a corner: an arc tangent to both edges, ends cut back, constraints renumbered', () => {
@@ -27,6 +28,11 @@ const pinned = (): Polygon => ({
   kind: 'polygon', closed: true, points: [[0, 20], [40, 20], [20, 40], [0, 40]],
   bulges: [0, Math.tan(Math.PI / 8), 0, 0], ids: ['e1', 'e2', 'e3', 'e4'],
   hv: { h: [0, 2], v: [3] }, radii: { 1: 20 }, tangents: [2], rules: [{ kind: 'fix', point: 2, at: [20, 40] }],
+});
+const reversedPinned = (): Polygon => ({
+  ...pinned(), points: [[0, 20], [0, 40], [20, 40], [40, 20]],
+  bulges: [0, 0, -Math.tan(Math.PI / 8), 0], ids: ['e4', 'e3', 'e2', 'e1'],
+  hv: { h: [1, 3], v: [0] }, radii: { 2: 20 },
 });
 const near = (actual: number, expected: number, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
@@ -279,11 +285,7 @@ test('pinned source-radius edits replan both tangencies and refuse the exact fin
 });
 
 test('reverse pinned arc–line Round preserves authored order, radii and native wall names', () => {
-  const source: Polygon = {
-    ...pinned(), points: [[0, 20], [0, 40], [20, 40], [40, 20]],
-    bulges: [0, 0, -Math.tan(Math.PI / 8), 0], ids: ['e4', 'e3', 'e2', 'e1'],
-    hv: { h: [1, 3], v: [0] }, radii: { 2: 20 },
-  };
+  const source = reversedPinned();
   const before = structuredClone(source), rounded = roundCorner(source, 3, 3);
   if ('error' in rounded) assert.fail(rounded.error);
   const first = rounded.shape;
@@ -346,6 +348,62 @@ test('reverse pinned arc–line Round preserves authored order, radii and native
   if (!relocked.ok) assert.fail(relocked.reason);
   assert.deepEqual(relocked.shape.ids, ids);
   checkRoundedGeometry(relocked.shape, 4, 1, 18, 20, true);
+});
+
+test('pinned Round guards the fillet radius when re-locking in either traversal', () => {
+  for (const reverse of [false, true]) {
+    const index = reverse ? 3 : 1, key = `rad${index}`;
+    const rounded = roundCorner(reverse ? reversedPinned() : pinned(), index, 4);
+    if ('error' in rounded) assert.fail(rounded.error);
+    const { shape: unlocked, error } = settleShape(removeConstraint(rounded.shape, `rad:${index}`), rounded.shape);
+    assert.equal(error, null);
+    assert.equal(unlocked?.kind, 'polygon');
+    assert.deepEqual(unlocked.radii, { 2: 20 });
+    assert.deepEqual(unlocked.ids, rounded.shape.ids);
+    const profile = profileOf([unlocked]);
+    assert.ok('node' in profile);
+    const { shape: opened } = sketchShapes(profile.node);
+    assert.equal(opened?.kind, 'polygon');
+    assert.deepEqual(opened.radii, { 2: 20 });
+    assert.deepEqual(opened.ids, reverse ? ['e4', 'e3', 'e2', 'e5', 'e1'] : ['e1', 'e5', 'e2', 'e3', 'e4']);
+    checkRoundedGeometry(opened, 4, 1, 20, 20, reverse);
+
+    const before = structuredClone(opened);
+    for (const radius of [9.99999999, 10]) {
+      const inline = commitInlineDimension(opened, key, radius);
+      assert.ok(!inline.ok);
+      assert.match(inline.reason, /does not fit on both finite sides/);
+      const panel = settleShape({ ...opened, radii: { 2: 20, [index]: radius } }, opened);
+      assert.equal(panel.shape, opened);
+      assert.match(panel.error ?? '', /does not fit on both finite sides/);
+    }
+    assert.deepEqual(opened, before);
+
+    const radius = 5.0000004;
+    const inline = commitInlineDimension(opened, key, radius);
+    if (!inline.ok) assert.fail(inline.reason);
+    const final = settleShape(inline.shape, opened);
+    const panel = settleShape({ ...opened, radii: { 2: 20, [index]: radius } }, opened);
+    assert.equal(panel.error, null);
+    assert.equal(final.error, null);
+    assert.equal(final.shape?.kind, 'polygon');
+    assert.deepEqual(final.shape, panel.shape);
+    assert.deepEqual(final.shape.ids, opened.ids);
+    assert.deepEqual(final.shape.radii, { 2: 20, [index]: radius });
+    checkRoundedGeometry(final.shape, radius, 1, 20, 20, reverse);
+
+    const bothUnlocked = settleShape(removeConstraint(opened, 'rad:2'), opened);
+    assert.equal(bothUnlocked.error, null);
+    assert.equal(bothUnlocked.shape?.kind, 'polygon');
+    assert.deepEqual(bothUnlocked.shape.radii, {});
+    assert.equal(planPinnedLineArcRadiusEdit({ ...bothUnlocked.shape, radii: { 2: 20 } }, bothUnlocked.shape), null);
+    const sourceFirst = commitDimension(bothUnlocked.shape, 'rad2', 20);
+    if (!sourceFirst.ok) assert.fail(sourceFirst.reason);
+    assert.deepEqual(sourceFirst.shape.radii, { 2: 20 });
+    const second = commitInlineDimension(sourceFirst.shape, key, 10);
+    assert.ok(!second.ok);
+    assert.match(second.reason, /does not fit on both finite sides/);
+  }
 });
 
 test('pinned line–arc Round keeps the radius guard when Finish allocates the largest safe side ID', () => {

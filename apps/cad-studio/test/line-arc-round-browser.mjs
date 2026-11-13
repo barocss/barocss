@@ -5,7 +5,9 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const mode = process.argv[3], fixed = mode === '--fixed';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
-const reversed = mode === '--reversed' || mode === '--reversed-baseline';
+const relockBaseline = mode === '--fillet-relock-baseline';
+const filletRelock = relockBaseline || mode === '--fillet-relock';
+const reversed = mode === '--reversed' || mode === '--reversed-baseline' || filletRelock;
 const reversedBaseline = mode === '--reversed-baseline';
 const measureArea = mode === '--measure-area';
 const sourceMeasure = mode === '--source-measure' || measureArea;
@@ -30,10 +32,11 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
+  qualification: filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
+    : reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
     : measureArea ? 'Verify analytic native wall area and the display-mesh fallback in Measure.'
     : sourceMeasure ? 'Measure the two named cylindrical faces of a pinned round across source-radius changes.'
     : sourceEdit ? 'Edit the source radius of a pinned round and verify native contacts and history.'
@@ -527,7 +530,7 @@ async function checkReversedRound() {
   await open(doc);
   await edit();
   f.phase = 'round an incoming native arc and outgoing line';
-  await applyRound([40, 20], 3);
+  await applyRound([40, 20], filletRelock ? 4 : 3);
   const alert = () => f.sketchPanel().getByRole('alert');
   if (reversedBaseline) {
     await alert().waitFor();
@@ -581,6 +584,85 @@ async function checkReversedRound() {
   await field(4).waitFor();
   assert.equal(await alert().count(), 0);
   await fullyDefined();
+  if (filletRelock) {
+    const r4 = (await f.finishSketch('01-relock-start-R4')).doc;
+    await check('relock-start-R4', r4, 4);
+    await edit();
+    const before = await f.snapshot('02-relock-before-clear');
+    const radius = () => field(4);
+    const locked = () => radius().evaluate(input => input.classList.contains('locked'));
+    const preserved = (accepted, current) => {
+      assert.deepEqual(current.doc, accepted.doc);
+      assert.deepEqual(current.history, accepted.history);
+      assert.equal(current.dirty, accepted.dirty);
+    };
+    f.phase = 'clear the fillet radius lock';
+    await radius().fill('');
+    assert.equal(await locked(), false);
+    assert.equal(await alert().count(), 0);
+    const unlocked = await f.snapshot('03-relock-unlocked');
+    preserved(before, unlocked);
+    const reference = () => f.page.locator('g.dim:not(.driving) .dim-text').getByText('R4', { exact: true });
+    const reenter = async value => {
+      await reference().dblclick();
+      const input = f.page.locator('.dim-editor input');
+      await input.fill(String(value));
+      await input.press('Enter');
+      await input.waitFor({ state: 'hidden' });
+    };
+    f.phase = 'try exact-limit R10 through the on-canvas reference';
+    await reenter(10);
+    if (relockBaseline) {
+      const observed = await f.snapshot('04-relock-parent-accepted-R10');
+      assert.equal(await radius().inputValue(), '10');
+      assert.equal(await locked(), true);
+      assert.equal(observed.roundError, null);
+      preserved(before, observed);
+      f.report.observations.push({ label: 'fillet-relock-parent', outcome: 'ACCEPTED_DRAFT', filletRadiusMm: 10 });
+      await cancel();
+      await f.same(r4);
+      return;
+    }
+    async function checkRefusal(label, accepted) {
+      await alert().getByText(/R10 does not fit/).waitFor();
+      assert.equal(await locked(), false);
+      const refused = await f.snapshot(label);
+      preserved(accepted, refused);
+      assert.deepEqual(refused.outlineInputs, accepted.outlineInputs);
+    }
+    await checkRefusal('04-relock-inline-refused', unlocked);
+    f.phase = 'try exact-limit R10 through the panel';
+    await radius().fill('10');
+    await checkRefusal('05-relock-panel-refused', unlocked);
+    const savedUnlocked = (await f.finishSketch('06-relock-finish-unlocked')).doc;
+    assert.deepEqual(savedUnlocked.nodes[0].outline.radii, { 2: 20 });
+    assert.deepEqual(savedUnlocked.nodes[0].segments, r4.nodes[0].segments);
+    assert.deepEqual(savedUnlocked.nodes[0].sideTags, r4.nodes[0].sideTags);
+    await f.undo();
+    await f.same(r4);
+    await f.redo();
+    await f.same(savedUnlocked);
+    const bytes = await save(savedUnlocked);
+    await f.newPage();
+    await open(savedUnlocked, bytes);
+    await edit();
+    assert.equal(await locked(), false);
+    const reopened = await f.snapshot('07-relock-reopened-unlocked');
+    await reenter(10);
+    await checkRefusal('08-relock-reopened-refused', reopened);
+    await reenter(5);
+    assert.equal(await radius().inputValue(), '5');
+    assert.equal(await locked(), true);
+    assert.equal(await alert().count(), 0);
+    await fullyDefined();
+    const r5 = (await f.finishSketch('09-relock-accepted-R5')).doc;
+    await check('relock-accepted-R5', r5, 5);
+    await f.undo();
+    await f.same(savedUnlocked);
+    await f.redo();
+    await f.same(r5);
+    return;
+  }
   const r3 = (await f.finishSketch('01-reversed-R3')).doc;
   await check('R3', r3, 3);
   await edit();

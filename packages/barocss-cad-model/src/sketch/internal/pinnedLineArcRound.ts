@@ -165,20 +165,23 @@ export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number)
   };
 }
 
-function roundRecipe(s: Polygon, reverse: boolean, allowUnlockedSource = false) {
+function roundRecipe(s: Polygon, reverse: boolean, relockIndex?: 1 | 2 | 3) {
   const filletIndex = reverse ? 3 : 1, tangents = reverse ? [2, 3, 4] : [1, 2, 3];
+  const radii = s.radii;
   if (!ordinaryOutline(s, 5) || !supportedIds(s.ids, 5, filletIndex)
-    || s.tangents?.length !== 3 || !tangents.every(j => s.tangents!.includes(j))
-    || !s.radii || typeof s.radii[filletIndex] !== 'number') return null;
-  const unlocked = allowUnlockedSource && s.radii[2] === undefined && Object.keys(s.radii).length === 1;
-  if (!unlocked && (Object.keys(s.radii).length !== 2 || typeof s.radii[2] !== 'number')) return null;
+    || s.tangents?.length !== 3 || !tangents.every(j => s.tangents!.includes(j)) || !radii) return null;
+  const unlocked = relockIndex !== undefined && radii[relockIndex] === undefined;
+  if (Object.keys(radii).length !== (unlocked ? 1 : 2)) return null;
   const fix = reverse ? supportedPins(s, 2, [1, 4], 0) : supportedPins(s, 3, [0, 3], 4);
   if (!fix) return null;
   const direction = roundDirection(s.bulges, reverse);
-  // An unlocked source can be re-locked only after its actual arc proves the prior finite branch.
-  const sourceRadius = unlocked && direction
-    ? arcOf(s.points[2], s.points[3], s.bulges![2]).radius : s.radii[2];
-  return { end: fix.at, radius: s.radii[filletIndex], sourceRadius, direction };
+  // The caller must still prove the old finite branch with this measured radius.
+  const measured = unlocked && direction
+    ? arcOf(s.points[relockIndex], s.points[relockIndex + 1], s.bulges![relockIndex]).radius : undefined;
+  const radius = unlocked && relockIndex === filletIndex ? measured : radii[filletIndex];
+  const sourceRadius = unlocked && relockIndex === 2 ? measured : radii[2];
+  if (typeof radius !== 'number' || typeof sourceRadius !== 'number') return null;
+  return { end: fix.at, radius, sourceRadius, direction };
 }
 
 /** Recognize the persisted pinned geometry before guarding a radius-only edit. */
@@ -187,7 +190,7 @@ export function planPinnedLineArcRadiusEdit(candidate: Polygon, prev: Polygon): 
   const filletChanged = candidate.radii?.[filletIndex] !== prev.radii?.[filletIndex];
   const sourceChanged = candidate.radii?.[2] !== prev.radii?.[2];
   if (filletChanged === sourceChanged || !candidate.ids?.every((id, i) => id === prev.ids?.[i])) return null;
-  const old = roundRecipe(prev, reverse, sourceChanged), next = roundRecipe(candidate, reverse);
+  const old = roundRecipe(prev, reverse, sourceChanged ? 2 : filletIndex), next = roundRecipe(candidate, reverse);
   if (!old?.direction || !next || distance(next.end, old.end) !== 0 || !validRadius(old.radius)) return null;
   const carrier = carrierOf(prev.points[0], old.end, old.sourceRadius, old.direction, reverse);
   const current = carrier && planRound(carrier, old.radius);
