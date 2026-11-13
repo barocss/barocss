@@ -1,0 +1,78 @@
+{
+  "decision": "D927",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "799d828c273b4881e8b1600c9249dc492ed3ccf0",
+  "issue": 2337,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D927-measure",
+    "D927_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/run03",
+    "gate.sh acquire heavy 600 D927-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure references",
+    "cd apps/cad-studio && node scripts/test.mjs document-file workOwnership",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "driverFailures": [
+    {
+      "status": "FAIL",
+      "reason": "Pick before rotated view rendered; same face twice",
+      "receiptSHA256": "6424225d431b24bf90a507d6a4c14692ef5d4f9fde6063cbad660b02aa97a3f6"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Top camera-side check after edit with insufficient framing",
+      "receiptSHA256": "3c9ed4ea199bdb0f5b2a4253b354f1fdf4482f7a8cf8812a7f73c9b492e3629e"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 52,
+    "studioPass": 12,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "af29b3974fa9955862e807146d3819f9a0735f422188c4158b734c20ba1a88e2"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "52b1aa45941c55159a6eea2513aca45f599115203060f8643e0e2945cd392a84",
+    "sourceManifestSHA256": "fd706cdb09a2d760b79182d5e9a5705098de4ad076758fdb16a1ad2593beefb7",
+    "frozenFiles": 847,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceSHA256": "7a07c55ac6b0d72167b4167f45fa840fa44b21ea97116e2a1eba5c79f012e9f8",
+    "freshOpenSHA256": "c0b5a87dd0dbbb22160cb92289ae2ad0a4e030938dee2f1f36a44567abf13313",
+    "distanceAndNormalDistanceMM": [
+      8,
+      13.25,
+      8,
+      13.25,
+      13.25
+    ],
+    "nativeVolumeMM3": [
+      1920.0000000000007,
+      3180.000000000001
+    ],
+    "expectedVolumeMM3": [
+      1920,
+      3180
+    ],
+    "volumeToleranceMM3": 1e-08,
+    "faceAreaMM2": 240
+  },
+  "notRun": [
+    "pinning",
+    "edits while pinned",
+    "stale target refusal",
+    "native Save",
+    "full suites",
+    "type checks",
+    "build",
+    "mobile"
+  ]
+}
