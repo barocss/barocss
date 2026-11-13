@@ -1,4 +1,5 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { drawingOccurrencePath } from '@barocss/cad-model/drawing/dimensionReferences';
 import type { Resolved } from '@barocss/cad-model/drawing/dimensions';
 import { dimensionEdgeNames } from '@barocss/cad-model/drawing/dimensionReferences';
 
@@ -11,8 +12,8 @@ export function occurrenceLosses(dimensions: readonly Resolved[], instances: Stu
     const owners = new Set<string>();
     for (const edge of dimensionEdgeNames(result.dim)) {
       if (typeof edge !== 'string') continue;
-      const first = edge.split('|', 1)[0], slash = first.lastIndexOf('/');
-      if (slash > 0) owners.add(first.slice(0, slash));
+      const path = drawingOccurrencePath(edge);
+      if (path) owners.add(path);
     }
     const reasons = new Set<string>();
     for (const owner of owners) {

@@ -43,7 +43,8 @@ import { DETAIL_PARENTS, type DetailParent, type DrawingDetail } from '@barocss/
 import { DetailsList } from './drawing/DetailsList';
 import { clipProjectionOutside } from '@barocss/cad-model/drawing/breaks';
 import { occurrenceLosses, occurrenceLossText } from './drawing/occurrenceLoss';
-import { diameterRims, rimOccurrence } from './drawing/diameterRims';
+import { drawingOccurrencePath } from '@barocss/cad-model/drawing/dimensionReferences';
+import { diameterRims } from './drawing/diameterRims';
 import { Button } from '@/components/ui/button';
 import { BreaksList } from './drawing/BreaksList';
 import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
@@ -80,6 +81,12 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'detail', label: 'Detail view', icon: 'zoom_in', key: 'E', hint: 'Click the centre of what to enlarge on a view or a section, then how far its circle reaches' },
   { tool: 'datum-target', label: 'Datum target', icon: 'my_location', key: 'T', hint: 'Choose point, line or area under Datum targets. Point: click a straight edge endpoint. Line: click its two ends. Area: click its centre. Then place the target symbol.' },
 ];
+type DiameterReattachment = {
+  original: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>;
+  settings: DrawingSettings;
+  projection: DrawingViews;
+  candidate?: { edge: string; near: Vec3; label: string; diameter: number };
+};
 type DetailMove = { detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc; parentSheet: number };
 type Pending =
   | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settingsKey: string; sourceDoc: StudioDoc; model: StudioDoc }
@@ -147,9 +154,25 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [rimChoice, setRimChoice] = useState<{ view: DimView; projection: DrawingViews; settings: DrawingSettings; rims: readonly ProjectedEdge[] } | null>(null);
   const currentRimChoice = tool === 'diameter' && views && !busy && rimChoice?.projection === views && rimChoice.settings === settings ? rimChoice : null;
   const rimLabel = (edge: ProjectedEdge) => {
-    const id = rimOccurrence(edge), instance = model.instances?.find(part => part.id === id);
-    return id ? (instance ? `${instance.name} (${id})` : id) : 'Base part';
+    const path = drawingOccurrencePath(edge.name);
+    if (!path) return 'Base part';
+    let instances = model.instances, label = path;
+    for (const id of path.split('/')) {
+      const instance = instances?.find(part => part.id === id);
+      if (!instance) return path;
+      label = instance.name;
+      instances = instance.doc.instances;
+    }
+    return `${label} (${path})`;
   };
+  const [reattach, setReattach] = useState<DiameterReattachment | null>(null);
+  const currentReattachment = tool === 'diameter' && !busy && reattach?.projection === views && reattach.settings === settings ? reattach : null;
+  useEffect(() => {
+    if (!reattach || currentReattachment) return;
+    setReattach(null);
+    setRimChoice(null);
+    if (tool === 'diameter') setTool('select');
+  }, [reattach, currentReattachment, tool]);
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
   const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
   const [targetDraft, setTargetDraft] = useState<DatumTargetDraft>(DEFAULT_TARGET_DRAFT);
@@ -178,7 +201,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [typeNote, shownNote]);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
-    setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setRimChoice(null); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+    setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setRimChoice(null); if (reattach) setTool('select'); setReattach(null); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey, current]);
 
   const lostOccurrences = useMemo(() => scope.kind === 'assembly' && sheet ? occurrenceLosses(sheet.dimensions, model.instances) : [], [scope.kind, sheet, model.instances]);
@@ -380,7 +403,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (why) { setMessage(why.message); return false; }
     onChange({ ...settings, datumTargets }); setPending(null); setTargetChoices([]); return true;
   };
-  const cancel = () => { setRimChoice(null); setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
+  const cancel = () => { setReattach(null); setRimChoice(null); setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
   const chooseTarget = (target: DrawingDatumTarget, moving = false) => {
     setSelectedFrame(null);
     if (reselectTarget && !moving) {
@@ -430,9 +453,43 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     chooseTarget({ ...head, kind: 'area', area });
   };
 
+  const startReattachment = (id: string) => {
+    const originals = settings.dimensions.filter(dim => dim.id === id);
+    const original = originals[0];
+    if (!views || busy || originals.length !== 1 || wholeSettings.dimensions.filter(dim => dim.id === id).length !== 1
+      || original.kind !== 'diameter' || original.view === 'iso' || !isViewId(original.view) || !lossByDimension.has(id)) return;
+    cancel();
+    setTool('diameter');
+    setSelected({ kind: 'dimension', id });
+    setReattach({ original, settings, projection: views });
+  };
+
+  const cancelReattachment = () => {
+    cancel();
+    setTool('select');
+  };
+
+  const confirmReattachment = () => {
+    if (!currentReattachment?.candidate || !views) return;
+    const { original, candidate } = currentReattachment;
+    const { sig: _sig, was: _was, ...retained } = original;
+    const next = { ...retained, edge: candidate.edge, near: candidate.near };
+    const resolved = resolveDimension(views, next);
+    if (!resolved.ok) { setMessage(resolved.reason); return; }
+    if (commitDims(settings.dimensions.map(dim => dim === original ? next : dim))) {
+      cancelReattachment();
+    }
+  };
+
   const startDiameter = (view: DimView, edge: ProjectedEdge) => {
     if (!edge.circle || !views || busy) return;
     setRimChoice(null);
+    if (currentReattachment) {
+      if (view !== currentReattachment.original.view) return;
+      setReattach({ ...currentReattachment,
+        candidate: { edge: edge.name, near: [...edge.circle.center] as Vec3, label: rimLabel(edge), diameter: 2 * edge.circle.radius } });
+      return;
+    }
     setPending({ kind: 'diameter', view, edge: edge.name, near: [...edge.circle.center] as Vec3,
       source: { projection: views, settings }, ...(scope.kind === 'assembly' ? { owner: rimLabel(edge) } : {}) });
   };
@@ -527,7 +584,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         commitDims([...settings.dimensions, dim]);
         setPending(null); return;
       }
-      if (tool === 'diameter' && currentRimChoice) return;
+      if (tool === 'diameter' && reattach && !currentReattachment) { cancelReattachment(); return; }
+      if (tool === 'diameter' && (currentRimChoice || currentReattachment?.candidate)) return;
+      if (tool === 'diameter' && currentReattachment && h.view !== currentReattachment.original.view) {
+        setMessage(`Select a rim in the ${viewLabel(currentReattachment.original.view)}.`); return;
+      }
       if (tool === 'diameter' && h.rims && h.rims.length > 1) {
         setRimChoice({ view: h.view, projection: views, settings, rims: h.rims }); return;
       }
@@ -774,7 +835,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (e.key === 'Escape') {
         setDrag(null);
         onClearReferencePreview();
-        if (pending || currentRimChoice || targetChoices.length || reselectTarget) cancel();
+        if (reattach) cancelReattachment();
+        else if (pending || currentRimChoice || targetChoices.length || reselectTarget) cancel();
         else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); }
         return;
       }
@@ -1008,7 +1070,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : pending.kind === 'diameter' && pending.owner ? `${pending.owner} · Click where the dimension goes · Esc cancels` : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (currentReattachment ? `Select a rim in the ${viewLabel(currentReattachment.original.view)} · Esc cancels` : null) ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : pending.kind === 'diameter' && pending.owner ? `${pending.owner} · Click where the dimension goes · Esc cancels` : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected?.kind === 'dimension' ? settings.dimensions.find(d => d.id === selected.id) : undefined;
   const selNote = selected?.kind === 'note' ? settings.notes?.find(n => n.id === selected.id) : undefined;
   const changeFrame = (next: DrawingSettings) => {
@@ -1049,7 +1111,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         </div>}
         <SheetTabs whole={wholeSettings} current={current} onSelect={selectSheet} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); selectSheet(sheetTotal); }} />
         <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
-          {currentRimChoice
+          {currentReattachment?.candidate
+            ? <div className="dw-rim-choice" role="group" aria-label="Confirm diameter reattachment">
+              <span>{currentReattachment.candidate.label} · Ø{Number(currentReattachment.candidate.diameter.toFixed(6))} mm</span>
+              <Button variant="ghost" onClick={cancelReattachment}>Cancel</Button>
+              <Button variant="default" onClick={confirmReattachment}>Reattach</Button>
+            </div>
+            : currentRimChoice
             ? <div className="dw-rim-choice" role="group" aria-label="Choose diameter rim">
               {currentRimChoice.rims.map(edge => <Button key={edge.name} variant="outline"
                 onClick={() => startDiameter(currentRimChoice.view, edge)}>{rimLabel(edge)}</Button>)}
@@ -1087,7 +1155,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
-        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} occurrenceReasons={lossByDimension} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} occurrenceReasons={lossByDimension} onReattach={startReattachment} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
 

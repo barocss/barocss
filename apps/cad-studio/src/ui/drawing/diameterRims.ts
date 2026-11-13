@@ -1,14 +1,9 @@
 import type { BrepProjection, ProjectedEdge, ProjectedPiece } from '@barocss/cad';
 import { closestDetailRim, edgeAt, inView, roundIn } from '@barocss/cad-model/drawing/dimensions';
-import { hostOf } from '@barocss/cad-model/engine/occurrences';
+import { drawingOccurrencePath } from '@barocss/cad-model/drawing/dimensionReferences';
 import type { XY } from '@barocss/cad-model/drawing/types';
 
 const coincidence = 1e-7;
-
-export function rimOccurrence(edge: ProjectedEdge): string | undefined {
-  const firstFace = edge.name.split('|', 1)[0];
-  return firstFace.includes('/') ? hostOf(firstFace) : undefined;
-}
 
 export function diameterRims(projection: BrepProjection, at: XY, rimTol: number, centreTol: number, visibleOnly: boolean, assembly: boolean): ProjectedEdge[] {
   const piecesOf = (edge: ProjectedEdge) => edge.pieces.filter(p => !visibleOnly || p.visible);
@@ -42,7 +37,7 @@ export function diameterRims(projection: BrepProjection, at: XY, rimTol: number,
     if (Math.hypot(u - x, v - y) > coincidence) continue;
     const pieces = atPick(piecesOf(edge));
     if (!pieces.length && edge !== selected) continue;
-    const owner = rimOccurrence(edge), visible = (pieces.length ? pieces : piecesOf(edge)).some(p => p.visible);
+    const owner = drawingOccurrencePath(edge.name), visible = (pieces.length ? pieces : piecesOf(edge)).some(p => p.visible);
     const depth = edge.circle.center.reduce((sum, value, axis) => sum + value * projection.toward[axis], 0);
     const before = byOccurrence.get(owner);
     if (!before || (visible !== before.visible ? visible : depth > before.depth || (depth === before.depth && edge.name < before.edge.name))) {

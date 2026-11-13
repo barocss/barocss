@@ -1,15 +1,16 @@
 // The drawing's DIMENSIONS (O16: split from DrawingWorkspace, on shadcn's components): each with its value, kind and view; Auto-dimension.
 import { dimensionLine } from '@barocss/cad-model/drawing/sheet';
 import { presetFor } from '@barocss/cad-model/drawing/standard';
-import type { DrawingSettings } from '@barocss/cad-model/drawing/types';
+import { isViewId, type DrawingSettings } from '@barocss/cad-model/drawing/types';
 import type { useDrawingSheet } from '../useDrawingSheet';
 import { Icon, Kbd } from '../atoms';
 import { Button } from '@/components/ui/button';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function DimensionsList({ sheet, views, layout, scope, settings, occurrenceReasons, selected, onSelect, remove, autoDimension }: {
+export function DimensionsList({ sheet, views, layout, scope, settings, occurrenceReasons, onReattach, selected, onSelect, remove, autoDimension }: {
   sheet: Sheet['sheet']; views: Sheet['views']; layout: Sheet['layout']; scope: Sheet['scope']; settings: DrawingSettings; selected: string | null;
   occurrenceReasons: ReadonlyMap<string, string>;
+  onReattach(id: string): void;
   onSelect(id: string): void; remove(id: string): void; autoDimension(): Promise<void>;
 }) {
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
@@ -22,6 +23,8 @@ export function DimensionsList({ sheet, views, layout, scope, settings, occurren
             <button type="button" className="dw-annotation-select" aria-pressed={selected === r.dim.id} onClick={() => onSelect(r.dim.id)}>
               <b>{r.ok ? dimensionLine(r, presetFor(settings)) : 'lost'}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
             </button>
+            {!r.ok && r.dim.kind === 'diameter' && r.dim.view !== 'iso' && isViewId(r.dim.view) && occurrenceReasons.has(r.dim.id)
+              && <Button variant="ghost" size="xs" aria-label={`Reattach diameter ${r.dim.id}`} onClick={() => onReattach(r.dim.id)}>Reattach</Button>}
             <Button variant="ghost" size="xs" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></Button>
           </div>)}
           {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius, <Kbd>A</Kbd> angle) and click in a view. Values come from the model in mm and follow it as it changes.</div>}

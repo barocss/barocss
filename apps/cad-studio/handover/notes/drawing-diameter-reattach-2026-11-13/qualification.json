@@ -1,0 +1,56 @@
+{
+  "decision": "D1034",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "d599d63e2e92d2f9603a1d45ef884f411e9202c7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1034-section-baseline01",
+    "D1034_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-reattach-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1034-section-studio03",
+    "D1034_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-reattach-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1034-focused",
+    "node --check apps/cad-studio/test/drawing-diameter-reattach-browser.mjs",
+    "pnpm --filter @barocss/cad-model test drawing.test drawing-scope drawing-detail assembly-steps",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip drawing-reference-candidate",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reattachActionCount": 0,
+    "receiptSHA256": "dd0385a22b01802e09e46dae01f60d8c4ddb34acbb4deeb97d3f5ec0a2df9ade",
+    "sourceManifestSHA256": "20fc91c5aa0234ddf051bdfcb623b26f8e83f3547de3e11f7d54d4b329f78b2c"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "states": 3,
+    "svgOutputs": 2,
+    "frozenFiles": 379,
+    "receiptSHA256": "adc1e401f164535b77cd6659dc97c925c9b01901ca712932637c56b84306a53e",
+    "sourceManifestSHA256": "e21ff1b1b8c8a049d058c1fa93fac541920cb03d92b6e4dc2bb2e9a76f45589c",
+    "retainedDimensionId": "d2",
+    "newOwner": "p1",
+    "newDiameterMM": 8,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 91,
+    "studioPassed": 19,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "notRun": [
+    "nested Studio reattachment",
+    "other annotation kinds and projected views",
+    "independent PDF/DXF readback",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

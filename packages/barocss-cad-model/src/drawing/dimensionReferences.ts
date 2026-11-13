@@ -7,3 +7,9 @@ export function dimensionEdgeNames(dim: DrawingDimension): (string | undefined)[
   if (dim.kind === 'pcd') return (dim.ring ?? []).map(member => member.edge);
   return [dim.edge];
 }
+
+/** The occurrence path prefix of a projected compound edge. */
+export function drawingOccurrencePath(edge: string): string | undefined {
+  const firstFace = edge.split('|', 1)[0], slash = firstFace.lastIndexOf('/');
+  return slash > 0 ? firstFace.slice(0, slash) : undefined;
+}
