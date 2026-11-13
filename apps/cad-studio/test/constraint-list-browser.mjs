@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const conflictFocus = process.argv[3] === '--conflict-focus';
 const circleDimension = process.argv[3] === '--circle-dimension';
 const pickedUndo = process.argv[3] === '--picked-undo';
 const removalFocus = process.argv[3] === '--removal-focus';
@@ -16,7 +17,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -227,7 +228,7 @@ await f.run(async () => {
     await f.same(current);
     return;
   }
-  if (removalFocus || pickedUndo) {
+  if (removalFocus || pickedUndo || conflictFocus) {
     const source = await f.inspect('source', { narrow: true });
     await f.newPage();
     await f.page.setViewportSize({ width: 1024, height: 800 });
@@ -236,6 +237,50 @@ await f.run(async () => {
     await edit(1);
     await f.tool('Select', 's');
     await f.frame([[20, 20], [20, 0]]);
+    if (conflictFocus) {
+      await kind().selectOption('Vertical');
+      await pickedOnly().check();
+      await f.tool('Dimension', 'd');
+      await f.worldClick([20, 0]);
+      await dimension().fill('42');
+      await dimension().press('Enter');
+      await dimension().waitFor({ state: 'hidden' });
+      await f.sketchPanel().getByRole('alert').getByText(/Conflict: no shape meets/).waitFor();
+      const refused = await f.snapshot('01-conflict-refused');
+      assert.deepEqual(refused.doc, source);
+      f.phase = 'focus the proven opposite length from the conflict';
+      const jump = button(f.sketchPanel(), 'Find conflicting length on edge 3');
+      assert.equal(await jump.count(), 1);
+      await jump.press('Enter');
+      await f.page.waitForFunction(() => document.activeElement?.getAttribute('data-constraint-id') === 'len:2');
+      await f.page.waitForFunction(() => {
+        const marks = [...document.querySelectorAll('.vp-overlay .inspected')];
+        return marks.length === 1 && marks[0].getAttribute('data-sketch-entity') === 'edge:2';
+      });
+      assert.equal(await kind().inputValue(), 'Length');
+      await f.snapshot('02-conflict-target');
+      await f.page.keyboard.press('Tab');
+      await f.page.keyboard.press('Enter');
+      await remove('Length edge 3 = 40').waitFor({ state: 'hidden' });
+      assert.equal(await jump.count(), 0);
+      await f.worldClick([20, 0]);
+      await dimension().fill('42');
+      await dimension().press('Enter');
+      await dimension().waitFor({ state: 'hidden' });
+      const current = (await f.finishSketch('03-conflict-recovered')).doc;
+      assert.deepEqual(current.nodes[0].outline.lengths, { 0: 42, 1: 20 });
+      assert.deepEqual(current.nodes[0].sideTags, source.nodes[0].sideTags);
+      assert.deepEqual(current.nodes[1], source.nodes[1]);
+      const result = await f.inspect('recovered-native', current);
+      assert.equal(result.valid, true);
+      assert.ok(Math.abs(result.volume - 1680) < 1e-7);
+      f.report.observations.push({ label: 'recovered-native', volumeMm3: result.volume });
+      await f.undo();
+      await f.same(source);
+      await f.redo();
+      await f.same(current);
+      return;
+    }
     await kind().selectOption('Length');
     await pickedOnly().check();
     await f.worldClick([20, 20]);

@@ -1,0 +1,61 @@
+{
+  "decision": "D1089",
+  "tier": "FEATURE",
+  "parent": "07d7b3c0d0b724003f32b9dff36d34885c772c6e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1089-constraint-conflict-focus-<run>",
+    "D1089_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --conflict-focus",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraint-inspection constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/sketch/constraintList.ts apps/cad-studio/src/ui/ConstraintList.tsx apps/cad-studio/src/ui/ConstraintTools.tsx apps/cad-studio/src/ui/SketchPanel.tsx apps/cad-studio/src/viewport/studioSketchViewportActions.ts apps/cad-studio/test/constraint-list.test.ts apps/cad-studio/test/fixed-triangle-inline-ownership.test.ts",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 857,
+      "receiptSHA256": "ba2121aed817f5ae6b1c866a14dbe8c326f2a5b4904b5466a88d1f5cd313eb9a",
+      "sourceManifestSHA256": "49254a76233ca47d3f6c9e043d0d55c1f42b8292528ba95dd050a2030730a806",
+      "firstFailure": "Studio rejects edge 1 = 42 mm but offers no action to locate the existing opposite 40 mm length."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 857,
+      "receiptSHA256": "b1a7f6d2ef6caf8b8fdbdec593ac6cb2eb826a4ef619b5f95660beb7d0485f5c",
+      "sourceManifestSHA256": "33b5ff039ad1496dcdfabdd768a556bde718dea9e93b7e344a8a2f45ccca2837"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1024,
+      800
+    ],
+    "refusedMm": 42,
+    "oppositeMm": 40,
+    "originalVolumeMm3": 1600,
+    "recoveredVolumeMm3": 1680.0000000000005
+  },
+  "lint": {
+    "scoped": "PASS",
+    "appFile": "FAIL",
+    "parentAppFile": "FAIL",
+    "existingRule": "no-unused-vars for sheet kFactor destructuring"
+  },
+  "notRun": [
+    "circle and multi-rule conflict attribution",
+    "additional widths and work planes",
+    "fresh Save and Open",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 33,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

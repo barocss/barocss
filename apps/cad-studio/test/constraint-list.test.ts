@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ELLIPSE_POINTS, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
-import { removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
-import { activeCircleDistanceRow, constraintListRows, filterConstraintList } from '../src/sketch/constraintList';
+import { commitDimension, removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
+import { activeCircleDistanceRow, constraintListRows, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
 
 const rectangle: Polygon = {
   kind: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]], closed: true, hv: { h: [0, 2], v: [1, 3] },
@@ -75,4 +75,22 @@ test('an active circle distance keeps its exact row visible without selecting ot
   assert.deepEqual(ids(filterConstraintList(rows, 'Horizontal', true, [], active)), []);
   assert.equal(activeCircleDistanceRow(shape, 'ccdx0_1'), undefined);
   assert.equal(activeCircleDistanceRow(shape, null), undefined);
+});
+
+test('the opposite length action requires a contradiction from the exact rectangle subset', () => {
+  const shape = { ...rectangle, lengths: { 0: 40, 1: 20, 2: 40 } };
+  assert.equal(opposingLengthConflict(shape, 'len0', 42), 2);
+  assert.equal(opposingLengthConflict(shape, 'len2', 38), 0);
+  assert.equal(opposingLengthConflict(shape, 'len0', 40.0000001), undefined);
+  assert.equal(opposingLengthConflict(shape, 'len0', 30000), undefined);
+  const axisDriver: Polygon = { ...rectangle, lengths: { 2: 40 },
+    rules: [{ kind: 'dx', a: 0, b: 1, value: 40 }] };
+  const attempt = 40.0000012;
+  const result = commitDimension(axisDriver, 'len0', attempt);
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.reason, /Conflict/);
+  assert.equal(opposingLengthConflict(axisDriver, 'len0', attempt), undefined);
+  assert.equal(opposingLengthConflict(shape, 'len1', 21), undefined);
+  assert.equal(opposingLengthConflict({ ...shape, hv: { h: [0, 2], v: [1] } }, 'len0', 42), undefined);
+  assert.equal(opposingLengthConflict({ ...shape, bulges: [0, 0, 0.2, 0] }, 'len0', 42), undefined);
 });

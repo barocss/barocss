@@ -19,9 +19,10 @@ function initialFilters(document: object, owner: SketchState): FilterState {
   return { document, plane: owner.plane, editNode: owner.editNode, mainIds: owner.mainIds, kind: '', pickedOnly: false };
 }
 
-export function ConstraintList({ shape, owner, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
+export function ConstraintList({ shape, owner, conflictEdge, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
   shape: Polygon;
   owner: SketchState;
+  conflictEdge?: number;
   documentScope: object;
   inspection: ConstraintInspectionStore;
   inspectedId: string | null;
@@ -30,6 +31,8 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
   onEditDim(key: string | null): void;
 }) {
   const kindControl = useRef<HTMLSelectElement>(null);
+  const listControl = useRef<HTMLDivElement>(null);
+  const focusTarget = useRef<string | null>(null);
   const [stored, setFilters] = useState(() => initialFilters(documentScope, owner));
   const inScope = stored.document === documentScope && stored.plane === owner.plane
     && stored.editNode === owner.editNode && stored.mainIds === owner.mainIds;
@@ -41,6 +44,13 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
   if (kind && !kinds.includes(kind)) kinds.push(kind);
   const activeId = activeCircleDistanceRow(shape, owner.editDim);
   const visible = filterConstraintList(rows, kind, pickedOnly, picked, activeId);
+  const conflictRow = conflictEdge === undefined ? undefined : rows.find(row => row.id === `len:${conflictEdge}`);
+  useLayoutEffect(() => {
+    const id = focusTarget.current;
+    focusTarget.current = null;
+    if (!id || id !== conflictRow?.id) return;
+    listControl.current?.querySelector<HTMLElement>(`[data-constraint-id="${id}"]`)?.focus();
+  }, [filters, conflictRow]);
   const hiddenInspection = inspectedId !== null && !visible.some(row => row.id === inspectedId);
   useLayoutEffect(() => {
     if (hiddenInspection) clearConstraintInspection(inspection, owner);
@@ -56,6 +66,11 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
   };
 
   return <>
+    {conflictEdge !== undefined && conflictRow && <button type="button" data-sketch-action className="ghost"
+      onClick={() => {
+        focusTarget.current = conflictRow.id;
+        setFilters({ ...filters, kind: conflictRow.label, pickedOnly: false });
+      }}>Find conflicting length on edge {conflictEdge + 1}</button>}
     <div className="card-title" style={{ marginTop: 10 }} role="status" aria-label="Constraint count">
       CONSTRAINTS · {visible.length}/{rows.length}
     </div>
@@ -75,7 +90,7 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
       <label className={FIELD}><span>Picked only</span><input type="checkbox" checked={pickedOnly}
         onChange={event => setFilters({ ...filters, pickedOnly: event.target.checked })} /></label>
     </div>
-    <div role="list" aria-label="Constraints" data-sketch-dimension-focus onBlur={event => leaveDimensions(event.relatedTarget)}>
+    <div ref={listControl} role="list" aria-label="Constraints" data-sketch-dimension-focus onBlur={event => leaveDimensions(event.relatedTarget)}>
       {visible.map(row => {
         const hit = row.id === activeId || constraintInvolves(row, picked);
         if (row.id === 'ellipse') return <div key={row.id} className={'cons-row' + (hit ? ' hit' : '')}

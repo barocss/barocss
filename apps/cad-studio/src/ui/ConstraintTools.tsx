@@ -24,8 +24,8 @@ const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }
 
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
 
-export function ConstraintTools({ shape: s, owner, documentScope, inspection, picked, onShape, onPicked, onEditDim }: {
-  shape: Polygon; owner: SketchState; documentScope: StudioDoc; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
+export function ConstraintTools({ shape: s, owner, conflictEdge, documentScope, inspection, picked, onShape, onPicked, onEditDim }: {
+  shape: Polygon; owner: SketchState; conflictEdge?: number; documentScope: StudioDoc; inspection: ConstraintInspectionStore; picked: readonly SketchPick[];
   onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string | null): void;
 }) {
   const [refused, setRefused] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export function ConstraintTools({ shape: s, owner, documentScope, inspection, pi
       <button type="button" data-sketch-action className="ghost" aria-label="Round the corner" onClick={() => round(point.i)}>Round</button>
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
-    <ConstraintList shape={s} owner={owner} documentScope={documentScope} inspection={inspection}
+    <ConstraintList shape={s} owner={owner} conflictEdge={conflictEdge} documentScope={documentScope} inspection={inspection}
       inspectedId={inspectedId} picked={picked} onShape={onShape} onEditDim={onEditDim} />
   </>;
 }

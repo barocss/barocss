@@ -6,6 +6,7 @@ import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, commitInlineDimension, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
+import { opposingLengthConflict } from '../sketch/constraintList';
 import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
@@ -17,6 +18,7 @@ interface SketchViewportInputs {
   currentSketchSource(): ReopenedSketchSource | undefined;
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
   setSketchError(reason: string): void;
+  setLengthConflict(reason: string, source: Polygon, edge: number): void;
   updateShape: SceneSketchActions['onSketchShape'];
   trimSketch: NonNullable<SceneSketchActions['onSketchTrim']>;
 }
@@ -35,10 +37,15 @@ function canRecoverLength(sketch: SketchState | null, opened: ReopenedSketchSour
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */
-export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
+export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
   const applyDimension = (opened: ReopenedSketchSource | undefined, source: Polygon, key: string, value: number) => {
     const result = opened ? commitInlineDimension(source, key, value) : commitDimension(source, key, value);
-    if (!result.ok) { setSketchError(result.reason); return; }
+    if (!result.ok) {
+      const edge = opposingLengthConflict(source, key, value);
+      if (edge === undefined) setSketchError(result.reason);
+      else setLengthConflict(result.reason, source, edge);
+      return;
+    }
     if (opened && isVerifiedFixedTriangleEdit(result.shape, source)) opened.recoveredLengths.add(result.shape);
     updateShape(result.shape);
   };

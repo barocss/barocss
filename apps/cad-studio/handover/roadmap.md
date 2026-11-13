@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1088 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1089 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D1088](notes/constraint-active-circle-distance-2026-11-14/README.md) keeps the edited circle-to-circle distance visible while Dimension owns the active input. Desktop QA is 19/54.
-- **Next MAIN:** D1089 / P0 desktop QA, rows 09 and 21. Replay the opposite-edge Length conflict and verify that Studio identifies and focuses the proven blocking constraint for [#2456](https://github.com/barocss/barocss/issues/2456). Continue [#2492](https://github.com/barocss/barocss/issues/2492) order.
+- **Current position:** [D1089](notes/opposite-length-conflict-focus-2026-11-14/README.md) identifies a conflicting opposite Length constraint and qualifies keyboard recovery on a rectilinear outline. Desktop QA is 19/54.
+- **Next MAIN:** D1090 / P0 desktop QA, rows 09 and 21. Reproduce direct Tangent re-addition on the shared line and arc of the saved R4 Round for [#2456](https://github.com/barocss/barocss/issues/2456). Continue [#2492](https://github.com/barocss/barocss/issues/2492) order.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
