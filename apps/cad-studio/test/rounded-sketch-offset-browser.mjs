@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
-const storedInset = detachInset || editInset || process.argv[3] === '--stored-inset';
+const storedInset = authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
 const lostCorner = process.argv[3] === '--lost-corner';
 const sharpCandidate = plannedInset || lostCorner || process.argv[3] === '--sharp-candidate';
@@ -32,11 +33,12 @@ const initialFiles = [
     'packages/barocss-cad-model/src/engine/migrate.ts',
     'packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts',
   ] : []),
-  ...(editInset || detachInset ? [
+  ...(editInset || detachInset || authorInset ? [
     'apps/cad-studio/src/App.tsx',
     'apps/cad-studio/src/ui/NodeEditor.tsx',
     'packages/barocss-cad-model/src/app/editFields.ts',
   ] : []),
+  ...(authorInset ? ['apps/cad-studio/src/app/roundedInsetCommand.ts'] : []),
   ...(plannedInset ? ['packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts'] : []),
   ...(lostCorner ? [
     'apps/cad-studio/src/files/documentFile.ts',
@@ -45,8 +47,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: detachInset ? 'Detach a rounded inset into the exact ordinary sketch at the same feature ID.'
+  name: 'rounded-sketch-offset', envFrozen: authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: authorInset ? 'Author a linked inset and direct Extrude together from one finished sketch.'
+    : detachInset ? 'Detach a rounded inset into the exact ordinary sketch at the same feature ID.'
     : editInset ? 'Edit a loaded rounded inset through its direct Extrude editor.'
     : storedInset ? 'Open and validate a versioned rounded inset through File and Project.'
     : plannedInset ? 'Generate bounded inset plans from one source and verify their native Studio readback.'
@@ -136,7 +139,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = detachInset ? 'D914-rounded-inset.bcad' : editInset ? 'D913-rounded-inset.bcad' : storedInset ? 'D912-rounded-inset.bcad' : plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = authorInset ? 'D915-rounded-inset.bcad' : detachInset ? 'D914-rounded-inset.bcad' : editInset ? 'D913-rounded-inset.bcad' : storedInset ? 'D912-rounded-inset.bcad' : plannedInset ? 'D910-planned-inset.bcad' : lostCorner ? 'D909-missing-inset-corner.bcad' : sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function chooseFile(doc, filename = name, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -148,7 +151,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = detachInset ? 'D914 rounded inset' : editInset ? 'D913 rounded inset' : storedInset ? 'D912 rounded inset' : plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = authorInset ? 'D915 rounded inset' : detachInset ? 'D914 rounded inset' : editInset ? 'D913 rounded inset' : storedInset ? 'D912 rounded inset' : plannedInset ? 'D910 planned inset' : lostCorner ? 'D909 missing inset corner' : sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -433,6 +436,10 @@ async function verifyStoredInset(stock) {
     f.report.observations.push({ label, insetMm: distance, volumeMm3: body.volume, expectedVolumeMm3: expected, derivedFaces: names });
     return body;
   };
+  if (authorInset) {
+    await verifyInsetAuthoring(stock, candidate, check);
+    return;
+  }
   if (detachInset) {
     await verifyInsetDetach(candidate, check);
     return;
@@ -709,6 +716,53 @@ async function verifyInsetDetach(candidate, check) {
   await f.sketchPanel().waitFor();
   await f.finishSketch('detached-sketch-editable');
   await f.same(last.detached);
+}
+
+async function verifyInsetAuthoring(stock, candidate, check) {
+  const source = { ...stock, nodes: [stock.nodes[0]], outputs: {}, nextId: 1 };
+  f.phase = 'Open only the finished source sketch';
+  await open(source);
+  const browser = f.page.getByRole('complementary', { name: 'Browser', exact: true });
+  const sketch = browser.getByRole('button', { name: 'Sketch 1', exact: true });
+  await sketch.click();
+  await f.page.waitForFunction(() => window.__studioSelection?.selection.sketches?.includes(0));
+  await f.snapshot('01-selected-source');
+
+  f.phase = 'Start Linked inset extrude from Create';
+  await button(f.page, 'Create').click();
+  await button(f.page, 'Linked inset extrude').click();
+  const hud = f.page.getByRole('dialog', { name: 'Linked inset extrude', exact: true });
+  const inset = hud.getByRole('spinbutton', { name: 'Inset distance', exact: true });
+  const height = hud.getByRole('spinbutton', { name: 'Extrude distance', exact: true });
+  const apply = button(hud, 'Apply');
+  await inset.fill('5');
+  await hud.getByText(/closes the rectangle/i).waitFor({ state: 'attached' });
+  assert.ok(await apply.isDisabled());
+  assert.deepEqual(await f.doc(), source);
+  assert.deepEqual((await f.bodies()).bodies, []);
+  await f.snapshot('02-refused-creation');
+
+  f.phase = 'Apply one linked inset and Extrude';
+  await inset.fill('2.5');
+  assert.equal(await height.inputValue(), '10');
+  await hud.getByText('preview', { exact: true }).waitFor();
+  await apply.click();
+  const actual = await f.changed(source).then(() => f.doc());
+  const expected = candidate(2.5);
+  assert.deepEqual(actual, expected);
+  await check('03-created-sharp', actual, 2.5);
+  await f.snapshot('03-created-sharp');
+  await f.undo();
+  await f.same(source);
+  assert.deepEqual((await f.bodies()).bodies, []);
+  await f.snapshot('04-single-undo');
+  await f.redo();
+  await check('05-single-redo', actual, 2.5);
+  const saved = await save(actual);
+  await f.newPage();
+  await open(actual, saved);
+  await check('06-authored-fresh-open', actual, 2.5);
+  await f.snapshot('06-authored-fresh-open');
 }
 
 await f.run(async () => {

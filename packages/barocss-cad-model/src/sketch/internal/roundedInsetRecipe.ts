@@ -1,5 +1,7 @@
 import { CadNumericPolicy, CadPartLimits } from '@barocss/cad';
+import { withNode } from '../../engine/doc';
 import type { LoopSegment, RoundedRectangleInsetNode, SketchNode, StudioDoc } from '../../engine/doc';
+import { nextSerial } from '../../engine/ids';
 import { refusal } from '../../engine/refusal';
 import { profileOf } from '../loops';
 import { arcOf, type P2 } from '../profile';
@@ -60,7 +62,7 @@ function sourceProfile(raw: unknown) {
       return badRecipe('a native arc center and its two endpoints do not lie on the same source circle.');
     }
   }
-  return { segments, shape: { ...shape, ids: [...sideTags.outer] } };
+  return { id: raw.id, segments, shape: { ...shape, ids: [...sideTags.outer] } };
 }
 
 function isRecipe(node: unknown): node is RoundedRectangleInsetNode & { id: string } {
@@ -141,4 +143,18 @@ export function detachRoundedInsetRecipe(doc: StudioDoc): StudioDoc {
   validateRoundedInsetDocument(doc, true);
   const sketch = resolveRoundedInsetRecipe(doc, 1);
   return { ...doc, nodes: doc.nodes.map((node, index) => index === 1 ? sketch : node) };
+}
+
+/** Create the complete saved recipe from one already-authored standalone source sketch. */
+export function createRoundedInsetExtrusion(doc: StudioDoc, insetMM: number, height: number): StudioDoc {
+  if (doc.nodes.length !== 1 || Object.keys(doc.outputs).length) return badRecipe('start with one standalone sketch and no bodies.');
+  const { id, shape } = sourceProfile(doc.nodes[0]);
+  const first = Math.max(...shape.ids.map(id => Number(id.slice(1)))) + 1;
+  const serial = nextSerial(doc);
+  if (!Number.isSafeInteger(first + 7) || !Number.isSafeInteger(serial + 2)) return badRecipe('there are not enough unused side or feature IDs.');
+  const sideMap = Object.fromEntries(shape.ids.map((id, i) => [id, `e${first + i}`]));
+  const next = withNode(withNode(doc, { kind: recipeKind, version: 1, sourceSketch: 0, sourceFeature: id, insetMM, sideMap }),
+    { kind: 'extrude', sketch: 1, height });
+  validateRoundedInsetDocument(next, true);
+  return next;
 }

@@ -5,7 +5,7 @@ import { emptyDoc, prefixDoc, type LoopSegment, type StudioDoc } from '../src/en
 import { readStudioDoc } from '../src/engine/migrate';
 import { partSnapshot, toPartDocument } from '../src/engine/part';
 import { editFields } from '../src/app/editFields';
-import { detachRoundedInsetRecipe, resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
+import { createRoundedInsetExtrusion, detachRoundedInsetRecipe, resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
 const outer = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'];
 const allInner = ['e9', 'e10', 'e11', 'e12', 'e13', 'e14', 'e15', 'e16'];
@@ -98,6 +98,24 @@ test('detaching the inset preserves the exact native input and removes only the 
     assert.deepEqual(readStudioDoc(JSON.stringify(detached)), { doc: detached, notes: [] });
   }
   assert.throws(() => detachRoundedInsetRecipe(fixture(1.995)), /minimum offset radius/);
+});
+
+test('creating the linked inset reserves one map and appends the complete graph without changing the source', () => {
+  const source = { ...prefixDoc(fixture(), 1), nextId: 25 };
+  const made = createRoundedInsetExtrusion(source, 2.5, 10);
+  assert.equal(made.nodes[0], source.nodes[0]);
+  assert.equal(made.nextId, 27);
+  assert.deepEqual(made.nodes.slice(1), [
+    { kind: 'rounded-rectangle-inset', id: 'n25', version: 1, sourceSketch: 0, sourceFeature: 'n7', insetMM: 2.5,
+      sideMap: Object.fromEntries(outer.map((id, i) => [id, allInner[i]])) },
+    { kind: 'extrude', id: 'n26', sketch: 1, height: 10 },
+  ]);
+  assert.deepEqual(made.outputs, { b26: { node: 2, side: 'solid' } });
+  assert.equal(source.nodes.length, 1);
+  assert.deepEqual(source.outputs, {});
+  assert.throws(() => createRoundedInsetExtrusion(source, 5, 10), /closes the rectangle/);
+  assert.throws(() => createRoundedInsetExtrusion(source, 1, 0), /one direct numeric Extrude/);
+  assert.throws(() => createRoundedInsetExtrusion({ ...source, nextId: Number.MAX_SAFE_INTEGER }, 1, 10), /unused side or feature IDs/);
 });
 
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {

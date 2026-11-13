@@ -50,6 +50,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
+import { LINKED_INSET_EXTRUDE } from './app/roundedInsetCommand';
 import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
@@ -365,7 +366,7 @@ export function App() {
   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
   // Parameter candidates use the normal evaluation lane before the accepted document changes.
   const parameterRequest = useRef(0);
-  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; roundedInset?: 'distance' | 'detach'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; roundedInset?: 'create' | 'distance' | 'detach'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
   const parameterEditNow = useRef(parameterEdit); parameterEditNow.current = parameterEdit;
   const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
   // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
@@ -1034,7 +1035,7 @@ export function App() {
     setDirty(true);
     return true;
   }, [doc, marker, acceptanceScope]);
-  const stageFeatureCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string; roundedInset?: 'distance' | 'detach' }, select?: string[]) => {
+  const stageFeatureCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string; roundedInset?: 'create' | 'distance' | 'detach' }, select?: string[]) => {
     if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: candidate.failureTitle ?? 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
     const edit = { ...candidate, kind: 'direct' as const, request: ++parameterRequest.current, base: doc, baseInput: evaluatedRef.current,
       accept: (accepted: StudioDoc) => { if (commit(accepted, false, false, !!candidate.roundedInset) && select) setDirectSel(select); } };
@@ -1366,6 +1367,15 @@ export function App() {
     // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
     // while the committed document evaluates).
     const next = active.cmd.build(active.ctx, active.values);
+    if (active.cmd === LINKED_INSET_EXTRUDE) {
+      if (active.ctx.doc !== doc || markerNow.current !== null || !fresh || busy || !massReady) {
+        setToast({ title: 'Linked inset not created', hint: 'Show the latest History and wait for the current sketch.', detail: '' });
+        return;
+      }
+      stageFeatureCandidate({ next, input: prefixDoc(next, next.nodes.length), failureTitle: 'Linked inset not created', roundedInset: 'create' });
+      setActive(null); setPreviewBodies(null);
+      return;
+    }
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
     const clearSelection = active.cmd.id === 'offset-face' || active.cmd.id === 'fill-feature-pattern' || active.cmd.id === 'curve-feature-pattern';
@@ -1378,7 +1388,7 @@ export function App() {
       setBodies(previewBodies); claimBodies.current = true;
     }
     setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, commit, previewBodies, bodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope, doc, evaluated, commandPreview.retire]);
+  }, [activeStore, commit, previewBodies, bodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope, doc, evaluated, commandPreview.retire, stageFeatureCandidate, fresh, busy, massReady]);
   const uploadFont = useCallback(async (key: string, file: File) => {
     const captured = activeStore.get();
     if (!captured || key !== 'font') return;
@@ -1504,6 +1514,10 @@ export function App() {
     const avail = family ? FILLET_LAUNCHER.available(ctx) : cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (variants.showing) { setToast({ title: `${cmd.label} can’t run here`, hint: `Showing ${variants.showing}: show the master to edit.`, detail: '' }); return; }
+    if (cmd === LINKED_INSET_EXTRUDE && (markerNow.current !== null || inPlaceNow.current || !fresh || busy)) {
+      setToast({ title: 'Linked inset not started', hint: 'Show the latest History of a standalone part.', detail: '' });
+      return;
+    }
     if (cmd.id === SKETCH3D_COMMAND.id) { cancel(); skel.begin(null); setSelection(emptySel); setEditNode(null); return; }
     if (cmd.id === STEPS_COMMAND.id) { cancel(); setBomOpen(false); setRebuildOpen(false); setVariantsOpen(false); setLibraryOpen(false); setParamsOpen(false); setStepsOpen(true); return; }
     if (cmd.action === 'sketch') {
@@ -1538,7 +1552,7 @@ export function App() {
       return;
     }
     // A profile seen straight on (just after sketching on it) is turned to an angle, so its pull shows.
-    if (['extrude', 'revolve', 'pipe', 'loft'].includes(cmd.id)) {
+    if (cmd === LINKED_INSET_EXTRUDE || ['extrude', 'revolve', 'pipe', 'loft'].includes(cmd.id)) {
       const [i] = pickedSketches(evaluated.nodes, selection.sketches), face = cmd.id === 'extrude' ? extrudeProfile(ctx) : null;
       const n = face ? planeOf(face.node).normal : i !== undefined ? planeOf(evaluated.nodes[i] as SketchNode).normal : null, cam = viewport.current?.camera;
       if (n && cam) { const f = cam.basis().forward; if (Math.abs(f[0] * n[0] + f[1] * n[1] + f[2] * n[2]) > 0.95) viewport.current?.setView('iso'); }
@@ -1548,7 +1562,8 @@ export function App() {
     // Loft also captures the shown document's current curves without changing its evaluated prefix.
     const startCtx: Ctx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } }
-      : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true } : ctx;
+      : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true }
+      : cmd === LINKED_INSET_EXTRUDE ? { ...ctx, doc } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, doc, selection, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
