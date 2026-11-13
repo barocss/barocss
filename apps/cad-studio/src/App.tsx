@@ -492,7 +492,9 @@ export function App() {
     const resizedRectangle = fromPanel && prev?.kind === 'rectangle' && r.shape?.kind === 'rectangle'
       && !!shapeNode(prev) && !!shapeNode(r.shape)
       && (prev.a[0] !== r.shape.a[0] || prev.a[1] !== r.shape.a[1] || prev.b[0] !== r.shape.b[0] || prev.b[1] !== r.shape.b[1]);
-    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle) && prev && r.shape) {
+    const changedCircle = fromPanel && prev?.kind === 'circle' && r.shape?.kind === 'circle'
+      && (prev.r !== r.shape.r || prev.c[0] !== r.shape.c[0] || prev.c[1] !== r.shape.c[1]);
+    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle) && prev && r.shape) {
       sketchHistory.push(outlineHistoryState(prev), outlineHistoryState(r.shape));
     }
     setSketchError(r.error);

@@ -1,0 +1,52 @@
+{
+  "decision": "D1060",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "57cd5256e5f16f599b20c5eba8c6a228df2a8580",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1060-numeric-circle-<run>",
+    "D1060_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs <external-evidence>/<run> --circle",
+    "D1059_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs <external-evidence>/rectangle",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history",
+    "node --check apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "bf4e8c964d23c93b044850ecb5f3c5a532f10a3d4a6f764507789fb3523a7060",
+      "sourceManifestSHA256": "44d7bdbedb2cb995f16dd166c996ed51b4f12dba3191c48c7988128992a4f0b7"
+    },
+    "circle": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "3d2dbd02876da7170c46274f2f3cf6ac174d55b2d377d1592beff69e71bdd962",
+      "sourceManifestSHA256": "c1c4657c30f58203fc0d089d6ad029970e5d0eafa7d4278bf58700f3ad40bf3a"
+    },
+    "rectangle": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "9507c6dabf06809fc05b93504981fa42c5d5cdade21ebc9ad14ee98d919cc5a1",
+      "sourceManifestSHA256": "c1c4657c30f58203fc0d089d6ad029970e5d0eafa7d4278bf58700f3ad40bf3a"
+    }
+  },
+  "numeric": {
+    "originalDiameterMm": 16,
+    "editedDiameterMm": 15,
+    "finishedRadiusMm": 7.5,
+    "baselineUndoDiameterMm": 15,
+    "fixedUndoDiameterMm": 16
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
