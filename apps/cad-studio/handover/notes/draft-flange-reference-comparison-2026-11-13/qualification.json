@@ -1,0 +1,42 @@
+{
+  "decision": "D1001",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "0fecf915ef55dc0178f6814c16dc898e01f1c66d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1001-draft-flange",
+    "D1001_SOURCE_FROZEN=1 node apps/cad-studio/test/draft-flange-reference-browser.mjs <external-evidence>/studio04",
+    "node --check apps/cad-studio/test/draft-flange-reference-browser.mjs",
+    "pnpm --filter @barocss/cad-model test references.test sheet.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "d98f23a2a7edaa42394214fbbcc42cf871e47c1fb9b935aa9d2253f70ac67297",
+    "sourceManifestSHA256": "33235f9d9ec74e72d4bf665cc269be58910e5806e791dfc7434ae05d269baee9",
+    "frozenFiles": 374,
+    "states": 15,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "volumeToleranceMM3": 1e-7,
+    "draftAtX30MM3": 8735.509528937302,
+    "heldDraftBodyVolumesMM3": [9000, 9000],
+    "retainedFlangeMM3": 7315.071880146629,
+    "autoMatchedFlangeMM3": 7277.571880146624,
+    "heldFlangeMM3": 5250.000000000002,
+    "confirmedFlangeMM3": 6565.071880146642
+  },
+  "earlierRuns": [
+    { "status": "FAIL", "reason": "File tab omits the extension.", "receiptSHA256": "aa4e840ec0da3217ab09d75d3c957bfaf003dcdc879b90d58393034150e12626" },
+    { "status": "FAIL", "reason": "Held Draft retains output b3.", "receiptSHA256": "b3ee1a59b7d1d121dbaa9335626ca3ad0ba63f94f5ae53bb4290e2b0307a3d13" },
+    { "status": "FAIL", "reason": "Held Flange retains output b5.", "receiptSHA256": "c1731f101786853253e08820d06176e37225cf225bdb4a4c5ca6da3a1c187a02" }
+  ],
+  "focused": { "status": "PASS", "passed": 48, "failed": 0, "typeCheck": "PASS" },
+  "widerFilter": { "status": "FAIL", "command": "pnpm --filter @barocss/cad-model test references sheet", "passed": 78, "failed": 1, "failure": "Existing ASME PDF golden HOLD in drawing-sheets.test.ts." },
+  "notRun": ["named Hole face behavior", "alternate Draft candidate", "Flange History repick", "production build", "full suites", "mobile"]
+}

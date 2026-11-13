@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1001 — compare Draft and Flange references](notes/draft-flange-reference-comparison-2026-11-13/README.md).
 - [D1000 — show the correct Hole centre axes in History](notes/hole-history-centre-axes-2026-11-13/README.md).
 - [D999 — qualify the linked inset boundary for a retired finish edge](notes/linked-inset-retired-finish-boundary-2026-11-13/README.md).
 - [D998 — replace a held finish edge from History](notes/held-finish-history-repick-2026-11-13/README.md).
