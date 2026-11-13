@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1065 — replay Sketch Split and its midpoint snaps](notes/sketch-split-draft-history-2026-11-14/README.md).
 - [D1064 — replay Sketch Extend in draft history](notes/sketch-extend-draft-history-2026-11-14/README.md).
 - [D1063 — replay Offset and Trim in one Sketch history](notes/linked-inset-offset-draft-history-2026-11-14/README.md).
 - [D1062 — restore a linked inset with coordinate Undo](notes/linked-inset-coordinate-draft-history-2026-11-14/README.md).

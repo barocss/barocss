@@ -1,0 +1,39 @@
+{
+  "decision": "D1065",
+  "tier": "SMALL",
+  "parent": "5923f4cf50276a085a6e258850d81befa7f39a39",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1065-split-<run>",
+    "D1065_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-split-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-split-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "firstFailure": "Keyboard Undo after switching to Rectangle leaves the arc split.",
+      "states": 5,
+      "frozenFiles": 381,
+      "receiptSHA256": "59c182894bfe4dbba5cc84623bcd09522f7a09cb6ed2f14347f7c8a0f14344ec",
+      "sourceManifestSHA256": "79d53022ed2310012da1a408382dc43ff3dcdf46bfb0b68991a13e43d4545e53"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 381,
+      "receiptSHA256": "6d731c4efbd408db82c825d7fa253d348c8b5c33ce3cc1dd329dffdcee827286",
+      "sourceManifestSHA256": "fa907e454aa38f68ec8fcf984825b175bea37d8be9b68de6771808dca2eb8e56"
+    }
+  },
+  "initialSweepDegrees": 270,
+  "splitSweepsDegrees": [90, 180],
+  "middleMarkerToleranceCssPx": 1,
+  "splitPointToleranceMm": 0.04,
+  "splitSweepToleranceRad": 0.003,
+  "volumeMm3": 600,
+  "absoluteVolumeToleranceMm3": 1e-8,
+  "focused": { "status": "PASS", "studioPassed": 13, "failed": 0, "typeChecks": 1 }
+}

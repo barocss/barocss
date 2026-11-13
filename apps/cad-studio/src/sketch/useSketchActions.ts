@@ -132,15 +132,12 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   };
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
-    if (!sketch) return;
-    const recorded = op !== 'split' && recordDraft;
-    if (recorded && !ownsSketch()) return;
+    if (!sketch || !ownsSketch()) return;
     const { shapes, protectedShapes } = sketchCutInputs(sketch);
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    if (recorded) { commitCutDraft(sketch, r.shapes); return; }
-    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
+    commitCutDraft(sketch, r.shapes);
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
   const makeSketchBand = (offset: number, width?: number) => {
