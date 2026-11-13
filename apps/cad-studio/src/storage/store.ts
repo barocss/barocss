@@ -23,8 +23,8 @@ export interface ProjectStore {
    * there is refused, STORAGE_CHANGED. Absent: written whatever is there.
    */
   write(path: string, bytes: Uint8Array, o?: { expect?: string | null }): Promise<{ tag: string }>;
-  /** Removes a file; none there is not an error. */
-  remove(path: string): Promise<void>;
+  /** Removes a file. If supplied, expect must match its current tag. */
+  remove(path: string, o?: { expect?: string }): Promise<void>;
 }
 
 const RESERVED = /^(con|prn|aux|nul|com\d|lpt\d)(\..*)?$/i;

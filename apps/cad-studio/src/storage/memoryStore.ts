@@ -21,6 +21,10 @@ export function memoryStore(name = 'Project'): ProjectStore & { files: Map<strin
       files.set(path, { bytes: bytes.slice(), tag });
       return { tag };
     },
-    async remove(path) { checkPath(path); files.delete(path); },
+    async remove(path, { expect } = {}) {
+      checkPath(path);
+      if (expect !== undefined && files.get(path)?.tag !== expect) throw refusal('STORAGE_CHANGED', `${path} changed since it was read`);
+      files.delete(path);
+    },
   };
 }

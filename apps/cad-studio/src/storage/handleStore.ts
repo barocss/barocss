@@ -50,8 +50,25 @@ async function walk(dir: DirHandle, prefix: string, out: StoreEntry[]): Promise<
 }
 
 export function handleStore(root: DirHandle, kind: 'folder' | 'browser'): ProjectStore {
-  // Ownership is local to this adapter and exact validated path. Separate stores/tabs and remove() are outside it.
-  const writes = new Map<string, Promise<void>>();
+  // Serialize mutations of the same path in this adapter.
+  const mutations = new Map<string, Promise<void>>();
+  const mutate = async <T>(path: string, operation: () => Promise<T>): Promise<T> => {
+    const previous = mutations.get(path);
+    let release!: () => void;
+    const done = new Promise<void>(resolve => { release = resolve; });
+    mutations.set(path, done);
+    if (previous) await previous;
+    try { return await operation(); }
+    finally {
+      if (mutations.get(path) === done) mutations.delete(path);
+      release();
+    }
+  };
+  const checkTag = async (path: string, expect: string | null | undefined) => {
+    if (expect === undefined) return;
+    const file = await fileOf(root, path);
+    if ((file ? tagOf(await file.getFile()) : null) !== expect) throw refusal('STORAGE_CHANGED', `${path} changed since it was read`);
+  };
   return {
     kind, name: root.name || 'Project',
     async list(dir) {
@@ -65,36 +82,40 @@ export function handleStore(root: DirHandle, kind: 'folder' | 'browser'): Projec
       catch (e) { if (missing(e)) return null; return denied(e, `reading ${path}`); }
     },
     async write(path, bytes, o = {}) {
-      const parts = checkPath(path), expect = o.expect, previous = writes.get(path);
-      let release!: () => void;
-      // Completion tokens never reject: an earlier failure must not poison the next request.
-      const done = new Promise<void>(resolve => { release = resolve; });
-      writes.set(path, done);
-      if (previous) await previous;
-      try {
-        if (expect !== undefined) {
-          const h = await fileOf(root, path), had = h ? tagOf(await h.getFile()) : null;
-          if (had !== expect) throw refusal('STORAGE_CHANGED', `${path} changed since it was read`);
-        }
-        const dir = await folderOf(root, parts, true);
+      const parts = checkPath(path);
+      return mutate(path, async () => {
+        await checkTag(path, o.expect);
+        const dir = (await folderOf(root, parts, true))!;
+        const name = parts[parts.length - 1];
         let h: FileHandle;
-        try { h = await dir!.getFileHandle(parts[parts.length - 1], { create: true }); } catch (e) { return denied(e, `writing ${path}`); }
-        if (!h.createWritable) throw refusal('STORAGE_UNAVAILABLE', 'this browser cannot write files here: export the project instead');
+        try { h = await dir.getFileHandle(name, { create: true }); } catch (e) { return denied(e, `writing ${path}`); }
+        // A refused first write can leave the empty file created by getFileHandle.
+        const placeholder = o.expect === null ? await h.getFile() : null;
         try {
+          if (!h.createWritable) throw refusal('STORAGE_UNAVAILABLE', 'this browser cannot write files here: export the project instead');
           const w = await h.createWritable();
           try { await w.write(bytes); await w.close(); } catch (e) { await w.abort?.().catch(() => {}); throw e; }
-        } catch (e) { return denied(e, `writing ${path}`); }
+        } catch (e) {
+          if (placeholder?.size === 0) {
+            try {
+              const current = await (await dir.getFileHandle(name)).getFile();
+              if (tagOf(current) === tagOf(placeholder)) await dir.removeEntry(name);
+            } catch { /* Report the original write failure. */ }
+          }
+          return denied(e, `writing ${path}`);
+        }
         // Read our commit's tag before allowing any later same-path writer to change it.
         return { tag: tagOf(await h.getFile()) };
-      } finally {
-        if (writes.get(path) === done) writes.delete(path);
-        release();
-      }
+      });
     },
-    async remove(path) {
-      const parts = checkPath(path), dir = await folderOf(root, parts, false);
-      if (!dir) return;
-      try { await dir.removeEntry(parts[parts.length - 1]); } catch (e) { if (!missing(e)) denied(e, `removing ${path}`); }
+    async remove(path, { expect } = {}) {
+      const parts = checkPath(path);
+      await mutate(path, async () => {
+        await checkTag(path, expect);
+        const dir = await folderOf(root, parts, false);
+        if (!dir) return;
+        try { await dir.removeEntry(parts[parts.length - 1]); } catch (e) { if (!missing(e)) denied(e, `removing ${path}`); }
+      });
     },
   };
 }

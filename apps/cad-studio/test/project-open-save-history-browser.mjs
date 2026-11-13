@@ -3,20 +3,23 @@ import { readFile } from 'node:fs/promises';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--version-baseline', '--version-fixed', '--file-controls', '--version-storage'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--version-baseline', '--version-fixed', '--file-controls', '--version-storage', '--version-first', '--version-competing-save'].includes(mode));
 const baseline = mode.endsWith('baseline');
 const version = mode.startsWith('--version');
 const storage = mode === '--version-storage';
+const firstVersion = mode === '--version-first';
+const competingSave = mode === '--version-competing-save';
 const controls = mode === '--file-controls';
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const pins = [
   'apps/cad-studio/test/project-open-save-history-browser.mjs', 'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/storage/useProject.ts', 'apps/cad-studio/src/state/workOwnership.ts',
   'apps/cad-studio/src/storage/project.ts', 'apps/cad-studio/src/storage/VersionsPanel.tsx',
+  ...(firstVersion || competingSave ? ['apps/cad-studio/src/storage/handleStore.ts', 'apps/cad-studio/src/storage/store.ts'] : []),
   ...(controls ? [stepPath, 'apps/cad-studio/src/files/useStudioDocumentFiles.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'project-open-save-history', output, envFrozen: storage ? 'D961_SOURCE_FROZEN' : controls ? 'D960_SOURCE_FROZEN' : version ? 'D959_SOURCE_FROZEN' : 'D958_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'project-open-save-history', output, envFrozen: firstVersion || competingSave ? 'D962_SOURCE_FROZEN' : storage ? 'D961_SOURCE_FROZEN' : controls ? 'D960_SOURCE_FROZEN' : version ? 'D959_SOURCE_FROZEN' : 'D958_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: storage ? 'A controlled version log write failure preserves an existing project file.' : controls ? 'Keep the correct destination across STEP, external native Open and New part history.' : version ? 'A semantic version refusal preserves the actual project file and version log.' : 'Restore the project Save destination with the exact document through Undo and Redo.',
   limits: [storage ? 'One existing OPFS part and log with a controlled log write denial.' : controls ? 'One browser project, native file Open and one retained STEP file. The download is intercepted before delivery.' : version ? 'Duplicate version name and a valid follow-up in one browser project.'
     : 'Two rectangular native parts in one browser project. Version refusal is a separate case.'],
@@ -76,6 +79,31 @@ async function projectOpen(name, doc) {
   await files().getByRole('button', { name: 'Open ' + name + '.bcad', exact: true }).click();
   await f.same(doc);
 }
+async function checkFirstVersion() {
+  const make = panel().getByRole('button', { name: 'Make version', exact: true });
+  await check('01-unsaved', a, 48, 'A', null, false);
+  await f.openFeatureEditor(1, 'Extrude');
+  await f.editor().getByLabel('Distance', { exact: true }).fill('3');
+  const { doc: edited } = await f.applyEditor(a, '02-dirty-unsaved');
+  await panel().getByRole('textbox', { name: 'Version name', exact: true }).fill('First version');
+  f.phase = 'deny the first version log write after its preliminary Save';
+  await f.page.evaluate(() => { window.__d961DenyLog = true; });
+  await make.click();
+  await f.waitToast(/The version was not kept.*STORAGE_DENIED/s);
+  assert.equal(await f.page.evaluate(() => window.__d961LogDenials), 1);
+  const failed = await f.snapshot('03-first-version-denied');
+  assert.equal(failed.active, null, 'the failed first version must release its temporary project path');
+  assert.deepEqual(failed.doc, edited);
+  assert.equal(failed.dirty, true);
+  assert.equal(await files().getByText('A.bcad', { exact: true }).count(), 0);
+  await assert.rejects(readPart('A'), /NotFoundError/);
+  await make.click();
+  await panel().getByLabel('Version First version', { exact: true }).waitFor();
+  await check('04-first-version-retried', edited, 72, 'A', 'A', false);
+  assert.deepEqual(JSON.parse(await readPart('A')), edited);
+  f.report.observations.push({ label: 'first-version-retry', fileSHA256: sha256(await readPart('A')) });
+}
+
 async function versionFlow(original) {
   const name = panel().getByRole('textbox', { name: 'Version name', exact: true });
   const make = value => name.fill(value).then(() => panel().getByRole('button', { name: 'Make version', exact: true }).click());
@@ -95,6 +123,18 @@ async function versionFlow(original) {
   const { doc: edited } = await f.applyEditor(a, '01-edit-a-after-version');
   await dirty().waitFor();
 
+  if (competingSave) {
+    f.phase = 'replace the primary file externally before the failed log write returns';
+    await f.page.evaluate(text => { window.__d962NewerBytes = text; window.__d961DenyLog = true; }, JSON.stringify(b));
+    await make('Valid name with competing Save');
+    await f.waitToast(/The version was not kept.*saved file could not be restored/s);
+    const newer = await readPart('A');
+    assert.equal(newer, JSON.stringify(b));
+    assert.equal(await readLog(), beforeLog);
+    await check('02-newer-file-preserved', edited, 72, 'A', 'A', true);
+    f.report.observations.push({ label: 'competing-file', newerSHA256: sha256(newer), logSHA256: sha256(beforeLog) });
+    return;
+  }
   if (storage) {
     f.phase = 'deny the native log write after valid version validation';
     await f.page.evaluate(() => { window.__d961DenyLog = true; });
@@ -128,7 +168,7 @@ async function versionFlow(original) {
   f.report.observations.push({ label: 'valid-version', nativeSHA256: sha256(after), logSHA256: sha256(afterLog) });
 }
 
-function denyVersionLogWrite() {
+function denyVersionLogWrite(projectName) {
   window.__d961LogDenials = 0;
   const create = FileSystemFileHandle.prototype.createWritable;
   const logs = new WeakSet();
@@ -142,6 +182,14 @@ function denyVersionLogWrite() {
     if (logs.has(this) && window.__d961DenyLog) {
       window.__d961DenyLog = false;
       window.__d961LogDenials++;
+      if (window.__d962NewerBytes) {
+        const root = await navigator.storage.getDirectory();
+        const project = await (await root.getDirectoryHandle('projects')).getDirectoryHandle(projectName);
+        const handle = await project.getFileHandle('A.bcad');
+        const newer = await create.call(handle);
+        await write.call(newer, window.__d962NewerBytes);
+        await newer.close();
+      }
       throw new DOMException('Injected log write denial', 'NotAllowedError');
     }
     return write.apply(this, args);
@@ -241,7 +289,7 @@ await f.run(async () => {
     context.setDefaultTimeout(15000);
     context.setDefaultNavigationTimeout(60000);
     if (controls) await context.addInitScript(captureNativeSave);
-    if (storage) await context.addInitScript(denyVersionLogWrite);
+    if (storage || firstVersion || competingSave) await context.addInitScript(denyVersionLogWrite, projectName);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -256,6 +304,7 @@ await f.run(async () => {
   await panel().getByRole('button', { name: 'Project in this browser', exact: true }).click();
   await panel().getByLabel('Project', { exact: true }).waitFor();
   await openNative('A', a);
+  if (firstVersion) { await checkFirstVersion(); return; }
   await save('A');
   if (version) { await versionFlow(await readPart('A')); return; }
   await openNative('B', b);

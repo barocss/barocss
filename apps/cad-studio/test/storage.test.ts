@@ -62,6 +62,10 @@ for (const [kind, make] of STORES) {
     assert.equal(await code(s.write('c.bcad', enc('x'), { expect: 'anything' })), 'STORAGE_CHANGED', 'expected a file where there is none');
     await s.write('c.bcad', enc('new'), { expect: null });
     assert.equal(await code(s.write('c.bcad', enc('again'), { expect: null })), 'STORAGE_CHANGED', 'expected none where there is one');
+    assert.equal(await code(s.remove('a.bcad', { expect: t1.tag })), 'STORAGE_CHANGED');
+    assert.equal(dec((await s.read('a.bcad'))!.bytes), 'three');
+    await s.remove('a.bcad', { expect: t2.tag });
+    assert.equal(await s.read('a.bcad'), null);
     await s.remove('c.bcad'); await s.remove('c.bcad'); await s.remove('no/such/file');
     assert.equal(await s.read('c.bcad'), null); assert.equal(await s.read('no/such/file'), null);
     for (const bad of ['', '/abs', '../up', 'a/../b', 'a//b', 'x/./y', 'con.bcad', 'a:b', 'trail.']) assert.equal(await code(s.write(bad, enc('x'))), 'STORAGE_PATH', bad);

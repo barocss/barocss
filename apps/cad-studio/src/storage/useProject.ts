@@ -329,13 +329,24 @@ export function useProject(cb: ProjectCallbacks) {
         if (!currentOpen({ ...owner, path: undefined }) || live.current.part !== path) return false;
         owner.path = path;
         const receipt = written;
-        const kept = await keepLog(store, path, next, owner, expect, previous && receipt ? async () => {
+        const kept = await keepLog(store, path, next, owner, expect, receipt ? async () => {
           try {
             // Compare the exact write receipt before restoring the previous bytes.
-            const restored = await store.write(path, previous.bytes, { expect: receipt.tag });
-            if (live.current.store === store && live.current.part === path && tags.current.part === receipt.tag) {
-              tags.current.part = restored.tag;
-              tags.current.sourceSHA256 = taskSourceSHA(previous.bytes);
+            const stillBound = () => live.current.store === store && live.current.part === path && tags.current.part === receipt.tag;
+            if (previous) {
+              const restored = await store.write(path, previous.bytes, { expect: receipt.tag });
+              if (stillBound()) {
+                tags.current.part = restored.tag;
+                tags.current.sourceSHA256 = taskSourceSHA(previous.bytes);
+              }
+            } else {
+              await store.remove(path, { expect: receipt.tag });
+              if (stillBound()) {
+                invalidateSaves();
+                tags.current = { part: null, sourceSHA256: null, log: null };
+                set({ part: null, log: null, offered: null, parts: live.current.parts.filter(file => file.path !== path) });
+                owner.path = null;
+              }
             }
             return true;
           } catch { return false; }

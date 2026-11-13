@@ -1,0 +1,53 @@
+{
+  "decision": "D962",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "91b6ff52c4d29fb26ece1d301020f4a3638298b2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D962-first-version",
+    "D962_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/parent01 --version-first",
+    "gate.sh acquire heavy 600 D962-first-and-competing",
+    "D962_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/first02 --version-first",
+    "D962_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/competing02 --version-competing-save",
+    "gate.sh acquire heavy 600 D962-focused",
+    "pnpm --filter @barocss/cad-studio-app test storage project-version-ownership project-open-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-open-save-history-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "dadec6150947212ebf713ecc23392039bae5d564ab6728fe5bd1a8349e72e7f0",
+    "intermediateFailureSHA256": "5bc0bc8343dfebf38775326b7004aa8542541290b080a062f08a12a7a1dab3b8"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "firstVersionReceiptSHA256": "05a0d8e807df308fa7accf36bec1124901e40a4f8f2e8cdfaa4ca072ca2d648d",
+    "competingWriteReceiptSHA256": "47362e68f7a8b6b9a278cb3531f0f6db29a9ca13623f1d13ce8db53dfd211fce",
+    "sourceManifestSHA256": "d0697795001c5da935c8f08b4eb81234c0461b7451fd0faa82b32b2b1779e669",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "firstVersionRetrySHA256": "b11e1edca9b8755ae64f1fa7e63e59ffc9790f19a3b73f302ce21e0ab01599bc",
+    "newerFileSHA256": "2aaae2ab1b41e7c2507f4eadb643f6737d7f9acf4f313d30b149a096e5a205cc",
+    "retainedLogSHA256": "2d554cdf76e817f76969310fa3c8a50f1baa668dc97a24231251ab95e99aa901"
+  },
+  "focusedTests": {
+    "pass": 77,
+    "fail": 0,
+    "initialRunnerFailure": "Relative fixture lookup from root; package-scoped invocation passed."
+  },
+  "notRun": [
+    "simultaneous external writers inside native check/write window",
+    "process interruption",
+    "denied cleanup",
+    "local folder projects",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
