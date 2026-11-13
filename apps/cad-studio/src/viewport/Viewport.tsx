@@ -322,7 +322,10 @@ function printViewportProps(source: Props, projection: ReturnType<typeof project
     },
     onPickChain: (body, shown) => { const ref = edge({ body, edge: shown }); if (ref) source.onPickChain?.(ref.body, ref.edge); },
     onCursor: p => source.onCursor(point(p)),
-    onContextMenu: (at, hit) => source.onContextMenu(at, { face: face(hit.face), edge: edge(hit.edge) }),
+    onContextMenu: (at, hit) => {
+      const nativeFace = face(hit.face);
+      source.onContextMenu(at, { face: nativeFace, edge: edge(hit.edge), point: nativeFace ? point(hit.point) : null });
+    },
   };
 }
 

@@ -1,0 +1,94 @@
+{
+  "decision": "D1050",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "a39636baaee9b16a496d9982b52a87ffd42307ea",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1050-hole-context-baseline01",
+    "D1050_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-context-centre-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1050-hole-context-fixed01",
+    "D1050_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-context-centre-browser.mjs <external-evidence>/fixed01",
+    "gate.sh acquire heavy 600 D1050-hole-context-checks01",
+    "D1038_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-context-pin-browser.mjs <external-evidence>/measure-context",
+    "D1010_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-face-browser.mjs <external-evidence>/section-face",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test vertex-pick-filter selection-edge",
+    "node --check apps/cad-studio/test/hole-context-centre-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "receiptSHA256": "cc6379cb6800f1cb313296d06e5f7e9e0a972046934591158d59f060e884fcd9",
+      "sourceManifestSHA256": "b092af4a141992001b7819b27e93aca8943c023f2800a791a94e7217d5ef4c52",
+      "frozenFiles": 380,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "receiptSHA256": "df650d3018504476786a9e3fbfb404ecbaafdd87495869ea0c63331da2a79bd5",
+      "sourceManifestSHA256": "51801e048389e54d50cc4caf73fee0b539087e53bcb11a476dbf1a94b7e36369",
+      "frozenFiles": 380,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    },
+    "measureContext": {
+      "status": "PASS",
+      "states": 4,
+      "receiptSHA256": "ec5b14d57d9b9a0700f74e42b3336b96cda030b232099c3be8933581b6613eb6",
+      "sourceManifestSHA256": "f911fdb2a7a67c73432f5bdc476231f33eda56ccdf82071e948c79012a3e2740",
+      "frozenFiles": 379,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    },
+    "sectionFace": {
+      "status": "PASS",
+      "states": 6,
+      "receiptSHA256": "4dea821c7cd451c639650cd4907a40d7a8ed512f4bbc4aff429414d13a45bfd4",
+      "sourceManifestSHA256": "26decac5e59cce47f7f8addec80e178262a4e6fdaceb4fd56bc5c16850d4b349",
+      "frozenFiles": 379,
+      "downloads": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "sourceChanges": 0
+    }
+  },
+  "centresMm": {
+    "priorLeftClick": [
+      9,
+      7
+    ],
+    "baselineSameAndOther": [
+      9,
+      7
+    ],
+    "fixedSame": [
+      29,
+      21
+    ],
+    "fixedOther": [
+      77,
+      12
+    ]
+  },
+  "appliedVolumesMm3": [
+    12000,
+    11497.345175425638
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

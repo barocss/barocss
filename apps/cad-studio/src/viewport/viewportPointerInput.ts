@@ -80,7 +80,7 @@ export interface ViewportPointerProps {
   /** Use projected triangle overlap for crossing boxes in the idle native Model view. */
   meshBoxCrossing?: boolean;
   onBoxSelect(bodies: number[], additive: boolean): void;
-  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null; instance?: string; instanceFace?: FaceRef; instanceMesh?: BodyResult['mesh']; instanceCap?: { body: number } }): void;
+  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; instance?: string; instanceFace?: FaceRef; instanceMesh?: BodyResult['mesh']; instanceCap?: { body: number } }): void;
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
   onSketchPick?(hit: SketchPick | null, additive: boolean): void;
   /** Band tool clicks: the index (in done, then the current shape) of the closed shape under the pointer, or null. */
@@ -866,11 +866,11 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         const packet = rendererInstances.current;
         const instanceMesh = packet?.renderer === r
           ? packet.instances.find(item => item.id === instance.id)?.bodies[instance.body]?.mesh : undefined;
-        props.onContextMenu(at, { face: null, edge: null, ...instancePickFields(instance), instanceMesh });
+        props.onContextMenu(at, { face: null, edge: null, point: null, ...instancePickFields(instance), instanceMesh });
         return;
       }
       const { face, edge } = pickAt(r, x, y);
-      propsRef.current.onContextMenu(at, { face, edge }); return;
+      props.onContextMenu(at, { face, edge, point: surfacePoint(x, y, w, h, face) }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
     if (focusPick.current) {

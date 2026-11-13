@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1050 — use the right-click point for Hole](notes/hole-context-centre-2026-11-14/README.md).
 - [D1049 — requalify crossing and window visibility](notes/window-crossing-visibility-2026-11-14/README.md).
 - [D1048 — preserve mixed Shift selections](notes/mixed-shift-pick-2026-11-14/README.md).
 - [D1047 — keep the front vertex at an exact WebGL2 silhouette tie](notes/webgl2-coincident-vertex-depth-2026-11-13/README.md).

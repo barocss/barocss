@@ -210,7 +210,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
           scene.setMenu({ at, selection: emptySel, title: target.cap ? 'SECTION CAP' : 'SECTION VIEW', viewOnly: true });
           return;
         }
-        hit = { face: target.face, edge: target.edge };
+        hit = { face: target.face, edge: target.edge, point: null };
       }
       if (hit.face && !hit.edge && !scene.section && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
       const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }
@@ -218,7 +218,8 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
         : scene.selection;
       if (hit.edge || hit.face) {
         setSelection(next);
-        if (scene.section) { setPick(null); setDirectSel([]); setInstanceSel([]); }
+        setPick(hit.point);
+        if (scene.section) { setDirectSel([]); setInstanceSel([]); }
       }
       const count = hit.edge || hit.face ? 0 : selectedBodies(next).length;
       const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : count ? `${count} BOD${count > 1 ? 'IES' : 'Y'}` : 'VIEW';
