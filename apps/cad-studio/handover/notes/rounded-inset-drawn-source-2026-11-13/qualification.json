@@ -1,0 +1,95 @@
+{
+  "decision": "D916",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "91dd4b98240c7bf6de4f695cb58efe9f113c7b56",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D916-run>",
+    "D916_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/drawn04 --drawn-inset",
+    "D915_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/author-regression --author-inset",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership model-rail",
+    "cd apps/cad-studio && node test/rounded-inset-recipe-mutations.mjs <external-evidence>/mutations",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "initialObservers": [
+    {
+      "status": "FAIL",
+      "reason": "The Sketch button locator matched both workspace mode and the model command.",
+      "receiptSHA256": "d7ceacb75887018fef09cf05ea19cade6ad700b5efd9f82beb4d315cb4ecc266"
+    },
+    {
+      "status": "FAIL",
+      "reason": "The first vertex click hit its overlapping dimension chip at the default view scale.",
+      "receiptSHA256": "9210515fd0738f814a7abec0eba6dce169577a2370a5f94cf1665dd3834cec39"
+    },
+    {
+      "status": "PASS",
+      "scope": "Studio produced the exact arc-first source and Round outline metadata.",
+      "receiptSHA256": "829c53b0b707b26cc34c72fea0cd74987f041f416c4a29d693c5145ae0a880fe"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 104,
+    "studioPass": 119,
+    "fail": 0,
+    "skipped": 0,
+    "types": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "7053bfd66d4c3f44b7d3f7cac347e1d1c3e06a145b03a0cdac64fe8ad8027e45"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Round metadata, native cyclic traversal, authored tag retention and unchanged 1e-7 mm center tolerance"
+  },
+  "mutations": {
+    "status": "PASS",
+    "controlPass": 7,
+    "killed": 5,
+    "receiptSHA256": "5c83e746479493ecfb7d060a873610fd0e6569e8aaaccaf421bc71210f188d8e"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "1f5f787ba07bbdcb623980b917816076c6d47ba2050f2f6cdd9152f4b6c8d8aa",
+    "sourceManifestSHA256": "ab24ce0dd7bfcb4f173a2387d262fe9c2de5a908baeea796589851704891cbca",
+    "frozenFiles": 846,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "distancesMM": [
+      1,
+      2.5
+    ],
+    "measuredVolumeMM3": [
+      534.2477796076936,
+      1215.6637061435915
+    ],
+    "expectedVolumeMM3": [
+      534.2477796076939,
+      1215.6637061435918
+    ],
+    "savedBytes": 3277,
+    "savedSHA256": "2864c1fd8b05fb92d308058401341e6ee6ab2482355b1d5c240da46e9ac2bc31",
+    "metadataFreeReceiptSHA256": "1006758b18d15ebf46ef58393e4d86fc970f2cb2ff822f41fc089fa12be94f9e"
+  },
+  "notRun": [
+    "linked source dimension edit",
+    "other outline constraints or planes",
+    "whole suites",
+    "mobile"
+  ]
+}

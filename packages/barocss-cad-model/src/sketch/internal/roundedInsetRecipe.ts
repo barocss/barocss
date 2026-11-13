@@ -11,7 +11,8 @@ import { planRoundedRectangleInset } from './roundedRectangleInset';
 const recipeKind = 'rounded-rectangle-inset';
 const envelopeKeys = ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs', 'nextId'];
 const recipeKeys = ['kind', 'version', 'sourceSketch', 'sourceFeature', 'insetMM', 'sideMap', 'id'];
-const sourceKeys = ['kind', 'profile', 'segments', 'sideTags', 'id', 'plane'];
+const sourceKeys = ['kind', 'profile', 'segments', 'sideTags', 'id', 'plane', 'outline'];
+const roundOutlineKeys = ['points', 'bulges', 'radii', 'tangents', 'hv'];
 const extrudeKeys = ['kind', 'sketch', 'height', 'id'];
 const tolerance = CadNumericPolicy.linearTolerance;
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -34,10 +35,36 @@ function isDefaultPlane(value: unknown): boolean {
 function nativeSegments(value: unknown): value is LoopSegment[] {
   return Array.isArray(value) && value.length === 8 && value.every((segment, i) => {
     if (!record(segment) || !finitePoint(segment.start)) return false;
-    return i % 2 === 0 ? segment.kind === 'line' && only(segment, ['kind', 'start'])
+    if (segment.kind === (value[(i + 1) % value.length] as Record<string, unknown> | null)?.kind) return false;
+    return segment.kind === 'line' ? only(segment, ['kind', 'start'])
       : segment.kind === 'arc' && only(segment, ['kind', 'start', 'center', 'direction'])
         && finitePoint(segment.center) && segment.direction === 'ccw';
   });
+}
+
+function matchesRoundOutline(outline: unknown, segments: LoopSegment[], bulges: number[]): boolean {
+  if (!record(outline) || !only(outline, roundOutlineKeys)) return false;
+  const { points, bulges: stored, radii, tangents, hv } = outline;
+  const sameIndices = (value: unknown, expected: number[]): boolean => Array.isArray(value)
+    && value.length === expected.length && new Set(value).size === expected.length && expected.every(i => value.includes(i));
+  if (!Array.isArray(points) || points.length !== 8 || !Array.isArray(stored) || stored.length !== 8 || !record(radii)
+    || !record(hv) || !only(hv, ['h', 'v']) || !sameIndices(tangents, [0, 1, 2, 3, 4, 5, 6, 7])) return false;
+  const arcIndices: number[] = [], horizontal: number[] = [], vertical: number[] = [];
+  for (const [i, segment] of segments.entries()) {
+    const point = points[i], start = segment.start as P2, bulge: unknown = stored[i];
+    if (!finitePoint(point) || point[0] !== start[0] || point[1] !== start[1]) return false;
+    const end = segments[(i + 1) % segments.length].start as P2;
+    if (segment.kind === 'line') {
+      if (bulge !== 0) return false;
+      (start[1] === end[1] ? horizontal : vertical).push(i);
+    } else {
+      arcIndices.push(i);
+      const radius = radii[i];
+      if (typeof bulge !== 'number' || !(bulge > 0) || Math.abs(Math.atan(bulge) - Math.atan(bulges[i])) > 1e-10
+        || typeof radius !== 'number' || !(radius > 0) || Math.abs(radius - distance(start, segment.center as P2)) > tolerance) return false;
+    }
+  }
+  return only(radii, arcIndices.map(String)) && sameIndices(hv.h, horizontal) && sameIndices(hv.v, vertical);
 }
 
 function sourceProfile(raw: unknown) {
@@ -62,7 +89,10 @@ function sourceProfile(raw: unknown) {
       return badRecipe('a native arc center and its two endpoints do not lie on the same source circle.');
     }
   }
-  return { id: raw.id, segments, shape: { ...shape, ids: [...sideTags.outer] } };
+  if (Object.hasOwn(raw, 'outline') && !matchesRoundOutline(raw.outline, segments, shape.bulges)) {
+    return badRecipe('the stored Round outline and its constraints must match the native source.');
+  }
+  return { id: raw.id, segments, shape: { ...shape, bulges: shape.bulges, ids: [...sideTags.outer] } };
 }
 
 function isRecipe(node: unknown): node is RoundedRectangleInsetNode & { id: string } {
@@ -77,7 +107,15 @@ function plannedRecipe(doc: StudioDoc, index: number) {
   if (index !== 1 || !isRecipe(recipe)) return badRecipe('the stored recipe is malformed or is not immediately after its source.');
   if (!record(source) || source.id !== recipe.sourceFeature) return badRecipe('the earlier source feature ID does not match.');
   const { segments, shape } = sourceProfile(source);
-  const inset = planRoundedRectangleInset(shape, recipe.insetMM, new Map(Object.entries(recipe.sideMap)));
+  const bottom = Math.min(...shape.points.map(point => point[1]));
+  const at = shape.points.findIndex(([x, y], i) => {
+    const [nextX, nextY] = shape.points[(i + 1) % shape.points.length];
+    return shape.bulges[i] === 0 && y === bottom && nextY === bottom && nextX > x;
+  });
+  if (at < 0) return badRecipe('the source requires a CCW tangent rounded rectangle with a lower straight side.');
+  const rotate = <T>(values: T[]) => [...values.slice(at), ...values.slice(0, at)];
+  const canonical = at ? { ...shape, points: rotate(shape.points), bulges: rotate(shape.bulges), ids: rotate(shape.ids) } : shape;
+  const inset = planRoundedRectangleInset(canonical, recipe.insetMM, new Map(Object.entries(recipe.sideMap)));
   if ('error' in inset) return badRecipe(inset.error);
   const result = profileOf([shape, inset.shape]);
   if ('error' in result) return badRecipe(result.error);

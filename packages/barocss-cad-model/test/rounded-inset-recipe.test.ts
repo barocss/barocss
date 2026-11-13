@@ -118,6 +118,41 @@ test('creating the linked inset reserves one map and appends the complete graph 
   assert.throws(() => createRoundedInsetExtrusion({ ...source, nextId: Number.MAX_SAFE_INTEGER }, 1, 10), /unused side or feature IDs/);
 });
 
+test('a cyclic Round outline retains authored geometry, constraints and side identities', () => {
+  const doc = fixture(2.5), source = doc.nodes[0];
+  assert.ok(source.kind === 'sketch' && source.profile === 'loop');
+  const rotate = <T>(values: T[]) => [values[7], ...values.slice(0, 7)];
+  const segments = rotate(source.segments);
+  const rounded = { ...source, segments, sideTags: { outer: rotate(outer) }, outline: {
+    points: segments.map(segment => segment.start) as [number, number][],
+    bulges: segments.map(segment => segment.kind === 'arc' ? Math.tan(Math.PI / 8) : 0),
+    radii: { 0: 2, 2: 2, 4: 2, 6: 2 }, tangents: [0, 1, 2, 3, 4, 5, 6, 7], hv: { h: [1, 5], v: [3, 7] },
+  } };
+  doc.nodes[0] = rounded;
+  assert.deepEqual(readStudioDoc(JSON.stringify(doc)), { doc, notes: [] });
+  const profile = resolveRoundedInsetRecipe(doc, 1);
+  assert.ok(profile.profile === 'loop');
+  assert.deepEqual(profile.segments, segments);
+  assert.deepEqual(profile.sideTags?.outer, rounded.sideTags.outer);
+  assert.deepEqual(profile.sideTags?.holes, [['e9', 'e11', 'e13', 'e15']]);
+  const [output] = partSnapshot(doc).outputs;
+  assert.ok(checkBrep(output.brep, { strict: true }).valid);
+  assert.ok(Math.abs(massPropertiesOf(output).volume - 1215.6637061435918) < 1e-7);
+  for (const modify of [
+    (outline: typeof rounded.outline) => { outline.radii[0] = 3; },
+    (outline: typeof rounded.outline) => { outline.tangents[0] = 1; },
+    (outline: typeof rounded.outline) => { outline.hv.h = [1, 3]; },
+    (outline: typeof rounded.outline) => { outline.points = [...outline.points.slice(1), outline.points[0]]; },
+    (outline: typeof rounded.outline) => { outline.bulges[0] = 0.5; },
+  ]) {
+    const outline = structuredClone(rounded.outline);
+    modify(outline);
+    const rejected = readStudioDoc(JSON.stringify({ ...doc, nodes: [{ ...rounded, outline }, ...doc.nodes.slice(1)] }));
+    assert.ok('error' in rejected);
+    assert.match(rejected.error, /stored Round outline.*must match/);
+  }
+});
+
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {
   type RawDocument = {
     nodes: [
