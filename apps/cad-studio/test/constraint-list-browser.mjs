@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const circleDimension = process.argv[3] === '--circle-dimension';
 const pickedUndo = process.argv[3] === '--picked-undo';
 const removalFocus = process.argv[3] === '--removal-focus';
 const pins = [
@@ -15,7 +16,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -29,6 +30,15 @@ import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+if (input.circles) {
+  const profile = profileOf([{ kind: 'polygon', closed: true, points: [[0,0],[90,0],[90,60],[0,60]],
+    hv: { h: [0,2], v: [1,3] }, lengths: { 0: 90, 1: 60 },
+    circles: [{ c: [24, 22], r: 5 }, { c: [50, 22], r: 5 }],
+    rules: [{ kind: 'ccdist', a: 0, b: 1, value: 26 }, { kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 22 }] }]);
+  assert.ok('node' in profile);
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 5 })));
+  process.exit(0);
+}
 if (input.narrow) {
   const profile = profileOf([{ kind: 'polygon', closed: true, points: [[0,0],[40,0],[40,20],[0,20]],
     hv: { h: [0,2], v: [1,3] }, lengths: { 0: 40, 1: 20, 2: 40 } }]);
@@ -170,6 +180,53 @@ await f.run(async () => {
     });
     return context;
   };
+  if (circleDimension) {
+    const source = await f.inspect('source', { circles: true });
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await open(source);
+    await edit(1);
+    await f.tool('Dimension', 'd');
+    await f.frame([[24, 22], [50, 22]]);
+    await kind().selectOption('Distance');
+    await pickedOnly().check();
+    await f.worldClick([24, 22]);
+    await show(['rule:0', 'rule:1'], 9);
+    await f.worldClick([50, 22]);
+    await dimension().waitFor();
+    assert.equal(await dimension().inputValue(), '26');
+    f.phase = 'show only the active circle pair distance under Picked only';
+    const staged = await f.snapshot('01-circle-distance-active');
+    assert.deepEqual(staged.visibleRows, ['rule:0']);
+    assert.deepEqual(staged.doc, source);
+    await row('rule:0').hover();
+    await f.page.waitForFunction(() => {
+      const marks = [...document.querySelectorAll('.vp-overlay .inspected')];
+      return marks.length === 2 && marks.every(mark => ['circle:0', 'circle:1'].includes(mark.getAttribute('data-sketch-entity')));
+    });
+    await dimension().fill('28');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    await show([], 9);
+    const current = (await f.finishSketch('02-circle-distance-accepted')).doc;
+    const rules = current.nodes[0].outline.rules;
+    const distance = rules.find(rule => rule.kind === 'ccdist');
+    const support = rules.find(rule => rule.kind === 'cedge');
+    assert.deepEqual(distance, { kind: 'ccdist', a: 0, b: 1, value: 28 });
+    assert.deepEqual(support, source.nodes[0].outline.rules[1]);
+    assert.deepEqual(current.nodes[0].sideTags, source.nodes[0].sideTags);
+    assert.deepEqual(current.nodes[1], source.nodes[1]);
+    const result = await f.inspect('circle-distance-native', current);
+    const expected = 5 * (90 * 60 - 2 * Math.PI * 5 ** 2);
+    assert.equal(result.valid, true);
+    assert.ok(Math.abs(result.volume - expected) < 1e-7);
+    f.report.observations.push({ label: 'circle-distance-native', expectedVolume: expected, volume: result.volume });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(current);
+    return;
+  }
   if (removalFocus || pickedUndo) {
     const source = await f.inspect('source', { narrow: true });
     await f.newPage();

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ELLIPSE_POINTS, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
-import { constraintListRows, filterConstraintList } from '../src/sketch/constraintList';
+import { activeCircleDistanceRow, constraintListRows, filterConstraintList } from '../src/sketch/constraintList';
 
 const rectangle: Polygon = {
   kind: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]], closed: true, hv: { h: [0, 2], v: [1, 3] },
@@ -62,4 +62,17 @@ test('the ellipse summary represents its arc picks and keeps distinct Tangent ro
   const changed: Polygon = { ...shape, points: shape.points.map(([x, y], i) => [x + (i === 0 ? 0.01 : 0), y]) };
   assert.equal(constraintListRows(changed).some(row => row.label === 'Ellipse'), false);
   assert.equal(constraintListRows(changed).find(row => row.label === 'Arc')?.removable, false);
+});
+
+test('an active circle distance keeps its exact row visible without selecting other rules', () => {
+  const shape: Polygon = { ...rectangle,
+    circles: [{ c: [10, 10], r: 2 }, { c: [20, 10], r: 2 }],
+    rules: [{ kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 10 },
+      { kind: 'ccdist', a: 0, b: 1, value: 10 }] };
+  const rows = constraintListRows(shape);
+  const active = activeCircleDistanceRow(shape, 'ccdist0_1');
+  assert.deepEqual(ids(filterConstraintList(rows, 'Distance', true, [], active)), ['rule:1']);
+  assert.deepEqual(ids(filterConstraintList(rows, 'Horizontal', true, [], active)), []);
+  assert.equal(activeCircleDistanceRow(shape, 'ccdx0_1'), undefined);
+  assert.equal(activeCircleDistanceRow(shape, null), undefined);
 });

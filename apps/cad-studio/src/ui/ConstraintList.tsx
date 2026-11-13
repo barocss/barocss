@@ -3,7 +3,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { removeConstraint, type ConstraintEntry, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 import { clearConstraintInspection, keepsDimensionDraft, type ConstraintInspection, type ConstraintInspectionStore } from '../sketch/constraintInspection';
-import { constraintInvolves, constraintListRows, filterConstraintList } from '../sketch/constraintList';
+import { activeCircleDistanceRow, constraintInvolves, constraintListRows, filterConstraintList } from '../sketch/constraintList';
 import { CONTROL, FIELD } from './panelStyles';
 
 interface FilterState {
@@ -39,7 +39,8 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
   const rows = useMemo(() => constraintListRows(shape), [shape]);
   const kinds = [...new Set(rows.map(row => row.label))];
   if (kind && !kinds.includes(kind)) kinds.push(kind);
-  const visible = filterConstraintList(rows, kind, pickedOnly, picked);
+  const activeId = activeCircleDistanceRow(shape, owner.editDim);
+  const visible = filterConstraintList(rows, kind, pickedOnly, picked, activeId);
   const hiddenInspection = inspectedId !== null && !visible.some(row => row.id === inspectedId);
   useLayoutEffect(() => {
     if (hiddenInspection) clearConstraintInspection(inspection, owner);
@@ -76,7 +77,7 @@ export function ConstraintList({ shape, owner, documentScope, inspection, inspec
     </div>
     <div role="list" aria-label="Constraints" data-sketch-dimension-focus onBlur={event => leaveDimensions(event.relatedTarget)}>
       {visible.map(row => {
-        const hit = constraintInvolves(row, picked);
+        const hit = row.id === activeId || constraintInvolves(row, picked);
         if (row.id === 'ellipse') return <div key={row.id} className={'cons-row' + (hit ? ' hit' : '')}
           role="listitem" data-constraint-id={row.id}><div className="kv">{row.label}<b>{row.detail}</b></div></div>;
         return <div className={'cons-row' + (hit ? ' hit' : '') + (inspectedId === row.id ? ' inspecting' : '')}

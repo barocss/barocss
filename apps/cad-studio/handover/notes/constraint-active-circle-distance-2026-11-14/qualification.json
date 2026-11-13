@@ -1,0 +1,54 @@
+{
+  "decision": "D1088",
+  "tier": "SMALL",
+  "parent": "727254d5b6a1fbb157aaa58e7dbac67bf64155e6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1088-constraint-circle-dimension-<run>",
+    "D1088_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --circle-dimension",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraint-inspection constraints.test",
+    "pnpm exec eslint apps/cad-studio/src/sketch/constraintList.ts apps/cad-studio/src/ui/ConstraintList.tsx apps/cad-studio/test/constraint-list.test.ts",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 857,
+      "receiptSHA256": "f25b94015e786444d8c03acc2c243c383da6c86b37b26a9aa9f108fcc3353195",
+      "sourceManifestSHA256": "26b811330152b78e8fcd703021c51a435bfc64d5697a3a375d51f579f0f042d7",
+      "firstFailure": "The 26 mm inline editor opens but Picked only hides its row and shows 0/9 constraints."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 857,
+      "receiptSHA256": "0936b49fed032ed9446a638ce9e911c477e84762e1c5b0925ab7edbcb08937dc",
+      "sourceManifestSHA256": "1651cd5609777f3c8f70120ad50382b7042fa12c1f1a7f6c1f5dec06e40c0528"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1280,
+      800
+    ],
+    "distanceBeforeMm": 26,
+    "distanceAfterMm": 28,
+    "expectedVolumeMm3": 26214.601836602553,
+    "nativeVolumeMm3": 26214.60183660259
+  },
+  "notRun": [
+    "other widths and working planes",
+    "desktop horizontal or vertical circle-to-circle dimension edits",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 29,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
