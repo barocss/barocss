@@ -1,0 +1,44 @@
+{
+  "decision": "D1067",
+  "tier": "SMALL",
+  "parent": "3869faa84488843d98f08aaea6c160fba56c7460",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1067-make-band-<run>",
+    "D1067_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-make-band-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history sketch-band-studio",
+    "node --check apps/cad-studio/test/sketch-make-band-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "ee7dd1030044d3b851f4946282334d2d59eaeaf163dc4aa860a1d381e5978e1f",
+      "sourceManifestSHA256": "3917aa14b010df9b88439c542099f40b2faf94be9218b06e195a978ab9202171",
+      "firstFailure": "Cmd+Z leaves the band visible and does not restore the source picks."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 380,
+      "receiptSHA256": "ba97dc2e8a5f6c400caea510a9afe30ecff7cd17ddd7dd3f0c7f93b67a62b9d7",
+      "sourceManifestSHA256": "da4d2fd6ef8389b86332c102aab59c6000449c0216c69e47d5756b52b0eef7d7"
+    }
+  },
+  "circleRadiusMm": 5,
+  "centerDistanceMm": 20,
+  "offsetMm": 0,
+  "widthMm": 3,
+  "extrudeMm": 4,
+  "expectedVolumeMm3": 970.0884539600077,
+  "absoluteVolumeToleranceMm3": 1e-07,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 16,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -145,10 +145,10 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
   const makeSketchBand = (offset: number, width?: number) => {
-    if (!sketch) return;
+    if (!sketch || !ownsSketch()) return;
     const r = bandMake(sketch, offset, width);
     if ('error' in r) { setToast({ title: 'Cannot make the band', hint: r.error, detail: '' }); return; }
-    setSketch(() => r.state);
+    commitDraft(sketch, r.state);
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {

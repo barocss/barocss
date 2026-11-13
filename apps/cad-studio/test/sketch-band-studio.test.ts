@@ -66,8 +66,13 @@ test('reopening a band sketch gives its band state and Finish unchanged keeps th
   const g = actions(doc); g.api.editSketch(index); g.render();
   assert.equal(g.notices.length, 0, JSON.stringify(g.notices)); assert.deepEqual(g.sketch?.band, (before as { band: unknown }).band);
   assert.equal(g.sketch?.shape, null); assert.equal(g.sketch?.done?.length, 2);
-  g.api.finishSketch(); await setImmediate(); assert.equal(g.notices.length, 0, JSON.stringify(g.notices)); assert.equal(g.accepted.length, 1);
-  assert.deepEqual(g.accepted[0].nodes[index], before);
+  g.api.finishSketch(); await setImmediate();
+  assert.equal(g.notices.length, 0, JSON.stringify(g.notices));
+  assert.equal(g.sketch, null);
+  assert.equal(g.evaluated.length, 0);
+  assert.equal(g.accepted.length, 0);
+  assert.equal(g.docNow.current, doc);
+  assert.deepEqual(g.docNow.current.nodes[index], before);
 });
 
 test('reopening a band whose offset and width are parameters: the state holds the numbers; Finish unchanged keeps the bindings', async () => {
@@ -78,8 +83,13 @@ test('reopening a band whose offset and width are parameters: the state holds th
   const g = actions(doc); g.api.editSketch(index); g.render();
   assert.equal(g.notices.length, 0, JSON.stringify(g.notices));
   assert.equal(g.sketch?.band?.offset, 2); assert.equal(g.sketch?.band?.width, 3);
-  g.api.finishSketch(); await setImmediate(); assert.equal(g.notices.length, 0, JSON.stringify(g.notices)); assert.equal(g.accepted.length, 1);
-  assert.deepEqual(g.accepted[0].nodes[index], before);
+  g.api.finishSketch(); await setImmediate();
+  assert.equal(g.notices.length, 0, JSON.stringify(g.notices));
+  assert.equal(g.sketch, null);
+  assert.equal(g.evaluated.length, 0);
+  assert.equal(g.accepted.length, 0);
+  assert.equal(g.docNow.current, doc);
+  assert.deepEqual(g.docNow.current.nodes[index], before);
 });
 
 test('editing offset and width and removing the band', () => {
