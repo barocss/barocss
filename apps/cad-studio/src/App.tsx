@@ -349,6 +349,10 @@ export function App() {
       setUndo(u => [...u.slice(-49), entry]); setRedo([]);
       workOwnership.current = reserveAcceptedChange(workOwnership.current, entry, next, intent.beforeInput);
     }
+    const previous = docNow.current;
+    const problems = referenceProblems.current.get(previous);
+    if (!whole && problems?.length && next.nodes === previous.nodes && next.drawing === previous.drawing
+        && next.mates === previous.mates && next.bodies === previous.bodies) referenceProblems.current.set(next, problems);
     docNow.current = next; setDocState(next);
     return true;
   };
@@ -519,8 +523,10 @@ export function App() {
     setToast(current => current?.bodyCopy ? null : current);
   }, []);
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
-  const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
-  const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
+  const referenceProblems = useRef(new WeakMap<StudioDoc, RefProblem[]>());
+  const refProblems = referenceProblems.current.get(doc) ?? [];
+  const [referenceChoices, setRefChoices] = useState<{ doc: StudioDoc; index: number; names: string[] } | null>(null);
+  const refChoices = referenceChoices?.doc === doc ? referenceChoices : null;
   const [referencePreview, setReferencePreview] = useState<(DrawingReferencePreview & { owner: StudioDoc }) | null>(null);
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
   const clearReferencePreview = useCallback(() => setReferencePreview(null), []);
@@ -2022,7 +2028,7 @@ export function App() {
         const local = value?.review.localRun;
         return local && retiresTaskRunReview(status, local.request, local.revision) ? null : value;
       }),
-      setRefProblems: problems => { setRefProblems(problems); setRefChoices(null); }, commit, commitDirect },
+      rememberRefProblems: (source, problems) => { referenceProblems.current.set(source, problems); setRefChoices(null); }, commit, commitDirect },
     validateSave: () => {
       // Save serializes the authored master, including steps beyond the visible History marker.
       if (fresh && !busy && markerNow.current === null && shownDocNow.current === doc) return;
@@ -2126,15 +2132,17 @@ export function App() {
     setReferencePreview(null); setDrawing(false); setRendering(false); setMeasure(null); setInstanceSel([]); setDirectSel([]); setSelection({ faces: [], edges, bodies: [] });
   };
   const settleRef = async (index: number, to?: string) => {
+    const open = openIntent.current;
     const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to);
-    if (!canChangeDocument()) return;
+    if (openIntent.current !== open || !ownsEvaluatedSource() || !canChangeDocument()) return;
     pushUndo(); if (!setDoc(next)) return;
-    setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null); setDirty(true);
+    referenceProblems.current.set(next, refProblems.filter(p => p.index !== index));
+    setRefChoices(null); setDirty(true);
   };
   const showRefChoices = async (index: number) => {
     const scope = currentOpenScope(), dispatch = saveDocumentToken.current;
     const names = await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'));
-    if (isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === doc) setRefChoices({ index, names });
+    if (isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === doc) setRefChoices({ doc, index, names });
   };
   /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */
   const exportSketchDxf = (index: number) => {

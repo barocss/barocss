@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed'].includes(mode));
+const historyMode = mode.startsWith('--history-');
 const stored = 'n1.side0|n2.cut.side1';
 const replacement = 'n1.side0|n2.cut.side3';
 const model = {
@@ -15,6 +16,7 @@ const model = {
   outputs: { b2_positive: { node: 2, side: 'positive' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
 };
 const files = [
+  'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/files/documentFile.ts',
   'apps/cad-studio/src/ui/ReferenceDecisions.tsx',
   'packages/barocss-cad-model/src/engine/references.ts',
@@ -22,12 +24,62 @@ const files = [
   'apps/cad-studio/test/split-finish-reference-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'split-finish-reference', output, envFrozen: 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
+  name: 'split-finish-reference', output, envFrozen: historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
   qualification: 'Hold Fillet and Chamfer when a native Split edge changes on Open.',
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
 const refs = () => f.page.getByRole('region', { name: 'References', exact: true });
 const volumeNear = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-7, actual + ' vs ' + expected);
+const versions = () => f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
+const projectName = 'D996 confirmed Split finish';
+const openProject = async () => {
+  await button('Project and versions').click();
+  await versions().getByRole('textbox', { name: 'Browser project name', exact: true }).fill(projectName);
+  await versions().getByRole('button', { name: 'Project in this browser', exact: true }).click();
+  await versions().getByLabel('Project', { exact: true }).waitFor();
+};
+const referenceDetails = async () => {
+  const panel = refs();
+  return { text: await panel.textContent(), buttons: await panel.getByRole('button').allTextContents() };
+};
+const proveHistoryAndSave = async (kind, opened, applied) => {
+  f.phase = 'Undo candidate confirmation for ' + kind;
+  await f.undo();
+  await f.same(opened.doc);
+  const undone = await f.snapshot(kind + '-choice-undone');
+  assert.deepEqual(undone.bodies.bodies, opened.bodies.bodies);
+  if (mode === '--history-baseline') {
+    assert.equal(await refs().count(), 0);
+    assert.fail('Undo restored held geometry but lost the candidate panel');
+  }
+  assert.deepEqual(await referenceDetails(), f.report.observations.at(-1).referenceDetails);
+  f.phase = 'Redo candidate confirmation for ' + kind;
+  await f.redo();
+  await f.same(applied.doc);
+  assert.equal(await refs().count(), 0);
+  assert.deepEqual((await f.bodies()).bodies, applied.bodies.bodies);
+
+  f.phase = 'save and reopen the confirmed ' + kind + ' project document';
+  await openProject();
+  await button('Save').click();
+  const name = 'split-' + kind + '.bcad';
+  await versions().locator('li[data-active="true"]').filter({ hasText: name }).waitFor();
+  const saved = await f.page.evaluate(async ({ projectName, name }) => {
+    const projects = await (await navigator.storage.getDirectory()).getDirectoryHandle('projects');
+    const folder = await projects.getDirectoryHandle(projectName);
+    return (await (await folder.getFileHandle(name)).getFile()).text();
+  }, { projectName, name });
+  assert.deepEqual(JSON.parse(saved), applied.doc);
+  await f.page.reload();
+  await f.page.waitForSelector('.viewport[data-renderer="webgpu"]');
+  await f.ready();
+  await openProject();
+  await versions().getByRole('button', { name: 'Open ' + name, exact: true }).click();
+  await f.same(applied.doc);
+  assert.equal(await refs().count(), 0);
+  assert.deepEqual((await f.bodies()).bodies, applied.bodies.bodies);
+  await f.snapshot(kind + '-project-reopened');
+};
 
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
@@ -74,6 +126,7 @@ await f.run(async () => {
     assert.ok(held.held?.includes(stored));
     assert.match(await refs().textContent(), /0 matched again.*1 need a choice.*Feature held/);
     for (const body of bodies) volumeNear(body.volume, 9000);
+    if (historyMode) f.report.observations.push({ kind, referenceDetails: await referenceDetails() });
 
     f.phase = 'explicitly confirm the new Split edge for ' + kind;
     await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
@@ -85,6 +138,10 @@ await f.run(async () => {
     assert.equal(applied.doc.nodes[3].suppressed, undefined);
     assert.deepEqual(applied.doc.nodes[3].sigs[replacement].p, [30, 0, 5]);
     volumeNear(applied.bodies.bodies.find(b => b.key === 'b3').volume, 9000 - removal);
+    if (historyMode) {
+      await proveHistoryAndSave(kind, opened, applied);
+      continue;
+    }
     f.phase = 'open the confirmed ' + kind + ' document in a fresh context';
     await f.newPage();
     const [reopen] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);

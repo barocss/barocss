@@ -63,7 +63,7 @@ interface StudioDocumentFileOptions {
     setDocState(doc: StudioDoc): void;
     setFileName(name: string): void;
     setDirty(dirty: boolean): void;
-    setRefProblems(problems: RefProblem[]): void;
+    rememberRefProblems(doc: StudioDoc, problems: RefProblem[]): void;
     onTaskRunReopened(run: TaskRunLaunch): void;
     onTaskRunDecided(status: TaskRunStatus): void;
     onCheckpointOpened(review: CheckpointReview): void;
@@ -87,7 +87,7 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, v
   const { doc, docNow, fileName, fileNameNow, recoveryDoc, project } = document;
   const { saveAcceptanceScope, saveDocumentToken, beginOpenIntent, currentOpenScope, isOpenCurrent, sessionBlocked, canOpenImport } = ownership;
   const { engine, workerSessionNow, nextRevision, stopImport } = worker;
-  const { replaceDoc, setDocState, setFileName, setDirty, setRefProblems, commit, commitDirect } = changes;
+  const { replaceDoc, setDocState, setFileName, setDirty, rememberRefProblems, commit, commitDirect } = changes;
   const handoffIntent = useRef<object | null>(null);
   const candidateIntent = useRef<{ local?: { request: TaskRunReviewRequest; status?: TaskRunStatus } }>(null);
   const runOpenIntent = useRef<{ request: TaskRunLocator; status?: TaskRunStatus }>(null);
@@ -282,13 +282,13 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, v
     // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
     const v = await verifyDocumentFile(opened, d => engine.part(d, nextRevision(), 'refs'), current);
     if (!v || !current()) return;
-    setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
     const cur = docNow.current;
     const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
     // Apply only to this accepted dispatch, before any later edit or replacement.
     if (cur.print === undefined) delete next.print; else next.print = cur.print;
     if (cur.printPreview === undefined) delete next.printPreview; else next.printPreview = cur.printPreview;
+    rememberRefProblems(next, v.problems);
     setDocState(next); setDirty(true);
   };
 
@@ -311,7 +311,6 @@ export function useStudioDocumentFiles({ document, ownership, worker, changes, v
     // The standard native Open may repair references after adoption. The run needs the exact model.
     replaceDoc(next);
     if (docNow.current !== next) return false;
-    setRefProblems([]);
     setFileName(name);
     setDirty(false);
     fitImportedLater();

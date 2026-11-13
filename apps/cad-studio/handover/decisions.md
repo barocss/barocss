@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D996 — restore held reference choices with Undo and Redo](notes/split-finish-reference-history-2026-11-13/README.md).
 - [D995 — hold direct Split edge finishes until explicit confirmation](notes/split-finish-reference-open-2026-11-13/README.md).
 - [D994 — refuse Drawing PDF when a fit row is missing](notes/drawing-pdf-missing-fit-2026-11-13/README.md).
 - [D993 — protect project Save and Make version after a model failure](notes/failed-model-save-2026-11-13/README.md).
