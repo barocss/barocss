@@ -1,0 +1,45 @@
+{
+  "decision": "D1122",
+  "tier": "SMALL",
+  "parent": "c63854d890cebf12b6667c5bdb59b5bb17f44af6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1122-snapped-circle-hole-<run>",
+    "D1122_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --snapped-circle-hole",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "actual": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "79c9fabd48c5a52bca32ae1736df03edb36ed8e564d8327fc218fd1bbce36356",
+      "sourceManifestSHA256": "54da10ac70519e55b30af9a39f3ca1ec0cdf9084a149197c748cecef3a6e309c",
+      "savedFiles": [
+        {
+          "bytes": 964,
+          "sha256": "407cb3e2dbe965ff4a9c281fae3c0ea383a1c4f08ddac2478cd47243510bd79b"
+        }
+      ]
+    }
+  },
+  "sourceCircleRadiusMM": 7.6288757789074015,
+  "holeRadiusMM": 1.25,
+  "holeDepthMM": 2,
+  "expectedVolumeMM3": 355.862309707201,
+  "measuredVolumeMM3": 355.8623097072008,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

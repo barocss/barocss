@@ -11,6 +11,7 @@ const slotEndWidth = process.argv[3] === '--slot-end-width';
 const constructionCircleRadius = process.argv[3] === '--construction-circle-radius';
 const smallCircleRadius = process.argv[3] === '--small-circle-radius';
 const nearbyCrossings = process.argv[3] === '--nearby-crossings';
+const snappedCircleHole = process.argv[3] === '--snapped-circle-hole';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -25,7 +26,8 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: nearbyCrossings ? 'D1121_SOURCE_FROZEN' : smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
+  envFrozen: snappedCircleHole ? 'D1122_SOURCE_FROZEN' : nearbyCrossings ? 'D1121_SOURCE_FROZEN'
+    : smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
     : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
@@ -465,6 +467,46 @@ async function snappedCircleRadius() {
   const expectedVolume = Math.PI * radius ** 2 * 2;
   near(cylinder.volume, expectedVolume);
   f.report.observations.push({ label: 'circle-end-extrude', expectedVolume, volume: cylinder.volume });
+  if (snappedCircleHole) await drillSnappedCircle(applied.doc, radius);
+}
+
+async function drillSnappedCircle(extruded, outerRadius) {
+  f.phase = 'drill the cylinder from the saved object-snapped Circle';
+  await button(f.page, 'Top').click();
+  if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+  await f.page.mouse.click(...await pixel([0, 0, 12]));
+  await f.page.keyboard.press('h');
+  const hud = f.page.getByRole('dialog', { name: 'Hole', exact: true });
+  await hud.waitFor();
+  for (const axis of ['X', 'Y']) {
+    const field = hud.getByRole('spinbutton', { name: 'Centre ' + axis, exact: true });
+    await field.fill('0');
+    await field.press('Tab');
+  }
+  const diameter = hud.getByRole('spinbutton', { name: 'Diameter', exact: true });
+  await diameter.fill('2.5');
+  await diameter.press('Tab');
+  await button(hud, 'Apply').click();
+  await f.page.waitForFunction(() => window.__studioDoc?.nodes.at(-1)?.kind === 'hole');
+  await f.ready();
+  const { doc } = await f.snapshot('circle-hole-applied');
+  assert.deepEqual(doc.nodes.slice(0, -1), extruded.nodes);
+  const hole = doc.nodes.at(-1);
+  assert.deepEqual(hole.parent, { node: 3, side: 'solid' });
+  assert.deepEqual(hole.center, [0, 0]);
+  assert.equal(hole.radius, 1.25);
+  const [stock, annulus] = await f.inspect('circle-hole-native', doc, 'extrude');
+  assert.ok(stock.valid && annulus.valid);
+  near(stock.volume, 2800);
+  const expectedVolume = 2 * Math.PI * (outerRadius ** 2 - hole.radius ** 2);
+  near(annulus.volume, expectedVolume);
+  f.report.observations.push({ label: 'circle-hole', hole, expectedVolume, volume: annulus.volume });
+  await f.undo();
+  await f.same(extruded);
+  await f.redo();
+  await f.same(doc);
 }
 
 async function snappedSlotWidth() {
@@ -680,7 +722,7 @@ await f.run(async () => {
     assert.deepEqual(f.report.downloads, []);
     return;
   }
-  if (circleEndRadius) {
+  if (circleEndRadius || snappedCircleHole) {
     await snappedCircleRadius();
     assert.deepEqual(f.report.downloads, []);
     return;
