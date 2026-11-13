@@ -1,0 +1,55 @@
+{
+  "decision": "D994",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4a5cbc23b21705042a2fa416b9e29802f97d9ec8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D994-fit-pdf",
+    "D994_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-missing-fit-pdf-browser.mjs <external-evidence>/baseline02 --baseline",
+    "D994_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-missing-fit-pdf-browser.mjs <external-evidence>/studio02 --fixed",
+    "pdfinfo <captured-pdf>",
+    "pnpm --filter @barocss/cad-model test fit-drawing drawing-tolerance-printable",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/drawing-missing-fit-pdf-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "d79e0382b5615d7be3d7bc715875e48655c12a05dcab4b57898d2dc84ffc2e66",
+    "pdfSHA256": "2f60142d7e031669ff2bde5ec9669b3cc9c83001ad9aba0041422bcf28859866",
+    "callout": "Ø8 THRU H7"
+  },
+  "earlierRuns": [
+    { "status": "FAIL", "reason": "pdftotext unavailable; PDF captured", "receiptSHA256": "1a547080926d71fc13e1913a7b8ecf85224625f8b5db2d8e84280aa5344c08f7" },
+    { "status": "FAIL", "reason": "The driver expected the lower value to equal the authored lower bound; the PDF printed the stricter +0.001 mm", "receiptSHA256": "aaa38e6dd44e64cda6ce83af75969869cd7226e9132060d43d3f41698862125d" }
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f663af274ea2da15ef9b1c0fa9a9e34483296a2a9a714cd56ba65611f89bdf7f",
+    "sourceManifestSHA256": "08bf96cfa81d0d837d8feb234c4626ad2f1a3ef7fb66e77dad25477445e5d472",
+    "frozenFiles": 374,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "blockedPdfs": 2,
+    "capturedPdfs": 1,
+    "poppler": "26.05.0",
+    "pdfSHA256": "c52ca89bd58c1e86e3eed5052e94b60b517e13435a8e819bd3411bbef10387d7",
+    "nominalMM": 8,
+    "printedIntervalMM": [0.001, 0.015],
+    "authoredIntervalMM": [0, 0.015]
+  },
+  "focused": { "pass": 11, "fail": 0, "typeCheck": "PASS" },
+  "notRun": [
+    "PDF raster comparison",
+    "public output APIs and SVG/DXF policy",
+    "B06 PDF standards HOLD",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

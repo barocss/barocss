@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D994 — refuse Drawing PDF when a fit row is missing](notes/drawing-pdf-missing-fit-2026-11-13/README.md).
 - [D993 — protect project Save and Make version after a model failure](notes/failed-model-save-2026-11-13/README.md).
 - [D992 — exclude the previous result after model evaluation fails](notes/failed-model-stale-consumers-2026-11-13/README.md).
 - [D991 — protect dependent Fillet when suppressing from rollback](notes/dependent-fillet-suppression-2026-11-13/README.md).

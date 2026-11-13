@@ -793,6 +793,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const exportPdf = () => {
     if (!sheet || !canExportPdf) return;
     const all = sheetTotal > 1 && views ? buildSheets(views, wholeSettings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts).map(x => x.sheet) : [sheet];
+    const missingFits = all.flatMap((page, index) => page.dimensions.flatMap(dimension => {
+      if (!dimension.ok || dimension.kind !== 'diameter') return [];
+      const reason = fitMissOf(dimension.dim.edge, 2 * dimension.radius);
+      return reason ? [`${sheetName(wholeSettings, index)}: ${dimension.text}. ${reason}`] : [];
+    }));
+    if (missingFits.length) {
+      onToast({ title: 'PDF not written', hint: 'Load fit rows for the listed dimensions, then export again.', detail: missingFits.join('\n') });
+      return;
+    }
     downloadBytes(sheetsPdf(all, title), `${fileName}.pdf`, 'application/pdf');
     const missing = [...new Set(all.flatMap(pdfMissing))];
     if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
