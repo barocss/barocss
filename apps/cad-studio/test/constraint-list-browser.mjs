@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const pickedUndo = process.argv[3] === '--picked-undo';
 const removalFocus = process.argv[3] === '--removal-focus';
 const pins = [
   'apps/cad-studio/test/constraint-list-browser.mjs',
   'apps/cad-studio/src/App.tsx',
+  ...(pickedUndo ? ['apps/cad-studio/src/sketch/draftHistory.ts'] : []),
   'apps/cad-studio/src/sketch/constraintList.ts',
   'apps/cad-studio/src/sketch/constraintInspection.ts',
   'apps/cad-studio/src/ui/ConstraintList.tsx',
@@ -13,7 +15,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -168,7 +170,7 @@ await f.run(async () => {
     });
     return context;
   };
-  if (removalFocus) {
+  if (removalFocus || pickedUndo) {
     const source = await f.inspect('source', { narrow: true });
     await f.newPage();
     await f.page.setViewportSize({ width: 1024, height: 800 });
@@ -196,6 +198,26 @@ await f.run(async () => {
     assert.deepEqual(after.bodies, before.bodies);
     assert.equal(after.kind, 'Length');
     assert.equal(await pickedOnly().isChecked(), true);
+    if (pickedUndo) {
+      f.phase = 'restore the removed length under Picked only without reselecting';
+      await f.undo();
+      const restored = await f.snapshot('03-picked-undo');
+      assert.deepEqual(restored.visibleRows, ['len:2']);
+      assert.equal(restored.picked, before.picked);
+      assert.deepEqual(restored.doc, before.doc);
+      assert.deepEqual(restored.history, before.history);
+      assert.deepEqual(restored.bodies, before.bodies);
+      await row('len:2').focus();
+      await f.page.waitForFunction(() => !!document.querySelector('.vp-overlay .inspected[data-sketch-entity="edge:2"]'));
+      await f.redo();
+      await show([], 7);
+      const redone = await f.snapshot('04-picked-redo');
+      assert.equal(redone.picked, before.picked);
+      assert.equal(await pickedOnly().isChecked(), true);
+      await cancel();
+      await f.same(source);
+      return;
+    }
     await f.page.keyboard.press('Tab');
     assert.equal(await pickedOnly().evaluate(el => el === document.activeElement), true);
     await f.page.keyboard.press('Space');

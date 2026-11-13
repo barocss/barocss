@@ -120,7 +120,14 @@ export function createDraftHistory() {
 
 export function restoreDraftHistory(sketch: SketchState, step: SketchStep): SketchState {
   if (step.kind === 'outline') {
-    const restored = { ...detachSketchLink(sketch), shape: step.shape, picked: [], editDim: null };
+    const before = sketch.shape, after = step.shape;
+    const ids = isSettled(before) ? before.ids : undefined;
+    const sameEdges = isSettled(before) && isSettled(after) && ids && ids.length === before.points.length
+      && ids.length === after.points.length && ids.length === after.ids?.length
+      && new Set(ids).size === ids.length && ids.every((id, i) => id && id === after.ids?.[i] && !!before.bulges?.[i] === !!after.bulges?.[i]);
+    const picked = sameEdges ? (sketch.picked ?? []).filter(pick => pick.kind === 'edge' && !pick.done
+      && !!ids[pick.i]) : [];
+    const restored = { ...detachSketchLink(sketch), shape: step.shape, picked, editDim: null };
     if (sketch.tool !== 'trim' || sketch.shape) return restored;
     const main = orderedMainDraft(sketch)?.[0];
     return main ? { ...restored, shape: null, done: sketch.done?.map(shape => shape === main ? step.shape : shape) } : restored;

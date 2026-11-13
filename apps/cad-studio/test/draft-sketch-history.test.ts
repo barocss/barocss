@@ -137,3 +137,16 @@ test('Trim replay refuses changed points, bulges, constraints, IDs or nonmain sh
     assert.deepEqual(history.available(draftHistoryState(doc, replacement)), { undo: false, redo: false });
   }
 });
+
+test('outline replay retains current edge picks only while the side identities and kinds match', () => {
+  const before = outline(40), after = outline(42);
+  const draft: SketchState = { tool: 'select', shape: after, plane: xyPlane(), picked: [{ kind: 'edge', i: 2 }, { kind: 'edge', i: 4 }] };
+  assert.deepEqual(restoreDraftHistory(draft, outlineHistoryState(before)).picked, [{ kind: 'edge', i: 2 }]);
+  for (const target of [
+    { ...before, ids: undefined },
+    { ...before, ids: ['e1', 'e2', 'e4', 'e3'] },
+    { ...before, bulges: [0, 0, 0.2, 0] },
+  ]) {
+    assert.deepEqual(restoreDraftHistory(draft, outlineHistoryState(target)).picked, []);
+  }
+});

@@ -1,0 +1,69 @@
+{
+  "decision": "D1087",
+  "tier": "SMALL",
+  "parent": "0555c5c0766a3806d725152d065eaa3e3d5ba0c6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1087-constraint-picked-undo-<run>",
+    "D1087_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --picked-undo",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraint-list constraint-inspection",
+    "pnpm exec eslint apps/cad-studio/src/sketch/draftHistory.ts apps/cad-studio/test/draft-sketch-history.test.ts",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 857,
+      "receiptSHA256": "d3d7d094d8e02a97b00c65eecf009745793f30db4264bd2a93937339148a5c2e",
+      "sourceManifestSHA256": "57dc372ff60026d8de53b14c88054401b0ca2dd3c31b3822ebebaf2004bbfddf",
+      "firstFailure": "Draft Undo restores the constraint count to eight but clears the picked edge, leaving zero rows under Picked only."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 857,
+      "receiptSHA256": "440959ae2299a8d12be55547388b254be7b574a68c59989a66bfe05fc3575b50",
+      "sourceManifestSHA256": "67f51a98b06b25a40c23ebfa0194397ad10d45e985269c25eb1302a65bf9c617"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1024,
+      800
+    ],
+    "counts": [
+      [
+        1,
+        8
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        0,
+        7
+      ]
+    ],
+    "nativeVolumeMm3": 1600
+  },
+  "notRun": [
+    "other widths",
+    "point and circle selection retention",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

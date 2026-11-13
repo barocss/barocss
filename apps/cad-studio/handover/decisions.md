@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1087 — keep stable edge picks during outline Undo and Redo](notes/constraint-picked-undo-2026-11-14/README.md).
 - [D1086 — retain keyboard focus after removing a sketch constraint](notes/constraint-removal-focus-2026-11-14/README.md).
 - [D1085 — guide direct ellipse dimensions to the authored axes](notes/ellipse-direct-dimension-guidance-2026-11-14/README.md).
 - [D1084 — refuse a source radius that collapses the unlocked Round](notes/pinned-round-free-fillet-source-limit-2026-11-14/README.md).
