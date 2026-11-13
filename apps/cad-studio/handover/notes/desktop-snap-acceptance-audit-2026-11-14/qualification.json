@@ -1,0 +1,53 @@
+{
+  "decision": "D1119",
+  "tier": "SMALL",
+  "parent": "58d5b6aa054865202a8f63acf93d204cd9d7fe1a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1119-snap-closeout-final",
+    "D855_SOURCE_FROZEN=1 node apps/cad-studio/test/native-centre-snap-browser.mjs <external-evidence>/native-centre",
+    "D1107_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-open-chain-finish-browser.mjs <external-evidence>/construction --construction-draft",
+    "D1108_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/anchors --anchor-tools",
+    "D1113_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/stationary --stationary-crossing",
+    "D1114_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/visibility --hide-circle-source",
+    "git diff --check"
+  ],
+  "studio": {
+    "native-centre": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "217b0b83a8f4f3e61eecf745bfdee7e2462a30067e6753be952dce01183b73b7",
+      "sourceManifestSHA256": "24c5e7e5c089d19499c908baf263e129de50316d8e344b8dacb95d0036edaf45"
+    },
+    "construction": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "f23dd5e49d319c73e92bc44ec3b9e30dabba042992e510d1655e37f37c4086a2",
+      "sourceManifestSHA256": "bf2b215395f9a864951aee2360f4dcad779d27bd2c96e1c9354e10ad3390ad0d"
+    },
+    "anchors": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 862,
+      "receiptSHA256": "17ace54dcf8cfa0d3247022cc8b99980dc124089727cf38b839f00909db6669d",
+      "sourceManifestSHA256": "ffab0fe89798e3bb3c9fd74e0206976f5aa1974bdd598fb383031b9289db0ce0"
+    },
+    "stationary": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "db13637f883d6261b30ba35643a8a70c64164a81bf1cc708ee631224211110ff",
+      "sourceManifestSHA256": "0cbbb495c838112f3d397469f28412e94b406801b589a173ed7893ade6135529"
+    },
+    "visibility": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 381,
+      "receiptSHA256": "0d47db01c4e69074b9beaab24cb08cf115ea3c6de644a4f4e1a5c9ac6f276449",
+      "sourceManifestSHA256": "0cbbb495c838112f3d397469f28412e94b406801b589a173ed7893ade6135529"
+    }
+  },
+  "issueStatus": "OPEN"
+}
