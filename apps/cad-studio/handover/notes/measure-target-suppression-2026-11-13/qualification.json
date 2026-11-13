@@ -1,0 +1,68 @@
+{
+  "decision": "D1035",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "22c25c6126309b70f58abe286db95a53874ffddb",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1035-section-baseline02",
+    "D1035_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-target-suppression-browser.mjs <external-evidence>/baseline02",
+    "gate.sh acquire heavy 600 D1035-final",
+    "D1035_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-target-suppression-browser.mjs <external-evidence>/studio02 --fixed",
+    "D1015_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-preselected-vertex-browser.mjs <external-evidence>/preselected-vertex",
+    "D928_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/pinned-opposite-caps --pin",
+    "gate.sh acquire heavy 600 D1035-focused",
+    "node --check apps/cad-studio/test/measure-target-suppression-browser.mjs",
+    "pnpm --filter @barocss/cad-model test measure",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "substitutedDistanceMM": 28.28,
+    "receiptSHA256": "4c4e092c975f6726733f1760486a93c8c6e7a67af33f6fd44169aab5b5421d38",
+    "sourceManifestSHA256": "00dcb71b47f7e88d1e67fb325012c26ba62f478ef3d1d5ce9625c14f849c0df4"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "states": 5,
+    "frozenFiles": 378,
+    "receiptSHA256": "a4e50886e4da798dc52bf790793659e5c0be09e213963ca8ea36660dce6102bf",
+    "sourceManifestSHA256": "9f20a3bf9ec903c40025106fa0d7578a01e8fa2d8d530b5c57cc582ec105a83f",
+    "undoDistanceMM": 10,
+    "explicitReplacementDistanceMM": 28.28,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "regressions": {
+    "preselectedVertex": {
+      "status": "PASS",
+      "receiptSHA256": "c077d612e5eacade5b32512be525bc350aaccfd4d71e1ecaf08371bd061acd7c",
+      "sourceManifestSHA256": "cffe2a61477824f7d18f0f6cb151dfc87bcee6fcab2ea8d4c87bc85c0a8720cb"
+    },
+    "pinnedOppositeCaps": {
+      "status": "PASS",
+      "receiptSHA256": "5604a0d73a1776a0a044c7a5b5b5a5e2a06f4c8ec49ea3b14b5e856b4b261314",
+      "sourceManifestSHA256": "1c2760d900b82ab72e39ff954b9f4e4bde6880bcd78159f648269ea5ec496c23"
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 12,
+    "studioPassed": 5,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "placed-face measuring",
+    "curved distance provenance",
+    "edge or vertex suppression in desktop Studio",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -8,13 +8,19 @@ import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon, Kbd } from './atoms';
 import { measureQuantityText } from './quantityText';
+import type { MeasureTarget } from '../app/measureTargets';
 import type { InterferenceReport } from '../app/checkInterference';
-interface MeasurementInspectorProps { bodies: BodyResult[]; measure: MeasurePick[]; measured: ReturnType<typeof measureBetween> | null; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>; onPin?(): void }
-export function MeasurementInspector({ bodies, measure, measured, setMeasure, onPin }: MeasurementInspectorProps) {
+interface MeasurementInspectorProps { bodies: BodyResult[]; targets: MeasureTarget[]; picks: (MeasurePick | null)[]; measured: ReturnType<typeof measureBetween> | null; onClose(): void; onPin?(): void }
+export function MeasurementInspector({ bodies, targets, picks, measured, onClose, onPin }: MeasurementInspectorProps) {
   return <aside className="card props" aria-label="Measurement">
-        <div className="card-title">MEASURE <ToolIconButton size="tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></ToolIconButton></div>
-        {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
-          <div className="kv">{k ? 'To' : 'From'} <b>{it.label}</b></div>
+        <div className="card-title">MEASURE <ToolIconButton size="tiny" aria-label="Done measuring" onClick={onClose}><Icon name="close" small /></ToolIconButton></div>
+        {targets.map((target, k) => {
+          const m = picks[k], slot = k ? 'To' : 'From';
+          if (!m) return <div key={k} className="measure-item empty" role="status">{slot} · {target.label} ({target.body}) is unavailable. Select a new {slot} target.</div>;
+          const it = measureItem(bodies[m.body].mesh, m);
+          return <div key={k} className="measure-item">
+          <div className="kv">{slot} <b>{it.label}</b></div>
+          <div className="kv">Body <b>{target.label} ({target.body})</b></div>
           {it.length !== undefined && <div className="kv">Length <b>{measureQuantityText(it.length, 2)} mm</b></div>}
           {it.area !== undefined && <div className="kv">Area <b>{measureQuantityText(it.area, 2)} mm²{it.areaBasis === 'display mesh' ? ' (mesh)' : ''}</b></div>}
           {it.radius !== undefined && <div className="kv">Radius <b>{measureQuantityText(it.radius, 3)} mm</b></div>}
@@ -28,7 +34,7 @@ export function MeasurementInspector({ bodies, measure, measured, setMeasure, on
           <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => measureQuantityText(v - measured.a[k], 2)).join(', ')}</b></div>
         </>}
         {onPin && <Button size="sm" variant="ghost" onClick={onPin}>Pin measurement</Button>}
-        <div className="empty">{measure.length < 2 ? `Click a face, edge, or vertex to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
+        <div className="empty">{picks.some(pick => !pick) ? null : targets.length < 2 ? `Click a face, edge, or vertex to measure ${targets.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>;
 }
 

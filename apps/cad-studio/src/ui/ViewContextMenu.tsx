@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction, RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { selectedBodies, type Command, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
-import type { MeasurePick } from '@barocss/cad-model/app/measure';
+import { captureMeasureTarget, type MeasureTarget } from '../app/measureTargets';
 import { lookOf, withLook } from '@barocss/cad-model/app/bodies';
 import { emptySel } from '../app/studioConstants';
 import type { ViewportMenu } from '../viewport/useViewportPicking';
@@ -13,7 +13,7 @@ interface ViewContextMenuProps {
   menu: ViewportMenu | null;
   setMenu(value: null): void;
   viewport: RefObject<ViewportHandle | null>;
-  changes: { commit(next: StudioDoc): boolean; start(command: Command): void; deleteSelection(): void; setSelection: Dispatch<SetStateAction<Selection>>; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>; setEditNode(value: null): void };
+  changes: { commit(next: StudioDoc): boolean; start(command: Command): void; deleteSelection(): void; setSelection: Dispatch<SetStateAction<Selection>>; setMeasure: Dispatch<SetStateAction<MeasureTarget[] | null>>; setEditNode(value: null): void };
 }
 export function ViewContextMenu({ model, menu, setMenu, viewport, changes }: ViewContextMenuProps) {
   const { doc, bodies, ctx } = model;
@@ -29,8 +29,9 @@ export function ViewContextMenu({ model, menu, setMenu, viewport, changes }: Vie
             const picked = selectedBodies(menu.selection).filter(i => bodies[i]), anyHidden = bodies.some(b => lookOf(doc, b).hidden);
             const hideAll = (keep: (i: number) => boolean) => commit(bodies.reduce((d, b, i) => withLook(d, b, { hidden: !keep(i) }), doc));
             const at = menu.selection.faces[0] ? { body: menu.selection.faces[0].body, face: menu.selection.faces[0].face } : menu.selection.edges[0] ? { body: menu.selection.edges[0].body, edge: menu.selection.edges[0].edge } : null;
+            const target = at && captureMeasureTarget(at, doc, bodies[at.body]);
             return [
-              ...(at ? [{ label: 'Measure from here', icon: 'cad-measure', shortcut: '⇧M', run: () => { setMeasure([at]); setSelection(emptySel); setEditNode(null); } }] : []),
+              ...(target ? [{ label: 'Measure from here', icon: 'cad-measure', shortcut: '⇧M', run: () => { setMeasure([target]); setSelection(emptySel); setEditNode(null); } }] : []),
               ...(picked.length ? [{ label: picked.length > 1 ? 'Hide bodies' : 'Hide body', icon: 'visibility_off', run: () => { hideAll(i => !picked.includes(i) && !lookOf(doc, bodies[i]).hidden); setSelection(emptySel); } },
                 { label: 'Show only this', icon: 'filter_center_focus', run: () => hideAll(i => picked.includes(i)) },
                 { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteSelection() }] : []),

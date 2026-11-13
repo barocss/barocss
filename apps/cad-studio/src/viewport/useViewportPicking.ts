@@ -13,7 +13,7 @@ import { emptySel } from '../app/studioConstants';
 import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
 import { bindMidpointPick } from '../app/midpointSketch';
-import { bindMeasureFacePick } from '../app/pinnedFaceMeasure';
+import { captureMeasureTarget, readMeasureTarget, type MeasureTarget } from '../app/measureTargets';
 import { bindNativeVertexPick } from './vertexPick';
 import type { EdgeRef, FaceRef } from './renderer';
 import type { ScenePickingActions } from './SceneViewport';
@@ -35,13 +35,13 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   sectionPickRef: RefObject<SectionPick>;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
   doc: StudioDoc; modelUnavailable: boolean; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
-  setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
+  setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasureTarget[] | null; assembly: ReturnType<typeof useAssembly>;
   sectionRef: RefObject<Section | null>; sectionFacePickRef: RefObject<number | null>; viewBodiesRef: RefObject<BodyResult[]>;
   sectionBoxRef: RefObject<{ min: Vec3; max: Vec3 }>; setSection: Dispatch<SetStateAction<Section | null>>;
   setSectionFacePick: Dispatch<SetStateAction<number | null>>; setToast(notice: FriendlyError): void;
   activeRef: RefObject<Active | null>; halvesShownRef: RefObject<boolean>; setPick: Dispatch<SetStateAction<Vec3 | null>>;
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
-  setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasurePick[] | null>>;
+  setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasureTarget[] | null>>;
   measureNativeReady: RefObject<boolean>;
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
   scene: {
@@ -107,8 +107,16 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     if (measure) {
       if (!hit.face && !hit.edge && !hit.vertex) return;
       const p: MeasurePick = hit.vertex ? { body: hit.vertex.body, vertex: hit.vertex.at } : hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
-      if (p.face !== undefined && measureNativeReady.current) bindMeasureFacePick(p, doc, sectionRef.current ? scene.bodies[p.body] : viewBodiesRef.current[p.body]);
-      setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
+      const source = sectionRef.current ? scene.bodies : viewBodiesRef.current;
+      const target = captureMeasureTarget(p, doc, source[p.body], measureNativeReady.current);
+      if (!target) return;
+      setMeasure(current => {
+        if (!current?.length) return [target];
+        const missing = current.findIndex(previous => !readMeasureTarget(previous, doc, source));
+        if (missing >= 0) return current.map((previous, index) => index === missing ? target : previous);
+        return current.length >= 2 ? [target] : [...current, target];
+      });
+      return;
     }
     // A corner: picked on its own (Shift adds or takes back another).
     if (hit.vertex) { const v = hit.vertex; if (nativeVertexReady) bindNativeVertexPick(v, doc); setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }

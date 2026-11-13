@@ -2,16 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server.edge';
-import type { MeasureResult } from '@barocss/cad-model/app/measure';
+import type { MeasurePick, MeasureResult } from '@barocss/cad-model/app/measure';
 import { rectanglePart } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { MeasurementInspector } from '../src/ui/MeasurementInspector';
 import { measureQuantityText } from '../src/ui/quantityText';
 
 function inspector(measured: MeasureResult, bodies: BodyResult[] = []) {
+  const picks: MeasurePick[] = bodies.length ? [{ body: 0, edge: 0 }, { body: 0, face: 0 }] : [];
+  const targets = picks.map(pick => ({ pick, body: bodies[0].key, label: 'Test body', mesh: bodies[0].mesh }));
   return renderToStaticMarkup(createElement(MeasurementInspector, {
-    bodies, measure: bodies.length ? [{ body: 0, edge: 0 }, { body: 0, face: 0 }] : [],
-    measured, setMeasure() {},
+    bodies, targets, picks, measured, onClose() {},
   }));
 }
 
