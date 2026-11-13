@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D983 — qualify explicit top-rim reference confirmation after Detail Move](notes/drawing-detail-top-rim-confirmation-2026-11-13/README.md).
 - [D982 — qualify the repaired split Detail on reopen and export](notes/drawing-detail-reopen-exports-2026-11-13/README.md).
 - [D981 — open the parent sheet for a split Detail boundary edit](notes/drawing-detail-parent-sheet-move-2026-11-13/README.md).
 - [D980 — protect annotated empty details during Studio Fix all](notes/drawing-detail-fix-all-ownership-2026-11-13/README.md).

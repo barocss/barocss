@@ -1,0 +1,48 @@
+{
+  "decision": "D983",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9b376255bc54e71e64324fbbae6a7325185399ea",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D983-detail-split-reference",
+    "PATH=<existing-ezdxf-venv>/bin:$PATH D983_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-ownership-browser.mjs <external-evidence>/studio02 --issue-split-reference",
+    "node --check apps/cad-studio/test/detail-ownership-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "11c99e2f3189e88b777390e1405fc93c0f684a9e5e1c77f438818e1157841ce1",
+    "sourceManifestSHA256": "6143b00188e92752f8f0201565219831ed16d0c4479b41f0b8367fe0ae533d8a",
+    "frozenFiles": 385,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "browserDownloadEvents": 0,
+    "candidateRims": 2,
+    "edge": "n1.top|n2.side0#1",
+    "oldSignaturePointMM": [
+      26,
+      16,
+      8
+    ],
+    "confirmedSignaturePointMM": [
+      42,
+      16,
+      8
+    ],
+    "reopenedReferenceWarnings": 0,
+    "holeDiameterMM": 12
+  },
+  "notRun": [
+    "automatic signature refresh",
+    "WebGL2",
+    "PDF raster visual review",
+    "standards-level PDF qualification",
+    "type-check",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -6,10 +6,11 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed', '--issue-fix-all-baseline', '--issue-fix-all-fixed', '--issue-split-move-baseline', '--issue-split-move-fixed', '--issue-split-export'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed', '--issue-fix-all-baseline', '--issue-fix-all-fixed', '--issue-split-move-baseline', '--issue-split-move-fixed', '--issue-split-export', '--issue-split-reference'].includes(mode));
 const issueMove = mode.startsWith('--issue-move-');
 const issueFixAll = mode.startsWith('--issue-fix-all-');
-const splitExport = mode === '--issue-split-export';
+const splitReference = mode === '--issue-split-reference';
+const splitExport = splitReference || mode === '--issue-split-export';
 const splitMove = splitExport || mode.startsWith('--issue-split-move-');
 const splitDetail = issueFixAll || splitMove;
 const exportReader = new URL('repaired-detail-export-reader.py', import.meta.url);
@@ -84,8 +85,8 @@ print(json.dumps({"status": "PASS", "details": r["details"], "dimensions": r["di
 `;
 
 const f = await createFlow({
-  name: 'detail-ownership', envFrozen: splitExport ? 'D982_SOURCE_FROZEN' : splitMove ? 'D981_SOURCE_FROZEN' : issueFixAll ? 'D980_SOURCE_FROZEN' : issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
-  qualification: splitExport ? 'Save, reopen and read SVG, DXF and PDF from the repaired split detail.' : splitMove ? 'Move an empty detail on its parent sheet and retain its separate sheet assignment.' : issueFixAll ? 'Keep an annotated split detail and report unresolved issues after Fix all.' : issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
+  name: 'detail-ownership', envFrozen: splitReference ? 'D983_SOURCE_FROZEN' : splitExport ? 'D982_SOURCE_FROZEN' : splitMove ? 'D981_SOURCE_FROZEN' : issueFixAll ? 'D980_SOURCE_FROZEN' : issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
+  qualification: splitReference ? 'Inspect and explicitly confirm the authored top-rim reference after repairing the split detail.' : splitExport ? 'Save, reopen and read SVG, DXF and PDF from the repaired split detail.' : splitMove ? 'Move an empty detail on its parent sheet and retain its separate sheet assignment.' : issueFixAll ? 'Keep an annotated split detail and report unresolved issues after Fix all.' : issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
   initialFiles: [import.meta.filename, modelPath, ...files.values(), ...(splitExport ? [join(import.meta.dirname, 'repaired-detail-export-reader.py')] : [])],
   oracleSource: splitExport ? await readFile(exportReader, 'utf8') : oracle,
   extraFrozen: [...(splitExport ? ['packages/barocss-cad-model/src/io/svg.ts', 'packages/barocss-cad-model/src/io/dxf.ts', 'packages/barocss-cad-model/src/io/pdf.ts'] : []), 'packages/barocss-cad-model/src/drawing/issues.ts', 'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
@@ -322,6 +323,41 @@ async function checkSplitExports(repaired) {
   await f.runOracle({ parent: first.file, detail: second.file, dxf: dxf.file, pdf: pdf.file }, 'reopened-detail-exports');
   assert.deepEqual(f.report.downloads, []);
   await f.snapshot('reopened-export-ready');
+  if (splitReference) await checkSplitReference(repaired);
+}
+
+async function checkSplitReference(repaired) {
+  const refs = f.page.getByRole('region', { name: 'References', exact: true });
+  const dim = repaired.drawing.dimensions[0];
+  f.phase = 'inspect the unresolved stored signature and the two live Hole rims';
+  await refs.getByText('Technical details', { exact: true }).click();
+  assert.match(await refs.textContent(), /1 need a choice/);
+  assert.match(await refs.textContent(), /Candidate 1: n1\.top\|n2\.side0#1/);
+  assert.match(await refs.textContent(), /Candidate 2: n1\.bottom\|n2\.side0#1/);
+  assert.equal(dim.edge, 'n1.top|n2.side0#1');
+  assert.deepEqual(dim.sig.p, [26, 16, 8]);
+  assert.deepEqual(repaired.nodes[2].center, [48, 16]);
+  await f.snapshot('stale-signature-top-and-bottom');
+
+  f.phase = 'confirm the existing top-rim reference without changing its authored edge';
+  await refs.getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+  await f.changed(repaired);
+  const confirmed = await f.doc();
+  const next = confirmed.drawing.dimensions[0];
+  assert.equal(next.edge, dim.edge);
+  assert.deepEqual(next.sig.p, [42, 16, 8]);
+  assert.deepEqual(next, { ...dim, sig: next.sig });
+  assert.deepEqual(confirmed, { ...repaired, drawing: { ...repaired.drawing, dimensions: [next] } });
+  await checkDimension('b-diameter', 'detail:B', 12);
+
+  f.phase = 'save and reopen with the refreshed top-rim signature';
+  const saved = await save('confirmed-reference');
+  await open(saved.file);
+  await f.same(confirmed);
+  await tab(2);
+  await checkDimension('b-diameter', 'detail:B', 12);
+  assert.equal(await f.page.getByRole('region', { name: 'References', exact: true }).count(), 0);
+  await f.snapshot('confirmed-top-rim-reopened');
 }
 
 async function checkIssueFixAll() {
