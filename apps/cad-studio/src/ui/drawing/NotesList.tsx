@@ -11,8 +11,10 @@ export function NotesList({ settings, selected, selNote, noteDraft, setNoteDraft
   return <>
         <div className="card-title" style={{ marginTop: 8 }}>NOTES <span className="muted">{settings.notes?.length ?? 0}</span></div>
         <div className="dw-dims">
-          {(settings.notes ?? []).map(n => <div key={n.id} role="button" tabIndex={0} className={'dw-dim' + (selected === n.id ? ' sel' : '')} onClick={() => onSelect(n)}>
-            <b className="dw-note-text">{n.text.split('\n')[0]}</b><span>{n.leader ? `→ ${n.leader.view}` : ''}</span><span className="muted" />
+          {(settings.notes ?? []).map(n => <div key={n.id} className={'dw-dim' + (selected === n.id ? ' sel' : '')}>
+            <button type="button" className="dw-annotation-select" aria-pressed={selected === n.id} onClick={() => onSelect(n)}>
+              <b className="dw-note-text">{n.text.split('\n')[0]}</b><span>{n.leader ? `→ ${n.leader.view}` : ''}</span>
+            </button>
             <Button variant="ghost" size="xs" aria-label={`Remove note ${n.id}`} onClick={e => { e.stopPropagation(); remove(n.id); }}><Icon name="close" small /></Button>
           </div>)}
           {!settings.notes?.length && <div className="empty"><Kbd>N</Kbd> adds a note: click the paper, or a view for a leader first.</div>}

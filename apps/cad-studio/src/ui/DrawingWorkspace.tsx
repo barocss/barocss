@@ -143,8 +143,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
   const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
   const [targetDraft, setTargetDraft] = useState<DatumTargetDraft>(DEFAULT_TARGET_DRAFT);
-  useEffect(() => { if (selected !== null) { setSelectedTarget(null); setSelectedFrame(null); } }, [selected]);
-  useEffect(() => { if (selectedTarget !== null) setSelectedFrame(null); }, [selectedTarget]);
+  const selectAnnotationRow = (id: string) => {
+    cancel();
+    setSelected(id);
+    setSelectedTarget(null);
+    setSelectedFrame(null);
+    setDrag(null);
+    setTolDraft({});
+    setTool('select');
+  };
   const [message, setMessage] = useState<string | null>(null);
   const [drag, setDrag] = useState<{ id: string; place: XY } | { target: string; original: DrawingDatumTarget; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { removed: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
   /** The selected note's text while it is typed, and the selected dimension's tolerance fields. */
@@ -548,7 +555,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
     const note: DrawingNote = { id: `n${k}`, text: 'NOTE', at: [Math.round(at[0] * 10) / 10, Math.round(at[1] * 10) / 10], ...(leader ? { leader } : {}) };
     onChange({ ...settings, notes: [...(settings.notes ?? []), note] });
-    setPending(null); setTool('select'); setSelected(note.id); setNoteDraft(note.text); setTypeNote(note.id);
+    setPending(null); setTool('select'); setSelectedTarget(null); setSelectedFrame(null); setSelected(note.id); setNoteDraft(note.text); setTypeNote(note.id);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -959,7 +966,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <DatumsEditor settings={settings} views={views} scale={layout?.scale ?? 1} onChange={onChange} onRefused={setMessage} />
 
-        <DatumTargetsEditor draft={targetDraft} onDraft={next => { if (next.kind !== targetDraft.kind && (pending?.kind === 'datum-line' || (pending?.kind === 'datum-target' && !pending.moving))) cancel(); setTargetDraft(next); }} settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setTool('select'); cancel(); }}
+        <DatumTargetsEditor draft={targetDraft} onDraft={next => { if (next.kind !== targetDraft.kind && (pending?.kind === 'datum-line' || (pending?.kind === 'datum-target' && !pending.moving))) cancel(); setTargetDraft(next); }} settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setSelectedFrame(null); setTool('select'); cancel(); }}
           onAdd={() => { setTool('datum-target'); cancel(); }} onMove={target => { setTool('datum-target'); chooseTarget(target, true); }}
           onReselect={target => { cancel(); if (layout?.views[target.view].hidden) { setMessage('Show the target view before selecting its endpoint again.'); return; } setTool('datum-target'); setReselectTarget(target); setSelected(null); setSelectedTarget(target.id); setMessage(`Select the target endpoint again in the ${target.view} view. Its symbol position will be kept. Esc cancels.`); }}
           onCommit={commitTargets} onRefused={setMessage} />
@@ -969,17 +976,17 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           onSelect={id => { cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(id); setDrag(null); setTool('select'); }}
           onAdd={view => placeFrame(view)} onMove={frame => { if (frame.dim === undefined) placeFrame(frame.view, frame); }} onRemove={removeFrame} />
 
-        <IssuesList sheetLabel={sheetTotal > 1 ? `${sheetName(wholeSettings, current)} of ${sheetTotal}` : undefined} issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
+        <IssuesList sheetLabel={sheetTotal > 1 ? `${sheetName(wholeSettings, current)} of ${sheetTotal}` : undefined} issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={selectAnnotationRow} />
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
-        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { setSelected(id); setTool('select'); }} remove={remove} autoDimension={autoDimension} />
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { selectAnnotationRow(id); setNoteDraft(null); }} remove={remove} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
 
         <FrameEditor key={selectedFrame ? `frame:${selectedFrame}` : selDim?.id ?? 'none'} dim={selectedFrame ? undefined : selDim?.id} frameId={selectedFrame ?? undefined} settings={settings} onChange={changeFrame} onRefused={setMessage} />
 
-        <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
+        <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow(n.id); setNoteDraft(n.text); }} remove={remove} onChange={onChange} />
 
         <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>

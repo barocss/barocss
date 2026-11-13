@@ -1,0 +1,49 @@
+{
+  "decision": "D984",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "891551174aacf55a1cbb2d8a646ec1eefd9ffe1f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D984-drawing-annotation-keys",
+    "D984_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/baseline03 --annotation-keys-baseline",
+    "D984_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/fixed01 --annotation-keys-fixed",
+    "gate.sh acquire heavy 600 D984-small",
+    "pnpm --filter @barocss/cad-studio-app test drawing",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "945395bda9461026d821d0e9cb4e67f68b01c7cd503fd3d9e726997c3f9da88e"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "379325ddf170b8bb35dee7a455ad74e40642112843ab66d3fc2fd231344d0706",
+    "sourceManifestSHA256": "d1c66fe5950af3881122dfd9059589ffb5a1a177b3ad613a3cea09cb3f3dce08",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "widthMM": 20,
+    "sheets": 2,
+    "preservedOtherSheetNote": true
+  },
+  "focusedTests": {
+    "pass": 19,
+    "fail": 0
+  },
+  "notRun": [
+    "same-ID cross-kind selection",
+    "overlapping annotation click order",
+    "Note Duplicate/Remove leader",
+    "edit Escape",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
