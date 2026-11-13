@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D936 — clear the 20 mm basic dimension in the hole-row drawing](notes/hole-row-basic-dimension-clearance-2026-11-13/README.md).
 - [D935 — clear the horizontal basic dimension in the cross-hole drawing](notes/cross-hole-basic-dimension-recovery-2026-11-13/README.md).
 - [D934 — clear the basic dimension box from its own ruler](notes/basic-dimension-own-ruler-clearance-2026-11-13/README.md).
 - [D933 — verify section-trace hit testing after Project Open](notes/drawing-section-trace-project-reopen-2026-11-13/README.md).

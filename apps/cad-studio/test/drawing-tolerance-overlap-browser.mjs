@@ -6,7 +6,10 @@ const [output, mode] = process.argv.slice(2);
 assert.ok(['--baseline', '--fixed'].includes(mode));
 const baseline = mode === '--baseline';
 const cross = process.argv[4] === '--cross-hole';
+const row = process.argv[4] === '--row-geometric';
 const crossFixture = 'packages/barocss-cad/conformance/r14/tol-cross-hole-geometric/case.json';
+const rowFixture = 'packages/barocss-cad/conformance/r14/tol-row-geometric/case.json';
+const fixture = cross ? crossFixture : row ? rowFixture : null;
 const sample = 'packages/barocss-cad-model/samples/rows/fastener-sizes.json';
 const pins = [
   'apps/cad-studio/test/drawing-tolerance-overlap-browser.mjs',
@@ -15,12 +18,47 @@ const pins = [
   'packages/barocss-cad-model/src/chat/drawing.ts',
   'packages/barocss-cad-model/src/drawing/issues.ts',
   'packages/barocss-cad-model/src/drawing/sheet.ts', sample,
-  ...(cross ? [crossFixture, 'packages/barocss-cad-model/test/tolerance.test.ts'] : []),
+  ...(fixture ? [fixture, 'packages/barocss-cad-model/test/tolerance.test.ts'] : []),
+  ...(row ? ['apps/cad-studio/src/ui/drawing/TolerancingList.tsx', 'packages/barocss-cad-model/src/io/svg.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'drawing-tolerance-overlap', output, envFrozen: cross ? 'D935_SOURCE_FROZEN' : 'D934_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'drawing-tolerance-overlap', output, envFrozen: row ? 'D936_SOURCE_FROZEN' : cross ? 'D935_SOURCE_FROZEN' : 'D934_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: 'Open the accepted tolerance drawing and inspect its actual drawing warning.',
-  oracleSource: cross ? `
+  oracleSource: row ? `
+import json, math, sys, xml.etree.ElementTree as ET
+d = json.load(sys.stdin)
+marks = d['target']['marks']
+[line] = [m for m in marks if m.get('role') == 'dimension']
+[frame] = [m for m in marks if m.get('role') == 'frame']
+[x0, y], [x1, other_y] = line['a'], line['b']
+xs, ys = zip(*frame['points'])
+top = d['layout']['views']['top']['box'][1]
+close = lambda a, b: math.isclose(a, b, abs_tol=1e-8)
+assert close(x1 - x0, 20) and y == other_y
+assert close(top - y, 18)
+assert close((min(xs) + max(xs))/2, (x0 + x1)/2)
+assert close(max(ys) - min(ys), 5.17)
+if d['baseline']:
+    assert min(ys) < y < max(ys)
+else:
+    heads = [m for m in marks if m.get('head')]
+    assert [m['head']['tip'] for m in heads] == [line['a'], line['b']]
+    assert close(min(ys) - 0.125 - max(p[1] for m in heads for p in m['points']), 1.2)
+    assert max(ys) + 0.125 + 1.2 < top
+    assert not any(m.get('role') == 'leader' for m in marks)
+    root = ET.fromstring(d['svg'])
+    ns = {'s': 'http://www.w3.org/2000/svg'}
+    assert root.attrib['width'] == '297mm' and root.attrib['height'] == '210mm'
+    group = root.find(".//s:g[@data-dim='d2']", ns)
+    assert group.attrib['class'] == 'dimension' and group.attrib['data-view'] == 'top'
+    assert group.find('s:text', ns).text == '20'
+    lines = group.findall('s:line', ns)
+    assert len(lines) == 3 and any(float(s.attrib['y1']) == y == float(s.attrib['y2']) and close(float(s.attrib['x2'])-float(s.attrib['x1']), 20) for s in lines)
+    [polygon] = group.findall('s:polyline', ns)
+    svg_ys = [float(p.split(',')[1]) for p in polygon.attrib['points'].split()]
+    assert close(min(svg_ys), min(ys)) and close(max(svg_ys), max(ys))
+print(json.dumps({'status':'PASS', 'rulerMM':20, 'rulerY':y, 'topViewY':top, 'boxY':[min(ys), max(ys)]}))
+` : cross ? `
 import json, math, sys
 d = json.load(sys.stdin)
 marks = d['target']['marks']
@@ -71,12 +109,12 @@ else:
     assert d['layout']['views']['top']['box'][0] - max(xs) - half_stroke >= 1.2 - 1e-8
 print(json.dumps({'status':'PASS', 'rulerX':line_x, 'rulerLength':12, 'boxX':[min(xs), max(xs)]}))
 `,
-  limits: cross
+  limits: row ? ['The exact hole-row geometric tolerance drawing and its locally recorded M6 rows.'] : cross
     ? ['The exact 60 × 30 × 30 mm block with an Ø8 cross-hole and a plain-mm geometric tolerance drawing.']
     : ['The exact existing 100 × 40 × 10 mm plate, four-hole pattern and local fastener-size fixture.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeSync } from 'node:fs';
 import { acceptProposal, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { drawingInputs } from '@barocss/cad-model/chat/drawing';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
@@ -90,8 +128,8 @@ import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engi
 import { brepsFor, evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 
-const { rowPath, crossFixture } = JSON.parse(process.argv[3]);
-const conformance = crossFixture ? JSON.parse(readFileSync(crossFixture, 'utf8')) : null;
+const { rowPath, fixture, targetId, settings: currentSettings } = JSON.parse(process.argv[3]);
+const conformance = fixture ? JSON.parse(readFileSync(fixture, 'utf8')) : null;
 const files = receivePersonRowFiles('0123456789abcdef01234567', [{ name: 'fastener-sizes.json', text: readFileSync(rowPath, 'utf8'), turn: 1 }], 1);
 const loaded = loadPersonRows(conformance?.input.document ?? withNode(rectanglePart(100, 40, 10), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [20, 12], radius: 3.3,
   pattern: { count: 4, step: [20, 0] } }), 'fastener-sizes', files.files[0].id, undefined, files);
@@ -103,12 +141,13 @@ if (conformance) {
   assert.ok(projected.ok);
   const input = { views: projected.views, settings: conformance.input.drawing, fastenerSizes: fastenerSizesOf(loaded.doc),
     callout: (edge: string) => holeCallout(loaded.doc.nodes, edge), meta: { title: 't', date: 'd' } };
-  const outcome = acceptAll(input), doc = { ...loaded.doc, drawing: readDrawing(outcome.settings) };
-  const ctx = issueContext({ ...input, settings: outcome.settings }), issues = drawingIssues(ctx);
-  const id = 'd4';
-  const target = ctx.sheet.groups.find(group => group.role === 'dimension' && group.id === id);
+  const initial = { ...loaded.doc, drawing: readDrawing(input.settings) };
+  const settings = currentSettings ?? acceptAll(input).settings;
+  const doc = { ...loaded.doc, drawing: readDrawing(settings) };
+  const ctx = issueContext({ ...input, settings }), issues = drawingIssues(ctx);
+  const target = ctx.sheet.groups.find(group => group.role === 'dimension' && group.id === targetId);
   assert.ok(target);
-  console.log(JSON.stringify({ doc, issues, target, groups: ctx.sheet.groups, layout: ctx.layout }));
+  writeSync(1, JSON.stringify({ doc, initial, issues, target, groups: ctx.sheet.groups, layout: ctx.layout }));
   process.exit(0);
 }
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -147,12 +186,65 @@ await f.run(async () => {
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
       return ['http:', 'https:'].includes(url.protocol) && url.origin !== origin ? route.abort() : route.continue();
     });
+    if (row && !baseline) await context.addInitScript(() => {
+      const urls = new Map(), create = URL.createObjectURL, click = HTMLAnchorElement.prototype.click;
+      window.__toleranceSvg = [];
+      URL.createObjectURL = function (blob) {
+        const url = create.call(this, blob);
+        urls.set(url, blob);
+        return url;
+      };
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download.endsWith('.svg') || !urls.has(this.href)) return click.call(this);
+        void urls.get(this.href).text().then(svg => window.__toleranceSvg.push(svg));
+      };
+    });
     return context;
   };
   f.phase = 'build the existing local approved drawing fixture';
-  const native = await f.inspect('approved-proposal', {}, {
-    rowPath: join(f.repo, sample), crossFixture: cross ? join(f.repo, crossFixture) : null,
-  });
+  const fixtureInputs = { rowPath: join(f.repo, sample), fixture: fixture && join(f.repo, fixture), targetId: row ? 'd2' : 'd4' };
+  const native = await f.inspect('approved-proposal', {}, fixtureInputs);
+  if (row) {
+    await f.newPage();
+    f.phase = 'open the original hole-row document';
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'hole-row-geometric.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(native.initial)) });
+    await f.page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4);
+    await f.ready();
+    assert.deepEqual((await f.doc()).drawing, native.initial.drawing);
+    await button('Drawing').click();
+    const accept = button('Accept all suggestions');
+    await accept.waitFor();
+    await f.snapshot('01-before-accept-all');
+    f.phase = 'accept all geometric tolerances and read Studio diagnostics';
+    await accept.click();
+    await f.page.waitForFunction(() => window.__studioDoc?.drawing?.frames?.length === 2);
+    const current = await f.snapshot('02-after-accept-all');
+    const actual = await f.inspect('accepted-in-studio', {}, { ...fixtureInputs, settings: current.doc.drawing });
+    assert.deepEqual(actual.doc.drawing, current.doc.drawing);
+    assert.deepEqual(current.doc.nodes, native.initial.nodes);
+    assert.deepEqual(current.drawing.issues.filter(i => i.code === 'TEXT_OVER_LINES').map(i => i.dims), baseline ? [['d2']] : []);
+    assert.deepEqual(current.doc.drawing.datums.map(d => d.letter), ['A', 'B', 'C']);
+    assert.deepEqual(current.doc.drawing.frames.map(d => [d.dim, d.value, d.datums]), [['d7', 0.3, ['A', 'B', 'C']], ['d8', 0.6, ['A', 'B', 'C']]]);
+    assert.deepEqual(current.drawing.dimensions.filter(d => d.id === 'd7' || d.id === 'd8').map(d => d.text), ['M6×1 × 12 DEEP', '4× Ø6.6 THRU']);
+    const original = native.initial.drawing.dimensions.find(d => d.id === 'd2');
+    assert.deepEqual(current.doc.drawing.dimensions.find(d => d.id === 'd2'), { ...original, basic: true });
+    let svg;
+    if (!baseline) {
+      f.phase = 'read the actual SVG and verify the acceptance history';
+      await button('Export SVG').click();
+      await f.page.waitForFunction(() => window.__toleranceSvg.length === 1);
+      [svg] = await f.page.evaluate(() => window.__toleranceSvg);
+      f.report.observations.push({ label: 'emitted-svg', bytes: Buffer.byteLength(svg), sha256: sha256(svg) });
+      await f.undo();
+      await f.same(native.initial);
+      await f.redo();
+      await f.same(current.doc);
+    }
+    await f.runOracle({ target: actual.target, layout: actual.layout, baseline, svg }, 'row-paper-mm-clearance');
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (cross) {
     assert.equal(native.target.view, 'right');
     const dimension = native.doc.drawing.dimensions.find(d => d.id === 'd4');
