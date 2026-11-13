@@ -10,7 +10,7 @@ import { useAnalysisMaps } from './viewport/useAnalysisMaps';
 import { useClearancePreview, useManufacturingPreviews, usePmiPreview } from './viewport/useWorkspacePreviews';
 import { ViewDisplayControls } from './ui/ViewDisplayControls';
 import { useStudioDocumentFiles } from './files/useStudioDocumentFiles';
-import { FeatureHistoryBar } from './ui/FeatureHistoryBar';
+import { FeatureHistoryBar, type HistoryMenuTarget } from './ui/FeatureHistoryBar';
 import { FeatureHistoryMenu } from './ui/FeatureHistoryMenu';
 import { useRenderPlayback } from './viewport/useRenderPlayback';
 import { useModelChecks } from './state/useModelChecks';
@@ -38,6 +38,7 @@ import { clearConstraintInspection, createConstraintInspection } from './sketch/
 import { useWorkspaceModeExit } from './ui/useWorkspaceModeExit';
 import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
+import { DeleteDependentsDialog } from './ui/DeleteDependentsDialog';
 import { useFeatureHistory } from './state/useFeatureHistory';
 import { carrySketchSelection } from './state/profileSelection';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
@@ -673,7 +674,7 @@ export function App() {
   const [objectSnapKinds, setObjectSnapKinds] = useState(defaultObjectSnapKinds);
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
   /** The history chip right-clicked: its menu (edit, edit sketch, roll back here, delete). */
-  const [historyMenu, setHistoryMenu] = useState<{ at: { x: number; y: number }; index: number; focus?: HTMLElement | null } | null>(null);
+  const [historyMenu, setHistoryMenu] = useState<HistoryMenuTarget | null>(null);
   /**
    * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
    * faces lit (the kernel's split, display only — the model is not changed).
@@ -2194,7 +2195,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.isComposing || help || workspaceModeExit.pending) return;
+      if (e.defaultPrevented || e.isComposing || help || workspaceModeExit.pending || cascade) return;
       const target = e.target;
       const typing = target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement
         || (target instanceof HTMLElement && target.isContentEditable);
@@ -2871,7 +2872,7 @@ export function App() {
             const failedFeature = reply.revision === request ? failedFeatureText(reply.error.feature, next.nodes, doc.nodes) : undefined;
             return { ...reply.error, failedFeature };
           });
-        }} onDelete={doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? undefined : () => deleteNode(editNode)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
+        }} onDelete={doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? undefined : opener => deleteNode(editNode, opener)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
       </SelectionInspector>}
       </div></Profiler>
   );
@@ -3089,15 +3090,7 @@ export function App() {
             <button className="ghost" onClick={() => { settleRecovery(); setRecovery(null); void collectRecoveryBlobs(dirty ? doc : null); }}>Discard</button>
           </div></div>
       </div>}
-      {cascade && <div className="toast card recovery" role="dialog" aria-label="Delete with dependents">
-        <Icon name="account_tree" className="accent" />
-        <div><div className="toast-title">Delete {cascade.label} and what is built on it?</div>
-          <div className="toast-hint">{cascade.deps.length === 1 ? 'This feature uses it and goes too' : `These ${cascade.deps.length} features use it and go too`}: {cascade.deps.join(', ')}. Undo restores them.</div>
-          <div className="row-actions">
-            <button className="primary" onClick={deleteCascade}>Delete {cascade.deps.length + 1}</button>
-            <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
-          </div></div>
-      </div>}
+      <DeleteDependentsDialog request={cascade} onCancel={() => setCascade(null)} onDelete={deleteCascade} />
       {toast && (workerFailure || (!cascade && !meshAsk && !repairAsk && !stepAsk && !stlAsk)) && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>

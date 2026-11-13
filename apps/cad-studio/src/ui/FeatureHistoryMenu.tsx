@@ -12,7 +12,7 @@ interface FeatureHistoryMenuProps {
   close(): void;
   beforeEdit(action: () => void): void;
   editors: { setEditNode(index: number | null): void; setInstanceSel(ids: string[]): void; setDirectSel(ids: string[]): void; editSketch(index: number): void; exportSketchDxf(index: number): void; cancel(): void; beginSkeleton(index: number): void; setSelection(selection: Selection): void };
-  history: { toggleSuppress(index: number): void; reorder(index: number, direction: -1 | 1): void; setMarker(marker: number | null): void; deleteNode(index: number): void };
+  history: { toggleSuppress(index: number): void; reorder(index: number, direction: -1 | 1): void; setMarker(marker: number | null): void; deleteNode(index: number, opener: HTMLElement | null): void };
 }
 export function FeatureHistoryMenu({ doc, ctx, marker, historyMenu, close, beforeEdit, editors, history }: FeatureHistoryMenuProps) {
   const { setEditNode, setInstanceSel, setDirectSel, editSketch, exportSketchDxf, cancel, beginSkeleton, setSelection } = editors;
@@ -31,7 +31,7 @@ export function FeatureHistoryMenu({ doc, ctx, marker, historyMenu, close, befor
             { label: 'Move later', icon: 'arrow_forward', run: () => reorder(i, 1) },
             { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },
             ...(marker !== null ? [{ label: 'Roll to the end', icon: 'redo', run: () => setMarker(null) }] : []),
-            { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteNode(i) },
+            { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteNode(i, historyMenu.opener) },
           ]} />;
       })()}
 </>;

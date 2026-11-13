@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { featureLabel, parentsOf, prefixDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
@@ -19,14 +19,14 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
   const { engine, nextRevision } = worker;
   const { canChangeDocument, commit, setSelection } = changes;
   // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
-  const deleteNode = (index: number) => {
+  const deleteNode = (index: number, opener: HTMLElement | null = null) => {
     if (!canChangeDocument()) return;
     if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
     const label = featureLabel(doc.nodes[index], index, doc.nodes), r = deleteFeature(doc, index);
     if ('error' in r) {
       // Others build on it: offer to delete them with it, after listing them.
       const deps = featureDependents(doc, index);
-      if (deps.length && 'doc' in deleteFeatures(doc, [index, ...deps])) { setCascade({ index, label, deps: deps.map(k => featureLabel(doc.nodes[k], k, doc.nodes)), all: [index, ...deps] }); return; }
+      if (deps.length && 'doc' in deleteFeatures(doc, [index, ...deps])) { setCascade({ owner: doc, opener, label, deps: deps.map(k => featureLabel(doc.nodes[k], k, doc.nodes)), all: [index, ...deps] }); return; }
       setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return;
     }
     engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), nextRevision()).then(e => {
@@ -72,7 +72,11 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
     });
   };
   /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
-  const [cascade, setCascade] = useState<{ index: number; label: string; deps: string[]; all: number[] } | null>(null);
+  const [deleteRequest, setCascade] = useState<{ owner: StudioDoc; opener: HTMLElement | null; label: string; deps: string[]; all: number[] } | null>(null);
+  const cascade = deleteRequest?.owner === doc ? deleteRequest : null;
+  useEffect(() => {
+    if (deleteRequest && !cascade) setCascade(null);
+  }, [deleteRequest, cascade]);
   const deleteCascade = () => {
     if (!canChangeDocument()) return;
     if (!cascade) return;

@@ -3,7 +3,7 @@ import { featureLabel, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Selection } from '@barocss/cad-model/app/commands';
 import { iconFor } from './featureIcon';
 import { Icon } from './atoms';
-export type HistoryMenuTarget = { at: { x: number; y: number }; index: number; focus?: HTMLElement | null };
+export type HistoryMenuTarget = { at: { x: number; y: number }; index: number; focus?: HTMLElement | null; opener: HTMLButtonElement };
 /** A busy bar's clicks stop at the bar: it stays hit-testable, so they reach neither its steps nor the viewport under it (not `inert`, which lets them through). */
 function swallow(e: SyntheticEvent) { e.preventDefault(); e.stopPropagation(); }
 interface FeatureHistoryBarProps {
@@ -35,11 +35,11 @@ export function FeatureHistoryBar({ busy = false, doc, selection, editNode, mark
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
           <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
             onPointerDown={rememberFocus} onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
-            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i, focus: takeFocus(e) }); }}>
+            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i, focus: takeFocus(e), opener: e.currentTarget }); }}>
             <Icon name="cad-sketch" small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>) : null) : (
           <button key={i} data-node-index={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
             onPointerDown={rememberFocus} onClick={openHistoryFeature} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
-            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i, focus: takeFocus(e) }); }}>
+            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i, focus: takeFocus(e), opener: e.currentTarget }); }}>
             <Icon name={iconFor(n)} small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>))}
         {(historyHidden > 0 || historyRows) && <button className="hs-more" aria-label={historyRows ? 'Fewer history steps' : `${historyHidden} more history steps`} aria-expanded={historyRows}
           title={historyRows ? 'Show fewer steps' : 'Show every step'} onClick={() => setHistoryRows(o => !o)}>{historyRows ? 'Less' : '+' + historyHidden}</button>}

@@ -3,13 +3,14 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed', '--skeleton-workspace-baseline', '--skeleton-workspace-fixed', '--cage-workspace-baseline', '--cage-workspace-fixed', '--mate-hole-keys'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed', '--skeleton-workspace-baseline', '--skeleton-workspace-fixed', '--cage-workspace-baseline', '--cage-workspace-fixed', '--mate-hole-keys', '--history-delete-baseline', '--history-delete-fixed'].includes(mode));
 const step = mode.startsWith('--step');
 const openFlow = mode.startsWith('--open') || step;
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const skeletonKeys = mode.startsWith('--skeleton-keys');
+const historyDelete = mode.startsWith('--history-delete');
 const mateHoleKeys = mode === '--mate-hole-keys';
 const cageWorkspace = mode.startsWith('--cage-workspace');
 const skeletonWorkspace = mode.startsWith('--skeleton-workspace');
@@ -18,6 +19,7 @@ const mate = mode === '--mate-baseline' || mode === '--mate-fixed';
 const project = mode.startsWith('--project');
 const alternate = mode.startsWith('--alternate');
 const pins = [
+  ...(historyDelete ? ['apps/cad-studio/src/state/useFeatureHistory.ts', 'apps/cad-studio/src/ui/FeatureHistoryMenu.tsx'] : []),
   ...(mateHoleKeys ? ['apps/cad-studio/src/ui/MatePanel.tsx', 'apps/cad-studio/src/ui/Hud.tsx', 'apps/cad-studio/test/fixtures/edit-in-place.bcad'] : []),
   ...(cageWorkspace ? ['apps/cad-studio/src/subd/useCageEditor.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/CagePanel.tsx'] : []),
   ...(alternate ? ['apps/cad-studio/src/ui/BodyBrowserRows.tsx', 'apps/cad-studio/src/ui/FeatureHistoryMenu.tsx'] : []),
@@ -32,8 +34,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: mateHoleKeys ? 'D975_SOURCE_FROZEN' : cageWorkspace ? 'D974_SOURCE_FROZEN' : skeletonWorkspace ? 'D973_SOURCE_FROZEN' : skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: mateHoleKeys ? 'Keep native Assembly Mate and Hole Type keyboard activation within the focused control.' : cageWorkspace ? 'Park SubD Cage input and use one active editor in Model.' : skeletonWorkspace ? 'Park the 3D Sketch in Render and Drawing and send Render history to the document.' : skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: historyDelete ? 'D976_SOURCE_FROZEN' : mateHoleKeys ? 'D975_SOURCE_FROZEN' : cageWorkspace ? 'D974_SOURCE_FROZEN' : skeletonWorkspace ? 'D973_SOURCE_FROZEN' : skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: historyDelete ? 'Focus Cancel and restore the opener after History Delete confirmation.' : mateHoleKeys ? 'Keep native Assembly Mate and Hole Type keyboard activation within the focused control.' : cageWorkspace ? 'Park SubD Cage input and use one active editor in Model.' : skeletonWorkspace ? 'Park the 3D Sketch in Render and Drawing and send Render history to the document.' : skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -732,6 +734,80 @@ async function checkMateHoleKeys() {
   await f.snapshot('03-hole-keyboard-cancel');
 }
 
+async function checkHistoryDelete() {
+  const page = f.page;
+  const plate = {
+    format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+    nodes: [
+      { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30], id: 'n0' },
+      { kind: 'extrude', sketch: 0, height: 10, id: 'n1' },
+    ],
+    outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
+  };
+  await openCandidate('Delete confirmation plate', plate);
+  await f.same(plate);
+  await page.locator('.views').getByRole('button', { name: 'Top', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.view-cube .vc-label')?.textContent === 'TOP');
+  await page.mouse.click(...await page.evaluate(() => window.__studioScreenOf([20, 15, 10])));
+  await page.waitForFunction(() => window.__studioSelection?.selection?.faces?.length === 1);
+  await page.keyboard.press('h');
+  const hole = page.getByRole('dialog', { name: 'Hole', exact: true });
+  await hole.getByRole('button', { name: 'Apply', exact: true }).click();
+  await f.changed(plate);
+  const drilled = await f.doc();
+  assert.equal(drilled.nodes[2].kind, 'hole');
+  assert.equal((await f.bodies()).bodies.length, 1);
+  const step = historyStep(1);
+  const dialog = page.getByRole('dialog', { name: 'Delete with dependents', exact: true });
+  const cancel = dialog.getByRole('button', { name: 'Cancel', exact: true });
+  await step.click();
+  const opener = f.editor().getByRole('button', { name: 'Delete feature', exact: true });
+  const before = await f.snapshot('01-drilled-plate');
+
+  f.phase = 'focus Cancel when opening Delete from the feature editor';
+  await opener.click();
+  await dialog.waitFor();
+  assert.match(await dialog.textContent(), /Hole Ø8/);
+  if (mode.endsWith('baseline')) {
+    const shown = await f.snapshot('02-delete-without-safe-focus', () => ({
+      active: document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent,
+    }));
+    assert.equal(shown.active, 'Delete feature');
+    await page.keyboard.press('Escape');
+    assert.equal(await dialog.isVisible(), true);
+    await f.same(drilled);
+    assert.fail('Delete confirmation leaves focus on the opener and Escape does not dismiss it');
+  }
+  await waitFocus(cancel);
+  await f.snapshot('02-delete-cancel-focused');
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'hidden' });
+  await waitFocus(opener);
+  const retained = await f.snapshot('03-delete-editor-focus-restored');
+  for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(retained[field], before[field], field);
+
+  f.phase = 'restore the History chip after menu Delete is canceled';
+  await step.focus();
+  await step.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: /^Delete/ }).press('Enter');
+  await waitFocus(cancel);
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'hidden' });
+  await waitFocus(step);
+  await f.same(drilled);
+  await f.snapshot('04-delete-history-focus-restored');
+
+  f.phase = 'confirm explicit Delete and restore the exact drilled plate with Undo';
+  await opener.click();
+  await waitFocus(cancel);
+  await dialog.getByRole('button', { name: 'Delete 2', exact: true }).click();
+  await f.changed(drilled);
+  assert.equal((await f.doc()).nodes.length, 0);
+  await button('Undo').click();
+  await f.same(drilled);
+  await f.snapshot('05-explicit-delete-undone');
+}
+
 async function checkAlternateFeature() {
   const candidate = structuredClone(source);
   candidate.nodes.push({ kind: 'translate', parent: { node: 3, side: 'solid' }, offset: [4, 0, 0], id: 'n4' });
@@ -813,6 +889,7 @@ await f.run(async () => {
   if (inPlace) { await checkInPlace(); return; }
   if (mate) { await checkMate(); return; }
   if (mateHoleKeys) { await checkMateHoleKeys(); return; }
+  if (historyDelete) { await checkHistoryDelete(); return; }
   if (alternate) { await checkAlternateFeature(); return; }
   await openCandidate('Draft source', source);
   await f.same(source);
