@@ -1,0 +1,59 @@
+{
+  "decision": "D930",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "e20af016035a631a78ab3bd65a3b9badf13f9c81",
+  "node": "22.19.0",
+  "issue": 2337,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D930-missing",
+    "D930_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/run01 --missing",
+    "gate.sh acquire heavy 600 D930-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure references",
+    "cd apps/cad-studio && node scripts/test.mjs pinned-face-measure document-file workOwnership feature-history",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 52,
+    "studioPass": 14,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "1ede6e2ba3cc98acaa13990f27dff17119180a94cd32ef9b08cf164d11f108bc"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "6d687d1d4c7039b3aad3e8943c96514f72a673f7b27d6e913cfc473900fb1399",
+    "sourceManifestSHA256": "9c97fd006607d5d5c5912d03f94bfb4c031b608839d796ac24581d1fc3f1e2ef",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pinMM": [
+      8,
+      null,
+      8,
+      null,
+      8,
+      null
+    ],
+    "witnessKey": "b3",
+    "witnessHeightMM": 19,
+    "witnessVolumeMM3": 4560,
+    "volumeToleranceMM3": 1e-08
+  },
+  "notRun": [
+    "Project Save/Close",
+    "cross-workspace visibility",
+    "Worker restart",
+    "other topology families",
+    "full suites",
+    "type checks",
+    "build",
+    "mobile"
+  ]
+}

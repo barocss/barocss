@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const missing = process.argv[3] === '--missing';
 const held = process.argv[3] === '--held';
-const pin = held || process.argv[3] === '--pin';
+const pin = missing || held || process.argv[3] === '--pin';
 const pins = [
   'apps/cad-studio/test/measure-opposite-face-edit-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -13,9 +14,9 @@ const pins = [
   ...(pin ? ['apps/cad-studio/src/app/pinnedFaceMeasure.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
+  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: missing ? 'D930_SOURCE_FROZEN' : held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
+  qualification: missing ? 'Never transfer a pinned measurement to a surviving output after suppression or deletion.' : held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
   limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.'],
   snapshotExtra: () => ({
     fresh: window.__studioFresh,
@@ -46,6 +47,14 @@ const source = {
     { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
   ],
   outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
+};
+const withWitness = {
+  ...source,
+  nodes: [...source.nodes,
+    { kind: 'sketch', profile: 'rectangle', min: [34, 0], max: [54, 12], id: 'n2' },
+    { kind: 'extrude', sketch: 2, height: 19, id: 'n3' },
+  ],
+  outputs: { ...source.outputs, b3: { node: 3, side: 'solid' } }, nextId: 4,
 };
 const button = name => f.page.getByRole('button', { name, exact: true });
 const panel = () => f.page.getByRole('complementary', { name: 'Measurement', exact: true });
@@ -279,6 +288,54 @@ async function heldFlow() {
   await check('09-current-measure-after-late-reply', 8);
 }
 
+async function missingFlow() {
+  await check('01-target-8', 8, false, true);
+  const historyStep = f.page.locator('.history .hs[data-node-index="1"]');
+  const suppress = async on => {
+    const before = await f.doc();
+    await historyStep.click({ button: 'right' });
+    await f.page.getByRole('menuitem', { name: on ? 'Suppress' : 'Unsuppress', exact: true }).click();
+    await f.changed(before);
+    return f.doc();
+  };
+  const unavailable = async label => {
+    await pinnedPanel().getByRole('status').getByText('Measurement unavailable.', { exact: true }).waitFor();
+    await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+    const state = await f.snapshot(label);
+    assert.deepEqual(state.bodies.bodies.map(body => body.key), ['b3']);
+    assert.ok(Math.abs(state.bodies.bodies[0].volume - 4560) < 1e-8);
+    return state;
+  };
+
+  f.phase = 'suppress the pinned owner while the other body survives at its former index';
+  const suppressed = await suppress(true);
+  assert.equal(suppressed.nodes[1].suppressed, true);
+  await unavailable('02-suppressed-with-witness');
+  await suppress(false);
+  await f.same(withWitness);
+  await checkPin('03-unsuppressed-original', 8);
+
+  f.phase = 'delete the pinned owner and keep the witness without borrowing its distance';
+  await f.openFeatureEditor(1, 'target Extrude');
+  await f.editor().getByRole('button', { name: 'Delete feature', exact: true }).click();
+  await f.changed(withWitness);
+  const deleted = await unavailable('04-deleted-with-witness');
+  assert.deepEqual(deleted.doc.nodes.map(node => node.id), ['n2', 'n3']);
+  assert.deepEqual(deleted.doc.outputs, { b3: { node: 1, side: 'solid' } });
+  await f.undo();
+  await f.same(withWitness);
+  await checkPin('05-undo-restores-original', 8);
+  await f.redo();
+  await f.same(deleted.doc);
+  await unavailable('06-redo-keeps-witness-unpinned');
+  await pinnedPanel().getByRole('button', { name: 'Clear pinned measurement', exact: true }).click();
+  await f.undo();
+  await f.same(withWitness);
+  assert.equal(await pinnedPanel().count(), 0);
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  await check('07-manual-measure-after-clear', 8);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -294,7 +351,8 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  await open(held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', source);
+  await open(missing ? 'D930-two-bodies' : held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', missing ? withWitness : source);
+  if (missing) { await missingFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (held) { await heldFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (pin) { await pinFlow(); assert.deepEqual(f.report.downloads, []); return; }
   await check('01-original-8', 8);
