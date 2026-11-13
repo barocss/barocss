@@ -14,11 +14,11 @@ import type { BearingAssemblyContext, BearingAssemblyInput } from '../engine/bea
 import type { StudioFits } from '../engine/fits';
 import { bearingHousingOptions, bearingHousingPatch, bearingHousingValue } from './shaftCommands';
 import { helixOf } from '../engine/part';
-import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
+import { CadPartLimits, spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
-  | { kind: 'number'; key: string; label: string; unit?: 'mm' | '°' | '%'; get(nodes: Nodes): number; set(nodes: Nodes, value: number): ModelNode[] }
+  | { kind: 'number'; key: string; label: string; unit?: 'mm' | '°' | '%'; integerRange?: { min: number; max: number }; get(nodes: Nodes): number; set(nodes: Nodes, value: number): ModelNode[] }
   | { kind: 'choice'; key: string; label: string; options: { value: string; label: string }[]; get(nodes: Nodes): string; set(nodes: Nodes, value: string): ModelNode[] }
   | { kind: 'toggle'; key: string; label: string; get(nodes: Nodes): boolean; set(nodes: Nodes, value: boolean): ModelNode[] };
 
@@ -169,8 +169,11 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
-  const number = (key: string, label: string, unit: 'mm' | '°' | '%' | undefined, get: (n: ModelNode) => number, set: (n: ModelNode, v: number) => ModelNode) =>
-    out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), get: n => get(self(n)), set: (n, v) => replace(n, i, set(self(n), v)) });
+  const number = (key: string, label: string, unit: 'mm' | '°' | '%' | undefined, get: (n: ModelNode) => number,
+    set: (n: ModelNode, v: number) => ModelNode, integerRange?: { min: number; max: number }) =>
+    out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), ...(integerRange ? { integerRange } : {}),
+      get: n => get(self(n)),
+      set: (n, v) => integerRange && (!Number.isInteger(v) || v < integerRange.min || v > integerRange.max) ? [...n] : replace(n, i, set(self(n), v)) });
   switch (node.kind) {
     case 'driven-sketch': case 'sketch': return sketchFields(nodes, i, '', parameters);
     case 'region-extrude':
@@ -652,11 +655,11 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
       break;
     case 'circular-pattern':
-      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => {
-        const pattern = n as typeof node, count = Math.round(v);
+      number('count', 'Count', undefined, n => (n as typeof node).count, (n, count) => {
+        const pattern = n as typeof node;
         if (pattern.axis === 'z' && pattern.span !== undefined) return { ...pattern, count, angle: circularPatternStep(pattern.span, count) };
-        return { ...pattern, count, ...(pattern.axis === 'z' ? { angle: 360 / Math.max(1, count) } : {}) };
-      });
+        return { ...pattern, count, ...(pattern.axis === 'z' ? { angle: 360 / count } : {}) };
+      }, { min: 1, max: CadPartLimits.copies });
       break;
     case 'split':
       if (node.normal) (['x', 'y', 'z'] as const).forEach((a, k) => number('n' + a, `Normal ${a.toUpperCase()}`, undefined, n => (n as typeof node).normal?.[k] ?? 0, (n, v) => { const was = (n as typeof node).normal ?? [0, 0, 0], next = was.map((c, j) => j === k ? v : c) as [number, number, number]; return { ...(n as typeof node), normal: next }; }));

@@ -71,6 +71,8 @@ test('edit fields: choice and toggle fields — a loft turns smooth, a pipe bend
   pat = withNode(pat, { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 90, count: 4 });
   const count = field(pat.nodes, 2, 'count');
   if (count.kind !== 'number') return assert.fail();
-  const six = count.set(pat.nodes, 6.4);
+  assert.deepEqual(count.integerRange, { min: 1, max: 64 });
+  for (const invalid of [6.4, 0, 65]) assert.deepEqual(count.set(pat.nodes, invalid), pat.nodes);
+  const six = count.set(pat.nodes, 6);
   assert.deepEqual([(six[2] as { count: number }).count, (six[2] as { angle: number }).angle], [6, 60]);
 });

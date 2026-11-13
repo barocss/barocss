@@ -14,6 +14,10 @@ import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import { editExtrudeTriangleLength } from '../sketch/fixedTriangleEditor';
 import type { FeatureFailure } from '../app/failedFeature';
+function invalidInteger(value: number, range: { min: number; max: number }): boolean {
+  return !Number.isInteger(value) || value < range.min || value > range.max;
+}
+
 export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
@@ -52,7 +56,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         return;
       }
     }
-    if (Number.isFinite(value)) setDraft(current => field.set(current, value));
+    if (Number.isFinite(value) && (!field.integerRange || !invalidInteger(value, field.integerRange))) setDraft(current => field.set(current, value));
   };
   const node = draft[index];
   const linearPattern = node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern' ? node : null;
@@ -95,13 +99,16 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
   const missingNumbers = fields.flatMap(field => field.kind === 'number' && typed[field.key]?.trim() === '' ? [field] : []);
   const hasMissingNumber = missingNumbers.length > 0;
+  const invalidCounts = fields.flatMap(field => field.kind === 'number' && field.integerRange && typed[field.key]?.trim()
+    && invalidInteger(Number(typed[field.key]), field.integerRange) ? [field] : []);
+  const hasInvalidNumber = hasMissingNumber || invalidCounts.length > 0;
   useLayoutEffect(() => {
     if (!onDraft || (!changed && !Object.keys(typed).length)) return;
     onDraft({});
     return () => onDraft(null);
   }, [onDraft, changed, draft, typed, nodes, index]);
   const apply = () => {
-    if (!changed || pending || edgeReplacement?.draft || incompleteInset || hasMissingNumber || lengthProblem || request.current) return;
+    if (!changed || pending || edgeReplacement?.draft || incompleteInset || hasInvalidNumber || lengthProblem || request.current) return;
     setModeProblem(null);
     const ticket = {};
     request.current = ticket;
@@ -163,11 +170,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       </> : <button className="ghost" type="button" disabled={pending || changed} onClick={() => { retireEvaluation(); edgeReplacement.start(); }}>Replace edge</button>)}
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
       {hasMissingNumber && <div className="hud-error" role="status">Enter a number for {missingNumbers.map(field => field.label).join(', ')}.</div>}
+      {invalidCounts.map(field => <div key={field.key} className="hud-error" role="status">{field.label} must be a whole number from {field.integerRange!.min} to {field.integerRange!.max}.</div>)}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} aria-invalid={typed[f.key]?.trim() === '' || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min} max={f.integerRange?.max} aria-label={f.label} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();
@@ -192,7 +200,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {onDelete && <button className="ghost danger" disabled={ordinaryLocked} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={event => remove(event.currentTarget)}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasMissingNumber || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasMissingNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasInvalidNumber || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasInvalidNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
     </div>
   );
 }

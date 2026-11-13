@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const controls = process.argv[3] === '--controls';
 const pins = ['apps/cad-studio/test/empty-history-number-browser.mjs', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'packages/barocss-cad-model/src/app/editFields.ts'];
 const f = await createFlow({
-  name: 'empty-history-number', output: process.argv[2], envFrozen: 'D1138_SOURCE_FROZEN',
+  name: 'empty-history-number', output: process.argv[2], envFrozen: controls ? 'D1139_SOURCE_FROZEN' : 'D1138_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Refuse an empty numeric history field even after it held a valid draft value.',
   limits: ['A rectangular Extrude with two independent numeric edits in desktop Studio.'],
@@ -15,7 +16,65 @@ const source = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
 const undoState = () => Promise.all(['Undo', 'Redo'].map(name => button(f.page, name).isEnabled()));
 
+async function open(doc, name) {
+  await f.newPage();
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+  await f.same(doc);
+}
+
 await f.run(async () => {
+  if (controls) {
+    const fillet = { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 1 };
+    const box = { ...source, nodes: [source.nodes[0], { ...source.nodes[1], made: { command: 'box', values: { w: 40, d: 30, h: 10 } } }] };
+    const rounded = { ...source, nodes: [...source.nodes, fillet], outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3 };
+    for (const [label, doc, index, fieldLabel, next] of [
+      ['box', box, 1, 'Distance', '14'],
+      ['fillet', rounded, 2, 'Radius', '2'],
+    ]) {
+      f.phase = 'verify blank ' + label + ' history input and Reset';
+      await open(doc, `D1139-${label}.bcad`);
+      await f.openFeatureEditor(index);
+      const field = f.editor().getByLabel(fieldLabel, { exact: true });
+      const original = await field.inputValue();
+      await field.fill(next);
+      await field.fill('');
+      assert.equal(await field.getAttribute('aria-invalid'), 'true');
+      assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
+      await field.press('Enter');
+      assert.deepEqual(await f.doc(), doc);
+      await f.snapshot('01-' + label + '-empty');
+      await button(f.editor(), 'Reset').click();
+      assert.equal(await field.inputValue(), original);
+      assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
+      await f.same(doc);
+    }
+    const pattern = { id: 'n2', kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 90, count: 3, span: 180 };
+    const far = { ...source.nodes[0], min: [10, 20], max: [14, 26] };
+    const array = { ...rounded, nodes: [far, source.nodes[1], pattern] };
+    f.phase = 'refuse a fractional Circular Count before Apply';
+    await open(array, 'D1139-count.bcad');
+    await f.openFeatureEditor(2);
+    const count = f.editor().getByLabel('Count', { exact: true });
+    await count.fill('2.5');
+    await f.snapshot('02-fractional-count-input');
+    assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
+    await count.press('Enter');
+    assert.deepEqual(await f.doc(), array);
+    await f.editor().getByText(/whole number from 1 to 64/i).waitFor();
+    await count.fill('4');
+    const { doc, bodies } = await f.applyEditor(array, '03-four-copies');
+    assert.equal(doc.nodes[2].count, 4);
+    assert.equal(doc.nodes[2].angle, 60);
+    assert.ok(Math.abs(bodies.bodies[0].volume - 960) < 1e-8);
+    await f.undo();
+    await f.same(array);
+    await f.redo();
+    await f.same(doc);
+    f.report.observations.push({ label: 'pattern', count: 4, stepDeg: 60, volumeMM3: bodies.bodies[0].volume });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: 'D1138-history-number.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });

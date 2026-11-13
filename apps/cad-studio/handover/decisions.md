@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1139 — refuse fractional Circular Pattern Count in history](notes/circular-history-count-2026-11-14/README.md).
 - [D1138 — refuse an empty numeric field in feature history](notes/empty-history-number-2026-11-14/README.md).
 - [D1137 — preserve reopened circle-gap endpoints when closing the profile](notes/reopened-circle-gap-repair-2026-11-14/README.md).
 - [D1136 — open Circle gap in a saved ordinary sketch](notes/reopened-circle-gap-2026-11-14/README.md).

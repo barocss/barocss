@@ -1,0 +1,50 @@
+{
+  "decision": "D1139",
+  "tier": "SMALL",
+  "parent": "143f836bdd5a92e85244f698f2bf2e231fec094f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1139-empty-history-<run>",
+    "D1139_SOURCE_FROZEN=1 node apps/cad-studio/test/empty-history-number-browser.mjs <external-evidence>/<run> --controls",
+    "D1138_SOURCE_FROZEN=1 node apps/cad-studio/test/empty-history-number-browser.mjs <external-evidence>/blank",
+    "cd packages/barocss-cad-model && node scripts/test.mjs editFields circular-pattern-count feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/test/editFields.test.ts",
+    "node --check apps/cad-studio/test/empty-history-number-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "98b0bec026c22b9d045e0289c3ec2b16bb573c67735d35d4f017b87afbe0ca34",
+      "sourceManifestSHA256": "cb525065cc30859079aec389a9206968504027d6af59ce501d6b998fadbfeea5"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "350c4beb83072ba1222c2e9b9d21c0643ca1ec1fbf3ac4bdfb64e485902b038e",
+      "sourceManifestSHA256": "7df53332a1c49dfa9666f19da400d8ac653889de08403cab38c2de641cf5688a"
+    },
+    "blank": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 382,
+      "receiptSHA256": "a327ea2f3979f7f8cd31ae179d36201756b869e35932b5d2bb161534a57b4755",
+      "sourceManifestSHA256": "7df53332a1c49dfa9666f19da400d8ac653889de08403cab38c2de641cf5688a"
+    }
+  },
+  "observation": {
+    "count": 4,
+    "stepDeg": 60,
+    "volumeMM3": 960
+  },
+  "focused": {
+    "modelPassed": 20,
+    "failed": 0
+  }
+}
