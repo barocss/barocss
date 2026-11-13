@@ -146,7 +146,7 @@ export function usePmiPreview({ model, editing, settings, selection }: {
   const pmiReason = rendering || drawing ? '3D annotations are shown in Model view (the Drawing workspace shows the sheet).'
     : sketch || active || cageEd.overlay || skel.tool ? 'Finish the current edit to show the 3D annotations.'
     : printEnabled || camEnabled ? 'Close the print or CNC preview to show the 3D annotations.' : undefined;
-  const pmiDoc = useMemo(() => ({ ...evaluated, instances: doc.instances }), [evaluated, doc.instances]);
+  const pmiDoc = useMemo(() => ({ ...evaluated, instances: doc.instances, assemblyCuts: doc.assemblyCuts }), [evaluated, doc.instances, doc.assemblyCuts]);
   const pmiSheet = useDrawingSheet(pmiEnabled && !pmiReason, { engine, doc: pmiDoc, bodies, settings: doc.drawing ?? defaultDrawing(), fileName, annotations: true });
   const pmiItems = pmiEnabled && !pmiReason ? pmiSheet.annotations?.items ?? null : null;
   const pickAnnotation = useCallback((id: string) => {

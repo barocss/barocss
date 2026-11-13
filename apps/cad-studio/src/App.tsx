@@ -3165,7 +3165,7 @@ export function App() {
 
       {browserPlacement === 'left' && browserPanel}
 
-      {drawing && <Suspense fallback={null}><DrawingWorkspace key={docGeneration} engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview?.owner === doc && fresh && !busy ? referencePreview : null} onClearReferencePreview={clearReferencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace key={docGeneration} engine={engine} doc={{ ...evaluated, instances: doc.instances, assemblyCuts: doc.assemblyCuts }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview?.owner === doc && fresh && !busy ? referencePreview : null} onClearReferencePreview={clearReferencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
 
       {!dockDocked && hud}
 

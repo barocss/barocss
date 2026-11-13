@@ -377,7 +377,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
-      this.post(id, () => ({ type: 'drawing', id, doc: this.wire!.pack(doc), options }));
+      this.post(id, () => ({ type: 'drawing', id, doc: this.wire!.pack(doc, { assemblyCuts: true }), options }));
     });
   }
 

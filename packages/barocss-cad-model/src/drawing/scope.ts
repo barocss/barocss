@@ -1,4 +1,5 @@
 import { resolveShopTree } from '../engine/shopRows';
+import { canonical, canonicalOf, fnv64, revisionOf } from '../util/revision';
 import { frameGeometry, type StudioDoc } from '../engine/doc';
 import type { DrawingSettings } from './types';
 import { problem, refusal, refused, type Problem } from '../engine/refusal';
@@ -22,6 +23,14 @@ export function drawingScopeOf(s: DrawingSettings): DrawingScope {
  *  bought elements out of its views and sections. An assembly's keeps them, and so does a part's sheet with balloons
  *  (O175): a balloon points at its BOM line's item, a bought one too, so the item is drawn. */
 export const drawsMadeOnly = (s: DrawingSettings): boolean => drawingScopeOf(s).kind !== 'assembly' && !s.balloons;
+/** Projection identity, including root cuts that the general document revision does not cover. */
+export function drawingModelKey(doc: StudioDoc): string {
+  const source = canonicalOf(doc);
+  return doc.assemblyCuts?.length ? source + '\n' + canonical(doc.assemblyCuts) : source;
+}
+export function drawingSourceRevision(doc: StudioDoc, scope: DrawingScope): string {
+  return scope.kind === 'assembly' ? fnv64(drawingModelKey(doc)) : revisionOf(doc);
+}
 /** Authored source of a sheet, before drawing-only evaluation changes. */
 export function drawingSource(doc: StudioDoc, settings: DrawingSettings): StudioDoc {
   const scope = drawingScopeOf(settings);

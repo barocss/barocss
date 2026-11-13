@@ -3,8 +3,7 @@
 // tables and weld joints, and the sheet built from them — and, when asked, the sheet's annotations lifted onto the
 // model (model-annotations-v1). `active` false: nothing is asked of the engine and nothing is built.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { drawingDocument, drawingSource, drawingScopeOf, drawsMadeOnly, type DrawingScope } from '@barocss/cad-model/drawing/scope';
-import { canonicalOf } from '@barocss/cad-model/util/revision';
+import { drawingDocument, drawingModelKey, drawingSource, drawingSourceRevision, drawingScopeOf, drawsMadeOnly, type DrawingScope } from '@barocss/cad-model/drawing/scope';
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
 import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
@@ -20,7 +19,6 @@ import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout, holeCalloutOwnerOf } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
-import { revisionOf } from '@barocss/cad-model/util/revision';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { sameSection, sectionsOf, type DrawingSection, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
@@ -41,7 +39,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // This placeholder is only for disabled controls; an invalid persisted scope never reaches the engine.
   const scope: DrawingScope = scopeRead.scope ?? { kind: 'part' };
   // (Inactive, the document is not canonicalised on every render: nothing is built from it then.)
-  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = active ? canonicalOf(sourceDoc) : '';
+  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = active ? drawingModelKey(sourceDoc) : '';
   const scoped = useMemo(() => {
     try { return { doc: drawingDocument(sourceDoc, settings), authored: drawingSource(sourceDoc, settings), error: null }; }
     catch (cause) { return { doc: { ...sourceDoc, nodes: [], instances: [] } as StudioDoc, authored: null, error: cause instanceof Error ? cause.message : String(cause) }; }
@@ -105,7 +103,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
   const threads = useMemo(() => threadsOf(doc.nodes, fastenerSizesOf(doc)), [doc.nodes, doc.fastenerSizes]);
   // (O9: the source revision the sheet is drawn from, in its title block.)
-  const source = useMemo(() => revisionOf(doc), [doc]);
+  const source = useMemo(() => drawingSourceRevision(doc, scope), [doc, scope.kind]);
   // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
   const wantsBom = (!!settings.balloons && settings.sheetContext?.balloonsHere !== false) || !!settings.tables?.some(x => x.from === 'bom');
   const readBom = wantsBom || drawingSetWantsBom;

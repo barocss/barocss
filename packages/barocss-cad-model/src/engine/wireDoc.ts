@@ -7,7 +7,7 @@ import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type Shop
 // nodes sent by id. Nodes are immutable (an edit makes a new object), so each node object crosses to
 // the worker once; later requests name it. Both sides keep the same table and forget, at the same
 // request, the nodes no request has named for a while (they process the requests in one order).
-import type { ModelNode, PartInstance, StudioDoc } from './doc';
+import type { ModelNode, StudioDoc } from './doc';
 import { bearingContextOf, bearingHousingRef, withBearingContext, type BearingAssemblyContext } from './bearingContext';
 import { blobRefs, dropBlobs, getBlob, onBlobsEvicted, putKnownBlob, type BlobArray } from './blobs';
 
@@ -30,8 +30,8 @@ export interface WireDoc {
 /** Requests between prunes, and how many requests a node may go unnamed before it is forgotten. */
 const PRUNE_EVERY = 64, KEEP_FOR = 256;
 
-/** What evaluation reads of a document (an instance's part likewise). */
-export function evaluatedPart(doc: StudioDoc): StudioDoc {
+/** What evaluation reads of a document. Assembly projections also need the saved cuts at each level. */
+export function evaluatedPart(doc: StudioDoc, includeAssemblyCuts = false): StudioDoc {
   const fillProblem = fillPatternDocumentProblem(doc);
   if (fillProblem) throw refusal('VALUE', fillProblem);
   const pathProblem = curvePatternDocumentProblem(doc);
@@ -44,7 +44,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
     if (Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) out.routeBundles = doc.routeBundles;
     if (Object.prototype.hasOwnProperty.call(doc, 'direct')) out.direct = doc.direct;
   }
-  if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
+  if (includeAssemblyCuts && doc.assemblyCuts?.length) out.assemblyCuts = doc.assemblyCuts;
+  if (doc.instances?.length) out.instances = doc.instances.map(i => ({ ...i, doc: evaluatedPart(i.doc, includeAssemblyCuts) }));
   // Sections define the members; weld records can add bead bodies. Stock and kerf stay local.
   const sections = doc.frames?.sections, welds = doc.frames?.welds, beadOwnership = doc.frames?.beadOwnership;
   if (sections?.length || welds?.length || beadOwnership !== undefined) out.frames = { version: 1, ...(sections?.length ? { sections } : {}), ...(welds?.length ? { welds } : {}), ...(beadOwnership !== undefined ? { beadOwnership } : {}) };
@@ -64,7 +65,6 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.rowSources) out.rowSources = doc.rowSources;
   const context = bearingContextOf(doc); return context ? withBearingContext(out, context) : out;
 }
-const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });
 
 /** The client's side: node objects to ids, and when each was last named. */
 export class WireSender {
@@ -86,9 +86,9 @@ export class WireSender {
   }
   /** These blobs are gone from the store: not sent any more, and the worker told with the next document. */
   forget(hashes: readonly string[]): void { if (this.disposed) return; for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
-  pack(doc: StudioDoc): WireDoc {
+  pack(doc: StudioDoc, { assemblyCuts = false }: { assemblyCuts?: boolean } = {}): WireDoc {
     if (this.disposed) throw new Error('The wire sender is disposed.');
-    const evaluated = evaluatedPart(doc), context = evaluated.nodes.some(n => !n.suppressed && bearingHousingRef(n)) ? bearingContextOf(evaluated) : undefined;
+    const evaluated = evaluatedPart(doc, assemblyCuts), context = evaluated.nodes.some(n => !n.suppressed && bearingHousingRef(n)) ? bearingContextOf(evaluated) : undefined;
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {
       let id = this.ids.get(node);

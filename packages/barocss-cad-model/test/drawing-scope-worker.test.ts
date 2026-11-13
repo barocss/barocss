@@ -6,9 +6,9 @@ import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { Worker } from 'node:worker_threads';
 import { once } from 'node:events';
-import { cylinderPart, rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, rectanglePart, type AssemblyCut, type StudioDoc } from '../src/engine/doc';
 import { WireSender } from '../src/engine/wireDoc';
-import { drawingDocument } from '../src/drawing/scope';
+import { drawingDocument, drawingModelKey, drawingSourceRevision } from '../src/drawing/scope';
 import { defaultDrawing, VIEW_IDS, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import type { DrawingResult } from '../src/drawing/project';
 
@@ -25,9 +25,9 @@ await import('./production.mjs');
 parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({ready:true});`);
   const worker = new Worker(join(dir, 'adapter.mjs')); t.after(() => worker.terminate());
   const [ready] = await once(worker, 'message'); assert.deepEqual(ready, { ready: true });
-  const sender = new WireSender(); let id = 0;
+  const sender = new WireSender(); t.after(() => sender.dispose()); let id = 0;
   const request = async (doc: StudioDoc, settings: DrawingSettings = defaultDrawing()): Promise<DrawingViews> => {
-    const input = sender.pack(drawingDocument(doc, settings));
+    const input = sender.pack(drawingDocument(doc, settings), { assemblyCuts: true });
     const response = once(worker, 'message'), requestId = ++id;
     worker.postMessage({ type: 'drawing', id: requestId, doc: input });
     const [reply] = await response as [{ id: number; drawing: DrawingResult }];
@@ -70,5 +70,24 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
   assert.notDeepEqual(all, baseOnly);
   const changed = await request(moved, { ...defaultDrawing(), scope: { kind: 'assembly' } });
   assert.notDeepEqual(changed.front.min, all.front.min, 'assembly follows instance placement changes');
+  const plate = rectanglePart(40, 40, 5);
+  const cut: AssemblyCut = { id: 'cut1', profile: { kind: 'circle', radius: 4 }, at: [20, 20, 5], dir: [0, 0, -1], depth: 'through', targets: ['plate'] };
+  const stock: StudioDoc = { ...emptyDoc(), instances: [{ id: 'plate', name: 'Plate', position: [0, 0, 0], rotation: [0, 0, 0], doc: plate }] };
+  const cutDoc = { ...stock, assemblyCuts: [cut] };
+  const scope = { kind: 'assembly' } as const, assemblySettings = { ...defaultDrawing(), scope };
+  assert.notEqual(drawingModelKey(stock), drawingModelKey(cutDoc));
+  assert.notEqual(drawingSourceRevision(stock, scope), drawingSourceRevision(cutDoc, scope));
+  assert.equal(sender.pack(cutDoc).doc.assemblyCuts, undefined, 'ordinary worker requests keep their original inputs');
+  const rings = (views: DrawingViews) => views.top.edges.filter(e => e.circle && e.pieces.some(p => p.visible)).map(e => [e.circle!.radius, ...e.circle!.center]);
+  assert.deepEqual(rings(await request(stock, assemblySettings)), []);
+  const rims = rings(await request(cutDoc, assemblySettings));
+  assert.equal(rims.length, 2);
+  for (const [radius, x, y, z] of rims) {
+    assert.ok(Math.abs(radius - 4) < 1e-9);
+    assert.deepEqual([x, y, z], [20, 20, 5]);
+  }
+  assert.deepEqual(rings(await request(cutDoc, { ...defaultDrawing(), scope: { kind: 'part', part: 'plate' } })), [], 'the local part sheet excludes the parent cut');
+  assert.deepEqual(rings(await request(stock, assemblySettings)), [], 'the next request does not inherit a cut');
+
   assert.throws(() => drawingDocument(assembly, { ...defaultDrawing(), scope: { kind: 'part', part: 'missing' } }), /\[DRAWING_SCOPE\] no part missing/);
 });

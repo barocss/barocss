@@ -3,7 +3,7 @@ import { firstProblem, isRefusal } from '../engine/refusal';
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
-import { drawingDocument, drawingSource, drawingScopeOf, checkDrawingScope, changeDrawingScope, drawsMadeOnly, type DrawingScope } from '../drawing/scope';
+import { drawingDocument, drawingSource, drawingScopeOf, drawingSourceRevision, checkDrawingScope, changeDrawingScope, drawsMadeOnly, type DrawingScope } from '../drawing/scope';
 import { elementNotes, partElements, withElementNotes, withElements } from '../drawing/elementCallouts';
 import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
@@ -20,7 +20,6 @@ import { sectionsCut } from '../drawing/section';
 import { sheetSections } from '../drawing/sheet';
 import { threadsOf } from '../app/threads';
 import { fastenerSizesOf } from '../engine/fastenerSizeRows';
-import { revisionOf } from '../util/revision';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
@@ -90,7 +89,8 @@ function readDrawingInputs(doc: StudioDoc, settings: DrawingSettings, includeBom
     if (!isRefusal(cause, 'BOM_EVALUATION')) throw cause;
     return cause.message;
   }
-  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, (e, f) => holeCallout(doc.nodes, e, doc.parameters, f)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
+  const scope = drawingScopeOf(settings), source = drawingSourceRevision(scope.kind === 'assembly' ? doc : authored, scope);
+  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, (e, f) => holeCallout(doc.nodes, e, doc.parameters, f)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source, threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */

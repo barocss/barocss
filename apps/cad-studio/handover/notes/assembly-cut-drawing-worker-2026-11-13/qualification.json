@@ -1,0 +1,55 @@
+{
+  "decision": "D1027",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "93a4312eb8e21ffb8c7e351f20949127913f3fa1",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1027-section-baseline02",
+    "D1027_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-drawing-browser.mjs <external-evidence>/baseline02",
+    "gate.sh acquire heavy 600 D1027-section-studio02",
+    "D1027_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-drawing-browser.mjs <external-evidence>/studio02",
+    "gate.sh acquire heavy 600 D1027-focused",
+    "node --check apps/cad-studio/test/assembly-cut-drawing-browser.mjs",
+    "pnpm --filter @barocss/cad-model test drawing-scope drawing-current-contract wire-doc assembly-cut o9-source chat-drawing",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip step-metadata assembly-cut",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "appliedTopVisibleBoreArcs": 0,
+    "receiptSHA256": "9172214ad4c74fee4be60539ae1d249926800c8e6997f2cc33bc3a3aee5d5652",
+    "sourceManifestSHA256": "88444d3862e0377df794c5316652b2eb2a4f978687e881b3c4fcb567a9cdd6af"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "captures": 8,
+    "frozenFiles": 380,
+    "receiptSHA256": "7d9e4e7d7ff684f4facfc8403e40990dc127d2e15f0364a0ea01499e065d1687",
+    "sourceManifestSHA256": "807638e433530fd8ed410bba7ce88ed0f5e20a16c2ed16096425d0b506264218",
+    "topAppliedVisibleBoreArcs": 2,
+    "isoAppliedVisibleBoreArcs": 4,
+    "frontAndRightHiddenGeneratorsEach": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 65,
+    "studioPassed": 26,
+    "failed": 0,
+    "typeChecks": 2
+  },
+  "notRun": [
+    "dedicated PMI and section-view browser checks",
+    "other cut profiles and targets",
+    "PDF/DXF export",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
