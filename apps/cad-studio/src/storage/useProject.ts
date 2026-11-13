@@ -11,7 +11,7 @@ import { applyMerge, type MergeResult, type Resolutions } from '@barocss/cad-mod
 import { BarocssError } from '@barocss/cad/api';
 import { browserProject, pickFolder, recentFolder, reopenFolder } from './access';
 import { clearAutosave, partsOf, readAutosave, readPart, readVersions, writeAutosave, writePart, writeVersions } from './project';
-import type { ProjectStore, StoreEntry } from './store';
+import type { ProjectStore, StoreEntry, StoreFile } from './store';
 import type { DirHandle } from './handleStore';
 import { linkedRevisions, type Linked } from './linked';
 import { acceptSaveReceipt } from '../state/saveOwnership';
@@ -123,20 +123,24 @@ export function useProject(cb: ProjectCallbacks) {
     // A completed write still owns its log/tag after a document edit, but cannot return a replacement document.
     const currentVersion = (owner: OpenOwner) => currentOpen({ ...owner, scope: undefined });
     /** The log written back; stale receipts and conflict reloads cannot enter another document's project view. */
-    const keepLog = async (store: ProjectStore, part: string, log: VersionLog, owner = versionOwner(), expect = tags.current.log) => {
+    const keepLog = async (store: ProjectStore, part: string, log: VersionLog, owner = versionOwner(), expect = tags.current.log,
+      recoverWrite?: () => Promise<boolean>) => {
       try {
         const written = await writeVersions(store, part, log, { expect });
         if (!currentVersion(owner)) return false;
         tags.current.log = written.tag; set({ log }); return true;
       } catch (e) {
+        const restored = await recoverWrite?.();
         if (!currentVersion(owner)) return false;
+        const saveStatus = restored === true ? ' The previous saved file was restored.'
+          : restored === false ? ' The saved file could not be restored. Check it before retrying.' : '';
         if (e instanceof BarocssError && e.code === 'STORAGE_CHANGED') {
           try { await loadLog(store, part, () => currentVersion(owner)); }
           catch (readError) { return currentVersion(owner) ? fail('The versions could not be read', readError) : false; }
           if (!currentVersion(owner)) return false;
-          return fail('The versions changed elsewhere', new Error('Another window or program changed them: they are read again. Try once more.'));
+          return fail('The versions changed elsewhere', new Error('Another window or program changed them: they are read again. Try once more.' + saveStatus));
         }
-        return fail('The version was not kept', e);
+        return fail('The version was not kept', new Error(say(e) + saveStatus));
       }
     };
     const actions = {
@@ -223,7 +227,10 @@ export function useProject(cb: ProjectCallbacks) {
         return { bytes: await read(), current, verify: async () => { await read(); } };
       },
       /** Saved into the project: over the file it was read from (its tag expected), or as `name` when new there. */
-      async save(doc: StudioDoc, name: string, onCurrent?: () => void) {
+      async save(doc: StudioDoc, name: string, onCurrent?: () => void, versionWrite?: {
+        expect: string | null;
+        didWrite(receipt: StoreFile): void;
+      }) {
         const store = live.current.store; if (!store) return false;
         const part = live.current.part, path = part ?? partPathOf(name);
         if (saves.current.path !== path) invalidateSaves(path);
@@ -231,7 +238,8 @@ export function useProject(cb: ProjectCallbacks) {
         const current = () => saves.current === owner && live.current.store === store && (live.current.part === part || live.current.part === path);
         const currentSuccess = () => current() && owner.success === order;
         try {
-          const written = await writePart(store, path, doc, { expect: part ? tags.current.part : null });
+          const written = await writePart(store, path, doc, { expect: versionWrite ? versionWrite.expect : part ? tags.current.part : null });
+          versionWrite?.didWrite(written);
           if (!current() || !acceptSaveReceipt(owner, order)) return false;
           // A newer document edit must not leave this file's tag behind its own successful write.
           tags.current.part = written.tag;
@@ -301,7 +309,8 @@ export function useProject(cb: ProjectCallbacks) {
         const { store, part } = live.current;
         if (!store) return false;
         const path = part ?? partPathOf(name);
-        let next: VersionLog, expect: string | null;
+        let next: VersionLog, expect: string | null, previous: StoreFile | null;
+        const previousTag = part ? tags.current.part : null;
         try {
           // An Open or first Save may not have installed the destination's log yet.
           const stored = await readVersions(store, path);
@@ -311,12 +320,28 @@ export function useProject(cb: ProjectCallbacks) {
           expect = stored?.tag ?? null;
           const log = stored?.log;
           next = log ? makeVersion(log, doc, options).log : makeVersions(doc, options);
+          previous = part ? await store.read(path) : null;
+          if (!currentOpen(owner)) return false;
         } catch (e) { return currentOpen(owner) ? fail('No version made', e) : false; }
-        if (!(await actions.save(doc, name, o.onSaved))) return false;
+        let written: StoreFile | undefined;
+        if (!(await actions.save(doc, name, undefined, { expect: previousTag, didWrite: receipt => { written = receipt; } }))) return false;
         // A first Save may assign this session's path. It must not borrow a newer Open or document edit.
         if (!currentOpen({ ...owner, path: undefined }) || live.current.part !== path) return false;
         owner.path = path;
-        return keepLog(store, path, next, owner, expect);
+        const receipt = written;
+        const kept = await keepLog(store, path, next, owner, expect, previous && receipt ? async () => {
+          try {
+            // Compare the exact write receipt before restoring the previous bytes.
+            const restored = await store.write(path, previous.bytes, { expect: receipt.tag });
+            if (live.current.store === store && live.current.part === path && tags.current.part === receipt.tag) {
+              tags.current.part = restored.tag;
+              tags.current.sourceSHA256 = taskSourceSHA(previous.bytes);
+            }
+            return true;
+          } catch { return false; }
+        } : undefined);
+        if (kept) o.onSaved?.();
+        return kept;
       },
       /** A version's document, to work on (history is not rewound: saving it makes a new version). */
       restore(id: string): StudioDoc | null { const { log } = live.current; try { return log ? readVersion(log, id) : null; } catch (e) { fail('Could not restore', e); return null; } },

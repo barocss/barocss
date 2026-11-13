@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D961 — restore an existing project file when a version write fails](notes/project-version-write-recovery-2026-11-13/README.md).
 - [D960 — verify STEP, New part and same-name Save controls](notes/project-save-step-and-name-controls-2026-11-13/README.md).
 - [D959 — validate a proposed project version before saving](notes/project-version-refusal-save-order-2026-11-13/README.md).
 - [D958 — restore the correct project Save destination across Open history](notes/project-open-save-destination-history-2026-11-13/README.md).
