@@ -4,6 +4,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const settingsEscape = process.argv[3] === '--settings-escape';
 const stationaryCrossing = process.argv[3] === '--stationary-crossing';
 const hideCircleSource = process.argv[3] === '--hide-circle-source';
+const crossingToolStatus = process.argv[3] === '--crossing-tool-status';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/SketchSnapControls.tsx',
@@ -16,7 +17,8 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'object-snap-kinds', output: process.argv[2],
-  envFrozen: hideCircleSource ? 'D1114_SOURCE_FROZEN' : stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
+  envFrozen: crossingToolStatus ? 'D1116_SOURCE_FROZEN' : hideCircleSource ? 'D1114_SOURCE_FROZEN'
+    : stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Apply current session object-snap settings to the next sketch input with independent grid fallback.',
   limits: ['One XY rectangle and circle as native snap sources. Desktop Chrome WebGPU.'],
@@ -305,6 +307,26 @@ async function preserveCircleWhenHidingSource() {
   await f.same(chordDoc);
 }
 
+async function checkCrossingToolStatus() {
+  f.phase = 'identify an unsupported Crossing tool without changing the session preference';
+  await begin('Slot', 'o', [endpoint, [23, 19]]);
+  await only(['Edge crossing']);
+  await f.sketchPanel().getByLabel('Plane offset', { exact: true }).fill('2');
+  await hover(endpoint, null, 2);
+  const toggle = kind('Edge crossing');
+  assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
+  await f.snapshot('slot-crossing-unavailable');
+  const message = details().getByText('Edge crossing is unavailable for this tool.', { exact: true });
+  assert.ok(await message.isVisible(), 'the Crossing tool limit must be visible in Object snaps');
+  await f.tool('Line', 'l');
+  assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
+  await message.waitFor({ state: 'hidden' });
+  await hover(endpoint, 'Crossing', 2);
+  await f.snapshot('line-crossing-available');
+  await cancel();
+  await f.same(source);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -320,6 +342,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open(source);
+  if (crossingToolStatus) {
+    await checkCrossingToolStatus();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (hideCircleSource) {
     await preserveCircleWhenHidingSource();
     assert.deepEqual(f.report.downloads, []);

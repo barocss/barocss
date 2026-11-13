@@ -1,0 +1,65 @@
+{
+  "decision": "D1116",
+  "tier": "SMALL",
+  "parent": "1248ea02679f8bcb3c0a6af3bc756946821a4deb",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1116-crossing-tool-status-<run>",
+    "D1116_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/<run> --crossing-tool-status",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/sketch/SketchSnapControls.tsx",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/settings-control",
+    "D1112_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/escape-control --settings-escape",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 381,
+      "receiptSHA256": "e8ae9b8104c73cfce865bab419252b9c8e9c4e8cc25863a75f17787c995f1ca4",
+      "sourceManifestSHA256": "259c38ea012ec6ab1c6f62dddbccf5934df71bc3068e2178f4b5cdffa61e1668",
+      "savedFiles": [],
+      "firstFailure": "Slot kept Edge crossing enabled but gave no tool-limit indication inside Object snaps."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 381,
+      "receiptSHA256": "e80f22285eb2fd1b13a3656ec7ec2e1bdbbcdcdf77420decfbed4dc1e1257f3d",
+      "sourceManifestSHA256": "0cbbb495c838112f3d397469f28412e94b406801b589a173ed7893ade6135529",
+      "savedFiles": []
+    },
+    "settingsControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 381,
+      "receiptSHA256": "7f7aa4d9f353e15c15c3c11af366ceafdabc73d1f9ee0aa18217c0924daf204d",
+      "sourceManifestSHA256": "0cbbb495c838112f3d397469f28412e94b406801b589a173ed7893ade6135529",
+      "savedFiles": []
+    },
+    "escapeControl": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "c70d77e1d701cccfec2ba310e2649e48d24057e11e10934059e8292f90992eb6",
+      "sourceManifestSHA256": "0cbbb495c838112f3d397469f28412e94b406801b589a173ed7893ade6135529",
+      "savedFiles": []
+    }
+  },
+  "planeOffsetMM": 2,
+  "unsupportedTool": "Slot",
+  "supportedTool": "Line",
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

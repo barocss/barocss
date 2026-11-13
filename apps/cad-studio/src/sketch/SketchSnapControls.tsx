@@ -9,12 +9,13 @@ interface Props {
   twoPoint: ReturnType<typeof useTwoPointSnap>;
   extension: ReturnType<typeof useArcExtensionSnap>;
   objectKinds: ObjectSnapKinds;
+  crossingToolSupported: boolean;
   placedRotationLimited?: boolean;
   onToggleObjectKind(kind: ObjectSnapKind): void;
   onExitObjectKinds?(): void;
 }
 
-export function SketchSnapControls({ twoPoint, extension, objectKinds, placedRotationLimited, onToggleObjectKind, onExitObjectKinds }: Props) {
+export function SketchSnapControls({ twoPoint, extension, objectKinds, crossingToolSupported, placedRotationLimited, onToggleObjectKind, onExitObjectKinds }: Props) {
   return <>
     <details className="sk-object-snaps" data-sketch-dimension-focus
       onKeyDown={event => {
@@ -34,6 +35,7 @@ export function SketchSnapControls({ twoPoint, extension, objectKinds, placedRot
             onClick={() => onToggleObjectKind(kind)}>{label}</Button>;
         })}
       </div>
+      {!crossingToolSupported && objectKinds.has('crossing') && <p>Edge crossing is unavailable for this tool.</p>}
       {placedRotationLimited && <p>Placed box End and Middle snaps support exact 90° Z rotations.</p>}
     </details>
     <TwoPointSnapControls snap={{ ...twoPoint, begin: () => { extension.cancel(); twoPoint.begin(); } }} />
