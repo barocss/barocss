@@ -4,12 +4,16 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 const [output, mode] = process.argv.slice(2);
 const panelRecovery = mode === '--panel-recovery';
 const draftReverse = mode === '--draft-reverse';
-const recover = mode === '--recover' || panelRecovery || draftReverse;
+const featureRecovery = mode === '--feature-recovery';
+const recover = mode === '--recover' || panelRecovery || draftReverse || featureRecovery;
 const name = 'large-sketch-length';
 const project = 'D857 driving line length';
 const pins = [
   'apps/cad-studio/test/large-sketch-length-browser.mjs',
   'apps/cad-studio/src/ui/SketchPanel.tsx',
+  'apps/cad-studio/src/ui/NodeEditor.tsx',
+  ...(featureRecovery ? ['apps/cad-studio/src/sketch/fixedTriangleEditor.ts'] : []),
+  'packages/barocss-cad-model/src/sketch/outlineFields.ts',
   'apps/cad-studio/src/ui/InlineSketchDimension.tsx',
   'apps/cad-studio/src/viewport/studioSketchViewportActions.ts',
   'apps/cad-studio/src/sketch/useSketchActions.ts',
@@ -20,8 +24,9 @@ const pins = [
   ...(recover ? ['packages/barocss-cad-model/src/sketch/fixedTriangleLength.ts'] : []),
 ];
 const f = await createFlow({
-  name, output, envFrozen: draftReverse ? 'D1081_SOURCE_FROZEN' : panelRecovery ? 'D1080_SOURCE_FROZEN' : recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: draftReverse ? 'Replay successive exact fixed-triangle dimensions without finishing the draft.'
+  name, output, envFrozen: featureRecovery ? 'D1082_SOURCE_FROZEN' : draftReverse ? 'D1081_SOURCE_FROZEN' : panelRecovery ? 'D1080_SOURCE_FROZEN' : recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: featureRecovery ? 'Apply a guarded fixed-triangle dimension through the Extrude feature editor.'
+    : draftReverse ? 'Replay successive exact fixed-triangle dimensions without finishing the draft.'
     : panelRecovery ? 'Commit the exact fixed triangle length through the Sketch panel.'
     : recover ? 'Recover a feasible fixed-vertex triangle length in one desktop edit'
     : 'Measure current driving line edits on independently solvable XY profiles',
@@ -435,6 +440,71 @@ async function qualifyDraftReverse() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function qualifyFeatureEditor() {
+  const { from, to, invalid, label } = circleTriangle;
+  const shape = { kind: 'polygon', closed: true, points: circleTriangle.points(from),
+    lengths: circleTriangle.lengths(from), hv: circleTriangle.hv, rules: circleTriangle.rules };
+  const fixture = await f.inspect(label, {}, { shape, height });
+  const { doc: source } = fixture;
+  await f.newPage();
+  await open(Buffer.from(fixture.base64, 'base64'));
+  await f.same(source);
+  await f.openFeatureEditor(1);
+  const field = () => f.editor().getByLabel('Length of edge 3', { exact: true });
+  const apply = () => button(f.editor(), 'Apply');
+  const reset = () => button(f.editor(), 'Reset');
+  assert.equal(Number(await field().inputValue()), from);
+  f.phase = 'Stage the feasible triangle length from Extrude history';
+  await field().fill(String(to));
+  await f.same(source);
+  await f.snapshot('01-feasible-pending');
+  assert.equal(await apply().isEnabled(), true);
+
+  f.phase = 'Refuse the impossible triangle length and retain the prior valid draft';
+  await field().fill(String(invalid));
+  const status = f.editor().getByRole('status').filter({ hasText: /Length of edge 3/ });
+  await status.waitFor();
+  assert.match(await status.innerText(), /132.05/);
+  assert.equal(await field().getAttribute('aria-invalid'), 'true');
+  assert.equal(await apply().isEnabled(), false);
+  assert.equal(await reset().isEnabled(), true);
+  await field().press('Enter');
+  await f.same(source);
+  await f.snapshot('02-refused');
+  await f.editor().getByLabel('Distance', { exact: true }).fill(String(height + 1));
+  await status.waitFor();
+  assert.equal(await apply().isEnabled(), false);
+  await field().fill(String(to));
+  await status.waitFor({ state: 'hidden' });
+  assert.equal(await field().getAttribute('aria-invalid'), null);
+  assert.equal(await apply().isEnabled(), true);
+  await reset().click();
+  assert.equal(Number(await field().inputValue()), from);
+  assert.equal(Number(await f.editor().getByLabel('Distance', { exact: true }).inputValue()), height);
+  await status.waitFor({ state: 'hidden' });
+  assert.equal(await apply().isEnabled(), false);
+
+  await field().fill(String(to));
+  const accepted = await f.applyEditor(source, '03-applied');
+  verifyPart(accepted, circleTriangle, to, source);
+  const before = await f.inspect('history-native-before', source, { native: true });
+  const after = await f.inspect('history-native-after', accepted.doc, { native: true });
+  assert.deepEqual(after, before);
+  near(accepted.bodies.bodies[0].volume, height * doubleArea(circleTriangle.points(to)) / 2, 1e-6);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(accepted.doc);
+  const bytes = await save();
+  await f.newPage();
+  await open(bytes);
+  await f.same(accepted.doc);
+  await f.openFeatureEditor(1);
+  assert.equal(Number(await field().inputValue()), to);
+  await f.snapshot('04-reopened');
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -448,6 +518,7 @@ await f.run(async () => {
     });
     return context;
   };
+  if (featureRecovery) { await qualifyFeatureEditor(); return; }
   if (draftReverse) { await qualifyDraftReverse(); return; }
   if (panelRecovery) { await qualifyPanel(); return; }
   await qualify(angleTriangle);

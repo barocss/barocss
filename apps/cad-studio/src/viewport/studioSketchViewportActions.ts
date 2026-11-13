@@ -5,6 +5,7 @@ import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, commitInlineDimension, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
+import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
 interface ReopenedSketchSource { source: SketchNode; recoveredLengths: WeakSet<Polygon> }
@@ -29,17 +30,7 @@ function canRecoverLength(sketch: SketchState | null, opened: ReopenedSketchSour
 
   // A recovered shape is admitted only by identity in the edit session that produced it.
   if (opened?.recoveredLengths.has(source)) return true;
-  const { outline, sideTags } = node;
-  const fix = outline?.rules?.[0];
-  return !!source.ids && source.ids.length === 3 && sideTags?.outer.length === 3 &&
-    source.ids.every((id, i) => id === sideTags.outer[i]) &&
-    source.points.length === 3 && node.points.length === 3 && outline?.points.length === 3 &&
-    source.points.every((point, i) => point.length === 2 && node.points[i].length === 2 && outline.points[i].length === 2 &&
-      point.every((coordinate, axis) => Number.isFinite(coordinate) && coordinate === node.points[i][axis] && coordinate === outline.points[i][axis])) &&
-    Number.isFinite(outline.lengths?.[1]) && outline.lengths?.[1] === source.lengths?.[1] &&
-    Number.isFinite(outline.lengths?.[2]) && outline.lengths?.[2] === source.lengths?.[2] &&
-    outline.rules?.length === 1 && fix?.kind === 'fix' && fix.point === 1 && fix.at.length === 2 &&
-    fix.at.every((coordinate, axis) => Number.isFinite(coordinate) && coordinate === source.points[1][axis]);
+  return matchesStoredTriangle(node, source);
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */

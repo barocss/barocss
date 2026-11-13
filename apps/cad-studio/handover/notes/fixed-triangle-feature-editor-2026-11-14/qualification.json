@@ -1,0 +1,54 @@
+{
+  "decision": "D1082",
+  "tier": "FEATURE",
+  "parent": "2f6285de60e988227ca8cf0e312a0999f2af120b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1082-fixed-triangle-feature-<run>",
+    "D1082_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/<run> --feature-recovery",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app test fixed-triangle-inline-ownership constraints.test",
+    "pnpm exec eslint apps/cad-studio/src/sketch/fixedTriangleEditor.ts apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/viewport/studioSketchViewportActions.ts",
+    "node --check apps/cad-studio/test/large-sketch-length-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 862,
+      "receiptSHA256": "8ba9f2dc4f8bc43b518a67f7bbb5ce90c94688840656278f20392dfd8928847d",
+      "sourceManifestSHA256": "91a33686fc9d158c03abc5aa4147720e8df9fcc635387e013f8b51aac4f05794",
+      "firstFailure": "Stage the feasible triangle length from Extrude history: 124.05 mm is visible but Apply is disabled."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 863,
+      "receiptSHA256": "645e4079dba98df89dd52af089b028e7a8a9f6956e9e89f02416c986d53fcedc",
+      "sourceManifestSHA256": "2cd6e65369b3be23d7348c6825d952d1104b6f53cc595523096f02ef19d7fd72"
+    }
+  },
+  "metrics": {
+    "startingLengthMm": 131.95,
+    "appliedLengthMm": 124.05,
+    "refusedLengthMm": 132.05,
+    "extrudeMm": 6,
+    "expectedVolumeMm3": 238.33719912329693,
+    "nativeVolumeMm3": 238.33719912328928,
+    "volumeToleranceMm3": 1e-06
+  },
+  "notRun": [
+    "successful parameter binding after a refused literal input in Studio",
+    "broader feature-editor families",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 27,
+    "failed": 0,
+    "typeChecks": 2
+  }
+}

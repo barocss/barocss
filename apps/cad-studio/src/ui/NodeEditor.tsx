@@ -12,19 +12,25 @@ import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
+import { editExtrudeTriangleLength } from '../sketch/fixedTriangleEditor';
 import type { FeatureFailure } from '../app/failedFeature';
 export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
+  const [lengthProblem, setLengthProblem] = useState<string | null>(null);
+  const recoveredLengths = useRef(new WeakSet<Extract<ModelNode, { kind: 'sketch' }>>());
   const [modeProblem, setModeProblem] = useState<string | null>(null);
   const [readingEnd, setReadingEnd] = useState(false);
   const ordinaryLocked = pending || !!edgeReplacement?.draft;
   const request = useRef<object | null>(null);
   const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure } | null>(null);
-  useLayoutEffect(() => () => { request.current = null; }, [nodes, index]);
-  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); setReadingEnd(false); }, [nodes, index]);
+  useLayoutEffect(() => {
+    recoveredLengths.current = new WeakSet();
+    return () => { request.current = null; };
+  }, [nodes, index]);
+  useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); setLengthProblem(null); setReadingEnd(false); }, [nodes, index]);
   const current = evaluation?.nodes === nodes && evaluation.index === index ? evaluation : null;
   const retireEvaluation = () => {
     onRelinkInset?.cancel();
@@ -34,6 +40,20 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     setModeProblem(null);
   };
   const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const changeNumber = (field: Extract<(typeof fields)[number], { kind: 'number' }>, text: string) => {
+    retireEvaluation();
+    setTyped(values => ({ ...values, [field.key]: text }));
+    const value = text.trim() ? Number(text) : NaN;
+    if (field.key === 'olen2') {
+      const edit = editExtrudeTriangleLength(nodes, draft, index, value, parameters, recoveredLengths.current);
+      if (edit) {
+        if ('reason' in edit) setLengthProblem(edit.reason);
+        else { setLengthProblem(null); setDraft(edit.nodes); }
+        return;
+      }
+    }
+    if (Number.isFinite(value)) setDraft(current => field.set(current, value));
+  };
   const node = draft[index];
   const linearPattern = node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern' ? node : null;
   const changeDistanceMode = (mode: LinearPatternDistanceMode) => {
@@ -79,7 +99,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     return () => onDraft(null);
   }, [onDraft, changed, draft, typed, nodes, index]);
   const apply = () => {
-    if (!changed || pending || edgeReplacement?.draft || incompleteInset || request.current) return;
+    if (!changed || pending || edgeReplacement?.draft || incompleteInset || lengthProblem || request.current) return;
     setModeProblem(null);
     const ticket = {};
     request.current = ticket;
@@ -140,17 +160,22 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         </div>
       </> : <button className="ghost" type="button" disabled={pending || changed} onClick={() => { retireEvaluation(); edgeReplacement.start(); }}>Replace edge</button>)}
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
+      {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => { retireEvaluation(); const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} aria-invalid={f.key === 'olen2' && !!lengthProblem || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();
                 const b = f as BindableField, name = e.target.value;
                 try {
                   const next = name ? b.bind(draft, name) : b.set(draft, b.get(draft));
-                  if (next) { setDraft(next); setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key))); }
+                  if (next) {
+                    setDraft(next);
+                    setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key)));
+                    if (f.key === 'olen2') setLengthProblem(null);
+                  }
                   else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`);
                 } catch (error) { onRefuse(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error)); }
               }}>
@@ -164,7 +189,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {onDelete && <button className="ghost danger" disabled={ordinaryLocked} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={event => remove(event.currentTarget)}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); }}>Reset</button></div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
     </div>
   );
 }
