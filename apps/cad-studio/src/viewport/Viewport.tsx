@@ -12,6 +12,7 @@ import { printPointToModel, printSceneBounds, projectPrintBodies } from './print
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
+import { orthographicSketchScale } from './sketchOutlinePick';
 import { modelFitArea } from './modelFitArea';
 import type { FrameCost } from './frameCost';
 import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
@@ -353,6 +354,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
   const rendererBodies = useRef<BodyResult[]>(NO_BODIES);
+  const uploadedBodies = useRef<{ renderer: ViewRenderer; source: BodyResult[]; bodies: BodyResult[]; tier: number } | null>(null);
   const rendererInstances = useRef<{ renderer: ViewRenderer; instances: NonNullable<Props['instances']> } | null>(null);
   const hover = useRef<ViewportHover>({ face: null, edge: null });
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -412,6 +414,28 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     offsets: offsetsOf(propsRef.current),
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.modelUnavailable ? undefined : propsRef.current.hoverBody ?? undefined,
   });
+  const syncDisplayedBodies = (r: ViewRenderer, p = propsRef.current) => {
+    const source = p.bodies, body = source[0], detail = body?.mesh.cylinderDetail, view = canvas.current, cam = camera.current;
+    let tier = -1;
+    if (source.length === 1 && detail && view && cam.ortho && Math.PI / 2 - cam.pitch < 0.001
+      && (p.displayMode ?? 'shaded-with-edges') === 'shaded-with-edges'
+      && !displayModeScope(p) && !p.clip && !p.offsets?.size && !p.transforms?.size
+      && !p.instances?.length && !p.ghost.size && !p.printActive && !p.camActive) {
+      const scale = orthographicSketchScale(cam, view.clientWidth, view.clientHeight);
+      if (scale !== undefined && detail.baseChordErrorMM * scale > 0.25) {
+        const found = detail.tiers.findIndex(packet => packet.chordErrorMM * scale <= 0.25);
+        tier = found >= 0 ? found : detail.tiers.length - 1;
+      }
+    }
+    const current = uploadedBodies.current;
+    if (current?.renderer === r && current.source === source && current.tier === tier) return;
+    const packet = detail?.tiers[tier];
+    const bodies = packet ? [{ ...body, mesh: { ...body.mesh, ...packet } }] : source;
+    r.setBodies(bodies);
+    rendererBodies.current = source;
+    uploadedBodies.current = { renderer: r, source, bodies, tier };
+    r.setState(viewState());
+  };
 
   /** Turns the camera (eased, about a quarter second) to look at the target from direction `from`. */
   const turning = useRef(0);
@@ -435,6 +459,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const r = renderer.current; if (!r) return;
       // (The annotations' texts as facing the eye: set again in the frame which ones face it changes.)
       const p = propsRef.current;
+      syncDisplayedBodies(r, p);
       if (p.annotations?.length && r.setOverlayLabels && pmiFacingKey(p.annotations, camera.current.basis().forward) !== pmiFacing.current) applyPmiLabels();
       r.render(camera.current, viewState());
       bumpTicker(ticker);
@@ -444,7 +469,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const input = useViewportPointerInput({
     canvas, camera, propsRef,
-    rendering: { renderer, rendererBodies, rendererInstances, request, requestRef, moving, viewState, hover },
+    rendering: { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, request, requestRef, moving, viewState, hover },
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
@@ -498,8 +523,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   useEffect(() => {
     const r = renderer.current; if (!r) return;
-    r.setBodies(props.bodies);
-    rendererBodies.current = props.bodies;
+    syncDisplayedBodies(r);
     if (!sourceProps.printActive && !fitted.current && props.bodies.length) {
       const b = r.bounds();
       if (b) { fitBounds(b); fitted.current = true; }
@@ -638,10 +662,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const r = renderer.current; if (!r) return null;
       const q = screen(p), hit = r.pickEdge(q[0], q[1], camera.current, viewState(), radius);
       if (!hit) return null;
-      const m = propsRef.current.bodies[hit.body]?.mesh, segs: number[][] = [];
+      const m = uploadedBodies.current?.bodies[hit.body]?.mesh, segs: number[][] = [];
       if (m) for (let s = 0; s < m.edgeLines.length; s += 6) if (m.edgeOfSegment[s / 3] === hit.edge) segs.push([...m.edgeLines.subarray(s, s + 6)]);
       return { ...hit, segments: segs };
     };
+    w.__studioCylinderDisplayBytes = () => propsRef.current.bodies[0]?.mesh.cylinderDetail?.tiers.map(packet =>
+      packet.positions.byteLength + packet.normals.byteLength + packet.faceOfVertex.byteLength + packet.indices.byteLength + packet.edgeLines.byteLength + packet.edgeOfSegment.byteLength);
     w.__studioEye = () => camera.current.eye();
     // (O10, for the flow: tracking on or off, and the last frame tracked in each display mode.)
     w.__studioFrameCost = (on?: boolean) => { if (on !== undefined) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); requestRef.current(); } return renderer.current?.frameCosts() ?? {}; };

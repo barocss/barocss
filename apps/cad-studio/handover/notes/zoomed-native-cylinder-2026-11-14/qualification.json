@@ -1,0 +1,440 @@
+{
+  "decision": "D1145",
+  "tier": "FEATURE",
+  "parent": "48c6ce9bb8fed81b5308eabb7e1dde10690007ca",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1145-<run>",
+    "D1145_SOURCE_FROZEN=1 node apps/cad-studio/test/native-cylinder-zoom-browser.mjs <external-evidence>/<run> [--baseline|--webgl2]",
+    "D1046_SOURCE_FROZEN=1 node apps/cad-studio/test/rear-edge-picking-browser.mjs <external-evidence>/<run> [--webgl2 --exact-corner]",
+    "D1043_SOURCE_FROZEN=1 node apps/cad-studio/test/visible-model-frame-browser.mjs <external-evidence>/visible-frame",
+    "cd packages/barocss-cad-model && node scripts/test.mjs cylinder-display meshWire",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-display-precision api-mesh-output-isolation",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/native-cylinder-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 384,
+      "receiptSHA256": "df5e707fdbaaee05a2b338c3dd020013865471226ffb1d60be36b406ce539c9b",
+      "sourceManifestSHA256": "0234c49969f4dd4f26e3e5252cb3ea48d523dd7341865fc4f380281643fefa41"
+    },
+    "webgpu-final": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 386,
+      "receiptSHA256": "89a0767c80507be9166024d21eb5a29449ef42522ac1772176d220d5f73e034c",
+      "sourceManifestSHA256": "c620eae7b60d7e4db00169d9dcff256770a8918cf071bbcb549fb3758a49dcde"
+    },
+    "webgl2-final": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 386,
+      "receiptSHA256": "c21942343ad6c446bfd789876ccb0854ed0944f8ba6798b8750ef83ee2ab9aac",
+      "sourceManifestSHA256": "c620eae7b60d7e4db00169d9dcff256770a8918cf071bbcb549fb3758a49dcde"
+    },
+    "rear-edges": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 383,
+      "receiptSHA256": "ea28bcad6369e7540ddb195395bebeb62f079fd0d3dd1193eb41dcf57d7e9a67",
+      "sourceManifestSHA256": "a07b6e4e42d3af7de7e59cb644364812a2f56db7f0f7ca22c534121b9d85fef3"
+    },
+    "rear-edges-gl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 383,
+      "receiptSHA256": "2f5e8bd1f8b0322e61f89bc1680fd12c641350af83469e82f0c78f8dcda8e198",
+      "sourceManifestSHA256": "a07b6e4e42d3af7de7e59cb644364812a2f56db7f0f7ca22c534121b9d85fef3"
+    },
+    "visible-frame": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 382,
+      "receiptSHA256": "8534b0a734a4d6835b7de899772d0b2aa8c13ccfc94f97550bd6991b6cdf69f4",
+      "sourceManifestSHA256": "d059006df4958b8e407e29ec385c45c7bb0cab28ecd27beece55600a75c9b6a5"
+    }
+  },
+  "observations": {
+    "baseline": [
+      {
+        "label": "01-low",
+        "radiusCSS": 133.40347073972225,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 32,
+        "maxErrorCSS": 0.6420566977562318,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              175,
+              178,
+              187
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              36,
+              37,
+              40
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      },
+      {
+        "label": "02-high",
+        "radiusCSS": 477.41119489073765,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 32,
+        "maxErrorCSS": 2.2977292377786678,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              16,
+              17,
+              19
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              37,
+              37,
+              40
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      }
+    ],
+    "webgpu-final": [
+      {
+        "label": "01-low",
+        "radiusCSS": 133.40347073972225,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 64,
+        "maxErrorCSS": 0.1606109536400536,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              32,
+              32,
+              35
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      },
+      {
+        "label": "02-high",
+        "radiusCSS": 477.41119489073765,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 128,
+        "maxErrorCSS": 0.1437163163377437,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              196,
+              199,
+              210
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              38,
+              38,
+              41
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              37,
+              37,
+              40
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              19,
+              20,
+              22
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      },
+      {
+        "label": "detail-bytes",
+        "backend": "webgpu",
+        "bytes": [
+          20592,
+          41072
+        ]
+      }
+    ],
+    "webgl2-final": [
+      {
+        "label": "01-low",
+        "radiusCSS": 133.40347073972225,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 64,
+        "maxErrorCSS": 0.1606109536400536,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              148,
+              150,
+              156
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              148,
+              150,
+              156
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              22,
+              23,
+              25
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              23,
+              24,
+              26
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              23,
+              24,
+              26
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      },
+      {
+        "label": "02-high",
+        "radiusCSS": 477.41119489073765,
+        "edge": {
+          "body": 0,
+          "edge": 1
+        },
+        "segments": 128,
+        "maxErrorCSS": 0.1437163163377437,
+        "pixelProbe": [
+          {
+            "offsetCSS": -5,
+            "rgb": [
+              148,
+              150,
+              156
+            ]
+          },
+          {
+            "offsetCSS": -2,
+            "rgb": [
+              148,
+              150,
+              156
+            ]
+          },
+          {
+            "offsetCSS": 0,
+            "rgb": [
+              19,
+              19,
+              21
+            ]
+          },
+          {
+            "offsetCSS": 2,
+            "rgb": [
+              30,
+              31,
+              34
+            ]
+          },
+          {
+            "offsetCSS": 5,
+            "rgb": [
+              23,
+              24,
+              26
+            ]
+          }
+        ],
+        "selected": [
+          {
+            "body": 0,
+            "edge": 1
+          }
+        ]
+      },
+      {
+        "label": "detail-bytes",
+        "backend": "webgl2",
+        "bytes": [
+          20592,
+          41072
+        ]
+      }
+    ]
+  },
+  "focused": {
+    "modelPassed": 19,
+    "failed": 0
+  }
+}

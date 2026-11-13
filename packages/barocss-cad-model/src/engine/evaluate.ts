@@ -6,6 +6,7 @@ import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
 import { BarocssError, massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, withoutNativeFaces, type DisplayEdge, type DisplayMesh } from './mesh';
+import { cylinderDisplayMesh } from './cylinderDisplay';
 import { lumpTouches } from './lumps';
 import { friendlyCause, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
@@ -268,13 +269,22 @@ function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number,
 }
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved); their refusal thrown. */
 function skeletonsNow(doc: StudioDoc): StudioDoc { return resolveSkeletons(doc).doc; }
-export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8, refineDisplay = false): EvalResult {
   const shopRows = provenanceOfTree(doc);
   const t0 = performance.now();
   try {
     doc = skeletonsNow(doc);
     const snapshot = snapshotOf(doc); last = snapshot;
-    return { ...partResult(doc, snapshot, revision, quality, shopRows, t0), rebuild: rebuildOf(snapshot) };
+    const result = partResult(doc, snapshot, revision, quality, shopRows, t0);
+    if (refineDisplay && quality === 8 && result.bodies.length === 1 && snapshot.outputs.length === 1) {
+      const body = result.bodies[0], node = body.ref && doc.nodes[body.ref.node];
+      const source = node && node.kind === 'extrude' ? doc.nodes[node.sketch] : undefined;
+      if (source?.kind === 'sketch' && source.profile === 'circle' && !source.plane) {
+        const mesh = cylinderDisplayMesh(body.mesh, snapshot.outputs[0].brep, revision);
+        if (mesh !== body.mesh) result.bodies[0] = { ...body, mesh };
+      }
+    }
+    return { ...result, rebuild: rebuildOf(snapshot) };
   } catch (cause) {
     return failed(revision, cause, t0);
   }

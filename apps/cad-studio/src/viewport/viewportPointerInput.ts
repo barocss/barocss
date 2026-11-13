@@ -120,6 +120,7 @@ interface PointerInput {
   rendering: {
     renderer: RefObject<ViewRenderer | null>;
     rendererBodies: RefObject<readonly BodyResult[]>;
+    syncDisplayedBodies(renderer: ViewRenderer): void;
     rendererInstances: RefObject<{ renderer: ViewRenderer; instances: readonly { id: string; bodies: readonly BodyResult[] }[] } | null>;
     request(): void;
     requestRef: RefObject<() => void>;
@@ -220,7 +221,7 @@ function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonl
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
-  const { renderer, rendererBodies, rendererInstances, request, requestRef, moving, viewState, hover } = rendering;
+  const { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
   const sketch = propsRef.current.sketch;
 
@@ -490,6 +491,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
    * a plate's side stays pickable); elsewhere within 6 px.
    */
   const pickAt = (r: ViewRenderer, x: number, y: number, face?: FaceRef | null): { face: FaceRef | null; edge: EdgeRef | null; front?: { face: FaceRef | null; edge: EdgeRef | null } } => {
+    syncDisplayedBodies(r);
     const view = viewState(), cameraNow = camera.current;
     const under = face === undefined ? r.pickFace(x, y, cameraNow, view) : face, filter = propsRef.current.pickFilter ?? 'all';
     if (filter === 'face' || filter === 'body') return { face: under, edge: null };

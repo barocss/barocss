@@ -54,7 +54,11 @@ export interface DisplayMesh {
   bounds: { min: Vec3; max: Vec3 };
   /** The tessellation's segments per quarter turn (bodyMesh's quality): measureChords re-tessellates at it. */
   quality?: number;
+  /** Optional display-only packets with the same face and edge owners as this mesh. */
+  cylinderDetail?: { baseChordErrorMM: number; tiers: readonly CylinderDisplayTier[] };
 }
+export type CylinderDisplayTier = Pick<DisplayMesh, 'positions' | 'normals' | 'faceOfVertex' | 'indices' | 'edgeLines' | 'edgeOfSegment'>
+  & { chordErrorMM: number };
 
 interface Builder { p: number[]; n: number[]; f: number[]; i: number[]; faces: DisplayFace[] }
 

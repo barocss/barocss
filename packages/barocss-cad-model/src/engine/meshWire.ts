@@ -3,7 +3,7 @@
 // token alone: no copy made, nothing sent. The client keeps the same last reply's meshes by token and puts them back.
 // Both sides keep exactly the last reply of each slot, in the order the worker posts them.
 import type { BodyResult, EvalResult } from './evaluate';
-import type { DisplayMesh } from './mesh';
+import type { CylinderDisplayTier, DisplayMesh } from './mesh';
 
 /** A body as posted: its mesh and the token it goes by, or only the token of a mesh the client holds. */
 export type WireBody = Omit<BodyResult, 'mesh'> & ({ mesh: DisplayMesh; meshToken: number } | { meshRef: number });
@@ -25,7 +25,10 @@ export class MeshSender {
       if (token !== undefined) { now.set(mesh, token); return { ...rest, meshRef: token }; }
       const t = this.next++, copy = copyMesh(mesh);
       now.set(mesh, t);
-      transfer.push(copy.positions.buffer as ArrayBuffer, copy.normals.buffer as ArrayBuffer, copy.faceOfVertex.buffer as ArrayBuffer, copy.indices.buffer as ArrayBuffer, copy.edgeLines.buffer as ArrayBuffer, copy.edgeOfSegment.buffer as ArrayBuffer);
+      for (const packet of [copy, ...(copy.cylinderDetail?.tiers ?? [])]) {
+        transfer.push(packet.positions.buffer as ArrayBuffer, packet.normals.buffer as ArrayBuffer, packet.faceOfVertex.buffer as ArrayBuffer,
+          packet.indices.buffer as ArrayBuffer, packet.edgeLines.buffer as ArrayBuffer, packet.edgeOfSegment.buffer as ArrayBuffer);
+      }
       return { ...rest, mesh: copy, meshToken: t };
     });
     this.sent.set(slot, now);
@@ -54,5 +57,9 @@ export class MeshReceiver {
   }
 }
 function copyMesh(m: DisplayMesh): DisplayMesh {
+  const detail = m.cylinderDetail;
+  return { ...copyPacket(m), ...(detail ? { cylinderDetail: { ...detail, tiers: detail.tiers.map(copyPacket) } } : {}) };
+}
+function copyPacket<T extends Omit<CylinderDisplayTier, 'chordErrorMM'>>(m: T): T {
   return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };
 }
