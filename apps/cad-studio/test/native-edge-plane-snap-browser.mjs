@@ -12,6 +12,7 @@ const constructionCircleRadius = process.argv[3] === '--construction-circle-radi
 const smallCircleRadius = process.argv[3] === '--small-circle-radius';
 const nearbyCrossings = process.argv[3] === '--nearby-crossings';
 const snappedCircleHole = process.argv[3] === '--snapped-circle-hole';
+const crossingLimits = process.argv[3] === '--crossing-limits';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -26,7 +27,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: snappedCircleHole ? 'D1122_SOURCE_FROZEN' : nearbyCrossings ? 'D1121_SOURCE_FROZEN'
+  envFrozen: crossingLimits ? 'D1123_SOURCE_FROZEN' : snappedCircleHole ? 'D1122_SOURCE_FROZEN' : nearbyCrossings ? 'D1121_SOURCE_FROZEN'
     : smallCircleRadius ? 'D1120_SOURCE_FROZEN' : constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
     : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
@@ -46,6 +47,13 @@ if (process.argv[3] === '"extrude"') {
     id: output.id, valid: checkOutput(output).valid, volume: massPropertiesOf(output).volume,
     corners: output.brep.vertices.map(vertex => vertex.point),
   }))));
+} else if (process.argv[3] === '"curved"') {
+  const [{ brep }] = partBreps(doc);
+  const result = evaluatePart(doc, 1, 8);
+  if (!result.ok) throw Error(result.error.detail);
+  console.log(JSON.stringify({ valid: checkBrep(brep, { strict: true }).valid,
+    curves: brep.edges.map(edge => edge.curve.degree),
+    crossing: modelCrossingSnaps([result.bodies[0].mesh], { origin: [0, 3.6, 4.8], normal: [0, 0.6, 0.8], xAxis: [1, 0, 0] }) }));
 } else {
   const [{ brep }] = partBreps(doc);
   const edge = brep.edges.find(edge => edge.name === 'n1.side0|n1.side3');
@@ -621,16 +629,17 @@ async function circleAtConstructionEndpoint() {
 
 async function checkNearbyCrossings() {
   f.phase = 'select between nearby native edge crossings in the same snap radius';
+  const width = crossingLimits ? 0.02 : 0.5;
   const narrow = { ...source, nodes: [
-    { ...source.nodes[0], max: [target[0] + 0.5, source.nodes[0].max[1]] },
+    { ...source.nodes[0], max: [target[0] + width, source.nodes[0].max[1]] },
     source.nodes[1],
   ] };
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: fileName, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(narrow)) });
   await f.same(narrow);
   const z = (6 - 0.6 * target[1]) / 0.8;
-  const corners = [[...target, z], [target[0] + 0.5, target[1], z]];
-  for (const index of [0, 1]) {
+  const corners = [[...target, z], [target[0] + width, target[1], z]];
+  for (const index of crossingLimits ? [] : [0, 1]) {
     await begin(0);
     await tilt();
     const points = await Promise.all(corners.map(point => pixel(point)));
@@ -666,6 +675,8 @@ async function checkNearbyCrossings() {
   await begin(0);
   await tilt();
   const points = await Promise.all(corners.map(point => pixel(point)));
+  const gap = Math.hypot(points[0][0] - points[1][0], points[0][1] - points[1][1]);
+  if (crossingLimits) assert.ok(gap > 0.04 && gap < 0.5);
   const pointer = points[0].map((value, axis) => (value + points[1][axis]) / 2);
   await f.page.mouse.move(...pointer);
   await cue().waitFor();
@@ -680,10 +691,37 @@ async function checkNearbyCrossings() {
   await f.page.mouse.click(...pointer);
   await f.page.mouse.click(...await hover([1, 5.2, 3.6], null));
   const finished = (await f.finishSketch('nearby-crossing-near-tie-finished')).doc;
-  assert.deepEqual(finished.nodes[2].max, [4.2346 + index * 0.5, 3.4321]);
-  f.report.observations.push({ label: 'near-tie', pointer, selected, index });
+  assert.deepEqual(finished.nodes[2].max, [Number((4.2346 + index * width).toFixed(4)), 3.4321]);
+  f.report.observations.push({ label: 'near-tie', gap, pointer, selected, index, stored: finished.nodes[2].max });
   await f.undo();
   await f.same(narrow);
+}
+
+async function checkCurvedCrossing() {
+  f.phase = 'exclude a curved edge crossing from native straight-edge snaps';
+  const cylinder = { ...source, nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 },
+    source.nodes[1],
+  ] };
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+  await chooser.setFiles({ name: fileName, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(cylinder)) });
+  await f.same(cylinder);
+  const native = await f.inspect('curved-edge-native', cylinder, 'curved');
+  assert.ok(native.valid && native.curves.includes(2));
+  const y = (6 - 0.8 * 10) / 0.6, x = Math.sqrt(100 - y * y);
+  await begin(0);
+  await tilt();
+  const point = await hover([x, y, 10], null);
+  await f.snapshot('curved-edge-no-crossing');
+  await f.page.mouse.click(...point);
+  await f.page.mouse.click(...await hover([1, 5.2, 3.6], null));
+  const finished = (await f.finishSketch('curved-edge-grid-fallback')).doc;
+  assert.deepEqual(finished.nodes[2].min, [1, -9]);
+  assert.deepEqual(finished.nodes[2].max, [9, 2]);
+  assert.deepEqual(finished.nodes.slice(0, 2), cylinder.nodes);
+  f.report.observations.push({ label: 'curved-edge', native, world: [x, y, 10], fallback: [9, -9] });
+  await f.undo();
+  await f.same(cylinder);
 }
 
 await f.run(async () => {
@@ -707,8 +745,9 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
-  if (nearbyCrossings) {
+  if (nearbyCrossings || crossingLimits) {
     await checkNearbyCrossings();
+    if (crossingLimits) await checkCurvedCrossing();
     assert.deepEqual(f.report.downloads, []);
     return;
   }

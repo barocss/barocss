@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1123 — verify overlapping snap markers and curved-edge exclusion](notes/native-crossing-projection-limits-2026-11-14/README.md).
 - [D1122 — verify a Hole on the cylinder from a snapped Circle](notes/snapped-circle-hole-consumer-2026-11-14/README.md).
 - [D1121 — verify nearby native crossing cues and placement](notes/nearby-native-crossing-cues-2026-11-14/README.md).
 - [D1120 — verify a sub-millimetre Circle radius from an End snap](notes/sub-millimetre-circle-end-snap-2026-11-14/README.md).

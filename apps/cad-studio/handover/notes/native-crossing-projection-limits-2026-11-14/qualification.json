@@ -1,0 +1,67 @@
+{
+  "decision": "D1123",
+  "tier": "SMALL",
+  "parent": "4c8fa37b617e75a7b51f6aa67cf0895509deb68f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1123-crossing-limits-<run>",
+    "D1123_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/<run> --crossing-limits",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D864_DPR2=1 D1123_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/hidpi --crossing-limits",
+    "D1121_SOURCE_FROZEN=1 node apps/cad-studio/test/native-edge-plane-snap-browser.mjs <external-evidence>/nearby-control --nearby-crossings",
+    "node --check apps/cad-studio/test/native-edge-plane-snap-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "actual": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "215c63d1a2d3a17519cdc0a7d7ac7d2250ed344364af384667f12bd3c5b109cc",
+      "sourceManifestSHA256": "26fe83c83583c78c07eecdfdb25d47025661251b50085f86d17a7f391c7878c9",
+      "savedFiles": []
+    },
+    "hidpi": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "673e712342bffd6cf4b10b0f76900503b6f7af8cdb2bded8d83d736bcfa825f7",
+      "sourceManifestSHA256": "26fe83c83583c78c07eecdfdb25d47025661251b50085f86d17a7f391c7878c9",
+      "savedFiles": []
+    },
+    "nearbyControl": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 862,
+      "receiptSHA256": "906db8daecdd8792a586f6d8efcefc9cdf62d6444ba2a1c1703f3267068f3231",
+      "sourceManifestSHA256": "26fe83c83583c78c07eecdfdb25d47025661251b50085f86d17a7f391c7878c9",
+      "savedFiles": []
+    }
+  },
+  "projectedGapCSSPixels": 0.2777777741417822,
+  "nativeSeparationMM": 0.02,
+  "acceptedCrossingMM": [
+    4.2346,
+    3.4321
+  ],
+  "curvedFallbackMM": [
+    9,
+    -9
+  ],
+  "devicePixelRatios": [
+    1,
+    2
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}
