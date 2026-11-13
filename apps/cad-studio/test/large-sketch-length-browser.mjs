@@ -3,7 +3,8 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 const panelRecovery = mode === '--panel-recovery';
-const recover = mode === '--recover' || panelRecovery;
+const draftReverse = mode === '--draft-reverse';
+const recover = mode === '--recover' || panelRecovery || draftReverse;
 const name = 'large-sketch-length';
 const project = 'D857 driving line length';
 const pins = [
@@ -19,8 +20,9 @@ const pins = [
   ...(recover ? ['packages/barocss-cad-model/src/sketch/fixedTriangleLength.ts'] : []),
 ];
 const f = await createFlow({
-  name, output, envFrozen: panelRecovery ? 'D1080_SOURCE_FROZEN' : recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: panelRecovery ? 'Commit the exact fixed triangle length through the Sketch panel.'
+  name, output, envFrozen: draftReverse ? 'D1081_SOURCE_FROZEN' : panelRecovery ? 'D1080_SOURCE_FROZEN' : recover ? 'D858_SOURCE_FROZEN' : 'D857_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: draftReverse ? 'Replay successive exact fixed-triangle dimensions without finishing the draft.'
+    : panelRecovery ? 'Commit the exact fixed triangle length through the Sketch panel.'
     : recover ? 'Recover a feasible fixed-vertex triangle length in one desktop edit'
     : 'Measure current driving line edits on independently solvable XY profiles',
   limits: ['Existing line lengths on two straight XY triangle fixtures, existing Extrude, desktop Studio and local project Save.'],
@@ -373,6 +375,66 @@ async function qualifyPanel() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function qualifyDraftReverse() {
+  const { from, to, invalid, label } = circleTriangle;
+  const shape = { kind: 'polygon', closed: true, points: circleTriangle.points(from),
+    lengths: circleTriangle.lengths(from), hv: circleTriangle.hv, rules: circleTriangle.rules };
+  const fixture = await f.inspect(label, {}, { shape, height });
+  const { doc: source } = fixture;
+  await f.newPage();
+  await open(Buffer.from(fixture.base64, 'base64'));
+  await f.same(source);
+  await edit();
+  await f.frame([...circleTriangle.points(from), ...circleTriangle.points(to)]);
+  const field = () => f.sketchPanel().getByLabel('Edge 3 length', { exact: true });
+  const check = async value => {
+    assert.equal(Number(await field().inputValue()), value);
+    assert.match(await f.sketchPanelText(), /rank 6 · 0 DOF/);
+  };
+  await check(from);
+  await setLength(circleTriangle, from, to);
+  await check(to);
+  const atTarget = await sketchFields();
+  await f.snapshot('01-first-edit');
+
+  f.phase = 'Reverse the exact length in the same draft';
+  await setLength(circleTriangle, to, from);
+  await f.snapshot('02-reverse-edit');
+  await check(from);
+  assert.equal(await f.sketchAlert(), null);
+  const atOriginalLength = await sketchFields();
+  await f.same(source);
+  await button(f.page, 'Undo').click();
+  assert.deepEqual(await sketchFields(), atTarget);
+
+  f.phase = 'Refuse an impossible length without consuming Redo';
+  await setLength(circleTriangle, to, invalid);
+  assert.ok(await f.sketchAlert());
+  assert.deepEqual(await sketchFields(), atTarget);
+  await button(f.page, 'Redo').click();
+  assert.deepEqual(await sketchFields(), atOriginalLength);
+
+  f.phase = 'Apply a third change through the panel after Redo';
+  await field().fill(String(to));
+  await field().press('Enter');
+  await check(to);
+  assert.deepEqual(await sketchFields(), atTarget);
+  await f.same(source);
+  await f.snapshot('03-panel-repeat');
+
+  const accepted = await f.finishSketch('04-final');
+  verifyPart(accepted, circleTriangle, to, source);
+  const before = await f.inspect('draft-reverse-native-before', source, { native: true });
+  const after = await f.inspect('draft-reverse-native-after', accepted.doc, { native: true });
+  assert.deepEqual(after, before);
+  near(accepted.bodies.bodies[0].volume, height * doubleArea(circleTriangle.points(to)) / 2, 1e-6);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(accepted.doc);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -386,6 +448,7 @@ await f.run(async () => {
     });
     return context;
   };
+  if (draftReverse) { await qualifyDraftReverse(); return; }
   if (panelRecovery) { await qualifyPanel(); return; }
   await qualify(angleTriangle);
   await qualify(circleTriangle);

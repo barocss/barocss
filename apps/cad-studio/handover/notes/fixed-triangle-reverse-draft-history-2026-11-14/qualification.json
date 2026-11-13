@@ -1,0 +1,75 @@
+{
+  "decision": "D1081",
+  "tier": "SMALL",
+  "parent": "3b2e35bbed8c2ad285dde313ea773086dc5e7319",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1081-fixed-triangle-reverse-<run>",
+    "D1081_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/<run> --draft-reverse",
+    "D1080_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/panel-control --panel-recovery",
+    "D858_SOURCE_FROZEN=1 node apps/cad-studio/test/large-sketch-length-browser.mjs <external-evidence>/inline-control --recover",
+    "pnpm exec eslint apps/cad-studio/src/sketch/useSketchActions.ts apps/cad-studio/src/viewport/studioSketchViewportActions.ts apps/cad-studio/test/fixed-triangle-inline-ownership.test.ts",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history fixed-triangle-inline-ownership",
+    "node --check apps/cad-studio/test/large-sketch-length-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 861,
+      "receiptSHA256": "1e34a9f1205e7ebdbe7055e4df1cc4591c280d789bc8bef7bf949d7c3f13669d",
+      "sourceManifestSHA256": "e3e670aecd8f48c2a4eed6cd097d457b565afb987ce357dd55b83e9b451e7b3f",
+      "firstFailure": "The first edit reaches 124.05 mm; the next 131.95 mm input fails to converge and keeps 124.05 mm."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "0633d870fcfb067c1f853a3a1199c801654f92c868750f6d3129ed1a516bde2a",
+      "sourceManifestSHA256": "e64dd350934de6e55f4b240c819dcfce8c69359fb61b69bdc48b4fbac8bc6646"
+    },
+    "panelControl": {
+      "status": "PASS",
+      "states": 4,
+      "receiptSHA256": "a8aaa76558fd72030acd2aa7d04cafa4a0b03b87cdc923a2fcd7ebffe7cf965c",
+      "sourceManifestSHA256": "e64dd350934de6e55f4b240c819dcfce8c69359fb61b69bdc48b4fbac8bc6646"
+    },
+    "inlineControl": {
+      "status": "PASS",
+      "states": 11,
+      "receiptSHA256": "bf4738655f26e5d17358c1007ddb8ed2c8dfd3b47de8b4a656676d77c76460da",
+      "sourceManifestSHA256": "e64dd350934de6e55f4b240c819dcfce8c69359fb61b69bdc48b4fbac8bc6646"
+    }
+  },
+  "sequenceMm": [
+    131.95,
+    124.05,
+    131.95,
+    124.05
+  ],
+  "refusedLengthMm": 132.05,
+  "fixedPointsMm": [
+    [
+      0,
+      0
+    ],
+    [
+      4,
+      0
+    ]
+  ],
+  "fixedSideMm": 128,
+  "rank": 6,
+  "dof": 0,
+  "extrudeMm": 6,
+  "volumeMm3": 238.33719912329684,
+  "volumeToleranceMm3": 1e-06,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

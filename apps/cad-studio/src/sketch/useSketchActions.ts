@@ -16,6 +16,7 @@ import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import { canonical } from '@barocss/cad-model/util/revision';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
+import type { Polygon } from '@barocss/cad-model/sketch/rules';
 import { bezierCurve, bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { circleCurve, curvesSource, edgeCurve, ellipseCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
 import { ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
@@ -57,7 +58,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const { sketch, setSketch, sketchGeneration, recordDraft } = editor;
   const sketchRenderGeneration = sketchGeneration.current;
   const [finishRefusal, setFinishRefusal] = useState<{ generation: number; message: string } | null>(null);
-  const reopenedDraft = useRef<{ source: SketchNode; draft: SketchState } | null>(null);
+  const reopenedDraft = useRef<{ doc: StudioDoc; source: SketchNode; draft: SketchState; recoveredLengths: WeakSet<Polygon> } | null>(null);
   const pendingFinish = useRef<{ doc: StudioDoc; generation: number } | null>(null);
   const { docNow, acceptanceScope } = owner;
   const { engine, nextRevision } = worker;
@@ -191,7 +192,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
     const draft = startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select');
-    reopenedDraft.current = { source: stored, draft };
+    reopenedDraft.current = { doc, source: stored, draft, recoveredLengths: new WeakSet() };
     setSketch(draft);
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane);
   };
@@ -210,9 +211,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   };
   function currentSketchSource() {
     const opened = reopenedDraft.current, index = sketch?.editNode;
-    if (!opened || index === undefined || opened.draft.editNode !== index || docNow.current !== doc ||
+    if (!opened || opened.doc !== doc || index === undefined || opened.draft.editNode !== index || docNow.current !== doc ||
       sketchGeneration.current !== sketchRenderGeneration || docNow.current.nodes[index] !== opened.source) return undefined;
-    return opened.source;
+    return opened;
   }
 
   const finishSketch = useCallback(() => {

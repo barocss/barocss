@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { ModelNode, SketchNode } from '@barocss/cad-model/engine/doc';
+import type { SketchNode } from '@barocss/cad-model/engine/doc';
 import { xyPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -22,15 +22,15 @@ function fixture() {
   return { source, node, sketch };
 }
 
-function commit(source: Polygon, sketch: SketchState | null, storedSketch?: ModelNode, live: SketchShape = source) {
+function commit(source: Polygon, sketch: SketchState | null, storedSketch?: SketchNode, live: SketchShape = source, value = 124.05, recoveredLengths = new WeakSet<Polygon>()) {
   const shapes: (SketchShape | null)[] = [], errors: string[] = [], drafts: (SketchState | null)[] = [];
   const actions = studioSketchViewportActions({
-    liveShape: { current: live }, sketch, currentSketchSource: () => drafts.length === 0 ? storedSketch : undefined,
+    liveShape: { current: live }, sketch, currentSketchSource: () => drafts.length === 0 && storedSketch ? { source: storedSketch, recoveredLengths } : undefined,
     updateShape: shape => { shapes.push(shape); },
     setSketch: setter => { drafts.push(typeof setter === 'function' ? setter(sketch) : setter); },
     setSketchError: reason => { errors.push(reason); }, trimSketch: () => undefined,
   });
-  actions.onDimCommit?.('len2', 124.05, source);
+  actions.onDimCommit?.('len2', value, source);
   return { shapes, errors, drafts };
 }
 
@@ -68,4 +68,25 @@ test('unowned, parameter-valued and multi-shape drafts retain the original one-s
   assert.deepEqual(changed.errors, [ordinary.reason]);
   const stale = commit(source, sketch, node, { ...source });
   assert.deepEqual(stale, { shapes: [], errors: [], drafts: [] });
+});
+
+test('only exact verified descendants can recover another length in the same edit session', () => {
+  const { source, node, sketch } = fixture();
+  const recoveredLengths = new WeakSet<Polygon>();
+  const first = commit(source, sketch, node, source, 124.05, recoveredLengths).shapes[0];
+  assert.ok(first?.kind === 'polygon' && recoveredLengths.has(first));
+  const reversed = commit(first, { ...sketch, shape: first }, node, first, 131.95, recoveredLengths);
+  const next = reversed.shapes[0];
+  assert.ok(next?.kind === 'polygon' && recoveredLengths.has(next));
+  assert.equal(next.lengths?.[2], 131.95);
+  assert.deepEqual(next.points.slice(0, 2), source.points.slice(0, 2));
+  const clone = { ...first };
+  for (const rejected of [
+    commit(first, { ...sketch, shape: first }, node, first, 131.95),
+    commit(clone, { ...sketch, shape: clone }, node, clone, 131.95, recoveredLengths),
+    commit(first, { ...sketch, shape: first, done: [{ kind: 'circle', c: [0, 5], r: 1 }] }, node, first, 131.95, recoveredLengths),
+  ]) {
+    assert.deepEqual(rejected.shapes, []);
+    assert.equal(rejected.errors.length, 1);
+  }
 });
