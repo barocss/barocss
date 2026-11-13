@@ -1719,13 +1719,13 @@ export function App() {
     });
   }, [ctx]);
 
-  const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration,
-    recordDraft: (before, after) => {
-      sketchHistory.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
-      liveShape.current = after.shape;
-      queuedSketchHistory.current = { doc, generation: sketchGeneration.current, draft: after };
-    },
-  }, owner: { docNow, acceptanceScope },
+  const recordSketchDraft = (before: SketchState, after: SketchState) => {
+    sketchHistory.push(draftHistoryState(doc, before), draftHistoryState(doc, after));
+    liveShape.current = after.shape;
+    queuedSketchHistory.current = { doc, generation: sketchGeneration.current, draft: after };
+  };
+  const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker },
+    editor: { sketch, setSketch, sketchGeneration, recordDraft: recordSketchDraft }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
   const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, updateShape);
@@ -1736,7 +1736,10 @@ export function App() {
   };
   const twoPointSnap = useTwoPointSnap(doc, sketch, docNow, sketchGeneration, viewport);
   const arcExtensionSnap = useArcExtensionSnap(doc, sketch, docNow, sketchGeneration);
-  const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, setSketch);
+  const pathGap = usePathGap(doc, sketch, docNow, sketchGeneration, (before, after) => {
+    setSketch(after);
+    recordSketchDraft(before, after);
+  });
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };

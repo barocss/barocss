@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1074 — replay Cut circle gap in Sketch draft history](notes/sketch-circle-gap-draft-history-2026-11-14/README.md).
 - [D1073 — replay repair Line points and the preceding Drag Trim](notes/sketch-repair-line-draft-history-2026-11-14/README.md).
 - [D1072 — keep Trim history across Select for a new rectangle](notes/sketch-new-trim-draft-history-2026-11-14/README.md).
 - [D1071 — keep Trim history across Select for a curved profile](notes/sketch-curved-trim-draft-history-2026-11-14/README.md).

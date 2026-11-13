@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { nextIdOf, withIds } from '@barocss/cad-model/sketch/entityIds';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
@@ -28,7 +28,7 @@ function pathFragment(a: P2, b: P2, bulge: number, ids: [string, string], constr
 }
 
 export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: RefObject<StudioDoc>,
-  generation: RefObject<number>, setSketch: Dispatch<SetStateAction<SketchState | null>>) {
+  generation: RefObject<number>, commitDraft: (before: SketchState, after: SketchState) => void) {
   const [draft, setDraft] = useState<OwnedDraft | null>(null);
   const current = useRef<OwnedDraft | null>(null);
   const change = (next: OwnedDraft | null) => { current.current = next; setDraft(next); };
@@ -81,9 +81,7 @@ export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: R
       } else return;
       const replacement = [...done.slice(0, index), ...fragments, ...done.slice(index + 1)];
       change(null);
-      setSketch(ownerNow => ownerNow === owner
-        ? switchTool({ ...detachSketchLink(ownerNow), done: replacement }, 'select')
-        : ownerNow);
+      commitDraft(owner, switchTool({ ...detachSketchLink(owner), done: replacement }, 'select'));
     },
   };
   return {

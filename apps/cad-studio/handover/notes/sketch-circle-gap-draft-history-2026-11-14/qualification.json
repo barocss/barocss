@@ -1,0 +1,46 @@
+{
+  "decision": "D1074",
+  "tier": "SMALL",
+  "parent": "50f923a7a0e166645da8b1ac69b9e1bd97cd61e6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1074-circle-gap-<run>",
+    "D1074_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history circlePathGap arcPathGap linePathGap",
+    "node --check apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "bc1051ee560701339f1cb652ade1c60686f030d40971041a3b24453805235b3e",
+      "sourceManifestSHA256": "fd2691368f867886fb07420bf1d751ac788933c661988c78d854ed446b042bd1",
+      "firstFailure": "Cmd+Z leaves the gapped circle as an open arc."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 379,
+      "receiptSHA256": "eb4bf34f9056cbba858b6fd9fb3e77ad5089f3f29f329d5954ae25d779382f93",
+      "sourceManifestSHA256": "224f06f4227c75e3818656d98428535605fc3367554602815607ee18a0494e5a"
+    }
+  },
+  "centerMm": [
+    20,
+    20
+  ],
+  "radiusMm": 10,
+  "gapArcLengthMm": 4,
+  "extrudeMm": 2,
+  "volumeMm3": 628.3185307179587,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 19,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
