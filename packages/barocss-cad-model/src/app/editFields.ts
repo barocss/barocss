@@ -165,6 +165,16 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
   legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flange thickness at overhang midpoint', flangeSlope: 'Flange slope (rise/run)',
   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
 };
+
+/** Legacy attached Cut encoded as a positive, untapered tool ending on its sketch. */
+export function isSketchAnchoredCut(nodes: Nodes, index: number): boolean {
+  const tool = nodes[index], cut = nodes[index + 1];
+  if (tool?.kind !== 'extrude' || tool.made || tool.draft || typeof tool.height !== 'number'
+    || !Number.isFinite(tool.height) || tool.height <= 0 || tool.from !== -tool.height
+    || cut?.kind !== 'difference' || cut.tool.node !== index || cut.tool.side !== 'solid') return false;
+  const sketch = nodes[tool.sketch];
+  return sketch?.kind === 'sketch' && !!sketch.on && cut.parent.node === sketch.on.node && cut.parent.side === sketch.on.side;
+}
 function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope, parameters: Record<string, number> = {}): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
@@ -181,7 +191,14 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       break;
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
-      number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => withExtrusionHeight(n as typeof node, nodes[node.sketch], v));
+      out.push({ kind: 'number', key: 'h', label: 'Distance', unit: 'mm', get: n => num(self<typeof node>(n).height),
+        set: (n, height) => {
+          const current = self<typeof node>(n);
+          if (isSketchAnchoredCut(n, i)) {
+            return Number.isFinite(height) && height > 0 ? replace(n, i, { ...current, height, from: -height }) : [...n];
+          }
+          return replace(n, i, withExtrusionHeight(current, n[current.sketch], height));
+        } });
       number('from', 'Start Z', 'mm', n => num((n as typeof node).from ?? 0), (n, v) => ({ ...(n as typeof node), from: v }));
       number('draft', 'Draft', '°', n => (n as typeof node).draft ?? 0, (n, v) => ({ ...(n as typeof node), draft: v }));
       break;

@@ -6,7 +6,7 @@ import { detachFaceEndExtrude } from '@barocss/cad-model/engine/faceEndExtrude';
 import type { FaceEndDistanceReply } from '../engine/client';
 import { convertLinearPatternDistance, type LinearPatternDistanceMode } from '@barocss/cad-model/engine/linearSpanPattern';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
-import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
+import { editFields, isSketchAnchoredCut, type BindableField } from '@barocss/cad-model/app/editFields';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
@@ -57,8 +57,15 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         return;
       }
     }
-    const rule = historyNumberRule(nodes[index], field.key);
+    const rule = historyNumberRule(draft, index, field.key);
     if (Number.isFinite(value) && (!rule || !featureNumberInvalid(value, rule)) && (!field.integerRange || !invalidInteger(value, field.integerRange))) {
+      if (field.key === 'h' && isSketchAnchoredCut(draft, index)) {
+        setTyped(values => {
+          const next = { ...values };
+          delete next.from;
+          return next;
+        });
+      }
       setDraft(current => field.set(current, value));
     }
   };
@@ -106,7 +113,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const invalidCounts = fields.flatMap(field => field.kind === 'number' && field.integerRange && typed[field.key]?.trim()
     && invalidInteger(Number(typed[field.key]), field.integerRange) ? [field] : []);
   const invalidDimensions = fields.flatMap(field => {
-    const value = typed[field.key], rule = historyNumberRule(nodes[index], field.key);
+    const value = typed[field.key], rule = historyNumberRule(draft, index, field.key);
     return field.kind === 'number' && value?.trim() && rule && featureNumberInvalid(value, rule) ? [{ field, rule }] : [];
   });
   const hasInvalidNumber = hasMissingNumber || invalidCounts.length > 0 || invalidDimensions.length > 0;
@@ -183,7 +190,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {fields.length ? fields.map(f => {
-        const rule = f.kind === 'number' ? historyNumberRule(nodes[index], f.key) : undefined;
+        const rule = f.kind === 'number' ? historyNumberRule(draft, index, f.key) : undefined;
         const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule ? featureNumberRange(rule) : null;
         const rangeId = range ? `history-range-${f.key}` : undefined;
         return (

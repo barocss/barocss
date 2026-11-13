@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { editFields, type EditField } from '../src/app/editFields';
+import { editFields, type BindableField, type EditField } from '../src/app/editFields';
 
 const field = (nodes: readonly ModelNode[], i: number, key: string): EditField => {
   const f = editFields(nodes, i).find(x => x.key === key);
@@ -40,6 +40,24 @@ test('edit fields: a circle extrude edits its diameter; a parameter-driven size 
   const p = { ...doc, nodes: doc.nodes.map((n, i) => i === 1 ? { ...n, height: { parameter: 'h' } } as ModelNode : n) };
   const h = field(p.nodes, 1, 'h');
   assert.ok(h.kind === 'number' && Number.isNaN(h.get(p.nodes)));
+});
+
+test('an attached Cut Distance moves its start with the end held on the sketch', () => {
+  const base = rectanglePart(40, 30, 10), target = { node: 1, side: 'solid' } as const;
+  const profile = withNode(base, { kind: 'sketch', profile: 'circle', center: [20, 15], radius: 5, on: target,
+    plane: { origin: [0, 0, 10], xAxis: [1, 0, 0], normal: [0, 0, 1] } });
+  const tool = withNode(profile, { kind: 'extrude', sketch: 2, height: 2, from: -2 });
+  const cut = withNode(tool, { kind: 'difference', parent: target, tool: { node: 3, side: 'solid' } });
+  const distance = editFields(cut.nodes, 3, { D: 4 }).find(f => f.key === 'h') as BindableField;
+  assert.equal(distance.bind(cut.nodes, 'D'), null, 'a single positive parameter cannot write the paired inverse value');
+  assert.deepEqual(distance.set(cut.nodes, -4), cut.nodes);
+  const deeper = distance.set(cut.nodes, 4);
+  assert.deepEqual(deeper[3], { ...cut.nodes[3], height: 4, from: -4 });
+  assert.equal(deeper[4], cut.nodes[4]);
+  assert.ok(near(volume({ ...cut, nodes: deeper })[0], 12000 - 100 * Math.PI, 1e-10));
+  const shifted = field(cut.nodes, 3, 'from') as BindableField;
+  assert.deepEqual(distance.set(shifted.set(cut.nodes, -1), 4)[3], { ...cut.nodes[3], height: 4, from: -1 });
+  assert.deepEqual(distance.set(tool.nodes, 4)[3], { ...tool.nodes[3], height: 4 });
 });
 
 test('edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts', () => {

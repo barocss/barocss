@@ -1,0 +1,314 @@
+{
+  "decision": "D1151",
+  "tier": "SMALL",
+  "parent": "03b3f113c5e05bccaa0ad6964750a72c4fec8328",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1151-<run>",
+    "D1151_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-cut-distance-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D847_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-legacy-modes-browser.mjs <external-evidence>/legacy-modes",
+    "D1021_SOURCE_FROZEN=1 node apps/cad-studio/test/rectangular-cut-miss-browser.mjs <external-evidence>/rectangular-cut",
+    "cd packages/barocss-cad-model && node scripts/test.mjs editFields api-parameters union-touch region-extrude",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-draft-history extrude-end-face-pick",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/extrude-cut-distance-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 868,
+      "receiptSHA256": "a55a94f52c0c4959358714919a554a868cce2511ddca3131b8d367955a81aae8",
+      "sourceManifestSHA256": "fd06bba53dbc08ca8b283af916f6e95d49e122ccf4cf224f490b59bcb69ed998",
+      "observations": [
+        {
+          "label": "depth-2",
+          "result": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11614.583717802914,
+            "planes": [
+              {
+                "name": "n1.bottom",
+                "z": 0,
+                "nz": -1,
+                "loops": 3
+              },
+              {
+                "name": "n5.bottom",
+                "z": 8,
+                "nz": 1,
+                "loops": 1
+              },
+              {
+                "name": "n1.top",
+                "z": 10,
+                "nz": 1,
+                "loops": 2
+              }
+            ]
+          },
+          "shown": [
+            {
+              "key": "b6",
+              "volume": 11614.583717802914
+            }
+          ],
+          "expectedDepth": 2,
+          "expectedVolume": 11614.583717802936,
+          "expectedFloorZ": 8,
+          "cut": {
+            "id": "n5",
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 2,
+            "from": -2
+          },
+          "floors": [
+            {
+              "name": "n5.bottom",
+              "z": 8,
+              "nz": 1,
+              "loops": 1
+            }
+          ]
+        },
+        {
+          "label": "depth-4",
+          "result": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11614.583717802914,
+            "planes": [
+              {
+                "name": "n1.bottom",
+                "z": 0,
+                "nz": -1,
+                "loops": 3
+              },
+              {
+                "name": "n5.bottom",
+                "z": 8,
+                "nz": 1,
+                "loops": 1
+              },
+              {
+                "name": "n1.top",
+                "z": 10,
+                "nz": 1,
+                "loops": 2
+              }
+            ]
+          },
+          "shown": [
+            {
+              "key": "b6",
+              "volume": 11614.583717802914
+            }
+          ],
+          "expectedDepth": 4,
+          "expectedVolume": 11480.494847893055,
+          "expectedFloorZ": 6,
+          "cut": {
+            "id": "n5",
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "from": -2
+          },
+          "floors": [
+            {
+              "name": "n5.bottom",
+              "z": 8,
+              "nz": 1,
+              "loops": 1
+            }
+          ]
+        }
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 868,
+      "receiptSHA256": "f963801371b887ed3957289dc9ec65ae7b955faec54c1e61889ccfa811fecec9",
+      "sourceManifestSHA256": "e7c6d10b35c5a145d82d9b832d943d863492dc6126b7846338187be151be606b",
+      "observations": [
+        {
+          "label": "depth-2",
+          "result": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11614.583717802914,
+            "planes": [
+              {
+                "name": "n1.bottom",
+                "z": 0,
+                "nz": -1,
+                "loops": 3
+              },
+              {
+                "name": "n5.bottom",
+                "z": 8,
+                "nz": 1,
+                "loops": 1
+              },
+              {
+                "name": "n1.top",
+                "z": 10,
+                "nz": 1,
+                "loops": 2
+              }
+            ]
+          },
+          "shown": [
+            {
+              "key": "b6",
+              "volume": 11614.583717802914
+            }
+          ],
+          "expectedDepth": 2,
+          "expectedVolume": 11614.583717802936,
+          "expectedFloorZ": 8,
+          "cut": {
+            "id": "n5",
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 2,
+            "from": -2
+          },
+          "floors": [
+            {
+              "name": "n5.bottom",
+              "z": 8,
+              "nz": 1,
+              "loops": 1
+            }
+          ]
+        },
+        {
+          "label": "depth-4",
+          "result": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11480.494847893038,
+            "planes": [
+              {
+                "name": "n1.bottom",
+                "z": 0,
+                "nz": -1,
+                "loops": 3
+              },
+              {
+                "name": "n5.bottom",
+                "z": 6,
+                "nz": 1,
+                "loops": 1
+              },
+              {
+                "name": "n1.top",
+                "z": 10,
+                "nz": 1,
+                "loops": 2
+              }
+            ]
+          },
+          "shown": [
+            {
+              "key": "b6",
+              "volume": 11480.494847893038
+            }
+          ],
+          "expectedDepth": 4,
+          "expectedVolume": 11480.494847893055,
+          "expectedFloorZ": 6,
+          "cut": {
+            "id": "n5",
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "from": -4
+          },
+          "floors": [
+            {
+              "name": "n5.bottom",
+              "z": 6,
+              "nz": 1,
+              "loops": 1
+            }
+          ]
+        },
+        {
+          "label": "reopened-native",
+          "result": {
+            "valid": true,
+            "pieces": 1,
+            "volume": 11480.494847893038,
+            "planes": [
+              {
+                "name": "n1.bottom",
+                "z": 0,
+                "nz": -1,
+                "loops": 3
+              },
+              {
+                "name": "n5.bottom",
+                "z": 6,
+                "nz": 1,
+                "loops": 1
+              },
+              {
+                "name": "n1.top",
+                "z": 10,
+                "nz": 1,
+                "loops": 2
+              }
+            ]
+          },
+          "shown": [
+            {
+              "key": "b6",
+              "volume": 11480.494847893038
+            }
+          ],
+          "expectedDepth": 4,
+          "expectedVolume": 11480.494847893055,
+          "expectedFloorZ": 6,
+          "cut": {
+            "id": "n5",
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "from": -4
+          },
+          "floors": [
+            {
+              "name": "n5.bottom",
+              "z": 6,
+              "nz": 1,
+              "loops": 1
+            }
+          ]
+        }
+      ]
+    },
+    "legacy-modes": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 868,
+      "receiptSHA256": "1b8f41ea0c79b9d713100f5a225955bc7bf6d02126f43f1fa943ead9c05b5ca4",
+      "sourceManifestSHA256": "b0a14d5a81284fe5cb570e0e81d9402780ad1178a524bac44d4da06b95da8b15"
+    },
+    "rectangular-cut": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 866,
+      "receiptSHA256": "3163d4be5a19002d1c6974e12a22e5623c2f4c138a98f9c082936bf20bef38f3",
+      "sourceManifestSHA256": "b910bb7654fc2d9c3873a6b6d7d37e9fbbcdac91c0704e9dabf76b505c5be06d"
+    }
+  }
+}
