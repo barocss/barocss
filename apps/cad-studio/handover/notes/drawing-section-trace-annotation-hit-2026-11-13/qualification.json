@@ -1,0 +1,42 @@
+{
+  "decision": "D953",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "69acc51873153b2e224c87097ad14b00db30b724",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D953-annotations",
+    "D953_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/annotations03 --annotations",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "201a6bafa543d576da066fe0ba235bfcc930a681f5b7aa6fb2fde87b31d6c978",
+    "sourceManifestSHA256": "7a8d2f96c2a58e6d979c0a4ff2d7aee0a4290f08032397417add25efdb3dbdc4",
+    "frozenFiles": 372,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pointerHits": [
+      "A",
+      "frame-1"
+    ],
+    "selected": [
+      "target-1",
+      "frame-1"
+    ],
+    "svgBytes": 7811,
+    "svgSHA256": "76c7abdd5af58d24dbb897663ca620e35c71f877be918e6d579eb269bff8c06c"
+  },
+  "initialFailure": "Harness compared serialized property order. Structural equality resolved the timeout.",
+  "notRun": [
+    "annotation movement",
+    "removed Section and Detail drag",
+    "sheet and document ownership",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

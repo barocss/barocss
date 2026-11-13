@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
+const annotations = mode === '--annotations';
 const pins = [
   'apps/cad-studio/test/drawing-section-trace-hit-browser.mjs',
   'apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'apps/cad-studio/src/drawing/drawing.css',
@@ -26,15 +27,23 @@ const source = {
       ...(reopen ? [{ id: 'ordinary', view: 'front', kind: 'linear', a: end(0), b: end(20),
         orient: 'horizontal', place: [10, 13] }] : [])], views: ['front', 'top'],
     ...(reopen ? { notes: [{ id: 'n1', text: 'KEEP NOTE', at: [80, 75] }] } : {}),
+    ...(annotations ? {
+      datumTargets: [{ id: 'target-1', kind: 'line', letter: 'B', number: 1, view: 'top', line: { from: [2, 6], to: [8, 6] }, place: [-12, 6] }],
+      frames: [{ id: 'frame-1', view: 'top', characteristic: 'flatness', value: 0.07, datums: [], place: [14, 6] }],
+    } : {}),
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Select and drag the existing width dimension at the painted cutting-plane trace.',
-  limits: ['One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
+  name: 'drawing-section-trace-hit', output, envFrozen: annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+    : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
+  limits: [annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
+    : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
   snapshotExtra: () => ({
     box: document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox'),
     selected: [...document.querySelectorAll('[aria-label="Drawing sheet"] g.sel[data-dim]')].map(g => g.getAttribute('data-dim')),
+    selectedTargets: [...document.querySelectorAll('[aria-label="Drawing sheet"] g.sel[data-datum-target]')].map(g => g.getAttribute('data-datum-target')),
+    selectedFrames: [...document.querySelectorAll('[aria-label="Drawing sheet"] g.sel[data-standalone-frame]')].map(g => g.getAttribute('data-standalone-frame')),
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     drawing: window.__studioDrawing?.(),
   }),
@@ -153,6 +162,74 @@ async function reopenFlow() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function annotationFlow(initial) {
+  const target = sheet().locator('g[data-datum-target="target-1"]');
+  const frame = sheet().locator('g[data-standalone-frame="frame-1"]');
+  const loaded = await f.doc();
+  const before = await f.snapshot('01-annotations');
+  const sectionMarkup = await trace().innerHTML();
+  const svgBefore = await exportSvg();
+  await sheet().evaluate(svg => {
+    window.__d953PointerHits = [];
+    svg.addEventListener('pointerdown', ({ target }) => {
+      const mark = target.closest('g.section,g[data-datum-target],g[data-standalone-frame]');
+      window.__d953PointerHits.push(mark?.getAttribute('data-dim') ?? mark?.getAttribute('data-datum-target') ??
+        mark?.getAttribute('data-standalone-frame') ?? null);
+    });
+  });
+  const cases = [
+    { label: 'datum-target', group: target, attr: 'data-datum-target', id: 'target-1', selection: 'selectedTargets' },
+    { label: 'standalone-frame', group: frame, attr: 'data-standalone-frame', id: 'frame-1', selection: 'selectedFrames' },
+  ];
+  for (const [index, { label, group, attr, id, selection }] of cases.entries()) {
+    f.phase = `select the ${label} in the actual drawing`;
+    await group.waitFor();
+    const site = await sheet().evaluate((svg, { attr, id }) => {
+      const target = svg.querySelector(`g[${attr}="${id}"]`);
+      const trace = svg.querySelector('g.section[data-view][data-dim="A"] line');
+      const matrix = trace.getScreenCTM();
+      const values = ['x1', 'y1', 'x2', 'y2'].map(k => Number(trace.getAttribute(k)));
+      for (let i = 0; i <= 1200; i++) {
+        const t = i / 1200, x = values[0] + t * (values[2] - values[0]), y = values[1] + t * (values[3] - values[1]);
+        if (!trace.isPointInStroke(new DOMPoint(x, y))) continue;
+        const p = new DOMPoint(x, y).matrixTransform(matrix);
+        const stack = document.elementsFromPoint(p.x, p.y);
+        const interactive = stack.map(element => element.closest('g[data-datum-target],g[data-standalone-frame],g[data-dim]')).filter(Boolean);
+        if (interactive.includes(target) && interactive.find(g => !g.classList.contains('section')) === target) {
+          return { x: p.x, y: p.y, traceFirst: interactive[0].classList.contains('section') };
+        }
+      }
+      return null;
+    }, { attr, id });
+    assert.ok(site, `painted trace overlaps the ${label}`);
+    assert.equal(site.traceFirst, index === 0);
+    await f.page.mouse.click(site.x, site.y);
+    const pointerHit = await f.page.evaluate(index => window.__d953PointerHits[index], index);
+    assert.equal(pointerHit, site.traceFirst ? 'A' : id);
+    const selected = await f.snapshot(`02-${label}`);
+    assert.deepEqual(selected[selection], [id]);
+    assert.deepEqual(selected.selected, []);
+    assert.deepEqual(selected[selection === 'selectedTargets' ? 'selectedFrames' : 'selectedTargets'], []);
+    assert.equal(selected.box, before.box);
+    assert.equal(selected.dirty, before.dirty);
+    assert.deepEqual(selected.history, before.history);
+    assert.deepEqual(selected.doc, loaded);
+    f.report.observations.push({ label, paintedOverlap: site, pointerHit });
+  }
+  assert.equal(await trace().innerHTML(), sectionMarkup);
+  assert.equal(await exportSvg(), svgBefore);
+  f.report.observations.push({ label: 'unchanged-svg', bytes: Buffer.byteLength(svgBefore), sha256: sha256(svgBefore) });
+  assert.deepEqual(await f.doc(), initial);
+  assert.deepEqual(f.report.downloads, []);
+}
+
+async function exportSvg() {
+  const count = await f.page.evaluate(() => window.__d932Exports.length);
+  await button('Export SVG').click();
+  await f.page.waitForFunction(count => window.__d932Exports.length > count, count);
+  return f.page.evaluate(count => window.__d932Exports[count].text, count);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -185,12 +262,17 @@ await f.run(async () => {
   const buffer = Buffer.from(JSON.stringify(source));
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'D932-section-hit.bcad', mimeType: 'application/json', buffer });
-  await f.same(source);
+  if (annotations) {
+    await f.page.waitForFunction(() => window.__studioDoc?.drawing?.datumTargets?.length === 1);
+    await f.ready();
+    assert.deepEqual(await f.doc(), source);
+  } else await f.same(source);
   await button('Drawing').click();
   await dimension().waitFor();
   await trace().waitFor();
   await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
+  if (annotations) { await annotationFlow(source); return; }
   if (reopen) { await reopenFlow(); return; }
   const before = await f.snapshot('01-drawing-before');
   f.phase = 'find the painted overlap and exercise actual pointer input';
