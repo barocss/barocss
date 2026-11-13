@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D977 — restore toolbar focus and close More tools on resize](notes/toolbar-overflow-resize-focus-2026-11-13/README.md).
 - [D976 — focus Cancel and restore the History Delete opener](notes/history-delete-confirmation-focus-2026-11-13/README.md).
 - [D975 — qualify Assembly Mate and Hole Type control keys](notes/mate-hole-control-keys-2026-11-13/README.md).
 - [D974 — keep parked SubD Cage out of workspace input and history](notes/parked-subd-cage-input-2026-11-13/README.md).

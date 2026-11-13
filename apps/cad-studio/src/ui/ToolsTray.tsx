@@ -34,22 +34,46 @@ type ToolProps = { hidden?: boolean; disabled?: boolean; 'aria-label'?: string; 
 export function ToolsTray({ items }: { items: readonly ReactNode[] }) {
   const tools = items.filter((item): item is ReactElement<ToolProps> => isValidElement<ToolProps>(item) && !item.props.hidden);
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const measuredFit = useRef(tools.length);
+  const focusAfterResize = useRef<{ element: HTMLElement; label: string | null } | null>(null);
   const [fit, setFit] = useState(tools.length), [open, setOpen] = useState(false);
   useLayoutEffect(() => {
     const tray = ref.current, bar = tray?.parentElement; if (!tray || !bar) return;
-    const measure = () => setFit(fitting(tray, tools.length));
+    const measure = () => {
+      const next = fitting(tray, tools.length);
+      if (next === measuredFit.current) return;
+      measuredFit.current = next;
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && tray.contains(active)) {
+        const menuItem = active.closest('.tools-more [role="menuitem"]');
+        focusAfterResize.current = { element: active, label: (menuItem ?? active).getAttribute('aria-label') };
+      }
+      setOpen(false);
+      setFit(next);
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(bar); for (const el of Array.from(bar.children)) ro.observe(el);
     return () => ro.disconnect();
   }, [tools.length]);
+  useLayoutEffect(() => {
+    const pending = focusAfterResize.current;
+    focusAfterResize.current = null;
+    if (!pending || pending.element.isConnected) return;
+    const buttons = [...(ref.current?.querySelectorAll<HTMLButtonElement>('button.tool:not(:disabled)') ?? [])]
+      .filter(button => !button.closest('.tools-more'));
+    const sameTool = buttons.find(button => button.getAttribute('aria-label') === pending.label);
+    (sameTool ?? trigger.current ?? buttons.at(-1))?.focus({ preventScroll: true });
+  }, [fit]);
+
   const rest = tools.slice(fit);
   return <div className="tools-tray" role="toolbar" aria-label="Tools bar" ref={ref}>
     {tools.slice(0, fit)}
     {rest.length > 0 && <span className="tools-more-anchor">
       <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenuTrigger asChild>
-          <ToolIconButton state={open ? 'on' : 'idle'} aria-label="More tools" data-tip="More tools"
+          <ToolIconButton ref={trigger} state={open ? 'on' : 'idle'} aria-label="More tools" data-tip="More tools"
             data-tip-desc={`${rest.length} more`} onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') event.stopPropagation();
             }}>
@@ -58,7 +82,12 @@ export function ToolsTray({ items }: { items: readonly ReactNode[] }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent portal={false} className="card tools-more min-w-0 p-2 has-[.templates]:overflow-visible"
           aria-label="More tools" align="end" loop onKeyDown={event => event.stopPropagation()}
-          onEscapeKeyDown={event => event.stopPropagation()}>
+          onEscapeKeyDown={event => event.stopPropagation()}
+          onCloseAutoFocus={event => {
+            // A resize can already have focused the tool that moved inline.
+            const active = document.activeElement;
+            if (active !== trigger.current && ref.current?.contains(active) && !active?.closest('.tools-more')) event.preventDefault();
+          }}>
           {rest.map(item => item.type === TemplatePicker ? cloneElement(item, { inOverflow: true })
             : <DropdownMenuItem key={item.key} asChild className="p-0" disabled={item.props.disabled} textValue={item.props['aria-label']}>
               {item}

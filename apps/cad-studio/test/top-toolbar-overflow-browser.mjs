@@ -5,14 +5,15 @@ import { createFlow } from './flow-helper.mjs';
 const [output, mode] = process.argv.slice(2);
 const repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(mode === '--baseline' || mode === '--fixed');
+const resizeFocus = mode.startsWith('--resize-focus-');
+assert.ok(['--baseline', '--fixed', '--resize-focus-baseline', '--resize-focus-fixed'].includes(mode));
 const pins = [
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ToolsTray.tsx', 'apps/cad-studio/src/styles.css',
   'apps/cad-studio/src/components/ui/tool-button.tsx', 'apps/cad-studio/test/top-toolbar-overflow-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'top-toolbar-overflow', envFrozen: 'D685_SOURCE_FROZEN', output,
-  initialFiles: pins, requiredFrozen: pins, qualification: `D685 desktop toolbar reachability ${mode}`,
+  name: 'top-toolbar-overflow', envFrozen: resizeFocus ? 'D977_SOURCE_FROZEN' : 'D685_SOURCE_FROZEN', output,
+  initialFiles: pins, requiredFrozen: pins, qualification: resizeFocus ? 'Retain focus and close More tools through desktop resize' : `D685 desktop toolbar reachability ${mode}`,
 });
 const toolbar = () => f.page.getByRole('toolbar', { name: 'Tools bar', exact: true });
 const trigger = () => toolbar().getByRole('button', { name: 'More tools', exact: true });
@@ -107,6 +108,67 @@ async function verifyAccess(label, inventory) {
   f.report.observations.push({ label, geometry, menuGeometry, inlineEnabled, keyboardMenu: keys, pointerAndKeyboardOpenedPartChooser: true });
 }
 
+async function verifyResizeFocus() {
+  const page = f.page;
+  f.phase = 'create the toolbar resize fixture';
+  await toolbar().getByRole('button', { name: 'New part', exact: true }).click();
+  await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+  await f.ready();
+  await page.evaluate(() => document.activeElement?.blur());
+  await f.command('box');
+  await page.getByRole('dialog', { name: 'Box', exact: true }).getByRole('button', { name: 'Apply', exact: true }).click();
+  await page.waitForFunction(() => window.__studioDoc.nodes.length === 2);
+  await f.ready();
+  const accepted = await f.doc();
+  const insert = toolbar().getByRole('button', { name: 'Insert part', exact: true });
+  const chat = toolbar().getByRole('button', { name: 'Chat', exact: true });
+  const size = width => page.setViewportSize({ width, height: 900 });
+  const results = [];
+  for (const [name, wide, narrow] of [['chat-closed', 1440, 1024], ['chat-open', 1800, 1280]]) {
+    f.phase = 'transfer toolbar focus and close overflow during resize (' + name + ')';
+    await size(wide);
+    if (name === 'chat-open') {
+      await chat.click();
+      await page.locator('.chat-col.open').waitFor();
+    }
+    await insert.waitFor();
+    await insert.focus();
+    await size(narrow);
+    await trigger().waitFor();
+    await settle();
+    const transfer = await selectedLabel();
+    if (mode.endsWith('fixed')) await waitFocus('More tools');
+    else await trigger().focus();
+
+    await openWithKey();
+    await menu().getByRole('menuitem', { name: 'Insert part', exact: true }).focus();
+    await size(wide);
+    await insert.waitFor();
+    await menu().waitFor({ state: 'hidden' });
+    await settle();
+    const restored = await selectedLabel();
+    if (mode.endsWith('fixed')) await waitFocus('Insert part');
+    await size(narrow);
+    await trigger().waitFor();
+    await settle();
+    const reopened = await menu().isVisible();
+    if (mode.endsWith('fixed')) {
+      assert.equal(reopened, false);
+      await waitFocus('More tools');
+    } else if (reopened) {
+      await closeWithKey();
+    }
+    await f.same(accepted);
+    await f.snapshot(name + '-after-resize');
+    results.push({ name, wide, narrow, transfer, restored, reopened });
+  }
+  f.report.observations.push(...results);
+  if (mode.endsWith('baseline')) {
+    assert.ok(results.some(row => row.transfer !== 'More tools' || row.reopened), JSON.stringify(results));
+    assert.fail('A focused inline tool lost focus and More tools reopened after the trigger was removed');
+  }
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -125,6 +187,7 @@ await f.run(async () => {
     }
   };
   await f.newPage();
+  if (resizeFocus) { await verifyResizeFocus(); return; }
   await f.page.setViewportSize({ width: 1440, height: 900 });
   await f.page.locator('.chat-col:not(.open)').waitFor();
   await settle();

@@ -1,0 +1,56 @@
+{
+  "decision": "D977",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "f1d6e100c3ca91fb30df8865a1e40bc17f472385",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D977-toolbar-resize",
+    "D977_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence>/baseline02 --resize-focus-baseline",
+    "D977_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence>/fixed01 --resize-focus-fixed",
+    "gate.sh acquire heavy 600 D977-small",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/top-toolbar-overflow-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "2bdffdf3d7b475b9ea6358300fa52b130673a2b05713071ec18ca1da0fe8c51a"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "3efee40129817160043eb28bdc0cd6634437d96ddb265509348aa9f6900ed271",
+    "sourceManifestSHA256": "5bfeba892cec4fbe6fc6cbb7df9195863f6dc9a477fc68cd818715bc560d54cf",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "chatClosedWidths": [
+      1440,
+      1024,
+      1440,
+      1024
+    ],
+    "chatOpenWidths": [
+      1800,
+      1280,
+      1800,
+      1280
+    ],
+    "focusOnReduction": "More tools",
+    "focusOnExpansion": "Insert part",
+    "menuReopened": false
+  },
+  "notRun": [
+    "Escape with an active Undo tooltip",
+    "splitter drag",
+    "file chooser",
+    "downloads",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
