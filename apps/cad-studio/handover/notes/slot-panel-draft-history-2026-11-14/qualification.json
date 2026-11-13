@@ -1,0 +1,62 @@
+{
+  "decision": "D1091",
+  "tier": "SMALL",
+  "parent": "51a4dca09b082d6c650c9510eceda770c517f362",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1091-slot-draft-history-<run>",
+    "D1091_SOURCE_FROZEN=1 node apps/cad-studio/test/slot-draft-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx",
+    "node --check apps/cad-studio/test/slot-draft-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 857,
+      "receiptSHA256": "3e24cdf0117f79c78791bd9a168a39105b78d42a5828e2c267bb62fe94307fdd",
+      "sourceManifestSHA256": "2a59b69de4f0a1cd66853435cab9390f1c9d7e5b5a3a484d1a8761cc6f1be714",
+      "firstFailure": "The first valid Length edit changes the outline but the draft Undo control stays disabled."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 12,
+      "frozenFiles": 857,
+      "receiptSHA256": "4660958a943c4136e3125e3755e374dde8dcebdc51421251f7cd3f99f452caf5",
+      "sourceManifestSHA256": "471600c54c8a4eb8c0e9ef024a4caec99c2f88264d607115520216d644cce420"
+    }
+  },
+  "metrics": {
+    "initial": [
+      35,
+      20,
+      0
+    ],
+    "final": [
+      45,
+      14,
+      30
+    ],
+    "extrudeMm": 3,
+    "nativeVolumeMm3": 2351.812549841714
+  },
+  "lint": {
+    "scoped": "PASS",
+    "appFile": "Known inherited unused kFactor binding from D1089; full App.tsx lint NOT_RUN"
+  },
+  "notRun": [
+    "Slot editing after Save and Open",
+    "broader profiles",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 31,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

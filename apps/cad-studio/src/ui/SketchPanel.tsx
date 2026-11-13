@@ -119,7 +119,7 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
         {num('diameter', 'Diameter', s.r * 2, v => onShape({ ...s, r: Math.max(0.25, v / 2) }), 0.5)}</>}
       {s?.kind === 'slot' && (() => {
         const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]), angle = Math.atan2(s.b[1] - s.a[1], s.b[0] - s.a[0]) * 180 / Math.PI;
-        const put = (a: [number, number], len: number, deg: number, r: number) => onShape({ kind: 'slot', a, r,
+        const put = (a: [number, number], len: number, deg: number, r: number) => onShape({ ...s, a, r,
           b: [round(a[0] + len * Math.cos(deg * Math.PI / 180)), round(a[1] + len * Math.sin(deg * Math.PI / 180))] });
         return <>{num('slot-x', 'Centre X', s.a[0], v => put([v, s.a[1]], l, angle, s.r))}{num('slot-y', 'Centre Y', s.a[1], v => put([s.a[0], v], l, angle, s.r))}
           {num('slot-length', 'Length', l, v => put(s.a, Math.max(0.5, v), angle, s.r), 0.5)}

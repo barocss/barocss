@@ -498,13 +498,17 @@ export function App() {
     const changedCircle = fromPanel && prev?.kind === 'circle' && r.shape?.kind === 'circle'
       && (prev.r !== r.shape.r || prev.c[0] !== r.shape.c[0] || prev.c[1] !== r.shape.c[1]);
     const bezier = r.shape?.kind === 'bezier' ? r.shape : null;
+    const changedSlot = fromPanel && prev?.kind === 'slot' && r.shape?.kind === 'slot'
+      && !!shapeNode(prev) && !!shapeNode(r.shape)
+      && (prev.r !== r.shape.r || prev.a[0] !== r.shape.a[0] || prev.a[1] !== r.shape.a[1]
+        || prev.b[0] !== r.shape.b[0] || prev.b[1] !== r.shape.b[1]);
     const changedBezier = fromPanel && prev?.kind === 'bezier' && bezier && prev.poles.length === bezier.poles.length
       && prev.poles.some(([x, y], i) => x !== bezier.poles[i][0] || y !== bezier.poles[i][1]);
     const draftDoc = docNow.current, generation = sketchGeneration.current;
     const queued = queuedSketchHistory.current, rendered = renderedSketch.current;
     const draft = queued?.doc === draftDoc && queued.generation === generation ? queued.draft
       : rendered.generation === generation ? rendered.draft : null;
-    const recordEdit = !keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedBezier);
+    const recordEdit = !keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedSlot || changedBezier);
     const geometryChanged = prev !== r.shape && JSON.stringify(prev) !== JSON.stringify(r.shape);
     const confirmedPlacement = origin === 'line-point' || origin === 'chord-circle';
     if (draft && (confirmedPlacement || (recordEdit && (draft.association || draft.associationDetached))) && (geometryChanged || keep)) {

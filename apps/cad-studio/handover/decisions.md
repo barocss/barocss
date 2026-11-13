@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1091 — record Slot panel edits in sketch draft history](notes/slot-panel-draft-history-2026-11-14/README.md).
 - [D1090 — restore a Round tangent from adjacent line and arc selections](notes/round-selected-tangent-restore-2026-11-14/README.md).
 - [D1089 — focus a proven opposite-edge length conflict](notes/opposite-length-conflict-focus-2026-11-14/README.md).
 - [D1088 — show the active circle distance under Picked only](notes/constraint-active-circle-distance-2026-11-14/README.md).
