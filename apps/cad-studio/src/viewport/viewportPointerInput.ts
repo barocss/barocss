@@ -121,6 +121,7 @@ interface PointerInput {
     renderer: RefObject<ViewRenderer | null>;
     rendererBodies: RefObject<readonly BodyResult[]>;
     syncDisplayedBodies(renderer: ViewRenderer): void;
+    syncDirect(renderer: ViewRenderer): void;
     isBandRail(hit: EdgeRef | null): boolean;
     selectBandRail(hit: EdgeRef | null): boolean;
     rendererInstances: RefObject<{ renderer: ViewRenderer; instances: readonly { id: string; bodies: readonly BodyResult[] }[] } | null>;
@@ -223,7 +224,7 @@ function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonl
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
-  const { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, isBandRail, selectBandRail, request, requestRef, moving, viewState, hover } = rendering;
+  const { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, syncDirect, isBandRail, selectBandRail, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
   const sketch = propsRef.current.sketch;
 
@@ -977,6 +978,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const r = renderer.current;
       if (!r) return;
+      syncDirect(r);
       const at = { x: e.clientX, y: e.clientY };
       const props = propsRef.current;
       const instance = props.printDisplay || props.printActive ? null : r.pickInstanceFace?.(x, y, camera.current);
@@ -1141,6 +1143,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     const r = renderer.current;
     if (!r) return;
+    syncDirect(r);
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;

@@ -1,0 +1,223 @@
+{
+  "decision": "D1149",
+  "tier": "FEATURE",
+  "parent": "c9d3488a57379cfaa1d0b2a1b3caa1d59be12305",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1149-<run>",
+    "D1149_SOURCE_FROZEN=1 node apps/cad-studio/test/direct-bezier-zoom-browser.mjs <external-evidence>/<run> [--baseline|--webgl2]",
+    "D1061_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-bezier-draft-history-browser.mjs <external-evidence>/draft-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-bezier direct-curve",
+    "cd apps/cad-studio && node scripts/test.mjs projectedBezier direct-curve-candidate sew-preview-direct",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/direct-bezier-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 384,
+      "receiptSHA256": "52b2c110bce1671724fbf00be57ef6e38eafaf873858ce68a502bda552baf600",
+      "sourceManifestSHA256": "fc773802074be04246c33b87afd3a7ed88e67f10b23b707b146318e495b9ca43",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgpu",
+          "heightCSS": 747.6427782183737,
+          "expectedOldGapCSS": 0.02317697247871454,
+          "rasterGapCSS": 0.0777183604716356,
+          "lowLevelPick": "obj_1",
+          "selected": true
+        },
+        {
+          "label": "precision",
+          "backend": "webgpu",
+          "heightCSS": 259999.98716951435,
+          "expectedOldGapCSS": 8.060015722286389,
+          "rasterGapCSS": 7.7317474978873975,
+          "lowLevelPick": null,
+          "selected": false
+        }
+      ]
+    },
+    "webgpu-final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 385,
+      "receiptSHA256": "a301cb71a4c86fc3b744b1775e1f01f1ae90c69137f607e75a8df6906c40a952",
+      "sourceManifestSHA256": "086c9b9445f40672aeaeadb79fd0441c2a8cb521ff43e52a9446559c6da6974f",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgpu",
+          "heightCSS": 747.6427782183737,
+          "expectedOldGapCSS": 0.02317697247871454,
+          "rasterGapCSS": 0.0777183604716356,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.02318782308261528,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "fourfold",
+          "backend": "webgpu",
+          "heightCSS": 3251.6743128219728,
+          "expectedOldGapCSS": 0.10080210530169176,
+          "rasterGapCSS": 0.16200032873445025,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.10084929713050841,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision",
+          "backend": "webgpu",
+          "heightCSS": 259999.98716951435,
+          "expectedOldGapCSS": 8.060015722286389,
+          "rasterGapCSS": 0.26492013806051773,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 1024,
+            "maxErrorCSS": 0.12397765505011193,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "webgl2-final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 385,
+      "receiptSHA256": "f127eb5cacff6424b7baa45dce4ad0649b348d0acdfb19a11906cdb663e884a9",
+      "sourceManifestSHA256": "086c9b9445f40672aeaeadb79fd0441c2a8cb521ff43e52a9446559c6da6974f",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgl2",
+          "heightCSS": 747.6427782183737,
+          "expectedOldGapCSS": 0.02317697247871454,
+          "rasterGapCSS": 0.0777183604716356,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.02318782308261528,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "fourfold",
+          "backend": "webgl2",
+          "heightCSS": 3251.6743128219728,
+          "expectedOldGapCSS": 0.10080210530169176,
+          "rasterGapCSS": 0.16200032873445025,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.10084929713050841,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision",
+          "backend": "webgl2",
+          "heightCSS": 259999.98716951435,
+          "expectedOldGapCSS": 8.060015722286389,
+          "rasterGapCSS": 0.26492013806051773,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 1024,
+            "maxErrorCSS": 0.12397765505011193,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "draft-regression": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 384,
+      "receiptSHA256": "c7084f59275ead8f1e2b0c15a9f01b85354bfc1f6a900ae9b5757a3901eeb780",
+      "sourceManifestSHA256": "40d416a5960a57ffb8e6ab61526842bd6ffb12fe492c39115dbda08e67956551"
+    }
+  }
+}

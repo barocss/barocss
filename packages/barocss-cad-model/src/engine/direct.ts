@@ -655,6 +655,8 @@ export interface DirectDisplay {
   positions: Float32Array; normals?: Float32Array; indices?: Uint32Array;
   /** Curves: the control polygon; surfaces: the control net rows and columns (segments). */
   controls: Float32Array;
+  /** Exact poles of one polynomial quadratic or cubic on [0, 1]. */
+  bezierPoles?: readonly (readonly [number, number, number])[];
   /** Surfaces: isocurves of both families, eight each way (segments). */
   isos?: Float32Array;
 }
@@ -687,7 +689,12 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
       const pts = sampleCurve(g, 128).map(s => s.point), seg: number[] = [], ctl: number[] = [];
       for (let i = 0; i + 1 < pts.length; i++) seg.push(...pts[i], ...pts[i + 1]);
       for (let i = 0; i + 1 < g.controlPoints.length; i++) ctl.push(...g.controlPoints[i], ...g.controlPoints[i + 1]);
-      return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl) }];
+      const count = g.degree + 1;
+      const bezier = (count === 3 || count === 4) && g.controlPoints.length === count
+        && g.weights.every(weight => weight === 1) && g.knots.length === 2 * count
+        && g.knots.every((knot, i) => knot === (i < count ? 0 : 1));
+      return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl),
+        ...(bezier ? { bezierPoles: g.controlPoints } : {}) }];
     }
     const trims = o.trims?.length ? o.trims : null;
     const p = trims ? trimmedMesh(g, trims) : trimmedMesh(g, [], 31), ctl: number[] = [], P = g.controlPoints;

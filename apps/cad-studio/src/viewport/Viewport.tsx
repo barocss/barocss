@@ -20,6 +20,7 @@ import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
+import { directBezierDisplay } from './directBezierDisplay';
 import { regionMesh, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { handleLayout, type FeatureHandle } from './gizmo';
@@ -301,6 +302,7 @@ function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[
 // (R1b: the print views' empty lists, one each — new ones in every App render ran the effects keyed on them again.)
 const NO_BODIES: BodyResult[] = [], NO_HANDLES: FeatureHandle[] = [], NO_PROFILES: NonNullable<Props['profiles']> = [];
 const NO_SELECTION: Props['selection'] = { faces: [], edges: [], bodies: [] };
+const NO_DIRECT: DirectDisplay[] = [], NO_DIRECT_SELECTION: string[] = [];
 /** The selection as the print view's bodies number their faces and edges. */
 function printSelection(selection: Props['selection'], projection: ReturnType<typeof projectPrintBodies>): Props['selection'] {
   const faces = selection.faces.flatMap(ref => { const index = projection.faceSources[ref.body]?.indexOf(ref.face) ?? -1; return index >= 0 ? [{ body: ref.body, face: index }] : []; });
@@ -357,6 +359,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const frame = useRef(0);
   const rendererBodies = useRef<BodyResult[]>(NO_BODIES);
   const uploadedBodies = useRef<{ renderer: ViewRenderer; source: BodyResult[]; bodies: BodyResult[]; index: number; tier: number } | null>(null);
+  const uploadedDirect = useRef<{ renderer: ViewRenderer; items: DirectDisplay[]; selected: string[] } | null>(null);
   const selectedBandRail = useRef<{ hit: EdgeRef; mesh: BodyResult['mesh']; selection: Props['selection'] } | null>(null);
   const rendererInstances = useRef<{ renderer: ViewRenderer; instances: NonNullable<Props['instances']> } | null>(null);
   const hover = useRef<ViewportHover>({ face: null, edge: null });
@@ -477,6 +480,16 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     r.setState(viewState());
   };
 
+  const syncDirect = (r: ViewRenderer, p = propsRef.current) => {
+    const view = canvas.current;
+    const scale = view && !p.sketch ? orthographicSketchScale(camera.current, view.clientWidth, view.clientHeight) : undefined;
+    const items = directBezierDisplay(p.direct ?? NO_DIRECT, scale), selected = p.directSelection ?? NO_DIRECT_SELECTION;
+    const previous = uploadedDirect.current;
+    if (previous?.renderer === r && previous.items === items && previous.selected === selected) return;
+    r.setDirect?.(items, selected);
+    uploadedDirect.current = { renderer: r, items, selected };
+  };
+
   /** Turns the camera (eased, about a quarter second) to look at the target from direction `from`. */
   const turning = useRef(0);
   const lookFrom = (from: Vec3) => {
@@ -500,6 +513,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       // (The annotations' texts as facing the eye: set again in the frame which ones face it changes.)
       const p = propsRef.current;
       syncDisplayedBodies(r, p);
+      syncDirect(r, p);
       if (p.annotations?.length && r.setOverlayLabels && pmiFacingKey(p.annotations, camera.current.basis().forward) !== pmiFacing.current) applyPmiLabels();
       r.render(camera.current, viewState());
       bumpTicker(ticker);
@@ -509,7 +523,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const input = useViewportPointerInput({
     canvas, camera, propsRef,
-    rendering: { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, isBandRail: hit => !!bandRail(hit), selectBandRail, request, requestRef, moving, viewState, hover },
+    rendering: { renderer, rendererBodies, rendererInstances, syncDisplayedBodies, syncDirect, isBandRail: hit => !!bandRail(hit), selectBandRail, request, requestRef, moving, viewState, hover },
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
@@ -614,7 +628,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   useEffect(() => { renderer.current?.setAnalysis?.(props.analysis ?? null); request(); }, [typeof props.analysis === 'object' && props.analysis ? `${props.analysis.sinLimit}:${props.analysis.bedZ}` : props.analysis, backend]);
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
-  useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
+  useEffect(() => { const r = renderer.current; if (r) syncDirect(r); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setClearanceDisplay?.(props.clearance ?? null); request(); }, [props.clearance, backend]);
   useEffect(() => {
     const r = renderer.current; if (!r) return;
@@ -713,6 +727,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     // (O10, for the flow: tracking on or off, and the last frame tracked in each display mode.)
     w.__studioFrameCost = (on?: boolean) => { if (on !== undefined) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); requestRef.current(); } return renderer.current?.frameCosts() ?? {}; };
     w.__studioDirectAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickDirect?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioDirectSegments = (id: string) => {
+      const item = uploadedDirect.current?.items.find(candidate => candidate.id === id && candidate.kind === 'curve');
+      return item ? Array.from(item.positions) : null;
+    };
     w.__studioInstanceAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceFace?.(q[0], q[1], camera.current) ?? null; };
     w.__studioInstanceEdgeAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceEdge?.(q[0], q[1], camera.current) ?? null; };
     w.__studioProject = (p: Vec3) => screen(p);
