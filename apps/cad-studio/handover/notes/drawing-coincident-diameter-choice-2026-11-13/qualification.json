@@ -1,0 +1,58 @@
+{
+  "decision": "D1031",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "aff1febbb19111d083f3c0b12e3a0ea96c40c0e4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1031-section-baseline01",
+    "D1031_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-overlap-browser.mjs <external-evidence>/baseline01",
+    "gate.sh acquire heavy 600 D1031-section-studio03",
+    "D1031_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-diameter-overlap-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1031-focused",
+    "node --check apps/cad-studio/test/drawing-diameter-overlap-browser.mjs",
+    "pnpm --filter @barocss/cad-model test drawing.test drawing-scope drawing-detail drawing-breaks",
+    "pnpm --filter @barocss/cad-studio-app test drawing-revision-print drawing-commit-roundtrip",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "silentLeftOwner": "p2",
+    "silentRightOwner": "p1",
+    "receiptSHA256": "6cbf6ed43ab211f9522c931dbe34897e57b5395613b398d4476dc7ef847be2f7",
+    "sourceManifestSHA256": "207de23326f64387acc67dbb3d61f36d23a959afe06cf5cd799014a25ba9eb64"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "frozenFiles": 379,
+    "receiptSHA256": "c57f116842eddd706885e4b9627706386d932e3944c0ccbe7b9ca223255269c6",
+    "sourceManifestSHA256": "76cfa69bd2c4e2bf501ca5ac6fa66a0ee548f147864c07091a245c084c627858",
+    "coincidentOwners": [
+      "p1",
+      "p2"
+    ],
+    "raisedOwner": "p2",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 85,
+    "studioPassed": 17,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "existing-dimension reattachment",
+    "pre-export loss warnings",
+    "Redo row deletion",
+    "ambiguous nested or same-occurrence rims",
+    "other desktop tools and views",
+    "full suites",
+    "production build",
+    "mobile"
+  ]
+}

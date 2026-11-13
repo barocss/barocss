@@ -42,6 +42,8 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { DETAIL_PARENTS, type DetailParent, type DrawingDetail } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
 import { clipProjectionOutside } from '@barocss/cad-model/drawing/breaks';
+import { diameterRims, rimOccurrence } from './drawing/diameterRims';
+import { Button } from '@/components/ui/button';
 import { BreaksList } from './drawing/BreaksList';
 import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
@@ -84,7 +86,7 @@ type Pending =
   /** A target line's first end, picked in its view (view mm). */
   | { kind: 'datum-line'; view: ViewId; from: XY }
   | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
-  | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
+  | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3; source?: { projection: DrawingViews; settings: DrawingSettings }; owner?: string }
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
   | { kind: 'note'; leader: { view: ViewId; at: XY } }
   /** DR-1: a detail's circle, its centre picked on its parent. */
@@ -92,7 +94,7 @@ type Pending =
   | { kind: 'detail'; view: DetailParent; center: XY; moving?: DetailMove };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
-interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null; visibleRimOnly?: boolean }
+interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null; visibleRimOnly?: boolean; rims?: readonly ProjectedEdge[] }
 
 const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 const detailFor = (settings: DrawingSettings, view: DimView) => isDetailRef(view) ? settings.details?.find(d => d.id === detailLetter(view)) : undefined;
@@ -141,6 +143,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [selected, setSelected] = useState<SheetAnnotationSelection | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
+  const [rimChoice, setRimChoice] = useState<{ view: DimView; projection: DrawingViews; settings: DrawingSettings; rims: readonly ProjectedEdge[] } | null>(null);
+  const currentRimChoice = tool === 'diameter' && views && !busy && rimChoice?.projection === views && rimChoice.settings === settings ? rimChoice : null;
+  const rimLabel = (edge: ProjectedEdge) => {
+    const id = rimOccurrence(edge), instance = model.instances?.find(part => part.id === id);
+    return id ? (instance ? `${instance.name} (${id})` : id) : 'Base part';
+  };
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
   const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
   const [targetDraft, setTargetDraft] = useState<DatumTargetDraft>(DEFAULT_TARGET_DRAFT);
@@ -169,7 +177,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [typeNote, shownNote]);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
-    setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+    setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setRimChoice(null); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey, current]);
 
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
@@ -329,21 +337,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (tool === 'diameter' && isViewId(view)) {
       const visibleRimOnly = !settings.hidden || view === 'iso';
       const projection = v.breaks ? clipProjectionOutside(pr, v.breaks) : pr;
-      const circles = { ...projection, edges: projection.edges.filter(e => e.circle && e.pieces.some(p => !visibleRimOnly || p.visible)) };
-      const rim = edgeAt(circles, at, 6 * mmPerPx() / v.scale, visibleRimOnly);
-      let centre: ProjectedEdge | null = null, best = tol;
-      if (!rim) for (const edge of circles.edges) {
-        if (!roundIn(circles, edge)) continue;
-        const [u, v] = inView(circles, edge.circle!.center);
-        const distance = Math.hypot(u - at[0], v - at[1]);
-        if (distance < best) { centre = edge; best = distance; }
-      }
-      return { q, view, at, snap: null, edge: rim ?? centre, visibleRimOnly };
+      const rims = diameterRims(projection, at, 6 * mmPerPx() / v.scale, tol, visibleRimOnly, scope.kind === 'assembly');
+      return { q, view, at, snap: null, edge: rims[0] ?? null, visibleRimOnly, rims };
     }
     let snap: SnapPoint | null = null, best = tol;
     for (const s of snaps[view] ?? []) { const d = Math.hypot(s.at[0] - at[0], s.at[1] - at[1]); if (d < best) { best = d; snap = s; } }
     return { q, view, at, snap, edge: snap ? null : edgeAt(pr, at, 6 * mmPerPx() / v.scale) };
-  }, [sheetPoint, layout, views, snaps, viewAt, sheet, tool, settings]);
+  }, [sheetPoint, layout, views, snaps, viewAt, sheet, tool, settings, scope.kind]);
 
   /** Placing a dimension (its points picked): where it goes, read in its own view wherever the pointer is on the sheet —
    *  beyond the views' reach too (hoverAt finds a view only within 30 mm), so a click out on the paper places it. */
@@ -373,7 +373,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (why) { setMessage(why.message); return false; }
     onChange({ ...settings, datumTargets }); setPending(null); setTargetChoices([]); return true;
   };
-  const cancel = () => { setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
+  const cancel = () => { setRimChoice(null); setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
   const chooseTarget = (target: DrawingDatumTarget, moving = false) => {
     setSelectedFrame(null);
     if (reselectTarget && !moving) {
@@ -421,6 +421,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const why = checkDatumTargetOptions({ datumTargets: [{ ...head, kind: 'area', area }] })[0];
     if (why) { setMessage(why.message); return; }
     chooseTarget({ ...head, kind: 'area', area });
+  };
+
+  const startDiameter = (view: DimView, edge: ProjectedEdge) => {
+    if (!edge.circle || !views || busy) return;
+    setRimChoice(null);
+    setPending({ kind: 'diameter', view, edge: edge.name, near: [...edge.circle.center] as Vec3,
+      source: { projection: views, settings }, ...(scope.kind === 'assembly' ? { owner: rimLabel(edge) } : {}) });
   };
 
   const click = (h: Hover) => {
@@ -502,6 +509,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
     if (tool === 'diameter' || tool === 'radius') {
       if (pending && pending.kind === tool) {
+        if (pending.source && (pending.source.projection !== views || pending.source.settings !== settings || busy)) {
+          cancel(); setMessage('The drawing changed. Select the rim again.'); return;
+        }
         const dim: DrawingDimension = { id: newDimensionId(wholeSettings.dimensions), view: pending.view, kind: tool, edge: pending.edge, near: pending.near, place };
         if (tool === 'diameter' && isDetailRef(dim.view)) {
           const resolved = resolveDimension({ [dim.view]: pr }, dim, detailFor(settings, dim.view), showDetailHidden(settings, dim.view));
@@ -510,10 +520,16 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         commitDims([...settings.dimensions, dim]);
         setPending(null); return;
       }
+      if (tool === 'diameter' && currentRimChoice) return;
+      if (tool === 'diameter' && h.rims && h.rims.length > 1) {
+        setRimChoice({ view: h.view, projection: views, settings, rims: h.rims }); return;
+      }
       const e = h.edge ?? (h.snap ? pr.edges.find(x => x.name === h.snap!.ref.edge && x.circle) ?? null : null);
       if (!e?.circle) { setMessage('Click a circle or an arc.'); return; }
       if (!roundIn(pr, e)) { setMessage(`This circle is not round in the ${viewLabel(h.view)} — dimension it where it shows as a circle.`); return; }
-      setPending({ kind: tool, view: h.view, edge: e.name, near: [...e.circle.center] as Vec3 }); return;
+      if (tool === 'diameter' && h.rims) startDiameter(h.view, e);
+      else setPending({ kind: tool, view: h.view, edge: e.name, near: [...e.circle.center] as Vec3 });
+      return;
     }
   };
 
@@ -751,7 +767,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (e.key === 'Escape') {
         setDrag(null);
         onClearReferencePreview();
-        if (pending || targetChoices.length || reselectTarget) cancel();
+        if (pending || currentRimChoice || targetChoices.length || reselectTarget) cancel();
         else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); }
         return;
       }
@@ -968,7 +984,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : pending.kind === 'diameter' && pending.owner ? `${pending.owner} · Click where the dimension goes · Esc cancels` : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected?.kind === 'dimension' ? settings.dimensions.find(d => d.id === selected.id) : undefined;
   const selNote = selected?.kind === 'note' ? settings.notes?.find(n => n.id === selected.id) : undefined;
   const changeFrame = (next: DrawingSettings) => {
@@ -1006,7 +1022,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         </div>
         <SheetTabs whole={wholeSettings} current={current} onSelect={selectSheet} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); selectSheet(sheetTotal); }} />
         <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
-          <span>{bomError ?? hint}</span>
+          {currentRimChoice
+            ? <div className="dw-rim-choice" role="group" aria-label="Choose diameter rim">
+              {currentRimChoice.rims.map(edge => <Button key={edge.name} variant="outline"
+                onClick={() => startDiameter(currentRimChoice.view, edge)}>{rimLabel(edge)}</Button>)}
+            </div>
+            : <span>{bomError ?? hint}</span>}
           {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
           <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
         </div>
