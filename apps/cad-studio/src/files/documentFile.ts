@@ -3,6 +3,8 @@
 import { emptyDoc, prefixDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
+import { featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
+import { isSplitCapFace } from '@barocss/cad-model/engine/rematch';
 import { verifyReferences } from '@barocss/cad-model/engine/references';
 import type { StoredInsetReply } from '../engine/client';
 import { downloadBytes } from '../ui/files';
@@ -71,18 +73,30 @@ export function verifyStoredStepCavities(opened: StudioDoc, readPart: (doc: Stud
 export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
   readInsets: (doc: StudioDoc) => Promise<StoredInsetReply>, current: () => boolean): Promise<void> | undefined {
   if (!current()) return;
-  const checkFits = () => {
-    if (!current() || !opened.fits?.faces?.length) return;
+  const isSplitCapHole = (node: StudioDoc['nodes'][number]) =>
+    node.kind === 'hole' && !node.suppressed && typeof node.face === 'string' &&
+    (node.parent.side === 'negative' || node.parent.side === 'positive') &&
+    node.face.startsWith(featureId(opened.nodes, node.parent.node) + '.cut.') && isSplitCapFace(opened.nodes, node.face);
+  const checkPart = () => {
+    if (!current()) return;
+    const hasFits = !!opened.fits?.faces?.length;
+    const hasCapHoles = opened.nodes.some(isSplitCapHole);
+    if (!hasFits && !hasCapHoles) return;
     // Use the same full-history input as the Model view. Leave unrelated refusals to reference review.
     return readPart(prefixDoc(opened, opened.nodes.length)).then(result => {
-      if (current() && !result.ok && result.error.code === 'FIT_TABLE_MISS') {
-        throw new Error(`${result.error.detail} ${result.error.hint} Your part is unchanged.`);
+      if (!current() || result.ok) return;
+      const { code, detail, hint, feature } = result.error;
+      if (hasFits && code === 'FIT_TABLE_MISS') throw new Error(`${detail} ${hint} Your part is unchanged.`);
+      if (!hasCapHoles || code !== 'REFERENCE' || !feature) return;
+      const node = opened.nodes[nodeIndexOf(opened.nodes, feature)];
+      if (node?.kind === 'hole' && isSplitCapHole(node) && detail === `no face ${node.face} on the target`) {
+        throw new Error(`Hole ${feature}: the selected Split face "${node.face}" is missing. Your part is unchanged.`);
       }
     });
   };
   const checkSources = () => {
     const cavities = verifyStoredStepCavities(opened, readPart, current);
-    return cavities ? cavities.then(checkFits) : checkFits();
+    return cavities ? cavities.then(checkPart) : checkPart();
   };
   const hasInsets = opened.nodes.some(node => node.kind === 'rounded-rectangle-inset' ||
     (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined));

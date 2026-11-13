@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cylinderPart, emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
+import { cylinderPart, emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { verifyDocumentFile, verifyStoredNativeOpen, verifyStoredStepCavities } from '../src/files/documentFile';
 import { referenceOpenFixtures } from './reference-open-fixture';
@@ -121,5 +121,32 @@ test('native Open refuses a missing live fit row, admits a covering row, and ret
   await verifyStoredNativeOpen({ ...doc, fits: { ...doc.fits, tables: [table] } }, evaluate, insets, () => true);
   let current = true;
   await verifyStoredNativeOpen(doc, async next => { current = false; return evaluate(next); }, insets, () => current);
+  assert.deepEqual(doc, before);
+});
+
+test('native Open refuses the exact missing Split cap of a blind hole before adoption', async () => {
+  const stock = rectanglePart(60, 30, 10);
+  const split = withNode(stock, { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', normal: [-1, 0, 0], at: -30 });
+  const hole = { kind: 'hole' as const, parent: { node: 2, side: 'negative' as const }, axis: 'x' as const, center: [15, 5] as [number, number], radius: 2, depth: 4, face: 'n2.cut.side1' };
+  const doc = withNode(split, hole);
+  const before = structuredClone(doc);
+  const insets = async () => assert.fail('this model has no inset');
+  const check = verifyStoredNativeOpen(doc, evaluate, insets, () => true);
+  assert.ok(check);
+  await assert.rejects(check, /Hole n3.*n2\.cut\.side1.*missing.*unchanged/);
+
+  const good = withNode(withNode(stock, { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', normal: [1, 0, 0], at: 30 }), hole);
+  assert.equal((await evaluate(good)).ok, true);
+  await verifyStoredNativeOpen(good, evaluate, insets, () => true);
+  const unnamed = withNode(split, { ...hole, face: undefined });
+  assert.equal(verifyStoredNativeOpen(unnamed, async () => assert.fail('unnamed holes retain their existing path'), insets, () => true), undefined);
+  const legacy = JSON.parse(JSON.stringify(unnamed)) as StudioDoc;
+  Object.assign(legacy.nodes[3], { face: null });
+  assert.equal((await evaluate(legacy)).ok, true);
+  assert.equal(verifyStoredNativeOpen(legacy, async () => assert.fail('legacy null is unnamed'), insets, () => true), undefined);
+  const suppressed: StudioDoc = { ...doc, nodes: doc.nodes.map((node, index) => index === 3 ? { ...node, suppressed: true } : node) };
+  assert.equal(verifyStoredNativeOpen(suppressed, async () => assert.fail('a suppressed hole is not active'), insets, () => true), undefined);
+  let current = true;
+  await verifyStoredNativeOpen(doc, async candidate => { current = false; return evaluate(candidate); }, insets, () => current);
   assert.deepEqual(doc, before);
 });

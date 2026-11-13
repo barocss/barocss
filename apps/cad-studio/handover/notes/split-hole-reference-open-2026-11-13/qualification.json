@@ -1,0 +1,45 @@
+{
+  "decision": "D1002",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "f3c1edf6a0070a75cc9feca5d2301af230fbb24f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1002-named-hole-baseline",
+    "gate.sh acquire heavy 600 D1002-named-hole-studio",
+    "D1002_SOURCE_FROZEN=1 node apps/cad-studio/test/split-hole-reference-browser.mjs <external-evidence>/baseline",
+    "D1002_SOURCE_FROZEN=1 node apps/cad-studio/test/split-hole-reference-browser.mjs <external-evidence>/studio02",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/split-hole-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "File Open adopted the document before discovering the missing Hole face.",
+    "receiptSHA256": "9d6682ab1c84263265d5b039692b8da5f1bc6fcee38198a87c061a14f3e2b575",
+    "sourceManifestSHA256": "490420c02f36addad3b750f4470dfbb081102eb0c50ef5fd5f727a4c9536ac4a"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "dda5a98bd4a6e795e7dfe4788906aea8c019b8aaeabb94301636965a38960690",
+    "sourceManifestSHA256": "4fa00ab1e7571304575d3604ecbca37c9303f17324800600940d193547272839",
+    "frozenFiles": 374,
+    "states": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "refusedFace": "n2.cut.side1",
+    "radiusMM": 2,
+    "depthMM": 4,
+    "splitPositionsMM": [24, 30],
+    "boredVolumesMM3": [7149.734517542556, 8949.734517542565],
+    "volumeToleranceMM3": 1e-7,
+    "centroidToleranceMM": 1e-8
+  },
+  "focused": { "status": "PASS", "passed": 14, "failed": 0, "typeCheck": "PASS", "earlierTypeCheck": "FAIL: test fixture literal widened before contextual type was added." },
+  "notRun": ["other named Hole face kinds", "masked and pattern-copy errors", "production build", "full suites", "mobile"]
+}
