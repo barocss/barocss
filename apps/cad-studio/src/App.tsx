@@ -2181,7 +2181,7 @@ export function App() {
       if (activateControl && target instanceof Element && target.closest('button, summary')) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
-      if (skel.onKey(e)) return;
+      if (skel.onKey(e, (readFeature, close) => workspaceModeExit.switchWhenReady(close, { readFeature }))) return;
       if (undoKey) { e.preventDefault(); replayHistory(e.shiftKey); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && !active && !sketch) { e.preventDefault(); start(commands.find(c => c.id === 'duplicate')!); return; }

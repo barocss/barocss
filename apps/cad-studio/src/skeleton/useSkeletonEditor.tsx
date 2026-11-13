@@ -55,7 +55,7 @@ export interface SkeletonEditor {
   removeSelected(): void;
   undo(): void; redo(): void;
   apply(): void; cancel(): void;
-  onKey(e: KeyboardEvent): boolean;
+  onKey(e: KeyboardEvent, requestExit: (draft: () => object | null, close: () => void) => void): boolean;
   /** The last drag: whether the dragged point reached the pointer (for the flow and the panel). */
   readonly lastDrag: { index: number; reached: boolean } | null;
 }
@@ -238,7 +238,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     };
   }, [doc.nodes, session, diagnosis, step]);
 
-  const onKey = useCallback((e: KeyboardEvent): boolean => {
+  const onKey = useCallback<SkeletonEditor['onKey']>((e, requestExit) => {
     const s = ref.current.session; if (!s) return false;
     const typing = (e.target as HTMLElement | null)?.closest?.('input, textarea, select');
     if (typing && e.key !== 'Escape') return false;
@@ -249,7 +249,10 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
         if (chain.current !== null) chain.current = null;
         else if (ref.current.axis) setAxis(null);
         else if (ref.current.selection !== NO_SELECTION && (ref.current.selection.points.length || ref.current.selection.segments.length || ref.current.selection.constraints.length)) select(NO_SELECTION);
-        else end();
+        else {
+          requestExit(() => history.current.past.length ? ref.current.session : null, end);
+          return true;
+        }
         hover.current = { at: null, snap: null }; redraw(t => t + 1);
         return true;
       case 'Enter': e.preventDefault(); apply(); return true;

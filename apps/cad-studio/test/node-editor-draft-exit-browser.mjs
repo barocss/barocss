@@ -2,18 +2,20 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed'].includes(mode));
 const openFlow = mode.startsWith('--open');
 const commands = mode.startsWith('--commands');
+const skeleton = mode.startsWith('--skeleton');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
+  ...(skeleton ? ['apps/cad-studio/src/skeleton/useSkeletonEditor.tsx', 'apps/cad-studio/src/ui/SkeletonPanel.tsx'] : []),
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -161,6 +163,61 @@ async function checkModelCommands() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkSkeleton() {
+  const page = f.page;
+  const panel = page.getByRole('complementary', { name: '3D sketch', exact: true });
+  const overlay = page.locator('.vp-overlay g[aria-label="3D sketch"][data-points]');
+  await button('New part').click();
+  await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+  await f.ready();
+  const empty = await f.doc();
+  await page.locator('.views').getByRole('button', { name: 'Top', exact: true }).click();
+  await page.waitForFunction(() => window.__studioEye?.()?.[2] > 0 &&
+    document.querySelector('.view-cube .vc-label')?.textContent === 'TOP');
+  await page.mouse.click(600, 550);
+  await page.keyboard.press('Space');
+  await page.locator('.palette input').fill('3d sketch');
+  await page.keyboard.press('Enter');
+  await panel.waitFor();
+  for (const [index, world] of [[0, [0, 0, 0]], [1, [25, 0, 0]]]) {
+    const pixel = await page.evaluate(point => window.__studioScreenOf(point), world);
+    assert.ok(pixel);
+    await page.mouse.click(...pixel);
+    await page.waitForFunction(count => Number(document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.points) === count, index + 1);
+  }
+  assert.equal(await overlay.getAttribute('data-segments'), '1');
+  await page.keyboard.press('Escape');
+  await panel.waitFor();
+  const xy = panel.getByRole('button', { name: 'XY', exact: true });
+  await xy.focus();
+  const before = await f.snapshot('01-chain-ended');
+  const marks = await overlay.innerHTML();
+  f.phase = 'request the final Escape from a changed 3D sketch';
+  await page.keyboard.press('Escape');
+  if (mode === '--skeleton-baseline') {
+    await panel.waitFor({ state: 'hidden' });
+    await f.same(empty);
+    await f.snapshot('02-skeleton-lost');
+    assert.fail('Final Escape silently discarded two points and their segment');
+  }
+  await prompt().waitFor();
+  const keep = prompt().getByRole('button', { name: 'Keep editing', exact: true });
+  await waitFocus(keep);
+  await keep.click();
+  await prompt().waitFor({ state: 'hidden' });
+  await waitFocus(xy);
+  const retained = await f.snapshot('02-skeleton-kept');
+  for (const field of ['doc', 'selection', 'history', 'dirty']) assert.deepEqual(retained[field], before[field], field);
+  assert.equal(await overlay.innerHTML(), marks);
+  f.phase = 'discard the exact 3D sketch on a confirmed final Escape';
+  await page.keyboard.press('Escape');
+  await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await panel.waitFor({ state: 'hidden' });
+  await f.same(empty);
+  assert.equal(await overlay.count(), 0);
+  await f.snapshot('03-skeleton-discarded');
+}
+
 function captureNativeSave() {
   const create = URL.createObjectURL;
   const click = HTMLAnchorElement.prototype.click;
@@ -199,6 +256,7 @@ await f.run(async () => {
   await f.same(source);
   if (openFlow) { await checkOpenDraft(); return; }
   if (commands) { await checkModelCommands(); return; }
+  if (skeleton) { await checkSkeleton(); return; }
   await f.openFeatureEditor(1);
   await distance().fill('4');
   const before = await f.snapshot('01-dirty-node-editor');
