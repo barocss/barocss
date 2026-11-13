@@ -221,6 +221,7 @@ import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { failedFeatureText } from './app/failedFeature';
+import { useHeldFinishEdge } from './state/useHeldFinishEdge';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { resolveShopRows } from '@barocss/cad-model/engine/shopRows';
 import { elsewhereOf, openAccepted, beginInPlace, editInPlaceRefusal, finishInPlace, inPlaceBlock, sessionChanged, stacksAfter, type InPlaceSession } from './app/editInPlace';
@@ -1736,10 +1737,30 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
+  const finishEdgeOpen = openIntent.current;
+  const finishEdgeEditor = useHeldFinishEdge({
+    doc, index: editNode, problems: refProblems, bodies,
+    enabled: fresh && !busy && marker === null && !shownVariant.current && !inPlace && !active && !section &&
+      !sketch && !rendering && !drawing && !measure && !directSel.length && !instanceSel.length &&
+      !previewBodies && !assembly.draft && !cageEd.session && !skel.session,
+    ownsSource: () => finishEdgeOpen === openIntent.current && ownsEvaluatedSource() && shownDocNow.current === doc,
+    evaluate: next => engine.part(prefixDoc(next, next.nodes.length), revision.current++, 'refs'),
+    accept: (next, problem) => {
+      if (!commit(next, false, false, true)) return false;
+      referenceProblems.current.set(next, refProblems.filter(value => value !== problem));
+      return true;
+    },
+    notice: setToast,
+  });
   const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
+  const finishEdgePicking = finishEdgeEditor.current ? {
+    ...picking,
+    onPick: finishEdgeEditor.pick,
+    onPickBody: () => {}, onPickChain: () => {}, onBoxSelect: () => {}, onContextMenu: () => {},
+  } : null;
   const pickProfile = picking.onPickProfile;
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
@@ -2261,6 +2282,7 @@ export function App() {
       const control = target instanceof Element && target.closest('button, summary, select, [role="button"], [role="menuitem"]');
       if ((e.key === 'Enter' || e.key === ' ') && control) return;
       if (e.key === 'Tab' && (control || typing || (target instanceof HTMLElement && target.tabIndex >= 0))) return;
+      if (e.key === 'Escape' && finishEdgeEditor.current) { e.preventDefault(); finishEdgeEditor.cancel(); return; }
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageInputActive && cageEd.onKey(e)) return;
       if (sketch3dInputActive && skel.onKey(e, (readFeature, close) => workspaceModeExit.switchWhenReady(close, { readFeature }))) return;
@@ -2542,11 +2564,11 @@ export function App() {
   const meshBoxCrossing = !modelUnavailable && viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
     && !active && !sketch && !drawing && !section && !measure && !inPlace && !assembly.draft
     && !cageEd.session && !skel.session && !ghost && !compareOverlay && !bodyDrag && !animatedOffsets?.size;
-  const viewportPicking = placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
+  const viewportPicking = finishEdgePicking ?? (placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
     const id = args[0].instance;
     if (id && placedProposal.has(id)) return;
     picking.onPick(...args);
-  } } : picking;
+  } } : picking);
   const steppedSelection = useMemo(() => { const own = stepsDisp ? [...litSelection(viewportInstanceSel, stepsDisp.hidden)] : viewportInstanceSel; return stepsDisp?.highlight.length ? [...new Set([...own, ...stepsDisp.highlight])] : own; }, [viewportInstanceSel, stepsDisp]);
 
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
@@ -2881,7 +2903,10 @@ export function App() {
       {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
+        {editNode !== null && <NodeEditor edgeReplacement={finishEdgeEditor.available ? {
+          start: finishEdgeEditor.start, cancel: finishEdgeEditor.cancel, apply: finishEdgeEditor.apply,
+          draft: finishEdgeEditor.current,
+        } : undefined} onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
           onDetachInset={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? () => applyRoundedInsetEdit() : undefined}
           insetSourceWidth={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' && doc.nodes[0]?.kind === 'sketch' ? roundedInsetSourceWidth(doc.nodes[0]) : undefined}
           onRelinkInset={insetSketch?.kind === 'sketch' && insetSketch.association && insetSketch.on ? { start: reviewInsetSource, cancel: insetRelink.cancel, reviewing: !!insetReview } : undefined}
@@ -2928,7 +2953,7 @@ export function App() {
             const failedFeature = reply.revision === request ? failedFeatureText(reply.error.feature, next.nodes, doc.nodes) : undefined;
             return { ...reply.error, failedFeature };
           });
-        }} onDelete={doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? undefined : opener => deleteNode(editNode, opener)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
+        }} onDelete={doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? undefined : opener => deleteNode(editNode, opener)} onClose={() => { finishEdgeEditor.cancel(); discardDirectCandidateRef.current(); setEditNode(null); }} />}
       </SelectionInspector>}
       </div></Profiler>
   );
@@ -3057,7 +3082,7 @@ export function App() {
         instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
-        snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        snapStep={snapStep} pickFilter={finishEdgePicking ? 'edge' : active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
         picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, placed: placedSketchSnaps, objectKinds: objectSnapKinds }} onCursor={onCursor}
         boundsBox={fresh && showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;

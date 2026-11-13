@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live', '--repick-baseline', '--repick-fixed'].includes(mode));
 const historyMode = mode.startsWith('--history-');
 const liveMode = mode === '--live';
+const repickMode = mode.startsWith('--repick-');
 const stored = 'n1.side0|n2.cut.side1';
 const replacement = 'n1.side0|n2.cut.side3';
 const model = {
@@ -20,12 +21,14 @@ const files = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/files/documentFile.ts',
   'apps/cad-studio/src/ui/ReferenceDecisions.tsx',
+  'apps/cad-studio/src/ui/NodeEditor.tsx',
+  ...(mode === '--repick-fixed' ? ['apps/cad-studio/src/state/useHeldFinishEdge.ts'] : []),
   'packages/barocss-cad-model/src/engine/references.ts',
   'packages/barocss-cad-model/src/engine/rematch.ts',
   'apps/cad-studio/test/split-finish-reference-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'split-finish-reference', output, envFrozen: liveMode ? 'D997_SOURCE_FROZEN' : historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
+  name: 'split-finish-reference', output, envFrozen: repickMode ? 'D998_SOURCE_FROZEN' : liveMode ? 'D997_SOURCE_FROZEN' : historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
   qualification: 'Hold Fillet and Chamfer when a native Split edge changes on Open.',
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
@@ -141,6 +144,16 @@ await f.run(async () => {
     };
     const sourceNodes = liveMode ? model.nodes.map((node, index) => index === 2 ? { ...node, normal: [1, 0, 0], at: 24 } : node) : model.nodes;
     const doc = { ...model, nodes: [...sourceNodes, finish] };
+    const otherEdge = 'n1.side2|n2.cut.side9';
+    if (mode === '--repick-fixed' && kind === 'chamfer') {
+      doc.nodes[3] = { ...finish, suppressed: true, held: 'Missing Split edge: ' + stored };
+      doc.nodes.push({
+        id: 'n4', kind: 'fillet', parent: { node: 2, side: 'positive' }, edges: [otherEdge], radius: 1,
+        sigs: { [otherEdge]: { k: 'line', p: [24, 30, 5], d: [0, 0, 1], s: 10 } },
+      });
+      doc.outputs = { b3: model.outputs.b3, b4: { node: 4, side: 'solid' } };
+      doc.nextId = 5;
+    }
     const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
     await chooser.setFiles({ name: 'split-' + kind + '.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
     const removal = kind === 'fillet' ? 10 * (1 - Math.PI / 4) : 5;
@@ -167,10 +180,56 @@ await f.run(async () => {
     assert.equal(held.suppressed, true);
     assert.equal(held.rematched, undefined);
     assert.ok(held.held?.includes(stored));
-    assert.match(await refs().textContent(), /0 matched again.*1 need a choice.*Feature held/);
+    const twoHeld = doc.nodes.length === 5;
+    assert.match(await refs().textContent(), twoHeld ? /0 matched again.*2 need a choice.*Feature held/ : /0 matched again.*1 need a choice.*Feature held/);
     for (const body of bodies) volumeNear(body.volume, 9000);
     if (historyMode) f.report.observations.push({ kind, referenceDetails: await referenceDetails() });
 
+    if (repickMode) {
+      f.phase = 'use History to replace the held ' + kind + ' edge';
+      await f.openFeatureEditor(3, kind);
+      const repick = f.editor().getByRole('button', { name: 'Replace edge', exact: true });
+      if (mode === '--repick-baseline') {
+        assert.equal(await repick.count(), 0);
+        assert.fail('History has no direct edge replacement for a held finish');
+      }
+      await repick.click();
+      assert.equal(await f.editor().getByRole('spinbutton', { name: kind === 'fillet' ? 'Radius' : 'Distance', exact: true }).isEnabled(), false);
+      assert.equal(await f.editor().getByRole('button', { name: 'Delete feature', exact: true }).isEnabled(), false);
+      await f.worldClick([0, 0, 5]);
+      await f.page.getByRole('alert').filter({ hasText: 'Edge not selected' }).waitFor();
+      assert.equal(await f.editor().getByRole('button', { name: 'Apply edge replacement', exact: true }).isEnabled(), false);
+      await f.same(opened.doc);
+      await f.worldClick([60, 0, 5]);
+      await f.editor().getByText('n1.side0|n1.side1', { exact: true }).waitFor();
+      await f.same(opened.doc);
+      await f.snapshot(kind + '-history-edge-draft');
+      await f.editor().getByRole('button', { name: 'Cancel edge replacement', exact: true }).click();
+      await f.same(opened.doc);
+      await repick.click();
+      await f.worldClick([60, 0, 5]);
+      await f.editor().getByRole('button', { name: 'Apply edge replacement', exact: true }).click();
+      const target = 'n1.side0|n1.side1';
+      await f.page.waitForFunction(name => window.__studioDoc?.nodes?.[3]?.edges?.[0] === name, target);
+      await f.ready();
+      const replaced = await f.snapshot(kind + '-history-replaced');
+      assert.deepEqual(replaced.doc.nodes[3].sigs[target].p, [60, 0, 5]);
+      assert.equal(replaced.doc.nodes[3].suppressed, undefined);
+      assert.equal(replaced.doc.nodes[3].held, undefined);
+      volumeNear(replaced.bodies.bodies.find(body => body.key === 'b3').volume, 9000 - removal);
+      await f.undo();
+      await f.same(opened.doc);
+      await refs().waitFor();
+      await f.redo();
+      await f.same(replaced.doc);
+      if (twoHeld) {
+        await refs().waitFor();
+        assert.match(await refs().textContent(), /0 matched again.*1 need a choice.*Feature held/);
+        assert.deepEqual(replaced.doc.nodes[4], opened.doc.nodes[4]);
+        volumeNear(replaced.bodies.bodies.find(body => body.key === 'b4').volume, 9000);
+      } else assert.equal(await refs().count(), 0);
+      continue;
+    }
     f.phase = 'explicitly confirm the new Split edge for ' + kind;
     await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
     await f.page.waitForFunction(name => window.__studioDoc?.nodes?.[3]?.edges?.[0] === name, replacement);

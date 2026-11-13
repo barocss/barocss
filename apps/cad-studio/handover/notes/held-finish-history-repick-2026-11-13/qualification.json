@@ -1,0 +1,50 @@
+{
+  "decision": "D998",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "1f982e134790912595202fe3f686bce267637e6f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D998-history-repick",
+    "D998_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/baseline --repick-baseline",
+    "D998_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/studio07 --repick-fixed",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/split-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "e2141076d7519af5a507e519916dd09847c8a34d9334ac0e5ab97f8a69525d5e"
+  },
+  "earlierFailedReceipts": [
+    "67c02dd0d4b34a72ab8eaadd61b07074ff817ecd406c6f94d8574425e0250fa7",
+    "e96b87580346a15d756183f9e7b56f2b3fbf51c7ecadd246405af69634d916c3",
+    "46529fda308e6f5d10c12143957ee21d4f5f209991ea05552884d8beab4a5145"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "1e604fb947d557dafa559c95bf4fa4b4fa66d100a462ff55cc0d180f6226c200",
+    "sourceManifestSHA256": "8665a5633fd3d98d8be17409c4e23521c0feeeec012f6642e73f2b60b6fa4ef4",
+    "frozenFiles": 374,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "observations": 6,
+    "signaturePointMM": [60, 0, 5],
+    "volumeToleranceMM3": 1e-7
+  },
+  "focused": { "pass": 27, "fail": 0, "typeCheck": "PASS", "independentSourceReview": "PASS with incorporated findings" },
+  "notRun": [
+    "Save after direct repick",
+    "nonterminal, multi-edge and varying radius repick",
+    "live linked inset edits and Draft/Flange/Hole",
+    "delayed renderer handoff reproduction",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

@@ -71,7 +71,7 @@ export interface ViewportPointerProps {
   /** A double-click on a body's face: pick the whole body; on an edge: its chain (`onPickChain`). */
   onPickBody?(body: number): void;
   onPickChain?(body: number, edge: number): void;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; edgeMesh?: BodyResult['mesh']; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onSplineDragChange?(active: boolean): void;
@@ -116,6 +116,7 @@ interface PointerInput {
   propsRef: RefObject<ViewportPointerProps>;
   rendering: {
     renderer: RefObject<ViewRenderer | null>;
+    rendererBodies: RefObject<readonly BodyResult[]>;
     request(): void;
     requestRef: RefObject<() => void>;
     moving: RefObject<() => void>;
@@ -211,7 +212,7 @@ function slotRadiusAt(a: readonly number[], b: readonly number[], point: readonl
 }
 
 export function useViewportPointerInput({ canvas, camera, propsRef, rendering, focus }: PointerInput) {
-  const { renderer, request, requestRef, moving, viewState, hover } = rendering;
+  const { renderer, rendererBodies, request, requestRef, moving, viewState, hover } = rendering;
   const { focusPick, finishFocusPick } = focus;
   const sketch = propsRef.current.sketch;
 
@@ -989,7 +990,8 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
     const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
-    propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
+    const edgeMesh = edge ? rendererBodies.current[edge.body]?.mesh : undefined;
+    propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
   };
 
   /** Window selection left→right (fully inside), crossing right→left (touching). */

@@ -347,6 +347,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const camera = useRef(new OrbitCamera());
   const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
+  const rendererBodies = useRef<BodyResult[]>(NO_BODIES);
   const hover = useRef<ViewportHover>({ face: null, edge: null });
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
   // move a full frame is drawn with it, the same as before. (One function, kept for the component's life.)
@@ -437,7 +438,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const input = useViewportPointerInput({
     canvas, camera, propsRef,
-    rendering: { renderer, request, requestRef, moving, viewState, hover },
+    rendering: { renderer, rendererBodies, request, requestRef, moving, viewState, hover },
     focus: { focusPick, finishFocusPick },
   });
   const { cancelGizmo } = input;
@@ -492,6 +493,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   useEffect(() => {
     const r = renderer.current; if (!r) return;
     r.setBodies(props.bodies);
+    rendererBodies.current = props.bodies;
     if (!sourceProps.printActive && !fitted.current && props.bodies.length) {
       const b = r.bounds();
       if (b) { fitBounds(b); fitted.current = true; }
