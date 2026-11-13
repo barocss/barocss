@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
-const pin = process.argv[3] === '--pin';
+const held = process.argv[3] === '--held';
+const pin = held || process.argv[3] === '--pin';
 const pins = [
   'apps/cad-studio/test/measure-opposite-face-edit-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -12,11 +13,12 @@ const pins = [
   ...(pin ? ['apps/cad-studio/src/app/pinnedFaceMeasure.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
+  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
+  qualification: held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
   limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.'],
   snapshotExtra: () => ({
+    fresh: window.__studioFresh,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
     controls: ['Undo', 'Redo'].map(name => document.querySelector(`button[aria-label="${name}"]`).disabled),
     pinned: document.querySelector('[aria-label="Pinned measurement"]')?.textContent ?? null,
@@ -169,12 +171,121 @@ async function pinFlow() {
   await check('13-ordinary-measure-after-open', 8);
 }
 
+function delayGeometry() {
+  const worker = Worker.prototype;
+  const send = worker.postMessage;
+  const listener = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  let armed, target, held, deliver;
+  const byWorker = new WeakMap();
+  worker.postMessage = function (request, ...args) {
+    if (request?.doc?.ids && request.doc.added) {
+      let nodes = byWorker.get(this);
+      if (!nodes) { nodes = new Map(); byWorker.set(this, nodes); }
+      for (const [id, node] of request.doc.added) nodes.set(id, node);
+      if (armed !== undefined && request.type === 'evaluate' && nodes.get(request.doc.ids[1])?.height === armed) {
+        target = { worker: this, height: armed, id: request.id, revision: request.revision };
+        armed = undefined;
+      }
+    }
+    return Reflect.apply(send, this, [request, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true, get: listener.get,
+    set(callback) {
+      listener.set.call(this, callback && function (event) {
+        const result = event.data?.result;
+        if (target?.worker === this && event.data?.id === target.id && result) {
+          held = { height: target.height, id: target.id, revision: target.revision, ok: result.ok };
+          deliver = () => callback.call(this, event);
+          target = undefined;
+          return;
+        }
+        callback.call(this, event);
+      });
+    },
+  });
+  window.__d929Geometry = {
+    arm(height) { if (deliver || target) throw new Error('Release the prior reply first.'); held = undefined; armed = height; },
+    read: () => held,
+    release() { deliver(); deliver = undefined; },
+  };
+}
+
+async function receive(height, ok) {
+  await f.page.waitForFunction(height => window.__d929Geometry.read()?.height === height, height);
+  const reply = await f.page.evaluate(() => window.__d929Geometry.read());
+  assert.equal(reply.ok, ok);
+  f.report.observations.push({ label: 'held-worker-reply', ...reply });
+}
+
+async function heldFlow() {
+  await check('01-original-8', 8, false, true);
+  const arm = height => f.page.evaluate(height => window.__d929Geometry.arm(height), height);
+  const release = () => f.page.evaluate(() => window.__d929Geometry.release());
+  const submit = async height => {
+    await f.openFeatureEditor(1, 'Extrude');
+    await f.editor().getByLabel('Distance', { exact: true }).fill(String(height));
+    await arm(height);
+    f.phase = 'apply held height ' + height;
+    await f.editor().getByRole('button', { name: 'Apply', exact: true }).click();
+  };
+  const unchanged = async (label, before) => {
+    const current = await checkPin(label, 8);
+    for (const field of ['doc', 'bodies', 'history', 'controls', 'dirty']) assert.deepEqual(current[field], before[field], field);
+  };
+
+  f.phase = 'genuine refused edit leaves the accepted pin visible';
+  const original = await checkPin('02-accepted-pin', 8);
+  await submit(0);
+  await receive(0, false);
+  await unchanged('03-held-refused-edit', original);
+  await release();
+  await f.editor().locator('.hud-error[role=status]').waitFor();
+  await unchanged('04-refused-retains-pin', original);
+  await f.closeEditor();
+
+  f.phase = 'genuine successful candidate cannot replace the accepted pin while held';
+  await submit(13.25);
+  await receive(13.25, true);
+  await unchanged('05-held-successful-candidate', original);
+  // Arm the next accepted-model evaluation immediately after releasing the candidate.
+  await f.page.evaluate(() => {
+    window.__d929Geometry.release();
+    window.__d929Geometry.arm(13.25);
+  });
+  await receive(13.25, true);
+  await f.page.waitForFunction(() => window.__studioDoc?.nodes?.[1]?.height === 13.25 && window.__studioFresh === false);
+  await pinnedPanel().getByRole('status').getByText('Measurement unavailable.', { exact: true }).waitFor();
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  const pending = await f.snapshot('06-new-accepted-geometry-pending');
+  assert.equal(pending.doc.nodes[1].height, 13.25);
+  assert.equal(pending.fresh, false);
+  await release();
+  await f.ready();
+  const accepted = await checkPin('07-current-13-25', 13.25);
+
+  f.phase = 'replace the document before delivering a genuine held edit';
+  await submit(17.5);
+  await receive(17.5, true);
+  const before = await checkPin('08-prior-edit-held', 13.25);
+  assert.deepEqual(before.doc, accepted.doc);
+  await open('D929-same-ids', source);
+  await pinnedPanel().waitFor({ state: 'hidden' });
+  await release();
+  await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+  await f.same(source);
+  assert.equal(await pinnedPanel().count(), 0);
+  await f.page.waitForFunction(() => !window.__studioOverlayTexts?.()['measure:label']);
+  await check('09-current-measure-after-late-reply', 8);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    if (held) await context.addInitScript(delayGeometry);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -183,7 +294,8 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  await open(pin ? 'D928-original' : 'D927-original', source);
+  await open(held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', source);
+  if (held) { await heldFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (pin) { await pinFlow(); assert.deepEqual(f.report.downloads, []); return; }
   await check('01-original-8', 8);
   f.phase = 'change the existing Extrude distance through History';

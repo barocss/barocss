@@ -1,0 +1,81 @@
+{
+  "decision": "D929",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "7fcdbae05050ac3bb3c1e05183fae7e7ed96e8c4",
+  "issue": 2337,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D929-held",
+    "D929_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/run03 --held",
+    "gate.sh acquire heavy 600 D929-focused",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure",
+    "cd apps/cad-studio && node scripts/test.mjs pinned-face-measure document-file workOwnership",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "driverFailures": [
+    {
+      "status": "FAIL",
+      "reason": "Observer assumed inline wire nodes",
+      "receiptSHA256": "63402dc4eaa6ac0182fba026bd2cc009bc75317b6f9470ade4cf8d2d57aa747e"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Editor failure is a status, not an alert",
+      "receiptSHA256": "dd5c946769c93ca2a657e42e88ef9a30af49ba23c9009c4d3849c4fd120c4549"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 12,
+    "studioPass": 14,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "5b946274185f48279ef405bbeaa4ebe76b3530cc2a9a89bbab1e3ce7aa66aee9"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "frozenFiles": 848,
+    "receiptSHA256": "cac7191f406c6a2d7475f50ff005aaccda24515135a70d27985ae325960418d1",
+    "sourceManifestSHA256": "d6758a6b0684750a30d85e6df0ac700d4bf1ece0ca6d073846f6ef7bec52dc29",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldHeightsMM": [
+      0,
+      13.25,
+      13.25,
+      17.5
+    ],
+    "heldNativeOutcomes": [
+      "REFUSED",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "currentPinMM": [
+      8,
+      8,
+      null,
+      13.25,
+      null
+    ],
+    "freshManualMeasureMM": 8,
+    "acceptedVolumeMM3": 3180.000000000001,
+    "volumeToleranceMM3": 1e-08
+  },
+  "notRun": [
+    "Project Close",
+    "live Worker restart",
+    "suppressed or deleted target lifecycle",
+    "native Save",
+    "type checks",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

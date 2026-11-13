@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D929 — keep a pinned face measurement current during evaluation](notes/pinned-face-measure-held-replies-2026-11-13/README.md).
 - [D928 — pin the distance between two opposite native caps](notes/pinned-opposite-face-measure-2026-11-13/README.md).
 - [D927 — measure the current opposite faces after a numeric edit](notes/measure-opposite-face-edit-2026-11-13/README.md).
 - [D926 — separate nearby sketch constraint marks](notes/sketch-constraint-mark-spacing-2026-11-13/README.md).
