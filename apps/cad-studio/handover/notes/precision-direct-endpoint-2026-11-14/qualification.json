@@ -1,0 +1,287 @@
+{
+  "decision": "D1150",
+  "tier": "SMALL",
+  "parent": "f3ced422d04bd67742bb7c446ad39a49611136c6",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1150-<run>",
+    "D1149_SOURCE_FROZEN=1 node apps/cad-studio/test/direct-bezier-zoom-browser.mjs <external-evidence>/<run> [--cubic] [--webgl2]",
+    "node --check apps/cad-studio/test/direct-bezier-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "cubic-gpu": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 385,
+      "receiptSHA256": "4728560ebd6c5d2371c48cd0c9aa3f07581391b6607e2cd32a44a82f0e652cda",
+      "sourceManifestSHA256": "70e73919825d41a6f43bf6cb084b47aff5decf46db96b565c003f493f9098f81",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgpu",
+          "heightCSS": 409.80551697837154,
+          "expectedOldGapCSS": 0.02540799286864477,
+          "rasterGapCSS": 0.08454404064013943,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.026763251054375062,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "fourfold",
+          "backend": "webgpu",
+          "heightCSS": 1782.3405429339555,
+          "expectedOldGapCSS": 0.11050533467257459,
+          "rasterGapCSS": 0.13229940652524874,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.1163996719689029,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision",
+          "backend": "webgpu",
+          "heightCSS": 146249.99278285183,
+          "expectedOldGapCSS": 9.067517687572188,
+          "rasterGapCSS": 0.10393684874838982,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 1024,
+            "maxErrorCSS": 0.14774798499514344,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision-endpoint",
+          "backend": "webgpu",
+          "endpointScale": 6500.00020980835,
+          "rasterNearestCSS": 0.42003718665331663,
+          "markerGapCSS": 0
+        }
+      ]
+    },
+    "cubic-gl": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 385,
+      "receiptSHA256": "d78f7ecc29a9e7fc1b66d6ab55a55ba9d0e996e5dbed141d5ec08ed16d8acb5d",
+      "sourceManifestSHA256": "70e73919825d41a6f43bf6cb084b47aff5decf46db96b565c003f493f9098f81",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgl2",
+          "heightCSS": 409.80551697837154,
+          "expectedOldGapCSS": 0.02540799286864477,
+          "rasterGapCSS": 0.08454404064013943,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.026763251054375062,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "fourfold",
+          "backend": "webgl2",
+          "heightCSS": 1782.3405429339555,
+          "expectedOldGapCSS": 0.11050533467257459,
+          "rasterGapCSS": 0.13229940652524874,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.1163996719689029,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision",
+          "backend": "webgl2",
+          "heightCSS": 146249.99278285183,
+          "expectedOldGapCSS": 9.067517687572188,
+          "rasterGapCSS": 0.10393684874838982,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 1024,
+            "maxErrorCSS": 0.14774798499514344,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision-endpoint",
+          "backend": "webgl2",
+          "endpointScale": 6500.00020980835,
+          "rasterNearestCSS": 0.633192820229507,
+          "markerGapCSS": 0
+        }
+      ]
+    },
+    "quadratic-gpu": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 385,
+      "receiptSHA256": "9d79ed55423d66eacb1b0ac25fbdbab2cbbd1826a34c8b459047271cb83a8c4d",
+      "sourceManifestSHA256": "70e73919825d41a6f43bf6cb084b47aff5decf46db96b565c003f493f9098f81",
+      "observations": [
+        {
+          "label": "fit",
+          "backend": "webgpu",
+          "heightCSS": 373.82138910918684,
+          "expectedOldGapCSS": 0.02317697247871454,
+          "rasterGapCSS": 0.0777183604716356,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.02318782308261528,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "fourfold",
+          "backend": "webgpu",
+          "heightCSS": 1625.8371564109862,
+          "expectedOldGapCSS": 0.10080210530169174,
+          "rasterGapCSS": 0.16200032873445025,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 127,
+            "maxErrorCSS": 0.10084929713050841,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision",
+          "backend": "webgpu",
+          "heightCSS": 129999.99358475719,
+          "expectedOldGapCSS": 8.06001572228639,
+          "rasterGapCSS": 0.26492013806051773,
+          "lowLevelPick": "obj_1",
+          "selected": true,
+          "packet": {
+            "count": 1024,
+            "maxErrorCSS": 0.12397765505011193,
+            "endpoints": [
+              [
+                -20,
+                0,
+                0
+              ],
+              [
+                20,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        {
+          "label": "precision-endpoint",
+          "backend": "webgpu",
+          "endpointScale": 6499.999666213989,
+          "rasterNearestCSS": 0.14509776755229906,
+          "markerGapCSS": 0
+        }
+      ]
+    }
+  }
+}

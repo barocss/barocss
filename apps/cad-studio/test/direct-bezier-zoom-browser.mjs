@@ -6,6 +6,7 @@ import { createFlow } from './flow-helper.mjs';
 const { PNG } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright-core/lib/utilsBundle');
 const baseline = process.argv.includes('--baseline');
 const backend = process.argv.includes('--webgl2') ? 'webgl2' : 'webgpu';
+const cubic = process.argv.includes('--cubic');
 const pins = ['apps/cad-studio/test/direct-bezier-zoom-browser.mjs', 'apps/cad-studio/src/viewport/Viewport.tsx',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts', 'apps/cad-studio/src/viewport/gpuRenderer.ts', 'apps/cad-studio/src/viewport/renderer.ts',
   'packages/barocss-cad-model/src/engine/direct.ts'];
@@ -13,11 +14,12 @@ if (!baseline) pins.push('apps/cad-studio/src/viewport/directBezierDisplay.ts');
 const f = await createFlow({
   name: 'direct-bezier-zoom', output: process.argv[2], envFrozen: 'D1149_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Compare a Direct quadratic raster and actual canvas selection after orthographic zoom.',
-  limits: ['One centered quadratic in desktop Top Ortho, without a body behind it.'],
+  qualification: 'Compare the Direct Bézier raster, selection and endpoint markers after orthographic zoom.',
+  limits: ['One centered quadratic or cubic in desktop Top Ortho, without a body behind it.'],
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
-const poles = [[-20, 0], [0, 40], [20, 0]];
+const poles = cubic ? [[-20, 0], [-10, 30], [10, 30], [20, 0]] : [[-20, 0], [0, 40], [20, 0]];
+const apexPoint = [0, cubic ? 22.5 : 20];
 const settle = () => f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
 const clear = async () => { await f.page.evaluate(() => document.activeElement?.blur()); await f.page.keyboard.press('Escape'); await settle(); };
 const visible = at => f.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.classList.contains('vp-canvas'), at);
@@ -44,21 +46,21 @@ await f.run(async () => {
   const direct = await f.doc();
   assert.equal(direct.direct.objects.length, 1);
   const [object] = direct.direct.objects;
-  assert.match(direct.direct.sources[object.source], /control-points: \[\[-20,0,0\],\[0,40,0\],\[20,0,0\]\]/);
+  assert.ok(direct.direct.sources[object.source].includes('control-points: ' + JSON.stringify(poles.map(p => [...p, 0]))));
   const row = f.page.locator('.ol.direct');
   const selected = async () => (await row.getAttribute('class')).split(/\s+/).includes('sel');
   await button('Top').click();
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
-  await f.frame([[-20, 0], [0, 20], [20, 0]]);
+  await f.frame([poles[0], apexPoint, poles.at(-1)]);
   await clear();
 
   async function capture(label) {
     await settle();
     assert.equal(await selected(), false);
-    const apex = await f.screenOf([0, 20]), middle = await f.screenOf([0, 40]);
+    const apex = await f.screenOf(apexPoint), origin = await f.screenOf([0, 0]);
     assert.ok(await visible(apex), JSON.stringify(apex));
-    const heightCSS = 2 * Math.hypot(apex[0] - middle[0], apex[1] - middle[1]);
-    const expectedOldGapCSS = heightCSS / (2 * 127 ** 2);
+    const heightCSS = Math.hypot(apex[0] - origin[0], apex[1] - origin[1]);
+    const expectedOldGapCSS = heightCSS / 127 ** 2;
     const packet = await f.page.evaluate(({ id, controls }) => {
       const segments = window.__studioDirectSegments?.(id);
       if (!segments) return null;
@@ -72,7 +74,9 @@ await f.run(async () => {
         for (const u of [0, 0.25, 0.5, 0.75, 1]) {
           const t = (i + u) / count, s = 1 - t;
           const errors = [0, 1].map(axis => {
-            const exact = s * s * projected[0][axis] + 2 * s * t * projected[1][axis] + t * t * projected[2][axis];
+            const exact = controls.length === 3
+              ? s * s * projected[0][axis] + 2 * s * t * projected[1][axis] + t * t * projected[2][axis]
+              : s ** 3 * projected[0][axis] + 3 * s * s * t * projected[1][axis] + 3 * s * t * t * projected[2][axis] + t ** 3 * projected[3][axis];
             return exact - (a[axis] + u * (b[axis] - a[axis]));
           });
           maxErrorCSS = Math.max(maxErrorCSS, Math.hypot(...errors));
@@ -87,7 +91,7 @@ await f.run(async () => {
       if (g > 110 && g > r + 45 && b > r + 60) cyan.push(y);
     }
     const rasterGapCSS = cyan.length ? Math.abs(cyan.reduce((sum, y) => sum + y + 0.5, 0) / cyan.length - apex[1]) : null;
-    const lowLevelPick = await f.page.evaluate(() => window.__studioDirectAt([0, 20, 0]));
+    const lowLevelPick = await f.page.evaluate(p => window.__studioDirectAt(p), [...apexPoint, 0]);
     await f.page.mouse.click(...apex);
     await settle();
     const metric = { label, backend, heightCSS, expectedOldGapCSS, rasterGapCSS, lowLevelPick, selected: await selected(), packet };
@@ -102,10 +106,12 @@ await f.run(async () => {
   const endpoint = await f.screenOf(poles[0]);
   await f.page.mouse.click(...endpoint);
   await f.page.locator('.pole-mark.picked').waitFor();
+  await f.page.mouse.click(...endpoint);
+  await f.page.locator('.pole-mark.picked').waitFor({ state: 'hidden' });
   await clear();
 
   f.phase = 'select the converted curve above four times ordinary zoom';
-  const center = await f.screenOf([0, 20]);
+  const center = await f.screenOf(apexPoint);
   await f.page.mouse.move(...center);
   await f.page.mouse.wheel(0, -980);
   const medium = await capture('fourfold');
@@ -113,18 +119,22 @@ await f.run(async () => {
   assert.equal(medium.selected, true);
   await clear();
 
-  f.phase = 'click the analytic apex at precision zoom';
-  for (let i = 0; i < 4; i++) {
-    const center = await f.screenOf([0, 20]);
-    assert.ok(await visible(center), JSON.stringify(center));
-    await f.page.mouse.move(...center);
-    const scalePoint = await f.screenOf([1, 20]);
-    const scale = Math.hypot(center[0] - scalePoint[0], center[1] - scalePoint[1]);
-    if (scale >= 5800) break;
-    const wheel = Math.max(-1600, Math.log(scale / 6500) / 0.0015);
-    await f.page.mouse.wheel(0, wheel);
-    await settle();
+  async function zoomToward(point) {
+    for (let i = 0; i < 4; i++) {
+      const at = await f.screenOf(point);
+      assert.ok(await visible(at), JSON.stringify(at));
+      await f.page.mouse.move(...at);
+      const beside = await f.screenOf([point[0] + 1, point[1]]);
+      const scale = Math.hypot(at[0] - beside[0], at[1] - beside[1]);
+      if (scale >= 5800) return scale;
+      const wheel = Math.max(-1600, Math.log(scale / 6500) / 0.0015);
+      await f.page.mouse.wheel(0, wheel);
+      await settle();
+    }
+    assert.fail('The required precision scale was not reached');
   }
+  f.phase = 'click the analytic apex at precision zoom';
+  await zoomToward(apexPoint);
   const zoom = await capture('precision');
   assert.ok(zoom.expectedOldGapCSS > 6.5 && zoom.expectedOldGapCSS < 15, JSON.stringify(zoom));
   assert.deepEqual(f.report.downloads, []);
@@ -140,4 +150,37 @@ await f.run(async () => {
   assert.ok(zoom.packet.count > fit.packet.count && zoom.packet.count <= 2048);
   assert.ok(zoom.packet.maxErrorCSS <= 0.25, JSON.stringify(zoom.packet));
   assert.deepEqual(zoom.packet.endpoints, [[-20, 0, 0], [20, 0, 0]]);
+
+  f.phase = 'match precision endpoint raster, solid selection and pole marker';
+  await clear();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  await settle();
+  await f.frame([poles[0], apexPoint, poles.at(-1)]);
+  const endpointScale = await zoomToward(poles[0]);
+  const endAt = await f.screenOf(poles[0]);
+  const png = PNG.sync.read(await f.page.screenshot());
+  let closest = Infinity;
+  for (let y = Math.round(endAt[1]) - 4; y <= Math.round(endAt[1]) + 4; y++) {
+    for (let x = Math.round(endAt[0]) - 4; x <= Math.round(endAt[0]) + 4; x++) {
+      const i = (y * png.width + x) * 4, [r, g, b] = png.data.subarray(i, i + 3);
+      if (g > 110 && g > r + 45 && b > r + 60) closest = Math.min(closest, Math.hypot(x + 0.5 - endAt[0], y + 0.5 - endAt[1]));
+    }
+  }
+  assert.ok(closest <= 1.5, JSON.stringify({ endAt, closest }));
+  await f.page.mouse.click(...endAt);
+  await settle();
+  assert.equal(await selected(), true);
+  const dot = f.page.locator('.pole-mark.picked');
+  assert.equal(await dot.count(), 0, 'the endpoint pole starts unselected');
+  await f.page.mouse.click(...endAt);
+  await dot.waitFor();
+  const markAt = await dot.evaluate(circle => {
+    const box = circle.ownerSVGElement.getBoundingClientRect();
+    return [Number(circle.getAttribute('cx')) + box.x, Number(circle.getAttribute('cy')) + box.y];
+  });
+  const markerGapCSS = Math.hypot(markAt[0] - endAt[0], markAt[1] - endAt[1]);
+  assert.ok(markerGapCSS < 1e-7);
+  f.report.observations.push({ label: 'precision-endpoint', backend, endpointScale, rasterNearestCSS: closest, markerGapCSS });
+  await f.snapshot('precision-endpoint');
+  await f.same(direct);
 });

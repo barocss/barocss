@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1150 — qualify Direct Bézier endpoints at precision zoom](notes/precision-direct-endpoint-2026-11-14/README.md).
 - [D1149 — keep Direct Bézier line and selection aligned](notes/precision-direct-bezier-2026-11-14/README.md).
 - [D1148 — refine the Sketch Bézier path](notes/zoomed-sketch-bezier-2026-11-14/README.md).
 - [D1147 — draw and select native circular Band rails](notes/zoomed-committed-band-rails-2026-11-14/README.md).
