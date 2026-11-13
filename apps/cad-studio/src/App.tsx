@@ -480,7 +480,7 @@ export function App() {
   const renderedSketch = useRef({ draft: sketch, generation: sketchGeneration.current });
   renderedSketch.current = { draft: sketch, generation: sketchGeneration.current };
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
-  const updateShape = useCallback((shape: SketchShape | null, fresh = false, origin?: 'panel' | 'line-point') => {
+  const updateShape = useCallback((shape: SketchShape | null, fresh = false, origin?: 'panel' | 'line-point' | 'chord-circle') => {
     const fromPanel = origin === 'panel';
     // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
     const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction || prev.kind === 'bezier' || (prev.kind === 'polygon' && !prev.closed && !prev.pending && prev.points.length >= 2)) ? prev : null;
@@ -505,7 +505,8 @@ export function App() {
       : rendered.generation === generation ? rendered.draft : null;
     const recordEdit = !keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedBezier);
     const geometryChanged = prev !== r.shape && JSON.stringify(prev) !== JSON.stringify(r.shape);
-    if (draft && (origin === 'line-point' || (recordEdit && (draft.association || draft.associationDetached))) && (geometryChanged || keep)) {
+    const confirmedPlacement = origin === 'line-point' || origin === 'chord-circle';
+    if (draft && (confirmedPlacement || (recordEdit && (draft.association || draft.associationDetached))) && (geometryChanged || keep)) {
       const next = { ...detachSketchLink(draft), editDim: null, shape: r.shape,
         ...(keep ? { done: joinOpen([...(draft.done ?? []), keep]) } : {}) };
       sketchHistory.push(draftHistoryState(draftDoc, draft, prev), draftHistoryState(draftDoc, next));
@@ -1728,7 +1729,7 @@ export function App() {
     editor: { sketch, setSketch, sketchGeneration, recordDraft: recordSketchDraft }, owner: { docNow, acceptanceScope },
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { makeSketchBand, editSketchBand, removeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, useFaceOutline, clearSketchProfile, trimSketch, dragTrim, editSketch, linkSketchInset, currentSketchSource, finishError: sketchFinishError } = sketchActions;
-  const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, updateShape);
+  const circleChord = useCircleFromChord(doc, sketch, docNow, sketchGeneration, (shape, fresh) => updateShape(shape, fresh, 'chord-circle'));
   const finishSketch = () => {
     if (circleChord.input.read(sketch)) return;
     clearConstraintInspection(constraintInspection, sketch);

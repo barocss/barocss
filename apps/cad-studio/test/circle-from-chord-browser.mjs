@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const controlBaseline = process.argv[3] === '--controls-baseline';
 const planeMode = process.argv[3] === '--planes';
+const draftHistory = process.argv[3] === '--draft-history';
 const pins = [
   'apps/cad-studio/test/circle-from-chord-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -18,9 +19,10 @@ const pins = [
   ...(planeMode ? ['packages/barocss-cad-model/src/sketch/plane.ts', 'apps/cad-studio/src/sketch/useSketchActions.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'circle-from-chord', output: process.argv[2], envFrozen: planeMode ? 'D879_SOURCE_FROZEN' : 'D878_SOURCE_FROZEN',
+  name: 'circle-from-chord', output: process.argv[2], envFrozen: draftHistory ? 'D1075_SOURCE_FROZEN' : planeMode ? 'D879_SOURCE_FROZEN' : 'D878_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: planeMode ? 'Consume circles drawn from chord points on three non-default working planes.'
+  qualification: draftHistory ? 'Replay the confirmed circle and its subsequent diameter edit before Finish.'
+    : planeMode ? 'Consume circles drawn from chord points on three non-default working planes.'
     : 'Use two actual sketch clicks and a typed radius to choose an ordinary circle and extrude it.',
   limits: planeMode ? ['One cylinder each on XZ, YZ and a translated 30 degree XY plane.']
     : ['Default XY plane, existing desktop snap and one ordinary circle per source.'],
@@ -366,6 +368,60 @@ await f.run(async () => {
     return context;
   };
   if (planeMode) { await qualifyPlanes(); return; }
+  if (draftHistory) {
+    await newPart();
+    const blank = await f.doc();
+    await enterCircle();
+    await begin();
+    await pickPoints(a, b);
+    await radiusField().fill('5');
+    await previewMarks(centers(), [low, high]);
+    assert.equal(await button(f.page, 'Undo').isEnabled(), false);
+    await button(controls(), 'Use circle 1').click();
+    const diameter = f.sketchPanel().locator('input#sk-diameter');
+    assert.equal(await diameter.inputValue(), '10');
+    const outline = () => f.page.locator('.vp-overlay .sk-shape').evaluateAll(nodes => nodes.map(node => node.outerHTML));
+    const original = await outline();
+    assert.equal(original.length, 1);
+    await f.same(blank);
+
+    f.phase = 'Undo the confirmed candidate';
+    await finish().focus();
+    await f.page.keyboard.press('Meta+z');
+    const undone = await f.snapshot('01-after-confirmation-undo');
+    assert.equal(await diameter.count(), 0);
+    assert.deepEqual(await outline(), []);
+    assert.equal(undone.candidates, 0);
+    assert.equal(await controls().count(), 0);
+    await f.same(blank);
+    await button(f.page, 'Redo').click();
+    assert.deepEqual(await outline(), original);
+
+    f.phase = 'Replay the confirmation and diameter edit in order';
+    await diameter.fill('12');
+    await finish().focus();
+    assert.equal(await diameter.inputValue(), '12');
+    await button(f.page, 'Undo').click();
+    assert.deepEqual(await outline(), original);
+    await button(f.page, 'Undo').click();
+    assert.deepEqual(await outline(), []);
+    await finish().focus();
+    await f.page.keyboard.press('Meta+Shift+z');
+    assert.deepEqual(await outline(), original);
+    await f.page.keyboard.press('Meta+Shift+z');
+    assert.equal(await diameter.inputValue(), '12');
+    await button(f.page, 'Undo').click();
+    assert.deepEqual(await outline(), original);
+    await f.snapshot('02-restored-candidate');
+
+    const lower = await acceptAndExtrude('03-draft-history', low, 5, a, b);
+    await f.undo();
+    await f.same(lower.profile);
+    await f.redo();
+    await f.same(lower.solid);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await newPart();
   const empty = await f.doc();
   assert.equal(empty.nodes.length, 0);

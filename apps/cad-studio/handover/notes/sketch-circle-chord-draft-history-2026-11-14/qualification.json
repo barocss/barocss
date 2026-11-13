@@ -1,0 +1,65 @@
+{
+  "decision": "D1075",
+  "tier": "SMALL",
+  "parent": "86e92a5913d29dd5a68a874846a586b47265dff3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1075-circle-chord-<run>",
+    "D1075_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/<run> --draft-history",
+    "D878_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/chord-regression",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history circle-from-chord",
+    "node --check apps/cad-studio/test/circle-from-chord-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 856,
+      "receiptSHA256": "b0e938d7ab7d4f0bfc6705f01bb15152dc07419f2e982e131a537c18e66b3c39",
+      "sourceManifestSHA256": "9b578f11bdd2461b588dd1ba399caa1bafd66e3bb1adef6b44c7819f6b311df7",
+      "firstFailure": "Cmd+Z leaves the confirmed circle and diameter field."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 856,
+      "receiptSHA256": "3f3b75a0e7141621a7c0a64f1f4a69e41e432677237a5584290a3a50020ad0b7",
+      "sourceManifestSHA256": "926a105e55ef051e6ded5c1f0ceb1c2f45a4f08a41eeac459f3f9c33d5321630"
+    },
+    "regression": {
+      "status": "PASS",
+      "states": 19,
+      "receiptSHA256": "d348ecf4d74cd4e73f75b4d02e1215109aad6600027e51383e4b53f53d3f8790",
+      "sourceManifestSHA256": "926a105e55ef051e6ded5c1f0ceb1c2f45a4f08a41eeac459f3f9c33d5321630"
+    }
+  },
+  "chordMm": [
+    [
+      20,
+      20
+    ],
+    [
+      26,
+      20
+    ]
+  ],
+  "confirmedCenterMm": [
+    23,
+    16
+  ],
+  "diametersMm": [
+    10,
+    12
+  ],
+  "extrudeMm": 2,
+  "volumeMm3": 157.07963267948966,
+  "geometryToleranceMm": 1e-07,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 11,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
