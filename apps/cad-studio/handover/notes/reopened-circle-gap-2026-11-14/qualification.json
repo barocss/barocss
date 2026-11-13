@@ -1,0 +1,60 @@
+{
+  "decision": "D1136",
+  "tier": "SMALL",
+  "parent": "71caa49119f5851ae2b91da8099858b357bd6dde",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1136-reopened-gap-<run>",
+    "D1136_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs <external-evidence>/<run> --reopened",
+    "D1074_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs <external-evidence>/new",
+    "D1075_SOURCE_FROZEN=1 node apps/cad-studio/test/circle-from-chord-browser.mjs <external-evidence>/chord --draft-history",
+    "D806_SOURCE_FROZEN=1 node apps/cad-studio/test/ordinary-circle-gap-close-browser.mjs <external-evidence>/closed-arc",
+    "cd apps/cad-studio && node scripts/test.mjs circle-from-chord",
+    "cd apps/cad-studio && node scripts/test.mjs circlePathGap arcPathGap linePathGap",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/sketch/usePathGap.ts",
+    "node --check apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 381,
+      "receiptSHA256": "d96157454009b3d058cad9821bcaa8e9b758f476715d7faa4d2e217ea2a7d8a0",
+      "sourceManifestSHA256": "c8018190da73f853fc03b080845a38c5b62c43aa8f869a56d8a67bf5b6fdda3b"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "bf0f4129b4a81c2b96d016f3907d1bae3944350ac3634f7c07c68e46e9cdaa31",
+      "sourceManifestSHA256": "eb42804ed6eb38313dd6ffdda6faa6c22af9f3d1ac6ca7b21330418b2e5028dc"
+    },
+    "new": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 381,
+      "receiptSHA256": "a6345a235b53b56078c8a3b7c728e807815deaaa96c54f87b4ea87c80006de97",
+      "sourceManifestSHA256": "eb42804ed6eb38313dd6ffdda6faa6c22af9f3d1ac6ca7b21330418b2e5028dc"
+    },
+    "chord": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "d0ac9976464d6ba21e51522164eb6774d69df56b2e5f72d6eb4db35859bc0428",
+      "sourceManifestSHA256": "fb15346a83badd6d50c8e4888d78cf59df62fcca269b385f51b5d9569113c58d"
+    },
+    "closed-arc": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "e796a7d4583853598bd3a50decadd0f3fec95982b61074d7da7a778047b47219",
+      "sourceManifestSHA256": "2a5c7c556b914330e5faa3020203fb172d23d5c36a5abf65d4b375cb40d9e143"
+    }
+  },
+  "focused": {
+    "studioPassed": 18,
+    "failed": 0
+  }
+}

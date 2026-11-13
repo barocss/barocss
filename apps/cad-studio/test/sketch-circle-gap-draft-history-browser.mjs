@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const reopened = process.argv[3] === '--reopened';
 const pins = [
   'apps/cad-studio/test/sketch-circle-gap-draft-history-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -11,7 +12,7 @@ const pins = [
 const f = await createFlow({
   name: 'sketch-circle-gap-draft-history',
   output: process.argv[2],
-  envFrozen: 'D1074_SOURCE_FROZEN',
+  envFrozen: reopened ? 'D1136_SOURCE_FROZEN' : 'D1074_SOURCE_FROZEN',
   qualification: 'Undo and redo a 4 mm gap in a new ordinary circle.',
   limits: ['One new 10 mm radius XY circle in desktop WebGPU.'],
   initialFiles: pins, requiredFrozen: pins,
@@ -37,6 +38,47 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
+  if (reopened) {
+    const source = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+      nodes: [{ kind: 'sketch', profile: 'circle', id: 'n0', center: [20, 20], radius: 10, sideTags: { outer: ['e7'] } },
+        { kind: 'extrude', id: 'n1', sketch: 0, height: 2 }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 };
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'D1136-ordinary-circle.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });
+    await f.same(source);
+    await button('Cylinder 2', f.page.getByRole('group', { name: 'History', exact: true })).click();
+    await button('Edit sketch', f.editor()).click();
+    await f.sketchPanel().waitFor();
+    await f.frame([[10, 10], [30, 30]]);
+    await f.tool('Trim', 't');
+    f.phase = 'expose Cut circle gap in the reopened ordinary Circle';
+    const circle = await geometry();
+    assert.deepEqual(circle.map(([tag]) => tag), ['polygon']);
+    await f.snapshot('01-reopened-trim-before-gap');
+    await button('Cut circle gap', f.sketchPanel()).click({ timeout: 3000 });
+    await f.sketchPanel().getByLabel('Gap length', { exact: true }).fill('4');
+    const position = await f.screenOf([20, 30]);
+    await f.page.mouse.move(...position);
+    await f.page.locator('.vp-overlay .sk-path-gap').waitFor({ state: 'attached' });
+    await f.page.mouse.click(...position);
+    const arc = await geometry();
+    assert.deepEqual(arc.map(([tag]) => tag), ['polyline']);
+    await f.page.locator('.topbar button.finish').click();
+    await f.sketchPanel().getByRole('alert').getByText(/open chain/i).waitFor();
+    await f.same(source);
+    await f.snapshot('02-reopened-open-arc');
+    await keyboard('Meta+z');
+    assert.deepEqual(await geometry(), circle);
+    assert.equal(await f.sketchAlert(), null);
+    await f.redo();
+    assert.deepEqual(await geometry(), arc);
+    await f.undo();
+    assert.deepEqual(await geometry(), circle);
+    const restored = (await f.finishSketch('03-reopened-no-op-finish')).doc;
+    assert.deepEqual(restored, source);
+    assert.ok(Math.abs((await f.bodies()).bodies[0].volume - 200 * Math.PI) < 1e-8);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   await button('New part').click();
   await f.page.waitForFunction(() => window.__studioDoc?.nodes.length === 0);
   await f.ready();

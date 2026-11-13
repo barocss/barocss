@@ -50,13 +50,18 @@ export function usePathGap(doc: StudioDoc, sketch: SketchState | null, docNow: R
       const source = preparePathGap(original);
       return source && { original, source };
     }
-    if (references.length || done.length !== 1 || sketch.editNode !== undefined || sketch.band || sketch.association || sketch.base) return null;
+    if (references.length || done.length !== 1 || sketch.band || sketch.association || sketch.base) return null;
     const [original] = done;
     if (original.kind !== 'circle' && original.kind !== 'polygon') return null;
+    if (sketch.editNode !== undefined) {
+      const stored = doc.nodes[sketch.editNode];
+      if (original.kind !== 'circle' || stored?.kind !== 'sketch' || stored.profile !== 'circle'
+        || stored.on || stored.association || [...stored.center, stored.radius].some(value => typeof value !== 'number')) return null;
+    }
     if (original.ids && original.ids.length !== (original.kind === 'circle' ? 1 : 2)) return null;
     const source = preparePathGap(withIds([original])[0], true);
     return source && { original, source };
-  }, [sketch]);
+  }, [doc.nodes, sketch]);
   const input: PathGapInput = {
     read,
     apply(owner, expected, plan) {
