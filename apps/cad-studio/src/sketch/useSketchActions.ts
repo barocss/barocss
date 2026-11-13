@@ -62,19 +62,6 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const { docNow, acceptanceScope } = owner;
   const { engine, nextRevision } = worker;
   const { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies } = changes;
-  /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
-  const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
-    if (!sketch) return;
-    const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
-    const source = kind === 'midpoint' ? sketch.anchor?.midpointPlane : kind === 'vertices' ? sketch.anchor?.vertexPlane
-      : kind === 'face' ? face?.plane ?? standardPlane('xy') : standardPlane(kind);
-    if (!source) return;
-    const plane = offsetPlane(tiltPlane(source, angle), offset);
-    setSketch({ ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)), plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
-    const [min, max] = sketchRegion(bodies, plane);
-    viewport.current?.frameSketch(min, max, plane);
-  }, [sketch, bodies, setSketch]);
-
   /** The sketch's shapes as curves of the direct geometry (one per shape, through the sketch plane); the sketch is left. */
   const sketchToCurves = async () => {
     if (!sketch) return;
@@ -112,6 +99,24 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     setSketch(next);
     recordDraft?.(before, next);
   };
+  /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
+  const placeSketch = (kind: SketchAnchor['kind'], offset: number, angle = 0) => {
+    if (!sketch || !ownsSketch()) return;
+    const anchor = sketch.anchor ?? { kind: 'xy', offset: 0 };
+    if (anchor.kind === kind && anchor.offset === offset && (anchor.angle ?? 0) === angle) return;
+    const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
+    const source = kind === 'midpoint' ? sketch.anchor?.midpointPlane : kind === 'vertices' ? sketch.anchor?.vertexPlane
+      : kind === 'face' ? face?.plane ?? standardPlane('xy') : standardPlane(kind);
+    if (!source) return;
+    const plane = offsetPlane(tiltPlane(source, angle), offset);
+    const next = { ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)),
+      plane, base, anchor: { ...anchor, kind, offset, angle } };
+    if (sketch.association || sketch.associationDetached) commitDraft(sketch, next);
+    else setSketch(next);
+    const [min, max] = sketchRegion(bodies, plane);
+    viewport.current?.frameSketch(min, max, plane);
+  };
+
   /** Offsets the newest closed shape of the sketch by `d` (out when positive) as a shape beside it. */
   const offsetSketch = (d: number) => {
     if (!sketch || !ownsSketch()) return;

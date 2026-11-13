@@ -5,7 +5,7 @@ import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { detachSketchLink } from '../app/sketchControls';
 
 type OutlineStep = { kind: 'outline'; shape: SketchShape };
-type DraftStep = Pick<SketchState, 'shape' | 'done' | 'association' | 'associationDetached' | 'plane' | 'editNode' | 'mainIds' | 'tool' | 'band' | 'bandPicks'> & {
+type DraftStep = Pick<SketchState, 'shape' | 'done' | 'association' | 'associationDetached' | 'plane' | 'anchor' | 'base' | 'editNode' | 'mainIds' | 'tool' | 'band' | 'bandPicks'> & {
   kind: 'draft';
   doc: StudioDoc;
 };
@@ -16,7 +16,7 @@ export function outlineHistoryState(shape: SketchShape): OutlineStep {
 }
 
 export function draftHistoryState(doc: StudioDoc, sketch: SketchState, shape = sketch.shape): DraftStep {
-  return { kind: 'draft', doc, shape, done: sketch.done, plane: sketch.plane, editNode: sketch.editNode,
+  return { kind: 'draft', doc, shape, done: sketch.done, plane: sketch.plane, anchor: sketch.anchor, base: sketch.base, editNode: sketch.editNode,
     mainIds: sketch.mainIds, tool: sketch.tool, band: sketch.band, bandPicks: sketch.bandPicks, association: sketch.association, associationDetached: sketch.associationDetached };
 }
 
@@ -47,6 +47,7 @@ function matches(expected: SketchStep, current: SketchStep): boolean {
     return !!main && sameMainOutline(expected.shape, main);
   }
   if (current.kind !== 'draft' || expected.doc !== current.doc || expected.plane !== current.plane
+    || expected.anchor !== current.anchor || expected.base !== current.base
     || expected.editNode !== current.editNode || expected.mainIds !== current.mainIds
     || expected.band !== current.band
     || expected.association !== current.association || expected.associationDetached !== current.associationDetached) return false;
@@ -108,7 +109,7 @@ export function restoreDraftHistory(sketch: SketchState, step: SketchStep): Sket
     const main = orderedStraightDraft(sketch)?.[0];
     return main ? { ...restored, shape: null, done: sketch.done?.map(shape => shape === main ? step.shape : shape) } : restored;
   }
-  const restored = { ...sketch, shape: step.shape, done: step.done, band: step.band,
+  const restored = { ...sketch, shape: step.shape, done: step.done, plane: step.plane, anchor: step.anchor, base: step.base, band: step.band,
     bandPicks: sketch.tool === 'band' ? step.bandPicks : undefined, association: step.association,
     associationDetached: step.associationDetached, picked: [], editDim: null };
   if (step.tool === sketch.tool || (sketch.tool !== 'select' && sketch.tool !== 'dimension')) return restored;

@@ -1,0 +1,53 @@
+{
+  "decision": "D1070",
+  "tier": "SMALL",
+  "parent": "31a54d823851f92a165d193248293fc916d6da20",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1070-linked-plane-<run>",
+    "D1070_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-linked-plane-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-linked-plane-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "c471788e7bf1f16077b7af871e242e748ba60ed7b430972f309bd5e7e4b0934b",
+      "sourceManifestSHA256": "e5a5f81a92e180de744bc75f8b863f1d83bf95838a9c1d4db0e0a759625fda7e",
+      "firstFailure": "Cmd+Z leaves the 2 mm plane offset and detached association in place."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 379,
+      "receiptSHA256": "bd3d715d708964ba9bea7b110599ef5ca45e6a443f961397b22af06366e23665",
+      "sourceManifestSHA256": "155113cee2340b1998c9350d4985c5c79ebe2443d2faad099f5cd44f517aefe3"
+    }
+  },
+  "sourceHeightMm": [
+    10,
+    12
+  ],
+  "draftOffsetMm": [
+    0,
+    2
+  ],
+  "insetMm": 1,
+  "ringExtrudeMm": 4,
+  "ringVolumeMm3": 224,
+  "ringCentroidZMm": [
+    12,
+    14
+  ],
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

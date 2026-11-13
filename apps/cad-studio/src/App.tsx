@@ -2295,6 +2295,10 @@ export function App() {
     const step = forward ? sketchHistory.redo(current) : sketchHistory.undo(current);
     if (!step) return;
     const next = restoreDraftHistory(draft, step);
+    if (next.plane !== draft.plane) {
+      const [min, max] = sketchRegion(bodies, next.plane);
+      viewport.current?.frameSketch(min, max, next.plane);
+    }
     liveShape.current = next.shape;
     setSketchError(null);
     setSketch(next);

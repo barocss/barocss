@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1070 — replay linked inset plane and face association](notes/sketch-linked-plane-draft-history-2026-11-14/README.md).
 - [D1069 — replay face outline copies in Sketch draft history](notes/sketch-face-copy-draft-history-2026-11-14/README.md).
 - [D1068 — replay Band dimensions and removal in Sketch draft history](notes/sketch-edit-band-draft-history-2026-11-14/README.md).
 - [D1067 — replay Make band in Sketch draft history](notes/sketch-make-band-draft-history-2026-11-14/README.md).
