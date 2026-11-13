@@ -841,13 +841,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
     const sk = props.sketch;
+    const workArea = sk?.editDim ? modelFitArea(c) : undefined;
+    const dimensionArea = sk?.editDim ? workArea ? {
+      x: workArea.left * w, y: workArea.top * h,
+      width: (workArea.right - workArea.left) * w, height: (workArea.bottom - workArea.top) * h,
+    } : { x: 4, y: 4, width: w - 8, height: h - 8 } : undefined;
     const inspection = constraintInspection?.owner === sk && drag.current.mode !== 'spline' ? constraintInspection : null;
     const reference = props.sketchSnaps?.twoPoint.read();
     const extension = props.sketchSnaps?.extension.read(sk);
     const referenceHit = reference?.preview ? { at: reference.preview, kind: 'calculated' as const }
       : reference?.picking && twoPointHover.current?.points === reference.points ? twoPointHover.current.hit : null;
     const editor = sk ? drawSketchOverlay({
-      sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h, rail: sketchRail.current,
+      sk, shape: drag.current.mode === 'spline' ? liveShape.current : sk.shape, cam, w, h, rail: sketchRail.current, dimensionArea,
       draft: reference ? { cursor: referenceHit?.at ?? null, snap: referenceHit } : sketchDraft.current, bezierPoles: bezierDraft.current.poles, ellipse: ellipseDraft.current, centreArc: carc.current,
       extensionGuide: extension?.stage === 'guide' ? extension.guide : undefined,
       pathGap: props.pathGap?.read(sk) ?? undefined,

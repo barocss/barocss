@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const baseline = process.argv[3] === '--baseline';
+const editorBaseline = process.argv[3] === '--editor-baseline';
+const testEditor = editorBaseline || process.argv[3] === '--editor';
 const pins = ['apps/cad-studio/test/sketch-arc-zoom-browser.mjs', 'apps/cad-studio/src/ui/InlineSketchDimension.tsx',
-  'apps/cad-studio/src/ui/SketchMarks.tsx', 'apps/cad-studio/src/viewport/sketchOverlay.tsx',
+  'apps/cad-studio/src/ui/SketchMarks.tsx', 'apps/cad-studio/src/ui/constraints.css', 'apps/cad-studio/src/viewport/sketchOverlay.tsx',
+  'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/viewport/modelFitArea.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts', 'apps/cad-studio/src/viewport/sketchOutlinePick.ts',
   'packages/barocss-cad-model/src/sketch/select.ts'];
 const f = await createFlow({
-  name: 'sketch-arc-zoom', output: process.argv[2], envFrozen: 'D1143_SOURCE_FROZEN',
+  name: 'sketch-arc-zoom', output: process.argv[2], envFrozen: testEditor ? 'D1144_SOURCE_FROZEN' : 'D1143_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'A zoomed Sketch arc uses one screen path for outline, hover, selection and pick.',
   limits: ['One closed planar sketch with a known 10 mm semicircle in desktop Ortho.'],
@@ -56,6 +59,56 @@ await f.run(async () => {
   const outline = f.page.locator('.vp-overlay polygon.sk-shape').first();
   const hover = f.page.locator('.vp-overlay .sk-pick-edge.hover[data-sketch-entity="edge:1"]');
   const selected = f.page.locator('.vp-overlay .sk-pick-edge.on[data-sketch-entity="edge:1"]');
+  if (testEditor) {
+    f.phase = 'keep the complete radius editor accessible after wheel zoom';
+    await f.frame([[30, 10], [50, 10]]);
+    const at = await world(50, 10);
+    await f.tool('Dimension', 'd');
+    await f.page.mouse.click(...at);
+    const group = f.page.locator('.dim-editor');
+    const field = group.getByRole('spinbutton');
+    await field.waitFor();
+    assert.equal(await field.inputValue(), '10');
+    await group.getByRole('button', { name: 'Diameter (Ø)', exact: true }).click();
+    await field.fill('24');
+    const before = await group.boundingBox();
+    const wheel = await world(30, 10);
+    assert.equal(await f.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.classList.contains('vp-canvas'), wheel), true);
+    await f.page.mouse.move(...wheel);
+    await f.page.mouse.wheel(0, -850);
+    await draw();
+    const after = await group.boundingBox();
+    const viewportRight = box.x + box.width;
+    await f.snapshot('03-editor-after-zoom');
+    f.report.observations.push({ label: 'editor-position', before, after, viewportRight });
+    if (editorBaseline) {
+      assert.ok(after.x + after.width > viewportRight, JSON.stringify(after));
+      assert.fail('The Zoom anchor moved the open radius editor beyond the viewport');
+    }
+    assert.ok(after.x >= box.x && after.x + after.width <= viewportRight, JSON.stringify(after));
+    assert.equal(await field.inputValue(), '24');
+    assert.equal(await group.getByRole('button', { name: 'Diameter (Ø)', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.ok(await field.evaluate(input => document.activeElement === input));
+    for (const control of await group.locator('input, button').all()) {
+      assert.equal(await control.evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        return element.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
+      }), true);
+    }
+    await field.press('Enter');
+    await group.waitFor({ state: 'hidden' });
+    const { doc, bodies } = await f.finishSketch('04-finish-edited-arc');
+    assert.equal(doc.nodes[0].outline.radii[1], 12);
+    assert.equal(doc.nodes[1].height, 2);
+    assert.ok(Math.abs(bodies.bodies[0].volume - 2 * (40 * 24 + Math.PI * 12 ** 2 / 2)) < 1e-7);
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(doc);
+    assert.deepEqual(f.report.downloads, []);
+    f.report.observations.push({ label: 'accepted-edit', radiusMM: 12, extrusionMM: 2, volumeMM3: bodies.bodies[0].volume });
+    return;
+  }
   async function measure() {
     const at = await world(50, 10);
     await f.page.mouse.move(at[0] - 15, at[1] - 4);

@@ -72,6 +72,7 @@ interface SketchOverlayInputs {
   w: number;
   h: number;
   rail?: ScreenBox;
+  dimensionArea?: ScreenBox;
   draft: SketchOverlayDraft;
   bezierPoles: readonly P2[];
   ellipse: EllipseDraft | null;
@@ -93,7 +94,7 @@ interface SketchOverlayInputs {
 
 /** Add the active sketch's SVG marks and return its separate HTML dimension editor. */
 export function drawSketchOverlay({
-  sk, shape, cam, w, h, rail, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, circleChord, overlaidLine, dragTrim, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
+  sk, shape, cam, w, h, rail, dimensionArea, draft, bezierPoles, ellipse, centreArc, extensionGuide, pathGap, circleChord, overlaidLine, dragTrim, inspected, constraintComparison, bandCache, picking, cutting, banding, dimensions, items,
 }: SketchOverlayInputs): ReactNode {
   let editor: ReactNode = null;
   const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -195,8 +196,8 @@ export function drawSketchOverlay({
     const at: [number, number] = [(cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16];
     items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />,
       label(...at, 'Ø' + Math.round(s.r * 2e4) / 1e4, 'diameter', sk.tool === 'dimension'));
-    if (sk.tool === 'dimension' && sk.shape === s && sk.editDim === 'diameter') {
-      editor = <InlineSketchDimension key="diameter" at={at} label="Diameter of circle 1" value={2 * s.r} driving arc={false}
+    if (sk.tool === 'dimension' && sk.shape === s && sk.editDim === 'diameter' && dimensionArea) {
+      editor = <InlineSketchDimension key="diameter" at={at} area={dimensionArea} label="Diameter of circle 1" value={2 * s.r} driving arc={false}
         onConfirm={value => dimensions.onDimCommit?.('diameter', value, s)} onClose={() => dimensions.onDimEdit?.(null)} />;
     }
   } else if (s?.kind === 'slot') {
@@ -258,7 +259,7 @@ export function drawSketchOverlay({
       if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
     }
     if (isSettled(s)) {
-      const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, referenceAnchors, rail, done: sk.done,
+      const marks = sketchMarks({ shape: s, view: { width: w, height: h }, dimensionArea, outlineLabels, referenceAnchors, rail, done: sk.done,
         project: P, outlinePath: index => paths[index], picked: sk.picked ?? [], inspected,
         hover: picking && draft.hover?.kind !== 'parked-outline-point' && draft.hover?.kind !== 'active-circle' ? draft.hover ?? null : null,
         editDim: sk.editDim,

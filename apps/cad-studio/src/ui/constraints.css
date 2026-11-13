@@ -26,9 +26,9 @@
 .dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* (z 7: above the top bar, z 6, so a dimension near the window's top edge stays editable, O137; below the palette's backdrop, 10.) */
 .dim-editor { position: absolute; z-index: 9; display: flex; align-items: center; gap: 4px; }
-.dim-edit { -moz-appearance: textfield; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
+.dim-edit { -moz-appearance: textfield; box-sizing: border-box; flex: 0 0 84px; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
   font: 500 12px var(--mono); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); outline: none; }
-.dim-mode { display: flex; align-items: center; gap: 1px; padding: 1px; border-radius: 5px; background: var(--panel); border: 1px solid var(--line); }
+.dim-mode { box-sizing: border-box; flex: 0 0 53px; display: flex; align-items: center; gap: 1px; padding: 1px; border-radius: 5px; background: var(--panel); border: 1px solid var(--line); }
 .dim-mode button { width: 24px; height: 22px; border: 0; border-radius: 3px; background: transparent; color: var(--text); font: 500 12px var(--mono); cursor: pointer; }
 .dim-mode button[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); }
 .dim-mode button:focus-visible { outline: 2px solid #8fb8ff; outline-offset: -2px; }

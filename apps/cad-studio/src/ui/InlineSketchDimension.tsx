@@ -1,11 +1,13 @@
 import { useState, type KeyboardEvent } from 'react';
 import { keepsDimensionDraft } from '../sketch/constraintInspection';
+import type { ScreenBox } from './sketchConstraintMarkLayout';
 
 type ArcMode = 'radius' | 'diameter';
 export type DimensionAxis = 'a' | 'h' | 'v';
 
 interface Props {
   at: readonly [number, number];
+  area: ScreenBox;
   value: number;
   label: string;
   driving: boolean;
@@ -15,9 +17,14 @@ interface Props {
   onAxis?(axis: DimensionAxis): void;
 }
 
-export function InlineSketchDimension({ at, value, label, driving, arc, onConfirm, onClose, onAxis }: Props) {
+export function InlineSketchDimension({ at, area, value, label, driving, arc, onConfirm, onClose, onAxis }: Props) {
   const [entry, setEntry] = useState<{ mode: ArcMode; text: string }>({ mode: 'radius', text: String(value) });
   const inputLabel = entry.mode === 'diameter' ? label.replace(/^Radius/, 'Diameter') : label;
+  const width = arc ? 141 : 84, height = 26;
+  const clamp = (preferred: number, lower: number, upper: number) =>
+    Number.isFinite(preferred) ? Math.max(lower, Math.min(upper, preferred)) : lower;
+  const left = clamp(at[0] - 42, area.x, area.x + area.width - width);
+  const top = clamp(at[1] - 13, area.y, area.y + area.height - height);
 
   function changeMode(mode: ArcMode) {
     setEntry(current => {
@@ -49,7 +56,7 @@ export function InlineSketchDimension({ at, value, label, driving, arc, onConfir
   }
 
   return (
-    <div className="dim-editor" data-sketch-dimension-focus style={{ left: at[0] - 42, top: at[1] - 13 }}
+    <div className="dim-editor" data-sketch-dimension-focus style={{ left, top, width, height }}
       onKeyDown={onKeyDown} onBlur={event => { if (!keepsDimensionDraft(event.relatedTarget)) onClose(); }}>
       <input className="dim-edit" data-sketch-action type="number" step="any" autoFocus value={entry.text}
         aria-label={inputLabel} title={`${inputLabel}${arc ? ' (mm)' : ''}${driving ? '' : ' · Enter adds it as a driving dimension'}${onAxis ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}

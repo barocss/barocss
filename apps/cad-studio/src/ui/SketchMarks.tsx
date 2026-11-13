@@ -15,7 +15,7 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number, source: Polygon | Extract<SketchShape, { kind: 'circle' }>): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; outlinePath(index: number): readonly XY[]; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+interface Args extends MarkHandlers { shape: Polygon; project: Project; outlinePath(index: number): readonly XY[]; view: { width: number; height: number }; dimensionArea?: ScreenBox; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
   done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
@@ -34,7 +34,7 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, outlinePath, view, outlineLabels, referenceAnchors, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, outlinePath, view, dimensionArea, outlineLabels, referenceAnchors, rail, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
   const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map(referenceAnchors);
@@ -209,10 +209,10 @@ export function sketchMarks({ shape: s, project, outlinePath, view, outlineLabel
     const at = anchors.get(editDim) ?? (cc ? halfway(centreOf(+cc[1]), centreOf(+cc[2])) : ce ? (() => { const c = s.circles?.[+ce[2]]; const e = +ce[1];
       return c && s.points[e] ? halfway(P(footOf(e, s.hv?.h.includes(e) ? 1 : 0, c.c)), P(c.c)) : null; })() : cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
-    if (v !== null && at) {
+    if (v !== null && at && dimensionArea) {
       const pair = d ?? cd ?? cc;
       const axes = cc ? { a: 'ccdist', h: 'ccdx', v: 'ccdy' } : cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' };
-      html = <InlineSketchDimension key={editDim} at={at} value={v} label={dimensionLabel(s, editDim)}
+      html = <InlineSketchDimension key={editDim} at={at} area={dimensionArea} value={v} label={dimensionLabel(s, editDim)}
         driving={authored !== undefined} arc={editDim.startsWith('rad')}
         onConfirm={value => onDimCommit?.(editDim, value, s)} onClose={() => onDimEdit?.(null)}
         onAxis={pair ? (axis: DimensionAxis) => onDimEdit?.(axes[axis] + pair[1] + '_' + pair[2]) : undefined} />;

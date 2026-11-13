@@ -1,0 +1,104 @@
+{
+  "decision": "D1144",
+  "tier": "SMALL",
+  "parent": "47b9203d7f12146d1202be804c51d4222ccba896",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1144-<run>",
+    "D1144_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-zoom-browser.mjs <external-evidence>/<run> --editor-baseline|--editor",
+    "D1143_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-zoom-browser.mjs <external-evidence>/path-regression",
+    "D1098_SOURCE_FROZEN=1 node apps/cad-studio/test/standalone-circle-diameter-browser.mjs <external-evidence>/circle-regression",
+    "D718_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-arc-diameter-browser.mjs <external-evidence>/radius-regression",
+    "cd apps/cad-studio && node scripts/test.mjs constraints handle-value-box",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/sketch-arc-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 383,
+      "receiptSHA256": "4ff3f28a453a487a933af8f959a001e7cc1354217abf04d4075387eba7b779ee",
+      "sourceManifestSHA256": "dfa2f4f2a5be620da4e4fab67fbc5f3617c020b86ebed24553013a287d566b61"
+    },
+    "final": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 383,
+      "receiptSHA256": "c205f71e92c24d271b10684a056ce5264e9da34653c03a3ddb283b603ca13ff4",
+      "sourceManifestSHA256": "3281d8102cdbc89af24e9fbdf7b01b2bbf28e30224943fa0eed180a304d2894e"
+    },
+    "path-regression": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 383,
+      "receiptSHA256": "f03836b863af5650c609ebb26199d56d85d0f1201e0c09558c3e4a0fa5e1acbd",
+      "sourceManifestSHA256": "3281d8102cdbc89af24e9fbdf7b01b2bbf28e30224943fa0eed180a304d2894e"
+    },
+    "circle-regression": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "f6f2bc8de1508560b5b71ed93c36d4f02866612e0d83766451f7f0e2b37f8af3",
+      "sourceManifestSHA256": "cf47d156b4d7de951c216b34af3ba29687c0f9769d67f4b383de5183d3ef65c0"
+    },
+    "radius-regression": {
+      "status": "PASS",
+      "states": 13,
+      "frozenFiles": 866,
+      "receiptSHA256": "01a9e25643314c3b48cd5e2df84006b01378398cb12d90b61dc551a38b48b2e6",
+      "sourceManifestSHA256": "817ea020598d917ae1d5e7f9ecabe37cc12e71d39b42a32687a813822e3eefd2"
+    }
+  },
+  "observations": {
+    "baseline": [
+      {
+        "label": "editor-position",
+        "before": {
+          "x": 951.21875,
+          "y": 487,
+          "width": 141,
+          "height": 26
+        },
+        "after": {
+          "x": 1668.671875,
+          "y": 487,
+          "width": 141,
+          "height": 26
+        },
+        "viewportRight": 1140
+      }
+    ],
+    "final": [
+      {
+        "label": "editor-position",
+        "before": {
+          "x": 951.21875,
+          "y": 487,
+          "width": 141,
+          "height": 26
+        },
+        "after": {
+          "x": 987,
+          "y": 487,
+          "width": 141,
+          "height": 26
+        },
+        "viewportRight": 1140
+      },
+      {
+        "label": "accepted-edit",
+        "radiusMM": 12,
+        "extrusionMM": 2,
+        "volumeMM3": 2372.3893421169305
+      }
+    ]
+  },
+  "focused": {
+    "studioPassed": 27,
+    "failed": 0
+  }
+}
