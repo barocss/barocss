@@ -325,7 +325,7 @@ function SplineSection({ s, def, onShape, onError }: { s: Polygon; def: SplineDe
         <DraftInput key={'h' + i} label={`Fit point ${i + 1} handle`} placeholder={String(Math.round(auto[i] * 10) / 10)} value={def.handles?.[i] == null ? '' : String(def.handles[i])} onCommit={t => setHandle(i, t)} />,
       ])}
     </div>
-    <p className="muted small">Enter applies a value; empty handle: automatic. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+    <p className="muted small">Enter applies a value; empty handle: automatic.</p>
   </>;
 }
 /** An ellipse outline's centre, semi-axes (mm) and the first axis's angle (degrees), applied on Enter or blur. */
@@ -344,7 +344,7 @@ function EllipseSection({ s, def, onShape, onError }: { s: Polygon; def: Ellipse
         <DraftInput key={key} label={label} value={String(round(value))} onCommit={t => set(key, t)} />,
       ])}
     </div>
-    <p className="muted small">Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+    <p className="muted small">Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5.</p>
   </>;
 }
 /** B1: the Band tool's picks and Make band (offset and width as typed), or the made band's Offset / Width (Enter or blur) with Remove band; a refusal in red. */

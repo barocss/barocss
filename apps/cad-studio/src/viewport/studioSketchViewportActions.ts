@@ -1,6 +1,7 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { toggleBandPick } from '@barocss/cad-model/sketch/band';
 import type { SketchNode } from '@barocss/cad-model/engine/doc';
+import { ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, commitInlineDimension, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
@@ -52,7 +53,16 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
     },
     onSketchShape: updateShape,
     onSketchTrim: trimSketch,
-    onSketchPick: (hit, additive) => setSketch(sketch => sketch && sketchClick(sketch, hit, additive)),
+    onSketchPick(hit, additive) {
+      const source = liveShape.current;
+      if (sketch?.tool === 'dimension' && hit?.kind === 'edge' && source === sketch.shape
+        && source?.kind === 'polygon' && ellipseMatches(source)) {
+        setSketchError('Edit Rx or Ry in the Ellipse section.');
+        setSketch(current => current === sketch ? { ...current, picked: [], editDim: null } : current);
+        return;
+      }
+      setSketch(current => current && sketchClick(current, hit, additive));
+    },
     onSketchBandPick: index => setSketch(sketch => sketch && index !== null ? toggleBandPick(sketch, index) : sketch),
     onDimClick(key) {
       const input = document.getElementById('sk-' + key) as HTMLInputElement | null;

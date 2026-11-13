@@ -1,0 +1,59 @@
+{
+  "decision": "D1085",
+  "tier": "SMALL",
+  "parent": "09b3074a8fe914ae89e2c816701ad4d0ef6e6c22",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1085-ellipse-direct-dimension-<run>",
+    "D1085_SOURCE_FROZEN=1 node apps/cad-studio/test/ellipse-sketch-browser.mjs <external-evidence>/<run> --direct-dimension",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-ellipse.test",
+    "cd apps/cad-studio && node scripts/test.mjs sketch-ellipse-studio constraints.test",
+    "pnpm exec eslint apps/cad-studio/src/viewport/studioSketchViewportActions.ts apps/cad-studio/src/ui/SketchPanel.tsx",
+    "node --check apps/cad-studio/test/ellipse-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 7,
+      "frozenFiles": 1082,
+      "receiptSHA256": "f1fa0ea376f31e63b4e559e63054fad64732fb9c0983a4750ad15979dd66bd05",
+      "sourceManifestSHA256": "32950b3193281f93386160e6ec6687e5e5aaf682ea84889b362d68ebeb62bc29",
+      "firstFailure": "Dimension opens Radius of arc 145 on the reopened ellipse without showing how to edit its authored axes."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 1082,
+      "receiptSHA256": "bebd478e7fb4fa3e25fbb1c079144ebca1e840555ea8b1b080248012cfa7df46",
+      "sourceManifestSHA256": "a259c930a1c3e09923e9c4b3f9ad21ee45b91853d71598dea8e3996eb85aa752"
+    }
+  },
+  "metrics": {
+    "rxBeforeMm": 50,
+    "rxAfterMm": 54,
+    "ryMm": 20,
+    "angleDeg": 30,
+    "extrudeMm": 10,
+    "sideIds": 192,
+    "outlineVolumeMm3": 33929.21174347907,
+    "studioVolumeMm3": 33929.21174341433
+  },
+  "notRun": [
+    "full ellipse driver including Make curves",
+    "ellipse rim Fillet or Chamfer",
+    "additional arc picks and point-pair dimensions",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 32,
+    "modelPassed": 17,
+    "failed": 0,
+    "typeChecks": 2,
+    "logSHA256": "ced70798b665f72b5ee8add6ee991508f5a93b824d1dbe15949a0481f9f3a281"
+  }
+}

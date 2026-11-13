@@ -155,11 +155,12 @@ const a=g.knots[g.degree],b=g.knots[g.knots.length-g.degree-1];
 out.curves.push({id:o.id,name:o.name,degree:g.degree,knots:g.knots,controlPoints:g.controlPoints,weights:g.weights,evals:Array.from({length:17},(_,k)=>{const t=a+(b-a)*k/16;return {t,point:evaluateCurve(g,t)};})});}
 assert.equal(JSON.stringify(doc),before);console.log(JSON.stringify(out));`;
 // (JSON form: a key holding undefined is absent from a saved file.)
-const initialFiles = ['apps/cad-studio/test/ellipse-sketch-browser.mjs', 'apps/cad-studio/src/viewport/ellipseDraft.ts', 'apps/cad-studio/test/sketch-ellipse-studio.test.ts', 'packages/barocss-cad-model/test/sketch-ellipse.test.ts', 'packages/barocss-cad-model/src/sketch/ellipse.ts',
+const initialFiles = ['apps/cad-studio/test/ellipse-sketch-browser.mjs', 'apps/cad-studio/src/viewport/ellipseDraft.ts', 'apps/cad-studio/src/viewport/studioSketchViewportActions.ts', 'apps/cad-studio/test/sketch-ellipse-studio.test.ts', 'packages/barocss-cad-model/test/sketch-ellipse.test.ts', 'packages/barocss-cad-model/src/sketch/ellipse.ts',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx', 'apps/cad-studio/src/ui/Hud.tsx', 'apps/cad-studio/src/sketch/useSketchActions.ts',
   'packages/barocss-cad-model/src/sketch/spline.ts', 'packages/barocss-cad-model/src/sketch/profile.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts', 'packages/barocss-cad-model/src/sketch/loops.ts', 'packages/barocss-cad-model/src/sketch/settle.ts',
   'packages/barocss-cad-model/src/sketch/types.ts', 'packages/barocss-cad-model/src/sketch/entityIds.ts', 'packages/barocss-cad-model/src/engine/curveSource.ts', 'packages/barocss-cad-model/src/engine/direct.ts', 'packages/barocss-cad-model/src/engine/doc.ts'];
-const f = await createFlow({ name: 'ellipse', envFrozen: 'ELLIPSE_SOURCE_FROZEN', output: process.argv[2], qualification: 'ELLIPSE_SKETCH_TOOL', initialFiles, oracleSource, inspectorSource: inspectSource,
+const directDimension = process.argv[3] === '--direct-dimension';
+const f = await createFlow({ name: 'ellipse', envFrozen: directDimension ? 'D1085_SOURCE_FROZEN' : 'ELLIPSE_SOURCE_FROZEN', output: process.argv[2], qualification: 'ELLIPSE_SKETCH_TOOL', initialFiles, oracleSource, inspectorSource: inspectSource,
   requiredFrozen: ['packages/barocss-cad-model/src/sketch/ellipse.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx'],
   limits: ['One XY sketch plane from an empty document: one ellipse (centre (10, 5), clicks on the 1 mm grid), edited by the panel (Angle, Ry, Rx), extruded 10 mm.', 'Canvas clicks are real mouse events at pixels from window.__studioScreenOf.',
     'The too-narrow edit (Ry 5 with Rx 60) is refused; the panel field returns to its current value by itself (no Escape key is pressed: Escape would leave the sketch).',
@@ -206,7 +207,7 @@ function checkSketch(node, def, label) {
 }
 await f.run(async () => {
   f.phase = 'empty document'; await newPage(); await f.page.click('[aria-label="New part"]'); await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0); await ready(); const empty = await doc(); assert.equal(empty.nodes.length, 0, 'the document starts empty'); await snapshot('00-empty');
-  f.phase = 'start XY sketch'; await command('Sketch'); await sketchPanel().waitFor(); await sketchPanel().getByLabel('Sketch plane', { exact: true }).selectOption('xy');
+  f.phase = 'start XY sketch'; await f.page.getByLabel('Mode', { exact: true }).getByRole('button', { name: 'Sketch', exact: true }).click(); await sketchPanel().waitFor(); await sketchPanel().getByLabel('Sketch plane', { exact: true }).selectOption('xy');
   await tool('Ellipse', 'i'); await frame(CLICKS);
 
   // 1. Three clicks: centre (10, 5), axis end (60, 5), minor point (10, 30).
@@ -234,6 +235,51 @@ await f.run(async () => {
   assert.deepEqual(doc04.nodes[0], doc03.nodes[0], 'the sketch node is unchanged by the extrude'); assert.equal(doc04.nodes.length, 2); assert.equal(doc04.nodes[1].kind, 'extrude'); assert.equal(Math.abs(doc04.nodes[1].height), 10);
   assert.equal(done04.bodies.bodies.length, 1, 'one body'); const volume04 = done04.bodies.bodies[0].volume; assert.deepEqual(await toasts(), []);
   await inspect('04-native', 'sketch', { ...D2, height: 10 }, volume04);
+
+  if (directDimension) {
+    await newPage();
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), f.page.getByRole('button', { name: 'Open', exact: true }).click()]);
+    await chooser.setFiles({ name: 'ellipse.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc04)) });
+    await same(doc04);
+    await reopenSketch('direct dimension');
+    await tool('Dimension', 'd');
+    const { points, bulges } = doc04.nodes[0].outline;
+    const a = points[144], b = points[145], bulge = bulges[144];
+    const mid = [(a[0] + b[0] + bulge * (b[1] - a[1])) / 2, (a[1] + b[1] - bulge * (b[0] - a[0])) / 2];
+    f.phase = 'find an ellipse arc interior beyond point picking distance';
+    await frame([mid]);
+    for (let i = 0; i < 18; i++) {
+      const pixel = await f.screenOf(mid);
+      const ends = await Promise.all([f.screenOf(a), f.screenOf(b)]);
+      if (ends.every(end => Math.hypot(pixel[0] - end[0], pixel[1] - end[1]) > 11)) break;
+      await f.page.mouse.move(...pixel);
+      await f.page.mouse.wheel(0, -380);
+      await f.page.waitForTimeout(110);
+    }
+    const pixel = await f.screenOf(mid);
+    const ends = await Promise.all([f.screenOf(a), f.screenOf(b)]);
+    assert.ok(ends.every(end => Math.hypot(pixel[0] - end[0], pixel[1] - end[1]) > 9));
+    f.phase = 'select an ellipse arc with Dimension';
+    await worldClick(mid);
+    const picked = await snapshot('10-direct-ellipse-picked');
+    assert.match(await sketchAlert() ?? '', /Edit Rx or Ry in the Ellipse section/);
+    assert.equal(await f.page.locator('.dim-editor').count(), 0);
+    assert.deepEqual(picked.doc, doc04);
+    assert.deepEqual(valuesOf(await ellipseRows()), D2);
+    await setField('Rx', '54');
+    assert.equal(await sketchAlert(), null);
+    const edited = await finishSketch('11-direct-ellipse-edited');
+    const expected = { ...D2, rx: 54 };
+    checkSketch(edited.doc.nodes[0], expected, '11');
+    assert.deepEqual(edited.doc.nodes[0].sideTags, doc04.nodes[0].sideTags);
+    assert.deepEqual(edited.doc.nodes[1], doc04.nodes[1]);
+    await inspect('11-direct-ellipse-native', 'sketch', { ...expected, height: 10 }, edited.bodies.bodies[0].volume);
+    await undo();
+    await same(doc04);
+    await redo();
+    await same(edited.doc);
+    return;
+  }
 
   // 4b. Fillet on a top rim edge of the ellipse body is refused (the command is unavailable): a toast with the reason, no HUD, no node added. The edge (the first outer side meeting the top, at the +Rx end) is picked by the readonly-named pick hook of the other drivers.
   f.phase = 'Fillet refused on an ellipse side edge'; const first = doc04.nodes[0].sideTags.outer[0], extIndex = doc04.nodes.length - 1;
