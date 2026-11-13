@@ -1,0 +1,56 @@
+{
+  "decision": "D1098",
+  "tier": "FEATURE",
+  "parent": "6c2463834cef60dd613437bb2290b4d218dd0534",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1098-standalone-circle-diameter-<run>",
+    "D1098_SOURCE_FROZEN=1 node apps/cad-studio/test/standalone-circle-diameter-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/viewport/{sketchOutlinePick,studioSketchViewportActions,viewportPointerInput}.ts apps/cad-studio/src/viewport/sketchOverlay.tsx apps/cad-studio/src/ui/{InlineSketchDimension,SketchMarks}.tsx",
+    "node --check apps/cad-studio/test/standalone-circle-diameter-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 859,
+      "receiptSHA256": "060a834f81bcab02a654f45449c2f22c8e2f4dfe02705bcf053823b049e6361f",
+      "sourceManifestSHA256": "80a14dc99829f931f9a593b31555bb094a178bf4bd7b3947eb7913a3976a0e19",
+      "firstFailure": "A standalone 18 mm circle opened from a native document has no inline diameter editor after a Dimension rim click."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 859,
+      "receiptSHA256": "d973357659b584eb14a71e8e27d60970ce56d92535def70deda3954e67cde8d0",
+      "sourceManifestSHA256": "5a8c09902ac10edfe24e71abc716fc7d98f68f3a93eb49508afc9220cf0fc33f"
+    }
+  },
+  "diametersMM": [
+    18,
+    22
+  ],
+  "extrudeMM": 5,
+  "standaloneVolumeMM3": [
+    1272.3450247038668,
+    1900.6635554218249
+  ],
+  "nestedVolumeMM3": 15599.33644457815,
+  "intermediateObserver": {
+    "status": "FAIL",
+    "firstFailure": "The first run found the inline editor but its exact Diameter locator did not include the panel label's unit text."
+  },
+  "intermediateVisual": {
+    "status": "FAIL",
+    "firstFailure": "The first shared projection emitted SVG depth values as points. The final run verifies 72 two-coordinate points and the visual result."
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 35,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

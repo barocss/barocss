@@ -11,6 +11,7 @@ import { hvOf, isSettled, type Polygon, type SketchPick } from '@barocss/cad-mod
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
+import { InlineSketchDimension } from '../ui/InlineSketchDimension';
 import type { ScreenBox } from '../ui/sketchConstraintMarkLayout';
 import type { OrbitCamera } from './camera';
 import type { DragTrimPreview } from './dragTrimStroke';
@@ -20,7 +21,7 @@ import type { PathGapDraft } from '../sketch/usePathGap';
 import type { OverlaidLine } from '../sketch/overlaidLines';
 import { draftEllipse, ellipseAxis, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { closedSplineOf, splineHandleGeometry } from './splineHandles';
-import type { SketchViewportPick } from './sketchOutlinePick';
+import { projectSketchCircle, type SketchViewportPick } from './sketchOutlinePick';
 
 function coversSegment(box: ScreenBox, a: readonly number[], b: readonly number[]): boolean {
   let lo = 0, hi = 1;
@@ -113,10 +114,14 @@ export function drawSketchOverlay({
   const outlineLabels: ScreenBox[] = [];
   const referenceAnchors = new Map<string, [number, number]>();
   const labelBox = (x: number, y: number): ScreenBox => ({ x: x - 26, y: y - 11, width: 52, height: 22 });
-  const label = (x: number, y: number, text: string, key: string) => {
+  const label = (x: number, y: number, text: string, key: string, openInline = false) => {
     const box = labelBox(x, y);
     if (!key.startsWith('live')) outlineLabels.push(box);
-    return <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); dimensions.onDimClick?.(key); }}
+    return <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => {
+      if (key.startsWith('live')) return;
+      e.stopPropagation(); e.preventDefault();
+      if (openInline) dimensions.onDimEdit?.(key); else dimensions.onDimClick?.(key);
+    }}
       onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); dimensions.onDimEdit?.(key); } }}>
       <rect {...box} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>;
   };
@@ -179,10 +184,20 @@ export function drawSketchOverlay({
     const top = P((x0 + x1) / 2, y0), side = P(x1, (y0 + y1) / 2);
     items.push(label(top[0], top[1] + 20, String(x1 - x0), 'width'), label(side[0] + 36, side[1], String(y1 - y0), 'height'));
   } else if (s?.kind === 'circle') {
-    const pts = Array.from({ length: 72 }, (_, i) => P(s.c[0] + s.r * Math.cos(i / 36 * Math.PI), s.c[1] + s.r * Math.sin(i / 36 * Math.PI)));
-    items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
+    const points = projectSketchCircle(s, P).map(point => point.join(',')).join(' ');
+    items.push(<polygon key="c" points={points} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
+    if (sk.tool === 'dimension' && draft.hover?.kind === 'active-circle' && draft.hover.outline === s) {
+      items.push(<polygon key="active-circle-hover" points={points} className="sk-pick-edge hover" />);
+    }
     const cc = P(s.c[0], s.c[1]); items.push(<circle key="cc" cx={cc[0]} cy={cc[1]} r={3} className="sk-point" />);
-    const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'Ø' + s.r * 2, 'diameter'));
+    const e = P(s.c[0] + s.r, s.c[1]);
+    const at: [number, number] = [(cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16];
+    items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />,
+      label(...at, 'Ø' + s.r * 2, 'diameter', sk.tool === 'dimension'));
+    if (sk.tool === 'dimension' && sk.shape === s && sk.editDim === 'diameter') {
+      editor = <InlineSketchDimension key="diameter" at={at} label="Diameter of circle 1" value={2 * s.r} driving arc={false}
+        onConfirm={value => dimensions.onDimCommit?.('diameter', value, s)} onClose={() => dimensions.onDimEdit?.(null)} />;
+    }
   } else if (s?.kind === 'slot') {
     const ring = s.r > 0 ? sampleSlot(s.a, s.b, s.r).map(p => P(p[0], p[1])) : [P(s.a[0], s.a[1]), P(s.b[0], s.b[1])];
     items.push(s.r > 0 ? <polygon key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
@@ -238,7 +253,9 @@ export function drawSketchOverlay({
     }
     if (isSettled(s)) {
       const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, referenceAnchors, rail, done: sk.done,
-        project: P, picked: sk.picked ?? [], inspected, hover: picking && draft.hover?.kind !== 'parked-outline-point' ? draft.hover ?? null : null, editDim: sk.editDim,
+        project: P, picked: sk.picked ?? [], inspected,
+        hover: picking && draft.hover?.kind !== 'parked-outline-point' && draft.hover?.kind !== 'active-circle' ? draft.hover ?? null : null,
+        editDim: sk.editDim,
         onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit });
       items.splice(underIndex, 0, ...marks.under);
       items.push(...marks.svg);

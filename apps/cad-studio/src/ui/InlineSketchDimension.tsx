@@ -51,7 +51,7 @@ export function InlineSketchDimension({ at, value, label, driving, arc, onConfir
   return (
     <div className="dim-editor" data-sketch-dimension-focus style={{ left: at[0] - 42, top: at[1] - 13 }}
       onKeyDown={onKeyDown} onBlur={event => { if (!keepsDimensionDraft(event.relatedTarget)) onClose(); }}>
-      <input className="dim-edit" type="number" step="any" autoFocus value={entry.text}
+      <input className="dim-edit" data-sketch-action type="number" step="any" autoFocus value={entry.text}
         aria-label={inputLabel} title={`${inputLabel}${arc ? ' (mm)' : ''}${driving ? '' : ' · Enter adds it as a driving dimension'}${onAxis ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         onFocus={event => event.currentTarget.select()}
         onChange={event => { const text = event.currentTarget.value; setEntry(current => ({ ...current, text })); }} />

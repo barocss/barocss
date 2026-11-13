@@ -13,7 +13,7 @@ import './constraints.css';
 export interface MarkHandlers {
   onDimClick?(key: string): void;
   onDimEdit?(key: string | null): void;
-  onDimCommit?(key: string, value: number, source: Polygon): void;
+  onDimCommit?(key: string, value: number, source: Polygon | Extract<SketchShape, { kind: 'circle' }>): void;
 }
 interface Args extends MarkHandlers { shape: Polygon; project: Project; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; referenceAnchors: ReadonlyMap<string, XY>; rail?: ScreenBox; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */

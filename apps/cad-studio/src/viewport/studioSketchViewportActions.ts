@@ -27,6 +27,7 @@ interface SketchViewportInputs {
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
   setSketchError(reason: string): void;
   clearOutlinePickIssue(): void;
+  updateCircleDiameter(shape: Extract<SketchShape, { kind: 'circle' }>, diameter: number): void;
   setLengthConflict(reason: string, source: Polygon, edge: number): void;
   updateShape: SceneSketchActions['onSketchShape'];
   trimSketch: NonNullable<SceneSketchActions['onSketchTrim']>;
@@ -46,7 +47,7 @@ function canRecoverLength(sketch: SketchState | null, opened: ReopenedSketchSour
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */
-export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, clearOutlinePickIssue, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
+export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, clearOutlinePickIssue, updateCircleDiameter, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
   const applyDimension = (opened: ReopenedSketchSource | undefined, source: Polygon, key: string, value: number) => {
     const result = opened ? commitInlineDimension(source, key, value) : commitDimension(source, key, value);
     if (!result.ok) {
@@ -71,6 +72,13 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
     onSketchTrim: trimSketch,
     onSketchPick(hit, additive) {
       const source = liveShape.current;
+      if (hit?.kind === 'active-circle') {
+        if (source === hit.outline && source === sketch?.shape && sketch.tool === 'dimension') {
+          clearOutlinePickIssue();
+          setSketch(current => current === sketch ? { ...current, picked: [], editDim: 'diameter' } : current);
+        }
+        return;
+      }
       if (hit?.kind === 'parked-outline-point') {
         if (!sketch || source !== sketch.shape || !sketch.done?.includes(hit.outline)) return;
         if (sketch.tool === 'dimension' && sketch.picked?.some(pick => pick.kind === 'point')) {
@@ -99,9 +107,23 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
       input?.focus();
       input?.select();
     },
-    onDimEdit: editDim => setSketch(sketch => sketch && { ...sketch, editDim }),
+    onDimEdit: editDim => {
+      if (editDim === null && liveShape.current?.kind === 'circle' && liveShape.current !== sketch?.shape) return;
+      setSketch(sketch => sketch && { ...sketch, editDim });
+    },
     onDimCommit(key, value, source) {
       if (liveShape.current !== source) return;
+      if (source.kind === 'circle') {
+        if (key !== 'diameter' || sketch?.shape !== source || sketch.editDim !== key) return;
+        const valid = Number.isFinite(value) && value >= 0.5;
+        if (valid && value !== 2 * source.r) {
+          updateCircleDiameter(source, value);
+          return;
+        }
+        if (!valid) setSketchError('Diameter must be at least 0.5 mm.');
+        setSketch(current => current === sketch ? { ...current, editDim: null } : current);
+        return;
+      }
       const opened = key === 'len2' ? currentSketchSource() : undefined;
       setSketch(sketch => sketch && { ...sketch, editDim: null });
       if (value === drivingDimensionValue(source, key)) return;

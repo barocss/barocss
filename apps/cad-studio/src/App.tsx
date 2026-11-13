@@ -1754,6 +1754,11 @@ export function App() {
   const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, setActiveOutline);
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError,
     clearOutlinePickIssue: () => setSketchIssue(issue => isOutlinePickIssue(issue?.reason) ? null : issue),
+    updateCircleDiameter: (shape, diameter) => {
+      const owner = renderedSketch.current;
+      if (owner.draft !== sketch || owner.generation !== sketchGeneration.current) return;
+      updateShape({ ...shape, r: diameter / 2 }, false, 'panel');
+    },
     setLengthConflict: (reason, source, edge) => setSketchIssue({ reason, conflict: { doc, source, edge } }), updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
