@@ -10,7 +10,8 @@ const mirroredBaseline = mode === '--mirrored-baseline';
 const relockBaseline = mode === '--fillet-relock-baseline';
 const filletRelock = relockBaseline || mode === '--fillet-relock';
 const lockOrder = mode === '--lock-order';
-const reversed = mode === '--reversed' || mode === '--reversed-baseline' || filletRelock || lockOrder;
+const freeFillet = mode === '--free-fillet';
+const reversed = mode === '--reversed' || mode === '--reversed-baseline' || filletRelock || lockOrder || freeFillet;
 const reversedBaseline = mode === '--reversed-baseline';
 const measureArea = mode === '--measure-area';
 const sourceMeasure = mode === '--source-measure' || measureArea;
@@ -35,10 +36,10 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: freeFillet ? 'D1084_SOURCE_FROZEN' : lockOrder ? 'D1083_SOURCE_FROZEN' : tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: lockOrder ? 'Verify both radius lock orders on the reversed pinned XY Round.' : tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
+  qualification: freeFillet ? 'Verify the source radius limit while the fillet is unlocked.' : lockOrder ? 'Verify both radius lock orders on the reversed pinned XY Round.' : tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
     : oblique ? 'Verify the pinned line–arc Round on one translated oblique working plane.'
     : filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
     : reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
@@ -644,7 +645,7 @@ async function checkReversedRound() {
   await open(doc);
   await edit();
   f.phase = 'round an incoming native arc and outgoing line';
-  await applyRound([40, 20], filletRelock || lockOrder ? 4 : 3);
+  await applyRound([40, 20], filletRelock || lockOrder || freeFillet ? 4 : 3);
   const alert = () => f.sketchPanel().getByRole('alert');
   if (reversedBaseline) {
     await alert().waitFor();
@@ -698,6 +699,59 @@ async function checkReversedRound() {
   await field(4).waitFor();
   assert.equal(await alert().count(), 0);
   await fullyDefined();
+  if (freeFillet) {
+    const r4 = (await f.finishSketch('01-free-fillet-start')).doc;
+    await check('free-fillet-start', r4, 4);
+    await edit();
+    const source = field(3), fillet = field(4);
+    const locked = input => input.evaluate(element => element.classList.contains('locked'));
+    await fillet.fill('');
+    assert.equal(await locked(fillet), false);
+    assert.equal(await locked(source), true);
+    const before = await f.snapshot('02-free-fillet-unlocked');
+    for (const value of ['9', '10']) {
+      f.phase = 'refuse source R' + value + ' with the fillet unlocked';
+      await source.fill(value);
+      assert.match(await f.sketchAlert() ?? '', new RegExp('R' + value + ' does not fit on both finite sides'));
+      const refused = await f.snapshot('03-free-fillet-refused-R' + value);
+      for (const key of ['doc', 'history', 'outlineInputs', 'dirty']) assert.deepEqual(refused[key], before[key], key);
+      assert.equal(await locked(fillet), false);
+      assert.equal(await locked(source), true);
+    }
+    f.phase = 'edit the source to R16 and keep the fillet free';
+    await source.fill('16');
+    assert.equal(await source.inputValue(), '16');
+    assert.equal(await locked(fillet), false);
+    assert.equal(await alert().count(), 0);
+    const current = (await f.finishSketch('04-free-fillet-source-R16')).doc;
+    const native = await f.inspect('free-fillet-source-R16-native', current);
+    const outline = current.nodes[0];
+    assert.deepEqual(outline.sideTags.outer, r4.nodes[0].sideTags.outer);
+    assert.deepEqual(outline.outline.radii, { 2: 16 });
+    assert.deepEqual(outline.outline.tangents, [2, 3, 4]);
+    assert.deepEqual(outline.outline.rules, [{ kind: 'fix', point: 2, at: [20, 40] }]);
+    const retained = native.cylinders.find(face => face.name === 'n1.side[e2]');
+    const round = native.cylinders.find(face => face.name === 'n1.side[e5]');
+    assert.equal(native.cylinders.length, 2);
+    near(retained.r, 16);
+    retained.c.slice(0, 2).forEach((value, i) => near(value, [20, 24][i]));
+    near(round.r, 2.576380, 1e-6);
+    near(native.volume, independentRound(round.r, 16).volume, 1e-7);
+    near((await f.bodies()).bodies[0].volume, native.volume, 1e-7);
+    f.report.observations.push({ label: 'free-fillet-source-R16', filletRadiusMm: round.r,
+      volumeMm3: native.volume, expectedVolumeMm3: independentRound(round.r, 16).volume });
+    await f.undo();
+    await f.same(r4);
+    await f.redo();
+    await f.same(current);
+    const bytes = await save(current);
+    await f.newPage();
+    await open(current, bytes);
+    await edit();
+    assert.equal(await field(3).inputValue(), '16');
+    assert.equal(await locked(field(4)), false);
+    return;
+  }
   if (lockOrder) {
     const r4 = (await f.finishSketch('01-lock-order-start-R4')).doc;
     await check('lock-order-start-R4', r4, 4);

@@ -1,0 +1,62 @@
+{
+  "decision": "D1084",
+  "tier": "SMALL",
+  "parent": "0b3edb2b4fc8277796f32fc8a2f40ef505e39cdc",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1084-round-free-fillet-<run>",
+    "D1084_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/<run> --free-fillet",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds constraint-list sketch-framing",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 858,
+      "receiptSHA256": "477e811d81b714fe4b9da9c9a3bd1b44dcc16dbab2d8f75a93c366e49846ed52",
+      "sourceManifestSHA256": "43ef2b48afde4164853d19eadc11c436aeb39e4e5c97de82b06cc271613bf08c",
+      "firstFailure": "With only the fillet unlocked, Studio accepts source R9 without an alert."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 858,
+      "receiptSHA256": "180f705fa48037054550dab8845d1974dcd1b6e2938905f31141700def02a3f2",
+      "sourceManifestSHA256": "9801be5196c40f2dfefa6c7f8f2794fcd4955ab587163f7f996ccd39b31e71ed"
+    }
+  },
+  "metrics": {
+    "sourceRadiusBeforeMm": 20,
+    "rejectedSourceRadiiMm": [
+      9,
+      10
+    ],
+    "acceptedSourceRadiusMm": 16,
+    "freeFilletRadiusMm": 2.5763798561884252,
+    "extrudeMm": 10,
+    "expectedVolumeMm3": 6634.134464368998,
+    "nativeVolumeMm3": 6634.134464368974,
+    "volumeToleranceMm3": 1e-07
+  },
+  "notRun": [
+    "desktop source edits through the canvas",
+    "desktop draft Undo immediately after a refused edit",
+    "oblique and broader Round profiles",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "modelPassed": 65,
+    "failed": 0,
+    "typeChecks": 2,
+    "logSHA256": "165508e0142f5f3f43af9b8ba8b8a957fd7e95003deb31b9ee04aff4835da3e8"
+  }
+}

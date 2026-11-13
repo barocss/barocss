@@ -422,6 +422,33 @@ test('pinned Round guards the fillet radius when re-locking in either traversal'
   }
 });
 
+test('pinned Round rejects the source radius limit while its fillet is unlocked', () => {
+  for (const reverse of [false, true]) {
+    const index = reverse ? 3 : 1;
+    const rounded = roundCorner(reverse ? reversedPinned() : pinned(), index, 4);
+    if ('error' in rounded) assert.fail(rounded.error);
+    const { shape: openFillet } = settleShape(removeConstraint(rounded.shape, `rad:${index}`), rounded.shape);
+    assert.equal(openFillet?.kind, 'polygon');
+    for (const radius of [9, 10, 10.00000001]) {
+      const inline = commitInlineDimension(openFillet, 'rad2', radius);
+      assert.ok(!inline.ok);
+      assert.match(inline.reason, /does not fit on both finite sides/);
+      const panel = settleShape({ ...openFillet, radii: { 2: radius } }, openFillet);
+      assert.equal(panel.shape, openFillet);
+      assert.match(panel.error ?? '', /does not fit on both finite sides/);
+    }
+    const inline = commitInlineDimension(openFillet, 'rad2', 16);
+    if (!inline.ok) assert.fail(inline.reason);
+    const { shape: panel, error } = settleShape({ ...openFillet, radii: { 2: 16 } }, openFillet);
+    assert.equal(error, null);
+    assert.deepEqual(inline.shape, panel);
+    assert.deepEqual(inline.shape.radii, { 2: 16 });
+    const radius = arcOf(inline.shape.points[index], inline.shape.points[index + 1], inline.shape.bulges![index]).radius;
+    assert.ok(radius > 2.57 && radius < 2.58);
+    checkRoundedGeometry(inline.shape, radius, 1, 16, 20, reverse);
+  }
+});
+
 test('pinned line–arc Round keeps the radius guard when Finish allocates the largest safe side ID', () => {
   const source = pinned(), max = Number.MAX_SAFE_INTEGER;
   source.ids = ['e1', 'e2', 'e3', `e${max}`];
