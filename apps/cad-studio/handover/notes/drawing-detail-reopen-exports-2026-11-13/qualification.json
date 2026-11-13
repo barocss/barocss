@@ -1,0 +1,51 @@
+{
+  "decision": "D982",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "67174b3b32da87118be4b7827473630b29664733",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D982-detail-split-export",
+    "PATH=<existing-ezdxf-venv>/bin:$PATH D982_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-ownership-browser.mjs <external-evidence>/studio02 --issue-split-export",
+    "node --check apps/cad-studio/test/detail-ownership-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "77879a1a350c77143db281fb0af49fc332b4c7e5f2538be2a9aae72ea2fec010",
+    "sourceManifestSHA256": "08062f8886304970a9a51ecf5699e802de21365f9bd4e046218cb7fef03f3aaa",
+    "frozenFiles": 385,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "browserDownloadEvents": 0,
+    "exactFreshReopen": true
+  },
+  "exports": {
+    "status": "PASS",
+    "svgSheets": 2,
+    "dxfVersion": "AC1015",
+    "ezdxf": "1.4.5",
+    "pdfPages": 2,
+    "poppler": "26.05.0",
+    "holeDiameterMM": 12,
+    "detailRimRadiusOnSheetMM": 12,
+    "frameValuesMM": [
+      0.05,
+      0.07
+    ]
+  },
+  "remaining": [
+    "Browser reference choice warning after fresh Open despite rendered and exported diameter"
+  ],
+  "notRun": [
+    "PDF raster visual review",
+    "standards-level PDF qualification",
+    "WebGL2",
+    "type-check",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

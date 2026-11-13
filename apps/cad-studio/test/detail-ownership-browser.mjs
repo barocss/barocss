@@ -6,11 +6,13 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed', '--issue-fix-all-baseline', '--issue-fix-all-fixed', '--issue-split-move-baseline', '--issue-split-move-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed', '--issue-fix-all-baseline', '--issue-fix-all-fixed', '--issue-split-move-baseline', '--issue-split-move-fixed', '--issue-split-export'].includes(mode));
 const issueMove = mode.startsWith('--issue-move-');
 const issueFixAll = mode.startsWith('--issue-fix-all-');
-const splitMove = mode.startsWith('--issue-split-move-');
+const splitExport = mode === '--issue-split-export';
+const splitMove = splitExport || mode.startsWith('--issue-split-move-');
 const splitDetail = issueFixAll || splitMove;
+const exportReader = new URL('repaired-detail-export-reader.py', import.meta.url);
 await mkdir(output, { recursive: true });
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document: model } } = JSON.parse(await readFile(modelPath));
@@ -82,13 +84,15 @@ print(json.dumps({"status": "PASS", "details": r["details"], "dimensions": r["di
 `;
 
 const f = await createFlow({
-  name: 'detail-ownership', envFrozen: splitMove ? 'D981_SOURCE_FROZEN' : issueFixAll ? 'D980_SOURCE_FROZEN' : issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
-  qualification: splitMove ? 'Move an empty detail on its parent sheet and retain its separate sheet assignment.' : issueFixAll ? 'Keep an annotated split detail and report unresolved issues after Fix all.' : issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
-  initialFiles: [import.meta.filename, modelPath, ...files.values()], oracleSource: oracle,
-  extraFrozen: ['packages/barocss-cad-model/src/drawing/issues.ts', 'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
+  name: 'detail-ownership', envFrozen: splitExport ? 'D982_SOURCE_FROZEN' : splitMove ? 'D981_SOURCE_FROZEN' : issueFixAll ? 'D980_SOURCE_FROZEN' : issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
+  qualification: splitExport ? 'Save, reopen and read SVG, DXF and PDF from the repaired split detail.' : splitMove ? 'Move an empty detail on its parent sheet and retain its separate sheet assignment.' : issueFixAll ? 'Keep an annotated split detail and report unresolved issues after Fix all.' : issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
+  initialFiles: [import.meta.filename, modelPath, ...files.values(), ...(splitExport ? [join(import.meta.dirname, 'repaired-detail-export-reader.py')] : [])],
+  oracleSource: splitExport ? await readFile(exportReader, 'utf8') : oracle,
+  extraFrozen: [...(splitExport ? ['packages/barocss-cad-model/src/io/svg.ts', 'packages/barocss-cad-model/src/io/dxf.ts', 'packages/barocss-cad-model/src/io/pdf.ts'] : []), 'packages/barocss-cad-model/src/drawing/issues.ts', 'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
     'packages/barocss-cad-model/src/drawing/sheets.ts', 'packages/barocss-cad-model/src/drawing/options.ts',
     'apps/cad-studio/src/ui/drawing/DetailsList.tsx', 'apps/cad-studio/src/ui/DrawingWorkspace.tsx'],
-  limits: ['Capture local emitted bytes before browser delivery. No PDF or standards verification.'],
+  limits: [splitExport ? 'Capture local emitted bytes before browser delivery. PDF page and selected annotation verification only.' :
+    'Capture local emitted bytes before browser delivery. No PDF or standards verification.'],
 });
 const start = f.start;
 f.start = async () => {
@@ -112,7 +116,7 @@ f.start = async () => {
       };
       HTMLAnchorElement.prototype.click = function () {
         const blob = blobs.get(this.href), name = this.download;
-        if (!blob || !/\.(bcad|svg)$/.test(name)) return click.call(this);
+        if (!blob || !/\.(bcad|svg|dxf|pdf)$/.test(name)) return click.call(this);
         window.__detailFile = blob.arrayBuffer().then(bytes => ({ name, bytes: [...new Uint8Array(bytes)] }));
         blobs.delete(this.href);
       };
@@ -298,6 +302,26 @@ async function checkIssueMove() {
   await f.same(repaired);
   await checkDimension('b-diameter', 'detail:B', 12);
   await f.snapshot('issue-move-redo');
+  if (splitExport) await checkSplitExports(repaired);
+}
+
+async function checkSplitExports(repaired) {
+  f.phase = 'save and reopen the repaired two-sheet drawing';
+  const saved = await save('repaired');
+  await open(saved.file);
+  await f.same(repaired);
+  const first = await capture('Export SVG', 'reopened-parent');
+  await tab(2);
+  await checkDimension('b-diameter', 'detail:B', 12);
+  const second = await capture('Export SVG', 'reopened-detail');
+  const dxf = await capture('Export DXF', 'reopened-detail');
+  const pdf = await capture('Export PDF', 'reopened-set');
+  assert.ok(first.file.endsWith('-sheet-1.svg'));
+  assert.ok(second.file.endsWith('-sheet-2.svg'));
+  assert.ok(dxf.file.endsWith('-sheet-2.dxf'));
+  await f.runOracle({ parent: first.file, detail: second.file, dxf: dxf.file, pdf: pdf.file }, 'reopened-detail-exports');
+  assert.deepEqual(f.report.downloads, []);
+  await f.snapshot('reopened-export-ready');
 }
 
 async function checkIssueFixAll() {
