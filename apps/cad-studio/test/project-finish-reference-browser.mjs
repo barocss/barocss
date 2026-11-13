@@ -4,6 +4,7 @@ import { createFlow } from './flow-helper.mjs';
 const fileMode = process.argv.includes('--file');
 const legacyMode = process.argv.includes('--legacy');
 const multiMode = process.argv.includes('--multi');
+const varyingMode = process.argv.includes('--varying');
 const pins = [
   'apps/cad-studio/test/project-finish-reference-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -13,10 +14,20 @@ const pins = [
   'packages/barocss-cad-model/src/engine/references.ts',
 ];
 const f = await createFlow({
-  name: 'project-finish-reference', output: process.argv[2], envFrozen: multiMode ? 'D1008_SOURCE_FROZEN' : legacyMode ? 'D1007_SOURCE_FROZEN' : fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
+  name: 'project-finish-reference', output: process.argv[2], envFrozen: varyingMode ? 'D1009_SOURCE_FROZEN' : multiMode ? 'D1008_SOURCE_FROZEN' : legacyMode ? 'D1007_SOURCE_FROZEN' : fileMode ? 'D1006_SOURCE_FROZEN' : 'D1005_SOURCE_FROZEN',
   qualification: (fileMode ? 'File' : 'Project') + ' Open admits a valid held finish repair and refuses an unusable one.',
   limits: ['Individual signed constant-radius single-edge Fillet in a browser project.'],
   initialFiles: pins, requiredFrozen: pins,
+  inspectorSource: varyingMode ? `
+import { readFileSync } from 'node:fs';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const outputs = evaluateCadPart(toPartDocument(doc)).outputs;
+if (outputs.length !== 1) throw Error('Expected one output');
+const [body] = outputs;
+console.log(JSON.stringify({ valid: checkOutput(body).valid, ...massPropertiesOf(body), points: body.brep.vertices.map(vertex => vertex.point) }));
+` : undefined,
   snapshotExtra: () => ({
     title: document.querySelector('.doc-tab input')?.value,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -95,6 +106,75 @@ await f.run(async () => {
   await projectOpen('stock');
   await f.same(stock);
   volume(await f.snapshot('accepted-project-stock'), 630);
+
+  if (varyingMode) {
+    const oldEdge = 'n1.side0|n1.top', newEdge = 'n1.side3|n1.top';
+    const fillet = {
+      id: 'n2', kind: 'fillet', parent: ref(1), edges: [oldEdge], radius: 1,
+      radii: [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: 3, atEnd: true }],
+      sigs: { [oldEdge]: { k: 'line', p: [20, 0, 10], d: [1, 0, 0], s: 40 } },
+    };
+    const make = points => doc([{ ...nodes[0], points }, { ...nodes[1], height: 10 }, fillet], 2);
+    const original = make([[0, 0], [40, 0], [40, 30], [0, 30]]);
+    const changed = make([[40, 0.5], [40, 30], [0, 30], [0, 0.5]]);
+    const cutVolume = (1 - Math.PI / 4) * 40 * (1 + 3 + 9) / 3;
+    await fileOpen('original-varying', original);
+    await f.same(original);
+    volume(await f.snapshot('original-varying-fillet'), 12000 - cutVolume);
+    f.phase = 'open the varying Fillet with a displaced straight edge';
+    await fileOpen('changed-varying', changed);
+    await refs().or(f.page.getByRole('alert').filter({ hasText: 'Could not open this file' })).waitFor();
+    if (await refs().count()) await f.ready();
+    const opened = await f.snapshot('varying-open-result');
+    assert.equal(opened.title, 'changed-varying', opened.notices.join(' '));
+    volume(opened, 11800);
+    assert.equal(opened.doc.nodes[2].suppressed, true);
+    assert.deepEqual(opened.doc.nodes[2].edges, [oldEdge]);
+    await refs().locator('summary').click();
+    const pending = await refs().locator('details').textContent();
+    assert.ok(pending.includes('Candidate 1: ' + newEdge));
+    await button('Use candidate 1', refs()).click();
+    await refs().waitFor({ state: 'hidden' });
+    await f.ready();
+    const confirmed = await f.snapshot('varying-confirmed');
+    assert.deepEqual(confirmed.doc.nodes[2].edges, [newEdge]);
+    assert.deepEqual(confirmed.doc.nodes[2].radii, fillet.radii);
+    assert.deepEqual(confirmed.doc.nodes[2].sigs[newEdge].p, [20, 0.5, 10]);
+    volume(confirmed, 11800 - cutVolume);
+    const native = await f.inspect('varying-native', confirmed.doc);
+    assert.ok(native.valid);
+    assert.ok(Math.abs(native.volume - (11800 - cutVolume)) < 1e-7);
+    const contacts = [[0, 1.5, 10], [0, 0.5, 9], [40, 3.5, 10], [40, 0.5, 7]];
+    for (const contact of contacts) {
+      assert.ok(native.points.some(point => Math.hypot(...point.map((coord, axis) => coord - contact[axis])) < 1e-8), JSON.stringify(contact));
+    }
+    await f.undo();
+    await f.same(opened.doc);
+    await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).waitFor();
+    await f.redo();
+    await f.same(confirmed.doc);
+    await f.newPage();
+    await fileOpen('confirmed-varying', confirmed.doc);
+    await f.same(confirmed.doc);
+    assert.equal(await refs().count(), 0);
+    volume(await f.snapshot('varying-reopened'), 11800 - cutVolume);
+
+    f.phase = 'refuse the replacement when endpoint ownership is ambiguous';
+    const ambiguous = { ...changed, nodes: [...changed.nodes.slice(0, 2), {
+      ...fillet, radii: fillet.radii.map(radius => ({ ...radius, at: [20, 0, 10] })),
+    }] };
+    await fileOpen('ambiguous-varying-endpoints', ambiguous);
+    await refs().waitFor();
+    await f.ready();
+    const held = await f.snapshot('varying-endpoint-ambiguity');
+    assert.equal(held.doc.nodes[2].suppressed, true);
+    assert.deepEqual(held.doc.nodes[2].edges, [oldEdge]);
+    assert.match(await refs().textContent(), /Fillet endpoints cannot be matched.*Feature held/);
+    assert.equal(await refs().getByRole('button', { name: /^Use candidate / }).count(), 0);
+    volume(held, 11800);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   if (multiMode) {
     f.phase = 'open an ordinary two-edge Chamfer with two displaced references';

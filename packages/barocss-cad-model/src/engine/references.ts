@@ -26,7 +26,7 @@ import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
 import { hasSplitShellCapAmbiguity, isSplitCapFace, matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
-import type { Vec3 } from './mesh';
+import type { DisplayEdge, Vec3 } from './mesh';
 
 /** A stored signature (rounded: positions to 1e-6 mm, directions to 1e-9, sizes to 1e-6). */
 /** `n`: the kernel names its display face or edge carried together, when more than one (Signature's `shared`). */
@@ -255,9 +255,22 @@ export async function refreshSignatures(doc: StudioDoc, finals: readonly BodyRes
   return out;
 }
 
+/** A displaced variable-radius edge needs two exact endpoints with an unambiguous assignment. */
+function fitsVaryingEndpoints(radii: readonly { at: Vec3 }[], edge: DisplayEdge): boolean {
+  if (!edge.nativeLine || edge.names.length !== 1) return false;
+  const nearer = ({ at }: { at: Vec3 }) => {
+    const a = Math.hypot(at[0] - edge.a[0], at[1] - edge.a[1], at[2] - edge.a[2]);
+    const b = Math.hypot(at[0] - edge.b[0], at[1] - edge.b[1], at[2] - edge.b[2]);
+    const separation = 1e-9 * Math.max(1, a, b);
+    return Math.abs(a - b) > separation ? Math.sign(a - b) : 0;
+  };
+  const first = nearer(radii[0]), second = nearer(radii[1]);
+  return first !== 0 && first === -second;
+}
+
 export interface Verified { where: string; was: string; now: string }
 /** A reference that cannot be told: several as near (`candidates`), or none alike (gone). */
-export interface Problem { index: number; where: string; node: number | null; name: string; candidates: string[]; reason?: 'ambiguous-split-cap' }
+export interface Problem { index: number; where: string; node: number | null; name: string; candidates: string[]; reason?: 'ambiguous-split-cap' | 'ambiguous-fillet-endpoints' }
 /**
  * The stored references checked against their signatures (a document opened, no prior one to compare with):
  * those whose geometry is now named otherwise substituted and marked; those that cannot be told listed, and the
@@ -287,10 +300,13 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     const finish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') ? node : undefined;
     const splitFinish = finish && (finish.parent.side === 'negative' || finish.parent.side === 'positive') &&
       ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, finish.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));
+    const varying = finish?.kind === 'fillet' && finish.edges.length === 1 && !finish.section &&
+      finish.radii?.length === 2 && finish.radii.every(radius => radius.atEnd === true && typeof radius.radius === 'number')
+      ? finish.radii : undefined;
     const needsChoice = !options?.preserveAgentRematch && (ref.sig.n ?? 1) === 1 && finish &&
       (finish.kind === 'chamfer'
         ? finish.edges.every(edge => finish.sigs?.[edge] && (finish.sigs[edge].n ?? 1) === 1)
-        : finish.edges.length === 1 && !finish.radii && !finish.section);
+        : finish.edges.length === 1 && !finish.section && (!finish.radii || varying !== undefined));
     // Reopen a previously saved unconfirmed match as a decision on the authored edge.
     if (needsChoice && !finish.suppressed && ref.was && ref.was !== ref.name && m !== ref.was) {
       const authored = cands.get(ref.was);
@@ -316,10 +332,18 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
       }
       return;
     }
-    problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: m, ...(ambiguous ? { reason: 'ambiguous-split-cap' as const } : {}) });
+    let reason: Problem['reason'] = ambiguous ? 'ambiguous-split-cap' : undefined;
+    if (needsChoice && varying && ref.node !== null && ref.parent && m.length) {
+      const body = parents.get(parentKey(ref.node, ref.parent));
+      const edges = body?.mesh.edges.filter(edge => fitsVaryingEndpoints(varying, edge)) ?? [];
+      m = m.filter(name => edges.some(edge => edge.names[0] === name));
+      if (!m.length) reason = 'ambiguous-fillet-endpoints';
+    }
+    problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: m, ...(reason ? { reason } : {}) });
     if (ref.node !== null) {
       const n = out.nodes[ref.node];
-      const held = ambiguous ? `Split cap "${ref.name}" is ambiguous` : m.length ? `"${ref.name}" could be ${m.join(' or ')}` : `"${ref.name}" is gone`;
+      const held = reason === 'ambiguous-fillet-endpoints' ? `Fillet endpoints cannot be matched for "${ref.name}"`
+        : ambiguous ? `Split cap "${ref.name}" is ambiguous` : m.length ? `"${ref.name}" could be ${m.join(' or ')}` : `"${ref.name}" is gone`;
       if (!n.suppressed) out.nodes[ref.node] = { ...n, suppressed: true, held };
     }
   });
