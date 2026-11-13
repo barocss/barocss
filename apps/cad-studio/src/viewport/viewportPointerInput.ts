@@ -267,6 +267,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
+  const sketchHoverPointer = useRef<{ clientX: number; clientY: number } | null>(null);
   const [trimStroke] = useState(() => new DragTrimStroke());
   const pointerFrame = () => {
     const cam = camera.current, rect = canvas.current!.getBoundingClientRect();
@@ -311,7 +312,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     propsRef.current.onCursor(null);
     requestRef.current();
   }, [propsRef, requestRef]);
-  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.plane, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft, objectKinds]);
+  useLayoutEffect(clearSketchSnap, [clearSketchSnap, snapPlaneKey, sketch?.plane, sketch?.done, sketch?.hideConstruction, sketch?.tool, extensionDraft]);
   useLayoutEffect(() => {
     if (chordActive && sketchDraft.current.snap?.kind === 'crossing') clearSketchSnap();
   }, [chordActive, clearSketchSnap]);
@@ -494,6 +495,37 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
     return rayOnPlane(plane, origin, dir);
   };
+  const showSketchSnap = (sk: SketchState, target: ReturnType<typeof sketchSnap> | null, point: [number, number] | null) => {
+    const draft = sketchDraft.current;
+    draft.cursor = target?.at ?? (point ? [snap(point[0]), snap(point[1])] : null);
+    draft.snap = target?.snap ?? null;
+    draft.extension = !!target?.extension;
+    livePolygonMiddle.current = !!target?.liveMiddle;
+    propsRef.current.onCursor(draft.cursor ? toWorld(sk.plane, draft.cursor) : null);
+  };
+  const previousObjectKinds = useRef(objectKinds);
+  useLayoutEffect(() => {
+    const previous = previousObjectKinds.current;
+    previousObjectKinds.current = objectKinds;
+    if (previous === objectKinds) return;
+    const pointer = sketchHoverPointer.current;
+    if (previous?.has('crossing') === objectKinds?.has('crossing') || !pointer || !sketch || extensionDraft || chordActive
+      || !crossingBodies || picking(sketch) || cutting(sketch) || banding(sketch) || drag.current.mode
+      || propsRef.current.sketchSnaps?.twoPoint.read()
+      || document.elementFromPoint(pointer.clientX, pointer.clientY) !== canvas.current) {
+      clearSketchSnap();
+      return;
+    }
+    const { x, y, w, h } = local(pointer);
+    const point = sketchPoint(x, y, w, h, sketch.plane);
+    if (!point) { clearSketchSnap(); return; }
+    const target = sketchSnap(x, y, w, h, sketch, point);
+    showSketchSnap(sketch, target, point);
+    const shape = liveShape.current;
+    if (sketch.tool === 'rectangle' && drafting.current && shape?.kind === 'rectangle'
+      && (shape.b[0] !== target.at[0] || shape.b[1] !== target.at[1])) emit({ ...shape, b: target.at });
+    requestRef.current();
+  }, [objectKinds, sketch, extensionDraft, chordActive, crossingBodies, canvas, clearSketchSnap, propsRef, requestRef]);
   const surfacePoint = (x: number, y: number, w: number, h: number, face: FaceRef | null): Vec3 | null => {
     if (!face) return null;
     const f = propsRef.current.bodies[face.body]?.mesh.faces[face.face]; if (!f || f.kind !== 'plane') return null;
@@ -699,6 +731,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   };
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
+    sketchHoverPointer.current = null;
     const held = drag.current;
     if (held.circleChord && !held.moved && held.circleChord.pointer !== e.pointerId) { held.moved = true; return; }
     if (trimStroke.interceptDown(e.pointerId)) { sketchDraft.current.trim = null; request(); return; }
@@ -747,6 +780,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const onPointerMove = (e: PointerEvent<HTMLCanvasElement>) => {
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
     const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
+    sketchHoverPointer.current = propsRef.current.sketch && !e.buttons && !d.mode ? { clientX: e.clientX, clientY: e.clientY } : null;
     if (d.circleChord?.pointer === e.pointerId && (!(e.buttons & 1) || Math.hypot(x - d.x, y - d.y) > 5
       || d.circleChord.frame !== pointerFrame())) d.moved = true;
     if (trimStroke.owns(e.pointerId)) {
@@ -799,10 +833,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         return;
       }
       const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) && !banding(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
-      sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
-      sketchDraft.current.extension = !!at?.extension;
-      livePolygonMiddle.current = !!at?.liveMiddle;
-      propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
+      showSketchSnap(sk, at, p);
       if (propsRef.current.circleChord?.read(sk)) { request(); return; }
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
@@ -864,6 +895,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
 
   /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
   const onPointerLeave = () => {
+    sketchHoverPointer.current = null;
     clearSketchSnap();
     if (sketchDraft.current.trim?.gap) { sketchDraft.current.trim = null; request(); }
     if (twoPointHover.current) { twoPointHover.current = null; request(); }

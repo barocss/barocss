@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1113 — refresh the Crossing cue under a stationary pointer](notes/stationary-crossing-toggle-2026-11-14/README.md).
 - [D1112 — close Object snaps without discarding the sketch](notes/object-snap-escape-2026-11-14/README.md).
 - [D1111 — preserve fractional Slot width at an object snap](notes/slot-end-width-2026-11-14/README.md).
 - [D1110 — preserve fractional Circle radius at an object snap](notes/circle-end-radius-2026-11-14/README.md).

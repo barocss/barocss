@@ -1,0 +1,72 @@
+{
+  "decision": "D1113",
+  "tier": "FEATURE",
+  "parent": "2335f67a2a303cc98ccb3bd5a4f49e136809719d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1113-stationary-crossing-<run>",
+    "D1113_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/<run> --stationary-crossing",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs snap-visibility object-snap-kinds circle-from-chord",
+    "cd packages/barocss-cad-model && node scripts/test.mjs edge-plane-crossing osnap chord",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D872_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/settings-final",
+    "D1112_SOURCE_FROZEN=1 node apps/cad-studio/test/object-snap-kinds-browser.mjs <external-evidence>/escape-final --settings-escape",
+    "node --check apps/cad-studio/test/object-snap-kinds-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "818e83dadcd3df5821bc8aa9afee3fabd72adf5e67fd27076c042bd268af5ba9",
+      "sourceManifestSHA256": "8d805bee08a41a3c57a4dfd7d2694ee8d6f3c39c1afc0277c66f985fc37be857",
+      "savedFiles": [],
+      "firstFailure": "With a stationary pointer over a tilted native crossing, a keyboard re-enable left the cue absent until a pointer move."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "09ed7f6f5074c8bc2cfd81a51aec5d28f86e82a4ef40697c8b0328b2bc1c31d6",
+      "sourceManifestSHA256": "86d7f54cadd3e5e749671c2d3bb18a966aabc8f72f42b06413b4b6aa26de860f",
+      "savedFiles": []
+    },
+    "settingsControl": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 381,
+      "receiptSHA256": "9276b4ef90e5b69b3400c3fcb76de0469e1d1331ce18200668a762d9cddfb622",
+      "sourceManifestSHA256": "86d7f54cadd3e5e749671c2d3bb18a966aabc8f72f42b06413b4b6aa26de860f",
+      "savedFiles": []
+    },
+    "escapeControl": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 381,
+      "receiptSHA256": "1853d01a5be17f11597a78fdbd011c3d58c8ae39dbf74355978358ff2b64dfba",
+      "sourceManifestSHA256": "86d7f54cadd3e5e749671c2d3bb18a966aabc8f72f42b06413b4b6aa26de860f",
+      "savedFiles": []
+    }
+  },
+  "firstCornerMM": [
+    23,
+    18
+  ],
+  "acceptedCrossingMM": [
+    14.54,
+    8.3071
+  ],
+  "gridPreviewWidthMM": 8,
+  "snappedPreviewWidthMM": 8.46,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 22
+  }
+}

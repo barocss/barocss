@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const settingsEscape = process.argv[3] === '--settings-escape';
+const stationaryCrossing = process.argv[3] === '--stationary-crossing';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/SketchSnapControls.tsx',
@@ -13,7 +14,8 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/osnap.ts',
 ];
 const f = await createFlow({
-  name: 'object-snap-kinds', output: process.argv[2], envFrozen: settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
+  name: 'object-snap-kinds', output: process.argv[2],
+  envFrozen: stationaryCrossing ? 'D1113_SOURCE_FROZEN' : settingsEscape ? 'D1112_SOURCE_FROZEN' : 'D872_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Apply current session object-snap settings to the next sketch input with independent grid fallback.',
   limits: ['One XY rectangle and circle as native snap sources. Desktop Chrome WebGPU.'],
@@ -198,6 +200,46 @@ async function preserveCircleOnSettingsEscape() {
   await f.same(finished);
 }
 
+async function toggleStationaryCrossing() {
+  f.phase = 're-enable Crossing while the pointer stays on a tilted sketch plane';
+  await begin('Rectangle', 'r', [endpoint, [23, 19]]);
+  await only(['Edge crossing']);
+  const angle = Math.atan2(3, 4) * 180 / Math.PI, offset = 9.5;
+  await f.sketchPanel().getByLabel('Plane angle', { exact: true }).fill(String(angle));
+  await f.sketchPanel().getByLabel('Plane offset', { exact: true }).fill(String(offset));
+  const z = (offset - 0.6 * endpoint[1]) / 0.8;
+  await hover(endpoint, 'Crossing', z);
+  const initial = await f.snapshot('crossing-stationary-before');
+  await toggle('Edge crossing', false);
+  await expectCue(null);
+  await toggle('Edge crossing', true);
+  const current = await f.snapshot('crossing-stationary-reenabled');
+  assert.equal(current.cue, 'Crossing', 'the cue must return before the next pointer event');
+  for (const key of ['doc', 'history', 'controls', 'dirty', 'selection']) assert.deepEqual(current[key], initial[key], key);
+  const acceptedY = Math.round((1.25 * endpoint[1] - 0.75 * offset) * 1e4) / 1e4;
+  await f.page.mouse.move(...await f.page.evaluate(() => window.__studioScreenOf([23, 20.1, -3.2])));
+  await expectCue(null);
+  await clickAtPointer();
+  await hover(endpoint, 'Crossing', z);
+  await toggle('Edge crossing', false);
+  await expectCue(null);
+  await number('Width', 8);
+  await toggle('Edge crossing', true);
+  await expectCue('Crossing');
+  await number('Width', 8.46);
+  await clickAtPointer();
+  await number('Corner X', endpoint[0]);
+  await number('Corner Y', acceptedY);
+  const finished = (await f.finishSketch('crossing-stationary-finish')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 4), source.nodes);
+  assert.deepEqual(finished.nodes[4].min, [endpoint[0], acceptedY]);
+  assert.deepEqual(finished.nodes[4].max, [23, 18]);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished);
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -213,6 +255,11 @@ await f.run(async () => {
   };
   await f.newPage();
   await open(source);
+  if (stationaryCrossing) {
+    await toggleStationaryCrossing();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (settingsEscape) {
     await preserveCircleOnSettingsEscape();
     assert.deepEqual(f.report.downloads, []);
