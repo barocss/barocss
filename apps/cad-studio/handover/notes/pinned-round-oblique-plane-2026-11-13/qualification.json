@@ -1,0 +1,108 @@
+{
+  "decision": "D904",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "b886a86463413ffb22477aef0b8a07fd3c15ebe1",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D904_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/oblique --oblique",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "D904_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/translated --oblique",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 64,
+    "fail": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "d8d32d199721b6c9f4c1e0c12d00ba8cae35cab47c225cbb71ca32ab748f4f4d"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Orthonormal frame, representative axis line, world cap vertices, and independent circular-segment volume."
+  },
+  "initialStudio": {
+    "status": "PASS",
+    "originMm": [
+      0,
+      4.5,
+      6
+    ],
+    "receiptSHA256": "34007cecc32a7afacbd6a3252d7fe2db5c161c48954c72bd753764597e0c7720",
+    "sourceManifestSHA256": "ba63f864795b4b1df1c6fc5bbd17709689c5b8ea5382cbab509324841aa451ed"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "51938d7b78e3689da74d631c90665fd5474f588c2ed400d60d23d2da545f4e85",
+    "sourceManifestSHA256": "f692c49489eabd34a8c6caa1b27a3cd06bffabc3cccab0a1b9175734c23cec66",
+    "frozenFiles": 842,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "originMm": [
+      3,
+      4.5,
+      6
+    ],
+    "normal": [
+      0,
+      0.6,
+      0.8
+    ],
+    "xAxis": [
+      1,
+      0,
+      0
+    ],
+    "normalStationsMm": [
+      7.5,
+      17.5
+    ],
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "exactLimitRefusal": "PASS",
+    "freshOpen": "PASS",
+    "undoRedo": "PASS",
+    "sideTags": [
+      "e1",
+      "e5",
+      "e2",
+      "e3",
+      "e4"
+    ],
+    "states": [
+      "R3",
+      "R4",
+      "R4-reopened",
+      "R5"
+    ],
+    "expectedVolumesMm3": [
+      7116.460269574863,
+      7091.948937557186,
+      7091.948937557186,
+      7054.301379805951
+    ],
+    "nativeVolumesMm3": [
+      7116.460269574863,
+      7091.948937557187,
+      7091.948937557187,
+      7054.301379805951
+    ],
+    "savedBytes": 2530,
+    "savedSHA256": "edf4dbaf1b91e6824242e342eb7bb28818b737b00919e6d5c5a6fd1abcad99e2"
+  },
+  "notRun": [
+    "other oblique frames and reverse oblique Studio",
+    "native Measure on an oblique cylinder",
+    "full suites",
+    "mobile"
+  ]
+}

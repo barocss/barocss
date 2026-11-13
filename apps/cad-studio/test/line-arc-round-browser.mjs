@@ -3,6 +3,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
+const oblique = mode === '--oblique';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
 const relockBaseline = mode === '--fillet-relock-baseline';
@@ -24,7 +25,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
-  ...(fixed || mirrored || reversed || sourceEdit ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(fixed || mirrored || reversed || sourceEdit || oblique ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
   ...(sourceMeasure ? ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
     'apps/cad-studio/src/ui/MeasurementInspector.tsx', 'packages/barocss-cad-model/src/app/measure.ts',
     'packages/barocss-cad-model/src/engine/mesh.ts'] : []),
@@ -32,10 +33,11 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
+  qualification: oblique ? 'Verify the pinned line–arc Round on one translated oblique working plane.'
+    : filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
     : reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
     : measureArea ? 'Verify analytic native wall area and the display-mesh fallback in Measure.'
     : sourceMeasure ? 'Measure the two named cylindrical faces of a pinned round across source-radius changes.'
@@ -43,7 +45,7 @@ const f = await createFlow({
     : mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
     : fixed ? 'Round a pinned finite line–circular-arc corner and verify its native producer.'
     : 'Measure the finite line–circular-arc Round boundary and the existing straight-corner control.',
-  limits: [mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
+  limits: [oblique ? 'One pinned CCW outline on a translated tilted plane with a 10 mm native extrusion.' : mirrored ? 'One reflected convex XZ outline with a native R20 arc and a 10 mm Extrude.'
     : 'One convex closed XY outline with one native R20 quarter arc and a 10 mm Extrude. The admitted fixture pins both carriers.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -105,7 +107,8 @@ const near = (actual, expected, tolerance = 1e-8) => assert.ok(Math.abs(actual -
 const outlinePoints = [[0, 0], [40, 20], [20, 40], [0, 40]];
 const workingPlane = { origin: [0, 5, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const reflect = ([x, y]) => [x, 40 - y];
-const toWorld = ([x, y]) => [x, 5, y];
+const obliquePlane = { origin: [3, 4.5, 6], normal: [0, 0.6, 0.8], xAxis: [1, 0, 0] };
+const obliqueWorld = ([x, y], depth = 0) => [3 + x, 4.5 + 0.8 * y + 0.6 * depth, 6 - 0.6 * y + 0.8 * depth];
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -118,15 +121,15 @@ async function edit(node = 1) {
   await button(f.editor(), 'Edit sketch').click();
   await f.sketchPanel().waitFor();
   await f.tool('Select', 's');
-  if (!mirrored) await f.frame(outlinePoints);
+  if (!mirrored && !oblique) await f.frame(outlinePoints);
 }
 
 async function applyRound(corner, radius) {
-  if (mirrored) {
+  if (mirrored || oblique) {
     const hit = await f.page.evaluate(point => {
       const pixel = window.__studioScreenOf(point);
       return pixel && document.elementFromPoint(...pixel)?.closest('canvas.vp-canvas') ? pixel : null;
-    }, toWorld(corner));
+    }, oblique ? obliqueWorld(corner) : [corner[0], 5, corner[1]]);
     assert.ok(hit, JSON.stringify(corner));
     await f.page.mouse.click(...hit);
   } else await f.worldClick(corner);
@@ -203,18 +206,28 @@ async function checkRound(label, doc, original, radius, sourceRadius = 20) {
     point(sketch.segments[i].center, local(center));
     const cylinder = native.cylinders.find(face => face.name === `n1.side[${tag}]`);
     assert.ok(cylinder);
-    if (mirrored) {
+    if (oblique) {
+      // The kernel can choose either axis direction and any point on the same axis.
+      const [x, y, z] = cylinder.a;
+      near(x, 0);
+      near(Math.abs(0.6 * y + 0.8 * z), 1);
+      near(0.8 * y - 0.6 * z, 0);
+      const [dx, dy, dz] = cylinder.c.map((value, axis) => value - obliqueWorld(center)[axis]);
+      near(dx, 0);
+      near(0.8 * dy - 0.6 * dz, 0);
+    } else if (mirrored) {
       near(cylinder.c[0], center[0]);
       near(cylinder.c[2], local(center)[1]);
     } else point(cylinder.c, center);
     near(cylinder.r, r);
-    point(cylinder.a, mirrored ? [0, 1, 0] : [0, 0, 1]);
+    if (!oblique) point(cylinder.a, mirrored ? [0, 1, 0] : [0, 0, 1]);
   }
   if (mirrored) assert.deepEqual(sketch.plane, workingPlane);
-  if (mirrored || sourceEdit) {
+  if (oblique) assert.deepEqual(sketch.plane, obliquePlane);
+  if (mirrored || sourceEdit || oblique) {
     for (const [x, y] of expected.polygon.map(local)) {
       for (const depth of [0, 10]) {
-        const expectedVertex = mirrored ? [x, 5 - depth, y] : [x, y, depth];
+        const expectedVertex = oblique ? obliqueWorld([x, y], depth) : mirrored ? [x, 5 - depth, y] : [x, y, depth];
         assert.ok(native.vertices.some(vertex => Math.hypot(...vertex.map((value, i) => value - expectedVertex[i])) < 1e-8),
           `Missing cap vertex ${expectedVertex}`);
       }
@@ -518,6 +531,55 @@ async function checkMirrored() {
   const r5 = (await f.finishSketch('04-clockwise-R5')).doc;
   await checkRound('clockwise-R5-native', r5, doc, 5);
   assert.deepEqual(f.report.downloads, []);
+}
+
+async function checkObliqueRound() {
+  const seed = await f.inspect('oblique-fixture', {}, 'pinned');
+  const doc = { ...seed, nodes: [{ ...seed.nodes[0], plane: obliquePlane }, seed.nodes[1]] };
+  const stock = await f.inspect('oblique-stock', doc);
+  near(stock.volume, 10 * (400 + 100 * Math.PI), 1e-7);
+  await f.newPage();
+  await open(doc);
+  await edit();
+  f.phase = 'create a pinned Round on the oblique plane';
+  await applyRound([40, 20], 3);
+  await f.sketchPanel().getByText(/^Fully defined/).waitFor();
+  assert.equal(await f.sketchAlert(), null);
+  const r3 = (await f.finishSketch('01-oblique-R3')).doc;
+  await checkRound('oblique-R3-native', r3, doc, 3);
+  await edit();
+  const radius = () => f.sketchPanel().getByLabel('Arc 2 radius', { exact: true });
+  await radius().fill('4');
+  assert.equal(await radius().inputValue(), '4');
+  assert.equal(await f.sketchAlert(), null);
+  const r4 = (await f.finishSketch('02-oblique-R4')).doc;
+  await checkRound('oblique-R4-native', r4, doc, 4);
+  await f.undo();
+  await f.same(r3);
+  await f.redo();
+  await f.same(r4);
+  const bytes = await save(r4);
+  await f.newPage();
+  await open(r4, bytes);
+  await checkRound('oblique-reopened-R4-native', r4, doc, 4);
+  await edit();
+  const before = await f.snapshot('03-oblique-reopened');
+  await radius().fill('10');
+  await f.sketchPanel().getByRole('alert').getByText(/R10 does not fit/).waitFor();
+  const refused = await f.snapshot('04-oblique-R10-refused');
+  assert.deepEqual(refused.doc, before.doc);
+  assert.deepEqual(refused.history, before.history);
+  assert.deepEqual(refused.outlineInputs, before.outlineInputs);
+  assert.equal(refused.dirty, before.dirty);
+  await radius().fill('5');
+  assert.equal(await radius().inputValue(), '5');
+  assert.equal(await f.sketchAlert(), null);
+  const r5 = (await f.finishSketch('05-oblique-R5')).doc;
+  await checkRound('oblique-R5-native', r5, doc, 5);
+  await f.undo();
+  await f.same(r4);
+  await f.redo();
+  await f.same(r5);
 }
 
 async function checkReversedRound() {
@@ -846,6 +908,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (oblique) {
+    await checkObliqueRound();
+    return;
+  }
   if (reversed) {
     await checkReversedRound();
     return;
