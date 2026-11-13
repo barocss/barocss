@@ -1,0 +1,41 @@
+{
+  "decision": "D1130",
+  "tier": "SMALL",
+  "parent": "84e2b368b9cd7b90fee82cabd311738c46c973a8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1130-multiple-sketches-<run>",
+    "D1130_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-multiple-sketch-refusal-browser.mjs <external-evidence>/<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters face-commands face-end-extrude",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/profileCommands.ts",
+    "node --check apps/cad-studio/test/extrude-multiple-sketch-refusal-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 382,
+      "receiptSHA256": "1f74cd1fba2c8d041ac533e7b2b735c42deba24e13948399c9abe061fb793969",
+      "sourceManifestSHA256": "74e0127ed6535468f29c8a9a619421ed31c9485898d91d1babb2f127c63f3916"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "16a5019f790710c085796d114f6a6ef9321fca94dbe3a4de072b24a07c2aa61e",
+      "sourceManifestSHA256": "54fe50435f669f5c6ae0b610a74f014534544cfabde7b1b0b3192ee81bef8354"
+    }
+  },
+  "observation": {
+    "sourceId": "n1",
+    "volumeMM3": 240
+  },
+  "focused": {
+    "modelPassed": 48,
+    "failed": 0
+  }
+}

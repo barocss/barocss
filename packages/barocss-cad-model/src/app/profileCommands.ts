@@ -79,7 +79,12 @@ const fixedExtrudeDepth = (v: Values) => v.depth !== 'to-face' && !(v.op === 'cu
 export const extrudeCommand: Command = {
   id: 'extrude', label: 'Extrude', icon: 'cad-extrude', shortcut: 'E', group: 'create', keywords: 'pull push pad boss cut pocket press',
   hint: 'Pull a flat face or a finished sketch along its normal: drag the arrow or type the distance',
-  available: ctx => extrudeProfile(ctx) ? ok : faceSketch(ctx) === null ? no('Pick a flat face: a curved one has no plane to pull along.') : no('Pick a flat face or a finished sketch (in the viewport or the History).'),
+  available: ctx => {
+    if (extrudeProfile(ctx)) return ok;
+    if ((ctx.selection.sketches?.length ?? 0) > 1) return no('Select one finished sketch to extrude.');
+    if (faceSketch(ctx) === null) return no('Pick a flat face: a curved one has no plane to pull along.');
+    return no('Pick a flat face or a finished sketch (in the viewport or the History).');
+  },
   fields: ctx => {
     const p = extrudeProfile(ctx), base = !!(p && baseOf(ctx, p.node));
     const fields: Field[] = [
