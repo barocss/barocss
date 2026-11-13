@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const sharpCandidate = process.argv[3] === '--sharp-candidate';
 const points = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
 const ids = points.map((_, i) => 'e' + (i + 1));
 const inset = [[2, 1], [18, 1], [19, 2], [19, 8], [18, 9], [2, 9], [1, 8], [1, 2]];
 const centers = [[18, 2], [18, 8], [2, 8], [2, 2]];
+const derivedIds = points.map((_, i) => 'e' + (i + 9));
+const sharpIds = [0, 2, 4, 6].map(i => derivedIds[i]);
 const area = (w, h, r) => w * h - (4 - Math.PI) * r * r;
 const stockVolume = 10 * area(20, 10, 2);
 const ringVolume = stockVolume - 10 * area(18, 8, 1);
@@ -20,10 +23,12 @@ const initialFiles = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
+  name: 'rounded-sketch-offset', envFrozen: sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: sharpCandidate ? 'Read exact sharp-inset candidate documents and verify surviving side identity in Studio.'
+    : sourceEdit ? 'Verify that a source radius edit keeps the previously copied inner loop independent.'
     : 'Measure the existing rounded-rectangle inward Offset limit and native ring persistence.',
-  limits: ['One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
+  limits: [sharpCandidate ? 'Analytic candidate geometry is supplied as a native document, with no associative regeneration.'
+    : 'One independent 20 × 10 mm rounded rectangle, R2 corners, one 10 mm native Extrude.'],
   initialFiles, requiredFrozen: initialFiles,
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -64,7 +69,7 @@ console.log(JSON.stringify({ volume:massPropertiesOf(outputs[0]).volume, cylinde
 });
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
-const name = sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
+const name = sharpCandidate ? 'D908-sharp-inset-candidate.bcad' : sourceEdit ? 'D907-independent-offset.bcad' : 'D906-rounded-rectangle.bcad';
 
 async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
@@ -73,7 +78,7 @@ async function open(doc, bytes = Buffer.from(JSON.stringify(doc))) {
 }
 
 async function save(doc) {
-  const project = sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
+  const project = sharpCandidate ? 'D908 sharp inset candidate' : sourceEdit ? 'D907 independent offset' : 'D906 rounded rectangle';
   await button(f.page, 'Project and versions').click();
   const panel = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });
   await panel.getByRole('textbox', { name: 'Browser project name', exact: true }).fill(project);
@@ -117,8 +122,9 @@ async function checkRing(label, doc, stock) {
   assert.equal(new Set([...ids, ...inner]).size, 16);
   const loop = sketch.holes[0];
   assert.deepEqual(loop.map(segment => segment.start), inset);
-  assert.deepEqual(loop.filter(segment => segment.kind === 'arc').map(segment => segment.center)
-    .map(center => center.map(value => Math.round(value))), centers);
+  const arcs = loop.filter(segment => segment.kind === 'arc');
+  assert.equal(arcs.length, centers.length);
+  arcs.forEach((segment, index) => segment.center.forEach((value, axis) => close(value, centers[index][axis], 1e-8)));
   const native = await f.inspect(label, doc);
   assert.equal(native.cylinders.length, 8);
   checkCylinders(native, 2, ids);
@@ -197,6 +203,62 @@ async function editOuterRadius(stock, ring) {
   await f.snapshot('03-source-edit-fresh-open');
 }
 
+async function verifySharpCandidates(stock) {
+  const base = stock.nodes[0];
+  const roundedHole = inset.map((start, index) => index % 2
+    ? { kind: 'arc', start, center: centers[(index - 1) / 2], direction: 'ccw' }
+    : { kind: 'line', start });
+  const nativeDoc = (segments, tags) => ({ ...stock, nodes: [
+    { ...base, holes: [segments], sideTags: { outer: ids, holes: [tags] } },
+    stock.nodes[1],
+  ] });
+  const rounded = nativeDoc(roundedHole, derivedIds);
+  for (const value of [1, 2, 2.5, 1]) {
+    f.phase = `Open the independently authored inset ${value} mm candidate`;
+    if (value === 1) {
+      await open(rounded);
+      await checkRing('candidate-rounded-' + f.report.observations.length, rounded, stock);
+      continue;
+    }
+    const lo = value, hiX = 20 - value, hiY = 10 - value;
+    const corners = [[lo, lo], [hiX, lo], [hiX, hiY], [lo, hiY]];
+    const sharp = nativeDoc(corners.map(start => ({ kind: 'line', start })), sharpIds);
+    await open(sharp);
+    const check = async label => {
+      const actual = await f.doc();
+      assert.deepEqual(actual, sharp);
+      assert.equal(actual.nodes[0].association, undefined);
+      const native = await f.inspect(label, actual);
+      assert.equal(native.cylinders.length, 4);
+      checkCylinders(native, 2, ids);
+      for (const tag of [...ids, ...sharpIds]) assert.ok(native.faces.includes(`n1.side[${tag}]`), tag);
+      const retired = derivedIds.filter(tag => !sharpIds.includes(tag));
+      for (const tag of retired) assert.ok(!native.faces.includes(`n1.side[${tag}]`), tag);
+      assert.equal(native.faces.length, 14);
+      assert.equal(native.vertices.length, 24);
+      for (const [x, y] of [...points, ...corners]) for (const depth of [0, 10]) {
+        assert.ok(native.vertices.some(vertex => Math.hypot(vertex[0] - x, vertex[1] - y, vertex[2] - depth) < 1e-8));
+      }
+      const holeArea = (hiX - lo) * (hiY - lo);
+      const expectedVolume = stockVolume - 10 * holeArea;
+      close(native.volume, expectedVolume);
+      close((await f.bodies()).bodies[0].volume, expectedVolume);
+      f.report.observations.push({ label, insetMm: value, holeAreaMm2: holeArea, volumeMm3: native.volume,
+        expectedVolumeMm3: expectedVolume, survivingTags: sharpIds, retiredTags: retired });
+    };
+    await check('candidate-sharp-' + value);
+    await f.snapshot('candidate-sharp-' + value);
+    if (value === 2.5) {
+      const bytes = await save(sharp);
+      await f.newPage();
+      await open(sharp, bytes);
+      await check('candidate-sharp-reopened');
+      await f.snapshot('candidate-sharp-reopened');
+    }
+  }
+  await f.snapshot('candidate-return-rounded');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -216,6 +278,10 @@ await f.run(async () => {
   assert.equal(nativeStock.cylinders.length, 4);
   checkCylinders(nativeStock, 2, ids);
   await f.newPage();
+  if (sharpCandidate) {
+    await verifySharpCandidates(stock);
+    return;
+  }
   await open(stock);
   await f.openFeatureEditor(1);
   await button(f.editor(), 'Edit sketch').click();

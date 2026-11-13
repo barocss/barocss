@@ -1,0 +1,91 @@
+{
+  "decision": "D908",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "f360c6e3dfe23e092e6cffec388b0fee803a5515",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d908-studio-sharp-inset",
+    "D908_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/sharp --sharp-candidate",
+    "D906_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/offset-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset sketch-associative-inset",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 80,
+    "studioPass": 4,
+    "fail": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "011827c602a752486cdee287eb995966b4ab080898e503f22309ac05a833b8c0"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Analytic sharp limits, ring volumes, and source-to-derived side mapping."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "b5cb3b2b8a9af552755df1713eb58d7816cf389bb0234a59e46150d21b2e6a1a",
+    "sourceManifestSHA256": "e9355e14988a886df104a94b4dc4dd0f0a5004ac4ff45d06fcc7b1de425e0681",
+    "frozenFiles": 841,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "insetsMm": [
+      1,
+      2,
+      2.5,
+      1
+    ],
+    "expectedVolumesMm3": [
+      534.2477796076939,
+      1005.6637061435918,
+      1215.6637061435918,
+      534.2477796076939
+    ],
+    "nativeVolumesMm3": [
+      534.247779607693,
+      1005.6637061435913,
+      1215.663706143591,
+      534.247779607693
+    ],
+    "survivingInnerTags": [
+      "e9",
+      "e11",
+      "e13",
+      "e15"
+    ],
+    "absentCornerTags": [
+      "e10",
+      "e12",
+      "e14",
+      "e16"
+    ],
+    "freshOpen": "PASS",
+    "savedBytes": 2517,
+    "savedSHA256": "2be18acff884901d71a33605037b85228e7d1b59e72743a73607fb880791cf9a"
+  },
+  "regression": {
+    "status": "PASS",
+    "scope": "D906 ordinary Offset refusal and persistence",
+    "receiptSHA256": "a19aedb96e64fb49ab22b735cf9bb871213fb6b402e35a11beb5e6850e304da4"
+  },
+  "notRun": [
+    "persisted associative recipe and regeneration",
+    "downstream feature with absent corner ID",
+    "transition history",
+    "other rounded profiles",
+    "full suites",
+    "mobile"
+  ]
+}
