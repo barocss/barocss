@@ -20,7 +20,12 @@ function handleRange(p: SectionPlane, box: Box) {
   const [lo, hi] = span;
   return planeAxis(p)?.keep === 'negative' ? sectionDragRange(-hi, -lo) : sectionDragRange(lo, hi);
 }
-const label = (p: SectionPlane) => { const a = planeAxis(p); return a ? `${'XYZ'[a.k]} ${a.keep === 'positive' ? '≥' : '≤'} ${fmt(a.at)}` : `Face ${p.face ?? ''}`.trim(); };
+function planePosition(p: SectionPlane) {
+  const axis = planeAxis(p);
+  return axis ? `${'XYZ'[axis.k]} ${axis.keep === 'positive' ? '≥' : '≤'} ${fmt(axis.at)} mm` : `Offset ${fmt(p.offset)} mm`;
+}
+
+const label = (p: SectionPlane) => p.face ? `Face ${p.face} · ${planePosition(p)}` : planePosition(p);
 
 /**
  * The section's drag handles (G19): an arrow on each plane across it toward the side cut away, through the middle of
@@ -94,7 +99,7 @@ export function SectionBar({ section, setSection, hatch, setHatch, box, facePick
   const axisButtons = (i: number) => AXES.map(a => { const pa = planeAxis(section.planes[i]), on = !!pa && 'xyz'[pa.k] === a;
     return <Button size="sm" variant={on ? 'default' : 'ghost'} key={a} className={on ? 'on' : ''} aria-label={section.mode === 'plane' ? `Section across ${a.toUpperCase()}` : `Section plane ${i + 1} across ${a.toUpperCase()}`} onClick={() => one(i, middlePlane(a, box))}>{a.toUpperCase()}</Button>; });
   const faceButton = (i: number) => <Button size="sm" variant={facePick === i ? 'default' : 'ghost'} className={facePick === i ? 'on' : ''} aria-pressed={facePick === i} aria-label={section.mode === 'plane' ? 'Section from a face' : `Section plane ${i + 1} from a face`}
-    data-tip="From a face" data-tip-desc="Click a flat face: the section plane on it, the material behind it kept" onClick={() => { onProblem(null); setFacePick(facePick === i ? null : i); }}><Icon name="ads_click" small /></Button>;
+    data-tip="From a face" data-tip-desc="Start halfway from the flat face to the far side of the model bounds. Keep the material behind the cut." onClick={() => { onProblem(null); setFacePick(facePick === i ? null : i); }}><Icon name="ads_click" small /></Button>;
   const flip = (i: number) => <Button size="sm" variant="ghost" aria-label={section.mode === 'plane' ? 'Flip the section' : `Flip section plane ${i + 1}`} data-tip="Show the other side" onClick={() => one(i, flipPlane(section.planes[i]))}><Icon name="swap_horiz" small /></Button>;
   // (G12f: its buttons shadcn's — on, the primary fill; the mode a ToggleGroup, a click on the mode shown keeping it.)
   return <div className="card section-bar" role="group" aria-label="Section">
@@ -103,6 +108,7 @@ export function SectionBar({ section, setSection, hatch, setHatch, box, facePick
       <ToggleGroupItem key={m} value={m} className={section.mode === m ? 'on' : ''}
         {...(m === 'cutout' ? { 'data-tip': 'Cut-out', 'data-tip-desc': 'Take a corner out: a quarter (two planes) or an eighth (three), the rest kept' } : {})}>{m === 'plane' ? 'Plane' : m === 'box' ? 'Box' : m === 'planes' ? 'Planes' : 'Cut-out'}</ToggleGroupItem>)}</ToggleGroup>
     {section.mode === 'plane' && <>{axisButtons(0)}{faceButton(0)}{flip(0)}
+      {section.planes[0].face && <span className="mono muted" aria-label="Face-derived section position">{label(section.planes[0])}</span>}
       <Button size="sm" variant="ghost" aria-label="Sketch the section" data-tip="Sketch the section" data-tip-desc="Copy the visible cut outlines into an independent sketch" onClick={onSketch}><Icon name="cad-sketch" small /></Button></>}
     {section.mode === 'box' && <><span className="muted small">drag a face's arrow</span>
       <Button size="sm" variant="ghost" aria-label="Reset the section box" data-tip="Reset the box" data-tip-desc="The box round the part, a tenth in from each face" onClick={() => set(boxSection(box.min, box.max).planes, 'box')}><Icon name="restart_alt" small /></Button></>}

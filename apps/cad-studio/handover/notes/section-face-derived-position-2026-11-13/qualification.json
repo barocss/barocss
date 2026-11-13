@@ -1,0 +1,65 @@
+{
+  "decision": "D1012",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "663169635e01aecd1a8a0d51e4478cdb905d8f5b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1012-section-baseline02",
+    "gate.sh acquire heavy 600 D1012-section-studio01",
+    "D1012_SOURCE_FROZEN=1 node apps/cad-studio/test/section-face-position-browser.mjs <external-evidence>/baseline02",
+    "D1012_SOURCE_FROZEN=1 node apps/cad-studio/test/section-face-position-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1012-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test section-span section-planes section-view section-cutout section-hatch selection-edge",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/section-face-position-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "The computed face-derived plane had no position label.",
+    "receiptSHA256": "6fd5c91fb456b819d278b39b4bf8605ede917f226e22cafb0f633f04f3c9f7cf",
+    "sourceManifestSHA256": "2bd488194b82befc0533ad11cd50ace3264bcac54e27299d12222a6ea934ab42"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "cc95e1b2e86cf1b81cd65196c84ef6870de5323d4226321ca35cdf7ff70e55d7",
+    "sourceManifestSHA256": "08032069e0bf6cc2446fd949465360c1de613050fb39aba23d6a8ad85a1eadbc",
+    "frozenFiles": 372,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "face": "n3.top",
+    "sourceZMM": 12,
+    "oppositeBoundZMM": 0,
+    "sectionZMM": 6,
+    "volumeBeforeAndAfterFlipMM3": [
+      7200,
+      10400
+    ],
+    "volumeToleranceMM3": 1e-07
+  },
+  "setupRun": {
+    "status": "FAIL",
+    "reason": "The driver expected positive zero in the axis normal.",
+    "receiptSHA256": "b2ca677f644bbac20417f0fe00859985640fb05251784334e26b188eecb82973"
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 25,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "oblique and multiple-face positions in Studio",
+    "drag",
+    "Mate and Measure",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
