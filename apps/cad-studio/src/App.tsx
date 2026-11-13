@@ -545,9 +545,8 @@ export function App() {
     isOpenCurrent,
     validateOpen: (doc, current) => verifyStoredNativeOpen(doc, d => engine.part(d, revision.current++, 'read'), d => engine.verifyStoredInsets(d), current),
     onOpened: (d, path, notes) => {
-      if (!openAccepted(inPlaceNow.current)) return openIntent.current;
+      if (!openAccepted(inPlaceNow.current) || !replaceDoc(d, 'project-open')) return false;
       setCompareBase(null);
-      replaceDoc(d, 'project');
       const accepted = openIntent.current;
       setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
       return accepted;
@@ -1726,14 +1725,20 @@ export function App() {
   };
   const activeNotice = noticeExpired ? null : notice;
   const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : activeNotice;
+  const projectBinding = project.documentBinding;
   const reverseHistoryEntry = useCallback((target: WorkHistory<StudioDoc>, doc: StudioDoc, marker: number | null): WorkHistory<StudioDoc> => {
     if (!target.documentBoundary) return { doc, marker };
     setCheckpointReview(null);
     clearBodyClipboard();
     resetDocumentDraft();
-    return { doc, marker, documentBoundary: true, ...(target.documentIdentity ? { documentIdentity: currentDocumentIdentity() } : {}) };
-  }, [clearBodyClipboard, currentDocumentIdentity, resetDocumentDraft]);
-  const detachProject = project.detach;
+    const identity = target.documentIdentity;
+    const documentIdentity = identity && {
+      ...currentDocumentIdentity(),
+      ...(identity.binding !== undefined ? { binding: projectBinding() } : {}),
+    };
+    return { doc, marker, documentBoundary: true, ...(documentIdentity ? { documentIdentity } : {}) };
+  }, [clearBodyClipboard, currentDocumentIdentity, projectBinding, resetDocumentDraft]);
+  const restoreProjectDocument = project.restoreDocument;
   const restoreHistoryEntry = useCallback((entry: WorkHistory<StudioDoc>) => {
     const previous = docNow.current;
     if (entry.documentBoundary) { cancelStlExportRef.current(); resetDocumentSection(); setPinnedMeasure(null); }
@@ -1741,8 +1746,7 @@ export function App() {
     setDocState(entry.doc);
     setMarker(entry.marker);
     if (entry.documentIdentity) {
-      // Neither side of a New part history boundary can borrow the other document's Save destination.
-      detachProject();
+      restoreProjectDocument(entry.documentIdentity.binding ?? null);
       setCompareBase(null);
       setDocGeneration(generation => generation + 1);
       setFileName(entry.documentIdentity.fileName);
@@ -1750,7 +1754,7 @@ export function App() {
       if (!entry.documentIdentity.dirty) clearRecovery();
     }
     cancel();
-  }, [cancel, detachProject, resetDocumentSection, setDirty, setDocState, setFileName]);
+  }, [cancel, restoreProjectDocument, resetDocumentSection, setDirty, setDocState, setFileName]);
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1824,7 +1828,7 @@ export function App() {
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // A detached replacement clears the project document. Editing a part in place retains the root's checkpoint review.
-  const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project' | 'in-place' | 'new-part' = 'detached') => {
+  const replaceDoc = (next: StudioDoc, mode: 'detached' | 'project-open' | 'project' | 'in-place' | 'new-part' = 'detached') => {
     try {
       if (next.nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
         if (!next.outputs || !next.parameters || (next.schema !== 3 && next.schema !== 4) || next.units !== 'mm') {
@@ -1835,12 +1839,16 @@ export function App() {
     }
     catch (error) {
       setToast({ title: 'Could not open rounded inset', hint: 'The document is unchanged.', detail: error instanceof Error ? error.message : String(error) });
-      return;
+      return false;
     }
     cancelStepExportRef.current(); invalidateDocumentWork();
-    replacement.current = { scope: workOwnership.current.scope, ...(mode === 'new-part' ? { identity: currentDocumentIdentity() } : {}) };
+    const fileBoundary = mode === 'detached' || mode === 'project-open';
+    const identity = mode === 'new-part' || fileBoundary ? {
+      ...currentDocumentIdentity(), ...(fileBoundary ? { binding: project.documentBinding() } : {}),
+    } : undefined;
+    replacement.current = { scope: workOwnership.current.scope, identity };
     try {
-      if (!commit(next, false, true)) return;
+      if (!commit(next, false, true)) return false;
       cancelStlExportRef.current();
       resetDocumentSection();
       clearBodyClipboard();
@@ -1849,6 +1857,7 @@ export function App() {
       if (mode === 'detached' || mode === 'new-part') { project.detach(); setCompareBase(null); }
       if (mode === 'new-part') setFileName('Untitled');
       cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setPinnedMeasure(null); setEditNode(null);
+      return true;
     } finally { replacement.current = null; }
   };
   // Roadmap 10 ⑧: a part edited in place. The session swaps the working document for the part's own and back; the other parts are drawn around it

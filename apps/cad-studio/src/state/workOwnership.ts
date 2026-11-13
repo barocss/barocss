@@ -1,11 +1,13 @@
+import type { ProjectDocumentBinding } from '../storage/useProject';
+
 // Studio-private cancellation ownership. Document and evaluation objects remain unchanged.
 export interface WorkHistory<D extends object> {
   doc: D;
   marker: number | null;
   /** Applying this entry crosses a document replacement. */
   documentBoundary?: true;
-  /** The working title and save state on an undoable New part transition. */
-  documentIdentity?: { fileName: string; dirty: boolean };
+  /** The working title and save state on an undoable file transition. */
+  documentIdentity?: { fileName: string; dirty: boolean; binding?: ProjectDocumentBinding | null };
 }
 interface Reservation<D extends object, I extends object> {
   entry: WorkHistory<D>; after: D; beforeInput: I; generation: object;

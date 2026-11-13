@@ -28,7 +28,7 @@ export interface ProjectView {
 }
 export interface ProjectCallbacks extends OpenIntentBridge {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
-  onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | void;
+  onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | false | void;
   /** Validate geometry that must be admitted before updating the active project path. */
   validateOpen?(doc: StudioDoc, current: () => boolean): Promise<void> | undefined;
   onError(title: string, hint: string): void;
@@ -38,6 +38,13 @@ export interface ProjectCallbacks extends OpenIntentBridge {
   onOpenReady?(scope: OpenScope): void;
   /** Whether an opened file may take the document now (not while a part is edited in place): asked before the project points at it. */
   canOpen?(): boolean;
+}
+interface ProjectTags { part: string | null; sourceSHA256: string | null; log: string | null }
+export interface ProjectDocumentBinding {
+  store: ProjectStore;
+  path: string;
+  tags: ProjectTags;
+  log: VersionLog | null;
 }
 interface OpenOwner { request: object; scope?: OpenScope; session?: object; store?: ProjectStore; path?: string | null }
 const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offered: null };
@@ -51,7 +58,7 @@ export function useProject(cb: ProjectCallbacks) {
   const [view, setView] = useState<ProjectView>(EMPTY);
   const [recent, setRecent] = useState<DirHandle | null>(null);
   // (The tags read with — not shown, so not state — and the view as the async actions see it.)
-  const tags = useRef<{ part: string | null; sourceSHA256: string | null; log: string | null }>({ part: null, sourceSHA256: null, log: null });
+  const tags = useRef<ProjectTags>({ part: null, sourceSHA256: null, log: null });
   const opening = useRef({ serial: 0 }), projectSession = useRef<object>({}), reading = useRef(0);
   const saves = useRef({ path: null as string | null, next: 0, success: 0 });
   const autosaves = useRef<{ owner: OpenOwner; next: number; settled: number; warned: boolean } | null>(null);
@@ -147,8 +154,20 @@ export function useProject(cb: ProjectCallbacks) {
       },
       async openInBrowser(name: string) { const owner = beginOpen(); try { await use(await browserProject(name), owner); } catch (e) { if (currentOpen(owner)) fail('The project could not be opened', e); } },
       close() { beginOpen(); projectSession.current = {}; invalidateSaves(); tags.current = { part: null, sourceSHA256: null, log: null }; set(EMPTY); },
-      /** The document no longer the open one of the project (a new part, another file): the project stays open, the next save is a new file in it. */
-      detach() { beginOpen(); projectSession.current = {}; invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, sourceSHA256: null, log: null }; set({ part: null, log: null, offered: null }); },
+      documentBinding(): ProjectDocumentBinding | null {
+        const { store, part, log } = live.current;
+        return store && part ? { store, path: part, tags: { ...tags.current }, log } : null;
+      },
+      restoreDocument(binding: ProjectDocumentBinding | null) {
+        beginOpen();
+        projectSession.current = {};
+        const current = binding?.store === live.current.store ? binding : null;
+        invalidateSaves(current?.path ?? null);
+        tags.current = current ? { ...current.tags } : { part: null, sourceSHA256: null, log: null };
+        set({ part: current?.path ?? null, log: current?.log ?? null, offered: null });
+      },
+      /** A new or external document starts without a project path. */
+      detach() { actions.restoreDocument(null); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
         const owner = beginOpen(), store = live.current.store; if (!store) return false;
@@ -166,10 +185,13 @@ export function useProject(cb: ProjectCallbacks) {
             await check;
             if (!current() || (call.current.canOpen && !call.current.canOpen())) return false;
           }
-          tags.current = { part: r.tag, sourceSHA256: taskSourceSHA(r.bytes), log: null }; set({ part: path, offered: null, log: null }); owner.path = path;
           const accepted = call.current.onOpened(r.doc, path, r.notes);
+          if (accepted === false) return false;
           if (accepted) owner.scope = accepted;
           if (!current()) return false;
+          tags.current = { part: r.tag, sourceSHA256: taskSourceSHA(r.bytes), log: null };
+          set({ part: path, offered: null, log: null });
+          owner.path = path;
           await loadLog(store, path, current);
           if (!current()) return false;
           // Recovery is optional. Its failure must not undo a valid file Open or block its ready callback.

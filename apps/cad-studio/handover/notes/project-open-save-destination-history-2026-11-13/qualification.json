@@ -1,0 +1,53 @@
+{
+  "decision": "D958",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2c80de6cd4f142d5f3518019e19b3b9d2a6cd431",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D958-save-target",
+    "D958_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/parent02 --baseline",
+    "gate.sh acquire heavy 600 D958-fixed",
+    "D958_SOURCE_FROZEN=1 node apps/cad-studio/test/project-open-save-history-browser.mjs <external-evidence>/fixed01 --fixed",
+    "node apps/cad-studio/scripts/test.mjs project-open-ownership project-version-ownership work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-open-save-history-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "286fc9bed2e1639674a51039cc3c40ea7dd7f0f97c0a16aa660d4980a69f2c89",
+    "bAfterWrongSaveSHA256": "b11e1edca9b8755ae64f1fa7e63e59ffc9790f19a3b73f302ce21e0ab01599bc"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "a13d860f5d1fa18d477fe323a9c23ec026b1a910dfc1a5781c184805e0df7c92",
+    "sourceManifestSHA256": "a3ea426125044e748f97150dae30889ac95794954db5eb331accf2b4e825e2d0",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "aVolumeMM3": 72,
+    "bVolumeMM3": 128,
+    "bBytes": 463,
+    "aBeforeSHA256": "f762c8a89eb3ed915c761ee4892fd101b6c1e605f6e725310d560707d55b7605",
+    "aAfterSHA256": "b11e1edca9b8755ae64f1fa7e63e59ffc9790f19a3b73f302ce21e0ab01599bc",
+    "bUnchangedSHA256": "5413e6cf7d1e2d00eb4385caf0af197456bfb116c44d765def27546a14179f20"
+  },
+  "focusedTests": {
+    "pass": 78,
+    "fail": 0
+  },
+  "notRun": [
+    "Make version rejection",
+    "STEP and detached Save filename",
+    "same-name collision",
+    "actual New part regression",
+    "folder projects",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
