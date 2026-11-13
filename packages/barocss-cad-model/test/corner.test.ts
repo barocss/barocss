@@ -455,5 +455,22 @@ test('line–arc Round refuses unpinned, ambiguous and unsupported profiles with
   refused({ ...source, bulges: [0, -source.bulges![1], 0, 0] });
   refused({ ...source, bulges: [0, source.bulges![1], 0.25, 0] });
   refused({ ...source, bulges: [0, source.bulges![1] / 2, 0, 0] });
-  refused(source, 2);
+  // At the top of the CCW quarter circle, both the arc tangent and the retained line point left.
+  refused(source, 2, /this one has an arc/);
+
+  // The fixed arc end and the last point coincide, leaving a zero-length retained line.
+  refused({ ...source, points: [[20, 20], [40, 20], [20, 40], [20, 40]] }, 1, /convex outline/);
+
+  const leftBranch: Polygon = {
+    ...source, points: [[-10, 20], [0, 20], [20, 40], [-10, 40]],
+    bulges: [0, -source.bulges![1], 0, 0],
+  };
+  // The other intersection with y=20 gives a clockwise quarter arc whose end tangent points right.
+  // The retained line still points left, so this branch doubles back at the fixed end.
+  refused(leftBranch, 1, /convex outline/);
+  // The closing side x=10 intersects that arc at y=20+sqrt(300), inside both segments.
+  refused({ ...leftBranch, points: [[10, 20], [0, 20], [20, 40], [10, 40]] }, 1, /convex outline/);
+
+  // On the open reverse chain, the last point has an incoming arc and no outgoing side.
+  refused({ ...reversedPinned(), closed: false }, 3, /between two edges/);
 });

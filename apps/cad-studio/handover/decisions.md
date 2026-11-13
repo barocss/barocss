@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D905 — verify finite Round refusal and adjudicate the first pinned profile](notes/pinned-round-refusal-2026-11-13/README.md).
 - [D904 — verify pinned Round on a translated oblique plane](notes/pinned-round-oblique-plane-2026-11-13/README.md).
 - [D903 — retain the finite Round guard after unlocking its radius](notes/pinned-round-fillet-relock-2026-11-13/README.md).
 - [D902 — round a pinned incoming arc and outgoing line](notes/reversed-pinned-arc-line-round-2026-11-13/README.md).

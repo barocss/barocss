@@ -4,6 +4,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const mode = process.argv[3], fixed = mode === '--fixed';
 const oblique = mode === '--oblique';
+const tangentRefusal = mode === '--tangent-refusal';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
 const relockBaseline = mode === '--fillet-relock-baseline';
@@ -25,7 +26,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
-  ...(fixed || mirrored || reversed || sourceEdit || oblique ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(fixed || mirrored || reversed || sourceEdit || oblique || tangentRefusal ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
   ...(sourceMeasure ? ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
     'apps/cad-studio/src/ui/MeasurementInspector.tsx', 'packages/barocss-cad-model/src/app/measure.ts',
     'packages/barocss-cad-model/src/engine/mesh.ts'] : []),
@@ -33,10 +34,11 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: tangentRefusal ? 'D905_SOURCE_FROZEN' : oblique ? 'D904_SOURCE_FROZEN' : filletRelock ? 'D903_SOURCE_FROZEN' : reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: oblique ? 'Verify the pinned line–arc Round on one translated oblique working plane.'
+  qualification: tangentRefusal ? 'Verify refusal at an already-tangent line–arc junction and preserve the accepted solid.'
+    : oblique ? 'Verify the pinned line–arc Round on one translated oblique working plane.'
     : filletRelock ? 'Verify the finite Round guard after clearing the fillet radius lock.'
     : reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
     : measureArea ? 'Verify analytic native wall area and the display-mesh fallback in Measure.'
@@ -533,6 +535,55 @@ async function checkMirrored() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkTangentRefusal() {
+  const doc = await f.inspect('tangent-refusal-fixture', {}, 'pinned');
+  const [line, arc, retained] = doc.nodes[0].segments;
+  assert.equal(arc.kind, 'arc');
+  assert.equal(arc.direction, 'ccw');
+  assert.equal(retained.kind, 'line');
+  assert.deepEqual(retained.start, [20, 40]);
+  assert.deepEqual(doc.nodes[0].segments[3].start, [0, 40]);
+  assert.deepEqual(doc.nodes[0].outline.tangents, [2]);
+  near(arc.center[0], 20);
+  near(arc.center[1], 20);
+  assert.deepEqual(line.start, [0, 20]);
+  const stock = await f.inspect('tangent-refusal-stock-native', doc);
+  near(stock.volume, 10 * (400 + 100 * Math.PI), 1e-7);
+  assert.equal(stock.cylinders.length, 1);
+  near(stock.cylinders[0].r, 20);
+
+  await f.newPage();
+  await open(doc);
+  await edit();
+  await f.worldClick(retained.start);
+  await f.sketchPanel().locator('.cons-sel').getByText('point 3', { exact: true }).waitFor();
+  const before = await f.snapshot('01-already-tangent-picked');
+  f.phase = 'refuse Round at the junction with matching forward tangents';
+  await setRoundRadius(3);
+  await f.sketchPanel().getByRole('alert').getByText(/this one has an arc/i).waitFor();
+  const rejected = await f.snapshot('02-already-tangent-refused');
+  assert.deepEqual(rejected.doc, before.doc);
+  assert.deepEqual(rejected.history, before.history);
+  assert.deepEqual(rejected.outlineInputs, before.outlineInputs);
+  assert.equal(rejected.dirty, before.dirty);
+  await cancel();
+  await f.same(doc);
+  const after = await f.inspect('tangent-refusal-retained-native', await f.doc());
+  assert.deepEqual(after, stock);
+  near((await f.bodies()).bodies[0].volume, stock.volume, 1e-7);
+  f.report.observations.push({ label: 'already-tangent', junction: retained.start, tangent: [-1, 0],
+    refusal: rejected.roundError, volumeMm3: stock.volume, sideTags: doc.nodes[0].sideTags.outer });
+
+  await edit();
+  await applyRound([40, 20], 3);
+  const r3 = (await f.finishSketch('03-sharp-R3-control')).doc;
+  await checkRound('sharp-R3-control-native', r3, doc, 3);
+  await f.undo();
+  await f.same(doc);
+  await f.redo();
+  await f.same(r3);
+}
+
 async function checkObliqueRound() {
   const seed = await f.inspect('oblique-fixture', {}, 'pinned');
   const doc = { ...seed, nodes: [{ ...seed.nodes[0], plane: obliquePlane }, seed.nodes[1]] };
@@ -908,6 +959,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (tangentRefusal) {
+    await checkTangentRefusal();
+    return;
+  }
   if (oblique) {
     await checkObliqueRound();
     return;

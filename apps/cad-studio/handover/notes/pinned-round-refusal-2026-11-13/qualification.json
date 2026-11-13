@@ -1,0 +1,65 @@
+{
+  "decision": "D905",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "cf0f293de55dab8666f7798ee42ee293b4dadb61",
+  "issue": 2282,
+  "issueDisposition": "PENDING_EVIDENCE_COMMENT_AND_CLOSURE",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 d905-studio-tangent-refusal",
+    "D905_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/tangent --tangent-refusal",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm exec eslint packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 64,
+    "studioPass": 4,
+    "fail": 0,
+    "skipped": 0,
+    "typeCheck": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "b1277a882652f69c528c9da237c37b4e53374567d6677e237e7f223c6df182f0"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Finite refusal geometry, original input equality, opposite branch, crossing and open terminal."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "7309c9cf7fb982bfc3b3d52f005dcbc208bbfac40f051533001088f447218521",
+    "sourceManifestSHA256": "2bd164ade1b8d45abeb9a80e5d057c266855b68a30044dabee84113c284ee97f",
+    "frozenFiles": 842,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "tangentPointMm": [
+      20,
+      40
+    ],
+    "forwardTangent": [
+      -1,
+      0
+    ],
+    "refusal": "Round corners between two straight edges (this one has an arc).",
+    "retainedVolumeMm3": 7141.5926535897925,
+    "sharpControlVolumeMm3": 7116.460269574863,
+    "sharpControlRadiusMm": 3,
+    "undoRedo": "PASS"
+  },
+  "notRun": [
+    "additional tangent fixture Studio runs",
+    "general curved conflict proof",
+    "full suites",
+    "mobile"
+  ]
+}
