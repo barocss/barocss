@@ -39,6 +39,19 @@ export function skeletonSessionNode(session: SkeletonSession, previous?: Skeleto
   return node;
 }
 export type SkeletonMode = 'draw' | 'select';
+export function constraintNumberError(kind: BoundConstraint3D['kind'], raw: string): string | null {
+  if (!raw.trim()) return 'Enter a number.';
+  const value = Number(raw);
+  if (kind === 'angle') return Number.isFinite(value) && value > 0 && value < 180 ? null : 'Enter an angle greater than 0° and less than 180°.';
+  return Number.isFinite(value) && value > 0 ? null : 'Enter a value greater than 0 mm.';
+}
+
+function withConstraintNumber(c: BoundConstraint3D, value: number): BoundConstraint3D {
+  if (c.kind === 'angle' && c.degrees !== value) return { ...c, degrees: value };
+  if ((c.kind === 'length' || c.kind === 'distance') && c.value !== value) return { ...c, value };
+  return c;
+}
+
 export interface SkeletonEditor {
   readonly session: SkeletonSession | null;
   begin(node: number | null): void;
@@ -51,8 +64,10 @@ export interface SkeletonEditor {
   readonly plane: WorkPlane; setPlane(p: WorkPlane): void;
   readonly axis: Axis3 | null; setAxis(a: Axis3 | null): void;
   addConstraint(c: BoundConstraint3D): void;
-  /** A length's, distance's or angle's value set (a number), the sketch solved again. */
-  setValue(k: number, v: number): void;
+  readonly constraintInputs: ReadonlyMap<BoundConstraint3D, string>;
+  readonly invalidConstraintInput: boolean;
+  setConstraintInput(c: BoundConstraint3D, raw: string): void;
+  commitConstraintInput(c: BoundConstraint3D): void;
   removeSelected(): void;
   undo(): void; redo(): void;
   apply(): void; cancel(): void;
@@ -74,6 +89,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   const [plane, setPlane] = useState<WorkPlane>('xy');
   const [axis, setAxis] = useState<Axis3 | null>(null);
   const [lastDrag, setLastDrag] = useState<{ index: number; reached: boolean } | null>(null);
+  const [constraintInputs, setConstraintInputs] = useState(new Map<BoundConstraint3D, string>());
   const [, redraw] = useState(0);
   /** The point the next segment starts from (drawing), the pointer's place and snap (drawn), a point being dragged. */
   const chain = useRef<number | null>(null);
@@ -82,8 +98,12 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   const press = useRef<{ x: number; y: number; snap: Snap | null } | null>(null);
   const history = useRef<{ past: SkeletonDraft[]; future: SkeletonDraft[] }>({ past: [], future: [] });
   const params = doc.parameters;
-  const ref = useRef({ session, selection, mode, plane, axis, params, snapStep, inputActive });
-  ref.current = { session, selection, mode, plane, axis, params, snapStep, inputActive };
+  const invalidConstraintInput = session?.draft.constraints.some(c => {
+    const raw = constraintInputs.get(c);
+    return raw !== undefined && !!constraintNumberError(c.kind, raw);
+  }) ?? false;
+  const ref = useRef({ session, selection, mode, plane, axis, params, snapStep, inputActive, constraintInputs, invalidConstraintInput });
+  ref.current = { session, selection, mode, plane, axis, params, snapStep, inputActive, constraintInputs, invalidConstraintInput };
   useLayoutEffect(() => {
     if (inputActive) return;
     press.current = null;
@@ -106,6 +126,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     if (n && n.kind !== 'skeleton') return;
     from.current = n ?? null;
     const draft: SkeletonDraft = n ? { points: n.points.map(p => p.map(Number) as V3), segments: n.segments.map(s => [...s] as [number, number]), constraints: [...(n.constraints ?? [])] } : { points: [], segments: [], constraints: [] };
+    setConstraintInputs(new Map());
     setSession({ node, draft, ...(n?.name ? { name: n.name } : {}) }); select(NO_SELECTION); setMode(n ? 'select' : 'draw'); setAxis(null); setLastDrag(null);
     chain.current = null; press.current = null; drag.current = null; history.current = { past: [], future: [] };
   }, [doc]);
@@ -117,11 +138,16 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     fail('3D sketch ended', 'The part changed while the skeleton was being edited; nothing was written. Edit it again.');
   }, [doc, session, fail]);
 
-  const end = useCallback(() => { setSession(null); select(NO_SELECTION); chain.current = null; press.current = null; drag.current = null; from.current = null; }, []);
+  const end = useCallback(() => { setSession(null); setConstraintInputs(new Map()); select(NO_SELECTION); chain.current = null; press.current = null; drag.current = null; from.current = null; }, []);
   const apply = useCallback(() => {
-    const s = ref.current.session; if (!s) return;
+    const { session: s, invalidConstraintInput, constraintInputs } = ref.current;
+    if (!s || invalidConstraintInput) return;
     if (!s.draft.points.length) { end(); return; }
-    const base = skeletonSessionNode(s, s.node === null ? undefined : doc.nodes[s.node] as SkeletonNode);
+    const constraints = s.draft.constraints.map(c => {
+      const raw = constraintInputs.get(c);
+      return raw === undefined ? c : withConstraintNumber(c, Number(raw));
+    });
+    const base = skeletonSessionNode({ ...s, draft: { ...s.draft, constraints } }, s.node === null ? undefined : doc.nodes[s.node] as SkeletonNode);
     let solved: ReturnType<typeof solvedSkeleton>;
     try { solved = solvedSkeleton(base, doc.parameters); }
     catch (e) { if (!isRefusal(e, ...SKELETON_CODES)) throw e; fail('The 3D sketch cannot be applied', e.message); return; }
@@ -140,13 +166,20 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     step(settled({ ...s.draft, constraints: [...s.draft.constraints, c] }, ref.current.params));
     select({ ...NO_SELECTION, constraints: [s.draft.constraints.length] });
   }, [step]);
-  const setValue = useCallback((k: number, v: number) => {
-    const s = ref.current.session, c = s?.draft.constraints[k];
-    if (!s || !c || !Number.isFinite(v) || v <= 0) return;
-    const next = c.kind === 'angle' && c.degrees !== v ? { ...c, degrees: v }
-      : (c.kind === 'length' || c.kind === 'distance') && c.value !== v ? { ...c, value: v } : c;
-    if (next === c) return;
-    step(settled({ ...s.draft, constraints: s.draft.constraints.map((x, i) => i === k ? next : x) }, ref.current.params));
+  const setConstraintInput = useCallback((c: BoundConstraint3D, raw: string) => {
+    setConstraintInputs(inputs => new Map(inputs).set(c, raw));
+  }, []);
+  const commitConstraintInput = useCallback((c: BoundConstraint3D) => {
+    const { session: s, constraintInputs, params } = ref.current;
+    const raw = constraintInputs.get(c);
+    if (!s?.draft.constraints.includes(c) || raw === undefined || constraintNumberError(c.kind, raw)) return;
+    setConstraintInputs(inputs => {
+      const next = new Map(inputs);
+      next.delete(c);
+      return next;
+    });
+    const next = withConstraintNumber(c, Number(raw));
+    if (next !== c) step(settled({ ...s.draft, constraints: s.draft.constraints.map(x => x === c ? next : x) }, params));
   }, [step]);
   const removeSelected = useCallback(() => {
     const s = ref.current.session, sel = ref.current.selection; if (!s || (!sel.points.length && !sel.segments.length && !sel.constraints.length)) return;
@@ -154,11 +187,11 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   }, [step]);
   const undo = useCallback(() => {
     const s = ref.current.session, prev = history.current.past.pop(); if (!s || !prev) return;
-    history.current.future.push(s.draft); setSession({ ...s, draft: prev }); select(NO_SELECTION); chain.current = null;
+    history.current.future.push(s.draft); setSession({ ...s, draft: prev }); setConstraintInputs(new Map()); select(NO_SELECTION); chain.current = null;
   }, []);
   const redo = useCallback(() => {
     const s = ref.current.session, next = history.current.future.pop(); if (!s || !next) return;
-    history.current.past.push(s.draft); setSession({ ...s, draft: next });
+    history.current.past.push(s.draft); setSession({ ...s, draft: next }); setConstraintInputs(new Map());
   }, []);
 
   /** Where the pointer puts a point: a snap, else the axis through the chain's last point, else the work plane through it (or the origin), on the grid. */
@@ -279,7 +312,10 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   }, [apply, end, removeSelected]);
 
   const historyAvailable = { undo: history.current.past.length > 0, redo: history.current.future.length > 0 };
-  return { session, begin, tool, historyAvailable, diagnosis, selection, select, mode, setMode, plane, setPlane, axis, setAxis, addConstraint, setValue, removeSelected, undo, redo, apply, cancel: end, onKey, lastDrag };
+  return {
+    session, begin, tool, historyAvailable, diagnosis, selection, select, mode, setMode, plane, setPlane, axis, setAxis, addConstraint,
+    constraintInputs, invalidConstraintInput, setConstraintInput, commitConstraintInput, removeSelected, undo, redo, apply, cancel: end, onKey, lastDrag,
+  };
 }
 
 /** A point on an axis line through `from`, its distance along the axis on the grid. */

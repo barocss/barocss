@@ -1,0 +1,41 @@
+{
+  "decision": "D1140",
+  "tier": "SMALL",
+  "parent": "e31bdc8eab4d059a96b1b217c364d47db874ab5c",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1140-skeleton-number-<run>",
+    "D1140_SOURCE_FROZEN=1 node apps/cad-studio/test/skeleton-number-browser.mjs <external-evidence>/<run> [--baseline]",
+    "cd apps/cad-studio && node scripts/test.mjs skeleton-tool skeleton-session-node",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/skeleton/useSkeletonEditor.tsx apps/cad-studio/src/ui/SkeletonPanel.tsx",
+    "node --check apps/cad-studio/test/skeleton-number-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 382,
+      "receiptSHA256": "6e737ec8cf07bbf5567c9bcd5d7fb642c667fdec8d2aca414ad118362b503974",
+      "sourceManifestSHA256": "dfc685b554bba1d964c7dc0fa2aff96364851a20798486e557ea7b3d6e86ae62"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "b326d7d733c3cede4aaaba207bded385cd48f24ed53c640a882027f8b8a7f6b1",
+      "sourceManifestSHA256": "b451d94a69010772480a499cf75ffb0f2108a16980cc86a5ae73a490d5167f51"
+    }
+  },
+  "observations": {
+    "baselineAcceptedLengthMM": 30,
+    "historyLengthMM": 39.99999999999999,
+    "creationLengthMM": 20.000000000046263,
+    "absoluteToleranceMM": 1e-08
+  },
+  "focused": {
+    "studioPassed": 7,
+    "failed": 0
+  }
+}
