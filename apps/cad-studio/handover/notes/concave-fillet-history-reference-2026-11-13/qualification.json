@@ -1,0 +1,37 @@
+{
+  "decision": "D1003",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "80ba0430dc8c4690dfdbc4149cc01a70d30d45a2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1003-concave-fillet",
+    "D1003_SOURCE_FROZEN=1 node apps/cad-studio/test/concave-fillet-history-reference-browser.mjs <external-evidence>/studio02",
+    "pnpm --filter @barocss/cad-model test references.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node --check apps/cad-studio/test/concave-fillet-history-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "4000239e3e1a448634b9b9f4487aef24719799086dabf9bb5cdaaa9333d52ac3",
+    "sourceManifestSHA256": "66120c23c3f318ad78505e9ed2d4fe86f5729a09431591a4e2278f4be20c7c04",
+    "frozenFiles": 848,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldChoices": 6,
+    "edgeBefore": "n1.side6|n1.side7",
+    "pickedEdge": "n1.side2|n1.side3",
+    "pickedMidpointMM": [5, 5, 1.5],
+    "cylinderAxisPointMM": [7, 7, 0],
+    "radiusMM": 2,
+    "heldVolumeMM3": 525,
+    "acceptedNativeVolumeMM3": 527.5752220392308,
+    "volumeToleranceMM3": 1e-7
+  },
+  "notRun": ["uniquely displaced non-Split finish edge", "multi-edge or varying radius repick", "downstream finish on a linked-inset v1 recipe", "production build", "full suites", "mobile"]
+}
