@@ -1,0 +1,54 @@
+{
+  "decision": "D923",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "96e8e8c1392dd1344346f81c259d5652fdbc6294",
+  "issue": 2324,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "decisions": {
+    "healthyRelink": "ADOPT_BOUNDED",
+    "damagedFileIntake": "REFUSE_BEFORE_ADOPTION",
+    "damagedFileRepair": "DEFER"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 d923-damaged-open",
+    "D868_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/damaged01 --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs associative-inset-relink sketch-associative-inset drawing-associative-sketch",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketch-edit-identity workOwnership project",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 22,
+    "studioPass": 145,
+    "fail": 0,
+    "skipped": 0,
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "4cbb414d2e2daf8873c98ce0916921efc45c54114aa42e9c4332b1a20f2e6a75"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "1110f19912c75a8649245f3648ea222414066000f492472eae13623af9710869",
+    "sourceManifestSHA256": "e970b885c6d5a2a29d9bf3009723cdf06553f0c69af98314e740f52d880184ec",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "fileRefusal": "PASS",
+    "projectRefusal": "PASS",
+    "supersededRefusal": "PASS",
+    "ringVolumeMM3": 1280.0000000000011,
+    "expectedVolumeMM3": 1280
+  },
+  "notRun": [
+    "damaged-file repair",
+    "opposite-normal replacement",
+    "whole suites",
+    "mobile"
+  ]
+}
