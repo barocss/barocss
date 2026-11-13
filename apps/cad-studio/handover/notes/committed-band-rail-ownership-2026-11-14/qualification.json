@@ -1,0 +1,168 @@
+{
+  "decision": "D1146",
+  "tier": "SMALL",
+  "parent": "3660b92f27bfce4504fe12fa09f3eaf19975044d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1146-<run>",
+    "D1146_SOURCE_FROZEN=1 node apps/cad-studio/test/band-rail-zoom-browser.mjs <external-evidence>/<run> [--baseline|--equal]",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node --check apps/cad-studio/test/band-rail-zoom-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "reproduced": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 863,
+      "receiptSHA256": "ea8da9a32730ae92ab7d2f76f255436a646bce9fe733bc27b9b5291d6f11ce3c",
+      "sourceManifestSHA256": "1329169843b219f1a188e29a953e383928212a8e9186c0338ad609cda3806c46"
+    },
+    "frustum-audit": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 863,
+      "receiptSHA256": "54e9fc5852e5f9d21ecc3d4c5e2c7fe3379f2dd9f620306a5f6bbf330dc34659",
+      "sourceManifestSHA256": "2a11a4f94a355c42b896858ef71d93216f61853b7f0db04bcaa33be511c568b9"
+    },
+    "equal-audit": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 863,
+      "receiptSHA256": "3b2d10e352ac5ff5f5a3e49ab33cc64d846264a53be83ba20308e7c85968e1c8",
+      "sourceManifestSHA256": "2a11a4f94a355c42b896858ef71d93216f61853b7f0db04bcaa33be511c568b9"
+    }
+  },
+  "observations": {
+    "frustum-audit": [
+      {
+        "label": "native-band",
+        "geometry": {
+          "native": [
+            {
+              "name": "n4.a|n4.band0",
+              "radius": 20.000000000000004,
+              "center": [
+                0,
+                -1.7763568394002505e-15,
+                10
+              ]
+            },
+            {
+              "name": "n4.b|n4.band0",
+              "radius": 10.000000000000002,
+              "center": [
+                0,
+                -8.881784197001252e-16,
+                40
+              ]
+            },
+            {
+              "name": "n4.a|n4.band1",
+              "radius": 20.000000000000007,
+              "center": [
+                3.552713678800501e-15,
+                4.2256504376949566e-15,
+                10
+              ]
+            },
+            {
+              "name": "n4.b|n4.band1",
+              "radius": 10.000000000000004,
+              "center": [
+                1.7763568394002505e-15,
+                2.1128252188474783e-15,
+                40
+              ]
+            }
+          ],
+          "displayEdges": [],
+          "area": 2980.376479738825
+        }
+      },
+      {
+        "label": "lower",
+        "edge": null,
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "upper",
+        "edge": null,
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      }
+    ],
+    "equal-audit": [
+      {
+        "label": "native-band",
+        "geometry": {
+          "native": [
+            {
+              "name": "n4.a|n4.band0",
+              "radius": 10.000000000000002,
+              "center": [
+                0,
+                -8.881784197001252e-16,
+                10
+              ]
+            },
+            {
+              "name": "n4.b|n4.band0",
+              "radius": 10.000000000000002,
+              "center": [
+                0,
+                -8.881784197001252e-16,
+                40
+              ]
+            },
+            {
+              "name": "n4.a|n4.band1",
+              "radius": 10.000000000000004,
+              "center": [
+                1.7763568394002505e-15,
+                2.1128252188474783e-15,
+                10
+              ]
+            },
+            {
+              "name": "n4.b|n4.band1",
+              "radius": 10.000000000000004,
+              "center": [
+                1.7763568394002505e-15,
+                2.1128252188474783e-15,
+                40
+              ]
+            }
+          ],
+          "displayEdges": [],
+          "area": 1884.955592153881
+        }
+      },
+      {
+        "label": "lower",
+        "edge": null,
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "upper",
+        "edge": null,
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      }
+    ]
+  }
+}
