@@ -1,0 +1,64 @@
+{
+  "decision": "D932",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "00ae7dd2fd62369691afa4147e68a9d898472c01",
+  "node": "22.19.0",
+  "issue": 2367,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D932-baseline",
+    "D932_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/baseline05 --baseline",
+    "gate.sh acquire heavy 600 D932-fixed",
+    "D932_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/fixed02 --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs drawing.test drawing-datum-targets drawing-section",
+    "cd apps/cad-studio && node scripts/test.mjs drawing-commit-roundtrip drawing-scope",
+    "pnpm -C apps/cad-studio run type-check",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPass": 61,
+    "modelFail": 1,
+    "modelStatus": "FAIL",
+    "firstModelFailure": "chat-drawing: TEXT_OVER_LINES on dimension 12 (D697/D700)",
+    "modelLogSHA256": "2a719d0cb3c41a42b73dd91bf5074356505703c5831b20a6e3c6a8d5ff02651b",
+    "studioPass": 4,
+    "studioFail": 0,
+    "studioStatus": "PASS",
+    "studioTypes": "PASS",
+    "studioLogSHA256": "60c69f27a2fd29a462069478f1f638a104650a6ccfdfa42b128a4ef2cf834580"
+  },
+  "firstDriverFailureSHA256": "92143fa5f70c62b55b8784e56f4e7f915a58685cb9b8b2ac6867dde9227be75a",
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "baselineReceiptSHA256": "e7ca8af0903c73f2e398cca2bb6e220ce5a63b5f15942671d6d630ac5181859f",
+    "receiptSHA256": "355955bcc64577fdd7c96b4968d8e303713f467a8cfa08d8d9b819ed7f9e7e63",
+    "sourceManifestSHA256": "4f23ea07cd84f26acefa3b3feb9d8766378a0d1b25106f4dcd23ea7409290f90",
+    "frozenFiles": 372,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "dimensionMM": 20,
+    "oldPlaceMM": [
+      10,
+      6
+    ],
+    "newPlaceMM": [
+      10.520002092633916,
+      15.142857142857146
+    ],
+    "svgBytes": 6888,
+    "svgSHA256": "e78c7046fbfc965cff41b88ac23eae7cf588cb55f3f2e3f8fa27b39dc63b66a5"
+  },
+  "notRun": [
+    "fresh project Open and re-drag",
+    "full annotation interaction matrix",
+    "Model type check",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}

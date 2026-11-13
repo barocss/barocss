@@ -489,7 +489,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       }
       return;
     }
-    const target = (e.target as Element).closest('[data-dim]');
     if (tool === 'note') e.preventDefault(); // (the note's text box keeps the focus it is given)
     if (tool === 'note' && !pending) {
       // On (or right by) a view: the leader's point first; elsewhere the note itself.
@@ -500,11 +499,19 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
     if (tool === 'note' && pending?.kind === 'note') { const q = sheetPoint(e.clientX, e.clientY); if (q) addNote(q, pending.leader); return; }
     if (tool === 'select') {
-      const frameId = (e.target as Element).closest('[data-standalone-frame]')?.getAttribute('data-standalone-frame');
+      const hit = e.target as Element;
+      // Section marks are read-only ink. Keep removed-section and detail dragging on their sheet-space paths.
+      const selectable = '[data-dim]:not(.section), [data-standalone-frame], [data-datum-target]';
+      const picked = hit.closest('g.section')
+        ? document.elementsFromPoint(e.clientX, e.clientY).filter(element => e.currentTarget.contains(element))
+          .map(element => element.closest(selectable)).find(Boolean)
+        : hit.closest(selectable);
+      const target = picked?.hasAttribute('data-dim') ? picked : undefined;
+      const frameId = picked?.getAttribute('data-standalone-frame');
       const frames = frameId ? (settings.frames ?? []).filter(frame => frame.dim === undefined && frame.id === frameId) : [];
       if (frames.length === 1) { setSelected(null); setSelectedTarget(null); setSelectedFrame(frames[0].id); setDrag(null); return; }
       setSelectedFrame(null);
-      const targetId = (e.target as Element).closest('[data-datum-target]')?.getAttribute('data-datum-target');
+      const targetId = picked?.getAttribute('data-datum-target');
       const targets = targetId ? (settings.datumTargets ?? []).filter(t => t.id === targetId) : [];
       if (targets.length === 1) {
         setSelected(null); setSelectedTarget(targets[0].id); setDrag({ target: targets[0].id, original: targets[0], place: targets[0].place });
