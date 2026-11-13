@@ -13,7 +13,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import type { FeatureFailure } from '../app/failedFeature';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct' | 'parameters'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -68,16 +68,17 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     }
   };
   const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
-  const changed = draft !== nodes;
+  const sourceWidth = typed.sourceWidth === undefined ? insetSourceWidth : Number(typed.sourceWidth);
+  const changed = draft !== nodes || sourceWidth !== insetSourceWidth;
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
-  const incompleteInset = typed.insetMM === '';
+  const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
   const apply = () => {
     if (!changed || pending || incompleteInset || request.current) return;
     setModeProblem(null);
     const ticket = {};
     request.current = ticket;
     const ownsDraft = () => request.current === ticket;
-    const result = onApply(draft, ownsDraft);
+    const result = onApply(draft, ownsDraft, sourceWidth);
     if (!result) { retireEvaluation(); return; }
     setEvaluation({ nodes, index });
     void result.then(error => {
@@ -101,6 +102,10 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         onClick={() => { retireEvaluation(); onRelinkInset.start(); }}>Replace inset source</button>}
       {onDetachInset && <button className="ghost" type="button" disabled={pending || changed || incompleteInset}
         onClick={() => { retireEvaluation(); onDetachInset(); }}>Detach inset</button>}
+      {insetSourceWidth !== undefined && <div className="field"><span>Source width</span><span className="num">
+        <input type="number" step="any" aria-label="Source width" value={typed.sourceWidth ?? insetSourceWidth} disabled={pending}
+          onChange={event => { retireEvaluation(); setTyped(values => ({ ...values, sourceWidth: event.target.value })); }} /><em>mm</em>
+      </span></div>}
       {linearPattern && <div className="field"><span>Distance mode</span>
         <select aria-label="Distance mode" value={linearPattern.kind === 'linear-pattern' ? 'spacing' : 'span'} disabled={pending}
           onChange={event => changeDistanceMode(event.target.value as LinearPatternDistanceMode)}>

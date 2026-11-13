@@ -5,7 +5,7 @@ import { emptyDoc, prefixDoc, type LoopSegment, type StudioDoc } from '../src/en
 import { readStudioDoc } from '../src/engine/migrate';
 import { partSnapshot, toPartDocument } from '../src/engine/part';
 import { editFields } from '../src/app/editFields';
-import { createRoundedInsetExtrusion, detachRoundedInsetRecipe, resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
+import { createRoundedInsetExtrusion, detachRoundedInsetRecipe, resizeRoundedInsetSource, resolveRoundedInsetRecipe, roundedInsetSourceWidth, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
 const outer = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'];
 const allInner = ['e9', 'e10', 'e11', 'e12', 'e13', 'e14', 'e15', 'e16'];
@@ -138,6 +138,17 @@ test('a cyclic Round outline retains authored geometry, constraints and side ide
   const [output] = partSnapshot(doc).outputs;
   assert.ok(checkBrep(output.brep, { strict: true }).valid);
   assert.ok(Math.abs(massPropertiesOf(output).volume - 1215.6637061435918) < 1e-7);
+  const wider = resizeRoundedInsetSource(rounded, 24);
+  const edited = { ...doc, nodes: [wider, ...doc.nodes.slice(1)] };
+  assert.equal(roundedInsetSourceWidth(wider), 24);
+  assert.ok('id' in wider);
+  assert.equal(wider.id, rounded.id);
+  assert.equal(wider.sideTags, rounded.sideTags);
+  assert.deepEqual(wider.outline?.radii, rounded.outline.radii);
+  assert.deepEqual(wider.outline?.tangents, rounded.outline.tangents);
+  assert.deepEqual(wider.outline?.hv, rounded.outline.hv);
+  assert.deepEqual(readStudioDoc(JSON.stringify(edited)), { doc: edited, notes: [] });
+  assert.ok(Math.abs(massPropertiesOf(partSnapshot(edited).outputs[0]).volume - 1415.6637061435918) < 1e-7);
   for (const modify of [
     (outline: typeof rounded.outline) => { outline.radii[0] = 3; },
     (outline: typeof rounded.outline) => { outline.tangents[0] = 1; },
@@ -151,6 +162,28 @@ test('a cyclic Round outline retains authored geometry, constraints and side ide
     assert.ok('error' in rejected);
     assert.match(rejected.error, /stored Round outline.*must match/);
   }
+});
+
+test('a source width edit keeps the recipe and exact tangencies and refuses a closed opening', () => {
+  const doc = fixture(2.5), source = doc.nodes[0];
+  assert.ok(source.kind === 'sketch' && source.profile === 'loop');
+  assert.equal(roundedInsetSourceWidth(source), 20);
+  assert.equal(resizeRoundedInsetSource(source, 20), source);
+  const wider = resizeRoundedInsetSource(source, 24);
+  assert.ok('id' in wider);
+  assert.equal(wider.id, source.id);
+  assert.equal(wider.sideTags, source.sideTags);
+  assert.ok(wider.profile === 'loop');
+  assert.deepEqual(wider.segments.slice(1, 5), [
+    { kind: 'arc', start: [22, 0], center: [22, 2], direction: 'ccw' },
+    { kind: 'line', start: [24, 2] },
+    { kind: 'arc', start: [24, 8], center: [22, 8], direction: 'ccw' },
+    { kind: 'line', start: [22, 10] },
+  ]);
+  assert.deepEqual(resizeRoundedInsetSource(wider, 20), source);
+  assert.throws(() => resizeRoundedInsetSource(source, 0), /positive finite width/);
+  const closed = { ...doc, nodes: [resizeRoundedInsetSource(source, 5), ...doc.nodes.slice(1)] };
+  assert.throws(() => validateRoundedInsetDocument(closed, true), /closes the rectangle/);
 });
 
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {

@@ -1,0 +1,96 @@
+{
+  "decision": "D917",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "e3ea0635673d94d5fe76ae05e7ceb0a97c8cf070",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D917-run>",
+    "D917_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/width01 --width-inset",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/edit-regression --edit-inset",
+    "D914_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/detach-regression --detach-inset",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership model-rail",
+    "cd apps/cad-studio && node test/rounded-inset-recipe-mutations.mjs <external-evidence>/mutations02",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstTypeRun": {
+    "status": "FAIL",
+    "reason": "The test accessed ID on the general SketchNode type without checking presence.",
+    "logSHA256": "c2a836251c612cb9df0d8240d90ac2ccc5357c9c2f7b9be9f66f1cbb522c93e9"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 105,
+    "studioPass": 119,
+    "fail": 0,
+    "skipped": 0,
+    "types": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "f81475133b8286a6ce8fd46e7d35101d36307800630305ae6a37aa1e04f3d46a"
+  },
+  "appLint": {
+    "status": "FAIL",
+    "newDiagnostics": 0,
+    "existingDiagnostic": "@typescript-eslint/no-unused-vars: '_k' is assigned a value but never used.",
+    "parentSHA256": "69c4519f5bf6b3b9971f9228db72efa9c53e7f80b84747270c6c51f92e331929",
+    "currentSHA256": "746a188cdcbdf9dbc7dd48cef84e4fdeee783d7e252d0e39debf3e52b0f3512e"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Source traversal, analytic right arc centers and eight sharp opening vertices, valid source with collapsed opening"
+  },
+  "mutations": {
+    "status": "PASS",
+    "controlPass": 8,
+    "killed": 5,
+    "receiptSHA256": "67182d99155454f26608d37c18b467db4d1c3e6996cea69f58fe4e4671d6fc01"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "c06e61adef31a853ee7cedaca625c78690370cff6e1396930c37486cb209a277",
+    "sourceManifestSHA256": "ccf231d6976ad925042c44bb795436733286180666a9e89c8d2c5a9b92d7f3a7",
+    "frozenFiles": 846,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "widthsMM": [
+      20,
+      24
+    ],
+    "insetMM": 2.5,
+    "measuredVolumeMM3": [
+      1215.6637061435915,
+      1415.6637061435924
+    ],
+    "expectedVolumeMM3": [
+      1215.6637061435918,
+      1415.6637061435918
+    ],
+    "savedBytes": 3277,
+    "savedSHA256": "c87ecae37f70f470f8ba1f262f166dc1caa2ead482b8d700cda162015331c16d",
+    "distanceEditReceiptSHA256": "72edf94d9c91ec67522cd77a089f9893653d0ecb95c1c936e50fea31e3c552d3",
+    "detachReceiptSHA256": "8e46bef597ea7121eccec1b83fd6d54ee80141efa8bd56819687125b5b557f16"
+  },
+  "notRun": [
+    "linked radius or height editing",
+    "post-detach source edit in Studio",
+    "dependent features",
+    "whole suites",
+    "mobile"
+  ]
+}

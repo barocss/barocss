@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D917 — edit a linked rounded inset source width](notes/rounded-inset-source-width-2026-11-13/README.md).
 - [D916 — use a rounded rectangle drawn in Studio as an inset source](notes/rounded-inset-drawn-source-2026-11-13/README.md).
 - [D915 — create a linked inset and Extrude in Studio](notes/rounded-inset-studio-authoring-2026-11-13/README.md).
 - [D914 — detach a stored rounded inset without changing its solid](notes/rounded-inset-detach-2026-11-13/README.md).

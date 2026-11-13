@@ -102,17 +102,49 @@ function isRecipe(node: unknown): node is RoundedRectangleInsetNode & { id: stri
     && record(node.sideMap) && Object.keys(node.sideMap).length === 8 && Object.values(node.sideMap).every(id => typeof id === 'string');
 }
 
+/** Width of the admitted XY source in its authored coordinates. */
+export function roundedInsetSourceWidth(source: SketchNode): number {
+  const { shape } = sourceProfile(source);
+  const xs = shape.points.map(point => point[0]);
+  return Math.max(...xs) - Math.min(...xs);
+}
+
+/** Move the right support and its two tangent arcs while retaining the authored sequence. */
+export function resizeRoundedInsetSource(source: SketchNode, width: number): SketchNode {
+  if (source.profile !== 'loop') return badRecipe('the source must be a native loop.');
+  if (!Number.isFinite(width) || width <= 0) return badRecipe('give the source a positive finite width.');
+  const { segments, shape } = sourceProfile(source);
+  const at = lowerSideIndex(shape.points, shape.bulges);
+  const x = (slot: number) => shape.points[(at + slot) % 8][0];
+  const left = x(7), radius = x(0) - left, right = left + width;
+  if (right === x(2)) return source;
+  const mapped = segments.map((segment, i): LoopSegment => {
+    const slot = (i - at + 8) % 8;
+    if (slot < 1 || slot > 4) return segment;
+    const start: P2 = [slot === 1 || slot === 4 ? right - radius : right, segment.start[1] as number];
+    return segment.kind === 'line' ? { ...segment, start }
+      : { ...segment, start, center: [right - radius, segment.center[1]] };
+  });
+  const outline = source.outline && { ...source.outline, points: mapped.map(segment => segment.start as P2) };
+  return { ...source, segments: mapped, ...(outline ? { outline } : {}) };
+}
+
+function lowerSideIndex(points: P2[], bulges: number[]): number {
+  const bottom = Math.min(...points.map(point => point[1]));
+  const at = points.findIndex(([x, y], i) => {
+    const [nextX, nextY] = points[(i + 1) % points.length];
+    return bulges[i] === 0 && y === bottom && nextY === bottom && nextX > x;
+  });
+  if (at < 0) return badRecipe('the source requires a CCW tangent rounded rectangle with a lower straight side.');
+  return at;
+}
+
 function plannedRecipe(doc: StudioDoc, index: number) {
   const recipe: unknown = doc.nodes[index], source: unknown = doc.nodes[0];
   if (index !== 1 || !isRecipe(recipe)) return badRecipe('the stored recipe is malformed or is not immediately after its source.');
   if (!record(source) || source.id !== recipe.sourceFeature) return badRecipe('the earlier source feature ID does not match.');
   const { segments, shape } = sourceProfile(source);
-  const bottom = Math.min(...shape.points.map(point => point[1]));
-  const at = shape.points.findIndex(([x, y], i) => {
-    const [nextX, nextY] = shape.points[(i + 1) % shape.points.length];
-    return shape.bulges[i] === 0 && y === bottom && nextY === bottom && nextX > x;
-  });
-  if (at < 0) return badRecipe('the source requires a CCW tangent rounded rectangle with a lower straight side.');
+  const at = lowerSideIndex(shape.points, shape.bulges);
   const rotate = <T>(values: T[]) => [...values.slice(at), ...values.slice(0, at)];
   const canonical = at ? { ...shape, points: rotate(shape.points), bulges: rotate(shape.bulges), ids: rotate(shape.ids) } : shape;
   const inset = planRoundedRectangleInset(canonical, recipe.insetMM, new Map(Object.entries(recipe.sideMap)));

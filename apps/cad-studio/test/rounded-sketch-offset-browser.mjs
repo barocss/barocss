@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
-const drawnInset = process.argv[3] === '--drawn-inset';
+const widthInset = process.argv[3] === '--width-inset';
+const drawnInset = widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
@@ -48,8 +49,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: drawnInset ? 'Draw and round all four source corners in desktop Studio.'
+  name: 'rounded-sketch-offset', envFrozen: widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
+    : drawnInset ? 'Draw and round all four source corners in desktop Studio.'
     : authorInset ? 'Author a linked inset and direct Extrude together from one finished sketch.'
     : detachInset ? 'Detach a rounded inset into the exact ordinary sketch at the same feature ID.'
     : editInset ? 'Edit a loaded rounded inset through its direct Extrude editor.'
@@ -574,7 +576,10 @@ async function verifyInsetEdits(stock, candidate, check) {
   const editor = () => f.editor().getByRole('spinbutton', { name: 'Inset distance', exact: true });
   const openEditor = async expected => {
     await f.openFeatureEditor(2, 'rounded inset Extrude');
-    assert.deepEqual(await f.editorFields(), [{ label: 'Inset distance', value: String(expected), disabled: false }]);
+    assert.deepEqual(await f.editorFields(), [
+      { label: 'Source width', value: String(expected === 0.005 ? 0.5 : 20), disabled: false },
+      { label: 'Inset distance', value: String(expected), disabled: false },
+    ]);
     assert.equal(await button(f.editor(), 'Edit sketch').count(), 0);
     assert.equal(await button(f.editor(), 'Delete feature').count(), 0);
   };
@@ -842,6 +847,10 @@ async function verifyDrawnInset(source) {
   await button(f.editor(), 'Apply').click();
   await f.changed(expected(1));
   await check('drawn-linked-sharp', 2.5);
+  if (widthInset) {
+    await verifySourceWidth(expected(2.5));
+    return;
+  }
   await f.undo();
   await check('drawn-undo-rounded', 1);
   await f.redo();
@@ -858,6 +867,71 @@ async function verifyDrawnInset(source) {
   await chooseFile(damaged, 'inconsistent-round-outline.bcad');
   await f.waitToast(/stored Round outline.*must match/i);
   await check('drawn-outline-mismatch-refused', 2.5);
+}
+
+async function verifySourceWidth(original) {
+  const editor = () => f.editor().getByRole('spinbutton', { name: 'Source width', exact: true });
+  const applyWidth = async width => {
+    f.phase = 'Apply source width ' + width;
+    await f.openFeatureEditor(2);
+    await editor().fill(String(width));
+    await button(f.editor(), 'Apply').click();
+  };
+  const expectGeometry = async (label, doc, width) => {
+    await f.same(doc);
+    const native = await f.inspect(label, doc);
+    const volume = 10 * (area(width, 10, 2) - area(width - 5, 5, 0));
+    close(native.volume, volume);
+    close((await f.bodies()).bodies[0].volume, volume);
+    assert.equal(native.faces.length, 14);
+    assert.equal(native.cylinders.length, 4);
+    const [source, recipe] = doc.nodes;
+    for (const [i, [cx, cy]] of [[2, 2], [width - 2, 2], [width - 2, 8], [2, 8]].entries()) {
+      const tag = source.sideTags.outer[i * 2];
+      const cylinder = native.cylinders.find(c => c.name === `n2.side[${tag}]`);
+      assert.ok(cylinder, tag);
+      close(cylinder.r, 2);
+      close(cylinder.c[0], cx);
+      close(cylinder.c[1], cy);
+    }
+    for (const [i, id] of source.sideTags.outer.entries()) {
+      assert.equal(native.faces.includes(`n2.side[${recipe.sideMap[id]}]`), i % 2 === 1);
+    }
+    for (const z of [0, 10]) for (const [x, y] of [[2.5, 2.5], [width - 2.5, 2.5], [width - 2.5, 7.5], [2.5, 7.5]]) {
+      assert.ok(native.vertices.some(vertex => Math.hypot(vertex[0] - x, vertex[1] - y, vertex[2] - z) < 1e-8), `${x},${y},${z}`);
+    }
+    f.report.observations.push({ label, width, volume: native.volume, expectedVolume: volume });
+    await f.snapshot(label);
+  };
+  const wider = structuredClone(original), [source] = wider.nodes;
+  for (const [i, x] of [[2, 22], [3, 24], [4, 24], [5, 22]]) source.segments[i].start[0] = source.outline.points[i][0] = x;
+  for (const i of [2, 4]) source.segments[i].center[0] = 22;
+
+  await applyWidth(24);
+  await f.changed(original);
+  await expectGeometry('width-24', wider, 24);
+  await f.undo();
+  await expectGeometry('width-undo-20', original, 20);
+
+  await f.openFeatureEditor(2);
+  const before = await f.snapshot('width-before-refusal');
+  await editor().fill('5');
+  await button(f.editor(), 'Apply').click();
+  await f.waitToast(/closes the rectangle/i);
+  await f.ready();
+  const after = await f.snapshot('width-5-refused');
+  for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) assert.deepEqual(after[key], before[key], key);
+  await f.dismissToasts();
+  await f.closeEditor();
+  await f.redo();
+  await expectGeometry('width-redo-24', wider, 24);
+  const saved = await save(wider);
+  await f.newPage();
+  await open(wider, saved);
+  await expectGeometry('width-24-fresh-open', wider, 24);
+  await applyWidth(20);
+  await f.changed(wider);
+  await expectGeometry('width-post-open-20', original, 20);
 }
 
 await f.run(async () => {
