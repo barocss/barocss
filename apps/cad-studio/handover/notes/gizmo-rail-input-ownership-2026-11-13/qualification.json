@@ -1,0 +1,56 @@
+{
+  "decision": "D1044",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "a355d9021192746b9b7484e9e1d59e3c041ac42c",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1044-section-studio01",
+    "D1044_SOURCE_FROZEN=1 node apps/cad-studio/test/gizmo-rail-ownership-browser.mjs <external-evidence>/studio01",
+    "node --check apps/cad-studio/test/gizmo-rail-ownership-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "receiptSHA256": "f5a932f73e8dcdfeee2ea9f76fee959a9b664986b0ed1d74327d11575acc2fa4",
+    "sourceManifestSHA256": "2eef932c2b6ca25800e5618ac0c937b391114ecff545369ff156efe6dbefeb51",
+    "visualReview": "PASS",
+    "frozenFiles": 379,
+    "states": 3,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "viewportCSSpx": [
+      900,
+      760
+    ],
+    "coveredHandleCSSpx": [
+      170,
+      90
+    ],
+    "visibleHandleCSSpx": [
+      476,
+      348.3999938964844
+    ],
+    "pointerDragCSSpx": 42,
+    "coveredDeltaMM": 0,
+    "appliedOffsetMM": [
+      4,
+      0,
+      0
+    ]
+  },
+  "focused": {
+    "driverSyntax": "PASS",
+    "diffCheck": "PASS",
+    "unitSuite": "NOT_RUN"
+  },
+  "notRun": [
+    "WebGL2 gizmo",
+    "other transform axes and commands",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
