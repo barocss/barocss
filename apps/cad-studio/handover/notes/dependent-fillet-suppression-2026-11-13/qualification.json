@@ -1,0 +1,52 @@
+{
+  "decision": "D991",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "d6a1c20b5dce3d4f151cd12cbee02b5e85904bce",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D991-native-fixture",
+    "node <external-evidence>/probe.mjs",
+    "gate.sh acquire heavy 600 D991-dependent-fillet",
+    "D991_SOURCE_FROZEN=1 node apps/cad-studio/test/dependent-fillet-suppression-browser.mjs <external-evidence>/baseline --baseline",
+    "D991_SOURCE_FROZEN=1 node apps/cad-studio/test/dependent-fillet-suppression-browser.mjs <external-evidence>/studio02 --fixed",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature work-ownership",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/dependent-fillet-suppression-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "receiptSHA256": "5b35b2085a39d08df85399c42c46ad3f54a49f1571a7278f5845ae437a162c22",
+    "kernelRefusal": { "code": "SELECTION", "feature": "n3", "edge": "n1.side1|n2.face" }
+  },
+  "firstFix": {
+    "status": "FAIL",
+    "reason": "Successful rolled-back suppression captured a previously unsigned reference",
+    "receiptSHA256": "35e30859d17de8b8ccddb472fdb816ae1f154c845d4a710eb911000fc40bc0f4"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "9240c1f77550af5ff0e60f8c3cb1b9b43918c31bb73609ad6cb51e8ebfdd2b47",
+    "sourceManifestSHA256": "557490d51200a3b5b5af4c694f4e4a0be6d40812722055fe4bd80818c1569e9c",
+    "frozenFiles": 371,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "stockVolumeMM3": 24000,
+    "volumeToleranceMM3": 1e-7
+  },
+  "focused": { "pass": 16, "fail": 0, "typeCheck": "PASS" },
+  "notRun": [
+    "Save and project overwrite after another failure",
+    "stale face commands and exports",
+    "Drawing PDF",
+    "other Fillet types",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

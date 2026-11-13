@@ -1,20 +1,22 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { featureLabel, parentsOf, prefixDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { refOf, type Selection } from '@barocss/cad-model/app/commands';
 import { featureOfPick } from '@barocss/cad-model/app/editCommand';
 import { bodyNodes, deleteFeature, deleteFeatures, featureDependents, moveFeature } from '@barocss/cad-model/chat/features';
+import { failedFeatureText } from '../app/failedFeature';
 import { emptySel } from '../app/studioConstants';
 import type { EngineClient } from '../engine/client';
 interface FeatureHistoryOptions {
   model: { doc: StudioDoc; marker: number | null; bodies: BodyResult[]; selection: Selection };
   worker: { engine: EngineClient; nextRevision(): number };
+  suppression: { evaluate(doc: StudioDoc): ReturnType<EngineClient['part']>; owner(): () => boolean; commit(doc: StudioDoc): boolean };
   changes: { canChangeDocument(): boolean; commit(next: StudioDoc): boolean; setSelection: Dispatch<SetStateAction<Selection>> };
   onNotice(notice: FriendlyError, options?: { acceptedDocument: true }): void;
 }
 /** Feature history operations retain their original validation and central acceptance callbacks. */
-export function useFeatureHistory({ model, worker, changes, onNotice: setToast }: FeatureHistoryOptions) {
+export function useFeatureHistory({ model, worker, suppression, changes, onNotice: setToast }: FeatureHistoryOptions) {
   const { doc, marker, bodies, selection } = model;
   const { engine, nextRevision } = worker;
   const { canChangeDocument, commit, setSelection } = changes;
@@ -59,17 +61,32 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
       commit(r.doc);
     });
   };
-  /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
-  const toggleSuppress = (i: number) => {
+  const suppressionRequest = useRef<object | null>(null);
+  /** A suppression returns to the end of History, so check all active steps before committing. */
+  const toggleSuppress = async (i: number) => {
     if (!canChangeDocument()) return;
     const n = doc.nodes[i]; if (!n || n.kind === 'sketch' || n.kind === 'driven-sketch') return;
     const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : x.suppressed ? (({ suppressed: _s, ...rest }) => rest as ModelNode)(x) : { ...x, suppressed: true as const }) };
+    const request = {}, owns = suppression.owner();
+    suppressionRequest.current = request;
     const label = featureLabel(n, i, doc.nodes);
-    engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), nextRevision()).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot ${n.suppressed ? 'unsuppress' : 'suppress'} ${label}: ${e.error.title}` }); return; }
-      commit(next);
-    });
+    const title = `Cannot ${n.suppressed ? 'unsuppress' : 'suppress'} ${label}`;
+    try {
+      const result = await suppression.evaluate(next);
+      if (suppressionRequest.current !== request || !owns()) return;
+      if (!result.ok) {
+        const failed = failedFeatureText(result.error.feature, next.nodes, doc.nodes);
+        const dependent = !n.suppressed && failed && next.nodes.slice(i + 1).some(node => node.id === result.error.feature);
+        setToast({
+          ...result.error, title: `${title}: ${result.error.title}`,
+          hint: dependent ? `The edit would break ${failed}. Update or suppress that feature first.` : result.error.hint,
+        }, { acceptedDocument: true });
+        return;
+      }
+      suppression.commit(next);
+    } catch (error) {
+      if (suppressionRequest.current === request && owns()) setToast({ title, hint: 'The feature history is unchanged.', detail: String(error) }, { acceptedDocument: true });
+    }
   };
   /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
   const [deleteRequest, setCascade] = useState<{ owner: StudioDoc; opener: HTMLElement | null; label: string; deps: string[]; all: number[] } | null>(null);

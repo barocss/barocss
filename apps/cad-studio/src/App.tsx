@@ -967,10 +967,10 @@ export function App() {
   const interferenceSource = useMemo(() => ({
     document: doc, input: evaluated, generation: interferenceGeneration, worker: workerSession, marker,
   }), [doc, evaluated, interferenceGeneration, workerSession, marker]);
-  const ownsInterferenceInput = useCallback(() => docNow.current === interferenceSource.document &&
+  const ownsEvaluatedSource = useCallback(() => docNow.current === interferenceSource.document &&
     evaluatedRef.current === interferenceSource.input && workOwnership.current.generation === interferenceSource.generation &&
     workerSessionNow.current === interferenceSource.worker && markerNow.current === interferenceSource.marker, [interferenceSource]);
-  const interference = useInterferenceCheck(interferenceSource, ownsInterferenceInput, engine);
+  const interference = useInterferenceCheck(interferenceSource, ownsEvaluatedSource, engine);
   const checkInterference = useCallback(() => {
     if (!fresh || busy) {
       setToast({ title: 'Interference check not started', hint: 'Wait for the current part to finish evaluating.', detail: '' });
@@ -1832,6 +1832,17 @@ export function App() {
   }, [redo, doc, marker, restoreHistoryEntry, reverseHistoryEntry, cancelNativeReview]);
 
   const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
+    suppression: {
+      commit: next => commit(next, false),
+      evaluate: next => {
+        const candidate = inPlace ? resolveShopRows(next, inPlace.assembly).doc : next;
+        return engine.part(prefixDoc(candidate, candidate.nodes.length), revision.current++, 'read');
+      },
+      owner: () => {
+        const open = openIntent.current;
+        return () => openIntent.current === open && ownsEvaluatedSource() && shownDocNow.current === shownDoc;
+      },
+    },
     changes: { canChangeDocument, commit, setSelection },
     onNotice: (message, options) => setToast(options?.acceptedDocument ? { ...message, documentSource: { doc: docNow.current } } : message) });
   const { deleteNode, separate, reorder, toggleSuppress, cascade, setCascade, deleteCascade, deleteSelection } = featureHistory;
