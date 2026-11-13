@@ -1,0 +1,60 @@
+{
+  "decision": "D1013",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "496e08c3689cc52be8f8a71a6f8e32e70ee6b876",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1013-section-studio03",
+    "D1013_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-measure-browser.mjs <external-evidence>/studio03",
+    "gate.sh acquire heavy 600 D1013-focused",
+    "pnpm --filter @barocss/cad-studio-app test section-planes section-view selection-edge pinned-face-measure measure-quantity",
+    "node --check apps/cad-studio/test/section-original-measure-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "9f2f02755c288644c2cba9cc6cd0c592b2db8183d535a1f0d973e70bcb3a9b84",
+    "sourceManifestSHA256": "a3ad7b8d5a5e8178ebcb597509236c04a0c964aade3b3b17f584fcac3ec3912d",
+    "frozenFiles": 372,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "originalAreasMM2": [
+      800,
+      760
+    ],
+    "distanceTextMM": "12.81",
+    "normalDistanceMM": 8,
+    "angleDegrees": 0
+  },
+  "setupRuns": [
+    {
+      "status": "FAIL",
+      "reason": "The exact locator excluded the keyboard shortcut from the accessible name.",
+      "receiptSHA256": "6c2adb95401ab2a2c6b6714266cc33f712afc830ce45eaff4cbc104b3ae41215"
+    },
+    {
+      "status": "FAIL",
+      "reason": "The driver expected normal distance in the nearest-point distance field.",
+      "receiptSHA256": "251ff64eaee2099dee006a499b5be7b86bdfaa61c3eb5b1bea1a00103cf61364"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0
+  },
+  "notRun": [
+    "preselected vertex",
+    "clipped edge",
+    "assembly Mate",
+    "production build",
+    "type-checks",
+    "full suites",
+    "mobile"
+  ]
+}

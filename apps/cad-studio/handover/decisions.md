@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1013 — qualify Measure on original Section faces](notes/section-original-face-measure-2026-11-13/README.md).
 - [D1012 — show the face-derived Section position](notes/section-face-derived-position-2026-11-13/README.md).
 - [D1011 — copy only visible bodies from Section](notes/section-visible-sketch-copy-2026-11-13/README.md).
 - [D1010 — use the original face for settled Section picks](notes/section-original-face-picking-2026-11-13/README.md).
