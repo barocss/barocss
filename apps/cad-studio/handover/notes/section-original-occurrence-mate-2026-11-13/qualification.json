@@ -1,0 +1,57 @@
+{
+  "decision": "D1014",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9ab5dfeea4d7be82abebf1d11df4a3b943a41b08",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1014-section-studio01",
+    "D1014_SOURCE_FROZEN=1 node apps/cad-studio/test/section-occurrence-mate-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1014-focused",
+    "pnpm --filter @barocss/cad-studio-app test section-planes section-view selection-edge mate-pattern-commit instance-looks",
+    "node --check apps/cad-studio/test/section-occurrence-mate-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "d7bb3f24a7fbe5480bf4a82c4143f240d91976c54a305c9697bbde23b7a1305f",
+    "sourceManifestSHA256": "2f5d84194fa145a0ee8ce1030a7e91e877b73fdcb090a963f2f7054c160b6a55",
+    "frozenFiles": 372,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sectionXMM": 25,
+    "refs": [
+      {
+        "part": "plate-a",
+        "face": "n1.top"
+      },
+      {
+        "part": "plate-b",
+        "face": "n1.top"
+      }
+    ],
+    "topZMM": 17,
+    "movedZMM": 5,
+    "coordinateToleranceMM": 1e-09
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 29,
+    "failed": 0
+  },
+  "notRun": [
+    "preselected vertex Measure",
+    "clipped edge Measure",
+    "Zebra seam",
+    "nested placements",
+    "WebGL2",
+    "production build",
+    "type-checks",
+    "full suites",
+    "mobile"
+  ]
+}
