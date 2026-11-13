@@ -1,0 +1,54 @@
+{
+  "decision": "D1072",
+  "tier": "SMALL",
+  "parent": "9875ce068741569253cc55caf0978f12fb8c19f2",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1072-new-trim-<run>",
+    "D1072_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-new-trim-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-new-trim-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 380,
+      "receiptSHA256": "80a126bf60e86eb0104bbd03420e3845d0e20a2ffd2cd88136ff2b9da636febb",
+      "sourceManifestSHA256": "409241a92370eb578ef91bb62d5028c0d313a4d51ac5bfefda338cf4e55a8137",
+      "firstFailure": "After Trim to Select, Cmd+Z leaves the new construction line absent."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 380,
+      "receiptSHA256": "ef5774d37bb54e93ee5f14851aee6fc2172fb41deff86d0e385b4b49bab58051",
+      "sourceManifestSHA256": "81c89c26d0758347ad861c33702f19f958b3e3edf5aa8d22a4d1c00dc8161209"
+    }
+  },
+  "rectangleMm": [
+    40,
+    20
+  ],
+  "guideMm": [
+    [
+      50,
+      5
+    ],
+    [
+      60,
+      5
+    ]
+  ],
+  "extrudeMm": 2,
+  "volumeMm3": 1600,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 13,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

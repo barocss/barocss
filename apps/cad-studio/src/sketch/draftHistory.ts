@@ -1,5 +1,7 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { reopenedOrder } from '@barocss/cad-model/sketch/reopen';
+import { rectangleOutline } from '@barocss/cad-model/sketch/select';
+import { canonical } from '@barocss/cad-model/util/revision';
 import { isSettled } from '@barocss/cad-model/sketch/rules';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { detachSketchLink } from '../app/sketchControls';
@@ -40,6 +42,16 @@ function sameMainOutline(a: SketchShape, b: SketchShape): boolean {
     Object.hasOwn(b, key) && Object.is(value, (b as unknown as Record<string, unknown>)[key]));
 }
 
+function activateNewRectangle(step: DraftStep, tool: SketchState['tool']) {
+  if (step.editNode !== undefined || step.tool !== 'trim' || step.shape || !step.done
+    || (tool !== 'select' && tool !== 'dimension')) return null;
+  const material = step.done.filter(shape => !shape.construction);
+  const rectangle = material[0];
+  if (material.length !== 1 || rectangle?.kind !== 'rectangle') return null;
+  const shape = rectangleOutline(rectangle);
+  return shape ? { shape, done: step.done.filter(item => item !== rectangle) } : null;
+}
+
 function matches(expected: SketchStep, current: SketchStep): boolean {
   if (expected.kind === 'outline') {
     if (expected.shape === current.shape) return true;
@@ -52,6 +64,10 @@ function matches(expected: SketchStep, current: SketchStep): boolean {
     || expected.band !== current.band
     || expected.association !== current.association || expected.associationDetached !== current.associationDetached) return false;
   if (expected.shape === current.shape && expected.done === current.done) return true;
+  const active = activateNewRectangle(expected, current.tool);
+  if (active && current.shape && canonical(active.shape) === canonical(current.shape)
+    && active.done.length === current.done?.length
+    && active.done.every((shape, i) => shape === current.done?.[i])) return true;
   const a = orderedMainDraft(expected), b = orderedMainDraft(current);
   return !!a && !!b && a.length === b.length && sameMainOutline(a[0], b[0])
     && a.slice(1).every((shape, i) => shape === b[i + 1]);
@@ -113,6 +129,8 @@ export function restoreDraftHistory(sketch: SketchState, step: SketchStep): Sket
     bandPicks: sketch.tool === 'band' ? step.bandPicks : undefined, association: step.association,
     associationDetached: step.associationDetached, picked: [], editDim: null };
   if (step.tool === sketch.tool || (sketch.tool !== 'select' && sketch.tool !== 'dimension')) return restored;
+  const active = activateNewRectangle(step, sketch.tool);
+  if (active) return { ...restored, shape: active.shape, done: active.done };
   const ordered = orderedMainDraft(step);
   return ordered ? { ...restored, shape: ordered[0], done: ordered.slice(1) } : restored;
 }
