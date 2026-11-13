@@ -1,0 +1,180 @@
+{
+  "decision": "D1128",
+  "tier": "SMALL",
+  "parent": "29430f6c52c434eee81b723d7e6f64bd763d7c2a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1128-midpoint-acceptance-<run>",
+    "D887_SOURCE_FROZEN=1 node apps/cad-studio/test/midpoint-sketch-browser.mjs <external-evidence>/oblique --oblique",
+    "D862_SOURCE_FROZEN=1 node apps/cad-studio/test/midpoint-sketch-browser.mjs <external-evidence>/axial",
+    "cd apps/cad-studio && node scripts/test.mjs midpoint-sketch camera-projector vertex-pick-filter",
+    "cd packages/barocss-cad-model && node scripts/test.mjs native-midpoint-plane sketch-plane-precision",
+    "node --check apps/cad-studio/test/midpoint-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "oblique-01": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 861,
+      "receiptSHA256": "018d6f0ba5aeae1b337f3e1d5170b9890b63826a39695136e47f3c59ae9ac806",
+      "sourceManifestSHA256": "361013f22ea7c5a45abfdf81beda7f4eabda4fb04805d11f4ecec85405c7189e",
+      "savedFiles": []
+    },
+    "oblique-02": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 861,
+      "receiptSHA256": "8c14920f907f8b2543e9f589ccd8b47cdcce74a9b901de1b3dca98afd69962a2",
+      "sourceManifestSHA256": "1933658d888e061766eb29660e86e223382ebdc4f938a81229fa8ff6e4871b21",
+      "savedFiles": []
+    },
+    "oblique-03": {
+      "status": "FAIL",
+      "states": 6,
+      "frozenFiles": 861,
+      "receiptSHA256": "47932d719af16a945227d4a2b35747756ddbe47a81100e43dfa349ce618d1091",
+      "sourceManifestSHA256": "bcb551e8733b380f64634f847ef89449c07bd83c2257310022af95633556c434",
+      "savedFiles": []
+    },
+    "oblique-04": {
+      "status": "PASS",
+      "states": 9,
+      "frozenFiles": 861,
+      "receiptSHA256": "b8f9f58eb305535fa03e546b89012ebf377f34525be5819ec610790831cf68ef",
+      "sourceManifestSHA256": "483cd38ea20f14da091aa03edf81f61e3a6b1aaf27e22add394d35dea450410e",
+      "savedFiles": [
+        {
+          "name": "D887-oblique-midpoint.bcad",
+          "bytes": 1401,
+          "sha256": "225e35d38823bc144406f17e77edc4b41568421bd703ba6fa78d66cd484bb9b2"
+        }
+      ]
+    },
+    "axial": {
+      "status": "PASS",
+      "states": 16,
+      "frozenFiles": 861,
+      "receiptSHA256": "f752d563afcbe382824f7f3f999b019f5cc346725ae7489255be1ae3cb05099f",
+      "sourceManifestSHA256": "483cd38ea20f14da091aa03edf81f61e3a6b1aaf27e22add394d35dea450410e",
+      "savedFiles": [
+        {
+          "name": "D862-midpoint.bcad",
+          "bytes": 1178,
+          "sha256": "0b104220c403f9e95e185d4f5066df417d817aa00d58d40b21c3a44e61db061d"
+        }
+      ]
+    }
+  },
+  "observations": [
+    {
+      "label": "tool-Rectangle",
+      "buttons": 1
+    },
+    {
+      "label": "midpoint-normal-view",
+      "top": {
+        "width": 224.7400000691414,
+        "height": 119.83308102717831
+      },
+      "restored": {
+        "width": 224.7400000691414,
+        "height": 149.82666075229633
+      }
+    },
+    {
+      "label": "08-oblique-extruded-extrude-hud",
+      "operation": null,
+      "depthSelect": 0,
+      "hudText": "ExtrudepreviewProfileSketch 3DistancemmDraft\u00b0CancelApply"
+    },
+    {
+      "label": "oblique-midpoint-solid",
+      "frame": {
+        "origin": [
+          0,
+          4.5,
+          6
+        ],
+        "normal": [
+          0,
+          0.6,
+          0.8
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      },
+      "capStationsMm": [
+        5,
+        10
+      ],
+      "profileStationsMm": [
+        7.5,
+        10.5
+      ],
+      "profileCornersMm": [
+        [
+          24,
+          1
+        ],
+        [
+          30,
+          5
+        ]
+      ],
+      "volumeMm3": 72.00000000000001,
+      "worldCornersMm": [
+        [
+          24,
+          5.3,
+          5.4
+        ],
+        [
+          24,
+          8.5,
+          3
+        ],
+        [
+          30,
+          5.3,
+          5.4
+        ],
+        [
+          30,
+          8.5,
+          3
+        ],
+        [
+          24,
+          7.1,
+          7.800000000000001
+        ],
+        [
+          24,
+          10.3,
+          5.4
+        ],
+        [
+          30,
+          7.1,
+          7.800000000000001
+        ],
+        [
+          30,
+          10.3,
+          5.4
+        ]
+      ],
+      "sourceSHA256": "cd38b871189bad71e9263596921ffc01b04cdf1517fb1eb905f56b0a2b51b192",
+      "refusalSourceSHA256": "0a710356c72ed8b191a936ae0c147b8439bc4878c94a21878814971f2c7ffda8"
+    }
+  ],
+  "focused": {
+    "studioPassed": 26,
+    "modelPassed": 14,
+    "failed": 0
+  }
+}

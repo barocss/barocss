@@ -293,7 +293,28 @@ async function checkOblique() {
   await f.tool('Rectangle', 'r');
   await clickWorld(world(...min, 7.5));
   await clickWorld(world(...max, 7.5));
-  const finished = (await f.finishSketch('05-oblique-finished')).doc;
+  f.phase = 'return to the actual midpoint plane with a rectangle draft';
+  const dimensions = () => Promise.all(['width', 'height'].map(key =>
+    f.sketchPanel().locator('#sk-' + key).inputValue().then(Number)));
+  const basis = [min, max, [min[0], max[1]]].map(([x, y]) => world(x, y, 7.5));
+  const projection = async () => {
+    const [a, b, c] = await f.page.evaluate(points => points.map(point => window.__studioScreenOf(point)), basis);
+    return { width: Math.hypot(b[0] - c[0], b[1] - c[1]), height: Math.hypot(c[0] - a[0], c[1] - a[1]) };
+  };
+  assert.deepEqual(await dimensions(), [6, 4]);
+  await button(f.page, 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const top = await projection();
+  assert.ok(Math.abs(top.width / top.height - 1.5) > 0.05, JSON.stringify(top));
+  await f.snapshot('05-midpoint-top-draft');
+  await button(f.page, 'Normal to sketch').click();
+  const restored = await projection();
+  assert.ok(Math.abs(restored.width / restored.height - 1.5) < 1e-6, JSON.stringify(restored));
+  assert.deepEqual(await dimensions(), [6, 4]);
+  await f.same(exact);
+  await f.snapshot('06-midpoint-restored-draft');
+  f.report.observations.push({ label: 'midpoint-normal-view', top, restored });
+  const finished = (await f.finishSketch('07-oblique-finished')).doc;
   const sketch = finished.nodes[2];
   assert.deepEqual(sketch.plane, frame);
   assert.deepEqual(sketch.min, min);
@@ -302,7 +323,7 @@ async function checkOblique() {
   assert.equal(sketch.on, undefined);
   assert.deepEqual(finished.nodes.slice(0, 2), exact.nodes);
   await f.openExtrudeHud();
-  const solid = (await f.applyExtrude({ distance: 3, previous: finished, label: '06-oblique-extruded' })).doc;
+  const solid = (await f.applyExtrude({ distance: 3, previous: finished, label: '08-oblique-extruded' })).doc;
   assert.deepEqual(solid.nodes[3], { kind: 'extrude', sketch: 2, height: 3, id: 'n3' });
   const native = await f.inspect('oblique-consumer-native', solid);
   assert.deepEqual(expectStock(native), stock);
@@ -318,7 +339,7 @@ async function checkOblique() {
   await f.same(solid);
 
   const saved = await saveProject(name, 'D887 oblique midpoint ' + randomUUID(), solid);
-  await f.freshOpen(saved, solid, '07-oblique-fresh-open');
+  await f.freshOpen(saved, solid, '09-oblique-fresh-open');
   assert.deepEqual(await f.inspect('oblique-fresh-open-native', solid), native);
   f.report.observations.push({ label: 'oblique-midpoint-solid', frame, capStationsMm: [5, 10], profileStationsMm: [7.5, 10.5],
     profileCornersMm: [min, max], volumeMm3: consumer.volume, worldCornersMm: corners,

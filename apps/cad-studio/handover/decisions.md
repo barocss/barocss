@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1128 — qualify sketch plane recovery in desktop Studio](notes/sketch-plane-desktop-acceptance-2026-11-14/README.md).
 - [D1127 — prefer the front native vertex at an orthographic overlap](notes/orthographic-native-vertex-overlap-2026-11-14/README.md).
 - [D1126 — distinguish mixed-body and collinear sketch picks](notes/vertex-sketch-refusal-reasons-2026-11-14/README.md).
 - [D1125 — refuse the silent XY fallback from a selected placed part](notes/placed-face-sketch-start-2026-11-14/README.md).
