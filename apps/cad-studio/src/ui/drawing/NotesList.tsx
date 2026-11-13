@@ -4,9 +4,10 @@ import type { DrawingNote, DrawingSettings } from '@barocss/cad-model/drawing/ty
 import { Icon, Kbd } from '../atoms';
 import { Button } from '@/components/ui/button';
 
-export function NotesList({ settings, selected, selNote, noteDraft, setNoteDraft, noteBox, onSelect, remove, onChange }: {
+export function NotesList({ settings, selected, selNote, noteDraft, setNoteDraft, noteBox, onSelect, remove, onRemoveLeader, onDuplicate, onChange }: {
   settings: DrawingSettings; selected: string | null; selNote: DrawingNote | undefined; noteDraft: string | null; setNoteDraft: Dispatch<SetStateAction<string | null>>;
-  noteBox: RefObject<HTMLTextAreaElement | null>; onSelect(note: DrawingNote): void; remove(id: string): void; onChange(next: DrawingSettings): void;
+  noteBox: RefObject<HTMLTextAreaElement | null>; onSelect(note: DrawingNote): void; remove(id: string): void; onRemoveLeader(note: DrawingNote): void; onDuplicate(note: DrawingNote): void;
+  onChange(next: DrawingSettings): void;
 }) {
   return <>
         <div className="card-title" style={{ marginTop: 8 }}>NOTES <span className="muted">{settings.notes?.length ?? 0}</span></div>
@@ -23,7 +24,10 @@ export function NotesList({ settings, selected, selNote, noteDraft, setNoteDraft
               onChange={e => setNoteDraft(e.target.value)}
               onBlur={() => { const t = (noteDraft ?? selNote.text).replace(/\s+$/, ''); if (t && t !== selNote.text) onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { ...n, text: t } : n) }); setNoteDraft(null); }}
               onKeyDown={e => { if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) (e.target as HTMLTextAreaElement).blur(); }} />
-            {selNote.leader && <Button variant="ghost" onClick={() => onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { id: n.id, text: n.text, at: n.at } : n) })}>Remove leader</Button>}
+            <div className="dw-actions">
+              <Button variant="ghost" onClick={() => onDuplicate(selNote)}>Duplicate note</Button>
+              {selNote.leader && <Button variant="ghost" onClick={() => onRemoveLeader(selNote)}>Remove leader</Button>}
+            </div>
           </>}
         </div>
   </>;

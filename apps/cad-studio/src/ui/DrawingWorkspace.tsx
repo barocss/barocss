@@ -550,12 +550,35 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (commitWhole(next)) setMessage(null);
   };
 
+  const newNoteId = () => {
+    const ids = new Set((wholeSettings.notes ?? []).map(note => note.id));
+    let index = 1;
+    while (ids.has(`n${index}`)) index++;
+    return `n${index}`;
+  };
+
   /** A new note at a sheet point (with a leader to a view point), selected with its text ready to type. */
-  const addNote = (at: XY, leader?: { view: ViewId; at: XY }) => {
-    const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
-    const note: DrawingNote = { id: `n${k}`, text: 'NOTE', at: [Math.round(at[0] * 10) / 10, Math.round(at[1] * 10) / 10], ...(leader ? { leader } : {}) };
-    onChange({ ...settings, notes: [...(settings.notes ?? []), note] });
-    setPending(null); setTool('select'); setSelectedTarget(null); setSelectedFrame(null); setSelected({ kind: 'note', id: note.id }); setNoteDraft(note.text); setTypeNote(note.id);
+  const addNote = (at: XY, leader?: DrawingNote['leader']) => {
+    const note: DrawingNote = { id: newNoteId(), text: 'NOTE', at: [Math.round(at[0] * 10) / 10, Math.round(at[1] * 10) / 10], ...(leader ? { leader } : {}) };
+    if (!onChange({ ...settings, notes: [...(settings.notes ?? []), note] })) return;
+    selectAnnotationRow('note', note.id);
+    setNoteDraft(note.text);
+    setTypeNote(note.id);
+  };
+
+  const removeNoteLeader = (note: DrawingNote) => {
+    if (!note.leader) return;
+    const { leader: _leader, sheet: _sheet, ...detached } = note;
+    const owner = current > 0 ? wholeSettings.sheets?.[current - 1]?.id : undefined;
+    const next = owner ? { ...detached, sheet: owner } : detached;
+    onChange({ ...settings, notes: settings.notes?.map(row => row === note ? next : row) });
+  };
+
+  const duplicateNote = (note: DrawingNote) => {
+    const copy: DrawingNote = { ...note, id: newNoteId(), at: [note.at[0] + 5, note.at[1] + 5] };
+    if (!onChange({ ...settings, notes: [...(settings.notes ?? []), copy] })) return;
+    selectAnnotationRow('note', copy.id);
+    setNoteDraft(copy.text);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -998,7 +1021,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <FrameEditor key={selectedFrame ? `frame:${selectedFrame}` : selDim?.id ?? 'none'} dim={selectedFrame ? undefined : selDim?.id} frameId={selectedFrame ?? undefined} settings={settings} onChange={changeFrame} onRefused={setMessage} />
 
-        <NotesList settings={settings} selected={selNote?.id ?? null} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow('note', n.id); setNoteDraft(n.text); }} remove={id => removeAnnotation({ kind: 'note', id })} onChange={onChange} />
+        <NotesList settings={settings} selected={selNote?.id ?? null} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { selectAnnotationRow('note', n.id); setNoteDraft(n.text); }} remove={id => removeAnnotation({ kind: 'note', id })} onRemoveLeader={removeNoteLeader} onDuplicate={duplicateNote} onChange={onChange} />
 
         <ExportActions sheets={sheetTotal} sheet={exportableSheet} canExportPdf={canExportPdf} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>

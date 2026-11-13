@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D986 — retain Sheet 2 ownership when detaching or duplicating a Note](notes/drawing-note-sheet-ownership-2026-11-13/README.md).
 - [D985 — keep Drawing Note and dimension identities distinct](notes/drawing-annotation-kind-identity-2026-11-13/README.md).
 - [D984 — make Drawing dimension and Note rows keyboard-selectable](notes/drawing-annotation-row-keyboard-2026-11-13/README.md).
 - [D983 — qualify explicit top-rim reference confirmation after Detail Move](notes/drawing-detail-top-rim-confirmation-2026-11-13/README.md).

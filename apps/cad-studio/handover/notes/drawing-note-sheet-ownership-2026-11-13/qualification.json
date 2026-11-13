@@ -1,0 +1,50 @@
+{
+  "decision": "D986",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "ef5e9f091f20b1cb1d581feba7b1a3744fa88695",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D986-drawing-note-sheet",
+    "D986_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/baseline01 --note-sheet-baseline",
+    "D986_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/fixed01 --note-sheet-fixed",
+    "gate.sh acquire heavy 600 D986-small",
+    "pnpm --filter @barocss/cad-studio-app test drawing",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "8bf7284c0229d319c00e881fbd261228fdf5772fae3afe8346acf39bbb408f8c"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "93f83179074ac2c94b0dcf976f0456c62cdbda3aa933890a9c263d54f4262921",
+    "sourceManifestSHA256": "d533e3c31eee715d1c68a9ea8017bafd3ce7a844f4e072bbbb73d6903e94aafc",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sheet": "S2",
+    "copyId": "n3",
+    "copyOffsetMM": [
+      5,
+      5
+    ]
+  },
+  "focusedTests": {
+    "pass": 19,
+    "fail": 0
+  },
+  "notRun": [
+    "Note text Escape",
+    "overlapping Note/frame hit priority",
+    "WebGL2",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
