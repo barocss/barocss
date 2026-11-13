@@ -15,6 +15,7 @@ import { planeFromFace, type Section } from './sectionView';
 import { bindMidpointPick } from '../app/midpointSketch';
 import { bindMeasureFacePick } from '../app/pinnedFaceMeasure';
 import { bindNativeVertexPick } from './vertexPick';
+import type { EdgeRef, FaceRef } from './renderer';
 import type { ScenePickingActions } from './SceneViewport';
 
 export interface ViewportMenu {
@@ -24,15 +25,14 @@ export interface ViewportMenu {
   viewOnly?: true;
 }
 
+export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) => { face: FaceRef | null; edge: EdgeRef | null; cap: boolean };
+
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
   setDirectSel, setMeasure, measureNativeReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
-  sectionPickRef: RefObject<(hit: {
-    face: { body: number; face: number } | null;
-    edge: { body: number; edge: number } | null;
-  }) => { face: { body: number; face: number } | null; cap: boolean }>;
+  sectionPickRef: RefObject<SectionPick>;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
   doc: StudioDoc; modelUnavailable: boolean; nativeVertexReady: boolean; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
@@ -72,11 +72,11 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     if (sectionRef.current && !validInstance) {
       if (activeRef.current || hit.direct) return;
       const target = sectionPickRef.current(hit);
-      if (!target.face) {
+      if (!target.face && !target.edge) {
         if (!additive) { setSelection(emptySel); setPick(null); setDirectSel([]); setInstanceSel([]); }
         return;
       }
-      hit = { ...hit, face: target.face, edge: null, vertex: undefined };
+      hit = { ...hit, face: target.face, edge: target.edge, vertex: undefined };
     }
     // (G6: while the mould's halves show, picks reach only them — none here.)
     if (halvesShownRef.current && !activeRef.current) return;
@@ -170,12 +170,12 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       if (modelUnavailable || scene.active || scene.sketch) return;
       if (scene.section) {
         const target = sectionPickRef.current(hit);
-        if (!target.face) {
+        if (!target.face && !target.edge) {
           setSelection(emptySel);
           scene.setMenu({ at, selection: emptySel, title: target.cap ? 'SECTION CAP' : 'SECTION VIEW', viewOnly: true });
           return;
         }
-        hit = { face: target.face, edge: null };
+        hit = { face: target.face, edge: target.edge };
       }
       if (hit.face && !hit.edge && !scene.section && (nativePlanePickState.current.midpointReady || nativePlanePickState.current.insetReady)) bindMidpointPick(hit.face, doc, viewBodiesRef.current[hit.face.body]);
       const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] }

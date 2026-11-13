@@ -1,6 +1,6 @@
 import { viewportRecoveryToast } from './viewport/viewportRecovery';
 import { useSpecificationActions } from './state/useSpecificationActions';
-import { useViewportPicking, type ViewportMenu } from './viewport/useViewportPicking';
+import { type SectionPick, useViewportPicking, type ViewportMenu } from './viewport/useViewportPicking';
 import { studioSketchViewportActions } from './viewport/studioSketchViewportActions';
 import { sewPreviewDirect } from './viewport/sewPreviewDirect';
 import { useSectionState } from './viewport/useSectionState';
@@ -87,6 +87,7 @@ import type { OpenScope } from './state/openOwnership';
 import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { prepareSignedFinishOpen, verifyStoredNativeOpen } from './files/documentFile';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
+import { retainedSectionEdges } from './viewport/sectionEdgePick';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
@@ -129,7 +130,7 @@ import { useJoints } from './state/useJoints';
 import { refuseMotionSweep, timedMotion } from './state/motion';
 import { timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
-import { type ScenePickingActions, SceneViewport } from './viewport/SceneViewport';
+import { SceneViewport } from './viewport/SceneViewport';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { useScenePoses } from './state/useScenePoses';
 import type { CamOptions } from './viewport/camDisplay';
@@ -1708,9 +1709,7 @@ export function App() {
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
-  const sectionPickRef = useRef<(hit: Parameters<ScenePickingActions['onContextMenu']>[1]) => {
-    face: { body: number; face: number } | null; cap: boolean;
-  }>(() => ({ face: null, cap: false }));
+  const sectionPickRef = useRef<SectionPick>(() => ({ face: null, edge: null, cap: false }));
   const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
   const pickExtrudeEndFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
@@ -2435,7 +2434,19 @@ export function App() {
     ? { bodies: shownBodies, hidden: hiddenBodies } : null;
   const shownEndFace = active && extrudeTargetScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
     ? shownExtrudeEndFace(active, shownBodies) : null;
-  const shownSelection = modelUnavailable ? emptySel : sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+  const sectionEdgeSources = useMemo(() => {
+    if (!sectionExactShown || shownBodies !== sectionBodies || section?.mode !== 'plane' || section.planes.length !== 1) return [];
+    return shownBodies.map(shown => {
+      const key = sectionExact?.from.get(shown.key), body = bodies.findIndex(source => source.key === key);
+      return body < 0 ? null : { body, edges: retainedSectionEdges(bodies[body].mesh, shown.mesh, section.planes[0], sectionFrom) };
+    });
+  }, [sectionExactShown, sectionExact, section, sectionBodies, shownBodies, bodies, sectionFrom]);
+  const shownSectionEdges = sectioned ? (measure ?? selection.edges).flatMap(pick =>
+    sectionEdgeSources.flatMap((source, body) => {
+      if (!source || source.body !== pick.body || pick.edge === undefined) return [];
+      return [...source.edges].flatMap(([shown, original]) => original === pick.edge ? [{ body, edge: shown }] : []);
+    })) : [];
+  const shownSelection = modelUnavailable ? emptySel : sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: shownSectionEdges, bodies: [] }
     : shownEndFace ? { ...emptySel, faces: [shownEndFace] }
     : bandShown ? bandShown
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
@@ -2449,15 +2460,24 @@ export function App() {
   const viewportDirect = useMemo(() => sewPreviewDirect(directShown, active?.cmd.id, active?.ctx, sewCandidateShown), [directShown, active?.cmd.id, active?.ctx, sewCandidateShown]);
   viewBodiesRef.current = viewBodies;
   sectionPickRef.current = hit => {
-    if (!fresh || busy || !sectionExactShown || shownBodies !== sectionBodies || !hit.face || hit.edge) return { face: null, cap: false };
+    const none = { face: null, edge: null, cap: false };
+    if (!fresh || busy || !sectionExactShown || shownBodies !== sectionBodies) return none;
+    if (hit.edge) {
+      const shown = shownBodies[hit.edge.body]?.mesh, edge = shown?.edges[hit.edge.edge];
+      if (edge?.faces.some(index => cutAfter(shown?.faces[index]?.name ?? '', sectionFrom))) return { ...none, cap: true };
+      const source = sectionEdgeSources[hit.edge.body], original = source?.edges.get(hit.edge.edge);
+      return source && original !== undefined && !lookOf(doc, bodies[source.body]).hidden
+        ? { ...none, edge: { body: source.body, edge: original } } : none;
+    }
+    if (!hit.face) return none;
     const shown = shownBodies[hit.face.body], face = shown?.mesh.faces[hit.face.face];
-    if (!face) return { face: null, cap: false };
-    if (cutAfter(face.name, sectionFrom)) return { face: null, cap: true };
+    if (!face) return none;
+    if (cutAfter(face.name, sectionFrom)) return { ...none, cap: true };
     const source = sectionExact?.from.get(shown.key);
     const body = bodies.findIndex(candidate => candidate.key === source);
-    if (body < 0 || lookOf(doc, bodies[body]).hidden) return { face: null, cap: false };
+    if (body < 0 || lookOf(doc, bodies[body]).hidden) return none;
     const matches = bodies[body].mesh.faces.filter(candidate => candidate.name === face.name);
-    return { face: matches.length === 1 ? { body, face: matches[0].index } : null, cap: false };
+    return matches.length === 1 ? { ...none, face: { body, face: matches[0].index } } : none;
   };
   const pinView = !rendering && !drawing && !sketch;
   const pinReady = pinView && nativeVertexReady && shownDoc === doc && !workerFailure

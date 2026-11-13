@@ -1,0 +1,63 @@
+{
+  "decision": "D1016",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "af83963e3d32457b8cb73fdfe5cb2ac2d6a16e8d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1016-section-baseline",
+    "gate.sh acquire heavy 600 D1016-section-studio02",
+    "D1016_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-edge-browser.mjs <external-evidence>/baseline",
+    "D1016_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-edge-browser.mjs <external-evidence>/studio02",
+    "gate.sh acquire heavy 600 D1016-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test section-span section-planes section-view section-cutout section-hatch selection-edge pinned-face-measure measure-quantity",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/section-original-edge-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Clicking the retained original edge left selection empty.",
+    "receiptSHA256": "51b857f53278e239a79fb3258f022c34a3a50cf06dffae99f2ded5dbac574d3a",
+    "sourceManifestSHA256": "d99121c8a98fea62034091170dc143e866e5ce8be01c0f6d7fd11206a0731506"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "74e3c413d82edd3aca2f9bcf7860ec20c51c2439421b5a7ecb3c77f61ace0b88",
+    "sourceManifestSHA256": "c7e1dabe75ef943b2afc42fb34e8908e556abbb96c8e0668d783372b43d9efc6",
+    "frozenFiles": 373,
+    "states": 5,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sectionXMM": 25,
+    "edge": "n1.side1|n1.top",
+    "edgeLengthMM": 20,
+    "faceAreaMM2": 800,
+    "distanceTextMM": "12.81"
+  },
+  "setupRun": {
+    "status": "FAIL",
+    "reason": "The shortened-edge context menu closed during view transition.",
+    "receiptSHA256": "fd00a3e13f447d2314d0b72ba0f9461e348c89d86b7c9a20d57ea629c57ceedd"
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 30,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "oblique and multi-plane edges",
+    "curved edges",
+    "other root edge operations",
+    "placed-edge Measure",
+    "Zebra seam",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
