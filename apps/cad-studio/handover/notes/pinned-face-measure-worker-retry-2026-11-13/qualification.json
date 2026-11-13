@@ -1,0 +1,52 @@
+{
+  "decision": "D956",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9d0013effaf6aa8612d74ec3e9242ded897a69cf",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D956-worker-retry",
+    "D956_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/retry01 --worker-retry",
+    "node apps/cad-studio/scripts/test.mjs pinned-face-measure",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "d639a136d1e39b30174dc2e180e2fd7b4a4d0c133811a0db3bd4ceea44c30bc5",
+    "sourceManifestSHA256": "b210e3d7f5ee2e907fbdfec138c2cc86d8b8f8f2a3fb439524969396f34ff0c6",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "workerTerminations": {
+      "before": [
+        0
+      ],
+      "failed": [
+        1
+      ],
+      "retried": [
+        1,
+        0
+      ]
+    },
+    "distanceMM": 8,
+    "volumeMM3": 1920.0000000000007,
+    "redoHeightMM": 13.25,
+    "undoHeightMM": 8
+  },
+  "focusedTests": {
+    "pass": 2,
+    "fail": 0
+  },
+  "notRun": [
+    "natural Worker crash",
+    "simultaneous held reply and retry",
+    "wider topology cases",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

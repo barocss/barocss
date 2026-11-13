@@ -5,7 +5,8 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const projectFlow = process.argv[3] === '--project';
 const missing = process.argv[3] === '--missing';
 const held = process.argv[3] === '--held';
-const pin = projectFlow || missing || held || process.argv[3] === '--pin';
+const workerRetry = process.argv[3] === '--worker-retry';
+const pin = projectFlow || missing || held || workerRetry || process.argv[3] === '--pin';
 const pins = [
   'apps/cad-studio/test/measure-opposite-face-edit-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -13,12 +14,14 @@ const pins = [
   'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'packages/barocss-cad-model/src/app/measure.ts',
   ...(pin ? ['apps/cad-studio/src/app/pinnedFaceMeasure.ts'] : []),
+  ...(workerRetry ? ['apps/cad-studio/src/engine/client.ts'] : []),
 ];
 const f = await createFlow({
-  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: projectFlow ? 'D931_SOURCE_FROZEN' : missing ? 'D930_SOURCE_FROZEN' : held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
+  name: 'measure-opposite-face-edit', output: process.argv[2], envFrozen: workerRetry ? 'D956_SOURCE_FROZEN' : projectFlow ? 'D931_SOURCE_FROZEN' : missing ? 'D930_SOURCE_FROZEN' : held ? 'D929_SOURCE_FROZEN' : pin ? 'D928_SOURCE_FROZEN' : 'D927_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: projectFlow ? 'Keep a measurement pin within its workspace and project session.' : missing ? 'Never transfer a pinned measurement to a surviving output after suppression or deletion.' : held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
-  limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.'],
+  qualification: workerRetry ? 'Retire a measurement pin on Worker failure and re-pick after Retry engine.' : projectFlow ? 'Keep a measurement pin within its workspace and project session.' : missing ? 'Never transfer a pinned measurement to a surviving output after suppression or deletion.' : held ? 'Keep a pinned measurement owned by its accepted document across genuine held Worker replies.' : pin ? 'Pin one opposite native cap pair through editing, history and document replacement.' : 'Re-pick the two native planar caps after a numeric feature edit, Undo, Redo and File Open.',
+  limits: ['One rectangular Extrude in default XY. Only one explicit cap pair per document session.',
+    ...(workerRetry ? ['Controlled ErrorEvent on the native document Worker; natural failure is outside this run.'] : [])],
   snapshotExtra: () => ({
     fresh: window.__studioFresh,
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -408,12 +411,85 @@ async function verifyProjectSession() {
   await check('06-fresh-project-open-repin', 8, true, true);
 }
 
+function trackDocumentWorker() {
+  const NativeWorker = window.Worker;
+  const workers = [];
+  window.Worker = class extends NativeWorker {
+    constructor(url, options) {
+      super(url, options);
+      if (/\/engine\/engine\.worker\.ts(?:\?|$)/.test(String(url))) workers.push({ worker: this, terminations: 0 });
+    }
+
+    terminate() {
+      const entry = workers.find(entry => entry.worker === this);
+      if (entry) entry.terminations++;
+      return super.terminate();
+    }
+  };
+  window.__d956Worker = {
+    terminations: () => workers.map(entry => entry.terminations),
+    fail() {
+      const active = workers.filter(entry => entry.terminations === 0);
+      if (active.length !== 1) throw new Error('Exactly one document Worker is required.');
+      active[0].worker.dispatchEvent(new ErrorEvent('error', { cancelable: true, message: 'D956 controlled document Worker failure' }));
+    },
+  };
+}
+
+async function workerRetryFlow() {
+  f.phase = 'prepare exact Undo and Redo states before pinning';
+  await f.openFeatureEditor(1, 'Extrude');
+  await f.editor().getByLabel('Distance', { exact: true }).fill('13.25');
+  const edited = await f.applyEditor(source, '01-accepted-edit');
+  assert.equal(edited.doc.nodes[1].height, 13.25);
+  await f.undo();
+  await f.same(source);
+  await check('02-original', 8, false, true);
+  const before = await checkPin('03-before-worker-failure', 8);
+  const workers = () => f.page.evaluate(() => window.__d956Worker.terminations());
+  assert.deepEqual(await workers(), [0]);
+  assert.equal(before.controls[1], false, 'Redo is available before the failure');
+
+  f.phase = 'retire the current pin on controlled error from the native document Worker';
+  await f.page.evaluate(() => window.__d956Worker.fail());
+  await button('Retry engine').waitFor();
+  await pinnedPanel().waitFor({ state: 'hidden' });
+  await f.page.waitForFunction(() => !window.__studioFresh && !window.__studioOverlayTexts?.()['measure:label']);
+  const failed = await f.snapshot('04-worker-failed');
+  for (const field of ['doc', 'history', 'controls', 'dirty']) assert.deepEqual(failed[field], before[field], field);
+  assert.deepEqual(await workers(), [1]);
+  assert.equal(failed.pinned, null);
+  assert.deepEqual(failed.overlay, []);
+
+  f.phase = 'use public Retry engine and keep the old pin retired';
+  await button('Retry engine').click();
+  await f.same(source);
+  const restored = await f.snapshot('05-worker-retried');
+  for (const field of ['doc', 'bodies', 'history', 'controls', 'dirty']) assert.deepEqual(restored[field], before[field], field);
+  assert.deepEqual(await workers(), [1, 0]);
+  assert.equal(restored.pinned, null);
+  assert.deepEqual(restored.overlay, []);
+
+  f.phase = 'use first Redo and Undo, then re-pick the accepted native caps';
+  await f.redo();
+  await f.same(edited.doc);
+  await f.undo();
+  await f.same(source);
+  assert.equal(await pinnedPanel().count(), 0);
+  await check('06-repicked-after-retry', 8, true, true);
+  f.report.observations.push({ label: 'worker-retry', before: [0], failed: [1], recovered: [1, 0], redoHeightMM: 13.25, undoHeightMM: 8 });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    if (workerRetry) {
+      context.setDefaultNavigationTimeout(60000);
+      await context.addInitScript(trackDocumentWorker);
+    }
     if (held) await context.addInitScript(delayGeometry);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
@@ -423,7 +499,8 @@ await f.run(async () => {
     return context;
   };
   await f.newPage();
-  await open(projectFlow ? 'D931-project' : missing ? 'D930-two-bodies' : held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', missing ? withWitness : source);
+  await open(workerRetry ? 'D956-retry' : projectFlow ? 'D931-project' : missing ? 'D930-two-bodies' : held ? 'D929-original' : pin ? 'D928-original' : 'D927-original', missing ? withWitness : source);
+  if (workerRetry) { await workerRetryFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (projectFlow) { await verifyProjectSession(); assert.deepEqual(f.report.downloads, []); return; }
   if (missing) { await missingFlow(); assert.deepEqual(f.report.downloads, []); return; }
   if (held) { await heldFlow(); assert.deepEqual(f.report.downloads, []); return; }
