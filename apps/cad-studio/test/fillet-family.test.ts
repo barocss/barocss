@@ -100,6 +100,7 @@ test('viewport route clears pending family Apply before rejecting hidden or miss
  function Picker() {
    const inputs: Partial<Parameters<typeof useViewportPicking>[0]> = {
      doc: ctx.doc, modelUnavailable: false, activeRef: { current: active }, sectionRef, sectionFacePickRef, halvesShownRef: { current: false },
+     scene: { active, section: null, sketch: false, bodies: ctx.bodies, selection: ctx.selection, setMenu() {} },
      onExtrudeTargetPick: () => false,
      onFilletPick: (hit, additive) => {
        assert.equal(prepareFilletPick(active, ctx.bodies, hit, additive, () => { pending = false; }), null);

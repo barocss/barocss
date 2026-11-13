@@ -14,6 +14,7 @@ import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import { editExtrudeTriangleLength } from '../sketch/fixedTriangleEditor';
 import type { FeatureFailure } from '../app/failedFeature';
+import { featureNumberInvalid, featureNumberRange, historyNumberRule } from '../app/featureNumberInput';
 function invalidInteger(value: number, range: { min: number; max: number }): boolean {
   return !Number.isInteger(value) || value < range.min || value > range.max;
 }
@@ -56,7 +57,10 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
         return;
       }
     }
-    if (Number.isFinite(value) && (!field.integerRange || !invalidInteger(value, field.integerRange))) setDraft(current => field.set(current, value));
+    const rule = historyNumberRule(nodes[index], field.key);
+    if (Number.isFinite(value) && (!rule || !featureNumberInvalid(value, rule)) && (!field.integerRange || !invalidInteger(value, field.integerRange))) {
+      setDraft(current => field.set(current, value));
+    }
   };
   const node = draft[index];
   const linearPattern = node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern' ? node : null;
@@ -101,7 +105,11 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const hasMissingNumber = missingNumbers.length > 0;
   const invalidCounts = fields.flatMap(field => field.kind === 'number' && field.integerRange && typed[field.key]?.trim()
     && invalidInteger(Number(typed[field.key]), field.integerRange) ? [field] : []);
-  const hasInvalidNumber = hasMissingNumber || invalidCounts.length > 0;
+  const invalidDimensions = fields.flatMap(field => {
+    const value = typed[field.key], rule = historyNumberRule(nodes[index], field.key);
+    return field.kind === 'number' && value?.trim() && rule && featureNumberInvalid(value, rule) ? [{ field, rule }] : [];
+  });
+  const hasInvalidNumber = hasMissingNumber || invalidCounts.length > 0 || invalidDimensions.length > 0;
   useLayoutEffect(() => {
     if (!onDraft || (!changed && !Object.keys(typed).length)) return;
     onDraft({});
@@ -171,11 +179,16 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
       {hasMissingNumber && <div className="hud-error" role="status">Enter a number for {missingNumbers.map(field => field.label).join(', ')}.</div>}
       {invalidCounts.map(field => <div key={field.key} className="hud-error" role="status">{field.label} must be a whole number from {field.integerRange!.min} to {field.integerRange!.max}.</div>)}
+      {invalidDimensions.map(({ field, rule }) => <div key={field.key} className="hud-error" role="status">{field.label} · {featureNumberRange(rule)}.</div>)}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
-      {fields.length ? fields.map(f => (
+      {fields.length ? fields.map(f => {
+        const rule = f.kind === 'number' ? historyNumberRule(nodes[index], f.key) : undefined;
+        const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule ? featureNumberRange(rule) : null;
+        const rangeId = range ? `history-range-${f.key}` : undefined;
+        return (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min} max={f.integerRange?.max} aria-label={f.label} aria-describedby={f.integerRange && !invalidCounts.includes(f) ? `history-range-${f.key}` : undefined} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min ?? (rule === 'positive' ? 0 : undefined)} max={f.integerRange?.max} aria-label={f.label} aria-describedby={rangeId} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || invalidDimensions.some(item => item.field === f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();
@@ -193,9 +206,9 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
               <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
             : f.kind === 'choice' ? <select disabled={ordinaryLocked} aria-label={f.label} value={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.value)); }}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" disabled={ordinaryLocked} aria-label={f.label} checked={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.checked)); }} />}
-          {f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) && <span id={`history-range-${f.key}`} className="muted small col-span-2">Whole number from {f.integerRange.min} to {f.integerRange.max}</span>}
+          {range && <span id={rangeId} className="muted small col-span-2">{range}</span>}
         </div>
-      )) : node?.kind !== 'face-end-extrude' && <div className="empty">This feature has no editable dimensions.</div>}
+      ); }) : node?.kind !== 'face-end-extrude' && <div className="empty">This feature has no editable dimensions.</div>}
       {node?.kind === 'linear-span-pattern' && <LinearSpanSpacing span={node.span} count={node.count} />}
       {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
       {onDelete && <button className="ghost danger" disabled={ordinaryLocked} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={event => remove(event.currentTarget)}><Icon name="delete" small /> Delete feature</button>}

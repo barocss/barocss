@@ -1,0 +1,102 @@
+{
+  "decision": "D1142",
+  "tier": "SMALL",
+  "parent": "4faa581d37019fce0b6c310813cf9274bd12d185",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1142-<run>",
+    "D1142_SOURCE_FROZEN=1 node apps/cad-studio/test/creation-history-number-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1138_SOURCE_FROZEN=1 node apps/cad-studio/test/empty-history-number-browser.mjs <external-evidence>/extrude-blank-regression",
+    "D1141_SOURCE_FROZEN=1 node apps/cad-studio/test/circular-count-parity-browser.mjs <external-evidence>/count-regression",
+    "D822_SOURCE_FROZEN=1 node apps/cad-studio/test/z-pattern-separate-browser.mjs <external-evidence>/separate-pattern-regression",
+    "D1098_SOURCE_FROZEN=1 node apps/cad-studio/test/standalone-circle-diameter-browser.mjs <external-evidence>/circle-history-regression",
+    "D541_SOURCE_FROZEN=1 node apps/cad-studio/test/flanged-shaft-baseline-browser.mjs <external-evidence>/shaft-replay",
+    "cd apps/cad-studio && node scripts/test.mjs command-drag-wall handle-value-box fillet-family extrude-end-face-pick",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check <each changed browser driver>",
+    "git diff --check"
+  ],
+  "studio": {
+    "parent": {
+      "status": "FAIL",
+      "states": 7,
+      "frozenFiles": 383,
+      "receiptSHA256": "f08eb2ffc817b713c9a579cc1eb7c51545d57b74d5ed96538eb1cadf81519183",
+      "sourceManifestSHA256": "a35b441b06fa26d6ff67eba1672d09ca2fb5e11fbd29c25c057d836969770f68"
+    },
+    "acceptance": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 384,
+      "receiptSHA256": "76d1d91d65655372d19d46754556255cce6594706f698de64385c4c316c47f3c",
+      "sourceManifestSHA256": "88e6c298f20e6ad6f443ed50736c159c3e300f59d0b59cc34a19b51e773dcdb8"
+    },
+    "extrude-blank-regression": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 383,
+      "receiptSHA256": "f0a25a4f0ea9e84af3adde0f52e35294f339854d163e70b15443a67890924a8b",
+      "sourceManifestSHA256": "6ee629431680a5e2678051ca6b93d85d619b1d04ec4d06a00b74080c2e79fc2e"
+    },
+    "count-regression": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 386,
+      "receiptSHA256": "d9820df73e6ce424fa747e45ebba9ee8d450a26cab9f9501855db4f8ed2c143e",
+      "sourceManifestSHA256": "6797c11e3a6628f360fedc91fcc4d0c8c8e515006d71e9595aa067988b15b9cc"
+    },
+    "separate-pattern-regression": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 864,
+      "receiptSHA256": "738071922fb73e61689181159458c548b2351f85b915adf1a06574911fa2acaf",
+      "sourceManifestSHA256": "15dab3debe76f82daab6de1c1b41e66ca10fbdc88fc90ba328440ee8f278f8e8"
+    },
+    "circle-history-regression": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "f843c5dd4373038c830d366fc5c3542945ffba257e41f846f73e51d7dca6ee4a",
+      "sourceManifestSHA256": "2e736373debdb6a210c9531d0add2750c609a37010a913ad56bd09f5e1e3582e"
+    },
+    "shaft-replay": {
+      "status": "FAIL",
+      "states": 28,
+      "frozenFiles": 872,
+      "receiptSHA256": "7dc5c4c3b89ec84e66f2e051e349f126604d68f368e5c5b1624bd3f869318d98",
+      "sourceManifestSHA256": "58cc8e9b949fb7b541b648b3ed01a3408b94c04d3ecce926d63d67b8c9f49dae"
+    }
+  },
+  "observations": [
+    {
+      "label": "Box",
+      "createdMM": 12,
+      "editedMM": 13,
+      "volumeMM3": 13312.000000000004
+    },
+    {
+      "label": "Extrude",
+      "createdMM": 12,
+      "editedMM": -13,
+      "volumeMM3": 15600
+    },
+    {
+      "label": "Fillet",
+      "createdMM": 1.5,
+      "editedMM": 2.5,
+      "volumeMM3": 11818.21528921474
+    }
+  ],
+  "focused": {
+    "studioPassed": 43,
+    "failed": 0,
+    "initialFixtureFailures": 1
+  },
+  "followUp": {
+    "issue": 2445,
+    "n6": "Held at Open because the same-signature candidate also matched a bore edge."
+  }
+}

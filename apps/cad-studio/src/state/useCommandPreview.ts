@@ -6,6 +6,7 @@ import { patchValues, shownFields, type Values } from '@barocss/cad-model/app/co
 import { awaitingExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { missingCommandField, type Active } from '../app/commandState';
+import { commandNumberRule, featureNumberInvalid, featureNumberRange } from '../app/featureNumberInput';
 import { failedFeatureText } from '../app/failedFeature';
 import type { EngineClient } from '../engine/client';
 import type { ValueStore } from './valueStore';
@@ -72,8 +73,16 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         return;
       }
       let live = true; const ticket = lifetime.current.capture();
-      const missing = missingCommandField(shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values), active.values);
-      if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
+      const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values);
+      const missing = missingCommandField(fields, active.values);
+      if (missing) { setPreviewBodies(null); setActive(a => a === active ? { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } } : a); return; }
+      for (const field of fields) {
+        const rule = commandNumberRule(active.cmd.id, field.key);
+        if (!rule || !featureNumberInvalid(active.values[field.key], rule)) continue;
+        setPreviewBodies(null);
+        setActive(a => a === active ? { ...a, preview: 'error', error: { title: `Enter a valid ${field.label}`, hint: featureNumberRange(rule) + '.', detail: '' } } : a);
+        return;
+      }
       const values = active.values, cmd = active.cmd, ctx = active.ctx;
       const job = async (full = false) => {
         if (!live) return;

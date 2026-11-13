@@ -137,9 +137,9 @@ await f.run(async () => {
   const edited = await editCopy(created, 10, '02-middle-copy-height-10');
   await f.openFeatureEditor(editedIndex, 'zero distance refusal');
   await field(f.editor(), 'Distance').fill('0');
-  await button(f.editor(), 'Apply').click();
-  await f.editor().locator('summary').getByText('Kernel detail', { exact: true }).click();
-  await f.editor().getByText(/height must not be zero/i).waitFor();
+  assert.equal(await button(f.editor(), 'Apply').isDisabled(), true);
+  await f.editor().getByRole('status').getByText(/Distance.*except 0 mm/i).waitFor();
+  await field(f.editor(), 'Distance').press('Enter');
   await f.same(edited);
   await checkCopies('retained-four', edited, 10);
   await f.snapshot('03-zero-height-refused');

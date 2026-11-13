@@ -30,6 +30,10 @@ const f=await createFlow({name:'flanged-shaft-baseline',envFrozen:'D541_SOURCE_F
 });
 f.report.projectName=projectName;let projectCreated=false,seedDoc=null,authoredA=null,referenceAnchors=null;const nativeCache=new Map(),labels=new Set();
 const capture=async label=>{assert.ok(!labels.has(label));labels.add(label);const state=await f.snapshot(label);await writeFile(join(output,`${label}-actual.bcad`),state.documentJSON);return state;};
+async function command(name) {
+  await f.page.evaluate(() => document.activeElement?.blur());
+  await f.command(name);
+}
 function receipt(node,values){
   assert.equal(node.made?.command,'cylinder');for(const[key,wanted]of Object.entries(values)){
     const value=node.made.values[key];assert.ok(typeof value==='number'||typeof value==='string'&&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value));assert.equal(Number(value),wanted);
@@ -145,7 +149,7 @@ async function visibleEdge(f, target, framingTargets = [target]) {
   assert.fail(`qualified edge is not reachable after bounded real orbit: ${target.nativeNames.join(', ')}`);
 }
 async function cylinder(previous,radius,height,z,label){
-  f.phase=label;await f.page.keyboard.press('Escape');await f.command('Cylinder');const hud=f.page.getByRole('dialog',{name:'Cylinder',exact:true});await hud.waitFor();
+  f.phase=label;await f.page.keyboard.press('Escape');await command('Cylinder');const hud=f.page.getByRole('dialog',{name:'Cylinder',exact:true});await hud.waitFor();
   for(const[field,value]of [['Radius',radius],['Height',height],['Centre X',0],['Centre Y',0],['At Z',z]])await hud.getByLabel(field,{exact:true}).fill(String(value));
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});await capture(`${label}-typed-preview-before-Apply`);
   assert.equal(await hud.getByLabel('Operation',{exact:true}).count(),0,'Cylinder creates a separate body');
@@ -157,7 +161,7 @@ async function unionBodies(previous){
   const flange=bodies.findIndex(body=>body.key==='b1'),shaft=bodies.findIndex(body=>body.key==='b3');assert.ok(flange>=0&&shaft>=0&&flange!==shaft);
   const rows=f.page.locator('.outliner .ol-row > button.ol');assert.equal(await rows.count(),2);await rows.nth(flange).click();await rows.nth(shaft).click({modifiers:['Shift']});
   await capture('03-real-ordered-two-body-selection-before-assert');assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.bodies),[flange,shaft]);
-  await f.command('Union');await f.changed(previous);return (await capture('03-actual-Union-before-assert')).doc;
+  await command('Union');await f.changed(previous);return (await capture('03-actual-Union-before-assert')).doc;
 }
 async function throughHole(previous,top){
   f.phase='04-real-upward-shaft-cap-Through-Hole';assert.ok(top&&Number.isInteger(top.index)&&top.nativeNames.includes('n3.top'));
@@ -165,7 +169,7 @@ async function throughHole(previous,top){
   await f.page.keyboard.press('Escape');await publicView(f,'Top');await selectionFilter(f,'Faces');assert.equal(await frameQualified3D(f,[top]),true);
   await f.page.mouse.click(...await projected(f,top.world));await capture('04-real-shaft-cap-picked-before-assert');
   assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.faces),[{body:top.bodyIndex,face:top.index}]);
-  await f.command('Hole');const hud=f.page.getByRole('dialog',{name:'Hole',exact:true});await hud.waitFor();
+  await command('Hole');const hud=f.page.getByRole('dialog',{name:'Hole',exact:true});await hud.waitFor();
   await hud.getByLabel('Type',{exact:true}).selectOption('through');await hud.getByLabel('Copies',{exact:true}).selectOption('one');
   for(const[field,value]of [['Diameter',6],['Centre X',0],['Centre Y',0]])await hud.getByLabel(field,{exact:true}).fill(String(value));
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});await capture('04-Through-Hole-typed-preview');
@@ -177,7 +181,7 @@ async function topRimFinish(previous,rim){
   f.report.observations.push({label:'actual-current-original-outer-rim-before-real-pick',target:rim});
   await f.page.keyboard.press('Escape');await publicView(f,'Iso');await selectionFilter(f,'Edges');await f.page.mouse.click(...await visibleEdge(f,rim));
   await capture('05-real-outer-rim-selected-before-assert');assert.deepEqual(await f.page.evaluate(()=>window.__studioSelection.selection.edges),[{body:rim.bodyIndex,edge:rim.index}]);
-  await f.command('Fillet');const hud=f.page.getByRole('dialog',{name:'Fillet',exact:true});await hud.waitFor();
+  await command('Fillet');const hud=f.page.getByRole('dialog',{name:'Fillet',exact:true});await hud.waitFor();
   await hud.getByLabel('Fillet type',{exact:true}).selectOption('edge');await hud.getByLabel('Fillet radius mode',{exact:true}).selectOption('constant');
   await hud.getByLabel('Radius',{exact:true}).fill('1');await hud.getByLabel('Section',{exact:true}).selectOption('circular');
   await f.page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});await capture('05-circular-R1-typed-preview');
@@ -194,9 +198,11 @@ async function distance(previous,from,to,label){
 }
 async function refuseZero(B,acceptedB){
   f.phase='07-Distance0-NodeEditor-Apply';await f.openFeatureEditor(3,'07-invalid-Distance0');await f.editor().getByLabel('Distance',{exact:true}).fill('0');
-  await capture('07-Distance0-local-before-Apply');assert.deepEqual(await f.doc(),B);await f.editor().getByRole('button',{name:'Apply',exact:true}).click();
-  const reason=await f.waitToast(/height must not be zero/),state=await capture('07-Distance0-refused-before-assert');
-  assert.match(reason,/height must not be zero/);assert.deepEqual(state.doc,B);assert.deepEqual(state.worker.bodies,acceptedB.worker.bodies);assert.deepEqual(state.historyRows,acceptedB.historyRows);
+  await capture('07-Distance0-local-before-Apply');assert.deepEqual(await f.doc(),B);
+  assert.equal(await f.editor().getByRole('button',{name:'Apply',exact:true}).isDisabled(),true);
+  await f.editor().getByLabel('Distance',{exact:true}).press('Enter');
+  const reason=await f.editor().getByRole('status').getByText(/Distance.*except 0 mm/i).innerText(),state=await capture('07-Distance0-refused-before-assert');
+  assert.match(reason,/except 0 mm/i);assert.deepEqual(state.doc,B);assert.deepEqual(state.worker.bodies,acceptedB.worker.bodies);assert.deepEqual(state.historyRows,acceptedB.historyRows);
   f.report.observations.push({label:'actual-Distance0-UI-refusal',actualUIReason:reason,acceptedDocRetained:true,acceptedBodyRetained:true,historyRetained:true,
     separateControlledNativeClassification:{code:'PARAMETER',feature:'n3',message:'height must not be zero',authority:'D541 original native admission; not an actual Worker code/feature observation'}});
   await f.closeEditor();await f.dismissToasts();await f.same(B);await qualify('07-refusal-retains-B',B,40,'finish');
