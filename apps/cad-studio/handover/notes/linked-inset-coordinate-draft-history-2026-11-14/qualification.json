@@ -1,0 +1,63 @@
+{
+  "decision": "D1062",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "d3edc369233b8dadf94bf07aadf164908315dec7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1062-linked-inset-<run>",
+    "D1062_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-draft-history-browser.mjs <external-evidence>/<run>",
+    "D1056_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/trim --numeric-first",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history",
+    "node --check apps/cad-studio/test/linked-inset-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "996f21cbf528d4474ca76d83585deae3f5270f773e93330100f9eee8ea51d977",
+      "sourceManifestSHA256": "cc0d173116f5c12927b595dc05024b356557fe4cdcf2a5e797c5406f0b7dfb3e"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "8055f7005367be3907e0a24e89e172e068eeac12c8468e571a0578830c2c913e",
+      "sourceManifestSHA256": "693ad75ddf195f78598a66633f0b4198c074ef3f9feb1c8dc04558e8b48611a7"
+    },
+    "trim": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 382,
+      "receiptSHA256": "7e040f515ef3c2f46f10a99fbd2f9a491fbadde5f8264bdc9f3fe428aaa1b499",
+      "sourceManifestSHA256": "9a5cc725e7395b1026a6d00b10cef3949164027d4c3f2c0e3669588b2294a3d6"
+    }
+  },
+  "numeric": {
+    "draftXmm": [
+      20,
+      22,
+      20,
+      22,
+      20
+    ],
+    "sourceHeightMm": [
+      10,
+      12
+    ],
+    "ringCentroidZMm": [
+      12,
+      14
+    ],
+    "ringVolumeMm3": 224
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

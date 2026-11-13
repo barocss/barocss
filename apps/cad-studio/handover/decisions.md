@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1062 — restore a linked inset with coordinate Undo](notes/linked-inset-coordinate-draft-history-2026-11-14/README.md).
 - [D1061 — record numeric Bézier draft edits](notes/bezier-numeric-draft-history-2026-11-14/README.md).
 - [D1060 — record numeric Circle draft edits](notes/circle-numeric-draft-history-2026-11-14/README.md).
 - [D1059 — record numeric Rectangle draft edits](notes/rectangle-numeric-draft-history-2026-11-14/README.md).

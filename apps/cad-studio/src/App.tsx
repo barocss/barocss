@@ -478,6 +478,8 @@ export function App() {
   // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
   const [sketchHistory] = useState(createDraftHistory);
   const queuedSketchHistory = useRef<{ doc: StudioDoc; generation: number; draft: SketchState } | null>(null);
+  const renderedSketch = useRef({ draft: sketch, generation: sketchGeneration.current });
+  renderedSketch.current = { draft: sketch, generation: sketchGeneration.current };
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
   const updateShape = useCallback((shape: SketchShape | null, fresh = false, fromPanel = false) => {
     // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
@@ -497,7 +499,21 @@ export function App() {
     const bezier = r.shape?.kind === 'bezier' ? r.shape : null;
     const changedBezier = fromPanel && prev?.kind === 'bezier' && bezier && prev.poles.length === bezier.poles.length
       && prev.poles.some(([x, y], i) => x !== bezier.poles[i][0] || y !== bezier.poles[i][1]);
-    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedBezier) && prev && r.shape) {
+    const draftDoc = docNow.current, generation = sketchGeneration.current;
+    const queued = queuedSketchHistory.current, rendered = renderedSketch.current;
+    const draft = queued?.doc === draftDoc && queued.generation === generation ? queued.draft
+      : rendered.generation === generation ? rendered.draft : null;
+    const recordEdit = !keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle || changedCircle || changedBezier);
+    const geometryChanged = prev !== r.shape && JSON.stringify(prev) !== JSON.stringify(r.shape);
+    if (recordEdit && draft && (draft.association || draft.associationDetached) && geometryChanged) {
+      const next = { ...detachSketchLink(draft), editDim: null, shape: r.shape };
+      sketchHistory.push(draftHistoryState(draftDoc, draft, prev), draftHistoryState(draftDoc, next));
+      setSketch(next);
+      queuedSketchHistory.current = { doc: draftDoc, generation: sketchGeneration.current, draft: next };
+      setSketchError(r.error);
+      return;
+    }
+    if (recordEdit && prev && r.shape) {
       sketchHistory.push(outlineHistoryState(prev), outlineHistoryState(r.shape));
     }
     setSketchError(r.error);
