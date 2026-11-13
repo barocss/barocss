@@ -23,6 +23,7 @@ export interface ViewportMenu {
   selection: Selection;
   title: string;
   viewOnly?: true;
+  measureSource?: { doc: StudioDoc; target: MeasureTarget };
 }
 
 export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) => { face: FaceRef | null; edge: EdgeRef | null; cap: boolean };
@@ -214,7 +215,10 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       const count = hit.edge || hit.face ? 0 : selectedBodies(next).length;
       const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : count ? `${count} BOD${count > 1 ? 'IES' : 'Y'}` : 'VIEW';
-      scene.setMenu({ at, selection: next, title });
+      const measurePick = hit.edge ?? hit.face;
+      const source = scene.section ? scene.bodies : viewBodiesRef.current;
+      const target = measurePick && captureMeasureTarget(measurePick, doc, source[measurePick.body], !scene.section && measureNativeReady.current);
+      scene.setMenu({ at, selection: next, title, ...(target ? { measureSource: { doc, target } } : {}) });
     },
   } satisfies ScenePickingActions;
 

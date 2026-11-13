@@ -1,0 +1,69 @@
+{
+  "decision": "D1038",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "1c45757620a4d8b2affc18f70e4fe2d382884358",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1038-section-baseline02",
+    "D1038_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-context-pin-browser.mjs <external-evidence>/baseline02",
+    "gate.sh acquire heavy 600 D1038-section-studio01",
+    "D1038_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-context-pin-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1038-regressions",
+    "D1013_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-measure-browser.mjs <external-evidence>/section-face",
+    "D1016_SOURCE_FROZEN=1 node apps/cad-studio/test/section-original-edge-browser.mjs <external-evidence>/section-edge",
+    "node --check apps/cad-studio/test/measure-context-pin-browser.mjs",
+    "pnpm --filter @barocss/cad-studio-app test pinned-face-measure measure-quantity-text",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "pinActionCount": 0,
+    "receiptSHA256": "65fb728519a4c55eca3af70d4350f15a2aebfc0db8d6a66feff317a026212cfb",
+    "sourceManifestSHA256": "18857124c9613c10f018d3df225a6adcd38225b8227d6eb1cd1e19bc6077a017"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "frozenFiles": 379,
+    "states": 4,
+    "receiptSHA256": "db30d5ac01d18cb34c184ec609a6b322a35f75a3dc323a05d28951be7e3e63a2",
+    "sourceManifestSHA256": "fb24d916f2898d2ce648396abc8fa65190b34ebf37000c4c028f17b8f2bff47d",
+    "distancesMM": [
+      8,
+      13.25,
+      8,
+      13.25
+    ],
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "regressions": {
+    "sectionFace": {
+      "status": "PASS",
+      "receiptSHA256": "6abfcb446d48101a32126d16d1585a80f0212de1e231392551aeb1d6a45ea4e9",
+      "sourceManifestSHA256": "444096f7c539135c57d964ef8cee87c704443d0617757bb0e23956b901dab208"
+    },
+    "sectionEdge": {
+      "status": "PASS",
+      "receiptSHA256": "a6d27a256267ef14cc10076e7e915488bd28191809cc4a77f14bd340d4a35a56",
+      "sourceManifestSHA256": "2b23b14167c7e1af1fa0d0af7e89890e0c2a53c505cfc0d8db186adf4692ca59"
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 5,
+    "failed": 0,
+    "typeChecks": 1
+  },
+  "notRun": [
+    "placed context-menu Measure",
+    "narrow dock keyboard pin and clear",
+    "worker-delay menu replacement",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

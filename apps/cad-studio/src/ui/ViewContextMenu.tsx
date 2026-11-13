@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction, RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { selectedBodies, type Command, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
-import { captureMeasureTarget, type MeasureTarget } from '../app/measureTargets';
+import { readMeasureTarget, type MeasureTarget } from '../app/measureTargets';
 import { lookOf, withLook } from '@barocss/cad-model/app/bodies';
 import { emptySel } from '../app/studioConstants';
 import type { ViewportMenu } from '../viewport/useViewportPicking';
@@ -28,8 +28,9 @@ export function ViewContextMenu({ model, menu, setMenu, viewport, changes }: Vie
             // On a body: hide it, show it alone, delete it; with something hidden: show everything again.
             const picked = selectedBodies(menu.selection).filter(i => bodies[i]), anyHidden = bodies.some(b => lookOf(doc, b).hidden);
             const hideAll = (keep: (i: number) => boolean) => commit(bodies.reduce((d, b, i) => withLook(d, b, { hidden: !keep(i) }), doc));
-            const at = menu.selection.faces[0] ? { body: menu.selection.faces[0].body, face: menu.selection.faces[0].face } : menu.selection.edges[0] ? { body: menu.selection.edges[0].body, edge: menu.selection.edges[0].edge } : null;
-            const target = at && captureMeasureTarget(at, doc, bodies[at.body]);
+            const source = menu.measureSource;
+            const target = source?.doc === doc && bodies[source.target.pick.body]?.mesh === source.target.mesh
+              && readMeasureTarget(source.target, doc, bodies) ? source.target : null;
             return [
               ...(target ? [{ label: 'Measure from here', icon: 'cad-measure', shortcut: '⇧M', run: () => { setMeasure([target]); setSelection(emptySel); setEditNode(null); } }] : []),
               ...(picked.length ? [{ label: picked.length > 1 ? 'Hide bodies' : 'Hide body', icon: 'visibility_off', run: () => { hideAll(i => !picked.includes(i) && !lookOf(doc, bodies[i]).hidden); setSelection(emptySel); } },
