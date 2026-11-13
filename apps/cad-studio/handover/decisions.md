@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1046 — pick visible rear edges in X-ray and Wireframe](notes/visible-rear-edge-picking-2026-11-13/README.md).
 - [D1045 — preserve the gap between selected and hovered edges](notes/adjacent-edge-selection-gap-2026-11-13/README.md).
 - [D1044 — verify Move gizmo input at the tool rail](notes/gizmo-rail-input-ownership-2026-11-13/README.md).
 - [D1043 — frame the visible model with Display open](notes/frame-visible-model-display-2026-11-13/README.md).

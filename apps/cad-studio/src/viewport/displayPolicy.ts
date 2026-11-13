@@ -1,5 +1,5 @@
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
-import type { ViewState } from './renderer';
+import type { DisplayMode, ViewState } from './renderer';
 
 // How the studio shows its display modes and its picks (R2): the same on both renderers, WebGL2's (renderer.ts) and
 // WebGPU's (gpuRenderer.ts). Each renderer keeps what is tuned for it (its ambient, shadow and AO, its shaders).
@@ -50,4 +50,9 @@ export function edgeStateOf(view: ViewState, bi: number): Map<number, number> {
   if (view.hoverEdge?.body === bi) edgeState.set(view.hoverEdge.edge, 1);
   for (const e of view.selectedEdges) if (e.body === bi) edgeState.set(e.edge, 2);
   return edgeState;
+}
+
+/** These modes show native edges behind the front surface. */
+export function showsRearEdges(mode: DisplayMode): boolean {
+  return mode === 'wireframe' || mode === 'x-ray';
 }

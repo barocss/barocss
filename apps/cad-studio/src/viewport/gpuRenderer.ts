@@ -6,7 +6,7 @@ import { createViewportRecovery, type ViewportRecoveryNotice } from './viewportR
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
-import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf, showsRearEdges } from './displayPolicy';
 import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { BASE } from '@barocss/cad-model/assembly/mates';
@@ -855,9 +855,9 @@ export class GpuRenderer implements ViewRenderer {
     return body < 0 ? null : { body, face: hit.face };
   }
 
-  pickEdge(x: number, y: number, camera: OrbitCamera, _view: ViewState, radius = 6): EdgeRef | null {
+  pickEdge(x: number, y: number, camera: OrbitCamera, _view: ViewState, radius = 6, frontOnly = false): EdgeRef | null {
     this.sync(camera);
-    const hit = this.viewer.pickLine(x, y, radius, { throughSurfaces: false, respectSurfaceDepth: true });
+    const hit = this.viewer.pickLine(x, y, radius, { throughSurfaces: !frontOnly && showsRearEdges(this.displayMode.effective), respectSurfaceDepth: true });
     if (!hit || hit.edge === null) return null;
     const body = this.bodies.findIndex(b => b.edges === hit.mesh);
     return body < 0 ? null : { body, edge: hit.edge };

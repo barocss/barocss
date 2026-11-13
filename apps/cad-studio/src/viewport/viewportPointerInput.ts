@@ -17,6 +17,7 @@ import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/ske
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { pickCage, type CageHit } from '@barocss/cad-model/subd/cageEdit';
 import { sketchCutInputs } from '../app/sketchControls';
+import { showsRearEdges } from './displayPolicy';
 import { meshCrossesBox } from './boxSelectionCrossing';
 import { bodyEntirelyBehindEye } from './boxSelectionDepth';
 import type { OrbitCamera } from './camera';
@@ -219,7 +220,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
 
   /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
   const vertexAt = (x: number, y: number, w: number, h: number, hit: { face: FaceRef | null; edge: EdgeRef | null }): { body: number; at: Vec3 } | null => {
-    const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
+    const f = propsRef.current.pickFilter ?? 'all';
+    if (f !== 'all') return null;
+    const bi = hit.edge?.body ?? hit.face?.body;
     if (bi === undefined) return null;
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
     const print = propsRef.current.printDisplay;
@@ -422,12 +425,22 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
    * The edge or else the face under a pixel. Over a face an edge must be within 4 px (a thin face such as
    * a plate's side stays pickable); elsewhere within 6 px.
    */
-  const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null } => {
-    const under = r.pickFace(x, y, camera.current, viewState()), filter = propsRef.current.pickFilter ?? 'all';
-    // The selection filter: faces (or bodies) only, edges only, or whichever is under the pointer.
+  const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null; front?: { face: FaceRef | null; edge: EdgeRef | null } } => {
+    const view = viewState(), cameraNow = camera.current;
+    const under = r.pickFace(x, y, cameraNow, view), filter = propsRef.current.pickFilter ?? 'all';
     if (filter === 'face' || filter === 'body') return { face: under, edge: null };
-    const edge = r.pickEdge(x, y, camera.current, viewState(), under ? 4 : 6);
-    return filter === 'edge' ? { face: null, edge } : { face: edge ? null : under, edge };
+    const radius = under ? 4 : 6;
+    const edge = r.pickEdge(x, y, cameraNow, view, radius);
+    if (filter === 'edge') return { face: null, edge };
+    if (!edge) return { face: under, edge: null };
+    // The front face owns its corners when the closest edge belongs to a different body.
+    if (under && under.body !== edge.body) return { face: null, edge, front: { face: under, edge: null } };
+    if (showsRearEdges(r.getDisplayModeStatus?.().effective ?? view.displayMode ?? 'shaded-with-edges')) {
+      // Preserve the shaded edge hit for vertex provenance in the through-line modes.
+      const frontEdge = r.pickEdge(x, y, cameraNow, view, radius, true);
+      return { face: null, edge, front: { face: frontEdge ? null : under, edge: frontEdge } };
+    }
+    return { face: null, edge };
   };
   /** The sketch plane's coordinates under a pixel. */
   const sketchPoint = (x: number, y: number, w: number, h: number, plane: SketchPlane): [number, number] | null => {
@@ -782,9 +795,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       request(); return;
     }
     if (propsRef.current.placing && !d.mode) { propsRef.current.onSpot?.(spotAt(x, y, w, h), false); return; }
-    const { face, edge } = pickAt(r, x, y);
+    const hit = pickAt(r, x, y), { face, edge } = hit;
     const prev = hover.current;
-    const vertex = vertexAt(x, y, w, h, { face, edge });
+    const vertex = vertexAt(x, y, w, h, hit.front ?? hit);
     const next = { face: edge || vertex ? null : face, edge: vertex ? null : edge, vertex };
     if (!sameHover(prev, next)) { hover.current = next; r.setState(viewState()); request(); }
     const point = surfacePoint(x, y, w, h, face) ?? planePoint(x, y, w, h, 0);
@@ -999,7 +1012,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
     if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
-    const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
+    const hit = pickAt(r, x, y), { face, edge } = hit, vertex = vertexAt(x, y, w, h, hit.front ?? hit);
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     const edgeMesh = edge ? rendererBodies.current[edge.body]?.mesh : undefined;
     propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);

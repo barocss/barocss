@@ -5,7 +5,7 @@ import type { ViewportRecoveryNotice } from './viewportRecovery';
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
 import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
-import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HOVERED_EDGE_WIDTH, PALETTE, PICKED_EDGE_WIDTH, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf, showsRearEdges } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { ProposalOverlay } from '../engine/client';
@@ -177,7 +177,7 @@ export interface ViewRenderer {
   /** The visible surface's world point, including curved faces, instances and section caps (Render focus). */
   pickSurfacePoint?(x: number, y: number, camera: OrbitCamera): Vec3 | null;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
-  pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
+  pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number, frontOnly?: boolean): EdgeRef | null;
   bounds(visibleOnly?: boolean): { min: Vec3; max: Vec3 } | null;
   dispose?(): void;
   /** Render settings (the Render workspace; WebGPU only). */
@@ -951,7 +951,7 @@ export class Renderer implements ViewRenderer {
     gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
     // Appearance passes never replace the nearest surface depth used to classify the next edge.
     if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(false);
-    if (mode === 'wireframe') gl.disable(gl.DEPTH_TEST);
+    if (showsRearEdges(mode)) gl.disable(gl.DEPTH_TEST);
     for (let bi = 0; bi < this.bodies.length; bi++) {
       const b = this.bodies[bi];
       if (view.hiddenBodies?.has(bi)) continue;
@@ -1187,10 +1187,11 @@ export class Renderer implements ViewRenderer {
 
   /**
    * Edge pick: the nearest crease edge within `radius` CSS px that a surface does not hide (G3 on WebGL2, G16) — each
-   * body's segments nearest first, up to 16 hidden ones passed over, as the GPU viewer's pickLine; bodies moved as drawn.
+   * body's segments nearest first, up to 16 hidden ones passed over. X-ray and Wireframe also admit the rear lines they draw.
    */
-  pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius = 6): EdgeRef | null {
+  pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius = 6, frontOnly = false): EdgeRef | null {
     const cw = this.canvas.clientWidth, ch = this.canvas.clientHeight, vp = camera.viewProjection();
+    const through = !frontOnly && showsRearEdges(this.resolveDisplayMode(view));
     let shown: ((p: Vec3) => boolean) | null = null, best: EdgeRef | null = null, bestD = radius;
     for (let bi = 0; bi < this.bodies.length; bi++) {
       if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi) || !!view.isolatedInstances?.length) continue;
@@ -1198,8 +1199,10 @@ export class Renderer implements ViewRenderer {
       const L = this.bodies[bi].result.mesh.edgeLines, E = this.bodies[bi].result.mesh.edgeOfSegment;
       const near = nearSegments(L, this.model, vp, cw, ch, x, y, bestD);
       for (let k = 0; k < near.length && k < HIDDEN_TRIES; k++) {
-        shown ??= this.depthsAround(x, y, radius, camera, view);
-        if (!shown(near[k].at)) continue;
+        if (!through) {
+          shown ??= this.depthsAround(x, y, radius, camera, view);
+          if (!shown(near[k].at)) continue;
+        }
         bestD = near[k].d; best = { body: bi, edge: E[near[k].s * 2] }; break;
       }
     }
