@@ -8,9 +8,15 @@ import { startPicking } from '@barocss/cad-model/sketch/select';
 import { bezierError } from '@barocss/cad-model/sketch/bezier';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
 
+export function draftShapeOrder(sketch: SketchState): SketchShape[] {
+  const shapes = [...(sketch.done ?? [])];
+  if (sketch.shape) shapes.splice(sketch.activeOutlineIndex ?? shapes.length, 0, sketch.shape);
+  return shapes;
+}
+
 /** Use the same ordered inputs for sketch hover and click. Hidden construction remains a boundary. */
 export function sketchCutInputs(sketch: SketchState) {
-  const shapes = sketch.editNode === undefined ? [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]
+  const shapes = sketch.editNode === undefined ? draftShapeOrder(sketch)
     : reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds);
   const protectedShapes = sketch.hideConstruction ? new Set(shapes.filter(shape => shape !== sketch.shape && shape.construction)) : undefined;
   return { shapes, protectedShapes };
@@ -67,11 +73,12 @@ export const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
   // (So do open lines and arcs: pieces meeting end to end join into an outline, and Trim works on them.)
   const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || s.shape.kind === 'bezier' || s.shape.kind === 'polygon') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
-  if (!keep) return { ...s, tool, shape: null };
+  if (!keep) return { ...s, tool, shape: null, activeOutlineIndex: undefined };
   const protectedShapes = s.hideConstruction && (tool === 'trim' || tool === 'extend' || tool === 'split')
     ? new Set((s.done ?? []).filter(shape => shape.construction)) : undefined;
-  const done = joinOpen([...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }], undefined, protectedShapes);
-  return { ...s, tool, shape: null, done };
+  const active = { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) };
+  const done = joinOpen(draftShapeOrder({ ...s, shape: active }), undefined, protectedShapes);
+  return { ...s, tool, shape: null, done, activeOutlineIndex: undefined };
 };
 
 export const detachSketchLink = (s: SketchState): SketchState => s.association ? { ...s, association: undefined, associationDetached: true } : s;

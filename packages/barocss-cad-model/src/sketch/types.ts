@@ -52,6 +52,8 @@ export interface SketchAnchor { kind: 'face' | 'vertices' | 'midpoint' | PlaneKi
 export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make;
   /** Outline points and edges picked with the Select tool; the dimension open in the viewport editor (len<i>, rad<i>, dist<a>_<b>). */
   picked?: SketchPick[]; editDim?: string | null;
+  /** The active outline's original order when a diagnostic activates an earlier shape. */
+  activeOutlineIndex?: number;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
   /** A reopened sketch: the side ids of its stored main profile, so Finish keeps that shape first even when Select edits another one. */

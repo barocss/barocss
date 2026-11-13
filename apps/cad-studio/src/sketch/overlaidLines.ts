@@ -1,6 +1,8 @@
+import { isSettled } from '@barocss/cad-model/sketch/rules';
+import { rectangleOutline } from '@barocss/cad-model/sketch/select';
 import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
-import type { SketchShape } from '@barocss/cad-model/sketch/types';
+import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 
 export interface OverlaidLine {
   shape: number;
@@ -60,4 +62,30 @@ export function findOverlaidLines(shapes: readonly SketchShape[]): OverlaidLines
   const groups = [...byEndpoints.values()].filter(group => group.length > 1);
   if (groups.reduce((sum, group) => sum + group.length, 0) > OVERLAID_LINE_RESULT_LIMIT) return { status: 'result-limit' };
   return { status: 'complete', groups, checked, excludedShapes, excludedSegments };
+}
+
+/** Activate the scanned occurrence, even when the displayed position has two owners. */
+export function selectOverlaidEdge(sketch: SketchState, occurrence: OverlaidLine): SketchState | null {
+  const done = sketch.done ?? [];
+  const current = sketch.shape;
+  const source = occurrence.shape === done.length ? current : done[occurrence.shape];
+  if (!source || source.construction) return null;
+  const shape = source.kind === 'rectangle' ? rectangleOutline(source) : source;
+  if (!isSettled(shape)) return null;
+  const samePoint = (a: P2, b: P2) => a[0] === b[0] && a[1] === b[1];
+  const matches = (point: P2, index: number, points: P2[]) => {
+    if ((shape.bulges?.[index] ?? 0) !== 0 || (occurrence.id && shape.ids?.[index] !== occurrence.id)) return false;
+    const end = points[(index + 1) % points.length];
+    return samePoint(point, occurrence.start) && samePoint(end, occurrence.end)
+      || samePoint(point, occurrence.end) && samePoint(end, occurrence.start);
+  };
+  const side = source.kind === 'rectangle' ? shape.points.findIndex(matches) : occurrence.side;
+  if (!shape.points[side] || !matches(shape.points[side], side, shape.points)) return null;
+  if (source === current) return { ...sketch, shape, picked: [{ kind: 'edge', i: side }], editDim: null };
+  const ordered = [...done];
+  const priorIndex = sketch.activeOutlineIndex ?? done.length;
+  if (current) ordered.splice(priorIndex, 0, current);
+  const index = occurrence.shape + Number(!!current && occurrence.shape >= priorIndex);
+  ordered.splice(index, 1);
+  return { ...sketch, shape, done: ordered, activeOutlineIndex: index, picked: [{ kind: 'edge', i: side }], editDim: null };
 }

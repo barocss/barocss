@@ -1,0 +1,57 @@
+{
+  "decision": "D1094",
+  "tier": "FEATURE",
+  "parent": "eee65802fd7fd1230894ca522904c56faabfaf19",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1094-overlaid-edge-selection-<run>",
+    "D1094_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/<run> --choose-edge",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs overlaid-lines draft-sketch-history constraints.test",
+    "pnpm exec eslint apps/cad-studio/src/sketch/overlaidLines.ts apps/cad-studio/src/sketch/useOverlaidLines.ts apps/cad-studio/src/ui/OverlaidLinesControls.tsx apps/cad-studio/src/app/sketchControls.ts apps/cad-studio/src/sketch/draftHistory.ts apps/cad-studio/src/sketch/useSketchActions.ts packages/barocss-cad-model/src/sketch/types.ts",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 857,
+      "receiptSHA256": "a114773f0e5403554c9caa41e002f34fe3a008148fe386d071870c4e9d78652b",
+      "sourceManifestSHA256": "e9ff96cb78604f07c842ec8213e15485f0db29867527e69799672d94aead0913",
+      "firstFailure": "The first diagnostic occurrence can be highlighted, but no action selects it for dimension editing."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 858,
+      "receiptSHA256": "fd1012437afbd6313ed6009c088d68ef12ffa23f19a760a9ce12afb610879bf0",
+      "sourceManifestSHA256": "f8e1611c296740f81a0a89d98a937570739410e74321af0af00e1b49c61a3fc4"
+    }
+  },
+  "metrics": {
+    "desktop": [
+      1024,
+      800
+    ],
+    "checkedSegments": 8,
+    "exactGroups": 1,
+    "selectedShape": 1,
+    "selectedSegment": 2,
+    "beforeMm": 10,
+    "afterMm": 12
+  },
+  "notRun": [
+    "canvas label interception",
+    "editing open or construction outlines from scan",
+    "cross-outline constraints",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 34,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

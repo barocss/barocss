@@ -1,5 +1,5 @@
 import { emptyDirect } from '../app/directGeometry';
-import { sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
+import { draftShapeOrder, sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
 import { useCallback, useRef, useState } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -124,11 +124,11 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     if (!target) { setToast({ title: 'Nothing to offset', hint: 'Draw a closed shape first.', detail: '' }); return; }
     const r = offsetShape(target, d);
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
-    const done = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : []), r.shape];
-    commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, picked: [], editDim: null });
+    const done = [...draftShapeOrder(sketch), r.shape];
+    commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, activeOutlineIndex: undefined, picked: [], editDim: null });
   };
   const replaceDraftShapes = (before: SketchState, shapes: SketchShape[]) => {
-    commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null });
+    commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, activeOutlineIndex: undefined, picked: [], editDim: null });
   };
   const useFaceOutline = (asReferences: boolean) => {
     if (!sketch || !ownsSketch()) return;

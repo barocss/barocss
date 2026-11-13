@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const chooseEdge = process.argv[3] === '--choose-edge';
 const storedIdMode = process.argv[3] === '--stored-ids';
 const dragMode = process.argv[3] === '--spline-drag';
 const pins = [
   'apps/cad-studio/test/overlaid-lines-browser.mjs',
   'apps/cad-studio/src/App.tsx',
+  ...(chooseEdge ? ['apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/sketch/draftHistory.ts',
+    'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/sketch/types.ts'] : []),
   'apps/cad-studio/src/sketch/overlaidLines.ts',
   'apps/cad-studio/src/sketch/useOverlaidLines.ts',
   'apps/cad-studio/src/ui/OverlaidLinesControls.tsx',
@@ -15,7 +18,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'overlaid-lines', output: process.argv[2], envFrozen: dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  name: 'overlaid-lines', output: process.argv[2], envFrozen: chooseEdge ? 'D1094_SOURCE_FROZEN' : dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: dragMode ? 'Retire the scan on spline pointer-down and prevent scans until release or cancellation.'
     : storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
     : 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
@@ -243,6 +246,7 @@ await f.run(async () => {
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
   const empty = await f.doc();
+  if (chooseEdge) await f.page.setViewportSize({ width: 1024, height: 800 });
   if (storedIdMode) { await checkStoredIds(empty); return; }
   await button(f.page.locator('.mode'), 'Sketch').click();
   await f.sketchPanel().waitFor();
@@ -274,6 +278,47 @@ await f.run(async () => {
   assert.deepEqual(await shapeGraphics(), graphics);
   assert.deepEqual(await controls(), original);
   await f.snapshot('01-two-original-directions');
+
+  if (chooseEdge) {
+    await first.press('Enter');
+    await checkMark(1, 2, B, C);
+    f.phase = 'select the exact first outline edge from its diagnostic occurrence';
+    const select = button(scan(), 'Select highlighted edge');
+    assert.equal(await select.count(), 1);
+    await select.press('Enter');
+    await scan().getByRole('status').waitFor({ state: 'hidden' });
+    await f.sketchPanel().locator('.cons-sel').getByText('edge 2', { exact: true }).waitFor();
+    await f.same(empty);
+    await button(f.sketchPanel(), 'Dimension the selection').click();
+    const input = f.page.locator('.dim-editor input');
+    await input.waitFor();
+    assert.equal(await input.getAttribute('aria-label'), 'Length of edge 2');
+    assert.equal(await input.inputValue(), '10');
+    await f.snapshot('02-first-source-dimension');
+    await input.fill('12');
+    await input.press('Enter');
+    await input.waitFor({ state: 'hidden' });
+    assert.equal(await f.sketchAlert(), null);
+    await f.same(empty);
+    const changed = await shapeGraphics();
+    assert.equal(changed.length, 2);
+    assert.deepEqual(changed[0]?.slice(0, 3), graphics[1]?.slice(0, 3), 'the second rectangle remains exact');
+    assert.notEqual(changed[1]?.[1], graphics[0]?.[1], 'the first rectangle changes');
+    await f.undo();
+    const restored = await shapeGraphics();
+    assert.deepEqual(restored.map(g => g[1]), [graphics[1]?.[1], graphics[0]?.[1]]);
+    await f.redo();
+    assert.deepEqual(await shapeGraphics(), changed);
+    await f.same(empty);
+    await f.snapshot('03-first-source-redone');
+    const finished = await f.finishSketch('04-original-profile-order');
+    const sketch = finished.doc.nodes[0];
+    assert.equal(sketch.kind, 'sketch');
+    assert.deepEqual(sketch.min, [4, 6]);
+    assert.deepEqual(sketch.max, [14, 18]);
+    assert.deepEqual(sketch.regions?.[0].map(edge => edge.start), [[14, 6], [24, 6], [24, 16], [14, 16]]);
+    return;
+  }
 
   f.phase = 'keep the group under zoom and retire only the diagnostic on Escape';
   const view = await f.page.locator('canvas.vp-canvas').boundingBox();

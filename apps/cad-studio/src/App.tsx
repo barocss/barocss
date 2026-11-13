@@ -70,7 +70,7 @@ import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
 import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
-import { TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
+import { draftShapeOrder, TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { detachRoundedInsetRecipe, resizeRoundedInsetSource, roundedInsetSourceWidth, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { activeKey, type Active } from './app/commandState';
@@ -513,7 +513,7 @@ export function App() {
     const confirmedPlacement = origin === 'line-point' || origin === 'chord-circle';
     if (draft && (confirmedPlacement || (recordEdit && (draft.association || draft.associationDetached))) && (geometryChanged || keep)) {
       const next = { ...detachSketchLink(draft), editDim: null, shape: r.shape,
-        ...(keep ? { done: joinOpen([...(draft.done ?? []), keep]) } : {}) };
+        ...(keep ? { done: joinOpen(draftShapeOrder({ ...draft, shape: keep })), activeOutlineIndex: undefined } : {}) };
       sketchHistory.push(draftHistoryState(draftDoc, draft, prev), draftHistoryState(draftDoc, next));
       setSketch(next);
       queuedSketchHistory.current = { doc: draftDoc, generation: sketchGeneration.current, draft: next };
@@ -530,7 +530,7 @@ export function App() {
       return {
         ...(changed ? { ...detachSketchLink(s), editDim: null } : s),
         shape: r.shape,
-        ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}),
+        ...(keep ? { done: joinOpen(draftShapeOrder({ ...s, shape: keep })), activeOutlineIndex: undefined } : {}),
       };
     });
   }, [setSketchError, setSketch, sketchHistory]);
@@ -1746,7 +1746,11 @@ export function App() {
     setSketch(after);
     recordSketchDraft(before, after);
   });
-  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration);
+  const overlaidLines = useOverlaidLines(doc, sketch, docNow, sketchGeneration, next => {
+    liveShape.current = next.shape;
+    setSketchError(null);
+    setSketch(next);
+  });
   const sketchViewportActions = { ...studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError,
     setLengthConflict: (reason, source, edge) => setSketchIssue({ reason, conflict: { doc, source, edge } }), updateShape, trimSketch }),
     dragTrim: { doc, scope: acceptanceScope, apply: dragTrim }, pathGap: pathGap.input, circleChord: circleChord.input, overlaidLine: overlaidLines.highlight, onSplineDragChange: overlaidLines.onSplineDragChange };
