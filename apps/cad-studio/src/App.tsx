@@ -60,7 +60,7 @@ import { RobotInspector } from './robot/RobotInspector';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
-import { FILLET_LAUNCHER, filletApplyCurrent, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
@@ -1616,7 +1616,7 @@ export function App() {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const family = filletType(cmd.id);
     if (family && (!fresh || busy)) { setToast({ title: 'Fillet not started', hint: 'Wait for the current part to finish evaluating.', detail: '' }); return; }
-    const avail = family ? FILLET_LAUNCHER.available(ctx) : cmd.available(ctx);
+    const avail = family ? filletLaunchAvailability(ctx, family) : cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (variants.showing) { setToast({ title: `${cmd.label} can’t run here`, hint: `Showing ${variants.showing}: show the master to edit.`, detail: '' }); return; }
     if (cmd === LINKED_INSET_EXTRUDE && (markerNow.current !== null || inPlaceNow.current || !fresh || busy)) {

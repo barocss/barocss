@@ -1,0 +1,56 @@
+{
+  "decision": "D1093",
+  "tier": "SMALL",
+  "parent": "4927133104c1957ebaa7f9601fd4b74600e3f85b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1093-ellipse-rim-admission-<run>",
+    "D1093_SOURCE_FROZEN=1 node apps/cad-studio/test/ellipse-sketch-browser.mjs <external-evidence>/<run> --rim-admission",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family model-rail",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-ellipse-side",
+    "pnpm exec eslint apps/cad-studio/src/app/filletFamily.ts apps/cad-studio/test/fillet-family.test.ts",
+    "node --check apps/cad-studio/test/ellipse-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 10,
+      "frozenFiles": 1082,
+      "receiptSHA256": "9fe0769d2890ec6468480fb78c6be6906d3db7e8af13892fbe5a90651f0b469c",
+      "sourceManifestSHA256": "535e3e088e12bf870b95fb9b8779ca10715eae56288e03db10f17d61c140fc95",
+      "firstFailure": "Chamfer lists the ellipse restriction, but Fillet omits it for the same selected native rim."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 1082,
+      "receiptSHA256": "a89dabf91e714ebe8e717a7ec317846a5eeb43006b7fab188d86a1947d93812c",
+      "sourceManifestSHA256": "a9f9a0badda7355759720cf89db6f9db78e80b16d26db41aee17d2786404a576"
+    }
+  },
+  "metrics": {
+    "ellipseAxesMm": [
+      50,
+      20
+    ],
+    "angleDeg": 30,
+    "extrudeMm": 10,
+    "pickedRim": "n1.side[e1]|n1.top"
+  },
+  "notRun": [
+    "face and full-round desktop controls",
+    "ellipse blending geometry",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "FAIL",
+    "studioPassed": 16,
+    "studioFailed": 1,
+    "sameFailureOnParent": true,
+    "modelPassed": 7,
+    "typeChecks": 1
+  }
+}

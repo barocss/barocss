@@ -148,7 +148,7 @@ import {geometryOf} from '../../packages/barocss-cad-model/src/engine/direct.ts'
 import {evaluateCurve} from '@barocss/cad';
 const doc=JSON.parse(readFileSync(process.argv[2],'utf8')),before=JSON.stringify(doc);
 const view=evaluateDoc(doc,0);const out:any={ok:!!view.ok,error:view.ok?null:String((view as any).error?.detail??(view as any).error?.title??(view as any).error??'evaluation failed'),curves:[]};
-if(view.ok){out.bodyCount=view.bodies.length;if(view.bodies.length){const key=view.bodies[0].key,body=part('Ellipse observed',doc).body(key);out.bodyKey=key;out.evalVolume=view.bodies[0].volume;out.facadeVolume=body.mass({density:1}).volume;}}
+if(view.ok){out.bodyCount=view.bodies.length;if(view.bodies.length){const key=view.bodies[0].key,body=part('Ellipse observed',doc).body(key);out.bodyKey=key;out.evalVolume=view.bodies[0].volume;out.facadeVolume=body.mass({density:1}).volume;if(process.argv[3]===JSON.stringify('rim'))out.edges=view.bodies[0].mesh.edges.map(e=>({index:e.index,names:e.names}));}}
 out.sketch=doc.nodes[0]??null;out.hasNull=JSON.stringify(doc).includes('null');
 for(const o of doc.direct?.objects??[]){const g:any=geometryOf(doc.direct,o);if(g.kind!=='curve')continue;
 const a=g.knots[g.degree],b=g.knots[g.knots.length-g.degree-1];
@@ -156,11 +156,12 @@ out.curves.push({id:o.id,name:o.name,degree:g.degree,knots:g.knots,controlPoints
 assert.equal(JSON.stringify(doc),before);console.log(JSON.stringify(out));`;
 // (JSON form: a key holding undefined is absent from a saved file.)
 const initialFiles = ['apps/cad-studio/test/ellipse-sketch-browser.mjs', 'apps/cad-studio/src/viewport/ellipseDraft.ts', 'apps/cad-studio/src/viewport/studioSketchViewportActions.ts', 'apps/cad-studio/test/sketch-ellipse-studio.test.ts', 'packages/barocss-cad-model/test/sketch-ellipse.test.ts', 'packages/barocss-cad-model/src/sketch/ellipse.ts',
-  'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx', 'apps/cad-studio/src/ui/Hud.tsx', 'apps/cad-studio/src/sketch/useSketchActions.ts',
+  'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/app/filletFamily.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx', 'apps/cad-studio/src/ui/Hud.tsx', 'apps/cad-studio/src/sketch/useSketchActions.ts',
   'packages/barocss-cad-model/src/sketch/spline.ts', 'packages/barocss-cad-model/src/sketch/profile.ts', 'packages/barocss-cad-model/src/sketch/reopen.ts', 'packages/barocss-cad-model/src/sketch/loops.ts', 'packages/barocss-cad-model/src/sketch/settle.ts',
   'packages/barocss-cad-model/src/sketch/types.ts', 'packages/barocss-cad-model/src/sketch/entityIds.ts', 'packages/barocss-cad-model/src/engine/curveSource.ts', 'packages/barocss-cad-model/src/engine/direct.ts', 'packages/barocss-cad-model/src/engine/doc.ts'];
+const rimAdmission = process.argv[3] === '--rim-admission';
 const directDimension = process.argv[3] === '--direct-dimension';
-const f = await createFlow({ name: 'ellipse', envFrozen: directDimension ? 'D1085_SOURCE_FROZEN' : 'ELLIPSE_SOURCE_FROZEN', output: process.argv[2], qualification: 'ELLIPSE_SKETCH_TOOL', initialFiles, oracleSource, inspectorSource: inspectSource,
+const f = await createFlow({ name: 'ellipse', envFrozen: rimAdmission ? 'D1093_SOURCE_FROZEN' : directDimension ? 'D1085_SOURCE_FROZEN' : 'ELLIPSE_SOURCE_FROZEN', output: process.argv[2], qualification: 'ELLIPSE_SKETCH_TOOL', initialFiles, oracleSource, inspectorSource: inspectSource,
   requiredFrozen: ['packages/barocss-cad-model/src/sketch/ellipse.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx'],
   limits: ['One XY sketch plane from an empty document: one ellipse (centre (10, 5), clicks on the 1 mm grid), edited by the panel (Angle, Ry, Rx), extruded 10 mm.', 'Canvas clicks are real mouse events at pixels from window.__studioScreenOf.',
     'The too-narrow edit (Ry 5 with Rx 60) is refused; the panel field returns to its current value by itself (no Escape key is pressed: Escape would leave the sketch).',
@@ -278,6 +279,52 @@ await f.run(async () => {
     await same(doc04);
     await redo();
     await same(edited.doc);
+    return;
+  }
+
+  if (rimAdmission) {
+    const views = f.page.getByRole('group', { name: 'Views', exact: true });
+    await views.getByRole('button', { name: 'Top', exact: true }).click();
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    const filter = f.page.getByRole('button', { name: 'Selection filter', exact: true });
+    for (let i = 0; i < 4 && !/Edges$/.test((await filter.innerText()).trim()); i++) await filter.click();
+    assert.match((await filter.innerText()).trim(), /Edges$/);
+    const [a, b] = doc04.nodes[0].outline.points;
+    const bulge = doc04.nodes[0].outline.bulges[0];
+    const world = [(a[0] + b[0] + bulge * (b[1] - a[1])) / 2, (a[1] + b[1] - bulge * (b[0] - a[0])) / 2, 10];
+    const pixels = await f.page.evaluate(world => {
+      const at = window.__studioScreenOf(world);
+      return at && document.elementFromPoint(...at)?.closest('canvas.vp-canvas') ? at : null;
+    }, world);
+    assert.ok(pixels);
+    await f.page.mouse.click(...pixels);
+    const chosen = (await snapshot('10-rim-picked')).selection.selection;
+    assert.equal(chosen.edges.length, 1);
+    assert.deepEqual(chosen.faces, []);
+    const native = await f.inspect('rim-native', doc04, 'rim');
+    const edge = native.edges.find(edge => edge.index === chosen.edges[0].edge);
+    assert.ok(edge?.names.some(name => name.includes('n1.top') && name.includes('n1.side[')), JSON.stringify(edge));
+    report.observations.push({ label: 'rim', names: edge.names });
+    for (const label of ['Chamfer', 'Fillet']) {
+      f.phase = 'show the ellipse rim restriction before ' + label;
+      await f.page.evaluate(() => document.activeElement?.blur());
+      await f.page.keyboard.press('Space');
+      const palette = f.page.getByRole('dialog', { name: 'Command palette', exact: true });
+      await palette.locator('input').fill(label);
+      const row = palette.locator('.pl-item').filter({ has: f.page.locator('.pl-label').getByText(label, { exact: true }) });
+      await row.waitFor();
+      const listed = await snapshot('11-' + label.toLowerCase() + '-admission');
+      assert.match(await row.innerText(), /ellipse is 192 tangent arcs/);
+      assert.deepEqual(listed.selection.selection, chosen);
+      await row.click();
+      await palette.waitFor({ state: 'hidden' });
+      await f.page.locator('.toast').filter({ hasText: /ellipse is 192 tangent arcs/ }).waitFor();
+      const refused = await snapshot('12-' + label.toLowerCase() + '-refused');
+      assert.equal(await f.page.locator('.hud').count(), 0);
+      assert.deepEqual(refused.selection.selection, chosen);
+      assert.deepEqual(refused.doc, doc04);
+      await dismissToasts();
+    }
     return;
   }
 

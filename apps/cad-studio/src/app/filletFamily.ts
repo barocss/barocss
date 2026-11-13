@@ -1,5 +1,6 @@
 // Studio presentation only: original model commands/builders and saved node kinds remain unchanged.
 import { commands, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import { ELLIPSE_SIDE_EDGE_REFUSAL } from '@barocss/cad-model/sketch/ellipse';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { ModelNode } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor } from '@barocss/cad-model/engine/ids';
@@ -13,7 +14,19 @@ const ORIGINALS = Object.fromEntries(FILLET_TYPES.map(type => [type.value, comma
 const original = (type: FilletType): Command => ORIGINALS[type];
 const guardedBuild = (type: FilletType): NonNullable<Command['build']> => (ctx, values) => { const cmd = original(type), available = cmd.available(ctx); if (!available.ok) throw new Error(available.reason); return cmd.build!(ctx, values); };
 const MEMBERS = Object.fromEntries(FILLET_TYPES.map(t => [t.value, { ...original(t.value), build: guardedBuild(t.value) }])) as Record<FilletType, Command>;
-export const FILLET_LAUNCHER: Command = { ...original('edge'), available: ctx => ctx.bodies.some(b => b.family !== 'faceted' && !b.band && b.role !== 'infill') ? { ok: true } : { ok: false, reason: 'A current solid body is needed to choose a fillet type.' } };
+export function filletLaunchAvailability(ctx: Ctx, type: FilletType): ReturnType<Command['available']> {
+  if (!ctx.bodies.some(b => b.family !== 'faceted' && !b.band && b.role !== 'infill')) {
+    return { ok: false, reason: 'A current solid body is needed to choose a fillet type.' };
+  }
+  const picked = ctx.selection.edges;
+  if (type === 'edge' && picked.length && picked.every(e => ctx.bodies[e.body]?.mesh.edges[e.edge])) {
+    const availability = original('edge').available(ctx);
+    if (!availability.ok && availability.reason === ELLIPSE_SIDE_EDGE_REFUSAL) return availability;
+  }
+  return { ok: true };
+}
+
+export const FILLET_LAUNCHER: Command = { ...original('edge'), available: ctx => filletLaunchAvailability(ctx, 'edge') };
 export function filletSelection(type: FilletType, ctx: Ctx): Selection {
   const faces = ctx.selection.faces.filter(f => !!ctx.bodies[f.body]?.mesh.faces[f.face]);
   const edges = type === 'edge' ? ctx.selection.edges.filter(e => !!ctx.bodies[e.body]?.mesh.edges[e.edge]) : [];
@@ -28,7 +41,7 @@ export function nodeFilletType(node?: ModelNode): FilletType | null { return nod
 /** Keep only one presentation row; the original best-ranked member remains the action for a nonempty query. */
 export function filletPaletteRows<T extends { c: Command }>(rows: readonly T[], query: string, context?: Ctx): T[] {
   let added = false; const out: T[] = [], edge = !query.trim() ? rows.find(r => r.c.id === 'fillet') : undefined;
-  for (const row of rows) { if (!filletType(row.c.id)) { out.push(row); continue; } if (added) continue; added = true; const selected = edge ?? row; out.push(context ? { ...selected, a: FILLET_LAUNCHER.available(context) } : selected); }
+  for (const row of rows) { if (!filletType(row.c.id)) { out.push(row); continue; } if (added) continue; added = true; const selected = edge ?? row; out.push(context ? { ...selected, a: filletLaunchAvailability(context, filletType(selected.c.id)!) } : selected); }
   return out;
 }
 export function pickedFilletSelection(active: Active, hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null }, additive: boolean): Selection | null {

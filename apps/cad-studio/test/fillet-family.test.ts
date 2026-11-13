@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server.edge';
 import { commands, type Ctx } from '@barocss/cad-model/app/commands';
-import { rectanglePart, type ModelNode } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type ModelNode } from '@barocss/cad-model/engine/doc';
+import { ELLIPSE_SIDE_EDGE_REFUSAL, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { FILLET_LAUNCHER, filletType, filletPaletteRows, filletSelection, newFilletActive, pickedFilletSelection, sourceFilletPick, prepareFilletPick, replaceFilletSelection, replaceFillet, nodeFilletType, filletApplyCurrent } from '../src/app/filletFamily';
 import { GROUP_COMMANDS } from '../src/app/studioConstants';
@@ -114,4 +116,25 @@ test('viewport route clears pending family Apply before rejecting hidden or miss
  sectionRef.current={} as NonNullable<typeof sectionRef.current>;sectionFacePickRef.current=0;pending=true;onPick({face:{body:99,face:0},edge:null,point:null},false);assert.equal(pending,false,'armed section-plane picker cannot bypass family rejection');assert.equal(JSON.stringify(active.ctx.selection),before);
  work.resolve({ok:true});await reply;assert.equal(commits,0);assert.equal(active.cmd.build!(active.ctx,active.values).nodes.at(-1)?.kind,'fillet');
  const withoutRefs={...ctx.bodies[0],ref:undefined};assert.deepEqual(sourceFilletPick({...active,ctx:{...ctx,bodies:[withoutRefs]}},[withoutRefs],{face:{body:0,face:0},edge:{body:0,edge:0}}),{face:null,edge:null},'same key with absent refs cannot prove body identity');
+});
+
+test('the selected ellipse rim reports the same launch refusal for edge Fillet and Chamfer', () => {
+  const profile = profileOf([ellipseShape({ center: [10, 5], rx: 50, ry: 20, angle: 30 })]);
+  assert.ok('node' in profile);
+  const doc = withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 10 });
+  const result = evaluateDoc(doc, 0);
+  assert.ok(result.ok);
+  const edge = result.bodies[0].mesh.edges.find(e => e.names.some(name => name.includes('n1.top') && name.includes('n1.side[')));
+  assert.ok(edge);
+  const ctx: Ctx = { doc, bodies: result.bodies, selection: { edges: [{ body: 0, edge: edge.index }], faces: [], bodies: [] } };
+  const refused = { ok: false, reason: ELLIPSE_SIDE_EDGE_REFUSAL };
+  assert.deepEqual(FILLET_LAUNCHER.available(ctx), refused);
+  for (const query of ['Fillet', 'Chamfer']) {
+    const row = filletPaletteRows(paletteList(query, ctx), query, ctx).find(item => item.c.label === query);
+    assert.deepEqual(row?.a, refused);
+  }
+  for (const query of ['Face fillet', 'Full round']) {
+    const row = filletPaletteRows(paletteList(query, ctx), query, ctx).find(item => item.c.label === query);
+    assert.deepEqual(row?.a, { ok: true });
+  }
 });

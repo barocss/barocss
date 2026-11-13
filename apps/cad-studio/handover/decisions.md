@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1093 — show the ellipse rim restriction before starting edge Fillet](notes/ellipse-rim-fillet-admission-2026-11-14/README.md).
 - [D1092 — reopen the authored Slot with coupled dimensions](notes/slot-authored-reopen-2026-11-14/README.md).
 - [D1091 — record Slot panel edits in sketch draft history](notes/slot-panel-draft-history-2026-11-14/README.md).
 - [D1090 — restore a Round tangent from adjacent line and arc selections](notes/round-selected-tangent-restore-2026-11-14/README.md).
