@@ -1,0 +1,85 @@
+{
+  "decision": "D924",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "a595a5b5e5311e13918fcf56083621b0d9c5f025",
+  "node": "22.19.0",
+  "issue": 2324,
+  "issueDisposition": "RESEARCH_CLOSURE_QUALIFIED",
+  "commands": [
+    "gate.sh acquire heavy 600 <D924-run>",
+    "D922_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/opposite01 --opposite",
+    "D922_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/top-regression --oblique",
+    "cd packages/barocss-cad-model && node scripts/test.mjs associative-inset-relink sketch-associative-inset drawing-associative-sketch",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketch-edit-identity workOwnership project",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 22,
+    "studioPass": 145,
+    "fail": 0,
+    "skipped": 0,
+    "logSHA256": "858445dce97d4fb6eb5051e5c2da616e9276a7b2c9a2d3e4f32893c280cec655"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Opposite face orientation and all local and world ring corners"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "oppositeReceiptSHA256": "1fadc18b95448f0263a5870f9845dccfff23d0463b0314444bdf9f0e28677008",
+    "topRegressionReceiptSHA256": "1f667420455303b4058a0309663189410bc0c5f4ae09882d189826216dfcfc34",
+    "sourceManifestSHA256": "c4e6cbc901c0b75810ff5ec9460021934d70b4e22fde04fdc15b46301d54e7ef",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "source": "n3.bottom",
+    "target": "n1",
+    "planeOriginMM": [
+      0,
+      4.32,
+      -5.76
+    ],
+    "planeNormal": [
+      0,
+      0.6,
+      -0.8
+    ],
+    "planeX": [
+      -1,
+      0,
+      0
+    ],
+    "ringDisplacementMM": [
+      0,
+      2.4,
+      -3.2
+    ],
+    "ringVertices": 16,
+    "measuredVolumeMM3": [
+      1280.0000000000032,
+      1344.0000000000027
+    ],
+    "expectedVolumeMM3": [
+      1280,
+      1344
+    ],
+    "lengthToleranceMM": 1e-08,
+    "volumeToleranceMM3": 1e-08,
+    "savedBytes": 2820,
+    "savedSHA256": "3985002ea58da9a799d226034ce712c6946de802ea4b514c7e7016a7712b8fd2"
+  },
+  "notRun": [
+    "full suites",
+    "type checks",
+    "build",
+    "mobile",
+    "damaged-file repair",
+    "other profile or downstream feature families"
+  ]
+}

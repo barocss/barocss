@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const fixed = process.argv[3] === '--fixed';
-const oblique = process.argv[3] === '--oblique';
+const opposite = process.argv[3] === '--opposite';
+const oblique = opposite || process.argv[3] === '--oblique';
 const downstream = process.argv[3] === '--downstream';
 const relink = oblique || downstream || process.argv[3] === '--relink';
 const pins = [
@@ -25,14 +26,15 @@ const pins = [
 ];
 const f = await createFlow({
   name: relink ? 'associative-inset-relink' : 'associative-inset-relink-baseline',
-  output: process.argv[2], envFrozen: oblique ? 'D922_SOURCE_FROZEN' : downstream ? 'D921_SOURCE_FROZEN' : relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
+  output: process.argv[2], envFrozen: opposite ? 'D924_SOURCE_FROZEN' : oblique ? 'D922_SOURCE_FROZEN' : downstream ? 'D921_SOURCE_FROZEN' : relink ? 'D870_SOURCE_FROZEN' : fixed ? 'D868_SOURCE_FROZEN' : 'D867_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: oblique ? 'Replace a straight-face inset source with an oblique native planar face.'
+  qualification: opposite ? 'Replace a straight-face inset source with the opposite-normal oblique stock bottom.'
+    : oblique ? 'Replace a straight-face inset source with an oblique native planar face.'
     : downstream ? 'Refuse a resolved linked inset when its downstream native Extrude fails.'
     : relink ? 'Preview, replace and persist the earlier native source of one existing linked inset.'
     : fixed ? 'Keep the working document during failed associative inset File and Project Open.'
     : 'Measure the current linked inset, separate source and target, and invalid binding refusal in desktop Studio.',
-  limits: [oblique ? 'Two native rectangular solids, one oblique replacement top, and one 2 mm linked inset.' : 'Two earlier axial native rectangular solids and one 2 mm linked inset.',
+  limits: [oblique ? 'Two native rectangular solids, one oblique replacement face, and one 2 mm linked inset.' : 'Two earlier axial native rectangular solids and one 2 mm linked inset.',
     relink ? 'The linked sketch feeds one final independent straight Extrude.' : 'A prepared candidate file measures the existing reader and evaluator.'],
   snapshotExtra: () => ({
     dirty: !!document.querySelector('[aria-label="Unsaved changes"]'),
@@ -175,19 +177,25 @@ async function verifyDownstreamRefusal(original) {
 }
 
 async function verifyObliqueRelink(original) {
+  const face = opposite ? 'n3.bottom' : 'n3.top';
+  const binding = { ...association('n3', 3), face };
+  const normal = opposite ? [0, 0.6, -0.8] : tiltedPlane.normal;
+  const xAxis = opposite ? [-1, 0, 0] : tiltedPlane.xAxis;
+  const origin = opposite ? [0, 4.32, -5.76] : [0, -0.48, 0.64];
+  const depths = opposite ? [0, -4] : [8, 12];
   const candidate = structuredClone(original);
-  candidate.nodes[4].association = association('n3', 3);
+  candidate.nodes[4].association = binding;
   const verifyNative = async (label, doc, width) => {
     await f.same(doc);
     const native = await f.inspect(label, doc);
     assert.equal(native.stage, 'accepted', native.error);
-    assert.deepEqual(native.sketch.association, association('n3', 3));
+    assert.deepEqual(native.sketch.association, binding);
     assert.deepEqual(native.sketch.on, firstSource);
     const { plane } = native.sketch;
     const closePoint = (actual, expected) => expected.forEach((value, axis) => near(actual[axis], value));
-    closePoint(plane.origin, [0, -0.48, 0.64]);
-    closePoint(plane.normal, tiltedPlane.normal);
-    closePoint(plane.xAxis, tiltedPlane.xAxis);
+    closePoint(plane.origin, origin);
+    closePoint(plane.normal, normal);
+    closePoint(plane.xAxis, xAxis);
     assert.deepEqual(native.outputs.map(output => output.id), ['n1', 'n3', 'n5']);
     assert.ok(native.outputs.every(output => output.valid));
     const [a, b, ring] = native.outputs;
@@ -196,7 +204,7 @@ async function verifyObliqueRelink(original) {
     const volume = (width * 24 - (width - 4) * 20) * 4;
     near(ring.volume, volume);
     near((await f.bodies()).bodies.find(body => body.key === 'b5').volume, volume);
-    for (const h of [8, 12]) for (const i of [0, 2]) for (const u of [i, width - i]) for (const v of [i, 24 - i]) {
+    for (const h of depths) for (const i of [0, 2]) for (const u of [i, width - i]) for (const v of [i, 24 - i]) {
       const wanted = tiltedWorld(u, v, h);
       assert.ok(ring.corners.some(p => Math.hypot(...p.map((value, axis) => value - wanted[axis])) <= 1e-8), wanted);
     }
@@ -205,23 +213,27 @@ async function verifyObliqueRelink(original) {
     await f.snapshot(label);
   };
 
-  f.phase = 'Pick the oblique native top and preview its ring';
-  await button(f.page.locator('.views'), 'Top').click();
+  f.phase = 'Pick the oblique native face and preview its ring';
+  if (opposite) {
+    await button(f.page, 'View cube directions').click();
+    await f.page.getByRole('menuitem', { name: 'Bottom', exact: true }).click();
+    await f.page.locator('.view-cube .vc-label').getByText('BOTTOM', { exact: true }).waitFor();
+  } else await button(f.page.locator('.views'), 'Top').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   await f.openFeatureEditor(5, 'linked ring');
   const point = await f.page.evaluate(world => {
     const xy = window.__studioScreenOf(world);
     return xy && document.elementFromPoint(...xy)?.closest('canvas.vp-canvas') ? xy : null;
-  }, tiltedWorld(30, 12, 8));
+  }, tiltedWorld(30, 12, depths[0]));
   assert.ok(point);
   await f.page.mouse.click(...point);
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
   const before = await f.snapshot('03-oblique-selected');
   await button(f.editor(), 'Replace inset source').click();
   const panel = f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
-  await panel.getByText('n1.top → n3.top', { exact: true }).waitFor();
+  await panel.getByText('n1.top → ' + face, { exact: true }).waitFor();
   await panel.getByText('Target · n1', { exact: true }).waitFor();
-  await panel.getByText('Normal · 0, -0.6, 0.8', { exact: true }).waitFor();
+  await panel.getByText('Normal · ' + normal.join(', '), { exact: true }).waitFor();
   await panel.getByText('Extrude · 1280 mm³', { exact: true }).waitFor();
   unchanged(await f.snapshot('04-oblique-preview'), before);
   await button(panel, 'Apply source').click();
@@ -232,7 +244,7 @@ async function verifyObliqueRelink(original) {
   await verifyNative('06-oblique-redo', candidate, 60);
 
   f.phase = 'Save and open the exact oblique association';
-  const name = 'D922-oblique-ring', file = name + '.bcad', project = 'D922 oblique ' + randomUUID();
+  const name = opposite ? 'D924-opposite-ring' : 'D922-oblique-ring', file = name + '.bcad', project = name + ' ' + randomUUID();
   await f.page.locator('.doc-tab input').fill(name);
   await button(f.page, 'Project and versions').click();
   const versions = f.page.getByRole('complementary', { name: 'Versions panel', exact: true });

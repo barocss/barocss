@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D924 — verify straight-face inset re-link with the opposite normal](notes/straight-inset-opposite-normal-2026-11-13/README.md).
 - [D923 — keep damaged straight-face inset files outside the accepted document](notes/straight-inset-damaged-open-scope-2026-11-13/README.md).
 - [D922 — verify straight-face inset re-link on an oblique plane](notes/straight-inset-relink-oblique-2026-11-13/README.md).
 - [D921 — retain the accepted inset when a replacement Extrude fails](notes/straight-inset-relink-dependent-refusal-2026-11-13/README.md).
