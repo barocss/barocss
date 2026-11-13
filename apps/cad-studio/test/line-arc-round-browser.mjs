@@ -5,6 +5,8 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const mode = process.argv[3], fixed = mode === '--fixed';
 const mirrored = mode === '--mirrored' || mode === '--mirrored-baseline' || mode === '--mirrored-source-edit';
 const mirroredBaseline = mode === '--mirrored-baseline';
+const reversed = mode === '--reversed' || mode === '--reversed-baseline';
+const reversedBaseline = mode === '--reversed-baseline';
 const measureArea = mode === '--measure-area';
 const sourceMeasure = mode === '--source-measure' || measureArea;
 const sourceEdit = mode === '--source-edit' || mode === '--source-edit-baseline' || mode === '--mirrored-source-edit' || sourceMeasure;
@@ -20,7 +22,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
   'packages/barocss-cad-model/src/sketch/entityIds.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
-  ...(fixed || mirrored || sourceEdit ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
+  ...(fixed || mirrored || reversed || sourceEdit ? ['packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts'] : []),
   ...(sourceMeasure ? ['apps/cad-studio/test/model-rail-helper.mjs', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
     'apps/cad-studio/src/ui/MeasurementInspector.tsx', 'packages/barocss-cad-model/src/app/measure.ts',
     'packages/barocss-cad-model/src/engine/mesh.ts'] : []),
@@ -28,10 +30,11 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'line-arc-round', output: process.argv[2],
-  envFrozen: measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
+  envFrozen: reversed ? 'D902_SOURCE_FROZEN' : measureArea ? 'D894_SOURCE_FROZEN' : sourceMeasure ? 'D893_SOURCE_FROZEN'
     : sourceEdit ? 'D892_SOURCE_FROZEN' : mirrored ? 'D891_SOURCE_FROZEN' : 'D890_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: measureArea ? 'Verify analytic native wall area and the display-mesh fallback in Measure.'
+  qualification: reversed ? 'Verify a pinned incoming-arc-to-line Round without changing authored traversal.'
+    : measureArea ? 'Verify analytic native wall area and the display-mesh fallback in Measure.'
     : sourceMeasure ? 'Measure the two named cylindrical faces of a pinned round across source-radius changes.'
     : sourceEdit ? 'Edit the source radius of a pinned round and verify native contacts and history.'
     : mirrored ? 'Verify a clockwise pinned line–arc Round and its native XZ extrusion.'
@@ -51,12 +54,18 @@ if (process.argv[3] === '"cylinder"') {
   console.log(JSON.stringify(cylinderPart(5, 10)));
   process.exit(0);
 }
-if (['"fixture"', '"pinned"', '"mirrored"'].includes(process.argv[3])) {
+if (['"fixture"', '"pinned"', '"mirrored"', '"reversed"'].includes(process.argv[3])) {
   const reflected = process.argv[3] === '"mirrored"', pinned = process.argv[3] !== '"fixture"';
-  const points = reflected ? [[0,20],[40,20],[20,0],[0,0]] : [[0,pinned ? 20 : 0],[40,20],[20,40],[0,40]];
+  const reversed = process.argv[3] === '"reversed"';
+  const points = reversed ? [[0,20],[0,40],[20,40],[40,20]]
+    : reflected ? [[0,20],[40,20],[20,0],[0,0]] : [[0,pinned ? 20 : 0],[40,20],[20,40],[0,40]];
+  const arc = reversed ? 2 : 1;
   const profile = profileOf([{
     kind: 'polygon', closed: true, points,
-    bulges: [0, (reflected ? -1 : 1) * (Math.SQRT2 - 1), 0, 0], radii: {1:20}, tangents:[2], hv:{h:pinned ? [0,2] : [2],v:[3]}, ids: ['e1','e2','e3','e4'],
+    bulges: points.map((_, i) => i === arc ? (reflected || reversed ? -1 : 1) * (Math.SQRT2 - 1) : 0),
+    radii: {[arc]:20}, tangents:[2],
+    hv:reversed ? {h:[1,3],v:[0]} : {h:pinned ? [0,2] : [2],v:[3]},
+    ids: reversed ? ['e4','e3','e2','e1'] : ['e1','e2','e3','e4'],
     ...(pinned ? { rules: [{ kind:'fix', point:2, at:points[2] }] } : {}),
   }]);
   assert.ok('node' in profile);
@@ -508,6 +517,130 @@ async function checkMirrored() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function checkReversedRound() {
+  const doc = await f.inspect('reversed-fixture', {}, 'reversed');
+  assert.deepEqual(doc.nodes[0].sideTags.outer, ['e4', 'e3', 'e2', 'e1']);
+  assert.equal(doc.nodes[0].segments[2].direction, 'cw');
+  const stock = await f.inspect('reversed-stock-native', doc);
+  near(stock.volume, 10 * (400 + 100 * Math.PI), 1e-7);
+  await f.newPage();
+  await open(doc);
+  await edit();
+  f.phase = 'round an incoming native arc and outgoing line';
+  await applyRound([40, 20], 3);
+  const alert = () => f.sketchPanel().getByRole('alert');
+  if (reversedBaseline) {
+    await alert().waitFor();
+    const rejected = await f.snapshot('01-reversed-parent-refusal');
+    await f.same(doc);
+    f.report.observations.push({ label: 'parent-refusal', error: rejected.roundError, stockVolumeMm3: stock.volume });
+    await cancel();
+    await f.same(doc);
+    return;
+  }
+  async function check(label, current, r, source = 20) {
+    await f.same(current);
+    assert.deepEqual(current.nodes.slice(1), doc.nodes.slice(1));
+    assert.deepEqual(current.outputs, doc.outputs);
+    const outline = current.nodes[0], expected = independentRound(r, source);
+    const points = [expected.polygon[0], ...expected.polygon.slice(1).reverse()];
+    assert.deepEqual(outline.sideTags.outer, ['e4', 'e3', 'e2', 'e5', 'e1']);
+    assert.deepEqual(outline.outline.radii, { 2: source, 3: r });
+    assert.deepEqual(outline.outline.hv, { h: [1, 4], v: [0] });
+    assert.deepEqual(outline.outline.tangents, [2, 3, 4]);
+    assert.deepEqual(outline.outline.rules, [{ kind: 'fix', point: 2, at: [20, 40] }]);
+    assert.equal(outline.segments.length, 5);
+    const native = await f.inspect(`${label}-native`, current);
+    assert.equal(native.cylinders.length, 2);
+    for (const [i, segment] of outline.segments.entries()) {
+      segment.start.forEach((value, axis) => near(value, points[i][axis]));
+      for (const depth of [0, 10]) {
+        assert.ok(native.vertices.some(([x, y, z]) => Math.hypot(x - points[i][0], y - points[i][1], z - depth) <= 1e-8));
+      }
+    }
+    for (const [i, tag, radius, center] of [[2, 'e2', source, expected.source], [3, 'e5', r, expected.fillet]]) {
+      assert.equal(outline.segments[i].kind, 'arc');
+      assert.equal(outline.segments[i].direction, 'cw');
+      const cylinder = native.cylinders.find(face => face.name === `n1.side[${tag}]`);
+      assert.ok(cylinder);
+      near(cylinder.r, radius);
+      cylinder.a.forEach((value, axis) => near(value, [0, 0, 1][axis]));
+      center.forEach((value, axis) => {
+        near(cylinder.c[axis], value);
+        near(outline.segments[i].center[axis], value);
+      });
+    }
+    assert.ok(['e1', 'e3', 'e4'].every(tag => native.faces.includes(`n1.side[${tag}]`)));
+    near(native.volume, expected.volume, 1e-7);
+    near((await f.bodies()).bodies[0].volume, expected.volume, 1e-7);
+    f.report.observations.push({ label, filletRadiusMm: r, sourceRadiusMm: source, expectedVolumeMm3: expected.volume,
+      volumeMm3: native.volume, tags: outline.sideTags.outer, circles: native.cylinders });
+  }
+  const field = i => f.sketchPanel().getByLabel(`Arc ${i} radius`, { exact: true });
+  const fullyDefined = () => f.sketchPanel().getByText(/^Fully defined/).waitFor();
+  await field(4).waitFor();
+  assert.equal(await alert().count(), 0);
+  await fullyDefined();
+  const r3 = (await f.finishSketch('01-reversed-R3')).doc;
+  await check('R3', r3, 3);
+  await edit();
+  await field(4).fill('4');
+  assert.equal(await field(4).inputValue(), '4');
+  await fullyDefined();
+  const r4 = (await f.finishSketch('02-reversed-R4')).doc;
+  await check('R4', r4, 4);
+  await f.undo();
+  await f.same(r3);
+  await f.redo();
+  await f.same(r4);
+  const saved = await save(r4);
+  await f.newPage();
+  await open(r4, saved);
+  await check('R4-reopened', r4, 4);
+  await edit();
+  await field(4).fill('10');
+  await alert().waitFor();
+  assert.equal(await field(4).inputValue(), '4');
+  await f.same(r4);
+  await f.snapshot('03-reversed-R10-refused');
+  async function inlineRadius(index, value) {
+    await f.page.locator(`g.dim[data-dim="rad${index}"] .dim-text`).dblclick();
+    const input = f.page.locator('.dim-editor input');
+    await input.fill(String(value));
+    await input.press('Enter');
+    await input.waitFor({ state: 'hidden' });
+  }
+  await inlineRadius(3, 5);
+  assert.equal(await field(4).inputValue(), '5');
+  assert.equal(await alert().count(), 0);
+  await fullyDefined();
+  const r5 = (await f.finishSketch('04-reversed-R5')).doc;
+  await check('R5', r5, 5);
+  await f.undo();
+  await f.same(r4);
+  await f.redo();
+  await f.same(r5);
+  await f.undo();
+  await f.same(r4);
+  await edit();
+  assert.equal(await alert().count(), 0);
+  await inlineRadius(2, 10);
+  await alert().getByText(/R10 does not fit/).waitFor();
+  assert.equal(await field(3).inputValue(), '20');
+  await f.same(r4);
+  await f.snapshot('05-reversed-source-R10-refused');
+  await inlineRadius(2, 16);
+  assert.equal(await field(3).inputValue(), '16');
+  assert.equal(await alert().count(), 0);
+  await fullyDefined();
+  const r16 = (await f.finishSketch('06-reversed-source-R16')).doc;
+  await check('R4-source-R16', r16, 4, 16);
+  await f.undo();
+  await f.same(r4);
+  await f.redo();
+  await f.same(r16);
+}
+
 async function checkFixed() {
   const doc = await f.inspect('pinned-source-fixture', {}, 'pinned');
   const bytes = Buffer.from(JSON.stringify(doc));
@@ -631,6 +764,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (reversed) {
+    await checkReversedRound();
+    return;
+  }
   if (sourceEdit) {
     await checkSourceEdit();
     return;

@@ -34,7 +34,7 @@ const near = (actual: number, expected: number, tolerance = 1e-7) => {
 const nearPoint = (actual: P2, expected: P2) => { near(actual[0], expected[0]); near(actual[1], expected[1]); };
 const xzPlane: DocPlane = { origin: [0, 5, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 
-function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, R = 20, datum = 20) {
+function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, R = 20, datum = 20, reverse = false) {
   // In the fixture's inward coordinates the fixed end is (20,20). Subtract
   // the squared vertical offset from the inner radius squared and factor:
   // (R − r)² − (R + r − 20)² = (20 − 2r)(2R − 20).
@@ -43,7 +43,7 @@ function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, 
   const center: P2 = [20 + x, ordinate(r)], sourceCenter: P2 = [20, ordinate(20 - R)];
   const line: P2 = [20 + x, datum], join: P2 = [20 + R * x / (R - r), ordinate(20 - R + R * y / (R - r))];
   const theta = Math.atan2(y, x), roundSweep = Math.PI / 2 + theta, sourceSweep = Math.PI / 2 - theta;
-  const [a, p, q, b, d] = shape.points;
+  const [a, p, q, b, d] = reverse ? [shape.points[0], ...shape.points.slice(1).reverse()] : shape.points;
   nearPoint(a, [0, datum]);
   nearPoint(b, [20, ordinate(20)]);
   nearPoint(d, [0, ordinate(20)]);
@@ -51,13 +51,15 @@ function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, 
   nearPoint(q, join);
   const sharpX = 20 + Math.sqrt(40 * (R - 10)), inward = direction * (q[1] - datum);
   assert.ok(p[0] > 0 && p[0] < sharpX && q[0] > 20 && inward > 0 && inward < 20);
-  const fillet = arcOf(p, q, shape.bulges![1]), source = arcOf(q, b, shape.bulges![2]);
+  const fillet = reverse ? arcOf(q, p, shape.bulges![3]) : arcOf(p, q, shape.bulges![1]);
+  const source = reverse ? arcOf(b, q, shape.bulges![2]) : arcOf(q, b, shape.bulges![2]);
   nearPoint(fillet.center, center);
   nearPoint(source.center, sourceCenter);
   near(fillet.radius, r);
   near(source.radius, R);
-  near(fillet.sweep, direction * roundSweep, 1e-9);
-  near(source.sweep, direction * sourceSweep, 1e-9);
+  const authoredDirection = reverse ? -direction : direction;
+  near(fillet.sweep, authoredDirection * roundSweep, 1e-9);
+  near(source.sweep, authoredDirection * sourceSweep, 1e-9);
   const tangentAtJoin = ([cx, cy]: P2) => Math.atan2(direction * (q[0] - cx), direction * (cy - q[1]));
   near(tangentAtJoin(fillet.center), tangentAtJoin(source.center), 1e-9);
   near(fillet.center[0], p[0]);
@@ -65,7 +67,8 @@ function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, 
   const construction = { kind: 'polygon' as const, points: [[2, 24], [3, 24]] as P2[], closed: false, construction: true as const, ids: ['e7', 'e6'] };
   const profile = profileOf([shape, construction]);
   assert.ok('node' in profile);
-  const filletId = shape.ids?.[1] || 'e8', ids = ['e1', filletId, 'e2', 'e3', 'e4'];
+  const filletId = shape.ids?.[reverse ? 3 : 1] || 'e8';
+  const ids = reverse ? ['e4', 'e3', 'e2', filletId, 'e1'] : ['e1', filletId, 'e2', 'e3', 'e4'];
   assert.deepEqual(profile.node.sideTags?.outer, ids);
   assert.deepEqual(construction.ids, ['e7', 'e6']);
   const node = direction === -1 ? { ...profile.node, plane: xzPlane } : profile.node;
@@ -75,16 +78,17 @@ function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, 
   for (const id of ids) {
     assert.equal(body.brep.faces.filter(face => face.name === `n1.side[${id}]`).length, 1, id);
   }
-  if (direction === -1) {
+  if (direction === -1 || reverse) {
+    const axis = direction === -1 ? 1 : 2, ordinateAxis = direction === -1 ? 2 : 1;
     for (const [id, point, radius] of [[filletId, center, r], ['e2', sourceCenter, R]] as const) {
       const face = body.brep.faces.find(f => f.name === `n1.side[${id}]`);
       assert.ok(face);
       const cylinder = faceGeometry(face);
       assert.equal(cylinder.kind, 'cylinder');
-      nearPoint([cylinder.c[0], cylinder.c[2]], [point[0], point[1]]);
+      nearPoint([cylinder.c[0], cylinder.c[ordinateAxis]], [point[0], point[1]]);
       near(cylinder.a[0], 0);
-      near(cylinder.a[1], 1);
-      near(cylinder.a[2], 0);
+      near(cylinder.a[axis], 1);
+      near(cylinder.a[ordinateAxis], 0);
       near(cylinder.r, radius);
     }
     for (const [name, sign] of [['bottom', 1], ['top', -1]] as const) {
@@ -92,10 +96,10 @@ function checkRoundedGeometry(shape: Polygon, r: number, direction: 1 | -1 = 1, 
       assert.ok(face);
       const cap = faceGeometry(face);
       assert.equal(cap.kind, 'plane');
-      near(cap.o[1], 5 * sign);
+      near(cap.o[axis], direction === -1 ? 5 * sign : sign > 0 ? 0 : 10);
       near(cap.n[0], 0);
-      near(cap.n[1], sign);
-      near(cap.n[2], 0);
+      near(cap.n[axis], direction === -1 ? sign : -sign);
+      near(cap.n[ordinateAxis], 0);
     }
   }
   const points = [a, line, join, b, d];
@@ -272,6 +276,76 @@ test('pinned source-radius edits replan both tangencies and refuse the exact fin
     assert.deepEqual(final.shape.rules, opened.rules);
     checkRoundedGeometry(final.shape, 4, direction, 18, datum);
   }
+});
+
+test('reverse pinned arc–line Round preserves authored order, radii and native wall names', () => {
+  const source: Polygon = {
+    ...pinned(), points: [[0, 20], [0, 40], [20, 40], [40, 20]],
+    bulges: [0, 0, -Math.tan(Math.PI / 8), 0], ids: ['e4', 'e3', 'e2', 'e1'],
+    hv: { h: [1, 3], v: [0] }, radii: { 2: 20 },
+  };
+  const before = structuredClone(source), rounded = roundCorner(source, 3, 3);
+  if ('error' in rounded) assert.fail(rounded.error);
+  const first = rounded.shape;
+  assert.deepEqual(source, before);
+  assert.deepEqual(first.ids, ['e4', 'e3', 'e2', '', 'e1']);
+  assert.deepEqual(first.rules, source.rules);
+  assert.deepEqual(first.hv, { h: [1, 4], v: [0] });
+  assert.deepEqual(first.tangents, [2, 3, 4]);
+  assert.deepEqual(first.radii, { 2: 20, 3: 3 });
+  checkRoundedGeometry(first, 3, 1, 20, 20, true);
+  assert.ok('error' in roundCorner(source, 3, 10));
+  assert.ok('error' in roundCorner({ ...source, lengths: { 3: 40 } }, 3, 3));
+  assert.ok('error' in roundCorner({ ...source, hv: { h: [0, 2], v: [3] } }, 3, 3));
+
+  const panel = settleShape({ ...first, radii: { 2: 20, 3: 4 } }, first);
+  assert.equal(panel.error, null);
+  assert.equal(panel.shape?.kind, 'polygon');
+  const profile = profileOf([panel.shape]);
+  assert.ok('node' in profile);
+  const { shape: opened } = sketchShapes(profile.node);
+  assert.equal(opened?.kind, 'polygon');
+  const ids = ['e4', 'e3', 'e2', 'e5', 'e1'];
+  assert.deepEqual(opened.ids, ids);
+  checkRoundedGeometry(opened, 4, 1, 20, 20, true);
+
+  for (const index of [2, 3]) {
+    const invalid = commitDimension(opened, `rad${index}`, 10);
+    assert.ok(!invalid.ok);
+    assert.match(invalid.reason, /does not fit on both finite sides/);
+    const locked = settleShape({ ...opened, radii: { ...opened.radii, [index]: 10 } }, opened);
+    assert.equal(locked.shape, opened);
+    assert.match(locked.error ?? '', /does not fit on both finite sides/);
+  }
+  const filletEdit = commitDimension(opened, 'rad3', 5);
+  if (!filletEdit.ok) assert.fail(filletEdit.reason);
+  const r5 = settleShape(filletEdit.shape, opened);
+  assert.equal(r5.error, null);
+  assert.equal(r5.shape?.kind, 'polygon');
+  assert.deepEqual(r5.shape.ids, ids);
+  assert.deepEqual(r5.shape.radii, { 2: 20, 3: 5 });
+  checkRoundedGeometry(r5.shape, 5, 1, 20, 20, true);
+
+  const sourceEdit = commitDimension(opened, 'rad2', 16);
+  if (!sourceEdit.ok) assert.fail(sourceEdit.reason);
+  const r16 = settleShape(sourceEdit.shape, opened);
+  assert.equal(r16.error, null);
+  assert.equal(r16.shape?.kind, 'polygon');
+  assert.deepEqual(r16.shape.ids, ids);
+  assert.deepEqual(r16.shape.radii, { 2: 16, 3: 4 });
+  checkRoundedGeometry(r16.shape, 4, 1, 16, 20, true);
+
+  const clear = settleShape({ ...r16.shape, radii: { 3: 4 } }, r16.shape);
+  assert.equal(clear.error, null);
+  assert.equal(clear.shape?.kind, 'polygon');
+  assert.deepEqual(clear.shape.radii, { 3: 4 });
+  const invalid = commitDimension(clear.shape, 'rad2', 10);
+  assert.ok(!invalid.ok);
+  assert.match(invalid.reason, /does not fit on both finite sides/);
+  const relocked = commitDimension(clear.shape, 'rad2', 18);
+  if (!relocked.ok) assert.fail(relocked.reason);
+  assert.deepEqual(relocked.shape.ids, ids);
+  checkRoundedGeometry(relocked.shape, 4, 1, 18, 20, true);
 });
 
 test('pinned line–arc Round keeps the radius guard when Finish allocates the largest safe side ID', () => {

@@ -1,0 +1,120 @@
+{
+  "decision": "D902",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "f31824cdd48902e5219fce9eec55f43cd13a057b",
+  "issue": 2282,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <run-label>",
+    "D902_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/baseline02 --reversed-baseline",
+    "D902_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/reversed --reversed",
+    "D892_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/forward-source-regression --source-edit",
+    "D891_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/reflected-regression --mirrored",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "cd apps/cad-studio && node scripts/test.mjs sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "baselineDriver": {
+    "status": "FAIL",
+    "reason": "Reverse dispatch was nested in the forward runner. The reported PASS belonged to a different flow.",
+    "receiptSHA256": "7324751c1d3217a2165d93c382b4a75124af0c8c8675b38ab2978c7d6ad6524b"
+  },
+  "baseline": {
+    "status": "PASS",
+    "productOutcome": "REFUSED",
+    "volumeMm3": 7141.5926535897925,
+    "receiptSHA256": "59f8e747cd5ad417e55b34a3fca32ce2ae4ab072667e37362906fd2fdfc399a9",
+    "sourceManifestSHA256": "32e10b10c9a336b26101dbc976453cd82676f2d8f6e95b22e52952661ed12cbf"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 63,
+    "studioPass": 45,
+    "typeCheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "757208c04fe7ab634353605504816f833cfef57464d94c4b97870a06de5bebb5"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Exact order, finite tangency, constraint and ID mapping, and source clear/relock in Model across both layouts and sweep directions."
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "e76afc5773abd86574ae85dc7de823d39a24119ac571dd2fd56ad8c469e3bb35",
+    "sourceManifestSHA256": "9e9a35e6aa2d61233da8fa47270af79f9569ce51e7f67c1aaf139b6d4716d06e",
+    "frozenFiles": 842,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "undoRedo": "PASS",
+    "freshOpen": "PASS",
+    "lockedLimitRefusal": "PASS",
+    "coordinateToleranceMm": 1e-08,
+    "volumeToleranceMm3": 1e-07,
+    "sideTags": [
+      "e4",
+      "e3",
+      "e2",
+      "e5",
+      "e1"
+    ],
+    "states": [
+      "R3",
+      "R4",
+      "R4-reopened",
+      "R5",
+      "R4-source-R16"
+    ],
+    "expectedVolumesMm3": [
+      7116.460269574863,
+      7091.948937557186,
+      7091.948937557186,
+      7054.301379805951,
+      6616.283004441058
+    ],
+    "nativeVolumesMm3": [
+      7116.460269574863,
+      7091.948937557187,
+      7091.948937557187,
+      7054.301379805947,
+      6616.28300444106
+    ],
+    "savedBytes": 2293,
+    "savedSHA256": "8fd441578087d938b4f78798499d5dbe0e9afc9d10a8460325d882d83346a60d"
+  },
+  "regressions": [
+    {
+      "status": "PASS",
+      "scope": "Forward XY source edit and clear/relock",
+      "receiptSHA256": "0e543c87d76d45e9e28225990793ef62005062273cf240fd9af4d23c6c91c0ae"
+    },
+    {
+      "status": "PASS",
+      "scope": "Reflected XZ forward Round",
+      "receiptSHA256": "74e5ced2a46878a93fc608df0859f43f119de4c36ca0faf6e97b62667898db13"
+    }
+  ],
+  "adjacentDefect": {
+    "status": "FAIL",
+    "scope": "Independent Model probe after clearing the fillet radius lock admits exact-limit R10 through the generic solver. D903 will reproduce in Studio."
+  },
+  "notRun": [
+    "reverse source clear/relock in Studio",
+    "reverse XZ Studio",
+    "arbitrary line orientation or constraints",
+    "full suites",
+    "mobile"
+  ]
+}

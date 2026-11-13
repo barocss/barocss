@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D902 — round a pinned incoming arc and outgoing line](notes/reversed-pinned-arc-line-round-2026-11-13/README.md).
 - [D901 — verify explicit and tangent-chain Fillet selections](notes/fillet-tangent-chain-selection-2026-11-13/README.md).
 - [D900 — retire a superseded repaired-Open notice](notes/repaired-open-notice-ownership-2026-11-13/README.md).
 - [D899 — verify a lost Offset cap and its marked replacement](notes/offset-cap-reference-rematch-2026-11-13/README.md).
