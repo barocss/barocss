@@ -1,0 +1,30 @@
+{
+  "decision": "D947",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "933176ae20673ca4cba17ffe078d0bdddbb2da45",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D947-studio",
+    "D947_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/tie01 --fixed --tie",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "9a6f15455876a7c6805cf63bb7fa8d3fe7fb2c478ff3b7d07d4c5412e47bd242",
+    "sourceManifestSHA256": "fa947fafe9febcf5ddc768d98f6fba9d738b5da18f02f1b4575fca92f38abdaf",
+    "oracleSHA256": "b38e30c359cf466ff021894f18625d61c5c6fd4e284c34b6ca96617f9fbed515",
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "svgBytes": 6295,
+    "svgSHA256": "701ee32a7d39ea302195d1b6b3cb1a7cf6c6d34503832c800c48a0205c46701b",
+    "tipPaperMM": [291.0016, 101.25],
+    "diameterMM": 8,
+    "pointOnlySourceDiagnosis": "FAIL"
+  },
+  "notRun": ["exact tie DXF", "additional precision overrides", "production build", "full suites", "PDF", "mobile"]
+}

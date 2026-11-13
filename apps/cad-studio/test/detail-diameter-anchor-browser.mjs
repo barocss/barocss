@@ -16,6 +16,7 @@ const removalNotice = variant === '--removal-notice';
 const units = variant === '--units';
 const splitArc = variant === '--split-arc';
 const tangent = variant === '--tangent';
+const tie = variant === '--tie';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -27,10 +28,15 @@ const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', sca
 if (deleted || removalNotice) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
 }
-if (splitArc) {
+if (splitArc || tie) {
   drawing.details = [{ ...detail, center: [32, 18], radius: 5 }];
   drawing.dimensions = [{ ...diameter, place: [32 + 12 * Math.cos(-2.2), 16 + 12 * Math.sin(-2.2)] }];
 }
+if (tie) drawing.dimensions = [
+  { ...diameter, place: [32, 4] },
+  { ...control, id: 'top-outside' },
+  { ...control, id: 'top-inside', place: [32, 16] },
+];
 if (tangent) {
   drawing.details = [{ ...detail, center: [32, 10] }];
   drawing.dimensions = [{ ...diameter, place: [44, 16] }];
@@ -49,7 +55,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: tie ? 'D947_SOURCE_FROZEN' : tangent ? 'D946_SOURCE_FROZEN' : splitArc ? 'D945_SOURCE_FROZEN' : units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -99,6 +105,22 @@ if not d.get('creation') and d.get('units') not in ('inch', 'dual'):
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
 x, y = map(float, m.groups())
 eps = 0.0001
+if 'tie' in d:
+    assert abs(abs(x-310)-5*math.sqrt(231)/4) <= eps
+    assert abs(y-101.25) <= eps
+    assert abs(math.hypot(x-310,y-95)-20) <= eps
+    assert abs(math.hypot(x-310,y-85)-25) <= eps
+    control_center = d['tie']
+    for name, count in [('top-inside',2),('top-outside',1)]:
+        control = root.find(".//s:g[@data-dim='%s']" % name, ns)
+        assert control.attrib['data-view'] == 'top'
+        heads = control.findall("s:path[@fill='#000']", ns)
+        assert len(heads) == count
+        for arrow in heads:
+            point = tuple(map(float,re.match(r'M([0-9.-]+) ([0-9.-]+)',arrow.attrib['d']).groups()))
+            assert abs(math.dist(point,control_center)-8) <= eps
+    print(json.dumps({'status':'PASS','tip':[x,y],'equalCandidates':2,'insideHeads':2,'outsideHeads':1}))
+    sys.exit(0)
 if 'split' in d:
     u, v = d['split']
     wanted = math.atan2(v-16, u-32)
@@ -277,6 +299,29 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (tie) {
+    f.phase = 'open the equal-distance crop and read the ordinary diameter controls';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const check = async label => {
+      const state = await f.snapshot(label);
+      assert.deepEqual(state.doc.drawing, original.drawing);
+      assert.ok(state.drawing.dimensions.every(d => Math.abs(d.value - 8) < 1e-9));
+      const [left, top] = state.drawing.boxes.top;
+      const svg = await capture('Export SVG');
+      f.report.observations.push({ label, bytes: Buffer.byteLength(svg), sha256: sha256(svg) });
+      return f.runOracle({ svg, tie: [left + 64, top + 32] }, label);
+    };
+    const before = await check('01-equal-distance');
+    const saved = await capture('Save');
+    assert.deepEqual(JSON.parse(saved), original);
+    await open(Buffer.from(saved));
+    await f.same(original);
+    const after = await check('02-fresh-open');
+    assert.deepEqual(after, before);
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (tangent) {
     f.phase = 'open the exact point-contact-only crop';
