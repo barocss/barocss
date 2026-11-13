@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D926 — separate nearby sketch constraint marks](notes/sketch-constraint-mark-spacing-2026-11-13/README.md).
 - [D925 — retire a two-point rectangle snap on successful File Open](notes/two-point-snap-file-open-2026-11-13/README.md).
 - [D924 — verify straight-face inset re-link with the opposite normal](notes/straight-inset-opposite-normal-2026-11-13/README.md).
 - [D923 — keep damaged straight-face inset files outside the accepted document](notes/straight-inset-damaged-open-scope-2026-11-13/README.md).

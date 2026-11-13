@@ -7,6 +7,7 @@ import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile
 import { dimensionLabel, dimensionValue, drivingDimensionValue, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { Project } from '@barocss/cad-model/sketch/select';
 import { InlineSketchDimension, type DimensionAxis } from './InlineSketchDimension';
+import { constraintMarkSize, placeConstraintMarks, type ScreenBox } from './sketchConstraintMarkLayout';
 import './constraints.css';
 
 export interface MarkHandlers {
@@ -14,7 +15,7 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number, source: Polygon): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+interface Args extends MarkHandlers { shape: Polygon; project: Project; view: { width: number; height: number }; outlineLabels: readonly ScreenBox[]; picked: readonly SketchPick[]; inspected?: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
   /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
   done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
@@ -33,7 +34,7 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, view, outlineLabels, picked, inspected = [], hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
   const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map<string, XY>();
@@ -73,14 +74,17 @@ export function sketchMarks({ shape: s, project, picked, inspected = [], hover, 
   if (hover && !picked.some(p => samePick(p, hover))) mark(hover, 'hover');
   picked.forEach(p => mark(p, 'on'));
 
+  const dimensionBoxes = [...outlineLabels];
   const chip = (at: XY, text: string, key: string, driving: boolean) => {
     const w = Math.max(40, text.length * 7.4 + 14);
+    const box = { x: at[0] - w / 2, y: at[1] - 11, width: w, height: 22 };
+    dimensionBoxes.push(box);
     anchors.set(key, at);
     svg.push(<g key={'dd' + key} className={'dim' + (driving ? ' driving' : '')} data-dim={key}
       onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onDimClick?.(key); }}
       onDoubleClick={e => { e.stopPropagation(); onDimEdit?.(key); }}>
       <title>{`${dimensionLabel(s, key)} · double-click to edit`}</title>
-      <rect x={at[0] - w / 2} y={at[1] - 11} width={w} height={22} rx={4} className="dim-chip" />
+      <rect {...box} rx={4} className="dim-chip" />
       <text x={at[0]} y={at[1] + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
   };
   const arrow = (tip: XY, dir: XY, key: string) => {
@@ -162,19 +166,18 @@ export function sketchMarks({ shape: s, project, picked, inspected = [], hover, 
 
   // Glyphs of explicit constraints, stacked along each edge past its H/V chip.
   const stack = new Map<string, number>();
-  const glyph = (at: XY, text: string, key: string, title: string) => {
-    svg.push(<g key={key} className="cons-glyph"><title>{title}</title><rect x={at[0] - 9} y={at[1] - 8} width={18} height={16} rx={3} className="cons-chip" />
-      <text x={at[0]} y={at[1] + 4} textAnchor="middle" className="cons-text">{text}</text></g>);
-  };
+  const glyphs: { preferred: XY; target: XY; text: string; key: string; title: string }[] = [];
+  const glyph = (preferred: XY, target: XY, text: string, key: string, title: string) =>
+    glyphs.push({ preferred, target, text, key, title });
   // Inside the edge, stepping along it upwards on screen: the edge's length label sits below its middle.
   const onEdge = (i: number, text: string, key: string, title: string) => {
     const k = (stack.get('e' + i) ?? 0) + 1; stack.set('e' + i, k);
     const a = pts[i], b = pts[(i + 1) % n], u0 = unit(a, b), u: XY = u0[1] > 0 || (u0[1] === 0 && u0[0] < 0) ? [-u0[0], -u0[1]] : u0, o = outward(a, b), m = mid(i);
-    glyph(add(add(m, u, 22 * k), o, -20), text, key, title);
+    glyph(add(add(m, u, 22 * k), o, -20), m, text, key, title);
   };
   const onPoint = (i: number, text: string, key: string, title: string) => {
     const k = (stack.get('p' + i) ?? 0); stack.set('p' + i, k + 1);
-    const q = pts[i]; glyph([q[0] - 16 - 20 * k, q[1] + 16], text, key, title);
+    const q = pts[i]; glyph([q[0] - 16 - 20 * k, q[1] + 16], q, text, key, title);
   };
   (s.rules ?? []).forEach((r, k) => {
     if (r.kind === 'parallel' || r.kind === 'perpendicular' || r.kind === 'equal') {
@@ -182,6 +185,16 @@ export function sketchMarks({ shape: s, project, picked, inspected = [], hover, 
       onEdge(r.a, sym, `ga${k}`, title); onEdge(r.b, sym, `gb${k}`, title);
     } else if (r.kind === 'fix') onPoint(r.point, '⚓', `gf${k}`, `Point ${r.point + 1} fixed`);
     else if (r.kind === 'coincident') onPoint(r.point, '◎', `gc${k}`, `Point ${r.point + 1} on the centre of arc ${r.arc + 1}`);
+  });
+
+  const placements = placeConstraintMarks(glyphs.map(mark => mark.preferred), dimensionBoxes, view);
+  const { width, height } = constraintMarkSize;
+  glyphs.forEach(({ preferred, target, text, key, title }, i) => {
+    const [x, y] = placements[i];
+    if (placements[i] !== preferred) under.push(<line key={key + '-leader'} x1={target[0]} y1={target[1]} x2={x} y2={y} className="cons-leader" />);
+    svg.push(<g key={key} className="cons-glyph"><title>{title}</title>
+      <rect x={x - width / 2} y={y - height / 2} width={width} height={height} rx={3} className="cons-chip" />
+      <text x={x} y={y + 4} textAnchor="middle" className="cons-text">{text}</text></g>);
   });
 
   // The inline editor, over the dimension being edited.

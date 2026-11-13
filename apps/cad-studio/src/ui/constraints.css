@@ -23,6 +23,7 @@
 .vp-overlay .dim.driving:hover .dim-chip { fill: #20345a; }
 .vp-overlay .dim.ref .dim-chip { stroke-dasharray: 3 2; opacity: 0.85; }
 .vp-overlay .cons-glyph .cons-text { font-size: 11px; }
+.vp-overlay .cons-leader { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 2; pointer-events: none; }
 .dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* (z 7: above the top bar, z 6, so a dimension near the window's top edge stays editable, O137; below the palette's backdrop, 10.) */
 .dim-editor { position: absolute; z-index: 9; display: flex; align-items: center; gap: 4px; }

@@ -11,6 +11,7 @@ import { hvOf, isSettled, type Polygon, type SketchPick } from '@barocss/cad-mod
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { drivingKeys, sketchMarks, type MarkHandlers } from '../ui/SketchMarks';
+import type { ScreenBox } from '../ui/sketchConstraintMarkLayout';
 import type { OrbitCamera } from './camera';
 import type { DragTrimPreview } from './dragTrimStroke';
 import type { CircleChordDraft } from '../sketch/useCircleFromChord';
@@ -90,10 +91,14 @@ export function drawSketchOverlay({
     for (let u = u0; u <= u1; u += step) seg([u, v0], [u, v1], 'gu' + u, u === 0);
     for (let v = v0; v <= v1; v += step) seg([u0, v], [u1, v], 'gv' + v, v === 0);
   }
-  const label = (x: number, y: number, text: string, key: string) => (
-    <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); dimensions.onDimClick?.(key); }}
+  const outlineLabels: ScreenBox[] = [];
+  const label = (x: number, y: number, text: string, key: string) => {
+    const box = { x: x - 26, y: y - 11, width: 52, height: 22 };
+    if (!key.startsWith('live')) outlineLabels.push(box);
+    return <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); dimensions.onDimClick?.(key); }}
       onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); dimensions.onDimEdit?.(key); } }}>
-      <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
+      <rect {...box} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>;
+  };
   // A closed outline shows its kept H/V edges; while drawing, the edges that are H/V as drawn.
   const hv = isSettled(sk.shape) ? hvOf(sk.shape) : null, driving = isSettled(sk.shape) ? drivingKeys(sk.shape) : new Set<string>();
   const glyph = (a: [number, number], b: [number, number], key: string, edge?: number) => {
@@ -154,8 +159,6 @@ export function drawSketchOverlay({
     items.push(...bezierMarks('bz', s.poles, P, false));
   } else if (s?.kind === 'polygon') {
     const pts = s.points.map(p => P(p[0], p[1])); const cur = draft.cursor;
-    const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], inspected, hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
-      onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit }) : null;
     const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
     const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
     items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
@@ -165,7 +168,7 @@ export function drawSketchOverlay({
       items.push(<polygon key="constraint-comparison" className="sk-constraint-comparison" aria-hidden="true"
         points={comparison.map(p => `${p[0]},${p[1]}`).join(' ')} />);
     }
-    if (marks) items.push(...marks.under);
+    const underIndex = items.length;
     const ell = isSettled(s) && !!s.ellipse && ellipseMatches(s); // (An ellipse's 96 tiny arcs get no radius labels or centre dots; its centre and axis ends are marked instead.)
     if (ell) [s.ellipse!.center, ...[0, 1, 2, 3].map(k => s.points[k * s.points.length / 4])].forEach((q, i) => { const p = P(q[0], q[1]); items.push(<circle key={'ep' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />); });
     else pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
@@ -192,7 +195,14 @@ export function drawSketchOverlay({
       const len = Math.hypot(cur[0] - last[0], cur[1] - last[1]); const m = P((cur[0] + last[0]) / 2, (cur[1] + last[1]) / 2);
       if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
     }
-    if (marks) { items.push(...marks.svg); editor = marks.html; }
+    if (isSettled(s)) {
+      const marks = sketchMarks({ shape: s, view: { width: w, height: h }, outlineLabels, done: sk.done,
+        project: P, picked: sk.picked ?? [], inspected, hover: picking ? draft.hover ?? null : null, editDim: sk.editDim,
+        onDimClick: dimensions.onDimClick, onDimEdit: dimensions.onDimEdit, onDimCommit: dimensions.onDimCommit });
+      items.splice(underIndex, 0, ...marks.under);
+      items.push(...marks.svg);
+      editor = marks.html;
+    }
   }
   // The Bézier tool's control points so far, and (from the second) the curve they make with the cursor as the next one.
   if (sk.tool === 'bezier' && bezierPoles.length) {

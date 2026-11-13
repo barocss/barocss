@@ -1,0 +1,68 @@
+{
+  "decision": "D926",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "a82caffbdc730ef4feb25778dd2c6fcb8bbd032e",
+  "node": "22.19.0",
+  "issue": 2377,
+  "issueDisposition": "OPEN",
+  "commands": [
+    "gate.sh acquire heavy 600 D926-baseline",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/baseline02 --baseline",
+    "gate.sh acquire heavy 600 D926-fixed",
+    "D926_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-mark-spacing-browser.mjs <external-evidence>/fixed02 --fixed",
+    "gate.sh acquire heavy 600 D926-final-focused",
+    "cd apps/cad-studio && node scripts/test.mjs constraints sketch-edit-identity sketch-constraint-mark-layout",
+    "pnpm -C apps/cad-studio run type-check",
+    "pnpm -C packages/barocss-cad-model run type-check",
+    "node --check apps/cad-studio/test/constraint-mark-spacing-browser.mjs",
+    "git diff --check"
+  ],
+  "firstFailure": {
+    "status": "FAIL",
+    "stage": "observer targeted the rect behind visible dimension text",
+    "receiptSHA256": "68b6990970b0410430cc01be999601ff6d60f00d82c4ee9be2d8f8318917fc39"
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPass": 59,
+    "layoutPass": 3,
+    "fail": 0,
+    "skipped": 0,
+    "studioTypes": "PASS",
+    "modelTypes": "PASS",
+    "logSHA256": "497ecb6044e73ec0c3a547efaa0a4afc23ef1548f18902e5ac0645ebdd64c307"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "baselineReceiptSHA256": "df33ad1a18d2a982e8e91a790ec5c53cf1c853d0e5fcea98844e9b1116bdd7c8",
+    "receiptSHA256": "f134f88e96f90c4b6e540d3c8880fc2d08c97cba05dafe84ca5f712fa0fe5037",
+    "sourceManifestSHA256": "780c2233bc90ed4c372cab119d035b661618bd317b9852891d9a36f9f82b5373",
+    "frozenFiles": 845,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "baselineOverlapPx2": 33.022088188678026,
+    "fixedOverlapPx2": [
+      0,
+      0,
+      0
+    ],
+    "leaderTolerancePx": 0.02,
+    "volumeMM3": 1096,
+    "expectedVolumeMM3": 1096,
+    "volumeToleranceMM3": 1e-08
+  },
+  "notRun": [
+    "dense-scene feedback",
+    "other mark types in Studio",
+    "Save and fresh File Open",
+    "light theme",
+    "high-density screens",
+    "build",
+    "full suites",
+    "mobile"
+  ]
+}
