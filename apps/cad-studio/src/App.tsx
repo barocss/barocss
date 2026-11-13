@@ -1602,7 +1602,7 @@ export function App() {
         }
       }
       setEditNode(index);
-    }, { event });
+    }, { event, readFeature: () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current });
   };
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.

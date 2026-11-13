@@ -28,6 +28,7 @@ export interface Assembly {
   /** What each mated instance can still do (see Solved.freedom). */
   freedom: Record<string, Freedom>;
   draft: MateDraft | null; selected: string | null;
+  currentDraft(): MateDraft | null;
   start(): void; cancel(): void; setDraft(patch: Partial<MateDraft>): void; select(id: string | null): void;
   /** A viewport click while adding a mate (true: it was taken). */
   pick(hit: Hit): boolean;
@@ -251,7 +252,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   return {
-    mates, problems: facesUnavailable ? EMPTY_PROBLEMS : problems, tables, tableFor, freedom: facesUnavailable ? EMPTY_FREEDOM : freedom, draft, selected,
+    mates, problems: facesUnavailable ? EMPTY_PROBLEMS : problems, tables, tableFor, freedom: facesUnavailable ? EMPTY_FREEDOM : freedom, draft, selected, currentDraft: () => draftRef.current,
     start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },

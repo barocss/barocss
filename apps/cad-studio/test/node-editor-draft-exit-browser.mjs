@@ -3,22 +3,24 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed'].includes(mode));
 const openFlow = mode.startsWith('--open');
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const inPlace = mode.startsWith('--in-place');
+const mate = mode.startsWith('--mate');
 const pins = [
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
   'apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/ui/useWorkspaceModeExit.tsx', 'apps/cad-studio/src/ui/FeatureHistoryBar.tsx',
-  ...(inPlace ? ['apps/cad-studio/test/fixtures/edit-in-place.bcad', 'apps/cad-studio/src/app/editInPlace.ts'] : []),
+  ...(mate ? ['apps/cad-studio/src/assembly/useAssembly.ts', 'apps/cad-studio/src/ui/MatePanel.tsx'] : []),
+  ...(inPlace || mate ? ['apps/cad-studio/test/fixtures/edit-in-place.bcad', 'apps/cad-studio/src/app/editInPlace.ts'] : []),
   ...(skeleton ? ['apps/cad-studio/src/skeleton/useSkeletonEditor.tsx', 'apps/cad-studio/src/ui/SkeletonPanel.tsx'] : []),
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -261,6 +263,51 @@ async function checkInPlace() {
   await f.snapshot('03-exact-assembly-restored');
 }
 
+async function checkMate() {
+  const fixture = JSON.parse(await readFile(new URL('fixtures/edit-in-place.bcad', import.meta.url), 'utf8'));
+  await openCandidate('Assembly', fixture);
+  await f.page.waitForFunction(() => window.__studioDoc?.instances?.length === 2);
+  await f.ready();
+  const original = await f.doc();
+  const mates = f.page.getByRole('complementary', { name: 'Mates', exact: true });
+  await f.page.locator('.ol.instance:not(.nested)').filter({ hasText: 'Cube 2' }).click();
+  await mates.getByRole('button', { name: 'Add mate', exact: true }).click();
+  const type = mates.getByLabel('Mate type', { exact: true });
+  await type.selectOption('distance');
+  const stays = mates.locator('.kv').filter({ hasText: '1 · Stays' }).locator('b');
+  await mates.getByRole('button', { name: 'Pick XY plane', exact: true }).click();
+  await f.page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Mates"] .kv')].some(
+    row => row.textContent.includes('1 · Stays') && !row.textContent.includes('click a face')));
+  const picked = await stays.textContent();
+  assert.ok(picked);
+  await type.focus();
+  const before = await f.snapshot('01-mate-draft');
+  f.phase = 'request history feature while Mate has a selected reference';
+  await historyStep(1).click();
+  if (mode === '--mate-baseline') {
+    await f.editor().waitFor();
+    await type.waitFor({ state: 'hidden' });
+    await f.same(original);
+    await f.snapshot('02-mate-draft-lost');
+    assert.fail('The feature transition discarded the unapplied Mate without confirmation');
+  }
+  await prompt().waitFor();
+  await prompt().getByRole('button', { name: 'Keep editing', exact: true }).click();
+  await prompt().waitFor({ state: 'hidden' });
+  await waitFocus(type);
+  assert.equal(await type.inputValue(), 'distance');
+  assert.equal(await stays.textContent(), picked);
+  const kept = await f.snapshot('02-mate-draft-kept');
+  for (const field of ['doc', 'bodies', 'selection', 'history', 'dirty']) assert.deepEqual(kept[field], before[field], field);
+  await historyStep(1).click();
+  await prompt().getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await type.waitFor({ state: 'hidden' });
+  await f.editor().waitFor();
+  await f.same(original);
+  await f.snapshot('03-history-feature-after-discard');
+  f.report.observations.push({ label: 'mate-draft', type: 'distance', stays: picked });
+}
+
 function captureNativeSave() {
   const create = URL.createObjectURL;
   const click = HTMLAnchorElement.prototype.click;
@@ -296,6 +343,7 @@ await f.run(async () => {
   };
   await f.newPage();
   if (inPlace) { await checkInPlace(); return; }
+  if (mate) { await checkMate(); return; }
   await openCandidate('Draft source', source);
   await f.same(source);
   if (openFlow) { await checkOpenDraft(); return; }
