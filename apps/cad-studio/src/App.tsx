@@ -92,7 +92,7 @@ import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { retainedSectionEdges } from './viewport/sectionEdgePick';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
-import { instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
+import { instanceEvaluationCurrent, instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
 import { acceptedPlacedSketchSnaps } from './viewport/placedSketchSnaps';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
@@ -1237,7 +1237,11 @@ export function App() {
     })();
     return () => { for (const lane of asked) lanes.cancel(lane); };
   }, [cutPreviewDoc, shownDoc, instanceSources, workerSession]);
-  const sceneInstanceBodies = useMemo(() => cutPreviewDoc !== shownDoc && cutPreview.size ? new Map([...instanceBodies, ...cutPreview]) : instanceBodies, [instanceBodies, cutPreview, cutPreviewDoc, shownDoc]);
+  // Render and its exports use the applied cuts. Returning to Model resumes the draft.
+  const sceneInstanceBodies = useMemo(() => !rendering && cutPreviewDoc !== shownDoc && cutPreview.size
+    ? new Map([...instanceBodies, ...cutPreview]) : instanceBodies, [rendering, instanceBodies, cutPreview, cutPreviewDoc, shownDoc]);
+  const renderGeometryReady = (shownDoc.instances ?? []).every(inst => inst.hidden
+    || instanceEvaluationCurrent(instanceBodies.get(inst.id), inst, instanceSources.get(inst.id)));
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
@@ -2869,7 +2873,7 @@ export function App() {
         }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} lookDisabled={renderKeysOf(instanceSel).mode === 'disabled' && !selectedBodies(selection).length} note={renderKeysOf(instanceSel).nested ? 'A part inside a sub-assembly is styled through its sub-assembly: select the sub-assembly.' : undefined} onError={m => {
         if (docNow.current === doc) setToast({ title: 'Could not use that image', hint: m, detail: '', documentSource: { doc } });
-      }} available={viewport.current?.backend === 'webgpu'}
+      }} available={viewport.current?.backend === 'webgpu'} geometryReady={renderGeometryReady}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...renderKeysOf(instanceSel).keys]}
         onChange={commitRender} onExport={exportImage} fov={fov} onPickFocus={done => viewport.current?.pickRenderFocus(done)}
         onCreatePathTrace={() => viewport.current?.createRenderPathTrace() ?? Promise.reject(new Error('The viewport is not ready.'))} imageName={`${fileName}.png`}

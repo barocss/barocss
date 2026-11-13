@@ -20,7 +20,7 @@ export function changeRenderLights(render: RenderSettings, lights: readonly Rend
  * contents on shadcn (Button, Input, NativeSelect, FIELD / NUM / SLIDER rows); the shell (its title and Export image),
  * the tabs, the colour and range inputs and the source editors are the studio's.
  */
-export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onCreatePathTrace, imageName, onError }: {
+export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, geometryReady, fov, onFov, onPickFocus, onCreatePathTrace, imageName, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -34,6 +34,7 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
   onExport(): void;
   /** False when the viewport draws without WebGPU (no rendering). */
   available: boolean;
+  geometryReady: boolean;
   /** The view's vertical field of view (degrees), and setting it. */
   fov: number; onFov(degrees: number): void;
   /** Arm a one-shot viewport surface pick; null cancels without changing the document. */
@@ -190,7 +191,7 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
   return (
     <aside className="card props render-panel" aria-label="Render">
       <div className="card-title">RENDER
-        <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available || (method === 'path-tracing' && !traceSamples)} onClick={() => { if (method === 'path-tracing') void exportStill(); else onExport(); }}><Icon name="photo_camera" small /></button></div>
+        <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available || !geometryReady || (method === 'path-tracing' && !traceSamples)} onClick={() => { if (method === 'path-tracing') void exportStill(); else onExport(); }}><Icon name="photo_camera" small /></button></div>
       {!available && <div className="empty">Rendering needs a browser with WebGPU. The view below is the modelling look.</div>}
       <label className={FIELD}><span>Render method</span><NativeSelect className={CONTROL} aria-label="Render method" value={method} onChange={event => {
         disposeTrace(); setTraceRunning(false); setTraceBusy(false); setTraceSamples(0); setTracePreviewSamples(0); setTraceError(null); setMethod(event.target.value as typeof method);
@@ -200,7 +201,7 @@ export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange
         <div className="muted small">A frozen still. Camera and scene changes stay in the live view. Start again to use them.</div>
         <div className="muted small">The still includes surfaces, materials, tone mapping and colour grading. Bloom, depth of field, outlines, overlays and shadow catchers stay in the live view.</div>
         <div className="flex flex-wrap gap-1">
-          <Button variant="ghost" aria-label="Start path tracing" disabled={!available || traceRunning || traceBusy} onClick={() => { void startTrace(); }}>Start</Button>
+          <Button variant="ghost" aria-label="Start path tracing" disabled={!available || !geometryReady || traceRunning || traceBusy} onClick={() => { void startTrace(); }}>Start</Button>
           <Button variant="ghost" aria-label="Stop path tracing" disabled={!traceRunning && !traceBusy} onClick={stopTrace}>Stop</Button>
         </div>
         <output aria-label="Path trace samples">{traceBusy ? 'Preparing still…' : `${traceSamples} samples`}</output>

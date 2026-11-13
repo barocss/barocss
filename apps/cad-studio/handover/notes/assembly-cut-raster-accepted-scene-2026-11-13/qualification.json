@@ -1,0 +1,79 @@
+{
+  "decision": "D1024",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "8b4f5550570e88b63177334a11ad13cd16338010",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1024-section-baseline02",
+    "gate.sh acquire heavy 600 D1024-section-studio02",
+    "D1024_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-raster-browser.mjs <external-evidence>/baseline02",
+    "D1024_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-raster-browser.mjs <external-evidence>/studio02",
+    "gate.sh acquire heavy 600 D1024-feature-checks",
+    "gate.sh acquire heavy 600 D1024-targeted",
+    "pnpm --filter @barocss/cad-studio-app test instance.test instance-pose instance-looks render-shadow-consumer render-focus",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/assembly-cut-raster-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Creation draft matched applied \u00d88 PNG; edited \u00d812 draft also appeared in PNG.",
+    "receiptSHA256": "974083c137526ac3d156a9ce7b4b4381bedbc22b8f9180cefb97a6cfc0f28338",
+    "sourceManifestSHA256": "72c43aed683444992f042864e38c3a921da12ce9de0eb28b6447414eab0d2a4b"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f5a84e084118bf00830357e31898e8d624931d5b2c1def6fce4b75acdc43f1de",
+    "sourceManifestSHA256": "b9757562a8247b8973c2fb0ad406ee39e21a1cd2df334bdb01674782a91b7731",
+    "frozenFiles": 852,
+    "states": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "pngSize": [
+      1140,
+      1000
+    ],
+    "nativeVolumeToleranceMM3": 1e-07,
+    "pngSHA256": {
+      "stock": "adfbff3cf4f42979b4ad58d4040be85a4b4cc7380467f8c260e26ea9cf6f1ebd",
+      "creation-draft": "adfbff3cf4f42979b4ad58d4040be85a4b4cc7380467f8c260e26ea9cf6f1ebd",
+      "creation-cancelled": "adfbff3cf4f42979b4ad58d4040be85a4b4cc7380467f8c260e26ea9cf6f1ebd",
+      "applied-eight": "12a67e1f04e75fac3f1ddc8e0b9d257384e0912aeba69e0a76b465f8bde4b298",
+      "edit-draft-twelve": "12a67e1f04e75fac3f1ddc8e0b9d257384e0912aeba69e0a76b465f8bde4b298",
+      "edit-cancelled": "12a67e1f04e75fac3f1ddc8e0b9d257384e0912aeba69e0a76b465f8bde4b298"
+    }
+  },
+  "setupRuns": [
+    {
+      "status": "FAIL",
+      "reason": "Palette did not open from the focused outliner.",
+      "receiptSHA256": "81f535fb68d90853089b25e5276a2a40487288218de8498b793f70865665c3a3"
+    },
+    {
+      "status": "FAIL",
+      "reason": "Selected occurrence outline differed across stock and draft controls.",
+      "receiptSHA256": "984a326a243bc318cf6f34c8ddc6502920e540c9d92171d19592dc6b778881a6"
+    }
+  ],
+  "focused": {
+    "status": "PASS",
+    "passed": 19,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "Path tracing",
+    "STEP",
+    "Drawing",
+    "3MF",
+    "controlled delayed placed-worker handoff",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
