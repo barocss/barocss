@@ -13,6 +13,7 @@ const creation = variant === '--create';
 const scaled = variant === '--scaled';
 const deleted = variant === '--delete-source';
 const removalNotice = variant === '--removal-notice';
+const units = variant === '--units';
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document } } = JSON.parse(await readFile(modelPath, 'utf8'));
 const detail = { id: 'B', view: 'top', center: [36, 16], radius: 2, scale: 5, at: [310, 85] };
@@ -24,6 +25,11 @@ const drawing = { scope: { kind: 'part' }, sheet: 'A3', projection: 'third', sca
 if (deleted || removalNotice) {
   drawing.dimensions = drawing.dimensions.map(d => ({ ...d, sig: { k: 'curve', n: 2, p: [28, 16, 8], s: 0 } }));
 }
+if (units) drawing.dimensions = [
+  { ...diameter, place: [24, 16] },
+  control,
+  { ...control, id: 'top-radius', kind: 'radius', place: [20, 25] },
+];
 const part = covered ? {
   ...document,
   nodes: [...document.nodes,
@@ -33,7 +39,7 @@ const part = covered ? {
 } : document;
 const doc = { ...part, drawing };
 const f = await createFlow({
-  name: 'detail-diameter-anchor', envFrozen: removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
+  name: 'detail-diameter-anchor', envFrozen: units ? 'D944_SOURCE_FROZEN' : removalNotice ? 'D943_SOURCE_FROZEN' : deleted ? 'D942_SOURCE_FROZEN' : scaled ? 'D941_SOURCE_FROZEN' : creation ? 'D940_SOURCE_FROZEN' : covered ? 'D939_SOURCE_FROZEN' : 'D938_SOURCE_FROZEN', output,
   qualification: 'Move an existing Detail diameter label across the source circle in desktop Studio and read the emitted SVG.',
   initialFiles: [import.meta.filename, modelPath],
   extraFrozen: ['apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'packages/barocss-cad-model/src/drawing/sheet.ts',
@@ -63,8 +69,13 @@ if d.get('hiddenOff') or d.get('deleted'):
     sys.exit(0)
 assert dim.attrib['data-view'] == 'detail:B'
 texts = ' '.join(t.text for t in dim.findall('s:text', ns))
-assert 'Ø8' in texts
-if not d.get('creation'):
+if d.get('units') in ('inch', 'dual'):
+    assert re.search(r'Ø0?[.]315(?:[^0-9]|$)', texts)
+    if d['units'] == 'dual':
+        assert 'Ø8' in texts
+else:
+    assert 'Ø8' in texts
+if not d.get('creation') and d.get('units') not in ('inch', 'dual'):
     assert '0.15' in texts
 [head] = dim.findall("s:path[@fill='#000']", ns)
 m = re.match(r'M([0-9.-]+) ([0-9.-]+)', head.attrib['d'])
@@ -105,6 +116,9 @@ if 'dxf' in d:
     assert abs(math.hypot(float(detail[10])-x, 297-float(detail[20])-y)-40) <= 2*eps
     assert abs((float(detail[10])+x)/2-290) <= eps
     assert abs((297-float(detail[20])+y)/2-85) <= eps
+    if d.get('units'):
+        assert len(dims) == 3
+        assert sorted((int(e[70]) & 7, round(float(e[42]),6)) for e in dims) == [(3,8.0),(3,8.0),(4,4.0)]
 print(json.dumps({'status':'PASS', 'tip':[x,y], 'cropDistance':crop, 'sourceRadius':20, 'texts':texts}))
 `,
   snapshotExtra: () => ({ drawing: window.__studioDrawing?.() ?? null }),
@@ -224,6 +238,44 @@ await f.run(async () => {
     const dxf = opposite ? await capture('Export DXF') : undefined;
     if (dxf) f.report.observations.push({ label: `${label}-dxf`, sha256: sha256(dxf), bytes: Buffer.byteLength(dxf) });
     return f.runOracle({ svg, dxf, expectClipped, opposite, covered }, label);
+  }
+  if (units) {
+    f.phase = 'open a clipped diameter and ordinary diameter and radius controls';
+    await open(Buffer.from(JSON.stringify(doc)));
+    const original = await f.doc();
+    const check = async (profile, label = profile) => {
+      const state = await f.snapshot(label);
+      assert.deepEqual(state.doc.drawing.dimensions, original.drawing.dimensions);
+      assert.deepEqual(state.doc.nodes, original.nodes);
+      assert.deepEqual(state.drawing.dimensions.map(d => d.id), ['b-diameter', 'top-diameter', 'top-radius']);
+      assert.ok(state.drawing.dimensions.every((d, i) => Math.abs(d.value - [8, 8, 4][i]) < 1e-9));
+      const svg = await capture('Export SVG'), dxf = await capture('Export DXF');
+      f.report.observations.push({ label, svgBytes: Buffer.byteLength(svg), svgSHA256: sha256(svg), dxfBytes: Buffer.byteLength(dxf), dxfSHA256: sha256(dxf) });
+      return f.runOracle({ svg, dxf, units: profile, opposite: true, expectClipped: false }, label);
+    };
+    await check('mm');
+    f.phase = 'switch to inch and dual units with the same geometry';
+    await f.page.getByLabel('Drawing units', { exact: true }).selectOption('inch');
+    await f.changed(original);
+    const inch = await f.doc();
+    assert.deepEqual(inch, { ...original, drawing: { ...original.drawing, units: 'inch' } });
+    await check('inch');
+    await f.page.getByLabel('Dual units', { exact: true }).check();
+    await f.changed(inch);
+    const dual = await f.doc();
+    assert.deepEqual(dual, { ...inch, drawing: { ...inch.drawing, dual: true } });
+    await check('dual', 'dual-before-save');
+    await f.undo();
+    await f.same(inch);
+    await f.redo();
+    await f.same(dual);
+    const saved = await capture('Save');
+    assert.deepEqual(JSON.parse(saved), dual);
+    await open(Buffer.from(saved));
+    await f.same(dual);
+    await check('dual', 'dual-reopened');
+    assert.deepEqual(f.report.downloads, []);
+    return;
   }
   if (removalNotice) {
     f.phase = 'delete the bore and confirm its removal notice';

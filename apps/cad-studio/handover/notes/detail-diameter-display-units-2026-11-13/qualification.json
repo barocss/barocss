@@ -1,0 +1,39 @@
+{
+  "decision": "D944",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9ab7c059195689d109271ba23eeac6aaf3e1cfb0",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D944-studio",
+    "D944_SOURCE_FROZEN=1 node apps/cad-studio/test/detail-diameter-anchor-browser.mjs <external-evidence>/units03 --fixed --units",
+    "node --check apps/cad-studio/test/detail-diameter-anchor-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "observerFailureReceiptsSHA256": [
+      "4695df7a920791de267f08dcd76ec5b084b6e956e070683802446d298d7d78d7",
+      "473bfefe7d6d06a11bd429e55056c4759368f1dd275ffcf45395887b74c4eb74"
+    ],
+    "receiptSHA256": "34bfb0fb016dacb2ef44147e4ed8fce6a504b541b95503f111ca8baf145364f4",
+    "sourceManifestSHA256": "8d286c5c7099aca4fb3f67e54974e22ee9ead0feebbad4b29270de5a9c7801c9",
+    "oracleSHA256": [
+      "ce8a659dd2e7b54796fd3a483dd57ac69c1897d880204412505693e17fabb058",
+      "743e49f58d4388ffa968face12f074c81968f3a66cd3ba620ff73ed764071374",
+      "982815cbc800fd8fc5cb261cd09346b743425baec667dd5a41ceeed2c196efd7",
+      "982815cbc800fd8fc5cb261cd09346b743425baec667dd5a41ceeed2c196efd7"
+    ],
+    "frozenFiles": 377,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "filePairs": 4,
+    "tipPaperMM": [307.5, 94.6825],
+    "diameterMM": 8,
+    "dualSvgSHA256": "8c26dc2b85b6117544257b76eef89757fcb5971178d71ede429a57e4f7206fd8",
+    "dualDxfSHA256": "05c0056cc01d5677da6fafb06ec9ef644e3a574bb5ea71970611bac413434a0a"
+  },
+  "notRun": ["new unit suites for the unchanged product", "crop center or radius changes", "remaining alternate-arc and no-anchor matrix", "production build", "full suites", "PDF", "mobile"]
+}
