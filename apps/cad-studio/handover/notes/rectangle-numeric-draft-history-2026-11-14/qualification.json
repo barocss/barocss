@@ -1,0 +1,52 @@
+{
+  "decision": "D1059",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "b610544da01d1b4b394a6be1f30c64b9e6975ae3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1059-numeric-rectangle-<run>",
+    "D1059_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs <external-evidence>/baseline04",
+    "D1059_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs <external-evidence>/fixed06",
+    "D1056_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-trim-draft-history-browser.mjs <external-evidence>/polygon --numeric-first",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history",
+    "node --check apps/cad-studio/test/sketch-numeric-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "0cedec081257866e552c64759a57a781a2e47c859b35276cf306e98e6a95b591",
+      "sourceManifestSHA256": "28dc3aa93fe03fb8a1a7b552c9fab724b8e8f07adb2de734650c62cdd4fd4cbb"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 379,
+      "receiptSHA256": "13c8a2601f2bf24781fec6e81ffab337634b9ba1769375f8540ded0e40de47bf",
+      "sourceManifestSHA256": "b157cc95d5e612833e86d7caba448ce76dd085d1587f2e6682577f5566f17eb7"
+    },
+    "polygon": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 382,
+      "receiptSHA256": "ff6937779740162c0b2b4f622bd6d007429d730fbb8b2d5ed538c1405b838e95",
+      "sourceManifestSHA256": "e87ec4dd4d47f63aaf22767c7fc180f48810e01dc6ef14d70b103d75a90648ef"
+    }
+  },
+  "numeric": {
+    "originalWidthMm": 16,
+    "editedWidthMm": 20,
+    "heightMm": 10,
+    "baselineApplicationUndoEnabled": false
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 6,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

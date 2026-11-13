@@ -479,7 +479,7 @@ export function App() {
   const [sketchHistory] = useState(createDraftHistory);
   const queuedSketchHistory = useRef<{ doc: StudioDoc; generation: number; draft: SketchState } | null>(null);
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
-  const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
+  const updateShape = useCallback((shape: SketchShape | null, fresh = false, fromPanel = false) => {
     // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
     const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction || prev.kind === 'bezier' || (prev.kind === 'polygon' && !prev.closed && !prev.pending && prev.points.length >= 2)) ? prev : null;
     // A new shape is construction while the mode is on; the one being drawn stays what it began as.
@@ -489,7 +489,10 @@ export function App() {
     if (shape?.kind === 'bezier') { const b = bezierEdit(shape); if ('error' in b) { setSketchError(b.error); return; } shape = b.shape; }
     else if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
-    if (!keep && isSettled(prev) && isSettled(r.shape)) {
+    const resizedRectangle = fromPanel && prev?.kind === 'rectangle' && r.shape?.kind === 'rectangle'
+      && !!shapeNode(prev) && !!shapeNode(r.shape)
+      && (prev.a[0] !== r.shape.a[0] || prev.a[1] !== r.shape.a[1] || prev.b[0] !== r.shape.b[0] || prev.b[1] !== r.shape.b[1]);
+    if (!keep && ((isSettled(prev) && isSettled(r.shape)) || resizedRectangle) && prev && r.shape) {
       sketchHistory.push(outlineHistoryState(prev), outlineHistoryState(r.shape));
     }
     setSketchError(r.error);
@@ -2851,7 +2854,7 @@ export function App() {
       {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelNativeReview} adopt={midpointSketch.adopt} />}
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} constraintDocument={doc} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
         onToggleObjectKind={kind => setObjectSnapKinds(kinds => toggleObjectSnapKind(kinds, kind))}
-        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        onExitObjectKinds={sketch.editDim ? () => sketchViewportActions.onDimEdit?.(null) : undefined} /><PathGapControls gap={pathGap} /><CircleChordControls circle={circleChord} /><OverlaidLinesControls scan={overlaidLines} /></>} toolLabel={TOOLS.find(t => t.tool === sketch.tool)!.label} error={sketchFinishError ?? sketchError} onShape={shape => updateShape(shape, false, true)} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: patch => setSketch(s => s && bandEdit(s, patch)), remove: () => setSketch(s => s && bandRemove(s)) }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
