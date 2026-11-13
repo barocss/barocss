@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1050 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1051 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D1048](notes/mixed-shift-pick-2026-11-14/README.md), [D1049](notes/window-crossing-visibility-2026-11-14/README.md) and [D1050](notes/hole-context-centre-2026-11-14/README.md) qualify mixed Shift selection, crossing/window visibility and the right-click Hole target for [#2454](https://github.com/barocss/barocss/issues/2454). Desktop QA is 16/54 after closeout.
-- **Next MAIN:** D1051 / P0 desktop QA, rows 20 and 21. Recheck the Model tool rail and projection corner reach against [#2487](https://github.com/barocss/barocss/issues/2487). Continue [#2492](https://github.com/barocss/barocss/issues/2492) order.
+- **Current position:** [D1051](notes/model-rail-projection-regression-2026-11-14/README.md) requalifies Model command access and four-corner reach for [#2487](https://github.com/barocss/barocss/issues/2487). Desktop QA is 17/54 after closeout.
+- **Next MAIN:** D1052 / P0 desktop QA, rows 01 and 21. Reproduce the 4 CSS px Sketch line and circle hover/click target from [#2460](https://github.com/barocss/barocss/issues/2460). Continue with highlight gaps, adjacent dimensions and constraint marks, including [#2377](https://github.com/barocss/barocss/issues/2377), then follow [#2492](https://github.com/barocss/barocss/issues/2492) order.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

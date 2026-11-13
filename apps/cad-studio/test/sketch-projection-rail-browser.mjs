@@ -9,7 +9,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'sketch-projection-rail', output: process.argv[2], envFrozen: 'D1041_SOURCE_FROZEN',
-  qualification: 'Select a projected corner in the desktop sketch without passing clicks through the tool rail.',
+  qualification: 'Select all four projected corners in the desktop sketch without passing clicks through the tool rail.',
   limits: ['One native orthogonal pocket plate. Desktop viewport at 1024 × 900.'],
   initialFiles: pins, requiredFrozen: pins,
 });
@@ -73,11 +73,21 @@ await f.run(async () => {
   const picked = await f.page.locator('.vp-overlay .on[data-sketch-entity^="point:"]').getAttribute('data-sketch-entity');
   await f.page.mouse.click(point.canvas.width / 2, point.canvas.height * 0.32);
   assert.equal(await f.page.locator('.vp-overlay .on[data-sketch-entity]').count(), 0);
-  const opposite = await f.page.evaluate(() => window.__studioScreenOf([120,30,0]));
-  assert.ok(await f.page.evaluate(p => !!document.elementFromPoint(...p)?.closest('canvas.vp-canvas'), opposite));
+  const selectedCorners = [{ world: [0, 0, 0], pixel: point.p, picked }];
+  for (const world of [[120, 0, 0], [120, 30, 0], [0, 30, 0]]) {
+    const pixel = await f.page.evaluate(world => window.__studioScreenOf(world), world);
+    assert.ok(await f.page.evaluate(pixel => !!document.elementFromPoint(...pixel)?.closest('canvas.vp-canvas'), pixel), world);
+    await f.page.mouse.click(...pixel);
+    const entity = f.page.locator('.vp-overlay .on[data-sketch-entity^="point:"]');
+    await entity.waitFor({ timeout: 6000 });
+    selectedCorners.push({ world, pixel, picked: await entity.getAttribute('data-sketch-entity') });
+  }
+  assert.equal(new Set(selectedCorners.map(corner => corner.picked)).size, 4);
   await f.snapshot('projected-corner-picked');
 
   f.phase = 'The rail does not pass a covered corner click to Sketch';
+  await f.page.mouse.click(point.canvas.width / 2, point.canvas.height * 0.32);
+  assert.equal(await f.page.locator('.vp-overlay .on[data-sketch-entity]').count(), 0);
   const railPixel = point.rail.right - 2;
   const pan = [point.canvas.width / 2, point.p[1]];
   await f.page.mouse.move(...pan);
@@ -91,7 +101,7 @@ await f.run(async () => {
   assert.ok(covered.rail, 'pan puts the original corner under the rail');
   await f.page.mouse.click(...covered.p);
   assert.deepEqual(await f.page.locator('.vp-overlay .on[data-sketch-entity]').evaluateAll(marks => marks.map(mark => mark.getAttribute('data-sketch-entity'))), []);
-  f.report.observations.push({ picked, opposite, covered });
+  f.report.observations.push({ selectedCorners, covered });
   await f.snapshot('covered-corner-ignored');
   await f.same(source);
   assert.deepEqual(f.report.downloads, []);

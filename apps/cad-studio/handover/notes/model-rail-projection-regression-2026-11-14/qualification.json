@@ -1,0 +1,55 @@
+{
+  "decision": "D1051",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "bf54d911467327aa4789313f260ececcd09f7e6b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1051-rail-verification01",
+    "D687_SOURCE_FROZEN=1 node apps/cad-studio/test/model-command-rail-browser.mjs <external-evidence>/model",
+    "D1041_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-projection-rail-browser.mjs <external-evidence>/projected",
+    "gate.sh acquire heavy 600 D1051-rail-verification02",
+    "D1041_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-projection-rail-browser.mjs <external-evidence>/projected-final",
+    "pnpm --filter @barocss/cad-studio-app test model-rail project-open-fit",
+    "node --check apps/cad-studio/test/sketch-projection-rail-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "model": {
+      "status": "PASS",
+      "states": 16,
+      "frozenFiles": 380,
+      "receiptSHA256": "f6923f7b44869b1cb7cc75ac3ea5e1c146f27ff2c66faff29c9edb12902e4b3a",
+      "sourceManifestSHA256": "2d45a0be0a646c5129669b4099ee5e92a9bc72f0a156b82a89925a9182c09639"
+    },
+    "projectionFirst": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "19af2bf63dff4dcc8054465a59c6081ceda3667d050e50d297858e3476205f94",
+      "sourceManifestSHA256": "2ce5303b101b3ed738988acaf3e589b4c2832f0df98f45a7be9b832ed2cfe2c1",
+      "failure": "Test did not clear the fourth corner before panning under the rail."
+    },
+    "projectionFinal": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 379,
+      "receiptSHA256": "9171dafe5738549c42d73bdc234e90f068d70c20cc67b345604746007eb0a0e3",
+      "sourceManifestSHA256": "f1e81ed4d116af510c5e05cb4c3ce32ca922b721f850a4f80e68a0716576b0b4",
+      "cornerIds": [
+        "point:3",
+        "point:0",
+        "point:1",
+        "point:2"
+      ],
+      "minimumCornerXCSS": 163.66397208529952,
+      "railRightCSS": 100,
+      "coveredXCSS": 97.99915184085326
+    }
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 8,
+    "failed": 0
+  }
+}
