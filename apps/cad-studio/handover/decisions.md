@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D957 — keep a measurement pin cleared after a held reply](notes/pinned-face-measure-clear-held-2026-11-13/README.md).
 - [D956 — retire a pinned face measurement when its Worker fails](notes/pinned-face-measure-worker-retry-2026-11-13/README.md).
 - [D955 — isolate drawing selection across sheets and documents](notes/drawing-section-trace-sheet-document-2026-11-13/README.md).
 - [D954 — cancel a drawing drag before pointer release](notes/drawing-detached-view-drag-cancel-2026-11-13/README.md).

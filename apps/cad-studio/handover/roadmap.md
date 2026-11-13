@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-13 · Priority authority: D520 · Latest delivery: D956 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-13 · Priority authority: D520 · Latest delivery: D957 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D956](notes/pinned-face-measure-worker-retry-2026-11-13/README.md) verifies pinned opposite-cap measurement retirement after a controlled document Worker failure, actual Retry engine and exact history.
-- **Next MAIN:** D957 / P1, rows 07 and 16. Verify that clearing a pin while an accepted geometry reply is held leaves it cleared after delivery and ordinary measurement still works for [#2337](https://github.com/barocss/barocss/issues/2337). Keep [#2335](https://github.com/barocss/barocss/issues/2335) as research.
+- **Current position:** [D957](notes/pinned-face-measure-clear-held-2026-11-13/README.md) verifies that an explicit measurement clear survives delivery of held accepted geometry and history replay.
+- **Next MAIN:** D958 / P0, rows 12 and 16. Reproduce and repair the wrong Project Save destination after undoing an Open in [#2438](https://github.com/barocss/barocss/issues/2438). The desktop QA order in [#2492](https://github.com/barocss/barocss/issues/2492) starts with #2438, #2439, #2440 and #2441. File picker changes and mobile are out of scope. The remaining [#2337](https://github.com/barocss/barocss/issues/2337) matrix stays open.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

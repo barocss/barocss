@@ -1,0 +1,46 @@
+{
+  "decision": "D957",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "4018c0c6e09274a67bf13a3ac4e994d9e3791f21",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D957-clear-held",
+    "D957_SOURCE_FROZEN=1 node apps/cad-studio/test/measure-opposite-face-edit-browser.mjs <external-evidence>/clear03 --clear-held",
+    "node --check apps/cad-studio/test/measure-opposite-face-edit-browser.mjs",
+    "git diff --check"
+  ],
+  "initialFailure": {
+    "stage": "deferred mass readiness after instrumented geometry delivery",
+    "receiptSHA256": [
+      "0ae958050b7e42efcddda4f10ef8e6290f89df333c3f8a878ad3f76e8f45bb69",
+      "893d240669e17412686e838e5a17e748f695b8aeb3baf9c37ee5bd128d8baff0"
+    ]
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "d3e20c31fd3fcb0c0ce5b3cb0a6f7ffd2feb46f0102a8ad2cc568dddc365c962",
+    "sourceManifestSHA256": "0b042e26629b1582f4cf9d2d5d88916b41043dff874592b38fe220ff12d9e338",
+    "frozenFiles": 848,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldReplyIds": [
+      4,
+      5
+    ],
+    "initialDistanceMM": 8,
+    "ordinaryDistanceAfterReplayMM": 13.25,
+    "nativeVolumeMM3": 3180.000000000001,
+    "deferredMassReadyAtDelivery": false
+  },
+  "notRun": [
+    "natural message delay",
+    "mass recovery under the held-reply instrumentation",
+    "wider topology",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
