@@ -50,6 +50,7 @@ import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
+import { rectangularCutEditProblem } from './app/rectangularCutEdit';
 import { prepareLinearPatternHoleEdit } from './app/patternHoleSpacing';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
 import { LINKED_INSET_EXTRUDE } from './app/roundedInsetCommand';
@@ -3002,6 +3003,8 @@ export function App() {
           const scope = bearingEditScope.current;
           const patternEdit = prepareLinearPatternHoleEdit(doc, nodes, editNode);
           if ('error' in patternEdit) return Promise.resolve(patternEdit.error);
+          const cutProblem = rectangularCutEditProblem(doc, patternEdit.nodes, editNode);
+          if (cutProblem) return Promise.resolve(cutProblem);
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, patternEdit.nodes) };
           const candidate = preparePatternNodeCandidate(doc, next, editNode);
           if (candidate) { stageFeatureCandidate(candidate); return; }

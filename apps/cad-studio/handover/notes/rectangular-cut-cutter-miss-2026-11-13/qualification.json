@@ -1,0 +1,70 @@
+{
+  "decision": "D1021",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "b5e31b8c2931e71d2811830f6489cdcd4b2f3263",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1021-section-baseline",
+    "gate.sh acquire heavy 600 D1021-section-studio04",
+    "D1021_SOURCE_FROZEN=1 node apps/cad-studio/test/rectangular-cut-miss-browser.mjs <external-evidence>/baseline",
+    "D1021_SOURCE_FROZEN=1 node apps/cad-studio/test/rectangular-cut-miss-browser.mjs <external-evidence>/studio04",
+    "gate.sh acquire heavy 600 D1021-feature-checks-final",
+    "pnpm --filter @barocss/cad-model test engine.test rectangular-feature-pattern",
+    "pnpm --filter @barocss/cad-studio-app test document-file failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/rectangular-cut-miss-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Start Z 12 mm silently removed all six pockets.",
+    "receiptSHA256": "82c7fef5caff905554545e1a2950d54d6e2a2bbfeda3e979d41a2581cde6051f",
+    "sourceManifestSHA256": "9c544d0f52ed95471e693a9df5f4507fa62ae13853c6fa8506affdcfd6a2e49f"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "9a045cb7561127d5c0160f394e1756cbc41233e1efc436f626b7d439c200a13e",
+    "sourceManifestSHA256": "f63eb95fab57b7dbc9159771ee490963976651934ca4b40da9c3d0643bcd3333",
+    "frozenFiles": 851,
+    "states": 10,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "stockMM": [
+      60,
+      40,
+      10
+    ],
+    "refusedStartZMM": [
+      12,
+      10
+    ],
+    "recoveredStartZMM": 6,
+    "initialAndRecoveredVolumeMM3": [
+      23712,
+      23808
+    ],
+    "volumeToleranceMM3": 1e-07
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPassed": 52,
+    "studioPassed": 18,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "XY-only loss",
+    "other stock and cutter families",
+    "parameter changes",
+    "fresh Save/Open of recovery",
+    "pre-Apply model preview",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
