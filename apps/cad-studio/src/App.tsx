@@ -50,7 +50,7 @@ import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
-import { rebasePatternHoleSpacing } from './app/patternHoleSpacing';
+import { prepareLinearPatternHoleEdit } from './app/patternHoleSpacing';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
 import { LINKED_INSET_EXTRUDE } from './app/roundedInsetCommand';
 import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/ReferenceDecisions';
@@ -3000,9 +3000,9 @@ export function App() {
             return Promise.resolve({ title: 'Distance not applied', hint: 'Show the master at the latest History and wait for the model before detaching.', detail: '' });
           }
           const scope = bearingEditScope.current;
-          const spacing = rebasePatternHoleSpacing(doc, nodes, editNode);
-          if ('error' in spacing) return Promise.resolve(spacing.error);
-          const next = { ...doc, nodes: dropStaleMade(doc.nodes, spacing.nodes) };
+          const patternEdit = prepareLinearPatternHoleEdit(doc, nodes, editNode);
+          if ('error' in patternEdit) return Promise.resolve(patternEdit.error);
+          const next = { ...doc, nodes: dropStaleMade(doc.nodes, patternEdit.nodes) };
           const candidate = preparePatternNodeCandidate(doc, next, editNode);
           if (candidate) { stageFeatureCandidate(candidate); return; }
           const request = revision.current++;

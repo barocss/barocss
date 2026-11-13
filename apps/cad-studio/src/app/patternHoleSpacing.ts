@@ -1,6 +1,6 @@
 import { CadNumericPolicy } from '@barocss/cad';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import { featureLabel, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
 import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 
@@ -14,15 +14,35 @@ function refused(hint: string): Result {
   return { error: { title: 'Pattern spacing not changed', hint, detail: '' } };
 }
 
-/** Move legacy world centres with the copy only when the two layouts prove the same complete bore. */
-export function rebasePatternHoleSpacing(doc: StudioDoc, draft: ModelNode[], index: number): Result {
+/** Check numbered Hole dependencies and move a proven complete bore with a spacing edit. */
+export function prepareLinearPatternHoleEdit(doc: StudioDoc, draft: ModelNode[], index: number): Result {
   const pattern = doc.nodes[index], next = draft[index];
-  if (pattern?.kind !== 'linear-pattern' || next?.kind !== 'linear-pattern' || pattern.spacing === next.spacing) return { nodes: draft };
-  const dependents = doc.nodes.filter((node): node is Hole =>
-    node.kind === 'hole' && !node.suppressed && !node.held && node.parent.node === index && !!node.face && /@\d+$/.test(node.face));
+  if (pattern?.kind !== 'linear-pattern' || next?.kind !== 'linear-pattern') return { nodes: draft };
+  if (pattern.spacing === next.spacing && pattern.count === next.count) return { nodes: draft };
+  const dependents = doc.nodes.flatMap((node, at) => {
+    if (node.kind !== 'hole' || node.suppressed || node.held || node.parent.node !== index || !node.face) return [];
+    const match = /^(.*)@(\d+)$/.exec(node.face);
+    if (!match) return [];
+    const copy = Number(match[2]);
+    return Number.isSafeInteger(copy) && copy > 0 ? [{ hole: node, at, seed: match[1], copy }] : [];
+  });
   if (!dependents.length) return { nodes: draft };
+  if (Number.isSafeInteger(next.count) && next.count > 0 && next.count < pattern.count) {
+    const retiring = dependents.filter(dependent => dependent.copy >= next.count);
+    if (retiring.length) {
+      const minimum = Math.max(...retiring.map(dependent => dependent.copy)) + 1;
+      const impacted = retiring.map(({ hole, at, copy }) =>
+        `Count ${next.count} removes copy ${copy + 1}, used by ${featureLabel(hole, at, doc.nodes)} (${featureId(doc.nodes, at)}) on ${hole.face}.`);
+      return { error: {
+        title: 'Pattern count not changed',
+        hint: `${impacted.join(' ')} Keep at least ${minimum} copies, or suppress the affected Hole before changing Count.`,
+        detail: '',
+      } };
+    }
+  }
+  if (pattern.spacing === next.spacing) return { nodes: draft };
 
-  const [hole] = dependents;
+  const [{ hole, seed, copy }] = dependents;
   const stock = doc.nodes[pattern.parent.node];
   const sketch = stock?.kind === 'extrude' ? doc.nodes[stock.sketch] : undefined;
   if (dependents.length !== 1 || hole !== doc.nodes.at(-1) || hole.made
@@ -38,12 +58,11 @@ export function rebasePatternHoleSpacing(doc: StudioDoc, draft: ModelNode[], ind
     return refused('This Hole cannot follow a spacing edit. Keep the spacing or edit the Hole and pattern separately.');
   }
 
-  const [, seed, ordinal] = /^(.*)@(\d+)$/.exec(hole.face!) ?? [];
-  const copy = Number(ordinal), axis = pattern.axis === 'x' ? 0 : 1;
+  const axis = pattern.axis === 'x' ? 0 : 1;
   const pitches = [pattern.spacing, next.spacing], { min, max } = sketch;
   const centre = hole.center, radius = hole.radius;
   if (seed !== featureId(doc.nodes, pattern.parent.node) + '.top'
-    || !Number.isSafeInteger(copy) || copy < 1 || copy >= pattern.count
+    || copy >= pattern.count
     || !numericPair(min) || !numericPair(max) || !numericPair(centre) || !finite(radius) || radius <= 0
     || !pitches.every(finite)) {
     return refused('The Hole needs a unique numbered top face and numeric dimensions to follow this edit.');

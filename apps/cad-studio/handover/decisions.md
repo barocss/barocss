@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1019 — name the dependent Hole when Count removes its copy](notes/linear-pattern-hole-count-refusal-2026-11-13/README.md).
 - [D1018 — preserve the dependent Hole during a Linear Pattern spacing edit](notes/linear-pattern-hole-spacing-2026-11-13/README.md).
 - [D1017 — show Zebra stripes on vertical seams](notes/zebra-vertical-seam-2026-11-13/README.md).
 - [D1016 — qualify fully retained Section edges for selection and Measure](notes/section-original-edge-measure-2026-11-13/README.md).

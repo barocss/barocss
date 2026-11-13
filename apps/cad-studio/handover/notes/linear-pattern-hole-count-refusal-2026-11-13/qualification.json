@@ -1,0 +1,59 @@
+{
+  "decision": "D1019",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "4e41d7ac65eeb72e710f8f7ed4ca5f1ba9194410",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1019-section-baseline",
+    "gate.sh acquire heavy 600 D1019-section-studio01",
+    "D1019_SOURCE_FROZEN=1 node apps/cad-studio/test/pattern-hole-count-refusal-browser.mjs <external-evidence>/baseline",
+    "D1019_SOURCE_FROZEN=1 node apps/cad-studio/test/pattern-hole-count-refusal-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1019-feature-checks",
+    "pnpm --filter @barocss/cad-studio-app test document-file linear-span-pattern failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/pattern-hole-count-refusal-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Generic primary error did not name retiring copy or recovery count.",
+    "receiptSHA256": "aab22754cc8be4e5aed629ca64da1076da916e267d494a6fe41ac37e2e7ea716",
+    "sourceManifestSHA256": "644388e1411651a55d9720d556adde491f4644f42a9240f8b65d6c5ab44bd35e"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "2b91ead5aa6f471be28f237ec0e320f3983073f2e3940b20bfb10a7b9c2ff159",
+    "sourceManifestSHA256": "13814d364d1f6bda2de540dab4b22be3ec40d51ea737cd0822ee8773032caabb",
+    "frozenFiles": 851,
+    "states": 4,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "originalCount": 3,
+    "refusedCount": 2,
+    "acceptedCount": 4,
+    "reference": "n1.top@2",
+    "hole": "n3",
+    "volumeToleranceMM3": 1e-07
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 18,
+    "failed": 0,
+    "typeCheck": "PASS"
+  },
+  "notRun": [
+    "fixed span end reference",
+    "suppression order",
+    "other Hole dependencies",
+    "no-material cut",
+    "fresh reopen of Count 4",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}
