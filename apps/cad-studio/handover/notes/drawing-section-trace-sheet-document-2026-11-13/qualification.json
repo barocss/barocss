@@ -1,0 +1,40 @@
+{
+  "decision": "D955",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "5ff3596f92d59b1e2658c2885b3fb6e34fea022b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D955-ownership",
+    "D955_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-section-trace-hit-browser.mjs <external-evidence>/owner02 --ownership",
+    "node --check apps/cad-studio/test/drawing-section-trace-hit-browser.mjs",
+    "git diff --check"
+  ],
+  "initialFailure": {
+    "stage": "browser navigation before the fixture opened",
+    "receiptSHA256": "88f32bdbf021dad9fd166900039bc48bde6428441f99d38edc1abc2593130182"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "receiptSHA256": "9321e4713afec91e9ab3d8f7b02332232ad79d1b5929ab6f9d104ae7cc70f4dd",
+    "sourceManifestSHA256": "a2885516fe3f9c6e713d92f5a75226de4ec727f6a4fac14d1c0a04f9e290be46",
+    "frozenFiles": 372,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "widthsMM": [
+      20,
+      24
+    ],
+    "firstSheetSvgSHA256": "134158830ef011a7b047fcfac33783e43dfc65970a2769f9e0391be5c0470594",
+    "secondSheetSvgSHA256": "794d4e1ba97683e847e4b67efe8c56ea66e81069f002ea67c330b8eed7287d98",
+    "replacementSvgSHA256": "4c1aaa1e758c1bc782dbdbed28141af8980abd8033b597ae8b72399bf650fe5d"
+  },
+  "notRun": [
+    "production build",
+    "full suites",
+    "DXF/PDF",
+    "mobile"
+  ]
+}

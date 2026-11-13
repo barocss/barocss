@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--reopen', '--annotations', '--detached-views', '--ownership'].includes(mode));
 const reopen = mode === '--reopen';
 const baseline = mode === '--baseline';
 const annotations = mode === '--annotations';
 const detachedViews = mode === '--detached-views';
+const ownership = mode === '--ownership';
 const pins = [
   'apps/cad-studio/test/drawing-section-trace-hit-browser.mjs',
   'apps/cad-studio/src/ui/DrawingWorkspace.tsx', 'apps/cad-studio/src/drawing/drawing.css',
@@ -22,10 +23,11 @@ const source = {
   outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
   drawing: {
     sheet: 'A3', scope: { kind: 'part' }, scale: 2, projection: 'third', hidden: true,
-    ...(detachedViews ? {
+    ...(detachedViews || ownership ? {
       sections: [{ id: 'A', view: 'front', at: 6, removed: { at: [295, 95], scale: 2 } }],
       details: [{ id: 'B', view: 'top', center: [2, 6], radius: 4, scale: 3, at: [302, 165] }],
     } : { section: { y: 6 } }),
+    ...(ownership ? { sheets: [{ id: 'S2', scale: 2, views: ['section:A', 'detail:B'] }] } : {}),
     title: 'Cutting plane and dimension',
     dimensions: [{ id: 'width', view: 'top', kind: 'linear', a: end(0), b: end(20),
       orient: 'horizontal', place: [10, 6] },
@@ -39,10 +41,10 @@ const source = {
   },
 };
 const f = await createFlow({
-  name: 'drawing-section-trace-hit', output, envFrozen: detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
+  name: 'drawing-section-trace-hit', output, envFrozen: ownership ? 'D955_SOURCE_FROZEN' : detachedViews ? 'D954_SOURCE_FROZEN' : annotations ? 'D953_SOURCE_FROZEN' : reopen ? 'D933_SOURCE_FROZEN' : 'D932_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: ownership ? 'Clear section-trace selection across sheet tabs and document Open.' : detachedViews ? 'Drag and cancel a removed section and a detail on the sectioned sheet.' : annotations ? 'Select a datum target and a standalone frame where each crosses the painted cutting-plane trace.'
     : 'Select and drag the existing width dimension at the painted cutting-plane trace.',
-  limits: [detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
+  limits: [ownership ? 'Two sectioned plates reuse Section A and dimension width IDs across files; Section A spans two sheets.' : detachedViews ? 'One removed section and one circular detail on the same sheet.' : annotations ? 'One line datum target and one standalone flatness frame on the Top view of one sectioned plate.'
     : 'One rectangular plate, one axial cutting plane and one width dimension on its Top view.'],
   snapshotExtra: () => ({
     box: document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox'),
@@ -305,6 +307,96 @@ async function detachedViewFlow() {
   assert.deepEqual(f.report.downloads, []);
 }
 
+async function openDrawingFile(name, doc) {
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+}
+
+async function ownershipFlow() {
+  const original = await f.doc();
+  const tab = index => f.page.getByRole('tab', { name: `Sheet ${index}`, exact: true });
+  const active = async index => assert.equal(await tab(index).getAttribute('aria-selected'), 'true');
+  const selection = async () => sheet().locator('g.sel[data-dim]').evaluateAll(groups =>
+    groups.map(group => group.getAttribute('data-dim')));
+  const overlapOnActiveSheet = async value => {
+    assert.match(await dimension().textContent(), new RegExp(`\\b${value}\\b`));
+    const sites = await hitSites();
+    assert.ok(sites.overlap, 'painted section trace overlaps the active width');
+    await f.page.mouse.click(...sites.overlap.pixel);
+    assert.deepEqual([...new Set(await selection())], ['width']);
+    return sites.overlap.pixel;
+  };
+  f.phase = 'select the width through the Section A trace on Sheet 1';
+  await active(1);
+  await cut().waitFor({ state: 'detached' });
+  const before = await f.snapshot('01-sheet-1');
+  const svg1 = await exportSvg();
+  const first = await overlapOnActiveSheet(20);
+
+  f.phase = 'switch to the sheet with the same Section A cut result';
+  await tab(2).click();
+  await cut().waitFor();
+  await trace().waitFor({ state: 'detached' });
+  await dimension().waitFor({ state: 'detached' });
+  await active(2);
+  const otherSheet = await f.snapshot('02-sheet-2');
+  assert.deepEqual(otherSheet.selected, []);
+  assert.deepEqual(otherSheet.doc, original);
+  assert.equal(otherSheet.dirty, before.dirty);
+  const svg2 = await exportSvg();
+  assert.notEqual(svg2, svg1);
+  assert.match(svg1, /SEE SHEET 2/);
+  assert.match(svg2, /FROM SHEET 1/);
+
+  f.phase = 'pan blank paper without carrying selection or committing an edit';
+  const blank = await sheet().evaluate(svg => {
+    const pixel = new DOMPoint(85, 75).matrixTransform(svg.getScreenCTM());
+    return { pixel: [pixel.x, pixel.y], target: document.elementFromPoint(pixel.x, pixel.y)?.getAttribute('class') };
+  });
+  assert.equal(blank.target, 'dw-sheet');
+  await drag(blank.pixel, [28, 17]);
+  const panned = await f.snapshot('03-blank-paper-pan');
+  assert.notEqual(panned.box, otherSheet.box);
+  assert.deepEqual(panned.selected, []);
+  assert.deepEqual(panned.doc, original);
+  assert.equal(await exportSvg(), svg2);
+
+  f.phase = 'return to Sheet 1, then open another document with the same IDs';
+  await tab(1).click();
+  await button('Fit sheet').click();
+  await trace().waitFor();
+  const returned = await f.snapshot('04-returned-sheet-1');
+  assert.deepEqual(returned.selected, []);
+  assert.deepEqual(returned.doc, original);
+  assert.equal(await exportSvg(), svg1);
+  await overlapOnActiveSheet(20);
+  const replacement = structuredClone(source);
+  replacement.nodes[0].max[0] = 24;
+  replacement.drawing.title = 'Another sectioned plate';
+  replacement.drawing.dimensions[0].b = end(24);
+  replacement.drawing.dimensions[0].place = [12, 6];
+  await openDrawingFile('D955-another-plate.bcad', replacement);
+  await f.page.waitForFunction(() => window.__studioDoc?.drawing?.title === 'Another sectioned plate');
+  await f.ready();
+  if (!(await sheet().isVisible())) await button('Drawing').click();
+  await dimension().waitFor();
+  await trace().waitFor();
+  await active(1);
+  const swapped = await f.snapshot('05-replacement');
+  assert.deepEqual(swapped.selected, []);
+  assert.deepEqual(swapped.doc, replacement);
+  assert.match(await dimension().textContent(), /24/);
+  const newSvg = await exportSvg();
+  assert.notEqual(newSvg, svg1);
+  const second = await overlapOnActiveSheet(24);
+  assert.deepEqual(await f.doc(), replacement);
+  assert.equal(await exportSvg(), newSvg);
+  await f.snapshot('06-replacement-selected');
+  f.report.observations.push({ label: 'ownership', first, second, widthsMM: [20, 24],
+    firstSheetSvgSHA256: sha256(svg1), secondSheetSvgSHA256: sha256(svg2), replacementSvgSHA256: sha256(newSvg) });
+  assert.deepEqual(f.report.downloads, []);
+}
+
 async function exportSvg() {
   const count = await f.page.evaluate(() => window.__d932Exports.length);
   await button('Export SVG').click();
@@ -318,6 +410,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    context.setDefaultNavigationTimeout(60000);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -341,14 +434,12 @@ await f.run(async () => {
   };
   await f.newPage();
   f.phase = 'open the retained rectangle and drawing';
-  const buffer = Buffer.from(JSON.stringify(source));
-  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await chooser.setFiles({ name: 'D932-section-hit.bcad', mimeType: 'application/json', buffer });
+  await openDrawingFile('D932-section-hit.bcad', source);
   if (annotations) {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.datumTargets?.length === 1);
     await f.ready();
     assert.deepEqual(await f.doc(), source);
-  } else if (detachedViews) {
+  } else if (detachedViews || ownership) {
     await f.page.waitForFunction(() => window.__studioDoc?.drawing?.details?.[0]?.id === 'B');
     await f.ready();
     assert.deepEqual(await f.doc(), source);
@@ -356,10 +447,11 @@ await f.run(async () => {
   await button('Drawing').click();
   await dimension().waitFor();
   await trace().waitFor();
-  await cut().waitFor();
+  if (!ownership) await cut().waitFor();
   assert.match(await dimension().textContent(), /20/);
   if (annotations) { await annotationFlow(source); return; }
   if (detachedViews) { await detachedViewFlow(); return; }
+  if (ownership) { await ownershipFlow(); return; }
   if (reopen) { await reopenFlow(); return; }
   const before = await f.snapshot('01-drawing-before');
   f.phase = 'find the painted overlap and exercise actual pointer input';
