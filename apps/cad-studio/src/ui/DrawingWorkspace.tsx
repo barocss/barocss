@@ -191,6 +191,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       setPending({ kind: 'detail-center', view: detail.view, detail, owner: wholeSettings, model: currentModel.current });
       return;
     }
+    if (fix.kind === 'remove-detail') { removeDetail(fix.detail); return; }
     onChange(applyFix({ views, layout, settings, sheet, callout, locationOwner, elements, ...(cuts.length ? { sections: cuts } : {}) }, fix));
   };
   // (O175: Fix all runs the chat's rounds, fixRound: a round that adds a section waits for the worker to cut it, and the
@@ -198,7 +199,27 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // when the settings change from elsewhere. Each round is its own undo step.)
   const fixing = useRef<{ state: FixRounds; want: string } | null>(null);
   const fixInputs = (): SheetInputs | null => views ? { views, settings, callout, locationOwner, elements, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) } : null;
-  const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
+  const protectedDetails = () => {
+    const annotated = annotatedDetailLetters(wholeSettings);
+    return new Set((sheet?.detailsMissing ?? []).filter(detail => annotated.has(detail.id)).map(detail => detail.id));
+  };
+  const fixEveryRound = (state: FixRounds, inputs: SheetInputs) => {
+    const protectedLetters = protectedDetails();
+    const protectedView = (view: DimView | undefined) => !!view && isDetailRef(view) && protectedLetters.has(detailLetter(view));
+    const protectedDimension = (id: string) => protectedView(wholeSettings.dimensions.find(dim => dim.id === id)?.view);
+    return fixRound(state, inputs, fix => {
+      switch (fix.kind) {
+        case 'remove-detail': return !protectedLetters.has(fix.detail);
+        case 'remove': return !protectedDimension(fix.dim);
+        case 'remove-frame': {
+          const frame = wholeSettings.frames?.find(frame => frame.id === fix.frame);
+          return !frame || (frame.dim === undefined ? !protectedView(frame.view) : !protectedDimension(frame.dim));
+        }
+        case 'auto-dimension': return scope.kind !== 'assembly';
+        default: return true;
+      }
+    });
+  };
   const fixStep = (step: FixRoundStep) => {
     if (step.next) {
       fixing.current = { state: step.state, want: scopeRead.scope ? JSON.stringify(committedSheetSettings(wholeSettings, current, step.next, scopeRead.scope)) : JSON.stringify(step.next) };
@@ -207,11 +228,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
     fixing.current = null;
     if (JSON.stringify(step.settings) !== JSON.stringify(settings) && !onChange(step.settings)) return;
-    onToast({ title: `${step.applied.length} fix${step.applied.length === 1 ? '' : 'es'} applied`, hint: step.left.length ? `${step.left.length} issue${step.left.length === 1 ? '' : 's'} left: ${step.left[0].message}` : 'The drawing has no issues.', detail: step.left.slice(1).map(x => x.message).join('\n') });
+    const retained = [...protectedDetails()];
+    const preservation = retained.length ? `Detail annotations preserved for ${retained.join(', ')}. ` : '';
+    const remaining = step.left.length ? `${step.left.length} issue${step.left.length === 1 ? '' : 's'} left: ${step.left[0].message}` : 'The drawing has no issues.';
+    onToast({ title: `${step.applied.length} fix${step.applied.length === 1 ? '' : 'es'} applied`, hint: preservation + remaining, detail: step.left.slice(1).map(x => x.message).join('\n') });
   };
   const fixEvery = () => {
     const i = fixInputs(); if (!i) return;
-    fixStep(fixRound(fixRoundsStart(i), i, fixOnly));
+    fixStep(fixEveryRound(fixRoundsStart(i), i));
   };
   useEffect(() => {
     const f = fixing.current; if (!f) return;
@@ -219,7 +243,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (error) { fixStep(fixRoundsOutcome(f.state)); return; }
     // (Settled: every section the settings list cut for them, the views projected.)
     if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => sameSection(c, x)))) return;
-    const i = fixInputs(); if (i) fixStep(fixRound(f.state, i, fixOnly));
+    const i = fixInputs(); if (i) fixStep(fixEveryRound(f.state, i));
   }, [settings, busy, views, layout, sheet, cutsMade, error, locationOwner]);
   // Reference inspection reads this sheet; it does not change the selected reference or the saved drawing.
   const referenceLabels = useMemo<readonly DrawingReferenceLabel[]>(() => !busy && sheet ? sheet.dimensions.map(r => ({ dimensionId: r.dim.id, view: r.dim.view, text: r.ok ? r.text : null, ...(!r.ok ? { reason: r.reason } : {}) })) : [], [busy, sheet]);

@@ -6,8 +6,9 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2), repo = resolve(import.meta.dirname, '../../..');
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
-assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--issue-move-baseline', '--issue-move-fixed', '--issue-fix-all-baseline', '--issue-fix-all-fixed'].includes(mode));
 const issueMove = mode.startsWith('--issue-move-');
+const issueFixAll = mode.startsWith('--issue-fix-all-');
 await mkdir(output, { recursive: true });
 const modelPath = join(repo, 'packages/barocss-cad/conformance/r14/starter-plate/case.json');
 const { input: { document: model } } = JSON.parse(await readFile(modelPath));
@@ -29,11 +30,12 @@ const fixtures = {
     sheets: [{ id: 's2', views: ['detail:B', 'detail:E'] }] },
 };
 const moveModel = { ...model, nodes: model.nodes.map(node => node.kind === 'hole' ? { ...node, radius: 6 } : node) };
-if (issueMove) fixtures['issue-move'] = {
+if (issueMove || issueFixAll) fixtures['issue-move'] = {
   ...drawing,
   details: [{ ...detailB, radius: 9, scale: 2 }],
   dimensions: [detailDimension],
   frames: [attached, standalone],
+  ...(issueFixAll ? { sheets: [{ id: 's2', views: ['detail:B'] }] } : {}),
 };
 const files = new Map();
 for (const [key, settings] of Object.entries(fixtures)) {
@@ -78,8 +80,8 @@ print(json.dumps({"status": "PASS", "details": r["details"], "dimensions": r["di
 `;
 
 const f = await createFlow({
-  name: 'detail-ownership', envFrozen: issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
-  qualification: issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
+  name: 'detail-ownership', envFrozen: issueFixAll ? 'D980_SOURCE_FROZEN' : issueMove ? 'D979_SOURCE_FROZEN' : 'D701_SOURCE_FROZEN', output,
+  qualification: issueFixAll ? 'Keep an annotated split detail and report unresolved issues after Fix all.' : issueMove ? 'Repair an empty Detail boundary and keep its authored annotations.' : 'Detail reference ownership through real Studio controls, first Undo/Redo, native Save and fresh Open, and independent SVG readback.',
   initialFiles: [import.meta.filename, modelPath, ...files.values()], oracleSource: oracle,
   extraFrozen: ['packages/barocss-cad-model/src/drawing/issues.ts', 'packages/barocss-cad-model/src/drawing/detail.ts', 'packages/barocss-cad-model/src/drawing/types.ts',
     'packages/barocss-cad-model/src/drawing/sheets.ts', 'packages/barocss-cad-model/src/drawing/options.ts',
@@ -213,10 +215,11 @@ const topDim = { 'top-diameter': 'top' };
 const topAndC = { ...topDim, 'c-diameter': 'detail:C' };
 const bDim = { 'b-diameter': 'detail:B' };
 
-async function checkIssueMove() {
+async function openEmptyDetail() {
   f.phase = 'open a 64 × 32 × 8 mm plate with an annotated Ø12 Detail B';
   await open(files.get('issue-move'));
   const original = await f.doc();
+  if (issueFixAll) await tab(2);
   await checkDimension('b-diameter', 'detail:B', 12);
   const sheet = f.page.locator(svg);
   await sheet.locator('g.control[data-standalone-frame="b-frame"]').waitFor();
@@ -227,6 +230,7 @@ async function checkIssueMove() {
   await f.editor().getByLabel('Centre X', { exact: true }).fill('48');
   await f.applyEditor(original, 'hole-outside-detail');
   await button('Drawing').click();
+  if (issueFixAll) await tab(2);
   await checkLost('b-diameter');
   const emptyIssue = f.page.locator('.dw-issue[title="DETAIL_EMPTY"]');
   await emptyIssue.waitFor();
@@ -234,6 +238,11 @@ async function checkIssueMove() {
   assert.deepEqual(empty.nodes[2].center, [48, 16]);
   assert.equal(empty.nodes[2].radius, 6);
   assert.deepEqual(empty.drawing.details, original.drawing.details);
+  return { empty, emptyIssue };
+}
+
+async function checkIssueMove() {
+  const { empty, emptyIssue } = await openEmptyDetail();
   const move = emptyIssue.getByRole('button', { name: /^Fix: Detail B/ });
   assert.equal(await move.textContent(), 'Move');
   f.phase = 'use Move on the empty Detail issue';
@@ -272,7 +281,38 @@ async function checkIssueMove() {
   await f.snapshot('issue-move-redo');
 }
 
+async function checkIssueFixAll() {
+  const { empty, emptyIssue } = await openEmptyDetail();
+  const fixAll = button('Fix all issues');
+  const outcome = f.page.getByRole('alert').filter({ hasText: /fix(?:es)? applied/i });
+  f.phase = 'run Fix all on the sheet that owns Detail B';
+  await fixAll.click();
+  await outcome.waitFor();
+  const fixed = await f.doc();
+  if (mode.endsWith('baseline')) {
+    assert.equal(fixed.drawing.details?.some(d => d.id === 'B') ?? false, false);
+    assert.equal(fixed.drawing.dimensions.some(d => d.id === 'b-diameter'), false);
+    assert.ok(fixed.drawing.frames.some(frame => frame.id === 'b-frame'));
+    await f.snapshot('fix-all-lost-detail-annotations');
+    assert.fail('Fix all removed Detail B and its annotations on sheet 2');
+  }
+  assert.deepEqual(fixed.drawing.details, empty.drawing.details);
+  assert.deepEqual(fixed.drawing.sheets, empty.drawing.sheets);
+  assert.deepEqual(fixed.drawing.frames, empty.drawing.frames);
+  assert.deepEqual(fixed.drawing.dimensions.find(d => d.id === 'b-diameter'), empty.drawing.dimensions[0]);
+  assert.deepEqual(fixed.nodes, empty.nodes);
+  assert.match(await outcome.textContent(), /annotations preserved.*issue/i);
+  await emptyIssue.waitFor();
+  await checkLost('b-diameter');
+  await f.snapshot('fix-all-preserved-detail');
+  await tab(1);
+  await f.same(fixed);
+  await tab(2);
+  await emptyIssue.waitFor();
+}
+
 await f.run(async () => {
+  if (issueFixAll) { await checkIssueFixAll(); return; }
   if (issueMove) { await checkIssueMove(); return; }
   f.phase = 'open original Detail B';
   await open(files.get('bound-detail'));
