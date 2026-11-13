@@ -19,10 +19,10 @@ function initialFilters(document: object, owner: SketchState): FilterState {
   return { document, plane: owner.plane, editNode: owner.editNode, mainIds: owner.mainIds, kind: '', pickedOnly: false };
 }
 
-export function ConstraintList({ shape, owner, conflictEdge, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
+export function ConstraintList({ shape, owner, conflictId, documentScope, inspection, inspectedId, picked, onShape, onEditDim }: {
   shape: Polygon;
   owner: SketchState;
-  conflictEdge?: number;
+  conflictId?: string;
   documentScope: object;
   inspection: ConstraintInspectionStore;
   inspectedId: string | null;
@@ -44,7 +44,10 @@ export function ConstraintList({ shape, owner, conflictEdge, documentScope, insp
   if (kind && !kinds.includes(kind)) kinds.push(kind);
   const activeId = activeCircleDistanceRow(shape, owner.editDim);
   const visible = filterConstraintList(rows, kind, pickedOnly, picked, activeId);
-  const conflictRow = conflictEdge === undefined ? undefined : rows.find(row => row.id === `len:${conflictEdge}`);
+  const conflictRow = rows.find(row => row.id === conflictId);
+  const conflictLabel = conflictRow?.label === 'Length'
+    ? `Find conflicting length on edge ${conflictRow.involves[0].i + 1}`
+    : conflictRow && `Find conflicting ${conflictRow.label.toLowerCase()} between circles ${conflictRow.involves.map(pick => pick.i + 1).join(' and ')}`;
   useLayoutEffect(() => {
     const id = focusTarget.current;
     focusTarget.current = null;
@@ -66,11 +69,11 @@ export function ConstraintList({ shape, owner, conflictEdge, documentScope, insp
   };
 
   return <>
-    {conflictEdge !== undefined && conflictRow && <button type="button" data-sketch-action className="ghost"
+    {conflictRow && <button type="button" data-sketch-action className="ghost"
       onClick={() => {
         focusTarget.current = conflictRow.id;
         setFilters({ ...filters, kind: conflictRow.label, pickedOnly: false });
-      }}>Find conflicting length on edge {conflictEdge + 1}</button>}
+      }}>{conflictLabel}</button>}
     <div className="card-title" style={{ marginTop: 10 }} role="status" aria-label="Constraint count">
       CONSTRAINTS · {visible.length}/{rows.length}
     </div>

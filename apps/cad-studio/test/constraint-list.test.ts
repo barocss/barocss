@@ -2,12 +2,30 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ELLIPSE_POINTS, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { commitDimension, removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
-import { activeCircleDistanceRow, constraintListRows, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
+import { activeCircleDistanceRow, circleDistanceConflict, constraintListRows, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
 
 const rectangle: Polygon = {
   kind: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]], closed: true, hv: { h: [0, 2], v: [1, 3] },
 };
 const ids = (rows: ReturnType<typeof constraintListRows>) => rows.map(row => row.id);
+
+test('D1103 attributes only a proven same-pair projection that exceeds the requested aligned distance', () => {
+  const shape: Polygon = { ...rectangle, circles: [
+    { c: [10, 10], r: 2 }, { c: [25, 18], r: 2 }, { c: [36, 10], r: 2 },
+  ], rules: [
+    { kind: 'ccdist', a: 0, b: 1, value: 17 },
+    { kind: 'ccdx', a: 1, b: 0, value: 15 },
+    { kind: 'ccdy', a: 0, b: 1, value: 8 },
+    { kind: 'ccdx', a: 0, b: 2, value: 26 },
+  ] };
+  assert.deepEqual(circleDistanceConflict(shape, 'ccdist0_1', 7), { id: 'rule:1', axis: 'horizontal', value: 15 });
+  assert.equal(circleDistanceConflict(shape, 'ccdist0_1', 15 - 5e-7), undefined);
+  assert.equal(circleDistanceConflict(shape, 'ccdist0_1', 16), undefined);
+  for (const key of ['ccdx0_1', 'ccdist0_0', 'ccdist0_3']) assert.equal(circleDistanceConflict(shape, key, 7), undefined);
+  for (const value of [0, Infinity, NaN]) assert.equal(circleDistanceConflict(shape, 'ccdist0_1', value), undefined);
+  const vertical: Polygon = { ...shape, rules: [shape.rules![2]] };
+  assert.deepEqual(circleDistanceConflict(vertical, 'ccdist0_1', 7), { id: 'rule:0', axis: 'vertical', value: 8 });
+});
 
 test('the default order and exact picked kinds keep anchor, point and edge identities distinct', () => {
   const rows = constraintListRows(rectangle);

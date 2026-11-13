@@ -1,4 +1,5 @@
 import { rectilinearConflict } from '@barocss/cad-model/sketch/conflict';
+import { CadNumericPolicy } from '@barocss/cad';
 import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import { circlePairKeys, constraintEntries, hvOf, samePick, solveShape, type ConstraintEntry, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 
@@ -48,4 +49,24 @@ export function opposingLengthConflict(shape: Polygon, key: string, value: numbe
   // The subset names a participating constraint. The full solve must also classify the refusal as a conflict.
   const report = solveShape({ ...shape, hv, lengths: { ...shape.lengths, [edge]: value } });
   if (!report.ok && report.conflict) return opposite;
+}
+
+/** A centre distance cannot be shorter than a projection of that same pair. */
+export function circleDistanceConflict(shape: Polygon, key: string, value: number) {
+  const match = /^ccdist(\d+)_(\d+)$/.exec(key);
+  const maxDistance = 2 * CadNumericPolicy.coordinateAbs * Math.SQRT2;
+  if (!match || !shape.closed || shape.pending || !Number.isFinite(value) || value < 0.001 || value > maxDistance) return;
+  const a = Number(match[1]), b = Number(match[2]);
+  if (a >= b || !shape.circles?.[a] || !shape.circles[b]) return;
+  // The axis projection can spend two tie residuals, one run residual and one length
+  // residual. Allow one for the direct length and one more for floating-point roundoff.
+  const margin = 6 * CadNumericPolicy.linearTolerance;
+  let conflict: { id: string; axis: 'horizontal' | 'vertical'; value: number } | undefined;
+  for (const [i, rule] of (shape.rules ?? []).entries()) {
+    if ((rule.kind !== 'ccdx' && rule.kind !== 'ccdy') || !Number.isFinite(rule.value) || rule.value > maxDistance
+      || !(rule.a === a && rule.b === b || rule.a === b && rule.b === a)
+      || rule.value - value <= margin || (conflict && rule.value <= conflict.value)) continue;
+    conflict = { id: `rule:${i}`, axis: rule.kind === 'ccdx' ? 'horizontal' : 'vertical', value: rule.value };
+  }
+  return conflict;
 }

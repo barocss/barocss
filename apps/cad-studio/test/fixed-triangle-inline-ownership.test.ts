@@ -30,7 +30,7 @@ function commit(source: Polygon, sketch: SketchState | null, storedSketch?: Sket
     setSketch: setter => { drafts.push(typeof setter === 'function' ? setter(sketch) : setter); },
     clearOutlinePickIssue: () => undefined,
     updateCircleDiameter: () => undefined,
-    setSketchError: reason => { errors.push(reason); }, setLengthConflict: reason => { errors.push(reason); }, trimSketch: () => undefined,
+    setSketchError: reason => { errors.push(reason); }, setConstraintConflict: reason => { errors.push(reason); }, trimSketch: () => undefined,
   });
   actions.onDimCommit?.('len2', value, source);
   return { shapes, errors, drafts };

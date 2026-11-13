@@ -3,10 +3,10 @@ import { toggleBandPick } from '@barocss/cad-model/sketch/band';
 import type { SketchNode } from '@barocss/cad-model/engine/doc';
 import { ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
-import { commitDimension, commitInlineDimension, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
+import { commitDimension, commitInlineDimension, dimensionLabel, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
-import { opposingLengthConflict } from '../sketch/constraintList';
+import { circleDistanceConflict, opposingLengthConflict } from '../sketch/constraintList';
 import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
@@ -28,7 +28,7 @@ interface SketchViewportInputs {
   setSketchError(reason: string): void;
   clearOutlinePickIssue(): void;
   updateCircleDiameter(shape: Extract<SketchShape, { kind: 'circle' }>, diameter: number): void;
-  setLengthConflict(reason: string, source: Polygon, edge: number): void;
+  setConstraintConflict(reason: string, source: Polygon, id: string): void;
   updateShape: SceneSketchActions['onSketchShape'];
   trimSketch: NonNullable<SceneSketchActions['onSketchTrim']>;
 }
@@ -47,13 +47,15 @@ function canRecoverLength(sketch: SketchState | null, opened: ReopenedSketchSour
 }
 
 /** Viewport gestures use Studio's existing sketch state and shape history. */
-export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, clearOutlinePickIssue, updateCircleDiameter, setLengthConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
+export function studioSketchViewportActions({ liveShape, sketch, currentSketchSource, setSketch, setSketchError, clearOutlinePickIssue, updateCircleDiameter, setConstraintConflict, updateShape, trimSketch }: SketchViewportInputs): SceneSketchActions & { recoverPanelLength(source: Polygon, edge: number, value: number): boolean } {
   const applyDimension = (opened: ReopenedSketchSource | undefined, source: Polygon, key: string, value: number) => {
     const result = opened ? commitInlineDimension(source, key, value) : commitDimension(source, key, value);
     if (!result.ok) {
       const edge = opposingLengthConflict(source, key, value);
-      if (edge === undefined) setSketchError(result.reason);
-      else setLengthConflict(result.reason, source, edge);
+      const circle = circleDistanceConflict(source, key, value);
+      if (circle) setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the stored ${circle.axis} distance of ${circle.value} mm.`, source, circle.id);
+      else if (edge !== undefined) setConstraintConflict(result.reason, source, `len:${edge}`);
+      else setSketchError(result.reason);
       return;
     }
     if (opened && isVerifiedFixedTriangleEdit(result.shape, source)) opened.recoveredLengths.add(result.shape);

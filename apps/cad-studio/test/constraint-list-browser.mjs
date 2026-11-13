@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const circleConflict = process.argv[3] === '--circle-conflict';
 const conflictFocus = process.argv[3] === '--conflict-focus';
 const circleDimension = process.argv[3] === '--circle-dimension';
 const pickedUndo = process.argv[3] === '--picked-undo';
@@ -8,6 +9,7 @@ const removalFocus = process.argv[3] === '--removal-focus';
 const pins = [
   'apps/cad-studio/test/constraint-list-browser.mjs',
   'apps/cad-studio/src/App.tsx',
+  'apps/cad-studio/src/viewport/studioSketchViewportActions.ts',
   ...(pickedUndo ? ['apps/cad-studio/src/sketch/draftHistory.ts'] : []),
   'apps/cad-studio/src/sketch/constraintList.ts',
   'apps/cad-studio/src/sketch/constraintInspection.ts',
@@ -17,7 +19,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: circleConflict ? 'D1103_SOURCE_FROZEN' : conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -32,10 +34,12 @@ import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 if (input.circles) {
+  const b = input.conflict ? [48, 22 + Math.sqrt(35 ** 2 - 24 ** 2)] as [number, number] : [50, 22] as [number, number];
   const profile = profileOf([{ kind: 'polygon', closed: true, points: [[0,0],[90,0],[90,60],[0,60]],
     hv: { h: [0,2], v: [1,3] }, lengths: { 0: 90, 1: 60 },
-    circles: [{ c: [24, 22], r: 5 }, { c: [50, 22], r: 5 }],
-    rules: [{ kind: 'ccdist', a: 0, b: 1, value: 26 }, { kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 22 }] }]);
+    circles: [{ c: [24, 22], r: 5 }, { c: b, r: 5 }],
+    rules: [{ kind: 'ccdist', a: 0, b: 1, value: input.conflict ? 35 : 26 }, { kind: 'cedge', edge: 0, circle: 0, axis: 1, value: 22 },
+      ...(input.conflict ? [{ kind: 'ccdx' as const, a: 0, b: 1, value: 24 }] : [])] }]);
   assert.ok('node' in profile);
   console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 5 })));
   process.exit(0);
@@ -181,6 +185,71 @@ await f.run(async () => {
     });
     return context;
   };
+  if (circleConflict) {
+    const source = await f.inspect('source', { circles: true, conflict: true });
+    const centres = () => source.nodes[0].outline.circles.map(circle => circle.c);
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await open(source);
+    await edit(1);
+    await f.tool('Dimension', 'd');
+    await f.frame(centres());
+    await kind().selectOption('Distance');
+    await pickedOnly().check();
+    const openDistance = async () => {
+      for (const point of centres()) await f.worldClick(point);
+      await dimension().waitFor();
+    };
+    await openDistance();
+    assert.equal(await dimension().inputValue(), '35');
+    await dimension().fill('20');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    await f.same(source);
+    f.phase = 'locate the stored 24 mm horizontal centre distance after refusal';
+    await f.snapshot('01-refused-20');
+    assert.ok(await f.sketchAlert());
+    const find = button(f.sketchPanel(), 'Find conflicting horizontal distance between circles 1 and 2');
+    assert.equal(await find.count(), 1);
+    await find.focus();
+    await f.page.keyboard.press('Enter');
+    await show(['rule:2'], 10);
+    assert.equal(await row('rule:2').evaluate(el => el === document.activeElement), true);
+    await f.page.waitForFunction(() => {
+      const marks = [...document.querySelectorAll('.vp-overlay .inspected')].map(mark => mark.getAttribute('data-sketch-entity'));
+      return marks.length === 2 && marks.includes('circle:0') && marks.includes('circle:1');
+    });
+    await f.snapshot('02-horizontal-conflict-focused');
+    await f.page.keyboard.press('Tab');
+    await f.page.keyboard.press('Enter');
+    assert.equal(await find.count(), 0);
+    await f.same(source);
+    await openDistance();
+    await dimension().fill('20');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    const accepted = (await f.finishSketch('03-distance-20')).doc;
+    assert.deepEqual(accepted.nodes[0].outline.rules, [
+      source.nodes[0].outline.rules[1], { kind: 'ccdist', a: 0, b: 1, value: 20 },
+    ]);
+    const [a, b] = accepted.nodes[0].outline.circles.map(circle => circle.c);
+    assert.ok(Math.abs(Math.hypot(b[0] - a[0], b[1] - a[1]) - 20) < 1e-7);
+    assert.deepEqual(accepted.nodes[0].sideTags, source.nodes[0].sideTags);
+    assert.deepEqual(accepted.nodes[1], source.nodes[1]);
+    const native = await f.inspect('accepted-native', accepted);
+    assert.equal(native.valid, true);
+    assert.ok(Math.abs(native.volume - 5 * (90 * 60 - 2 * Math.PI * 5 ** 2)) < 1e-7);
+    f.report.observations.push({ label: 'recovered-native', ...native });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(accepted);
+    await f.newPage();
+    await open(accepted);
+    await edit(1);
+    assert.equal(await list().getByText('circle 1 – circle 2 = 20', { exact: true }).count(), 1);
+    return;
+  }
   if (circleDimension) {
     const source = await f.inspect('source', { circles: true });
     await f.newPage();

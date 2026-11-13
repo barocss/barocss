@@ -1,0 +1,49 @@
+{
+  "decision": "D1103",
+  "tier": "FEATURE",
+  "parent": "18e40e503b56f463cc924c187584f005173ccd68",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1103-circle-distance-<run>",
+    "D1103_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --circle-conflict",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/{sketch/constraintList.ts,ui/ConstraintList.tsx,ui/ConstraintTools.tsx,ui/SketchPanel.tsx,viewport/studioSketchViewportActions.ts}",
+    "D1089_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/opposite-length-control --conflict-focus",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 860,
+      "receiptSHA256": "25219716d618f7264e62ab3b02d5fcf0eda09cacd7806b349c9f21d967674ec2",
+      "sourceManifestSHA256": "5ef7d851a4f521a50a0ec221e456a9a6cd8b54565826af64cb5c44f0cf5e961d",
+      "firstFailure": "Studio refused the 35 to 20 mm edit but showed no action for the stored 24 mm horizontal distance."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 860,
+      "receiptSHA256": "a036785f4a361f69a7fab9da8b669e3bd1a401d65da911d5a70b12c50bfe402b",
+      "sourceManifestSHA256": "2b757e2e83bf0c6b4d5cff969ce95cb16c97e0ff65fa5f6666a89353a169fa71"
+    },
+    "oppositeLengthControl": {
+      "status": "PASS",
+      "receiptSHA256": "5728ea2e43358ff53dfdc3b443d4382b76226719b5bafa75c760080aedd53e6b",
+      "sourceManifestSHA256": "2b757e2e83bf0c6b4d5cff969ce95cb16c97e0ff65fa5f6666a89353a169fa71"
+    }
+  },
+  "initialDistanceMM": 35,
+  "requestedDistanceMM": 20,
+  "horizontalDistanceMM": 24,
+  "proofMarginMM": 6e-07,
+  "volumeMM3": 26214.60183664007,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 34,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

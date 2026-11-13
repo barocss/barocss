@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1103 — focus a proven circle centre-distance conflict](notes/circle-distance-conflict-focus-2026-11-14/README.md).
 - [D1102 — verify the reopened inner outline owns the next Offset](notes/reopened-inner-offset-target-2026-11-14/README.md).
 - [D1101 — check the emitted arc radius before accepting Offset](notes/sketch-offset-final-arc-radius-2026-11-14/README.md).
 - [D1100 — retain source constraints when outward Offset makes a hole](notes/outward-offset-hole-constraints-2026-11-14/README.md).
