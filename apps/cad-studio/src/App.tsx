@@ -1604,12 +1604,16 @@ export function App() {
     }
     if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.action === 'assembly-cut' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
     const vertexSelection = cmd.id === 'sketch' && selection.vertices?.length ? selection.vertices : undefined;
+    const mixedVertexBodies = vertexSelection?.length === 3 && vertexSelection.some(pick => pick.body !== vertexSelection[0].body);
     const vertexPoints = vertexSelection && nativeVertexReady &&
       !selection.faces.length && !selection.edges.length && !selection.bodies.length && !selection.sketches?.length
       ? currentNativeVertexPoints(doc, bodies, vertexSelection) : null;
     const vertexPlane = vertexPoints ? orderedVertexPlane(vertexPoints) : null;
     if (vertexSelection && !vertexPlane) {
-      setToast({ title: 'Sketch plane not set', hint: 'Select three distinct, non-collinear native vertices on the same current body.', detail: '' });
+      const hint = mixedVertexBodies ? 'Selected vertices belong to different bodies. Select three vertices on one body.'
+        : vertexPoints ? 'Selected vertices are collinear or too close to define a plane. Select a vertex away from the line.'
+        : 'Select three distinct, non-collinear native vertices on the same current body.';
+      setToast({ title: 'Sketch plane not set', hint, detail: '' });
       return;
     }
     discardRouteRef.current(); setRoutePanelOpen(false);

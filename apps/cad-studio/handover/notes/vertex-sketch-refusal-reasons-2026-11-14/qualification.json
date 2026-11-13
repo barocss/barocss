@@ -1,0 +1,75 @@
+{
+  "decision": "D1126",
+  "tier": "SMALL",
+  "parent": "4b842557b9bfcec161381ea54a983c5c6c815617",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1126-refusal-reasons-<run>",
+    "D1126_SOURCE_FROZEN=1 node apps/cad-studio/test/three-vertex-sketch-browser.mjs <external-evidence>/<run> --refusal-reasons",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs vertex-pick-filter midpoint-sketch",
+    "cd packages/barocss-cad-model && node scripts/test.mjs sketch-plane-precision",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint apps/cad-studio/src/viewport/viewportPointerInput.ts",
+    "D792_SOURCE_FROZEN=1 node apps/cad-studio/test/three-vertex-sketch-browser.mjs <external-evidence>/native-control",
+    "node --check apps/cad-studio/test/three-vertex-sketch-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 862,
+      "receiptSHA256": "f3a06f81b7a31e05afe52e380b16b695525d432918dce704bd42a3c992b94102",
+      "sourceManifestSHA256": "d9c9bded6b34f4f93bcbb0ccdc7e4b1c04d5c701de7abb262a86cc71fc6a7060",
+      "savedFiles": [],
+      "firstFailure": "Three selected points across two bodies got the generic vertex-plane hint."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 862,
+      "receiptSHA256": "f60acbbc3558e2c206fa39747857a3ded06427900e7472179f8baf189dda650f",
+      "sourceManifestSHA256": "536b5204125b18aec95187f11ab88268342a110a54405d8c7db24c7602399efc",
+      "savedFiles": []
+    },
+    "nativeControl": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 862,
+      "receiptSHA256": "e7d6729347dc39f4fb86ac58b37a75dbdf25bbb1be35f2245cad8f0e69e6e378",
+      "sourceManifestSHA256": "536b5204125b18aec95187f11ab88268342a110a54405d8c7db24c7602399efc",
+      "savedFiles": []
+    }
+  },
+  "mixedBodyIndices": [
+    0,
+    0,
+    1
+  ],
+  "collinearPointsMM": [
+    [
+      10,
+      30,
+      10
+    ],
+    [
+      30,
+      30,
+      10
+    ],
+    [
+      40,
+      30,
+      10
+    ]
+  ],
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 9,
+    "failed": 0,
+    "typeChecks": 2,
+    "modelPassed": 8
+  }
+}

@@ -5,6 +5,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const output = process.argv[2], repo = resolve(import.meta.dirname, '../../..');
+const refusalReasons = process.argv[3] === '--refusal-reasons';
 assert.ok(output && isAbsolute(output) && relative(repo, output).startsWith('../'));
 await mkdir(output);
 const fixture = 'apps/cad-studio/test/fixtures/linear-cut-pattern.bcad';
@@ -20,7 +21,7 @@ const pins = [fixture, 'apps/cad-studio/test/three-vertex-sketch-browser.mjs', '
   'packages/barocss-cad-model/src/sketch/plane.ts', 'packages/barocss-cad-model/src/sketch/types.ts',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'apps/cad-studio/src/ui/SketchPanel.tsx'];
 const f = await createFlow({
-  name: 'three-vertex-sketch', envFrozen: 'D792_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
+  name: 'three-vertex-sketch', envFrozen: refusalReasons ? 'D1126_SOURCE_FROZEN' : 'D792_SOURCE_FROZEN', output, initialFiles: pins, requiredFrozen: pins,
   qualification: 'Start a Sketch on the exact plane of three ordered native box vertices selected in the desktop viewport.',
   limits: ['One owned native box; ordered real pointer picks on two cameras.'],
   snapshotExtra: () => ({ plane: document.querySelector('select[aria-label="Sketch plane"]')?.value ?? null }),
@@ -69,7 +70,7 @@ async function checkExtrude(label, doc) {
   return native;
 }
 
-async function pickVertex(point, inward, count, expected = points) {
+async function pickVertex(point, inward, count, expected = points, bodyIndices = []) {
   const [corner, centre] = await f.page.evaluate(points => points.map(point => window.__studioScreenOf(point)), [point, inward]);
   assert.ok(corner?.length === 2 && centre?.length === 2);
   const inwardScreen = [centre[0] - corner[0], centre[1] - corner[1]], length = Math.hypot(...inwardScreen);
@@ -80,11 +81,51 @@ async function pickVertex(point, inward, count, expected = points) {
   finally { if (count > 1) await f.page.keyboard.up('Shift'); }
   await f.page.waitForFunction(count => window.__studioSelection?.selection.vertices?.length === count, count);
   const vertices = await f.page.evaluate(() => window.__studioSelection.selection.vertices.map(v => [v.body, v.at]));
-  assert.deepEqual(vertices, expected.slice(0, count).map(point => [0, point]));
+  assert.deepEqual(vertices, expected.slice(0, count).map((point, index) => [bodyIndices[index] ?? 0, point]));
+}
+
+async function checkRefusalReasons() {
+  const sketchMode = button(f.page.locator('.mode'), 'Sketch');
+  const view = name => button(f.page.locator('.views'), name);
+  const other = [
+    { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [80, 0], max: [100, 30] },
+    { id: 'n3', kind: 'extrude', sketch: 2, height: 10 },
+  ];
+  const mixed = { ...stock, nodes: [...stock.nodes, ...other], outputs: { ...stock.outputs, b3: { node: 3, side: 'solid' } }, nextId: 4 };
+  const outline = [[0, 0], [50, 0], [50, 30], [40, 30], [40, 20], [30, 20], [30, 30], [20, 30], [20, 20], [10, 20], [10, 30], [0, 30]];
+  const stepped = { ...stock, nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'loop', segments: outline.map(start => ({ kind: 'line', start })) },
+    { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+  ] };
+  for (const [doc, vertices, interior, bodies, message] of [
+    [mixed, [[0, 0, 10], [60, 30, 10], [80, 0, 10]], [[30, 15, 10], [30, 15, 10], [90, 15, 10]], [0, 0, 1], 'Selected vertices belong to different bodies'],
+    [stepped, [[10, 30, 10], [30, 30, 10], [40, 30, 10]], [[5, 25, 10], [35, 25, 10], [45, 25, 10]], [0, 0, 0], 'Selected vertices are collinear'],
+  ]) {
+    f.phase = message;
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
+    await chooser.setFiles({ name: 'vertex-plane-refusal.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+    await f.same(doc);
+    await view('Top').click();
+    if (await view('Ortho').getAttribute('aria-pressed') !== 'true') await view('Ortho').click();
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    for (let i = 0; i < vertices.length; i++) await pickVertex(vertices[i], interior[i], i + 1, vertices, bodies);
+    const before = await f.snapshot(message + '-before');
+    await sketchMode.click();
+    const after = await f.snapshot(message + '-after');
+    assert.ok((await f.toasts()).some(text => text.includes(message)), message);
+    assert.equal(await f.sketchPanel().isVisible(), false);
+    assert.deepEqual(after.selection, before.selection);
+    assert.deepEqual(after.doc, doc);
+    await f.dismissToasts();
+  }
 }
 
 await f.run(async () => {
   await f.newPage();
+  if (refusalReasons) {
+    await checkRefusalReasons();
+    return;
+  }
   await f.openFile(input, 2);
   await f.same(stock);
   const views = f.page.locator('.views');
