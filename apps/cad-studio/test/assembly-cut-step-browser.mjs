@@ -8,13 +8,13 @@ const fixture = 'apps/cad-studio/test/fixtures/assembly-cut.bcad';
 const pins = [
   fixture, 'apps/cad-studio/test/assembly-cut-step-browser.mjs',
   'apps/cad-studio/src/engine/stepMetadata.ts', 'apps/cad-studio/src/engine/client.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
-  'apps/cad-studio/src/files/stepExportPreparation.ts', 'apps/cad-studio/src/files/StepExportPanel.tsx',
+  'apps/cad-studio/src/files/useModelExports.ts', 'apps/cad-studio/src/files/stepExportPreparation.ts', 'apps/cad-studio/src/files/StepExportPanel.tsx',
   'packages/barocss-cad-model/src/engine/wireDoc.ts', 'packages/barocss-cad-model/src/engine/evaluate.ts',
 ];
 const f = await createFlow({
   name: 'assembly-cut-step', output: process.argv[2], envFrozen: 'D1026_SOURCE_FROZEN',
   qualification: 'STEP carries only applied Assembly Cut geometry from the current Studio document.',
-  limits: ['Two placed 60 × 40 × 5 mm plates, one rotated a quarter turn, with one applied Ø8 through cut and an independent base body.'],
+  limits: ['Two placed 60 × 40 × 5 mm plates, one rotated a quarter turn, with one applied Ø8 through cut, an unapplied Ø12 edit and an independent base body.'],
   initialFiles: pins, requiredFrozen: pins,
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -116,16 +116,14 @@ await f.run(async () => {
     await button('Cut', hud()).waitFor();
   }
   const waitPreview = async (x, expected) => {
-    await f.page.waitForFunction(([x, expected]) => !!window.__studioInstanceAt([x, 20, 10]) === expected, [x, expected]);
+    await f.page.waitForFunction(([x, expected]) => window.__studioInstanceBounds?.()?.length === 2 &&
+      !!window.__studioInstanceAt?.([x, 20, 10]) === expected, [x, expected]);
   };
 
   f.phase = 'export the stock plates and then an unapplied creation draft';
   verify(await exportStep('stock-step', doc), false);
   await createDraft();
-  await f.page.waitForFunction(() => {
-    const bounds = window.__studioInstanceBounds?.();
-    return bounds?.length === 2 && window.__studioInstanceAt?.([30,20,10]) === null;
-  });
+  await waitPreview(30, false);
   verify(await exportStep('draft-step', doc), false);
   await button('Cut', hud()).click();
   await f.changed(doc);
@@ -134,10 +132,28 @@ await f.run(async () => {
   const applied = await f.doc();
   assert.equal(applied.assemblyCuts[0].profile.radius, 4);
   verify(await exportStep('applied-step', applied), true);
+  f.phase = 'export Ø8 STEP while a visible Ø12 edit is pending';
+  await waitPreview(35, true);
+  await f.page.locator('button[aria-label^="Edit cut"]').first().click();
+  const radius = hud().getByLabel('Radius mm', { exact: true });
+  await radius.fill('6');
+  await waitPreview(35, false);
+  verify(await exportStep('edit-draft-step', applied), true);
+  assert.equal(await radius.inputValue(), '6');
+  await waitPreview(35, false);
+  await button('Cancel', hud()).click();
+  await waitPreview(35, true);
+  verify(await exportStep('edit-cancelled-step', applied), true);
+
+  f.phase = 'export after Undo and Redo';
   await f.undo();
   await f.same(doc);
+  await waitPreview(30, true);
+  verify(await exportStep('undo-step', doc), false);
   await f.redo();
   await f.same(applied);
+  await waitPreview(30, false);
+  verify(await exportStep('redo-step', applied), true);
 
   f.phase = 'reopen the saved applied cut and export again';
   const projectName = 'D1026 Assembly Cut', file = 'assembly-cut-output.bcad';

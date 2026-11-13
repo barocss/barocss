@@ -1,0 +1,45 @@
+{
+  "decision": "D1028",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "9219a8c1ec807682bf9375de48476ee6c6e4be10",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1028-section-studio01",
+    "D1026_SOURCE_FROZEN=1 node apps/cad-studio/test/assembly-cut-step-browser.mjs <external-evidence>/studio01",
+    "gate.sh acquire heavy 600 D1028-focused",
+    "node --check apps/cad-studio/test/assembly-cut-step-browser.mjs",
+    "pnpm --filter @barocss/cad-studio-app test step-metadata step-export-preparation assembly-cut",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "captures": 8,
+    "frozenFiles": 725,
+    "receiptSHA256": "0924480f5f1dd619cee38d9c65fb749efa1a5825a586485429ff7952dab390bf",
+    "sourceManifestSHA256": "465c75a092eee7d71e63186ac17a779971e4b140eb58953d10e37ea782441e4d",
+    "draftPlateVolumesMM3": [
+      11748.672587712836,
+      11748.672587712817
+    ],
+    "volumeToleranceMM3": 1e-06,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "focused": {
+    "status": "PASS",
+    "passed": 22,
+    "failed": 0
+  },
+  "notRun": [
+    "third-party STEP reader",
+    "other target types",
+    "3MF",
+    "production build",
+    "type-checks",
+    "full suites",
+    "mobile"
+  ]
+}
