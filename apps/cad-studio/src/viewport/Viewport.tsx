@@ -954,8 +954,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     // Finished sketches waiting for a feature: their outlines, the picked ones filled.
     if (!sk && props.profiles?.length) for (const p of props.profiles) {
       const rings = p.rings.map(r => r.map(v => cam.project(v, w, h)));
-      items.push(<g key={'pf' + p.id} className={'profile' + (p.picked ? ' picked' : '')} data-profile={p.id}>
-        {p.picked && <path d={rings.map(r => 'M' + r.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join('L') + 'Z').join('')} fillRule="evenodd" className="profile-fill" />}
+      const fills = p.pickedRegions ? p.pickedRegions.flatMap(index => rings[index] ? [rings[index]] : []) : rings;
+      items.push(<g key={'pf' + p.id} className={'profile' + (p.picked ? ' picked' : '')} data-profile={p.id} data-picked-regions={p.pickedRegions?.join(',')}>
+        {p.picked && <path d={fills.map(r => 'M' + r.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join('L') + 'Z').join('')} fillRule="evenodd" className="profile-fill" />}
         {rings.map((r, k) => <polygon key={k} points={r.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ')} className="profile-line" />)}</g>);
     }
     // The gizmo and feature handles, and while one is dragged what the drag means.

@@ -100,9 +100,9 @@ export interface ViewportPointerProps {
   poles?: { key: string; at: Vec3 }[];
   onPickPole?(key: string): void;
   onHoverScalar?(value: number | null): void;
-  /** Finished sketches no feature uses yet (world outlines), picked ones highlighted; a click picks one (Shift: adds). */
-  profiles?: { id: number; rings: Vec3[][]; picked: boolean }[];
-  onPickProfile?(id: number | null, additive: boolean): void;
+  /** Finished sketches and their selected material regions in world coordinates. */
+  profiles?: { id: number; rings: Vec3[][]; picked: boolean; outerCount: number; canPickRegion: boolean; retained: boolean; pickedRegions?: number[] }[];
+  onPickProfile?(id: number | null, additive: boolean, region?: number): void;
   /**
    * A SubD cage being edited (R8.2, D81): drawn over the body (edges, vertices, the selection, what its validation
    * flags), clicks pick in its mode (Shift adds), a double-click on an edge its loop (Alt: its ring).
@@ -474,9 +474,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
    * The edge or else the face under a pixel. Over a face an edge must be within 4 px (a thin face such as
    * a plate's side stays pickable); elsewhere within 6 px.
    */
-  const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null; front?: { face: FaceRef | null; edge: EdgeRef | null } } => {
+  const pickAt = (r: ViewRenderer, x: number, y: number, face?: FaceRef | null): { face: FaceRef | null; edge: EdgeRef | null; front?: { face: FaceRef | null; edge: EdgeRef | null } } => {
     const view = viewState(), cameraNow = camera.current;
-    const under = r.pickFace(x, y, cameraNow, view), filter = propsRef.current.pickFilter ?? 'all';
+    const under = face === undefined ? r.pickFace(x, y, cameraNow, view) : face, filter = propsRef.current.pickFilter ?? 'all';
     if (filter === 'face' || filter === 'body') return { face: under, edge: null };
     const radius = under ? 4 : 6;
     const edge = r.pickEdge(x, y, cameraNow, view, radius);
@@ -646,21 +646,27 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     byFace.set(face, out); return out;
   };
   /** Pick the nearest sketch outline or any filled part of a finished sketch. */
-  const profileAt = (x: number, y: number, w: number, h: number): number | null => {
-    let edge: number | null = null, fill: number | null = null, nearest = 6;
+  const profileAt = (x: number, y: number, w: number, h: number): { id: number; retained: boolean; region?: number } | null => {
+    let edge: { id: number; retained: boolean } | null = null, fill: { id: number; retained: boolean; region?: number } | null = null, nearest = 6;
     const point = [x, y];
     for (const profile of propsRef.current.profiles ?? []) {
       let inside = false;
-      for (const ring of profile.rings) {
+      const regions: number[] = [];
+      for (const [index, ring] of profile.rings.entries()) {
         const projected = ring.map(vertex => camera.current.project(vertex, w, h));
         // Use the same even-odd rule as the sketch overlay, including holes.
-        if (insideRing(point, projected)) inside = !inside;
+        if (insideRing(point, projected)) {
+          inside = !inside;
+          if (index < profile.outerCount) regions.push(index);
+        }
         for (let i = 0, j = projected.length - 1; i < projected.length; j = i++) {
           const distance = segmentDistance(point, projected[i], projected[j]);
-          if (distance < nearest) { nearest = distance; edge = profile.id; }
+          if (distance < nearest) { nearest = distance; edge = { id: profile.id, retained: profile.retained }; }
         }
       }
-      if (inside && fill === null) fill = profile.id;
+      if (inside && fill === null) {
+        fill = { id: profile.id, retained: profile.retained, ...(profile.canPickRegion && regions.length === 1 ? { region: regions[0] } : {}) };
+      }
     }
     return edge ?? fill;
   };
@@ -1103,8 +1109,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       return;
     }
     // Finished sketch outlines and filled areas come before the bodies behind them.
-    const prof = profileAt(x, y, w, h);
-    if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
+    const filter = propsRef.current.pickFilter ?? 'all';
+    const prof = filter === 'all' ? profileAt(x, y, w, h) : null;
+    if (prof && !prof.retained) { propsRef.current.onPickProfile?.(prof.id, e.shiftKey, prof.region); return; }
     const poles = propsRef.current.poles;
     if (poles?.length) {
       let best: string | null = null, d0 = 8;
@@ -1117,7 +1124,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
     if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
-    const hit = pickAt(r, x, y), { face, edge } = hit, vertex = vertexAt(x, y, w, h, hit.front ?? hit);
+    const frontFace = prof ? r.pickFace(x, y, camera.current, viewState()) : undefined;
+    if (prof && !frontFace) { propsRef.current.onPickProfile?.(prof.id, e.shiftKey, prof.region); return; }
+    const hit = pickAt(r, x, y, frontFace), { face, edge } = hit, vertex = vertexAt(x, y, w, h, hit.front ?? hit);
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     const edgeMesh = edge ? rendererBodies.current[edge.body]?.mesh : undefined;
     propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);

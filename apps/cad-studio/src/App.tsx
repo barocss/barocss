@@ -1850,7 +1850,15 @@ export function App() {
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes, true), [evaluated.nodes]);
   // The steps inside a part made in several (a bolt's head, shank and their union): one history entry, the last.
   const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => 'made' in n && n.made?.nodes ? Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k) : [])), [doc.nodes]);
-  const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: ringsOf(evaluated.nodes[i] as SketchNode, shownDoc.parameters), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, sketch]);
+  const retainedProfiles = useMemo(() => new Set(evaluated.nodes.flatMap(node =>
+    node.kind === 'region-extrude' ? [node.sketch] : [])), [evaluated.nodes]);
+  const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => {
+    const node = evaluated.nodes[i] as SketchNode;
+    const outerCount = (node.regions?.length ?? 0) + 1;
+    const canPickRegion = outerCount > 1 && !!node.sideTags?.regions && !node.holes?.length;
+    const pickedRegions = canPickRegion && selection.profileRegions?.sketch === i ? selection.profileRegions.indices : undefined;
+    return { id: i, rings: ringsOf(node, shownDoc.parameters), picked: !!selection.sketches?.includes(i), outerCount, canPickRegion, pickedRegions, retained: retainedProfiles.has(i) };
+  }), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, selection.profileRegions, retainedProfiles, sketch]);
   // A computation running past a second can be stopped (D42: a committed Boolean on a mesh of up to 20000
   // triangles takes a few seconds): the worker restarts and the change that started it is taken back.
   const [slow, setSlow] = useState(false);

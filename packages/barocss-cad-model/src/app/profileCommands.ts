@@ -86,6 +86,7 @@ export const extrudeCommand: Command = {
   id: 'extrude', label: 'Extrude', icon: 'cad-extrude', shortcut: 'E', group: 'create', keywords: 'pull push pad boss cut pocket press',
   hint: 'Pull a flat face or a finished sketch along its normal: drag the arrow or type the distance',
   available: ctx => {
+    if ((ctx.selection.profileRegions?.indices.length ?? 0) > 1) return no('Select one sketch region to extrude, or select the whole sketch in the Browser.');
     if (extrudeProfile(ctx)) return ok;
     if ((ctx.selection.sketches?.length ?? 0) > 1) return no('Select one finished sketch to extrude.');
     if (faceSketch(ctx) === null) return no('Pick a flat face: a curved one has no plane to pull along.');
@@ -109,8 +110,9 @@ export const extrudeCommand: Command = {
     return fields;
   },
   defaults: ctx => {
-    const p = extrudeProfile(ctx);
-    return { h: 8, draft: 0, ...(p && !p.fresh && p.node.regions?.length ? { region: hasRegionExtrude(ctx, p.index) ? '' : 'all' } : {}), ...(canExtrudeToFace(ctx, p) ? { depth: 'distance' } : {}),
+    const p = extrudeProfile(ctx), picked = ctx.selection.profileRegions;
+    const region = p && picked?.sketch === p.index && picked.indices.length === 1 ? String(picked.indices[0]) : p && hasRegionExtrude(ctx, p.index) ? '' : 'all';
+    return { h: 8, draft: 0, ...(p && !p.fresh && p.node.regions?.length ? { region } : {}), ...(canExtrudeToFace(ctx, p) ? { depth: 'distance' } : {}),
       ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) };
   },
   derive: (_ctx, v, changed) => {
@@ -146,6 +148,7 @@ export const extrudeCommand: Command = {
     return next ?? { error: 'Pick one original planar face of a current solid.' };
   },
   build: (ctx, v) => {
+    if ((ctx.selection.profileRegions?.indices.length ?? 0) > 1) throw refusal('BAD_REFERENCE', 'Select one sketch region to extrude, or select the whole sketch in the Browser.');
     const region = regionValue(v);
     if (region !== null) {
       const p = extrudeProfile(ctx);

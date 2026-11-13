@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
-const chooseRegion = process.argv[3] === '--choose-region';
+const canvasRegion = process.argv[3] === '--canvas-region';
+const chooseRegion = canvasRegion || process.argv[3] === '--choose-region';
 const pins = [
   'apps/cad-studio/test/multi-region-profile-pick-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -10,7 +11,7 @@ const pins = [
   'packages/barocss-cad-model/src/engine/regionExtrude.ts',
 ];
 const f = await createFlow({
-  name: 'multi-region-profile-pick', output: process.argv[2], envFrozen: chooseRegion ? 'D1133_SOURCE_FROZEN' : 'D1129_SOURCE_FROZEN',
+  name: 'multi-region-profile-pick', output: process.argv[2], envFrozen: canvasRegion ? 'D1134_SOURCE_FROZEN' : chooseRegion ? 'D1133_SOURCE_FROZEN' : 'D1129_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Pick a finished sketch from either filled region and verify its full Extrude scope.',
   limits: ['Two rectangles with a shared segment, a hole, and an isolated rectangle. Finished sketch selection remains at sketch scope.'],
@@ -63,7 +64,66 @@ await f.run(async () => {
   await route('03-shared-region-interior', sharedRegion, [0]);
   if (!chooseRegion) await route('04-hole-interior', hole, []);
   await route('05-isolated-region-interior', isolatedRegion, [0]);
+  if (canvasRegion) {
+    const selected = await f.snapshot('06-isolated-canvas-pick');
+    assert.deepEqual(selected.selection.selection.profileRegions, { sketch: 0, indices: [2] });
+    const group = f.page.locator('.profile[data-profile="0"]');
+    assert.equal(await group.getAttribute('data-picked-regions'), '2');
+    await f.page.keyboard.down('Shift');
+    try { await f.worldClick(sharedRegion); } finally { await f.page.keyboard.up('Shift'); }
+    const two = await f.snapshot('07-two-canvas-regions');
+    assert.deepEqual(two.selection.selection.profileRegions, { sketch: 0, indices: [2, 1] });
+    assert.equal(await group.getAttribute('data-picked-regions'), '2,1');
+    await f.page.keyboard.press('e');
+    await f.waitToast(/select one sketch region to extrude/i);
+    assert.equal(await f.hud().count(), 0);
+    await f.same(source);
+    await f.dismissToasts();
+    await f.page.keyboard.down('Shift');
+    try { await f.worldClick(isolatedRegion); } finally { await f.page.keyboard.up('Shift'); }
+    assert.equal(await group.getAttribute('data-picked-regions'), '1');
+    await f.openExtrudeHud();
+    assert.equal(await f.hud().getByLabel('Region', { exact: true }).inputValue(), '1');
+    await f.hud().getByText('Sketch 1 · Region 2', { exact: true }).waitFor();
+    await f.same(source);
+    await f.snapshot('08-shared-canvas-review');
+    const { doc } = await f.applyExtrude({ distance: 2, previous: source, label: '09-shared-canvas-applied' });
+    const recipe = doc.nodes[1];
+    assert.equal(recipe.kind, 'region-extrude');
+    assert.equal(recipe.sourceFeature, 'n0');
+    assert.deepEqual(recipe.boundary.map(edge => edge.side), supported.nodes[0].sideTags.regions[0]);
+    const [body] = await f.inspect('canvas-region-native', doc);
+    assert.equal(body.valid, true);
+    assert.equal(body.bodies, 1);
+    assert.ok(Math.abs(body.volume - 240) < 1e-9);
+    assert.ok(Math.hypot(body.centroid[0] - 19, body.centroid[1] - 12, body.centroid[2] - 1) < 1e-9);
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(doc);
+    await button('Top').click();
+    const filter = f.page.getByRole('button', { name: 'Selection filter', exact: true });
+    await f.worldClick(sharedRegion);
+    const front = await f.snapshot('10-visible-cap-pick-all');
+    assert.equal(front.selection.selection.faces.length, 1);
+    assert.equal(front.selection.selection.profileRegions, undefined);
+    for (let i = 0; i < 4 && !(await filter.innerText()).includes('Bodies'); i++) await filter.click();
+    assert.match(await filter.innerText(), /Bodies/);
+    await f.worldClick(sharedRegion);
+    const bodyPick = await f.snapshot('11-visible-body-filter');
+    assert.deepEqual(bodyPick.selection.selection.bodies, [0]);
+    for (let i = 0; i < 4 && !(await filter.innerText()).includes('Pick all'); i++) await filter.click();
+    assert.match(await filter.innerText(), /Pick all/);
+    await f.frame([sharedRegion, isolatedRegion]);
+    await f.worldClick(isolatedRegion);
+    assert.equal(await group.getAttribute('data-picked-regions'), '2');
+    await f.same(doc);
+    f.report.observations.push({ label: 'canvas-region-applied', centroidMM: body.centroid, volumeMM3: body.volume });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   f.phase = 'verify the whole-sketch scope in the preview';
+  if (chooseRegion) await f.page.getByRole('button', { name: 'Sketch 1', exact: true }).click();
   await f.openExtrudeHud();
   await f.hud().getByText('Sketch 1 · all 3 regions', { exact: true }).waitFor();
   await f.same(source);

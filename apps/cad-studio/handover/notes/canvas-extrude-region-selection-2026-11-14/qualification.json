@@ -1,0 +1,86 @@
+{
+  "decision": "D1134",
+  "tier": "FEATURE",
+  "parent": "26dea65dd01410c593566105c01cf4fd9844a032",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1134-profile-pick-<run>",
+    "D1134_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/complete --canvas-region",
+    "D1133_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/hud-final --choose-region",
+    "D1129_SOURCE_FROZEN=1 node apps/cad-studio/test/multi-region-profile-pick-browser.mjs <external-evidence>/whole-final",
+    "D1130_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-multiple-sketch-refusal-browser.mjs <external-evidence>/two-final",
+    "cd apps/cad-studio && node scripts/test.mjs camera-projector selection-edge",
+    "cd packages/barocss-cad-model && node scripts/test.mjs region-extrude profiles-parameters face-commands face-end-extrude",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-complete",
+    "pnpm exec eslint apps/cad-studio/src/state/profileSelection.ts apps/cad-studio/src/viewport/viewportPointerInput.ts apps/cad-studio/src/viewport/useViewportPicking.ts packages/barocss-cad-model/src/app/profileCommands.ts",
+    "node --check apps/cad-studio/test/multi-region-profile-pick-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "first": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 862,
+      "receiptSHA256": "ecc5f6dfcdc53d24022111839aacac66cf64f01ee9715da99c84c76fd69e48fc",
+      "sourceManifestSHA256": "88e32f5bb654d68c8f204ebf64d4065dbdce3b3f901152db83c657d07c2cd861"
+    },
+    "final": {
+      "status": "FAIL",
+      "states": 11,
+      "frozenFiles": 862,
+      "receiptSHA256": "bbdd7881b4a55e1c6725ec6da77a771430b5cbb7ffa6053d4d7ef8c19a2129ab",
+      "sourceManifestSHA256": "57e28999e6536b455336940585cb4c1dfe6afbe8bfed78aa78253e796c824662"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 862,
+      "receiptSHA256": "a7b113d73829581745ef00dc1fb1cd133275fc864e622af9aa2bd6f2f6e5c372",
+      "sourceManifestSHA256": "670ab38f9d22c7a398068e156567ee3c3522c2e9205177dd3683f42243b7e377"
+    },
+    "complete": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 862,
+      "receiptSHA256": "e924b4cbcef0e967847c7043dba64267d4087343b29e6d0d4f9cc38c8f535672",
+      "sourceManifestSHA256": "875604199c578326ace4c9ea347e42817b32e691ba19e623e546266538dd6f77"
+    },
+    "hud-final": {
+      "status": "PASS",
+      "states": 10,
+      "frozenFiles": 862,
+      "receiptSHA256": "c25fe52e41555e3f293fd017aa63b322d4e1262ce43c2177df93f4033bbc6e39",
+      "sourceManifestSHA256": "670ab38f9d22c7a398068e156567ee3c3522c2e9205177dd3683f42243b7e377"
+    },
+    "whole-final": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 862,
+      "receiptSHA256": "ccbbf7317c403d05936349d8776a8fa6b3b89b99b04435b36746e9783fc1a471",
+      "sourceManifestSHA256": "670ab38f9d22c7a398068e156567ee3c3522c2e9205177dd3683f42243b7e377"
+    },
+    "two-final": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 382,
+      "receiptSHA256": "5659e38e42e3b0a3119aec1afc7edc0ba591ca217316707c10a9917391d08a65",
+      "sourceManifestSHA256": "48ffba9b0ac90f976adbed99889c01ddbff79b17f997e562bdc8623ee7c35eaa"
+    }
+  },
+  "observation": {
+    "label": "canvas-region-applied",
+    "centroidMM": [
+      19.000000000000004,
+      12.000000000000002,
+      1
+    ],
+    "volumeMM3": 240.00000000000003
+  },
+  "focused": {
+    "studioPassed": 22,
+    "modelPassed": 53,
+    "failed": 0
+  }
+}

@@ -159,12 +159,17 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
-  const onPickProfile = useCallback((id: number | null, additive: boolean) => {
+  const onPickProfile = useCallback((id: number | null, additive: boolean, region?: number) => {
     if (id === null) return;
     setDirectSel([]);
     setInstanceSel([]);
     setSelection(prev => {
       const list = prev.sketches ?? [];
+      if (region !== undefined && (!additive || !list.length || (list.length === 1 && list[0] === id))) {
+        const picked = additive && prev.profileRegions?.sketch === id ? prev.profileRegions.indices : [];
+        const indices = picked.includes(region) ? picked.filter(i => i !== region) : [...picked, region];
+        return indices.length ? { ...emptySel, sketches: [id], profileRegions: { sketch: id, indices } } : emptySel;
+      }
       return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
     });
   }, []);
