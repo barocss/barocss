@@ -4,12 +4,13 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const pickAtLabel = process.argv[3] === '--pick-at-label';
 const chooseEdge = process.argv[3] === '--choose-edge';
+const trimShared = process.argv[3] === '--trim-shared';
 const storedIdMode = process.argv[3] === '--stored-ids';
 const dragMode = process.argv[3] === '--spline-drag';
 const pins = [
   'apps/cad-studio/test/overlaid-lines-browser.mjs',
   'apps/cad-studio/src/App.tsx',
-  ...(chooseEdge ? ['apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/sketch/draftHistory.ts',
+  ...(chooseEdge || trimShared ? ['apps/cad-studio/src/app/sketchControls.ts', 'apps/cad-studio/src/sketch/draftHistory.ts',
     'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/sketch/types.ts'] : []),
   'apps/cad-studio/src/sketch/overlaidLines.ts',
   'apps/cad-studio/src/sketch/useOverlaidLines.ts',
@@ -19,8 +20,9 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'overlaid-lines', output: process.argv[2], envFrozen: pickAtLabel ? 'D1095_SOURCE_FROZEN' : chooseEdge ? 'D1094_SOURCE_FROZEN' : dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: dragMode ? 'Retire the scan on spline pointer-down and prevent scans until release or cancellation.'
+  name: 'overlaid-lines', output: process.argv[2], envFrozen: trimShared ? 'D1131_SOURCE_FROZEN' : pickAtLabel ? 'D1095_SOURCE_FROZEN' : chooseEdge ? 'D1094_SOURCE_FROZEN' : dragMode ? 'D830_SOURCE_FROZEN' : storedIdMode ? 'D829_SOURCE_FROZEN' : 'D828_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: trimShared ? 'Verify shared-edge preview, first Finish refusal and draft Undo, then trim both occurrences.'
+    : dragMode ? 'Retire the scan on spline pointer-down and prevent scans until release or cancellation.'
     : storedIdMode ? 'Keep a stored side ID distinct from a draft occurrence and retire the report through Undo and Redo.'
     : 'Locate the two exact source edges of adjacent rectangles without changing the sketch or history.',
   limits: ['Ordinary desktop rectangles and a closed spline. The diagnostic reads straight segments and does not determine profile validity.'],
@@ -247,7 +249,7 @@ await f.run(async () => {
   await f.page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
   await f.ready();
   const empty = await f.doc();
-  if (chooseEdge || pickAtLabel) await f.page.setViewportSize({ width: 1024, height: 800 });
+  if (chooseEdge || pickAtLabel || trimShared) await f.page.setViewportSize({ width: 1024, height: 800 });
   if (storedIdMode) { await checkStoredIds(empty); return; }
   await button(f.page.locator('.mode'), 'Sketch').click();
   await f.sketchPanel().waitFor();
@@ -279,6 +281,63 @@ await f.run(async () => {
   assert.deepEqual(await shapeGraphics(), graphics);
   assert.deepEqual(await controls(), original);
   await f.snapshot('01-two-original-directions');
+
+  if (trimShared) {
+    const mid = [14, 11];
+    const trim = f.page.locator('.vp-overlay polyline.sk-trim');
+    const trimEnds = () => trim.evaluate(line => {
+      const matrix = line.getScreenCTM();
+      return Array.from(line.points, point => {
+        const projected = new DOMPoint(point.x, point.y).matrixTransform(matrix);
+        return [projected.x, projected.y];
+      });
+    });
+    const hover = async (start, end) => {
+      await f.page.mouse.move(...await f.screenOf([13, 10]));
+      const point = await f.screenOf(mid);
+      await f.page.mouse.move(...point);
+      await trim.waitFor({ state: 'attached' });
+      const actual = await trimEnds();
+      const expected = await Promise.all([start, end].map(p => f.screenOf(p)));
+      actual.forEach(([x, y], j) => assert.ok(Math.hypot(x - expected[j][0], y - expected[j][1]) < 1));
+      return point;
+    };
+    f.phase = 'preview and trim the first shared edge occurrence';
+    await f.tool('Trim', 't');
+    await f.page.mouse.click(...await hover(B, C));
+    const partial = await shapeGraphics();
+    assert.equal(partial.filter(g => g[0] === 'polyline').length, 1);
+    assert.deepEqual(partial.find(g => g[0] === 'polygon')?.[1], graphics[1][1]);
+    await f.page.locator('.topbar button.finish').click();
+    assert.match(await f.sketchAlert(), /open chain/i);
+    await f.same(empty);
+    await f.snapshot('02-first-trim-finish-refusal');
+
+    f.phase = 'undo and redo the first exact Trim';
+    await f.undo();
+    assert.equal(await f.sketchAlert(), null);
+    assert.deepEqual((await shapeGraphics()).map(g => g[1]).sort(), graphics.map(g => g[1]).sort());
+    await f.redo();
+    assert.deepEqual(await shapeGraphics(), partial);
+    await f.same(empty);
+
+    f.phase = 'trim the reverse occurrence, finish and extrude the merged rectangle';
+    await f.page.mouse.click(...await hover(C, B));
+    assert.equal((await shapeGraphics()).length, 1);
+    const finished = (await f.finishSketch('03-merged-rectangle')).doc;
+    await f.openExtrudeHud();
+    const solid = (await f.applyExtrude({ distance: 2, previous: finished, label: '04-extrude-merged-rectangle' })).doc;
+    const native = await f.inspect('native-merged-rectangle', solid);
+    assert.equal(native.valid, true);
+    assert.ok(Math.abs(native.volume - 400) < 1e-9);
+    await f.undo();
+    await f.same(finished);
+    await f.redo();
+    await f.same(solid);
+    f.report.observations.push({ label: 'shared-trim', firstEnds: [B, C], secondEnds: [C, B], volumeMM3: native.volume });
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   if (pickAtLabel) {
     const pixel = await f.screenOf([14, 11]);

@@ -1,0 +1,58 @@
+{
+  "decision": "D1131",
+  "tier": "SMALL",
+  "parent": "96ad8546d33c5c9bbad423a155cc95250d0004a7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1131-shared-trim-<run>",
+    "D1131_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/01 --trim-shared",
+    "D1094_SOURCE_FROZEN=1 node apps/cad-studio/test/overlaid-lines-browser.mjs <external-evidence>/choose --choose-edge",
+    "cd apps/cad-studio && node scripts/test.mjs overlaid-lines trim.test draft-history",
+    "node --check apps/cad-studio/test/overlaid-lines-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "01": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "a1fb3b40424a9815d70e0bceac271d7c63912f7945ad628bd23cb4c983044fa1",
+      "sourceManifestSHA256": "74aea75d5791de599694c6d2ea94118f0c85162e0b24deffe53900c4f18d2fa6"
+    },
+    "choose": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "74449ed3528017dee3f59f0671aa96c7c53e8ff4ef189add92fcb9180b6a9a6f",
+      "sourceManifestSHA256": "74aea75d5791de599694c6d2ea94118f0c85162e0b24deffe53900c4f18d2fa6"
+    }
+  },
+  "observation": {
+    "label": "shared-trim",
+    "firstEnds": [
+      [
+        14,
+        6
+      ],
+      [
+        14,
+        16
+      ]
+    ],
+    "secondEnds": [
+      [
+        14,
+        16
+      ],
+      [
+        14,
+        6
+      ]
+    ],
+    "volumeMM3": 400
+  },
+  "focused": {
+    "studioPassed": 10,
+    "failed": 0
+  }
+}
