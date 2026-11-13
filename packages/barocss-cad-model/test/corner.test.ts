@@ -396,6 +396,22 @@ test('pinned Round guards the fillet radius when re-locking in either traversal'
     assert.equal(bothUnlocked.error, null);
     assert.equal(bothUnlocked.shape?.kind, 'polygon');
     assert.deepEqual(bothUnlocked.shape.radii, {});
+    const noLocks = bothUnlocked.shape;
+    for (const radius of [9.99999999, 10]) {
+      const filletFirstRefusal = commitInlineDimension(noLocks, key, radius);
+      assert.ok(!filletFirstRefusal.ok);
+      assert.match(filletFirstRefusal.reason, /does not fit on both finite sides/);
+      const refusedPanel = settleShape({ ...noLocks, radii: { [index]: radius } }, noLocks);
+      assert.equal(refusedPanel.shape, noLocks);
+      assert.match(refusedPanel.error ?? '', /does not fit on both finite sides/);
+    }
+    const filletFirst = commitInlineDimension(noLocks, key, 5);
+    if (!filletFirst.ok) assert.fail(filletFirst.reason);
+    assert.deepEqual(filletFirst.shape.radii, { [index]: 5 });
+    const lockedBoth = commitDimension(filletFirst.shape, 'rad2', 20);
+    if (!lockedBoth.ok) assert.fail(lockedBoth.reason);
+    assert.deepEqual(lockedBoth.shape.ids, noLocks.ids);
+    checkRoundedGeometry(lockedBoth.shape, 5, 1, 20, 20, reverse);
     assert.equal(planPinnedLineArcRadiusEdit({ ...bothUnlocked.shape, radii: { 2: 20 } }, bothUnlocked.shape), null);
     const sourceFirst = commitDimension(bothUnlocked.shape, 'rad2', 20);
     if (!sourceFirst.ok) assert.fail(sourceFirst.reason);

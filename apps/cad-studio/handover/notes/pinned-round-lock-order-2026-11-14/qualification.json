@@ -1,0 +1,64 @@
+{
+  "decision": "D1083",
+  "tier": "SMALL",
+  "parent": "e6e706b178eab1ab9d1c54bf75ad9b4436052a0d",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1083-round-lock-order-<run>",
+    "D1083_SOURCE_FROZEN=1 node apps/cad-studio/test/line-arc-round-browser.mjs <external-evidence>/<run> --lock-order",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "cd packages/barocss-cad-model && node scripts/test.mjs corner sketch-profile-precision sketch-reopen",
+    "pnpm --filter @barocss/cad-studio-app test sketchIds sketch-edit-identity named-sketch-guards constraint-list sketch-framing",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/pinnedLineArcRound.ts packages/barocss-cad-model/test/corner.test.ts",
+    "node --check apps/cad-studio/test/line-arc-round-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 6,
+      "frozenFiles": 858,
+      "receiptSHA256": "9aa40af45492e4fe4212c72b760908cfb5e81f7e06732a3cab2aec0f8a9cdf7f",
+      "sourceManifestSHA256": "27bee09368e5e91e7ed2bb897e8afc390a9cb9215c913a2d5bc7224f38d11957",
+      "firstFailure": "After clearing both radius locks, the first fillet lock accepts R10 without an alert and changes the draft."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 858,
+      "receiptSHA256": "506dcf8ab92866613595dffb67f0d81c6f6ed610d36c746ab968bf36b93cd5b7",
+      "sourceManifestSHA256": "e415ed27bef4bc6436e36466d1d9049acf0a98e9ab0c94dbd7e0be893cd7ab21"
+    }
+  },
+  "metrics": {
+    "refusedFilletRadiusMm": 10,
+    "acceptedFilletRadiusMm": 5,
+    "sourceRadiusMm": 20,
+    "extrudeMm": 10,
+    "expectedVolumeMm3": 7054.301379805951,
+    "sourceFirstVolumeMm3": 7054.301379805947,
+    "filletFirstVolumeMm3": 7054.301379812658,
+    "volumeToleranceMm3": 1e-07,
+    "pointToleranceMm": 1e-08
+  },
+  "notRun": [
+    "single-unlocked source R9 and R10 desktop replay",
+    "both lock orders on an oblique plane",
+    "full suites",
+    "production build"
+  ],
+  "focused": {
+    "status": "FAIL",
+    "studioPassed": 39,
+    "studioFailed": 6,
+    "sameFailuresOnParent": 6,
+    "modelPassed": 64,
+    "modelFailed": 0,
+    "typeChecks": 2,
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "e510b103531f0cc019a4b08767bd2561e2afa898ce9d6956b19fe82608c59733"
+  }
+}

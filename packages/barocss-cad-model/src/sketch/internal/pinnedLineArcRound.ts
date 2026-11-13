@@ -165,21 +165,19 @@ export function preparePinnedLineArcRound(s: Polygon, i: number, radius: number)
   };
 }
 
-function roundRecipe(s: Polygon, reverse: boolean, relockIndex?: 1 | 2 | 3) {
+function roundRecipe(s: Polygon, reverse: boolean, unlockedIndices: readonly number[] = []) {
   const filletIndex = reverse ? 3 : 1, tangents = reverse ? [2, 3, 4] : [1, 2, 3];
   const radii = s.radii;
   if (!ordinaryOutline(s, 5) || !supportedIds(s.ids, 5, filletIndex)
-    || s.tangents?.length !== 3 || !tangents.every(j => s.tangents!.includes(j)) || !radii) return null;
-  const unlocked = relockIndex !== undefined && radii[relockIndex] === undefined;
-  if (Object.keys(radii).length !== (unlocked ? 1 : 2)) return null;
+    || s.tangents?.length !== 3 || !tangents.every(j => s.tangents!.includes(j))
+    || Object.keys(radii ?? {}).some(key => key !== String(filletIndex) && key !== '2')) return null;
   const fix = reverse ? supportedPins(s, 2, [1, 4], 0) : supportedPins(s, 3, [0, 3], 4);
   if (!fix) return null;
   const direction = roundDirection(s.bulges, reverse);
   // The caller must still prove the old finite branch with this measured radius.
-  const measured = unlocked && direction
-    ? arcOf(s.points[relockIndex], s.points[relockIndex + 1], s.bulges![relockIndex]).radius : undefined;
-  const radius = unlocked && relockIndex === filletIndex ? measured : radii[filletIndex];
-  const sourceRadius = unlocked && relockIndex === 2 ? measured : radii[2];
+  const read = (i: number) => radii?.[i] ?? (direction && unlockedIndices.includes(i)
+    ? arcOf(s.points[i], s.points[i + 1], s.bulges![i]).radius : undefined);
+  const radius = read(filletIndex), sourceRadius = read(2);
   if (typeof radius !== 'number' || typeof sourceRadius !== 'number') return null;
   return { end: fix.at, radius, sourceRadius, direction };
 }
@@ -190,14 +188,25 @@ export function planPinnedLineArcRadiusEdit(candidate: Polygon, prev: Polygon): 
   const filletChanged = candidate.radii?.[filletIndex] !== prev.radii?.[filletIndex];
   const sourceChanged = candidate.radii?.[2] !== prev.radii?.[2];
   if (filletChanged === sourceChanged || !candidate.ids?.every((id, i) => id === prev.ids?.[i])) return null;
-  const old = roundRecipe(prev, reverse, sourceChanged ? 2 : filletIndex), next = roundRecipe(candidate, reverse);
+  const firstFilletLock = filletChanged && Object.keys(prev.radii ?? {}).length === 0
+    && Object.keys(candidate.radii ?? {}).length === 1;
+  const editedIndex = sourceChanged ? 2 : filletIndex;
+  const old = roundRecipe(prev, reverse, firstFilletLock ? [filletIndex, 2] : [editedIndex]);
+  const next = roundRecipe(candidate, reverse, firstFilletLock ? [2] : []);
   if (!old?.direction || !next || distance(next.end, old.end) !== 0 || !validRadius(old.radius)) return null;
   const carrier = carrierOf(prev.points[0], old.end, old.sourceRadius, old.direction, reverse);
   const current = carrier && planRound(carrier, old.radius);
-  if (!current || !matchesPinnedRound(prev, current)) return null;
+  if (!current || !matchesPinnedRound(prev, current)
+    || firstFilletLock && !matchesPinnedRound(candidate, current)) return null;
   if (next.direction !== old.direction) return { error: 'The radius edit must keep both arcs in their original direction.' };
   const changedRadius = sourceChanged ? next.sourceRadius : next.radius;
   if (!validRadius(changedRadius)) return { error: badRadius };
+  if (firstFilletLock) {
+    // The offset circle meets the line only if the fixed height exceeds the fillet diameter.
+    // This bound is independent of the unlocked source radius. Feasible first locks use the solver.
+    const { anchor, end } = current.carrier;
+    return end[1] - anchor[1] - 2 * changedRadius <= tolerance ? { error: noFit(changedRadius) } : null;
+  }
   // The source radius moves its center along the perpendicular through the fixed end.
   const target = sourceChanged ? carrierOf(prev.points[0], old.end, next.sourceRadius, old.direction, reverse) : current.carrier;
   const plan = target && planRound(target, next.radius);
