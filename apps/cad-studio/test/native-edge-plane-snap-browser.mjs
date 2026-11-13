@@ -8,6 +8,7 @@ const anchorTools = process.argv[3] === '--anchor-tools';
 const centreArc = process.argv[3] === '--centre-arc';
 const circleEndRadius = process.argv[3] === '--circle-end-radius';
 const slotEndWidth = process.argv[3] === '--slot-end-width';
+const constructionCircleRadius = process.argv[3] === '--construction-circle-radius';
 const pins = [
   'apps/cad-studio/test/native-edge-plane-snap-browser.mjs',
   'apps/cad-studio/src/App.tsx',
@@ -22,7 +23,8 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'native-edge-plane-snap', output: process.argv[2],
-  envFrozen: slotEndWidth ? 'D1111_SOURCE_FROZEN' : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
+  envFrozen: constructionCircleRadius ? 'D1117_SOURCE_FROZEN' : slotEndWidth ? 'D1111_SOURCE_FROZEN'
+    : circleEndRadius ? 'D1110_SOURCE_FROZEN' : centreArc ? 'D1109_SOURCE_FROZEN' : anchorTools ? 'D1108_SOURCE_FROZEN' : 'D864_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Use an original native straight edge crossing in desktop Studio and preserve the authored snapshot.',
   limits: ['One original top-level native prism on the desktop WebGPU viewport, with XY and tilted sketch planes.'],
@@ -515,6 +517,58 @@ async function snappedSlotWidth() {
   f.report.observations.push({ label: 'slot-end-extrude', expectedVolume, volume: slot.volume });
 }
 
+async function circleAtConstructionEndpoint() {
+  f.phase = 'author a Circle through a construction endpoint on a tilted plane';
+  await begin(0);
+  await tilt();
+  const toWorld = ([x, y]) => [x, 3.6 + 0.8 * y, 4.8 - 0.6 * y];
+  const a = [12.5, 16.5], b = [21.5, 28.5], middle = [17, 22.5], radius = 7.5;
+  const grid = button(f.page, 'Grid snap');
+  await grid.click();
+  assert.match(await grid.textContent(), /Grid 0.5 mm/);
+  await f.tool('Line', 'l');
+  await button(f.page, 'Construction').click();
+  await f.page.mouse.click(...await hover(toWorld(a), null));
+  await f.page.mouse.click(...await hover(toWorld(b), null));
+  await f.tool('Circle', 'c');
+  await button(f.page, 'Construction').click();
+  for (let i = 0; i < 4; i++) await grid.click();
+  assert.match(await grid.textContent(), /Grid off/);
+  await f.page.mouse.click(...await hover(toWorld(middle), 'Middle'));
+  const [x, y] = await pixel(toWorld(a));
+  await f.page.mouse.move(x + 2, y);
+  await cue().waitFor();
+  assert.equal(await cue().textContent(), 'End');
+  await f.page.locator('.dim-text').getByText('Ø15', { exact: true }).waitFor();
+  await f.snapshot('construction-end-circle-preview');
+  await f.page.mouse.click(x + 2, y);
+  const finished = (await f.finishSketch('construction-end-circle-finish')).doc;
+  assert.deepEqual(finished.nodes.slice(0, 2), source.nodes);
+  assert.deepEqual(finished.outputs, source.outputs);
+  const sketch = finished.nodes[2];
+  assert.equal(sketch.profile, 'circle');
+  assert.deepEqual(sketch.center, middle);
+  assert.equal(sketch.radius, radius);
+  assert.deepEqual(sketch.plane.normal, [0, 0.6, 0.8]);
+  assert.deepEqual(sketch.construction[0].points, [a, b]);
+  for (const [x, y] of sketch.construction[0].points) near(Math.hypot(x - middle[0], y - middle[1]), radius);
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(finished);
+  const saved = await saveInProject(finished, 'saved-construction-end-circle.bcad');
+  await f.freshOpen(saved, finished, 'construction-end-circle-reopened');
+  await button(f.page.getByRole('group', { name: 'History', exact: true }), 'Sketch · circle').click();
+  await f.openExtrudeHud();
+  const applied = await f.applyExtrude({ distance: 2, previous: finished, label: 'construction-end-circle-solid' });
+  const [stock, cylinder] = await f.inspect('construction-end-circle-native', applied.doc, 'extrude');
+  assert.ok(stock.valid && cylinder.valid);
+  near(stock.volume, 2800);
+  const expectedVolume = Math.PI * radius ** 2 * 2;
+  near(cylinder.volume, expectedVolume);
+  f.report.observations.push({ label: 'construction-end-circle', sketch, expectedVolume, volume: cylinder.volume });
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin, newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
@@ -536,6 +590,11 @@ await f.run(async () => {
   await f.same(source);
   f.report.observations.push({ label: 'source', bytes: bytes.length, sha256: sha256(bytes) });
   checkNative(await f.inspect('source-edge', source));
+  if (constructionCircleRadius) {
+    await circleAtConstructionEndpoint();
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
   if (slotEndWidth) {
     await snappedSlotWidth();
     assert.deepEqual(f.report.downloads, []);
