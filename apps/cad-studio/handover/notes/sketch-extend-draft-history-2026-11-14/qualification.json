@@ -1,0 +1,37 @@
+{
+  "decision": "D1064",
+  "tier": "SMALL",
+  "parent": "18bcdf29fc82b528ee515d1979d93e712cff835c",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1064-extend-<run>",
+    "D1064_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-extend-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history trim.test",
+    "node --check apps/cad-studio/test/sketch-extend-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "firstFailure": "Keyboard Undo leaves the extended chain closed.",
+      "states": 4,
+      "frozenFiles": 380,
+      "receiptSHA256": "be51bc2a21c4a7b6d40f7187c8fe80a8ec261f6327dd63400ef558ceb3ab28ad",
+      "sourceManifestSHA256": "ffb610a30a1664feb40a678385b7bda893f049f9978871cd508eed18796fb9a0"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 380,
+      "receiptSHA256": "8f66b5d0e30cdd6694a21bf9b7c2579a3a9497e1e0e752576abad8387eff6121",
+      "sourceManifestSHA256": "61c0e2eacd41c8f31777c084822f269bc129afd408d71c227c1e33ab4130fd65"
+    }
+  },
+  "gapMm": 5,
+  "extrudeHeightMm": 3,
+  "initialVolumeMm3": 1800,
+  "finalVolumeMm3": 2700,
+  "absoluteVolumeToleranceMm3": 1e-8,
+  "focused": { "status": "PASS", "studioPassed": 13, "failed": 0, "typeChecks": 1 }
+}

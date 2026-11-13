@@ -122,24 +122,24 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const done = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : []), r.shape];
     commitDraft(sketch, { ...detachSketchLink(sketch), shape: null, done, picked: [], editDim: null });
   };
-  const commitTrimDraft = (before: SketchState, shapes: SketchShape[]) => {
+  const commitCutDraft = (before: SketchState, shapes: SketchShape[]) => {
     commitDraft(before, { ...detachSketchLink(before), shape: null, done: shapes, picked: [], editDim: null });
   };
   const dragTrim = (source: DragTrimOwner, plan: DragTrimPlan) => {
     if (source.sketch !== sketch || source.doc !== doc || source.scope !== acceptanceScope || !ownsSketch()) return;
     if ('error' in plan) { setToast({ title: 'Could not trim the stroke', hint: plan.error, detail: '' }); return; }
-    if (plan.intervals.length) commitTrimDraft(source.sketch, plan.shapes);
+    if (plan.intervals.length) commitCutDraft(source.sketch, plan.shapes);
   };
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
-    const ownedTrim = op === 'trim' && recordDraft;
-    if (ownedTrim && !ownsSketch()) return;
+    const recorded = op !== 'split' && recordDraft;
+    if (recorded && !ownsSketch()) return;
     const { shapes, protectedShapes } = sketchCutInputs(sketch);
     const ready = shapes.map(x => x.kind === 'polygon' && !protectedShapes?.has(x) ? { ...x, pending: false } : x);
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(ready, at, tol, protectedShapes);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    if (ownedTrim) { commitTrimDraft(sketch, r.shapes); return; }
+    if (recorded) { commitCutDraft(sketch, r.shapes); return; }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
   /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
