@@ -233,6 +233,7 @@ function statusOf(s: SketchShape | null, solved: SolveResult | null, tool?: stri
   if (s.kind === 'bezier') return !wellFormedBezier(s) ? { text: 'Bézier curve with unusable control points', warn: true }
     : s.poles.length === 3 ? { text: tool === 'bezier' ? 'Quadratic Bézier · click a fourth point to make it cubic' : 'Quadratic Bézier', warn: tool === 'bezier' } : { text: 'Cubic Bézier', warn: false };
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
+  if (!s.closed && !s.pending && s.construction) return { text: 'Open construction line', warn: false };
   if (!s.closed) return { text: s.pending ? 'Move to bend the arc, click to place it' : 'Open profile · click the first point to close', warn: true };
   if (s.pending) return { text: 'Move to bend the closing arc, click to place it', warn: true };
   if (s.ellipse && ellipseMatches(s)) return { text: 'Ellipse · tangent arcs within 1e-5 of the exact curve · Make curves keeps it exact', warn: false };

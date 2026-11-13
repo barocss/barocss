@@ -1,0 +1,71 @@
+{
+  "decision": "D1107",
+  "tier": "SMALL",
+  "parent": "c0c40d90687c285fbc45a94194215d5098c8d612",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1107-construction-draft-<run>",
+    "D1107_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-open-chain-finish-browser.mjs <external-evidence>/<run> --construction-draft",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs draft-sketch-history",
+    "pnpm exec eslint apps/cad-studio/src/viewport/sketchOverlay.tsx apps/cad-studio/src/ui/SketchPanel.tsx",
+    "D748_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-open-chain-finish-browser.mjs <external-evidence>/material-control",
+    "node --check apps/cad-studio/test/sketch-open-chain-finish-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 861,
+      "receiptSHA256": "5ce7c1dc96961594effa924321f2a43199feb51ddfa9ab4b07055c71a7171200",
+      "sourceManifestSHA256": "b38a295fb23cde269d37a22a18281d594b33c8fd95f4e75ae7372e56d3846a90",
+      "firstFailure": "The active construction polyline has class sk-shape open and paints as a solid stroke."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 861,
+      "receiptSHA256": "528edd21748e11afe9c93eae8103911f9c186b3df1941e404d575cdef8064091",
+      "sourceManifestSHA256": "7aa95395e2f9d7817373f51ddfdb407da6cce392a4ecee911505c30b5efa6cc1"
+    },
+    "xyControl": {
+      "status": "PASS",
+      "receiptSHA256": "08a3476040d18e86a01acdee1b28c5e702280abc5d3d9faa532be9935401bc18",
+      "sourceManifestSHA256": "90d4f819fe2c295a66b1674d4889e03e16c8377c876e2310d20a4eb6d37006c6"
+    },
+    "materialControl": {
+      "status": "PASS",
+      "receiptSHA256": "f6c1703927679dea06526b9a7d446584da02c9d2bd8229cb0caf2f405fd5a5d3",
+      "sourceManifestSHA256": "90d4f819fe2c295a66b1674d4889e03e16c8377c876e2310d20a4eb6d37006c6"
+    },
+    "observerFailure": {
+      "status": "FAIL",
+      "receiptSHA256": "8dfb8e7c140577548099cc1f068610579253c83abe1bca16739906518c3c8af1",
+      "sourceManifestSHA256": "fd35c6a9717db4e35383c650ce1828d5331610fb82c844722ecbae3df06c1516"
+    }
+  },
+  "constructionPoints": [
+    [
+      30,
+      0
+    ],
+    [
+      40,
+      0
+    ]
+  ],
+  "inclinationDegrees": 30,
+  "profileMM": [
+    20,
+    10
+  ],
+  "depthMM": 8,
+  "volumeMM3": 1600,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 8,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -214,8 +214,9 @@ export function drawSketchOverlay({
     const pts = s.points.map(p => P(p[0], p[1])); const cur = draft.cursor;
     const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
     const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
-    items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
-      : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
+    const shapeClass = 'sk-shape' + (s.construction ? ' construction' : '');
+    items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={shapeClass} />
+      : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={shapeClass + ' open'} />);
     if (constraintComparison) {
       const comparison = constraintComparison.points.map(([u, v]) => P(u, v));
       items.push(<polygon key="constraint-comparison" className="sk-constraint-comparison" aria-hidden="true"

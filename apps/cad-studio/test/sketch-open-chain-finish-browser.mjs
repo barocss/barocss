@@ -4,18 +4,22 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
 const baseline = mode === '--baseline';
+const construction = mode === '--construction-draft';
 const pins = [
   'apps/cad-studio/test/sketch-open-chain-finish-browser.mjs',
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts',
   'apps/cad-studio/src/app/sketchControls.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts',
+  'apps/cad-studio/src/viewport/sketchOverlay.tsx',
+  'apps/cad-studio/src/ui/SketchPanel.tsx',
   'packages/barocss-cad-model/src/sketch/trim.ts',
   'packages/barocss-cad-model/src/sketch/loops.ts',
 ];
 const f = await createFlow({
-  name: 'sketch-open-chain-finish', output, envFrozen: 'D748_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: baseline ? 'Reproduce silent loss of open line, arc and partial Trim' : 'Refuse Finish while authored open geometry remains',
+  name: 'sketch-open-chain-finish', output, envFrozen: construction ? 'D1107_SOURCE_FROZEN' : 'D748_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: construction ? 'Distinguish an active construction chain and keep it through Finish and fresh Open.'
+    : baseline ? 'Reproduce silent loss of open line, arc and partial Trim' : 'Refuse Finish while authored open geometry remains',
   limits: ['Desktop XY sketch, normal Finish and an ordinary 8 mm Extrude.'],
   inspectorSource: `
 import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
@@ -93,6 +97,60 @@ await f.run(async () => {
     assert.deepEqual(after.bodies.bodies, before.bodies.bodies);
     return after;
   };
+
+  if (construction) {
+    await start();
+    await f.sketchPanel().getByLabel('Plane angle', { exact: true }).fill('30');
+    const clickLocal = async ([x, y]) => {
+      const world = [x, y * Math.cos(Math.PI / 6), -y * Math.sin(Math.PI / 6)];
+      const pixel = await f.page.evaluate(at => window.__studioScreenOf(at), world);
+      assert.ok(pixel?.length === 2);
+      await f.page.mouse.click(...pixel);
+    };
+    await f.tool('Rectangle', 'r');
+    await clickLocal([0, 0]);
+    await clickLocal([20, 10]);
+    await f.tool('Line', 'l');
+    await button('Construction').click();
+    await clickLocal([30, 0]);
+    await clickLocal([40, 0]);
+    const active = open();
+    await active.waitFor({ state: 'attached' });
+    f.phase = 'check the active construction stroke and its status';
+    await f.snapshot('01-active-construction');
+    assert.match(await active.getAttribute('class'), /\bconstruction\b/);
+    assert.notEqual(await active.evaluate(el => getComputedStyle(el).strokeDasharray), 'none');
+    assert.equal(await f.sketchPanel().getByText('Open construction line', { exact: true }).count(), 1);
+    assert.equal(await f.sketchAlert(), null);
+    const profile = (await f.finishSketch('02-finished-with-open-reference')).doc;
+    assert.equal(profile.nodes[0].profile, 'rectangle');
+    assert.deepEqual(profile.nodes[0].min, [0, 0]);
+    assert.deepEqual(profile.nodes[0].max, [20, 10]);
+    assert.ok(Math.abs(profile.nodes[0].plane.normal[1] - 0.5) < 1e-12);
+    assert.equal(profile.nodes[0].construction.length, 1);
+    assert.deepEqual(profile.nodes[0].construction[0].points, [[30, 0], [40, 0]]);
+    assert.equal(profile.nodes[0].construction[0].closed, false);
+    assert.equal(profile.nodes[0].construction[0].construction, true);
+    await f.openExtrudeHud();
+    const solid = await f.applyExtrude({ distance: 8, previous: profile, label: 'reference-does-not-extrude' });
+    assert.equal(solid.bodies.bodies.length, 1);
+    assert.ok(Math.abs(solid.bodies.bodies[0].volume - 1600) < 1e-7);
+    await f.undo();
+    await f.same(profile);
+    await f.redo();
+    await f.same(solid.doc);
+    await f.newPage();
+    const bytes = Buffer.from(JSON.stringify(solid.doc));
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'Construction.bcad', mimeType: 'application/json', buffer: bytes });
+    await f.same(solid.doc);
+    await f.openFeatureEditor(1);
+    await f.editor().getByRole('button', { name: 'Edit sketch', exact: true }).click();
+    await f.sketchPanel().waitFor();
+    await f.page.locator('.vp-overlay polyline.sk-shape.done.construction.open').waitFor({ state: 'attached' });
+    await f.snapshot('03-reopened-reference');
+    return;
+  }
 
   f.phase = 'Current open line beside a completed rectangle';
   await start();
