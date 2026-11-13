@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cylinderPart, emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { verifyDocumentFile, verifyStoredNativeOpen, verifyStoredStepCavities } from '../src/files/documentFile';
+import { prepareProjectFinishOpen, verifyDocumentFile, verifyStoredNativeOpen, verifyStoredStepCavities } from '../src/files/documentFile';
 import { referenceOpenFixtures } from './reference-open-fixture';
 
 const evaluate = async (doc: Parameters<typeof evaluateDoc>[0]) => evaluateDoc(doc, 0);
@@ -149,4 +149,32 @@ test('native Open refuses the exact missing Split cap of a blind hole before ado
   let current = true;
   await verifyStoredNativeOpen(doc, async candidate => { current = false; return evaluate(candidate); }, insets, () => current);
   assert.deepEqual(doc, before);
+});
+
+
+test('project admission prepares a held signed finish and retires a superseded repair', async () => {
+  const base = rectanglePart(10, 10, 6);
+  const edge = 'n1.side0|n1.side1', replacement = 'n1.side1|n1.side2';
+  const doc = withNode(base, { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: [edge], radius: 2,
+    sigs: { [edge]: { k: 'line', p: [10, 10, 3], d: [0, 0, 1], s: 6 } } });
+  const before = structuredClone(doc);
+  const prepared = await prepareProjectFinishOpen(doc, evaluate, () => true);
+  assert.ok(prepared);
+  assert.equal(prepared.doc.nodes[2].suppressed, true);
+  assert.deepEqual(prepared.problems.map(problem => [problem.name, problem.candidates]), [[edge, [replacement]]]);
+  assert.equal((await evaluate(prepared.doc)).ok, true);
+  let current = true;
+  const superseded = await prepareProjectFinishOpen(doc, async candidate => {
+    const result = await evaluate(candidate);
+    if (candidate.nodes[2]?.suppressed) current = false;
+    return result;
+  }, () => current);
+  assert.equal(superseded, undefined);
+  assert.equal(current, false);
+  const unusable = withNode(doc, { kind: 'chamfer', parent: { node: 2, side: 'solid' }, edges: ['n2.face|n1.top'], distance: 1 });
+  await assert.rejects(prepareProjectFinishOpen(unusable, evaluate, () => true), /n2\.face.*unchanged/s);
+  assert.deepEqual(doc, before);
+  const valid = withNode(base, { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: [edge], radius: 2,
+    sigs: { [edge]: { k: 'line', p: [10, 0, 3], d: [0, 0, 1], s: 6 } } });
+  assert.equal(await prepareProjectFinishOpen(valid, evaluate, () => true), undefined);
 });

@@ -85,7 +85,7 @@ import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import type { OpenScope } from './state/openOwnership';
 import { scheduleProjectOpenFit } from './app/projectOpenFit';
-import { verifyStoredNativeOpen } from './files/documentFile';
+import { prepareProjectFinishOpen, verifyStoredNativeOpen } from './files/documentFile';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
@@ -557,12 +557,18 @@ export function App() {
     confirmOpen: focus => new Promise(resolve => workspaceModeExit.switchWhenReady(() => resolve(true), {
       originFocus: focus, onKeep: () => resolve(false),
     })),
-    validateOpen: (doc, current) => verifyStoredNativeOpen(doc, d => engine.part(d, revision.current++, 'read'), d => engine.verifyStoredInsets(d), current),
-    onOpened: (d, path, notes) => {
-      if (!openAccepted(inPlaceNow.current) || !replaceDoc(d, 'project-open')) return false;
+    validateOpen: async (doc, current) => {
+      await verifyStoredNativeOpen(doc, d => engine.part(d, revision.current++, 'read'), d => engine.verifyStoredInsets(d), current);
+      return prepareProjectFinishOpen(doc, d => engine.part(d, revision.current++, 'refs'), current);
+    },
+    onOpened: (d, path, notes, prepared) => {
+      const next = prepared?.doc ?? d;
+      if (!openAccepted(inPlaceNow.current) || !replaceDoc(next, 'project-open')) return false;
+      if (prepared?.problems.length) referenceProblems.current.set(next, prepared.problems);
+      setRefChoices(null);
       setCompareBase(null);
       const accepted = openIntent.current;
-      setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
+      setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0 || next !== d);
       return accepted;
     },
     onOpenReady: accepted => scheduleProjectOpenFit(accepted, isOpenCurrent, () => viewport.current?.fit()),

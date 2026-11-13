@@ -4,6 +4,7 @@
 // written over. Version actions are versions/*.ts's, each written back to the project at once.
 import { useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { Problem } from '@barocss/cad-model/engine/references';
 import { sha256Hex } from '@barocss/cad-model/util/digest';
 import { MAX_TASK_RUN_NATIVE_BYTES } from '../chat/taskRunOffer';
 import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, turnLog, withTurnLog, type VersionLog } from '@barocss/cad-model/versions/log';
@@ -28,11 +29,11 @@ export interface ProjectView {
 }
 export interface ProjectCallbacks extends OpenIntentBridge {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
-  onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | false | void;
+  onOpened(doc: StudioDoc, path: string, notes: string[], prepared?: { doc: StudioDoc; problems: Problem[] }): OpenScope | false | void;
   /** Resolve the current draft before an admitted project document replaces it. */
   confirmOpen?(focus: HTMLElement | null): Promise<boolean>;
   /** Validate geometry that must be admitted before updating the active project path. */
-  validateOpen?(doc: StudioDoc, current: () => boolean): Promise<void> | undefined;
+  validateOpen?(doc: StudioDoc, current: () => boolean): Promise<{ doc: StudioDoc; problems: Problem[] } | undefined> | undefined;
   onError(title: string, hint: string): void;
   /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
   onLinked?(linked: Linked): OpenScope | void;
@@ -185,14 +186,15 @@ export function useProject(cb: ProjectCallbacks) {
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
           if (call.current.canOpen && !call.current.canOpen()) return false;
           const check = call.current.validateOpen?.(r.doc, current);
+          let prepared;
           if (check) {
-            await check;
+            prepared = await check;
             if (!current() || (call.current.canOpen && !call.current.canOpen())) return false;
           }
           if (call.current.confirmOpen) {
             if (!(await call.current.confirmOpen(focus)) || !current() || (call.current.canOpen && !call.current.canOpen())) return false;
           }
-          const accepted = call.current.onOpened(r.doc, path, r.notes);
+          const accepted = call.current.onOpened(r.doc, path, r.notes, prepared);
           if (accepted === false) return false;
           if (accepted) owner.scope = accepted;
           if (!current()) return false;

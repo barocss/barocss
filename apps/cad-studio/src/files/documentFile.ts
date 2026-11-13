@@ -5,7 +5,7 @@ import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
 import { isSplitCapFace } from '@barocss/cad-model/engine/rematch';
-import { verifyReferences } from '@barocss/cad-model/engine/references';
+import { verifyReferences, type Problem } from '@barocss/cad-model/engine/references';
 import type { StoredInsetReply } from '../engine/client';
 import { downloadBytes } from '../ui/files';
 
@@ -121,4 +121,31 @@ export async function verifyDocumentFile(opened: StudioDoc, readPart: (doc: Stud
     if (!current() || !repaired?.ok) return null;
   }
   return verified;
+}
+
+/** A project file can take the active path only after a signed finish repair builds. */
+export async function prepareProjectFinishOpen(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>,
+  current: () => boolean): Promise<{ doc: StudioDoc; problems: Problem[] } | undefined> {
+  if (!current() || !opened.nodes.some(node => (node.kind === 'fillet' || node.kind === 'chamfer')
+      && node.edges.some(edge => !!node.sigs?.[edge]))) return;
+  const result = await readPart(opened);
+  if (!current()) return;
+  if (!result.ok) {
+    const node = result.error.feature ? opened.nodes[nodeIndexOf(opened.nodes, result.error.feature)] : undefined;
+    if (node?.kind !== 'fillet' && node?.kind !== 'chamfer') return;
+    if (!node.edges.some(edge => !!node.sigs?.[edge])) return;
+  }
+  const verified = await verifyReferences(opened, result.ok ? result.bodies : [], readPart);
+  if (!current()) return;
+  const finishProblem = verified.problems.some(problem => {
+    const node = problem.node === null ? undefined : opened.nodes[problem.node];
+    return node?.kind === 'fillet' || node?.kind === 'chamfer';
+  });
+  if (finishProblem) {
+    const repaired = await readPart(verified.doc);
+    if (!current()) return;
+    if (repaired.ok) return { doc: verified.doc, problems: verified.problems };
+    throw new Error(`${repaired.error.detail || repaired.error.title} Your part is unchanged.`);
+  }
+  if (!result.ok) throw new Error(`${result.error.detail || result.error.title} Your part is unchanged.`);
 }

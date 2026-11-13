@@ -1,0 +1,43 @@
+{
+  "decision": "D1005",
+  "date": "2026-11-13",
+  "tier": "FEATURE",
+  "parent": "5263411bcda2dd851b8800f0feb29a1af339c2b7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1005-project-finish-baseline",
+    "gate.sh acquire heavy 600 D1005-project-finish-studio",
+    "D1005_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/baseline",
+    "D1005_SOURCE_FROZEN=1 node apps/cad-studio/test/project-finish-reference-browser.mjs <external-evidence>/studio03",
+    "pnpm --filter @barocss/cad-studio-app test document-file.test project-open-ownership.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/project-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "baseline": {
+    "status": "FAIL",
+    "reason": "Project Open adopted a failed signed finish without a reference decision.",
+    "receiptSHA256": "b8528467a010f23dba8f6c0fa20811b72766c7659db393bf0805b9434b4e2a5e",
+    "sourceManifestSHA256": "9f60177ef75fc499ee01421fd37b3c8722bb0a7a3c73622245052028ef3835e3"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "b013ce477d3e2ce4c0eaa8ec74910c0deb56822f9003880bcac528435095a3b3",
+    "sourceManifestSHA256": "f9d2c5ac4b8794c7d1d97a97749c90afbf98073ee5ad54e03ad13545a22df3c1",
+    "frozenFiles": 373,
+    "states": 6,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "heldVolumeMM3": 630,
+    "confirmedVolumeMM3": 624.8495559215388,
+    "candidateMidpointMM": [10, 9.5, 3],
+    "volumeToleranceMM3": 1e-7
+  },
+  "firstFixedHarness": { "status": "FAIL", "reason": "Deferred mass was pending.", "receiptSHA256": "3c5a54053894e6ff2ce99a833f649bc17116adf34f0b5933497f096ac04d9ba4" },
+  "focused": { "status": "PASS", "passed": 51, "failed": 0, "typeCheck": "PASS" },
+  "notRun": ["unusable finish File Open", "previously auto-marked finish", "general shared and multi-edge recovery", "production build", "full suites", "mobile"]
+}
