@@ -15,6 +15,7 @@ type Stroke = {
   pointer: number;
   frame: string;
   start: P2;
+  lastPixel: P2;
   points: P2[];
   input: ReturnType<typeof sketchCutInputs>;
   dragging: boolean;
@@ -22,6 +23,25 @@ type Stroke = {
 };
 export type DragTrimPreview = { path: readonly P2[]; intervals: readonly (readonly [P2, P2])[] };
 type Release = { kind: 'click' | 'discard' } | { kind: 'plan'; owner: DragTrimOwner; plan: DragTrimPlan };
+type TrimObstacle = { left: number; right: number; top: number; bottom: number };
+
+/** A sparse pointer move can cross the rail even if neither event lands on it. */
+function crossesObstacle(a: P2, b: P2, box: TrimObstacle): boolean {
+  let enter = 0, leave = 1;
+  const limits = [[box.left, box.right], [box.top, box.bottom]];
+  for (const [axis, [min, max]] of limits.entries()) {
+    const delta = b[axis] - a[axis];
+    if (!delta) {
+      if (a[axis] < min || a[axis] > max) return false;
+      continue;
+    }
+    const first = (min - a[axis]) / delta, last = (max - a[axis]) / delta;
+    enter = Math.max(enter, Math.min(first, last));
+    leave = Math.min(leave, Math.max(first, last));
+    if (enter > leave) return false;
+  }
+  return true;
+}
 
 export class DragTrimStroke {
   private stroke: Stroke | null = null;
@@ -37,7 +57,7 @@ export class DragTrimStroke {
   }
 
   begin(owner: DragTrimOwner, pointer: number, frame: string, pixel: P2, point: P2) {
-    this.stroke = { owner, pointer, frame, start: pixel, points: [point], input: sketchCutInputs(owner.sketch),
+    this.stroke = { owner, pointer, frame, start: pixel, lastPixel: pixel, points: [point], input: sketchCutInputs(owner.sketch),
       dragging: false, plan: null };
   }
 
@@ -60,13 +80,14 @@ export class DragTrimStroke {
     return this.ignored.get(pointer) === 'second' && this.ignored.delete(pointer);
   }
 
-  advance(pointer: number, owner: DragTrimOwner | null, frame: string, pixel: P2, point: P2 | null): boolean {
+  advance(pointer: number, owner: DragTrimOwner | null, frame: string, pixel: P2, point: P2 | null, obstacle?: TrimObstacle): boolean {
     const s = this.stroke;
     if (!s || s.pointer !== pointer) return this.ignored.has(pointer);
-    if (!sameOwner(s.owner, owner) || frame !== s.frame || !point?.every(Number.isFinite)) {
+    if (!sameOwner(s.owner, owner) || frame !== s.frame || !point?.every(Number.isFinite) || (obstacle && crossesObstacle(s.lastPixel, pixel, obstacle))) {
       this.cancel(pointer);
       return true;
     }
+    s.lastPixel = pixel;
     s.dragging ||= Math.hypot(pixel[0] - s.start[0], pixel[1] - s.start[1]) >= DRAG_PIXELS;
     const last = s.points.at(-1)!;
     if (point[0] !== last[0] || point[1] !== last[1]) {
@@ -79,11 +100,11 @@ export class DragTrimStroke {
     return s.dragging;
   }
 
-  release(pointer: number, owner: DragTrimOwner | null, frame: string, pixel: P2, point: P2 | null): Release {
+  release(pointer: number, owner: DragTrimOwner | null, frame: string, pixel: P2, point: P2 | null, obstacle?: TrimObstacle): Release {
     if (this.ignored.delete(pointer)) return { kind: 'discard' };
     const s = this.stroke;
     if (!s || s.pointer !== pointer) return { kind: 'click' };
-    this.advance(pointer, owner, frame, pixel, point);
+    this.advance(pointer, owner, frame, pixel, point, obstacle);
     this.stroke = null;
     if (this.ignored.delete(pointer)) return { kind: 'discard' };
     return s.dragging ? s.plan ? { kind: 'plan', owner: s.owner, plan: s.plan } : { kind: 'discard' } : { kind: 'click' };

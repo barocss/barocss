@@ -1,0 +1,52 @@
+{
+  "decision": "D1058",
+  "date": "2026-11-14",
+  "tier": "SMALL",
+  "parent": "641d7c48c5fbb34e1ae64716a35536ffac2ea83f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1058-trim-rail-<run>",
+    "D876_SOURCE_FROZEN=1 node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/<run> --rail",
+    "D876_SOURCE_FROZEN=1 node apps/cad-studio/test/drag-trim-browser.mjs <external-evidence>/full-drag",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test drag-trim-stroke drag-trim-plan draft-sketch-history",
+    "node --check apps/cad-studio/test/drag-trim-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "receiptSHA256": "023c2ba45ff78560705a95c512c1d4f08c26de7d09f2855173368859d38ab50c",
+      "sourceManifestSHA256": "1af7b1314698fbe153d9da671d619dc2ec3a1aa474bdf849910205153d8ceedd",
+      "frozenFiles": 857
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 4,
+      "receiptSHA256": "aa08cb731644c8d048199c36b812b5f171ae0e8fefb1fab04980afad7b86082b",
+      "sourceManifestSHA256": "8e7d66b60059d450b7d851da382095a183854af33b9f12f3c59667fa6333e261",
+      "frozenFiles": 857
+    },
+    "fullDrag": {
+      "status": "PASS",
+      "states": 13,
+      "receiptSHA256": "bf33c84e13bfd76d9409a643b708ebac808b4c8559bd2ca7f80488495eed6429",
+      "sourceManifestSHA256": "8e7d66b60059d450b7d851da382095a183854af33b9f12f3c59667fa6333e261",
+      "frozenFiles": 857
+    }
+  },
+  "rail": {
+    "baselinePreviewIntervals": 2,
+    "fixedPreviewIntervals": 0,
+    "baselineCreatedUndo": true,
+    "fixedCreatedUndo": false,
+    "visibleRetryIntervals": 3
+  },
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 20,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

@@ -279,6 +279,13 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     requestRef.current();
     return true;
   };
+  const trimRail = (left: number, top: number) => {
+    const rail = canvas.current?.closest('.studio')?.querySelector('nav.toolbar');
+    const rect = rail?.getBoundingClientRect();
+    return rect && rect.width > 0 && rect.height > 0
+      ? { left: rect.left - left, right: rect.right - left, top: rect.top - top, bottom: rect.bottom - top }
+      : undefined;
+  };
   const livePolygonMiddle = useRef(false);
   const twoPointHover = useRef<{ points: readonly SnapPoint[]; hit: SnapPoint | null } | null>(null);
   const modelSnapCache = useRef<ModelSketchSnaps | null>(null);
@@ -695,7 +702,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       || d.circleChord.frame !== pointerFrame())) d.moved = true;
     if (trimStroke.owns(e.pointerId)) {
       const owner = e.buttons === 1 ? trimOwner(e) : null;
-      if (trimStroke.advance(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane))) {
+      if (trimStroke.advance(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane), trimRail(e.clientX - x, e.clientY - y))) {
         sketchDraft.current.trim = null;
         request();
         return;
@@ -818,7 +825,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
   const onPointerUp = (e: PointerEvent<HTMLCanvasElement>) => {
     if (trimStroke.owns(e.pointerId)) {
       const { x, y, w, h } = local(e), owner = e.button === 0 ? trimOwner(e) : null;
-      const result = trimStroke.release(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane));
+      const result = trimStroke.release(e.pointerId, owner, pointerFrame(), [x, y], owner && sketchPoint(x, y, w, h, owner.sketch.plane), trimRail(e.clientX - x, e.clientY - y));
       if (result.kind !== 'click') {
         sketchDraft.current.trim = null;
         if (result.kind === 'plan') propsRef.current.dragTrim?.apply(result.owner, result.plan);

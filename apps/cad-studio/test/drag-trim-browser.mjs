@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const railOnly = process.argv.includes('--rail');
 const pins = [
+  'apps/cad-studio/test/drag-trim-browser.mjs',
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/sketch/draftHistory.ts',
   'apps/cad-studio/src/sketch/dragTrimPlan.ts',
@@ -124,6 +126,51 @@ async function afterCuts() {
   }
 }
 
+async function railBoundary(before) {
+  const page = f.page;
+  const rail = page.getByRole('navigation', { name: 'Tools', exact: true });
+  const lineButton = button(rail, 'Line');
+  const railBox = await lineButton.boundingBox();
+  const center = [railBox.x + railBox.width / 2, railBox.y + railBox.height / 2];
+  const initial = await f.screenOf([0, 5]);
+  const panFrom = await pixel([29, 5]);
+  await page.mouse.move(...panFrom);
+  await page.mouse.down({ button: 'middle' });
+  await page.mouse.move(panFrom[0] + center[0] - initial[0], panFrom[1] + center[1] - initial[1], { steps: 8 });
+  await page.mouse.up({ button: 'middle' });
+  await settle();
+  const blocked = await f.screenOf([0, 5]);
+  assert.ok(await page.evaluate(at => !!document.elementFromPoint(...at)?.closest('nav.toolbar'), blocked));
+
+  f.phase = 'Cancel a captured Trim drag on the covered line';
+  const start = await pixel([24, 5]), visible = await pixel([6, 5]);
+  await page.mouse.move(...start);
+  await page.mouse.down();
+  await page.mouse.move(...visible);
+  await brush().waitFor({ state: 'attached' });
+  assert.equal(await cuts().count(), 2);
+  await page.mouse.move(...blocked);
+  await settle();
+  const blockedPreview = await cuts().count();
+  await f.snapshot('rail-held');
+  await page.mouse.up();
+  await brush().waitFor({ state: 'detached' });
+  const released = await f.snapshot('rail-released');
+  f.report.observations.push({ label: 'rail-capture', blockedPreview, controlsBefore: before.controls, controlsAfter: released.controls });
+  await f.persist();
+  assert.equal(blockedPreview, 0);
+  unchanged(released, before, true);
+  await f.frame([[-2, 5], [29, 5], [0, -4], [20, 14], [54, 20]]);
+  await beforeCuts();
+  await hold();
+  await verifyPreview();
+  await page.mouse.up();
+  await afterCuts();
+  await button(page, 'Undo').click();
+  await beforeCuts();
+  unchanged(await f.snapshot('rail-visible-retry'), before);
+}
+
 function unchanged(after, before, includeControls = false) {
   for (const key of ['doc', 'bodies', 'selection', 'history', 'dirty', ...(includeControls ? ['controls'] : [])]) {
     assert.deepEqual(after[key], before[key], key);
@@ -188,6 +235,11 @@ await f.run(async () => {
   await beforeCuts();
   const before = await f.snapshot('01-before-stroke');
   assert.deepEqual(before.controls, [true, true]);
+  if (railOnly) {
+    await railBoundary(before);
+    assert.deepEqual(f.report.downloads, []);
+    return;
+  }
 
   f.phase = 'preview one sparse stroke and release it as one draft edit';
   await hold();

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1058 — cancel a Drag Trim stroke at the tool rail](notes/drag-trim-tool-rail-boundary-2026-11-14/README.md).
 - [D1057 — keep document Redo after a restored Sketch Finish](notes/restored-sketch-no-op-finish-2026-11-14/README.md).
 - [D1056 — keep a numeric Sketch edit before Trim in draft history](notes/numeric-edit-trim-draft-history-2026-11-14/README.md).
 - [D1055 — verify the Sketch circle gap and Fixed point ownership](notes/sketch-curve-gap-fixed-ownership-2026-11-14/README.md).

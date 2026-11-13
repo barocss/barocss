@@ -57,3 +57,16 @@ test('an invalid press is swallowed and a valid short press stays an ordinary cl
   start(stroke, source);
   assert.deepEqual(stroke.release(1, source, 'frame', [1, 0], [-1.99, 5]), { kind: 'click' });
 });
+
+test('a sparse move through the rail cancels even when both endpoints are clear', () => {
+  const source = owner(), stroke = new DragTrimStroke();
+  const rail = { left: 30, right: 50, top: -10, bottom: 10 };
+  start(stroke, source);
+  assert.equal(stroke.advance(1, source, 'frame', [100, 0], [2, 5], rail), true);
+  assert.equal(stroke.preview(source, () => 'frame'), null);
+  assert.deepEqual(release(stroke, source), { kind: 'discard' });
+  start(stroke, source);
+  assert.deepEqual(stroke.release(1, source, 'frame', [100, 0], [2, 5], rail), { kind: 'discard' });
+  start(stroke, source);
+  assert.equal(stroke.release(1, source, 'frame', [100, 0], [2, 5], { ...rail, top: 1 }).kind, 'plan');
+});
