@@ -342,6 +342,7 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    context.setDefaultNavigationTimeout(30000);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });

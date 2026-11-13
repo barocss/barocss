@@ -1,0 +1,59 @@
+{
+  "decision": "D911",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "2cd332f14bb3e37139cd220f056dba295c5bedaf",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "decisionOutcome": "SELECT_DISTINCT_VERSIONED_RECIPE_KIND",
+  "commands": [
+    "gate.sh acquire heavy 600 d911-studio-existing-inset",
+    "D868_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/existing02 --fixed",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-rectangle-inset sketch-associative-inset rematch o19-stored-names",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds",
+    "git diff --check"
+  ],
+  "firstRun": {
+    "status": "FAIL",
+    "reason": "The first navigation exceeded 10 s before product interaction.",
+    "receiptSHA256": "7f3ac9df711b673662af7dbe0f01d0164d2d1f9a1da6e0a2b9797c5f705b336f"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 30,
+    "studioPass": 16,
+    "fail": 0,
+    "skipped": 0,
+    "diff": "PASS",
+    "logSHA256": "15ae8dad4b7118fc796fc922b6be09f2b049f03ca0a6ba4674e388f5525a27f1"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Reader kind, explicit source graph and IDs, native arc provenance, preadopt gates, retired IDs and dependent consumer limits."
+  },
+  "studio": {
+    "status": "PASS",
+    "scope": "Existing planar-face outline inset only",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "3dc995ef956620747822f57e17fb6c11bbe0b79dadd7536e794e626c4631cb9e",
+    "sourceManifestSHA256": "52d8dab21385af42452548a716909327c00707ea4f87ad7784909aa8fd0ca613",
+    "frozenFiles": 844,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "validSourceEdit": "PASS",
+    "invalidFileOpen": "PASS",
+    "invalidProjectOpen": "PASS",
+    "undoRedo": "PASS",
+    "supersededInvalidReply": "PASS"
+  },
+  "notRun": [
+    "new recipe Model and Studio acceptance",
+    "live inset editing and detach",
+    "general rounded geometry",
+    "full suites",
+    "mobile"
+  ]
+}

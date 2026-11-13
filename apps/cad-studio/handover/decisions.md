@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D911 — define a versioned rounded inset recipe and its admission](notes/rounded-inset-recipe-contract-2026-11-13/README.md).
 - [D910 — plan one rounded-rectangle inset through corner collapse](notes/rounded-rectangle-inset-plan-2026-11-13/README.md).
 - [D909 — measure the rematch of a missing inner corner reference](notes/rounded-sketch-offset-missing-corner-2026-11-13/README.md).
 - [D908 — verify sharp inset candidate documents and their side IDs](notes/rounded-sketch-offset-sharp-candidate-2026-11-13/README.md).
