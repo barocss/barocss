@@ -3,19 +3,21 @@ import { readFile } from 'node:fs/promises';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed', '--skeleton-workspace-baseline', '--skeleton-workspace-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--open-baseline', '--open-fixed', '--commands-baseline', '--commands-fixed', '--skeleton-baseline', '--skeleton-fixed', '--in-place-baseline', '--in-place-fixed', '--mate-baseline', '--mate-fixed', '--project-baseline', '--project-fixed', '--step-baseline', '--step-fixed', '--alternate-baseline', '--alternate-fixed', '--skeleton-keys-baseline', '--skeleton-keys-fixed', '--skeleton-workspace-baseline', '--skeleton-workspace-fixed', '--cage-workspace-baseline', '--cage-workspace-fixed'].includes(mode));
 const step = mode.startsWith('--step');
 const openFlow = mode.startsWith('--open') || step;
 const stepPath = 'packages/barocss-cad/conformance/a6/references/block-keepout/block.step';
 const commands = mode.startsWith('--commands');
 const skeleton = mode.startsWith('--skeleton');
 const skeletonKeys = mode.startsWith('--skeleton-keys');
+const cageWorkspace = mode.startsWith('--cage-workspace');
 const skeletonWorkspace = mode.startsWith('--skeleton-workspace');
 const inPlace = mode.startsWith('--in-place');
 const mate = mode.startsWith('--mate');
 const project = mode.startsWith('--project');
 const alternate = mode.startsWith('--alternate');
 const pins = [
+  ...(cageWorkspace ? ['apps/cad-studio/src/subd/useCageEditor.ts', 'apps/cad-studio/src/viewport/Viewport.tsx', 'apps/cad-studio/src/ui/CagePanel.tsx'] : []),
   ...(alternate ? ['apps/cad-studio/src/ui/BodyBrowserRows.tsx', 'apps/cad-studio/src/ui/FeatureHistoryMenu.tsx'] : []),
   ...(step ? [stepPath, 'apps/cad-studio/src/files/importedFile.ts'] : []),
   'apps/cad-studio/test/node-editor-draft-exit-browser.mjs',
@@ -28,8 +30,8 @@ const pins = [
   ...(openFlow ? ['apps/cad-studio/src/files/useStudioDocumentFiles.ts', 'apps/cad-studio/src/ui/Hud.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'node-editor-draft-exit', output, envFrozen: skeletonWorkspace ? 'D973_SOURCE_FROZEN' : skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: skeletonWorkspace ? 'Park the 3D Sketch in Render and Drawing and send Render history to the document.' : skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
+  name: 'node-editor-draft-exit', output, envFrozen: cageWorkspace ? 'D974_SOURCE_FROZEN' : skeletonWorkspace ? 'D973_SOURCE_FROZEN' : skeletonKeys ? 'D972_SOURCE_FROZEN' : alternate ? 'D971_SOURCE_FROZEN' : step ? 'D970_SOURCE_FROZEN' : project ? 'D969_SOURCE_FROZEN' : mate ? 'D968_SOURCE_FROZEN' : inPlace ? 'D967_SOURCE_FROZEN' : skeleton ? 'D966_SOURCE_FROZEN' : commands ? 'D965_SOURCE_FROZEN' : openFlow ? 'D964_SOURCE_FROZEN' : 'D963_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: cageWorkspace ? 'Park SubD Cage input and use one active editor in Model.' : skeletonWorkspace ? 'Park the 3D Sketch in Render and Drawing and send Render history to the document.' : skeletonKeys ? 'Preserve 3D sketch field focus and native button navigation.' : alternate ? 'Protect a feature draft from History context-menu and Browser feature actions.' : step ? 'Keep an active Box after validating a STEP Open.' : project ? 'Keep the active project document and its draft when a second file Open is canceled.' : mate ? 'Keep the Mate type and selected reference when a history feature is requested.' : inPlace ? 'Keep an unapplied feature edit at Edit part Cancel.' : skeleton ? 'Keep authored 3D sketch points after canceling the final Escape.' : commands ? 'Protect a Box draft at New part, templates and Model Undo and save only accepted geometry.' : openFlow ? 'Keep a Box draft after validating a native File Open.' : 'Keep unapplied feature inputs across canceled desktop mode and history navigation.',
   limits: ['One two-extrusion document with an unapplied Distance edit in the first feature.'],
   snapshotExtra: () => ({
     activeMode: document.querySelector('[data-workspace-mode] button.on')?.textContent,
@@ -431,6 +433,148 @@ async function checkSkeletonWorkspace(panel, overlay, accepted) {
   await f.snapshot('03-draft-history-retains-render-focus');
 }
 
+async function checkCageWorkspace() {
+  const page = f.page;
+  const view = name => page.locator('.views').getByRole('button', { name, exact: true });
+  const cage = page.getByRole('complementary', { name: 'Cage editor', exact: true });
+  const sketch = page.getByRole('complementary', { name: '3D sketch', exact: true });
+  const render = page.getByRole('complementary', { name: 'Render', exact: true });
+  const cageOverlay = page.locator('.vp-overlay [aria-label="SubD cage"]');
+  const sketchOverlay = page.locator('.vp-overlay [aria-label="3D sketch"][data-points]');
+  const arrow = page.locator('[data-gizmo=moveZ] line:nth-of-type(2)');
+  const cageState = () => page.evaluate(() => window.__studioCage());
+  const world = point => page.evaluate(p => window.__studioScreenOf(p), point);
+  const dragArrow = async release => {
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const [x1, y1, x2, y2] = await arrow.evaluate(line => ['x1', 'y1', 'x2', 'y2'].map(k => Number(line.getAttribute(k))));
+    const x = svg.x + (x1 + x2) / 2;
+    const y = svg.y + (y1 + y2) / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + x2 - x1, y + y2 - y1, { steps: 8 });
+    if (release) await page.mouse.up();
+  };
+
+  f.phase = 'create a SubD box and move a cage face';
+  await page.evaluate(() => document.activeElement?.blur());
+  await f.command('subd box');
+  const hud = page.getByRole('dialog', { name: 'SubD box', exact: true });
+  await hud.getByRole('spinbutton', { name: 'Quads along a side', exact: true }).fill('4');
+  await hud.getByRole('button', { name: 'Apply', exact: true }).click();
+  await f.changed(source);
+  const accepted = await f.doc();
+  const node = accepted.nodes.find(n => n.kind === 'subd');
+  assert.equal(node?.cage.faces.length, 96);
+  await view('Iso').click();
+  await page.locator('.views button[title="Frame all (F)"]').click();
+  await page.waitForFunction(() => document.querySelector('.view-cube .vc-label')?.textContent !== 'TOP');
+  await page.evaluate(() => document.activeElement?.blur());
+  await f.command('edit cage');
+  await cage.waitFor();
+  await cage.getByRole('button', { name: 'Face', exact: true }).click();
+  const xyz = node.cage.positions;
+  const centres = node.cage.faces.map(face => [0, 1, 2].map(k =>
+    face.reduce((sum, vertex) => sum + xyz[vertex * 3 + k], 0) / face.length));
+  const topZ = Math.max(...centres.map(point => point[2]));
+  const x0 = (Math.min(...centres.map(point => point[0])) + Math.max(...centres.map(point => point[0]))) / 2;
+  const y0 = (Math.min(...centres.map(point => point[1])) + Math.max(...centres.map(point => point[1]))) / 2;
+  const top = centres.filter(point => point[2] === topZ && point[0] > x0 && point[1] > y0)
+    .sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]))[0];
+  assert.ok(top);
+  await page.mouse.click(...await world(top));
+  await arrow.waitFor({ state: 'attached' });
+  await dragArrow(true);
+  await page.waitForFunction(() => window.__studioCage().undo === 1);
+  const moved = await cageState();
+  assert.notDeepEqual(moved.cage.positions, xyz);
+  await f.same(accepted);
+
+  f.phase = 'park the cage in Render and set focus on an accepted surface';
+  await tab('Render').click();
+  await cage.waitFor({ state: 'hidden' });
+  await render.getByRole('tab', { name: 'Scene', exact: true }).click();
+  await render.getByRole('button', { name: 'Pick focus on part', exact: true }).click();
+  const nextSurface = centres.find(point => point[2] === topZ && point[0] < x0 && point[1] > y0);
+  await page.mouse.click(...await world(nextSurface));
+  await f.changed(accepted);
+  const focused = await f.doc();
+  assert.ok(focused.render?.environment.post?.depthOfField?.focus > 0);
+  assert.deepEqual(focused.nodes, accepted.nodes);
+  await page.keyboard.press('Meta+z');
+  if (mode.endsWith('baseline')) {
+    const lost = await f.snapshot('01-render-keyboard-undo-changed-cage');
+    assert.deepEqual(lost.doc, focused);
+    assert.equal((await cageState()).undo, 0);
+    assert.ok(await cageOverlay.count());
+    await button('Undo').click();
+    await f.same(accepted);
+    assert.fail('A hidden cage intercepted keyboard Undo while the toolbar changed Render focus');
+  }
+  await f.same(accepted);
+  assert.deepEqual(await cageState(), moved);
+  await button('Redo').click();
+  await f.same(focused);
+  await button('Undo').click();
+  await f.same(accepted);
+  await page.keyboard.press('Meta+Shift+z');
+  await f.same(focused);
+
+  f.phase = 'keep Render and Drawing pointer and Tab outside the cage';
+  assert.equal(await cageOverlay.count(), 0);
+  assert.equal(await arrow.count(), 0);
+  const [x, y] = await world(top);
+  await page.mouse.click(x, y);
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 30, y - 22, { steps: 5 });
+  await page.mouse.up();
+  await render.getByRole('tab', { name: 'Scene', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await waitFocus(render.getByRole('tab', { name: 'Source', exact: true }));
+  assert.deepEqual(await cageState(), moved);
+  await f.snapshot('01-parked-cage-render');
+  await tab('Drawing').click();
+  const sheet = page.locator('svg[aria-label="Drawing sheet"]');
+  await sheet.waitFor();
+  assert.equal(await cageOverlay.count(), 0);
+  await sheet.click({ position: { x: 25, y: 25 } });
+  await page.keyboard.press('Tab');
+  assert.deepEqual(await cageState(), moved);
+  await tab('Model').click();
+  await cage.waitFor();
+  assert.deepEqual(await cageState(), moved);
+
+  f.phase = 'cancel a held cage gizmo when entering Render';
+  await dragArrow(false);
+  await tab('Render').focus();
+  await page.keyboard.press('Enter');
+  await render.waitFor();
+  await page.mouse.up();
+  await tab('Model').click();
+  await cage.waitFor();
+  assert.deepEqual(await cageState(), moved);
+  await f.same(focused);
+
+  f.phase = 'keep one editor for pointer, keys and toolbar history';
+  await page.evaluate(() => document.activeElement?.blur());
+  await f.command('3d sketch');
+  assert.equal(await sketch.count(), 0);
+  assert.equal(await sketchOverlay.count(), 0);
+  await cage.getByRole('button', { name: 'Vertex', exact: true }).focus();
+  await page.keyboard.press('3');
+  assert.equal((await cageState()).mode, 'face');
+  await button('Undo').click();
+  assert.deepEqual((await cageState()).cage.positions, xyz);
+  await button('Redo').click();
+  assert.deepEqual((await cageState()).cage, moved.cage);
+  await f.same(focused);
+  await f.snapshot('02-cage-alone-owns-model');
+  await cage.getByRole('button', { name: 'Cancel cage edit', exact: true }).click();
+  await sketch.waitFor();
+  assert.equal(await sketchOverlay.getAttribute('data-points'), '0');
+  await f.snapshot('03-sketch-resumes-after-cage');
+}
+
 async function checkInPlace() {
   const fixture = JSON.parse(await readFile(new URL('fixtures/edit-in-place.bcad', import.meta.url), 'utf8'));
   await openCandidate('Assembly', fixture);
@@ -602,6 +746,7 @@ await f.run(async () => {
   if (openFlow || project) { await checkOpenDraft(); return; }
   if (commands) { await checkModelCommands(); return; }
   if (skeleton) { await checkSkeleton(); return; }
+  if (cageWorkspace) { await checkCageWorkspace(); return; }
   await f.openFeatureEditor(1);
   await distance().fill('4');
   const before = await f.snapshot('01-dirty-node-editor');

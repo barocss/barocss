@@ -726,7 +726,9 @@ export function App() {
   const cageEdRef = useRef<ReturnType<typeof useCageEditor>>(null!);
   const cageEd = useCageEditor(doc, useCallback((d: StudioDoc) => engine.preview(d, revision.current++), [engine]), useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []));
   // (G17: the 3D sketch's session — points, segments, FRg's constraints — written as one skeleton feature on Apply.)
-  const sketch3dInputActive = !rendering && !drawing && !sketch && !cageEd.session;
+  const modelEditorInput = !rendering && !drawing && !sketch && !active;
+  const cageInputActive = modelEditorInput && !!cageEd.session;
+  const sketch3dInputActive = modelEditorInput && !cageInputActive;
   const skel = useSkeletonEditor(doc, useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []), snapStep, sketch3dInputActive);
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
@@ -2119,8 +2121,14 @@ export function App() {
   const sketchHistoryGeneration = sketchGeneration.current;
   const sketchHistoryAvailable = sketch ? sketchHistory.available(draftHistoryState(doc, sketch)) : null;
   const skeletonHistoryAvailable = sketch3dInputActive && skel.session ? skel.historyAvailable : null;
-  const editorHistoryAvailable = sketchHistoryAvailable ?? skeletonHistoryAvailable;
+  const cageHistoryAvailable = cageInputActive && cageEd.session
+    ? { undo: cageEd.session.undo.length > 0, redo: cageEd.session.redo.length > 0 } : null;
+  const editorHistoryAvailable = sketchHistoryAvailable ?? cageHistoryAvailable ?? skeletonHistoryAvailable;
   const replayHistory = (forward: boolean, event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (cageHistoryAvailable) {
+      if (forward) cageEd.redo(); else cageEd.undo();
+      return;
+    }
     if (skeletonHistoryAvailable) {
       if (forward) skel.redo(); else skel.undo();
       return;
@@ -2197,7 +2205,7 @@ export function App() {
       if ((e.key === 'Enter' || e.key === ' ') && control) return;
       if (e.key === 'Tab' && (control || typing || (target instanceof HTMLElement && target.tabIndex >= 0))) return;
       if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
-      if (cageEd.onKey(e)) return;
+      if (cageInputActive && cageEd.onKey(e)) return;
       if (sketch3dInputActive && skel.onKey(e, (readFeature, close) => workspaceModeExit.switchWhenReady(close, { readFeature }))) return;
       if (undoKey) { e.preventDefault(); replayHistory(e.shiftKey); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
@@ -2542,7 +2550,7 @@ export function App() {
     : rendering || drawing ? 'CAD display modes are available in Model view.'
     : viewAnalysis || scalarMaps?.length || mouldShown ? 'CAD display modes are not available with analysis or mould displays.'
     : directShown.length || ghost && proposalOverlay ? 'CAD display modes are not available with direct geometry or proposal previews.'
-    : sketch || cageEd.overlay || skel.tool || active || regions.length ? 'CAD display modes are not available while a sketch, cage or tool is being edited.'
+    : sketch || cageInputActive || skel.tool || active || regions.length ? 'CAD display modes are not available while a sketch, cage or tool is being edited.'
     : undefined;
   const displayContextKey = JSON.stringify([displayScopeReason ?? null, !!sectionClip, !!instancesDrawn.length]);
   displayModeContext.current = displayContextKey;
@@ -2812,7 +2820,7 @@ export function App() {
       {interference.result && fresh && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={interference.result} setClashes={interference.close}
         setSelection={next => { if (interference.ownsResult()) setSelection(next); }} />}
       {/* (A running command's HUD takes this place at the right.) */}
-      {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
+      {cageInputActive && cageEd.session && doc.nodes[cageEd.session.node] && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
       {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
@@ -2927,8 +2935,8 @@ export function App() {
         {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
         <ToolsTray items={[
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
-          <ToolIconButton key="tool1" aria-label="Undo" data-tip={skeletonHistoryAvailable ? 'Undo 3D sketch edit' : sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.undo : !undo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(false, event)}><Icon name="undo" /></ToolIconButton>,
-          <ToolIconButton key="tool2" aria-label="Redo" data-tip={skeletonHistoryAvailable ? 'Redo 3D sketch edit' : sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.redo : !redo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(true, event)}><Icon name="redo" /></ToolIconButton>,
+          <ToolIconButton key="tool1" aria-label="Undo" data-tip={cageHistoryAvailable ? 'Undo cage edit' : skeletonHistoryAvailable ? 'Undo 3D sketch edit' : sketch ? 'Undo sketch edit' : undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.undo : !undo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(false, event)}><Icon name="undo" /></ToolIconButton>,
+          <ToolIconButton key="tool2" aria-label="Redo" data-tip={cageHistoryAvailable ? 'Redo cage edit' : skeletonHistoryAvailable ? 'Redo 3D sketch edit' : sketch ? 'Redo sketch edit' : redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={editorHistoryAvailable ? !editorHistoryAvailable.redo : !redo.length} onPointerDown={workspaceModeExit.rememberFocus} onClick={event => replayHistory(true, event)}><Icon name="redo" /></ToolIconButton>,
           <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onPointerDown={workspaceModeExit.rememberFocus}
             onClick={event => {
               if (sessionBlocked('starting a new part')) return;
@@ -2976,9 +2984,9 @@ export function App() {
         poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced: viewportPlacements, cpuInstanceSection }} liveSection={sectionLiveView}
         displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason}
         onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend}
-        bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection}
+        bodies={cageInputActive ? cageEd.shown(shownBodies) : viewBodies} selection={cageInputActive ? emptySel : shownSelection}
         ghost={sketchGhost} sketch={sketch} constraintInspection={constraintInspection} regions={regions} threads={threads} profiles={active ? [] : profiles}
-        gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool}
+        gizmo={cageInputActive ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageInputActive ? cageEd.overlay : null} onPickCage={cageInputActive ? cageEd.onPick : undefined} tool={skel.tool}
         handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} contactLinks={contactShown && motionContact ? motionContact.links : undefined}
         render={rendering ? render : null} analysis={rendering ? null : viewAnalysis}
         printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason}

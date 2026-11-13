@@ -37,6 +37,7 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
   const [exact, setExact] = useState<{ of: CageSession; bodies: BodyResult[] } | null>(null);
   const [previewMs, setPreviewMs] = useState<number | null>(null);
   const shift = useRef(false);
+  const sessionId = useRef(0);
   useEffect(() => {
     const down = (e: KeyboardEvent) => { if (e.key === 'Shift') shift.current = true; }, up = (e: KeyboardEvent) => { if (e.key === 'Shift') shift.current = false; };
     addEventListener('keydown', down); addEventListener('keyup', up);
@@ -65,6 +66,7 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
     const n = doc.nodes[node];
     if (n?.kind !== 'subd') return false;
     from.current = n;
+    sessionId.current++;
     setSession(startSession(node, n.cage, n.mirror)); setDrag(null); setExact(null); return true;
   }, [doc.nodes]);
   const guard = useCallback((f: (s: CageSession) => CageSession) => setSession(s => {
@@ -93,6 +95,8 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
 
   const centre = live ? selectionCentre(session!) : null;
   const gizmo: TransformGizmo | null = session && centre ? {
+    sessionKey: `cage:${sessionId.current}`,
+    onCancel: () => setDrag(null),
     origin: [centre[0] + (drag?.delta[0] ?? 0), centre[1] + (drag?.delta[1] ?? 0), centre[2] + (drag?.delta[2] ?? 0)], move: [0, 1, 2],
     onMove: (delta, done) => {
       // (Shift held as the drag starts: the selection extruded, then moved.)
@@ -114,7 +118,6 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
   const onKey = useCallback((e: KeyboardEvent): boolean => {
     if (!session) return false;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return false;
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); setSession(s => s && (e.shiftKey ? redoSession(s) : undoSession(s))); return true; }
     if (e.key === 'Enter') { e.preventDefault(); done(); return true; }
     // (Esc clears the pick; with nothing picked it leaves — but not by throwing steps away: those need Cancel or Done, D84.)
     if (e.key === 'Escape') {

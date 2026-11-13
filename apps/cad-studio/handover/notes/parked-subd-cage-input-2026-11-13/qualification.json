@@ -1,0 +1,49 @@
+{
+  "decision": "D974",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "52d200bc31cbd647f3cafefd5e084f75af181d04",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D974-cage-workspace",
+    "D974_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/baseline02 --cage-workspace-baseline",
+    "D974_SOURCE_FROZEN=1 node apps/cad-studio/test/node-editor-draft-exit-browser.mjs <external-evidence>/fixed01 --cage-workspace-fixed",
+    "gate.sh acquire heavy 600 D974-small",
+    "pnpm --filter @barocss/cad-studio-app test skeleton work-ownership gizmo",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/node-editor-draft-exit-browser.mjs",
+    "git diff --check"
+  ],
+  "parentStudio": {
+    "status": "FAIL",
+    "receiptSHA256": "63d55a6cb00efafa083d8b75fe99f247d651553e946a2290a7e3e245d4e09e5c"
+  },
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f420241ba13b0c06b2a29600a4185f407e3862288c9df148f17a4b2761dd590c",
+    "sourceManifestSHA256": "06a28ac7093cd46d9dcf1674e79d11acbceeaade484dd835ae3981efb0d719aa",
+    "frozenFiles": 370,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "focusMM": 115.83146902960766,
+    "cageQuads": 96,
+    "retainedCageSteps": 1,
+    "activeEditorsInModel": 1
+  },
+  "focusedTests": {
+    "pass": 26,
+    "fail": 0
+  },
+  "notRun": [
+    "Mate and Hole activation",
+    "Delete confirmation",
+    "WebGL2",
+    "project reopen",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

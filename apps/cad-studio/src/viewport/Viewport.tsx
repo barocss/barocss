@@ -1,7 +1,7 @@
 import type { MarkHandlers } from '../ui/SketchMarks';
 import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
-import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
+import { useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
 import { countRender } from '../devRenders';
 import type { CamDisplay } from './camDisplay';
 import { camStockBounds } from './camOverlayGeometry';
@@ -441,7 +441,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const { cancelGizmo } = input;
   const { drag, gizmoHot, valueBox, sketchDraft, twoPointHover, bezierDraft, ellipseDraft, carc, liveShape, toolView, projector } = input.overlay;
   const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const d = drag.current;
     if (d.mode === 'gizmo' && d.gizmo && (!gizmoPresent || !Object.is(gizmoSessionKey, d.sessionKey))) cancelGizmo('session-change');
   }, [gizmoPresent, gizmoSessionKey]);
