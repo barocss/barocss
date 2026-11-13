@@ -25,7 +25,7 @@ import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheet
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
 
 import { pdfMissing, sheetsPdf } from '@barocss/cad-model/io/pdf';
-import { forSheet, mergeSheet, moveToSheet, sheetCount, sheetName } from '@barocss/cad-model/drawing/sheets';
+import { forSheet, mergeSheet, moveToSheet, sheetCount, sheetName, sheetOf } from '@barocss/cad-model/drawing/sheets';
 import { buildSheets, setIssuesOn } from '@barocss/cad-model/drawing/sheetSet';
 import { SheetTabs, SheetsMenu, newSheetId } from './drawing/SheetSet';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
@@ -76,6 +76,7 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'detail', label: 'Detail view', icon: 'zoom_in', key: 'E', hint: 'Click the centre of what to enlarge on a view or a section, then how far its circle reaches' },
   { tool: 'datum-target', label: 'Datum target', icon: 'my_location', key: 'T', hint: 'Choose point, line or area under Datum targets. Point: click a straight edge endpoint. Line: click its two ends. Area: click its centre. Then place the target symbol.' },
 ];
+type DetailMove = { detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc; parentSheet: number };
 type Pending =
   | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settingsKey: string; sourceDoc: StudioDoc; model: StudioDoc }
   | { kind: 'datum-target'; view: ViewId; target: DrawingDatumTarget; moving: boolean }
@@ -86,8 +87,8 @@ type Pending =
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
   | { kind: 'note'; leader: { view: ViewId; at: XY } }
   /** DR-1: a detail's circle, its centre picked on its parent. */
-  | { kind: 'detail-center'; view: DetailParent; detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc }
-  | { kind: 'detail'; view: DetailParent; center: XY; moving?: { detail: DrawingDetail; owner: DrawingSettings; model: StudioDoc } };
+  | { kind: 'detail-center'; view: DetailParent; moving: DetailMove }
+  | { kind: 'detail'; view: DetailParent; center: XY; moving?: DetailMove };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
@@ -160,7 +161,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [typeNote, shownNote]);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
-    setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+    setPending(pending => pending?.kind === 'detail-center' && pending.moving.parentSheet === current ? pending : null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey, current]);
 
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
@@ -181,14 +182,16 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!views || !layout || !sheet || !fix || (scope.kind === 'assembly' && fix.kind === 'auto-dimension')) return;
     if (issue.code === 'DETAIL_EMPTY' && fix.kind === 'remove-detail') {
       const detail = settings.details?.find(d => d.id === fix.detail);
+      const parentSheet = detail ? sheetOf(wholeSettings, detail.view) : current;
       const parent = detail && placementOf(layout, sheet, detail.view);
-      if (busy || !detail || !parent || parent.hidden) {
+      if (busy || !detail || (parentSheet === current && (!parent || parent.hidden))) {
         setMessage('Show the current parent view before moving the detail.');
         return;
       }
       cancel();
       setTool('detail');
-      setPending({ kind: 'detail-center', view: detail.view, detail, owner: wholeSettings, model: currentModel.current });
+      setPending({ kind: 'detail-center', view: detail.view, moving: { detail, owner: wholeSettings, model: currentModel.current, parentSheet } });
+      if (parentSheet !== current) selectSheet(parentSheet);
       return;
     }
     if (fix.kind === 'remove-detail') { removeDetail(fix.detail); return; }
@@ -494,7 +497,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
   /** DR-1: the detail tool — its centre on a view or a section, then a point its circle reaches; the next free letter, its scale and place automatic. */
   const pickDetail = (h: Hover) => {
-    const moving = pending?.kind === 'detail-center' ? pending : pending?.kind === 'detail' ? pending.moving : undefined;
+    const moving = pending?.kind === 'detail-center' || pending?.kind === 'detail' ? pending.moving : undefined;
     if (moving && (busy || moving.owner !== wholeSettings || moving.model !== currentModel.current)) {
       cancel();
       setMessage('The drawing changed. Select Move again.');
@@ -900,7 +903,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
   const changeFrame = (next: DrawingSettings) => {
     if (!selectedFrame && selDim && wholeSettings.dimensions.filter(dim => dim.id === selDim.id).length !== 1) {
