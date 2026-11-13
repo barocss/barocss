@@ -1,0 +1,64 @@
+{
+  "decision": "D918",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "3efeaef7feb3deb8e5354ad501fc05ccd0afa542",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D918-run>",
+    "D918_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/detached02 --detached-source-edit",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership model-rail",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "firstObserver": {
+    "status": "FAIL",
+    "reason": "A free sketch history chip does not carry the solid feature locator attribute.",
+    "receiptSHA256": "ffccc9c4fbc98c06855e05cc4d6a1335556d0bc5899e100b37fb1414dce90019"
+  },
+  "focused": {
+    "status": "PASS",
+    "modelPass": 105,
+    "studioPass": 119,
+    "fail": 0,
+    "skipped": 0,
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "2c2d3f0d8a1034db755ac5f36b24ea05c5fe2d3efe50712b967ffc53114a9cdf"
+  },
+  "issueRows": {
+    "coverage": "PASS",
+    "analyticFixture": "PASS",
+    "identity": "PASS",
+    "downstream": "PASS",
+    "refusalsAndLegacy": "PARTIAL",
+    "detach": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "7763839a51710d302d74fb750e3a800d1d49e5b4f7e03ebed99a98f84fff4c56",
+    "sourceManifestSHA256": "673b359eec793e070ad9244b6b3010a43daa9adf21abf9b6d3645f4648e4bda4",
+    "frozenFiles": 846,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "formerSourceRadiusMM": [
+      2,
+      2.25
+    ],
+    "measuredVolumeMM3": 1215.6637061435915,
+    "expectedVolumeMM3": 1215.6637061435918,
+    "savedBytes": 5181,
+    "savedSHA256": "f48c22a7d063fb7a1839cc96c88bdb8af827f8d7f45e566b6f2140a84f155fe5"
+  },
+  "notRun": [
+    "remaining issue refusal matrix",
+    "whole suites",
+    "mobile"
+  ]
+}

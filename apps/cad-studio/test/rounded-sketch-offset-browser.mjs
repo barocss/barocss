@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
+const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
-const drawnInset = widthInset || process.argv[3] === '--drawn-inset';
+const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
@@ -49,8 +50,9 @@ const initialFiles = [
   ] : []),
 ];
 const f = await createFlow({
-  name: 'rounded-sketch-offset', envFrozen: widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
+  name: 'rounded-sketch-offset', envFrozen: detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
+  qualification: detachedSourceEdit ? 'Edit the former source after detach without changing the independent solid.'
+    : widthInset ? 'Edit the width of a drawn linked inset source without changing its radius or identity.'
     : drawnInset ? 'Draw and round all four source corners in desktop Studio.'
     : authorInset ? 'Author a linked inset and direct Extrude together from one finished sketch.'
     : detachInset ? 'Detach a rounded inset into the exact ordinary sketch at the same feature ID.'
@@ -847,6 +849,10 @@ async function verifyDrawnInset(source) {
   await button(f.editor(), 'Apply').click();
   await f.changed(expected(1));
   await check('drawn-linked-sharp', 2.5);
+  if (detachedSourceEdit) {
+    await verifyDetachedSourceEdit(expected(2.5));
+    return;
+  }
   if (widthInset) {
     await verifySourceWidth(expected(2.5));
     return;
@@ -932,6 +938,52 @@ async function verifySourceWidth(original) {
   await applyWidth(20);
   await f.changed(wider);
   await expectGeometry('width-post-open-20', original, 20);
+}
+
+async function verifyDetachedSourceEdit(linked) {
+  await f.openFeatureEditor(2);
+  await button(f.editor(), 'Detach inset').click();
+  await f.changed(linked);
+  await f.editor().waitFor({ state: 'hidden' });
+  const detached = await f.doc();
+  const solid = await f.inspect('detached-original-solid', detached);
+  close(solid.volume, stockVolume - 750);
+  const accepted = await f.bodies();
+
+  f.phase = 'Edit the former source independently';
+  const history = f.page.getByRole('group', { name: 'History', exact: true });
+  await button(history, 'Sketch · outline').click();
+  await f.editor().waitFor();
+  const radius = f.editor().getByRole('spinbutton', { name: 'Radius of arc 1', exact: true });
+  assert.equal(await radius.inputValue(), '2');
+  await radius.fill('2.25');
+  await button(f.editor(), 'Apply').click();
+  await f.changed(detached);
+  const edited = await f.doc();
+  assert.equal(edited.nodes[0].outline.radii[0], 2.25);
+  assert.notDeepEqual(edited.nodes[0].segments, detached.nodes[0].segments);
+  assert.equal(edited.nodes[0].id, detached.nodes[0].id);
+  assert.deepEqual(edited.nodes[0].sideTags, detached.nodes[0].sideTags);
+  assert.deepEqual(edited, { ...detached, nodes: [edited.nodes[0], ...detached.nodes.slice(1)] });
+  assert.deepEqual(await f.inspect('detached-after-source-edit', edited), solid);
+  assert.deepEqual(await f.bodies(), accepted);
+  await f.snapshot('detached-source-radius-edited');
+
+  await f.undo();
+  await f.same(detached);
+  await f.undo();
+  await f.same(linked);
+  await f.redo();
+  await f.same(detached);
+  await f.redo();
+  await f.same(edited);
+  assert.deepEqual(await f.inspect('detached-after-redo', edited), solid);
+  const saved = await save(edited);
+  await f.newPage();
+  await open(edited, saved);
+  assert.deepEqual(await f.inspect('detached-edited-fresh-open', edited), solid);
+  await f.snapshot('detached-edited-fresh-open');
+  f.report.observations.push({ label: 'former-source-independent', radiusBefore: 2, radiusAfter: 2.25, solidVolumeMm3: solid.volume });
 }
 
 await f.run(async () => {
