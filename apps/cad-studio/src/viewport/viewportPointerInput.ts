@@ -74,7 +74,7 @@ export interface ViewportPointerProps {
   onPickChain?(body: number, edge: number): void;
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; edgeMesh?: BodyResult['mesh']; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
-  onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
+  onSketchShape(shape: SketchShape | null, fresh?: boolean, origin?: 'line-point'): void;
   onSplineDragChange?(active: boolean): void;
   onCursor(p: Vec3 | null): void;
   /** Use projected triangle overlap for crossing boxes in the idle native Model view. */
@@ -258,7 +258,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     liveShape.current = sketch?.shape ?? null;
     if (!sketch?.shape) { drafting.current = false; slotStage.current = 0; }
   }
-  const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
+  const emit = (shape: SketchShape | null, fresh = false, origin?: 'line-point') => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh, origin); };
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   const sketchDraft = useRef<SketchOverlayDraft>({ cursor: null });
@@ -999,8 +999,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
         const pts = open ? open.points : [], bulges = open?.bulges ?? pts.map(() => 0);
         const arc = sk.tool === 'arc' && pts.length > 0;
         const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
-        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
-        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc }, !open);
+        const origin = sk.tool === 'polygon' ? 'line-point' : undefined;
+        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc }, false, origin);
+        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc }, !open, origin);
       }
       return;
     }

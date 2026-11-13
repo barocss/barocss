@@ -1,0 +1,69 @@
+{
+  "decision": "D1073",
+  "tier": "SMALL",
+  "parent": "2b2315e1fe8085332caeb2cf7316bd3e09ad95fd",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1073-repair-line-<run>",
+    "D1073_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-repair-line-draft-history-browser.mjs <external-evidence>/<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app test draft-sketch-history drag-trim-plan drag-trim-stroke",
+    "node --check apps/cad-studio/test/sketch-repair-line-draft-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 379,
+      "receiptSHA256": "180b0fbf50a8c5afdf6726d6b12694ac0dab119e6c94e4f03b3a3038c3ea28fd",
+      "sourceManifestSHA256": "0306edec1a881c8a8167b8a6dfcc1af713b8a043f7cc471f143fe5bf0fc0b826",
+      "firstFailure": "Cmd+Z leaves the last Line repair segment in the draft."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 379,
+      "receiptSHA256": "967b3f54fcdb1243abe0cb0c8b2d675f366734e730a2efe792ce64bc6be8bb46",
+      "sourceManifestSHA256": "feafb17f3fd7a4398182dcaf530e5d7d93067bb89deaa877e5cf438326f718ee"
+    }
+  },
+  "cutMm": [
+    [
+      10,
+      15
+    ],
+    [
+      10,
+      25
+    ]
+  ],
+  "repairPointsMm": [
+    [
+      10,
+      15
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      15,
+      25
+    ],
+    [
+      10,
+      25
+    ]
+  ],
+  "extrudeMm": 2,
+  "initialVolumeMm3": 3200,
+  "finalVolumeMm3": 2100,
+  "absoluteVolumeToleranceMm3": 1e-08,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 20,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}
