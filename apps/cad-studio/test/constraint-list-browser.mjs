@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 
+const fixedPointConflict = process.argv[3] === '--fixed-point-conflict';
 const edgeCircleConflict = process.argv[3] === '--edge-circle-conflict';
 const circleConflict = process.argv[3] === '--circle-conflict';
 const conflictFocus = process.argv[3] === '--conflict-focus';
@@ -20,7 +21,7 @@ const pins = [
   'packages/barocss-cad-model/src/sketch/rules.ts',
 ];
 const f = await createFlow({
-  name: 'constraint-list', output: process.argv[2], envFrozen: edgeCircleConflict ? 'D1104_SOURCE_FROZEN' : circleConflict ? 'D1103_SOURCE_FROZEN' : conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
+  name: 'constraint-list', output: process.argv[2], envFrozen: fixedPointConflict ? 'D1105_SOURCE_FROZEN' : edgeCircleConflict ? 'D1104_SOURCE_FROZEN' : circleConflict ? 'D1103_SOURCE_FROZEN' : conflictFocus ? 'D1089_SOURCE_FROZEN' : circleDimension ? 'D1088_SOURCE_FROZEN' : pickedUndo ? 'D1087_SOURCE_FROZEN' : removalFocus ? 'D1086_SOURCE_FROZEN' : 'D880_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Filter the current sketch constraint list without changing geometry or row ownership.',
   limits: ['Desktop Studio with a straight rectangle, a separate straight ruled outline, and an ellipse.'],
@@ -34,6 +35,15 @@ import { ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+if (input.fixedPoints) {
+  const shape: Polygon = { kind: 'polygon', closed: true, points: [[12,12],[52,15],[48,33],[16,42]], hv: { h: [], v: [] },
+    rules: [{ kind: 'fix', point: 1, at: [52,15] }, { kind: 'fix', point: 3, at: [16,42] }] };
+  assert.ok(solveShape(shape).ok);
+  const profile = profileOf([shape]);
+  assert.ok('node' in profile);
+  console.log(JSON.stringify(withNode(withNode(emptyDoc(), profile.node), { kind: 'extrude', sketch: 0, height: 5 })));
+  process.exit(0);
+}
 if (input.edgeCircle) {
   const shape: Polygon = { kind: 'polygon', closed: true, points: [[0,0],[60,0],[60,40],[0,40]],
     hv: { h: [0,2], v: [1,3] }, lengths: { 0: 60, 1: 40 },
@@ -197,6 +207,88 @@ await f.run(async () => {
     });
     return context;
   };
+  if (fixedPointConflict) {
+    const source = await f.inspect('source', { fixedPoints: true });
+    await f.newPage();
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await open(source);
+    await edit(1);
+    await f.tool('Dimension', 'd');
+    const pair = [[52,15], [16,42]];
+    await f.frame(pair);
+    const openDistance = async () => {
+      for (const point of pair) await f.worldClick(point);
+      await dimension().waitFor();
+    };
+    const reject = async (label, attempt, axis, current) => {
+      await openDistance();
+      if (axis) await dimension().press(axis);
+      assert.equal(await dimension().inputValue(), current);
+      const before = await f.snapshot(label + '-before');
+      await dimension().fill(attempt);
+      await dimension().press('Enter');
+      await dimension().waitFor({ state: 'hidden' });
+      const after = await f.snapshot(label);
+      for (const key of ['doc', 'bodies', 'history', 'controls', 'dirty', 'solver']) assert.deepEqual(after[key], before[key], key);
+      assert.ok(await f.sketchAlert());
+    };
+    await kind().selectOption('Anchor');
+    await pickedOnly().check();
+    await reject('01-aligned-refusal', '55', null, '45');
+    f.phase = 'focus the two Fix rows after the aligned refusal';
+    const focusFix = async (point, id) => {
+      const action = button(f.sketchPanel(), 'Find fixed point ' + (point + 1));
+      assert.equal(await action.count(), 1);
+      await action.press('Enter');
+      await f.page.waitForFunction(id => document.activeElement?.getAttribute('data-constraint-id') === id, id);
+      await f.page.waitForFunction(point => {
+        const marks = [...document.querySelectorAll('.vp-overlay .inspected')].map(mark => mark.getAttribute('data-sketch-entity'));
+        return marks.length === 1 && marks[0] === 'point:' + point;
+      }, point);
+    };
+    await focusFix(1, 'rule:0');
+    await focusFix(3, 'rule:1');
+    await f.snapshot('02-fixed-point-focused');
+    await reject('03-vertical-refusal', '37', 'v', '27');
+    await focusFix(1, 'rule:0');
+    await reject('04-horizontal-refusal', '46', 'h', '36');
+    await focusFix(3, 'rule:1');
+    await f.page.keyboard.press('Tab');
+    await f.page.keyboard.press('Enter');
+    assert.equal(await button(f.sketchPanel(), 'Find fixed point 4').count(), 0);
+    await f.same(source);
+    await openDistance();
+    await dimension().press('h');
+    await dimension().fill('46');
+    await dimension().press('Enter');
+    await dimension().waitFor({ state: 'hidden' });
+    const accepted = (await f.finishSketch('05-horizontal-46')).doc;
+    assert.deepEqual(accepted.nodes[0].outline.rules, [
+      { kind: 'fix', point: 1, at: [52,15] }, { kind: 'dx', a: 1, b: 3, value: 46 },
+    ]);
+    const points = accepted.nodes[0].outline.points;
+    assert.ok(Math.abs(Math.abs(points[1][0] - points[3][0]) - 46) < 1e-7);
+    assert.deepEqual(points[1], [52,15]);
+    assert.deepEqual(accepted.nodes[0].sideTags, source.nodes[0].sideTags);
+    assert.deepEqual(accepted.nodes[1], source.nodes[1]);
+    const native = await f.inspect('accepted-native', accepted);
+    assert.equal(native.valid, true);
+    const area = Math.abs(points.reduce((sum, point, i) => {
+      const next = points[(i + 1) % points.length];
+      return sum + point[0] * next[1] - point[1] * next[0];
+    }, 0)) / 2;
+    assert.ok(Math.abs(native.volume - 5 * area) < 1e-7);
+    f.report.observations.push({ label: 'recovered-native', area, ...native });
+    await f.undo();
+    await f.same(source);
+    await f.redo();
+    await f.same(accepted);
+    await f.newPage();
+    await open(accepted);
+    await edit(1);
+    assert.equal(await list().getByText('point 2 – point 4 = 46', { exact: true }).count(), 1);
+    return;
+  }
   if (edgeCircleConflict) {
     const source = await f.inspect('source', { edgeCircle: true });
     await f.newPage();

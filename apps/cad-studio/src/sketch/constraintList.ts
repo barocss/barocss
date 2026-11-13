@@ -97,3 +97,27 @@ export function edgeCircleDistanceConflict(shape: Polygon, key: string, value: n
     }
   }
 }
+
+/** Attribute a refused point distance to the two explicit Fix rows that determine it. */
+export function fixedPointDistanceConflict(shape: Polygon, key: string, value: number) {
+  const pair = /^(dist|dx|dy)(\d+)_(\d+)$/.exec(key);
+  if (!pair || !shape.closed || shape.pending || !isSolverLength(value)) return;
+  const a = Number(pair[2]), b = Number(pair[3]);
+  // The implicit anchor also fixes point 0. This diagnostic identifies explicit Fix rows only.
+  if (a <= 0 || a >= b || !shape.points[a] || !shape.points[b]) return;
+  const target = (point: number) => {
+    const matches = (shape.rules ?? []).flatMap((rule, i) =>
+      rule.kind === 'fix' && rule.point === point ? [{ id: `rule:${i}`, at: rule.at }] : []);
+    if (matches.length !== 1) return;
+    const [fix] = matches;
+    if (fix.at.length === 2 && [...fix.at].every(coordinate => Number.isFinite(coordinate) && Math.abs(coordinate) <= CadNumericPolicy.coordinateAbs)) return fix;
+  };
+  const first = target(a), second = target(b);
+  if (!first || !second) return;
+  const dx = Math.abs(second.at[0] - first.at[0]), dy = Math.abs(second.at[1] - first.at[1]);
+  const distance = pair[1] === 'dx' ? dx : pair[1] === 'dy' ? dy : Math.hypot(dx, dy);
+  // Include both fixed-point residuals, the distance measurement and (for axes)
+  // its helper ties and run, with room for floating-point arithmetic.
+  if (Math.abs(distance - value) <= 8 * CadNumericPolicy.linearTolerance) return;
+  return { ids: [first.id, second.id], points: [a, b], distance };
+}

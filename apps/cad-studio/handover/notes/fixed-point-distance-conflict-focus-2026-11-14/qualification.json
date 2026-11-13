@@ -1,0 +1,59 @@
+{
+  "decision": "D1105",
+  "tier": "FEATURE",
+  "parent": "b3a25afd1433f9c053ce8a47580643a4f5713b7f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1105-fixed-point-distance-<run>",
+    "D1105_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/<run> --fixed-point-conflict",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && node scripts/test.mjs constraint-list constraints.test fixed-triangle-inline-ownership",
+    "pnpm exec eslint apps/cad-studio/src/{sketch/constraintList.ts,ui/ConstraintList.tsx,ui/ConstraintTools.tsx,ui/SketchPanel.tsx,viewport/studioSketchViewportActions.ts}",
+    "D1104_SOURCE_FROZEN=1 node apps/cad-studio/test/constraint-list-browser.mjs <external-evidence>/edge-circle-control --edge-circle-conflict",
+    "node --check apps/cad-studio/test/constraint-list-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 860,
+      "receiptSHA256": "dc9929a55257d575d7216e3ee59a6fb07641391fe732255cb57e2d458665b93f",
+      "sourceManifestSHA256": "2bd6ab356bfd2785cc68b96bf3241334b3c66c7034f478089357e1d3fc42661a",
+      "firstFailure": "The aligned 55 mm edit is refused but no action can locate the two fixed points."
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 860,
+      "receiptSHA256": "3fae8b0c0172bcbcc3dbf55edc622784065f51f2575d891cb8a579fa5ba031f9",
+      "sourceManifestSHA256": "82c68fd0c12fd774cfcb6cd78bfa5216d2c1223f272cd7c8f0ff22c16c6bafcd"
+    },
+    "edgeCircleControl": {
+      "status": "PASS",
+      "receiptSHA256": "aa4cd717c60efd6e8181f39eec429a8a43f5e1eef9794a609dedb0f2b12f6757",
+      "sourceManifestSHA256": "3becaa84a72ace8f24b5615763b1b518226d15cd8c07fb6b0d652b0835b66c42"
+    }
+  },
+  "alignedMM": [
+    45,
+    55
+  ],
+  "horizontalMM": [
+    36,
+    46
+  ],
+  "verticalMM": [
+    27,
+    37
+  ],
+  "proofMarginMM": 8e-07,
+  "areaMM2": 969,
+  "volumeMM3": 4845.000000000001,
+  "focused": {
+    "status": "PASS",
+    "studioPassed": 36,
+    "failed": 0,
+    "typeChecks": 1
+  }
+}

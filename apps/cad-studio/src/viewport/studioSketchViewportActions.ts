@@ -6,7 +6,7 @@ import { isDefaultPlane } from '@barocss/cad-model/sketch/plane';
 import { commitDimension, commitInlineDimension, dimensionLabel, dimensionValue, drivingDimensionValue, isVerifiedFixedTriangleEdit, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
-import { circleDistanceConflict, edgeCircleDistanceConflict, opposingLengthConflict } from '../sketch/constraintList';
+import { circleDistanceConflict, edgeCircleDistanceConflict, fixedPointDistanceConflict, opposingLengthConflict } from '../sketch/constraintList';
 import { matchesStoredTriangle } from '../sketch/fixedTriangleEditor';
 import type { SceneSketchActions } from './SceneViewport';
 
@@ -54,9 +54,13 @@ export function studioSketchViewportActions({ liveShape, sketch, currentSketchSo
       const edge = opposingLengthConflict(source, key, value);
       const circle = circleDistanceConflict(source, key, value);
       const edgeCircle = edgeCircleDistanceConflict(source, key, value);
+      const fixed = fixedPointDistanceConflict(source, key, value);
       if (edgeCircle) {
         const { ids, span, spanEdge, opposite, oppositeDistance } = edgeCircle;
         setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the ${span} mm length of edge ${spanEdge + 1} and the ${oppositeDistance} mm distance from edge ${opposite + 1}.`, source, ids);
+      } else if (fixed) {
+        const [a, b] = fixed.points;
+        setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the ${Number(fixed.distance.toPrecision(15))} mm distance set by fixed points ${a + 1} and ${b + 1}.`, source, fixed.ids);
       } else if (circle) setConstraintConflict(`${dimensionLabel(source, key)} = ${value} mm conflicts with the stored ${circle.axis} distance of ${circle.value} mm.`, source, [circle.id]);
       else if (edge !== undefined) setConstraintConflict(result.reason, source, [`len:${edge}`]);
       else setSketchError(result.reason);

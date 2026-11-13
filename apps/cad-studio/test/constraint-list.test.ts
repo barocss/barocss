@@ -2,12 +2,31 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ELLIPSE_POINTS, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
 import { commitDimension, removeConstraint, type Polygon } from '@barocss/cad-model/sketch/rules';
-import { activeCircleDistanceRow, circleDistanceConflict, constraintListRows, edgeCircleDistanceConflict, filterConstraintList, opposingLengthConflict } from '../src/sketch/constraintList';
+import { activeCircleDistanceRow, circleDistanceConflict, constraintListRows, edgeCircleDistanceConflict, filterConstraintList, fixedPointDistanceConflict, opposingLengthConflict } from '../src/sketch/constraintList';
 
 const rectangle: Polygon = {
   kind: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]], closed: true, hv: { h: [0, 2], v: [1, 3] },
 };
 const ids = (rows: ReturnType<typeof constraintListRows>) => rows.map(row => row.id);
+
+test('D1105 attributes a point distance only to the two explicit and unambiguous Fix targets', () => {
+  const shape: Polygon = { ...rectangle, rules: [
+    { kind: 'fix', point: 1, at: [52, 15] }, { kind: 'fix', point: 3, at: [16, 42] },
+  ] };
+  for (const [key, value, distance] of [['dist1_3', 55, 45], ['dx1_3', 46, 36], ['dy1_3', 37, 27]] as const) {
+    assert.deepEqual(fixedPointDistanceConflict(shape, key, value), { ids: ['rule:0', 'rule:1'], points: [1, 3], distance });
+    assert.equal(fixedPointDistanceConflict(shape, key, distance + 7e-7), undefined);
+    assert.equal(fixedPointDistanceConflict(shape, key, distance), undefined);
+  }
+  for (const key of ['len1', 'dist1_1', 'dist0_3', 'dist1_2', 'dist1_4']) assert.equal(fixedPointDistanceConflict(shape, key, 10), undefined);
+  for (const value of [0, Infinity, 30000]) assert.equal(fixedPointDistanceConflict(shape, 'dist1_3', value), undefined);
+  for (const extra of [
+    { kind: 'fix', point: 1, at: [52, 15] }, { kind: 'fix', point: 1, at: [52, 18] },
+  ] as const) {
+    const rule = { ...extra, at: [...extra.at] as [number, number] };
+    assert.equal(fixedPointDistanceConflict({ ...shape, rules: [...shape.rules!, rule] }, 'dist1_3', 55), undefined);
+  }
+});
 
 test('D1104 proves both sign branches conflict with an opposite distance and a locked span', () => {
   const shape: Polygon = { ...rectangle, points: [[0, 0], [60, 0], [60, 40], [0, 40]], lengths: { 1: 40 },

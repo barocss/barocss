@@ -22,6 +22,7 @@ function initialFilters(document: object, owner: SketchState): FilterState {
 function conflictActionLabel(row: ConstraintEntry): string {
   const [first, second] = row.involves;
   if (row.label === 'Length') return `Find conflicting length on edge ${first.i + 1}`;
+  if (row.label === 'Fixed') return `Find fixed point ${first.i + 1}`;
   const pair = first.kind === 'edge' ? `edge ${first.i + 1} and circle ${second.i + 1}` : `circles ${first.i + 1} and ${second.i + 1}`;
   return `Find conflicting ${row.label.toLowerCase()} between ${pair}`;
 }
