@@ -1,0 +1,88 @@
+{
+  "decision": "D914",
+  "date": "2026-11-13",
+  "tier": "FULL",
+  "parent": "d031af1735848fbe8909452b648e66dcc3fa157d",
+  "issue": 2232,
+  "issueDisposition": "OPEN",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 <D914-run>",
+    "D914_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/detach01 --detach-inset",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/edit-regression --edit-inset",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset editFields rematch o19-stored-names offset",
+    "cd apps/cad-studio && node scripts/test.mjs document-file sketchIds featureHistory project workOwnership direct-curve",
+    "cd apps/cad-studio && node test/rounded-inset-recipe-mutations.mjs <external-evidence>/mutations",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/studio-dist",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/sketch/internal/roundedInsetRecipe.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx --format json",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx --format json",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "focused": {
+    "status": "PASS",
+    "modelPass": 102,
+    "studioPass": 124,
+    "fail": 0,
+    "skipped": 0,
+    "types": "PASS",
+    "build": "PASS",
+    "scopedLint": "PASS",
+    "browserSyntax": "PASS",
+    "diff": "PASS",
+    "logSHA256": "82159a7b90a87168b02d2fa425fba9f8a5c4c93a5a80827b5b31e5b375bbdf3d"
+  },
+  "appLint": {
+    "status": "FAIL",
+    "newDiagnostics": 0,
+    "existingDiagnostic": "@typescript-eslint/no-unused-vars: '_k' is assigned a value but never used.",
+    "parentSHA256": "db1e6a3686308a4f117bc79cc61473847c52a2726223773eea8d1661a4a7f8d1",
+    "currentSHA256": "f2a0e525449d244f0e32c280a5be321a8b6b22fe4aa39efb0e28b33b063c008e"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "scope": "Native lowered graph, same sketch and body IDs, loop ownership and cancellation through existing candidate path"
+  },
+  "mutations": {
+    "status": "PASS",
+    "controlPass": 5,
+    "killed": 5,
+    "receiptSHA256": "56442d64e54a4e3de6115797957c2857315c2ebec81d879fc16b45c442859109"
+  },
+  "studio": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "visualReview": "PASS",
+    "receiptSHA256": "8e2a183707c0c07b37dfc4b920e4a714645e5ee31437e53d5ac4a785691a8440",
+    "sourceManifestSHA256": "55af4bcd119fb02f7ad2fca940b81ac922db3c716cea83f16bc1c2f3b28ae377",
+    "frozenFiles": 845,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "distancesMM": [
+      1,
+      2.5
+    ],
+    "measuredVolumeMM3": [
+      534.247779607693,
+      1215.663706143591
+    ],
+    "expectedVolumeMM3": [
+      534.2477796076939,
+      1215.6637061435918
+    ],
+    "savedBytes": 4061,
+    "savedSHA256": "f7a300ebc20d0fc5038dd97ed4f7aaf435152c10e97996a22d6f10243cc562ab",
+    "distanceEditReceiptSHA256": "242a5314b4fc446e71154d5ba4fd95d77ec01afafe5060c3842f1290eb28cc31"
+  },
+  "notRun": [
+    "modified detached source in Studio",
+    "old desktop product",
+    "Studio recipe authoring and dependent features",
+    "whole suites",
+    "mobile"
+  ]
+}

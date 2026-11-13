@@ -69,7 +69,7 @@ import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
 import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
-import { validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
+import { detachRoundedInsetRecipe, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { activeKey, type Active } from './app/commandState';
 import { canUseHolePresets } from './app/holePresets';
 import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
@@ -319,11 +319,11 @@ export function App() {
     const why = !replacement.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacement.current?.scope ?? intent?.scope ?? acceptanceScope, workCompletion.current);
     if (why) { setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' }); return false; }
     const insetEdit = parameterEditNow.current;
-    const acceptsInsetDistance = !whole && workCompletion.current !== null && insetEdit?.roundedInset
+    const acceptsInsetEdit = !whole && workCompletion.current !== null && insetEdit?.roundedInset
       && insetEdit.base === docNow.current && insetEdit.next === next;
-    if (!replacement.current && !acceptsInsetDistance && (docNow.current.nodes.some(node => node.kind === 'rounded-rectangle-inset')
+    if (!replacement.current && !acceptsInsetEdit && (docNow.current.nodes.some(node => node.kind === 'rounded-rectangle-inset')
       || next.nodes.some(node => node.kind === 'rounded-rectangle-inset'))) {
-      setToast({ title: 'Change not applied', hint: 'Use the Extrude editor to change the inset distance.', detail: 'The document is unchanged.' });
+      setToast({ title: 'Change not applied', hint: 'Use the Extrude editor to change the inset distance or detach it.', detail: 'The document is unchanged.' });
       return false;
     }
     const pathProblem = curvePatternDocumentProblem(next);
@@ -365,7 +365,7 @@ export function App() {
   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
   // Parameter candidates use the normal evaluation lane before the accepted document changes.
   const parameterRequest = useRef(0);
-  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; roundedInset?: true; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; roundedInset?: 'distance' | 'detach'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
   const parameterEditNow = useRef(parameterEdit); parameterEditNow.current = parameterEdit;
   const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
   // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
@@ -853,7 +853,8 @@ export function App() {
     setBusy(true);
     const run = async () => {
       if (edit?.roundedInset) {
-        const verified = await engine.verifyStoredInsets(edit.next);
+        // Detach stores the exact profile used to build the linked base.
+        const verified = await engine.verifyStoredInsets(edit.roundedInset === 'detach' ? edit.base : edit.next);
         if (!current()) return;
         if (!('ok' in verified)) { refuse(verified.error); return; }
       }
@@ -1033,25 +1034,35 @@ export function App() {
     setDirty(true);
     return true;
   }, [doc, marker, acceptanceScope]);
-  const stageFeatureCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string; roundedInset?: true }, select?: string[]) => {
+  const stageFeatureCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string; roundedInset?: 'distance' | 'detach' }, select?: string[]) => {
     if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: candidate.failureTitle ?? 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
     const edit = { ...candidate, kind: 'direct' as const, request: ++parameterRequest.current, base: doc, baseInput: evaluatedRef.current,
-      accept: (accepted: StudioDoc) => { if (commit(accepted, false, false, candidate.roundedInset) && select) setDirectSel(select); } };
+      accept: (accepted: StudioDoc) => { if (commit(accepted, false, false, !!candidate.roundedInset) && select) setDirectSel(select); } };
     // Reserve before React renders so a second edit cannot change the accepted input.
     workOwnership.current = beginWork(workOwnership.current, doc, candidate.input, true);
     parameterEditNow.current = edit; setParameterEdit(edit); setBusy(true);
   }, [doc, bodiesFor, massReady, commit]);
-  const applyRoundedInsetDistance = (nodes: ModelNode[]) => {
-    const current = doc.nodes[1], draft = nodes[1], extrude = doc.nodes[2];
-    if (editNode !== 2 || doc.nodes.length !== 3 || current?.kind !== 'rounded-rectangle-inset' || draft?.kind !== 'rounded-rectangle-inset'
-      || extrude?.kind !== 'extrude' || extrude.sketch !== 1 || draft.insetMM === current.insetMM) return;
-    const failureTitle = 'Inset distance not changed';
+  const applyRoundedInsetEdit = (nodes?: ModelNode[]) => {
+    if (!canChangeDocument()) return;
+    const current = doc.nodes[1], draft = nodes?.[1], extrude = doc.nodes[2];
+    if (editNode !== 2 || doc.nodes.length !== 3 || current?.kind !== 'rounded-rectangle-inset'
+      || extrude?.kind !== 'extrude' || extrude.sketch !== 1) return;
+    const failureTitle = nodes ? 'Inset distance not changed' : 'Inset not detached';
     if (markerNow.current !== null || shownVariant.current || !fresh || busy) {
       setToast({ title: failureTitle, hint: 'Show the master at the latest History and wait for the part.', detail: '' });
       return;
     }
-    const next = { ...doc, nodes: [doc.nodes[0], { ...current, insetMM: draft.insetMM }, extrude] };
-    stageFeatureCandidate({ next, input: prefixDoc(next, next.nodes.length), failureTitle, roundedInset: true });
+    try {
+      let next: StudioDoc;
+      if (!nodes) next = detachRoundedInsetRecipe(doc);
+      else {
+        if (draft?.kind !== 'rounded-rectangle-inset' || draft.insetMM === current.insetMM) return;
+        next = { ...doc, nodes: [doc.nodes[0], { ...current, insetMM: draft.insetMM }, extrude] };
+      }
+      stageFeatureCandidate({ next, input: prefixDoc(next, next.nodes.length), failureTitle, roundedInset: nodes ? 'distance' : 'detach' });
+    } catch (error) {
+      setToast({ title: failureTitle, hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
   };
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
@@ -2708,6 +2719,7 @@ export function App() {
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
         {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
+          onDetachInset={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? () => applyRoundedInsetEdit() : undefined}
           onRelinkInset={insetSketch?.kind === 'sketch' && insetSketch.association && insetSketch.on ? { start: reviewInsetSource, cancel: insetRelink.cancel, reviewing: !!insetReview } : undefined}
           onEditSketch={(() => {
           const n = doc.nodes[editNode], s = n?.kind === 'sketch' || n?.kind === 'driven-sketch' ? editNode : n && 'sketch' in n ? n.sketch : null;
@@ -2735,8 +2747,8 @@ export function App() {
           const result = await engine.faceEndDistance(doc, editNode);
           return current() ? result : { error: 'The source changed. Open the current feature again.' };
         }} onApply={(nodes, ownsDraft) => {
+          if (doc.nodes[1]?.kind === 'rounded-rectangle-inset') { applyRoundedInsetEdit(nodes); return; }
           if (!canChangeDocument()) return;
-          if (doc.nodes[1]?.kind === 'rounded-rectangle-inset') { applyRoundedInsetDistance(nodes); return; }
           if (doc.nodes[editNode]?.kind === 'face-end-extrude' && nodes[editNode]?.kind === 'extrude'
             && (markerNow.current !== null || shownVariant.current || evaluatedRef.current !== evaluated || !fresh || busy)) {
             return Promise.resolve({ title: 'Distance not applied', hint: 'Show the master at the latest History and wait for the model before detaching.', detail: '' });

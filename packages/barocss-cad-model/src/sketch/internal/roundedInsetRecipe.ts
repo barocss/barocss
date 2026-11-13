@@ -134,3 +134,11 @@ export function validateRoundedInsetDocument(doc: StudioDoc, complete: boolean):
 export function resolveRoundedInsetRecipe(doc: StudioDoc, index: number): SketchNode {
   return plannedRecipe(doc, index).profile;
 }
+
+/** Keep the resolved native loops at the same feature slot and remove the recipe binding. */
+export function detachRoundedInsetRecipe(doc: StudioDoc): StudioDoc {
+  if (doc.nodes[1]?.kind !== recipeKind) return badRecipe('there is no stored recipe to detach.');
+  validateRoundedInsetDocument(doc, true);
+  const sketch = resolveRoundedInsetRecipe(doc, 1);
+  return { ...doc, nodes: doc.nodes.map((node, index) => index === 1 ? sketch : node) };
+}

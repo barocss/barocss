@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D914 — detach a stored rounded inset without changing its solid](notes/rounded-inset-detach-2026-11-13/README.md).
 - [D913 — edit the distance of a stored rounded inset](notes/rounded-inset-distance-edit-2026-11-13/README.md).
 - [D912 — read bounded rounded inset recipes](notes/rounded-inset-stored-recipe-2026-11-13/README.md).
 - [D911 — define a versioned rounded inset recipe and its admission](notes/rounded-inset-recipe-contract-2026-11-13/README.md).

@@ -3,9 +3,9 @@ import test from 'node:test';
 import { checkBrep, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, prefixDoc, type LoopSegment, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { partSnapshot } from '../src/engine/part';
+import { partSnapshot, toPartDocument } from '../src/engine/part';
 import { editFields } from '../src/app/editFields';
-import { resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
+import { detachRoundedInsetRecipe, resolveRoundedInsetRecipe, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
 const outer = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'];
 const allInner = ['e9', 'e10', 'e11', 'e12', 'e13', 'e14', 'e15', 'e16'];
@@ -81,6 +81,23 @@ test('the stored inset editor exposes only the numeric distance and preserves th
     const rejected = { ...doc, nodes: field.set(doc.nodes, distance) };
     assert.throws(() => validateRoundedInsetDocument(rejected, true), reason);
   }
+});
+
+test('detaching the inset preserves the exact native input and removes only the recipe link', () => {
+  for (const distance of [1, 2, 2.5]) {
+    const before = fixture(distance);
+    const detached = detachRoundedInsetRecipe(before);
+    assert.equal(detached.nodes[0], before.nodes[0]);
+    assert.equal(detached.nodes[2], before.nodes[2]);
+    assert.equal(detached.outputs, before.outputs);
+    const sketch = detached.nodes[1];
+    assert.equal(sketch.id, 'n11');
+    assert.equal(sketch.kind, 'sketch');
+    assert.ok(!('association' in sketch) && !('sideMap' in sketch));
+    assert.deepEqual(toPartDocument(detached), toPartDocument(before));
+    assert.deepEqual(readStudioDoc(JSON.stringify(detached)), { doc: detached, notes: [] });
+  }
+  assert.throws(() => detachRoundedInsetRecipe(fixture(1.995)), /minimum offset radius/);
 });
 
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {
