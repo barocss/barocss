@@ -1,0 +1,37 @@
+{
+  "decision": "D997",
+  "date": "2026-11-13",
+  "tier": "SMALL",
+  "parent": "d77700af12636f250fd2b14d70a2af3f461d8e29",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D997-live-split-finish",
+    "D997_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/studio01 --live",
+    "node --check apps/cad-studio/test/split-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "visualReview": "PASS",
+    "renderer": "webgpu",
+    "receiptSHA256": "f0d45882ed3b11dc2558c6bbf0092278e790ce398d5bffb3ad37bbc43c9a4aa9",
+    "sourceManifestSHA256": "ef0dfcd1841407b49e08db7b66f1ee103069757a2d79e8c2a444ce9070385ffd",
+    "frozenFiles": 373,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "observations": 8,
+    "acceptedSplitPositionsMM": [24, 30],
+    "volumeToleranceMM3": 1e-7
+  },
+  "notRun": [
+    "live linked inset edit",
+    "History repick and Draft/Flange/Hole",
+    "Save in this live-edit driver",
+    "WebGL2",
+    "type-check",
+    "production build",
+    "full suites",
+    "mobile"
+  ]
+}

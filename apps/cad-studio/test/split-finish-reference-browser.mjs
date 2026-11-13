@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const [output, mode] = process.argv.slice(2);
-assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed'].includes(mode));
+assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live'].includes(mode));
 const historyMode = mode.startsWith('--history-');
+const liveMode = mode === '--live';
 const stored = 'n1.side0|n2.cut.side1';
 const replacement = 'n1.side0|n2.cut.side3';
 const model = {
@@ -24,7 +25,7 @@ const files = [
   'apps/cad-studio/test/split-finish-reference-browser.mjs',
 ];
 const f = await createFlow({
-  name: 'split-finish-reference', output, envFrozen: historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
+  name: 'split-finish-reference', output, envFrozen: liveMode ? 'D997_SOURCE_FROZEN' : historyMode ? 'D996_SOURCE_FROZEN' : 'D995_SOURCE_FROZEN', initialFiles: files, requiredFrozen: files,
   qualification: 'Hold Fillet and Chamfer when a native Split edge changes on Open.',
 });
 const button = name => f.page.getByRole('button', { name, exact: true });
@@ -81,6 +82,42 @@ const proveHistoryAndSave = async (kind, opened, applied) => {
   await f.snapshot(kind + '-project-reopened');
 };
 
+const liveEdit = async (kind, source, removal) => {
+  const before = await f.snapshot(kind + '-accepted-x24');
+  volumeNear(before.bodies.bodies.find(body => body.key === 'b3').volume, 7200 - removal);
+  f.phase = 'edit the Split plane from X24 to X30 for ' + kind;
+  await f.openFeatureEditor(2, 'Split');
+  await f.editor().getByRole('spinbutton', { name: 'At', exact: true }).fill('30');
+  await f.editor().getByRole('button', { name: 'Apply', exact: true }).click();
+  const shifted = { ...source, nodes: source.nodes.map((node, index) => index === 2 ? { ...node, at: 30 } : node) };
+  await f.same(shifted);
+  const good = await f.snapshot(kind + '-accepted-x30');
+  volumeNear(good.bodies.bodies.find(body => body.key === 'b3').volume, 9000 - removal);
+  volumeNear(good.bodies.bodies.find(body => body.key === 'b2_positive').volume, 9000);
+  await f.closeEditor();
+  await f.undo();
+  await f.same(source);
+  await f.redo();
+  await f.same(shifted);
+
+  f.phase = 'refuse a reversal that removes the signed ' + kind + ' edge';
+  await f.openFeatureEditor(2, 'Split');
+  const history = () => Promise.all(['Undo', 'Redo'].map(name => button(name).isEnabled()));
+  const historyBefore = await history();
+  const accepted = await f.snapshot(kind + '-before-reversal');
+  await f.editor().getByRole('spinbutton', { name: 'Normal X', exact: true }).fill('-1');
+  await f.editor().getByRole('spinbutton', { name: 'At', exact: true }).fill('-30');
+  await f.editor().getByRole('button', { name: 'Apply', exact: true }).click();
+  const error = f.editor().locator('.hud-error');
+  await error.waitFor();
+  assert.match(await error.textContent(), /The selected edge no longer exists/);
+  assert.ok((await error.textContent()).includes(stored));
+  const refused = await f.snapshot(kind + '-reversal-refused');
+  for (const key of ['doc', 'bodies', 'selection', 'history']) assert.deepEqual(refused[key], accepted[key], key);
+  assert.deepEqual(await history(), historyBefore);
+  assert.equal(await refs().count(), 0);
+};
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
@@ -102,15 +139,21 @@ await f.run(async () => {
       ...(kind === 'fillet' ? { radius: 1 } : { distance: 1 }),
       sigs: { [stored]: { k: 'line', p: [24, 0, 5], d: [0, 0, 1], s: 10 } },
     };
-    const doc = { ...model, nodes: [...model.nodes, finish] };
+    const sourceNodes = liveMode ? model.nodes.map((node, index) => index === 2 ? { ...node, normal: [1, 0, 0], at: 24 } : node) : model.nodes;
+    const doc = { ...model, nodes: [...sourceNodes, finish] };
     const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
     await chooser.setFiles({ name: 'split-' + kind + '.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+    const removal = kind === 'fillet' ? 10 * (1 - Math.PI / 4) : 5;
+    if (liveMode) {
+      await f.same(doc);
+      await liveEdit(kind, doc, removal);
+      continue;
+    }
     await refs().waitFor();
     await f.ready();
     const opened = await f.snapshot(kind + '-opened');
     const bodies = opened.bodies.bodies;
     assert.equal(bodies.length, 2);
-    const removal = kind === 'fillet' ? 10 * (1 - Math.PI / 4) : 5;
     if (mode === '--baseline') {
       assert.deepEqual(opened.doc.nodes[3].rematched, { [replacement]: stored });
       assert.equal(opened.doc.nodes[3].suppressed, undefined);
