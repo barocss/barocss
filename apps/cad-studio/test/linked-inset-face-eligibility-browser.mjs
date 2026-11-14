@@ -5,6 +5,7 @@ const baseline = process.argv.includes('--baseline');
 const oversize = process.argv.includes('--oversize');
 const fieldEnter = process.argv.includes('--field-enter');
 const perforated = process.argv.includes('--perforated');
+const activeLink = process.argv.includes('--active-link');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -144,7 +145,7 @@ await f.run(async () => {
     f.phase = 'Enter in the corrected Offset distance';
     assert.ok(await distance.evaluate(element => element === document.activeElement));
     await distance.press('Enter');
-    if (baseline) {
+    if (baseline && !activeLink) {
       await f.sketchPanel().waitFor({ state: 'hidden' });
       await f.same(seed);
       await f.snapshot('enter-closed-sketch');
@@ -152,6 +153,25 @@ await f.run(async () => {
     }
   } else await linked().click();
   await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
+  if (activeLink) {
+    f.phase = 'read the active linked inset and keep the ordinary Offset separate';
+    const panel = f.sketchPanel();
+    if (baseline) {
+      assert.equal(await linked().isEnabled(), true);
+      await distance.fill('3');
+      await distance.press('Enter');
+      await f.snapshot('ambiguous-linked-draft');
+      throw new Error('The linked draft still presents an active Link button and does not show its actual distance.');
+    }
+    await panel.getByText('Linked face outline and inset · 2 mm', { exact: true }).waitFor();
+    await panel.getByText('To change the linked distance, finish the sketch and edit it in History.', { exact: true }).waitFor();
+    assert.equal(await linked().count(), 0);
+    await distance.fill('3');
+    await distance.press('Enter');
+    await panel.getByText('Linked face outline and inset · 2 mm', { exact: true }).waitFor();
+    await f.same(seed);
+    await f.snapshot('linked-distance-distinct-from-offset');
+  }
   const saved = (await f.finishSketch('straight-linked-outline')).doc;
   assert.deepEqual(saved.nodes[4].association, {
     kind: 'planar-face-outline-inset', version: 1, source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.top', insetMM: 2,

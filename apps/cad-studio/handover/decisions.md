@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1215 — show the actual distance of the linked inset draft](notes/linked-inset-active-draft-distance-2026-11-14/README.md).
 - [D1214 — edit a straight-face Linked Inset distance in History](notes/linked-inset-distance-history-2026-11-14/README.md).
 - [D1213 — name the linked inset blocked by a source dimension](notes/linked-inset-source-dimension-refusal-2026-11-14/README.md).
 - [D1212 — explain the linked inset replacement prerequisite](notes/linked-inset-extrusion-prerequisite-2026-11-14/README.md).

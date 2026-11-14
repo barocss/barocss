@@ -1,0 +1,125 @@
+{
+  "decision": "D1215",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "b8e018e1d417f82d18dd0eefd4db377036cb8abc",
+  "commands": [
+    "gate.sh acquire heavy 600 D1215-<run>",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/baseline-active --oversize --active-link --baseline --field-enter",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/final --oversize --active-link --field-enter",
+    "D1070_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-linked-plane-draft-history-browser.mjs <external-evidence>/plane",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx",
+    "node --check apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline-active": {
+      "status": "FAIL",
+      "states": [
+        "before-oversize",
+        "oversize-refused",
+        "ambiguous-linked-draft",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "4f59135a8705fcf79421a273ce84542d3f4d4e3ba5ab04bd67c01e24c9bc0a2f",
+      "sourceManifestSHA256": "6f94bd83967abb89f2f1303017b8f69379e6a728e999fc77551e115f700ccbaa",
+      "sourceAfterCleanupSHA256": "6f94bd83967abb89f2f1303017b8f69379e6a728e999fc77551e115f700ccbaa",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "before-oversize",
+        "oversize-refused",
+        "linked-distance-distinct-from-offset",
+        "straight-linked-outline",
+        "straight-linked-ring-extruded"
+      ],
+      "observations": [
+        {
+          "label": "straight-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "straight-linked-ring",
+          "volume": 416.0000000000003,
+          "association": {
+            "kind": "planar-face-outline-inset",
+            "version": 1,
+            "source": {
+              "node": 3,
+              "side": "solid"
+            },
+            "sourceFeature": "n3",
+            "face": "n3.top",
+            "insetMM": 2
+          }
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "aaa6d935654a92ec55b7cef037b45bcb4b60263624bc76776df3247acd59ed80",
+      "sourceManifestSHA256": "6b870eea1ef983c981473a0373b35fe13703063350882d19e406fef5d1e4d3a4",
+      "sourceAfterCleanupSHA256": "6b870eea1ef983c981473a0373b35fe13703063350882d19e406fef5d1e4d3a4",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "plane": {
+      "status": "PASS",
+      "states": [
+        "01-shifted-detached",
+        "02-after-keyboard-undo",
+        "03-linked-finish",
+        "04-linked-ring-extruded",
+        "05-regenerated"
+      ],
+      "observations": [
+        {
+          "offsetAfterUndo": 0,
+          "linkedAfterUndo": true
+        },
+        {
+          "label": "04-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 3TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        }
+      ],
+      "frozenFiles": 393,
+      "receiptSHA256": "129acb94d542fd01b9bf115797d246338599740ddc24bb95b1f5d4e7d1b0e058",
+      "sourceManifestSHA256": "d98cc7ca91168dccb7a5aaf3404b72156ba3f14fbe1506b642360609b6a86494",
+      "sourceAfterCleanupSHA256": "d98cc7ca91168dccb7a5aaf3404b72156ba3f14fbe1506b642360609b6a86494",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
