@@ -1,3 +1,4 @@
+import { assertRevolveAxisBindings } from './revolveAxis';
 import { assertPocketFloorBindings } from './pocketFloor';
 import { assertDrivenSketchNode } from '../sketch/driven';
 import { validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
@@ -108,6 +109,7 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   try {
     assertRouteBundleDocument(doc);
     assertPocketFloorBindings(doc);
+    assertRevolveAxisBindings(doc);
   }
   catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   return { doc: { ...doc, outputs: prefixDoc(doc, doc.nodes.length).outputs }, notes };

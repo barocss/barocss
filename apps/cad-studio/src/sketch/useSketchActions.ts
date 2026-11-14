@@ -336,7 +336,8 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      const candidate = linked ? next : prefixDoc(next, marker ?? next.nodes.length);
+      const usesLinkedAxis = next.nodes.some(node => node.kind === 'revolve' && node.axisRef && !node.suppressed);
+      const candidate = linked || usesLinkedAxis ? next : prefixDoc(next, marker ?? next.nodes.length);
       evaluateFinish(candidate, () => {
         if (!commit(next)) return;
         setSketch(null);

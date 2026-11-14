@@ -1,3 +1,4 @@
+import type { RevolveAxisRef } from './revolveAxis';
 import type { PocketFloorBinding } from './pocketFloor';
 import type { FillFeaturePatternRegion, CurveFeaturePatternPath } from '@barocss/cad/api';
 import { flattenShopView, resolveShopTree } from './shopRows';
@@ -427,7 +428,7 @@ type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode |
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made; cutDepth?: 'through' }
   | FaceEndExtrudeNode
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
-  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
+  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; axisRef?: RevolveAxisRef; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim]; made?: Made }
@@ -736,7 +737,7 @@ import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from './flatten';
 import { bodyDocOf, savedInstanceOf } from '../assembly/flexible';
 import { cutBase, cutsOf, partBoxOf } from './assemblyCut';
-import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
+import { bodyKeyFor, featureId, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from './schema/spec';
 import type { CadLibraryInterface, CadLibraryManifest, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
@@ -1040,6 +1041,8 @@ export const usesOf = (node: ModelNode, nodes?: readonly ModelNode[]): number[] 
   : (node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh ? [node.mesh.gear]
   // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
   : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])]
+  : node.kind === 'revolve' && node.axisRef
+    ? [node.sketch, ...(nodes ? nodes.flatMap((_, i) => featureId(nodes, i) === node.axisRef!.sourceFeature ? [i] : []) : [])]
   : node.kind === 'face-end-extrude' ? [node.sketch, node.target.body.node]
   : node.kind === 'extrude' && node.cutDepth === 'through' ? throughCutSources(node, nodes) : parentsOf(node);
 

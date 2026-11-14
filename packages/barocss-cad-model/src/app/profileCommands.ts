@@ -1,3 +1,5 @@
+import { CadNumericPolicy } from '@barocss/cad';
+import { revolveAxisReference } from '../engine/revolveAxis';
 // The commands that make a solid from finished sketches, each on its own as CAD tools have them: Extrude
 // (a picked profile pulled along its normal), Revolve (turned about a sketch axis), Pipe (carried along
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
@@ -258,7 +260,7 @@ export const revolveCommand: Command = {
   steps: (ctx, v) => {
     const p = oneProfile(ctx);
     return [{ label: 'Profile', text: p ? `Sketch ${p.index + 1}` : 'pick a finished sketch', done: !!p },
-      { label: 'Axis', text: v.axis === 'edge' ? `edge ${String(v.edgeName ?? '')}` : `sketch ${String(v.axis).toUpperCase()} — or click a straight edge in the sketch plane`, done: true }];
+      { label: 'Axis', text: v.axis === 'edge' ? `edge ${String(v.edgeName ?? '')} · ${v.sourceFeature ? 'linked' : 'fixed'}` : `sketch ${String(v.axis).toUpperCase()} — or click a straight edge in the sketch plane`, done: true }];
   },
   // A straight edge in the sketch's plane becomes the axis.
   onPick: (ctx, v, hit) => {
@@ -269,11 +271,24 @@ export const revolveCommand: Command = {
     if (Math.abs(off(e.a)) > 1e-6 || Math.abs(off(e.b)) > 1e-6) return { error: 'The axis must lie in the sketch’s plane: pick an edge on it.' };
     const a = toLocal(plane, [...e.a] as [number, number, number]), b = toLocal(plane, [...e.b] as [number, number, number]), r = (x: number) => Math.round(x * 1e6) / 1e6;
     const next: Values = { ...v, axis: 'edge', ox: r(a[0]), oy: r(a[1]), dx: r(b[0] - a[0]), dy: r(b[1] - a[1]), edgeName: e.names[0] ?? '' };
+    const source = ctx.bodies[hit.edge.body].ref;
+    const link = e.nativeLine && e.names.length === 1 && source?.side === 'solid'
+      ? revolveAxisReference(ctx.doc, source.node, p.index, e.names[0]) : undefined;
+    delete next.sourceFeature;
+    if (link && (a[0] === b[0] || a[1] === b[1]) && [e.a, e.b].every(p => Math.abs(off(p)) <= CadNumericPolicy.linearTolerance)) {
+      Object.assign(next, { sourceFeature: link.sourceFeature, ox: a[0], oy: a[1], dx: b[0] - a[0], dy: b[1] - a[1] });
+    }
     return next;
   },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, ax = revolveAxis(v);
     const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angle: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angle: Number(v.deg) };
+    if (node.kind === 'revolve' && v.axis === 'edge' && typeof v.sourceFeature === 'string' && typeof v.edgeName === 'string') {
+      const source = ctx.doc.nodes.findIndex(n => n.id === v.sourceFeature);
+      const link = revolveAxisReference(ctx.doc, source, p.index, v.edgeName);
+      if (!link) throw refusal('BAD_REFERENCE', 'The linked Revolve axis is unavailable.');
+      node.axisRef = link;
+    }
     return combine(withNode(ctx.doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
   // The angle: an arc about the axis, from the profile's middle.

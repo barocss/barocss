@@ -1,3 +1,4 @@
+import { assertRevolveAxisBindings } from './revolveAxis';
 import { assertPocketFloorBindings } from './pocketFloor';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
@@ -20,6 +21,7 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(
  */
 export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
   assertPocketFloorBindings(doc);
+  assertRevolveAxisBindings(doc);
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
   if (doc.nodes.some(n => n.kind === 'rounded-rectangle-inset')) throw refusal('BAD_REFERENCE', 'Rounded inset: flattening the stored recipe is not supported.');
@@ -67,7 +69,9 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     };
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'region-extrude': return { ...node, sketch: node.sketch + k, sourceFeature: id(node.sourceFeature) };
-    case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
+    case 'revolve': return { ...node, sketch: node.sketch + k,
+      ...(node.axisRef ? { axisRef: { ...node.axisRef, sourceFeature: id(node.axisRef.sourceFeature), edge: name(node.axisRef.edge) } } : {}) };
+    case 'extrude': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;
     case 'band-surface': throw refusal('BAD_REFERENCE', 'Band surface: a part with a band cannot be placed in an assembly yet.');

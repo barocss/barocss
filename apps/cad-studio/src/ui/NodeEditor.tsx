@@ -152,6 +152,8 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       }
     }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <ToolIconButton size="tiny" aria-label="Close editor" onClick={close}><Icon name="close" small /></ToolIconButton></div>
+      {node?.kind === 'revolve' && <div className="field"><span>Axis</span><span>{node.axisRef
+        ? `Linked edge ${node.axisRef.edge}` : node.dir ? 'Fixed edge' : `Sketch ${node.axis.toUpperCase()}`}</span></div>}
       {node?.kind === 'extrude' && node.cutDepth === 'through' && <div className="field"><span>Depth</span><span>Through all</span></div>}
       {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={() => { retireEvaluation(); onEditSketch(); }}><Icon name="draw" small /> Edit sketch</button>}

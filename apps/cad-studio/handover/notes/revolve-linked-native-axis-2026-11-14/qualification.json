@@ -1,0 +1,110 @@
+{
+  "decision": "D1163",
+  "tier": "FEATURE",
+  "parent": "9316da3fc7e079efddea443fbacf8c721ea64aba",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1163-<run>",
+    "D1163_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-linked-axis-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1162_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-preview-axis-ownership-browser.mjs <external-evidence>/preview-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs revolve-axis profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint on changed Studio and Model TypeScript files",
+    "node --check apps/cad-studio/test/revolve-linked-axis-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "original-native-axis",
+        "stock-y24",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "41facf3bbfcdbc9f5951dafbbbacb31ea0adef04566d88709c82b01b3db747f2",
+      "sourceManifestSHA256": "40b70e61432919afdc3f94e9536173ee3799bdf49b35ec9562866424df7ce699",
+      "observations": [
+        {
+          "label": "original-result",
+          "axisY": 20,
+          "volume": 2356.194490192345,
+          "expected": 2356.194490192345
+        },
+        {
+          "label": "unchanged-fixed-axis",
+          "axisY": 20,
+          "volume": 2356.194490192345,
+          "expected": 2356.194490192345
+        }
+      ]
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "original-native-axis",
+        "stock-y24",
+        "off-plane-refused",
+        "linked-reopened",
+        "fixed-legacy"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "1788aee2e434bc8223f3c4fae3d041ffd02564411abf5a47e1a4adc9efa6a9a5",
+      "sourceManifestSHA256": "89e7d0d0d764b6f9bb95017da011076a9bd54714096818e688fb862f5ce7c9d5"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "original-native-axis",
+        "stock-y24",
+        "off-plane-refused",
+        "linked-reopened",
+        "fixed-legacy"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "805fcec2b63c784bd9218bdad61d4a263aed0c5416bf7080f4b418a7ad7655d6",
+      "sourceManifestSHA256": "f8fe736d4d68b9e3ebedd0886b76c50cc2ddcd3928c82899631513ebb929e469",
+      "observations": [
+        {
+          "label": "original-result",
+          "axisY": 20,
+          "volume": 2356.194490192345,
+          "expected": 2356.194490192345
+        },
+        {
+          "label": "linked-axis-y24",
+          "axisY": 24,
+          "volume": 3110.176727053896,
+          "expected": 3110.1767270538953
+        },
+        {
+          "label": "reopened-y24",
+          "axisY": 24,
+          "volume": 3110.176727053896,
+          "expected": 3110.1767270538953
+        },
+        {
+          "label": "fixed-legacy-y20",
+          "axisY": 20,
+          "volume": 2356.194490192345,
+          "expected": 2356.194490192345
+        }
+      ]
+    },
+    "preview-regression": {
+      "status": "PASS",
+      "states": [
+        "generated-edge-refused",
+        "join-axis-b-preview",
+        "join-axis-b",
+        "reopened-join-axis"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "8463d26a7339509f0480cec209b185734f7e3969ac49fe062c7aa962aa01587a",
+      "sourceManifestSHA256": "e2e812e6329ece50976d23a1b6243aa6da0a011b6abbd757f13ebddc707f5850"
+    }
+  }
+}

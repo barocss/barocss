@@ -1,3 +1,4 @@
+import { assertRevolveAxisBindings, linkedRevolveSource, resolveRevolveAxis } from './revolveAxis';
 import { assertPocketFloorBindings, pocketFloorSource, resolvePocketFloor } from './pocketFloor';
 import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
@@ -135,7 +136,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
     case 'region-extrude': throw coded('BAD_REFERENCE', 'Extrude region requires the current source sketch.');
     case 'face-end-extrude': throw coded('BAD_REFERENCE', 'Extrude to face requires the current native document prefix.');
-    case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
+    case 'revolve':
+      if (node.axisRef !== undefined) throw refusal('BAD_REFERENCE', 'A linked Revolve axis requires the current native document prefix.');
+      return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
     case 'rib': return { ...at, kind: 'rib', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max) };
@@ -546,6 +549,21 @@ export function currentPocketSketch(doc: StudioDoc, index: number): SketchNode {
   return resolved;
 }
 
+/** The current native axis for a linked Revolve's edit controls. */
+const linkedAxes = new WeakMap<StudioDoc, Map<number, ReturnType<typeof resolveRevolveAxis>>>();
+export function currentLinkedRevolveAxis(doc: StudioDoc, index: number): ReturnType<typeof resolveRevolveAxis> | undefined {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'revolve' || !node.axisRef) return;
+  let axes = linkedAxes.get(doc);
+  const cached = axes?.get(index);
+  if (cached) return cached;
+  const source = linkedRevolveSource(doc, index, node);
+  const result = resolveRevolveAxis(doc, index, node, buildPartDocument(prefixDoc(doc, source + 1)).features);
+  if (!axes) linkedAxes.set(doc, axes = new Map());
+  axes.set(index, result);
+  return result;
+}
+
 /** Read the distance from the same native lowering that builds the current associative feature. */
 export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
   const node = doc.nodes[index];
@@ -563,6 +581,7 @@ export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   validateRoundedInsetDocument(doc, false);
   assertPocketFloorBindings(doc);
+  assertRevolveAxisBindings(doc);
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
   const regionProblem = regionExtrudeProblem(doc);
@@ -620,6 +639,17 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
         throw refusal('BAD_REFERENCE', 'Extrude region: the native sketch ID is unavailable.');
       const native = featureOf(profile, i);
       features.push({ ...native, id: sketch }, { id: feature, kind: 'extrude', sketch, height: node.height });
+      return;
+    }
+    if (node.kind === 'revolve' && node.axisRef !== undefined) {
+      if (node.suppressed) { gone.add(i); return; }
+      const source = linkedRevolveSource(doc, i, node), end = prefixEnds.get(source + 1);
+      if (end === undefined || gone.has(source)) throw refusal('BAD_REFERENCE', 'The Revolve axis source is unavailable.');
+      const prefix = features.slice(0, end);
+      if (hasText) checkTextExpansion(prefix);
+      const resolved = { ...node, ...resolveRevolveAxis(doc, i, node, prefix) };
+      delete resolved.axisRef;
+      features.push(...featuresOf(resolved, i, CadPartLimits.features - features.length));
       return;
     }
     if (node.kind === 'face-end-extrude') {

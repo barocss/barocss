@@ -1,4 +1,4 @@
-import { currentPocketSketch } from '../engine/part';
+import { currentLinkedRevolveAxis, currentPocketSketch } from '../engine/part';
 import { resolveDrivenSketch } from '../sketch/driven';
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
@@ -219,7 +219,13 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
       if (n.kind === 'extrude') return extrudeHandles(now, index, ctx.doc.parameters);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern' || n.kind === 'linear-span-pattern') return placedHandles(ctx, now, index);
-      if (n.kind === 'revolve') return revolveHandles(now, index, ctx.doc.parameters);
+      if (n.kind === 'revolve') {
+        if (n.axisRef) {
+          try { now[index] = { ...n, ...currentLinkedRevolveAxis(ctx.doc, index) }; }
+          catch { return []; }
+        }
+        return revolveHandles(now, index, ctx.doc.parameters);
+      }
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);

@@ -462,6 +462,9 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
 function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
   if (node.kind === 'region-extrude') return { ...node, sourceFeature: rename(node.sourceFeature) };
   const r = (name: string) => renameFeatureIds(name, rename);
+  if (node.kind === 'revolve' && node.axisRef) return {
+    ...node, axisRef: { ...node.axisRef, sourceFeature: rename(node.axisRef.sourceFeature), edge: r(node.axisRef.edge) },
+  };
   if (node.kind === 'sketch' && node.pocketFloor) return {
     ...node, pocketFloor: { ...node.pocketFloor, sourceFeature: rename(node.pocketFloor.sourceFeature), face: r(node.pocketFloor.face) },
   };
@@ -649,6 +652,7 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
     const i = stack.pop()!, node = nodes[i];
     if (chain.has(i) || !node) continue;
     chain.add(i);
+    // A copied Revolve shares its earlier axis source unless its body graph already copies that source.
     stack.push(...(node.kind === 'extrude' && node.cutDepth === 'through' ? usesOf(node, nodes) : parentsOf(node)));
   }
   if ([...chain].some(i => nodes[i].kind === 'face-end-extrude')) throw refusal('BAD_REFERENCE', 'Extrude to face: duplicating a body with a bound end face is not supported.');
