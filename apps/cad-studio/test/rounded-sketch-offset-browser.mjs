@@ -17,6 +17,7 @@ const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--dr
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
+const mixedSelection = process.argv.includes('--mixed-selection');
 const dependentInset = process.argv[3] === '--dependent-inset';
 const storedInset = dependentInset || insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
@@ -96,6 +97,7 @@ import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { partSnapshot, toPartDocument } from '@barocss/cad-model/engine/part';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { captureSignatures } from '@barocss/cad-model/engine/references';
+import { bodyMesh } from '@barocss/cad-model/engine/mesh';
 import { profileOf } from '../../packages/barocss-cad-model/src/sketch/loops.ts';
 ${plannedInset ? "import { planRoundedRectangleInset } from '../../packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts';" : ''}
 ${plannedInset ? `
@@ -149,6 +151,10 @@ const [{ brep }] = outputs;
 assert.ok(checkBrep(brep, { strict:true }).valid);
 assert.equal(brep.shells.length, 1);
 assert.ok(brep.shells[0].closed);
+if (process.argv[3] === '"edge-names"') {
+  console.log(JSON.stringify(bodyMesh(brep, 0).edges.map(({ index, names, straight }) => ({ index, names, straight }))));
+  process.exit(0);
+}
 const cylinders = brep.faces.flatMap(face => {
   const g = faceGeometry(face);
   return g.kind === 'cylinder' ? [{ name:face.name, ...g }] : [];
@@ -514,7 +520,8 @@ async function verifyStoredInset(stock) {
     return;
   }
   if (editInset) {
-    await verifyInsetEdits(stock, candidate, check);
+    if (mixedSelection) await verifyMixedInsetEdges(candidate, check);
+    else await verifyInsetEdits(stock, candidate, check);
     return;
   }
   for (const [index, distance] of [1, 2, 2.5, 1].entries()) {
@@ -669,6 +676,61 @@ async function verifyInsetRefusals(candidate, check) {
   await check('17-redo-after-refusals', sharp, 2.5);
   await f.undo();
   await check('18-undo-after-refusals', rounded, 1);
+}
+
+async function verifyMixedInsetEdges(candidate, check) {
+  const rounded = candidate(1), sharp = candidate(2.5);
+  await open(rounded);
+  await button(f.page.getByRole('group', { name: 'Views', exact: true }), 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const filter = button(f.page, 'Selection filter');
+  for (let i = 0; i < 4 && !(await filter.innerText()).trim().endsWith('Edges'); i++) await filter.click();
+  assert.match((await filter.innerText()).trim(), /Edges$/);
+  const picked = async doc => {
+    const edges = await f.inspect('edges-' + doc.nodes[1].insetMM, doc, 'edge-names');
+    const selection = await f.page.evaluate(() => window.__studioSelection.selection);
+    return selection.edges.map(({ body, edge }) => {
+      assert.equal(body, 0);
+      return edges[edge];
+    });
+  };
+  f.phase = 'pick one surviving straight edge and one retiring arc';
+  for (const [point, shift] of [[[10, 1, 10], false], [[18 + Math.SQRT1_2, 2 - Math.SQRT1_2, 10], true]]) {
+    const xy = await f.page.evaluate(point => window.__studioScreenOf(point), point);
+    assert.ok(xy?.length === 2);
+    if (shift) await f.page.keyboard.down('Shift');
+    try { await f.page.mouse.click(...xy); }
+    finally { if (shift) await f.page.keyboard.up('Shift'); }
+  }
+  await f.page.waitForFunction(() => window.__studioSelection.selection.edges.length === 2);
+  const before = await picked(rounded);
+  assert.deepEqual(before.map(edge => edge.names), [['n2.side[e9]|n2.top'], ['n2.side[e10]|n2.top']]);
+  await f.snapshot('mixed-edges-before');
+  await f.openFeatureEditor(2);
+  await f.editor().getByLabel('Inset distance', { exact: true }).fill('2.5');
+  await button(f.editor(), 'Apply').click();
+  await check('sharp-native', sharp, 2.5);
+  const after = await picked(sharp);
+  assert.deepEqual(after.map(edge => edge.names), [['n2.side[e9]|n2.top']]);
+  assert.equal(after[0].straight, true);
+  await f.snapshot('retired-arc-not-remapped');
+  await clickModelCommand(f.page, 'Modify', 'Chamfer');
+  const hud = f.page.getByRole('dialog', { name: 'Chamfer', exact: true });
+  await hud.getByLabel('Distance', { exact: true }).fill('0.5');
+  const refusal = hud.getByRole('status').filter({ hasText: 'The linked inset only supports its Extrude' });
+  await refusal.getByText(/Detach inset/).waitFor();
+  assert.ok(await button(hud, 'Apply').isDisabled());
+  await f.same(sharp);
+  await f.snapshot('chamfer-scope-refusal');
+  await button(hud, 'Cancel').click();
+  assert.deepEqual((await picked(sharp)).map(edge => edge.names), after.map(edge => edge.names));
+  await f.undo();
+  await f.same(rounded);
+  assert.deepEqual((await picked(rounded)).map(edge => edge.names), after.map(edge => edge.names));
+  await f.redo();
+  await f.same(sharp);
+  assert.deepEqual((await picked(sharp)).map(edge => edge.names), after.map(edge => edge.names));
+  f.report.observations.push({ label: 'active-edge-custody', before, after });
 }
 
 function holdInsetCheck() {

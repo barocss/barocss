@@ -1,0 +1,71 @@
+{
+  "decision": "D1225",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "d3844c09c",
+  "commands": [
+    "gate.sh acquire heavy 600 D1225-mixed-edges",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/mixed --edit-inset --mixed-selection",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "states": [
+      "mixed-edges-before",
+      "retired-arc-not-remapped",
+      "chamfer-scope-refusal"
+    ],
+    "observations": [
+      {
+        "label": "sharp-native",
+        "insetMm": 2.5,
+        "volumeMm3": 1215.663706143591,
+        "expectedVolumeMm3": 1215.6637061435918,
+        "derivedFaces": [
+          "n2.side[e9]",
+          "n2.side[e11]",
+          "n2.side[e13]",
+          "n2.side[e15]"
+        ]
+      },
+      {
+        "label": "active-edge-custody",
+        "before": [
+          {
+            "index": 17,
+            "names": [
+              "n2.side[e9]|n2.top"
+            ],
+            "straight": true
+          },
+          {
+            "index": 31,
+            "names": [
+              "n2.side[e10]|n2.top"
+            ],
+            "straight": false
+          }
+        ],
+        "after": [
+          {
+            "index": 18,
+            "names": [
+              "n2.side[e9]|n2.top"
+            ],
+            "straight": true
+          }
+        ]
+      }
+    ],
+    "frozenFiles": 884,
+    "receiptSHA256": "4e575d83e6e27c53e3d20d801a746565b84989e8f51e049e6f6a725a0c1b4cf9",
+    "sourceManifestSHA256": "7ae9358cbb26e537097ea3bbef80439862da0ecb84a86c7c4d239037b7740b50",
+    "sourceAfterCleanupSHA256": "7ae9358cbb26e537097ea3bbef80439862da0ecb84a86c7c4d239037b7740b50",
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  }
+}
