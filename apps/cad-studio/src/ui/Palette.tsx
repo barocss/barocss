@@ -22,8 +22,9 @@ export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: Stu
         <label className="palette-input"><Icon name="search" small /><span className="sr">Search commands</span>
           <CommandInput autoFocus value={q} onValueChange={setQ} placeholder="Type a command…  hole, chamfer, pattern" /><Kbd>Esc</Kbd></label>
         <CommandList className="palette-list">
+          {list.length === 0 && <div className="px-2 py-2 text-xs text-muted-foreground" role="status">No matching commands.</div>}
           {list.map(({ c, a }) => (
-            <CommandItem key={c.id} value={c.id} className={'pl-item' + (a.ok ? '' : ' off')} onSelect={() => onRun(c)}>
+            <CommandItem key={c.id} value={c.id} className={'pl-item' + (a.ok ? '' : ' off')} onSelect={() => { if (a.ok) onRun(c); }}>
               <Icon name={commandIconName(c.id, c.icon)} small /><span className="pl-label">{filletType(c.id) ? 'Fillet' : c.label}</span>{filletType(c.id) && <span className="muted">{FILLET_TYPES.find(t => t.value === filletType(c.id))!.label}</span>}
               {!a.ok && <span className="pl-reason">{a.reason}</span>}
               <span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}

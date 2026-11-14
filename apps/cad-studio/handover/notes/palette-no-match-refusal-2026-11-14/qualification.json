@@ -1,0 +1,79 @@
+{
+  "decision": "D1251",
+  "tier": "SMALL",
+  "parent": "0c7470b1251475c77be16763dd96580b629b0e0f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1251-<run>",
+    "D1251_SOURCE_FROZEN=1 node apps/cad-studio/test/palette-no-match-refusal-browser.mjs <external-evidence> [--baseline]",
+    "D751_SOURCE_FROZEN=1 node apps/cad-studio/test/palette-text-history-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-studio-app test palette fillet-family",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/Palette.tsx",
+    "node --check apps/cad-studio/test/palette-no-match-refusal-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline2": {
+      "status": "FAIL",
+      "frozenFiles": 394,
+      "states": [
+        "no-results-1440",
+        "lost-query-1440",
+        "no-results-1024",
+        "lost-query-1024",
+        "failure"
+      ],
+      "receiptSHA256": "53c54cf1b2d2142fa23f72ea111209671cff57936327b8a389fe08ec1a89144b",
+      "sourceManifestSHA256": "58949980035ed170ef300aeb8b94b9087e556bdc433b03df3e424e36036dc6b4",
+      "sourceAfterCleanupSHA256": "58949980035ed170ef300aeb8b94b9087e556bdc433b03df3e424e36036dc6b4"
+    },
+    "fixed3": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": [
+        "no-results-1440",
+        "preserved-refusal-1440",
+        "no-results-1024",
+        "preserved-refusal-1024"
+      ],
+      "receiptSHA256": "22408e04697dd3b646a6852f8bf5bf938269d81a124ebcfffac4e0add345cf68",
+      "sourceManifestSHA256": "fa099388a0a7776f054dc2191990b1c2f76927e8b44f02c54aba4da4710d48a8",
+      "sourceAfterCleanupSHA256": "fa099388a0a7776f054dc2191990b1c2f76927e8b44f02c54aba4da4710d48a8"
+    },
+    "native-undo": {
+      "status": "PASS",
+      "frozenFiles": 883,
+      "states": [
+        "empty-cad-history-empty-search",
+        "empty-cad-history-native-text-restored",
+        "cad-undo-available-empty-search",
+        "cad-undo-available-native-text-restored",
+        "cad-redo-available-empty-search",
+        "cad-redo-available-native-text-restored",
+        "canvas-redo-restored-exact-edit",
+        "palette-command-cancel-keeps-model",
+        "native-reopen-accepted-edit"
+      ],
+      "receiptSHA256": "2e57f0607fc6dd4e68a8b1ff5194e99c5b8a7630e9ab4ee0b2bf4383df586fe2",
+      "sourceManifestSHA256": "e26a487ede51c59865efdeb1bed9be394be61b5bed067d5b6bc9bfe1440ed339",
+      "sourceAfterCleanupSHA256": "e26a487ede51c59865efdeb1bed9be394be61b5bed067d5b6bc9bfe1440ed339"
+    }
+  },
+  "checks": {
+    "focusedStudio": {
+      "status": "PASS",
+      "tests": 19
+    },
+    "studioTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "screenReader": "NOT_RUN",
+    "fullSuites": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}
