@@ -5,6 +5,7 @@ import { isSketchAnchoredCut } from '@barocss/cad-model/app/editFields';
 export type FeatureNumberRule = 'nonzero' | 'positive' | 'align-gap';
 
 export function commandNumberRule(command: string, key: string, operation?: unknown): FeatureNumberRule | undefined {
+  if (command === 'align' && key === 'gap') return 'align-gap';
   if (command === 'box' && (key === 'w' || key === 'd')) return 'positive';
   if (command === 'extrude' && key === 'h' && operation === 'cut') return 'positive';
   if ((command === 'box' || command === 'extrude') && key === 'h') return 'nonzero';

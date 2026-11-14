@@ -85,7 +85,7 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         const rule = commandNumberRule(active.cmd.id, field.key, active.values.op);
         if (!rule || !featureNumberInvalid(active.values[field.key], rule)) continue;
         setPreviewBodies(null);
-        setActive(a => a === active ? { ...a, preview: 'error', error: { title: `Enter a valid ${field.label}`, hint: featureNumberRange(rule) + '.', detail: '' } } : a);
+        setActive(a => a === active ? { ...a, preview: 'error', error: { title: `Enter a valid ${field.label}`, hint: rule === 'align-gap' ? '' : featureNumberRange(rule) + '.', detail: '' } } : a);
         return;
       }
       const values = active.values, cmd = active.cmd, ctx = active.ctx;

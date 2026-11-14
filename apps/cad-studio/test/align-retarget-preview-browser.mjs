@@ -13,6 +13,8 @@ const gapBounds = process.argv.includes('--gap-bounds');
 const gapBaseline = process.argv.includes('--gap-baseline');
 const placementBounds = process.argv.includes('--placement-bounds');
 const placementBaseline = process.argv.includes('--placement-baseline');
+const floorGap = process.argv.includes('--floor-gap');
+const floorBaseline = process.argv.includes('--floor-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
@@ -20,7 +22,8 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useVi
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: placementBounds ? 'Distinguish the Gap field range from the native placement limit.'
+  qualification: floorGap ? 'Align Floor enforces the stated Gap bounds during creation.'
+    : placementBounds ? 'Distinguish the Gap field range from the native placement limit.'
     : gapBounds ? 'Align History refuses out-of-range Gap before Apply.'
     : alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
     : historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
@@ -55,7 +58,7 @@ const seed = {
   ],
   outputs: { b1: ref(1), b3: ref(3), b5: ref(5) }, nextId: 6,
 };
-if (targetNames) seed.bodies = { b1: { name: 'Moving block' }, b3: { name: 'Stock' }, b5: { name: 'Stock' } };
+if (targetNames || floorGap) seed.bodies = { b1: { name: 'Moving block' }, b3: { name: 'Stock' }, b5: { name: 'Stock' } };
 const targetLabel = face => namesBaseline ? face
   : `${targetNames ? 'Stock' : face.startsWith('n3.') ? 'Extrude 8' : 'Extrude 12'} · ${face}`;
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
@@ -127,6 +130,61 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'align-targets.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (floorGap) {
+    const wide = process.argv.includes('--wide');
+    await f.page.setViewportSize(wide ? { width: 1440, height: 900 } : { width: 1024, height: 800 });
+    const row = f.page.getByRole('complementary', { name: 'Browser', exact: true }).getByRole('button', { name: 'Moving block', exact: true });
+    await row.click();
+    await f.page.waitForFunction(() => window.__studioSelection.selection.bodies.length === 1);
+    await clickModelCommand(f.page, 'Modify', 'Align');
+    const gap = hud().getByLabel('Gap', { exact: true });
+    const apply = button('Apply', hud());
+    assert.equal(await hud().getByLabel('Onto', { exact: true }).inputValue(), 'floor');
+    await gap.fill('');
+    await hud().getByText('Gap is empty.', { exact: true }).waitFor();
+    assert.ok(await apply.isDisabled());
+    await gap.fill('0');
+    await hud().locator('.status.ok').waitFor();
+    const before = await f.snapshot('zero-gap-floor-preview');
+    for (const value of ['-1', '10000.1']) {
+      await gap.fill(value);
+      if (floorBaseline) {
+        await hud().locator('.status.ok').waitFor();
+        assert.ok(await apply.isEnabled());
+        await f.snapshot('negative-gap-floor-preview');
+        throw new Error('Align Floor permits a negative Gap even though its field minimum is zero.');
+      }
+      await hud().getByText('From 0 to 10000 mm', { exact: true }).waitFor();
+      await hud().locator('.status.error').waitFor();
+      assert.equal(await gap.getAttribute('aria-invalid'), 'true');
+      assert.ok(await apply.isDisabled());
+      await gap.press('Enter');
+      await f.same(seed);
+      const refused = await f.snapshot('floor-gap-refused-' + value);
+      for (const key of ['doc', 'bodies', 'selection', 'history']) assert.deepEqual(refused[key], before[key], key);
+    }
+    await gap.fill('0');
+    await hud().locator('.status.ok').waitFor();
+    await apply.click();
+    await f.changed(seed);
+    const acceptedFloor = await f.doc();
+    assert.deepEqual(acceptedFloor.nodes.at(-1), { kind: 'translate', parent: ref(1), offset: [0, 0, -20], id: 'n6' });
+    const result = await f.inspect('floor-gap-native', acceptedFloor);
+    const moved = result.find(body => body.key === 'b6');
+    assert.ok(moved.valid);
+    near(moved.volume, 720);
+    near(Math.min(...moved.vertices.map(point => point[2])), 0);
+    near(Math.max(...moved.vertices.map(point => point[2])), 6);
+    f.report.observations.push({ label: 'floor-gap-recovered', volume: moved.volume, centroid: moved.centroid, z: [0, 6] });
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(acceptedFloor);
+    if (!wide) await f.page.setViewportSize({ width: 1440, height: 900 });
+    const { file } = await f.save('floor-gap-zero');
+    await f.freshOpen(file, acceptedFloor, 'floor-gap-reopened');
+    return;
+  }
   if (alignWaiting) await f.page.setViewportSize({ width: process.argv.includes('--wide') ? 1440 : 1024,
     height: process.argv.includes('--wide') ? 900 : 800 });
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();

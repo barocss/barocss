@@ -40,6 +40,10 @@ test('Align puts a box’s bottom on another’s top, middles lined up; its side
   // A whole body (no face) just drops onto the floor.
   const body: Ctx = { ...ctx, selection: { faces: [], edges: [], bodies: [small] } };
   assert.equal(Math.round(bodiesOf(align.build!(body, align.defaults!(body))).find(b => b.mesh.bounds.min[0] > 50)!.mesh.bounds.min[2] * 1000), 0);
+  for (const gap of [-1, 10000.1, Infinity]) {
+    assert.throws(() => align.build!(body, { ...align.defaults!(body), gap }),
+      /\[VALUE\] Align: enter a Gap from 0 to 10000 mm/);
+  }
 });
 
 test('linked Align retains a stable output and refuses a stale signed face before preview recovery', () => {

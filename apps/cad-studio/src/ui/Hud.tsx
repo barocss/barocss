@@ -10,7 +10,7 @@ import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
 import type { Field, Values } from '@barocss/cad-model/app/commands';
 import { activeKey, awaitingMirrorPlane, type Active } from '../app/commandState';
-import { commandNumberRule, featureNumberInvalid, featureNumberRange } from '../app/featureNumberInput';
+import { commandNumberRule, featureNumberBounds, featureNumberInvalid, featureNumberRange } from '../app/featureNumberInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -69,6 +69,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
     const showCircularCount = active.cmd.id === 'circular-pattern' && field.key === 'count' && field.kind === 'count';
     const invalidCount = showCircularCount && (!Number.isInteger(Number(value)) || Number(value) < (field.min ?? -Infinity) || Number(value) > (field.max ?? Infinity));
     const numberRule = commandNumberRule(active.cmd.id, field.key, active.values.op);
+    const bounds = featureNumberBounds(numberRule);
     const range = showCircularCount ? `Whole number from ${field.min} to ${field.max}` : numberRule ? featureNumberRange(numberRule) : null;
     const rangeId = range ? `hud-number-range-${field.key}` : undefined;
     const invalidNumber = numberRule && featureNumberInvalid(value, numberRule);
@@ -81,7 +82,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
     </NativeSelect>;
     else if (field.kind === 'text') control = <Input className={FIELD} ref={ref} type="text" aria-label={field.label} data-key={field.key} data-kind="text" maxLength={field.maxLength} value={String(value ?? '')} onChange={changeValue} />;
     else if (field.kind === 'file') control = <span className="min-w-0"><Input className={FIELD} ref={ref} type="file" aria-label={field.label} data-key={field.key} accept={field.accept} disabled={!onFile} onChange={chooseFile} /><span className="muted small">{field.filename(value ?? '') ?? 'No file prepared'}</span></span>;
-    else control = <span className="num"><Input className={FIELD + ' pr-7!'} ref={ref} type="number" aria-label={field.label} aria-invalid={invalidCount || invalidNumber || undefined} aria-describedby={rangeId} data-key={field.key} data-kind={field.kind} step={field.kind === 'count' ? 1 : 'any'} min={numberRule === 'nonzero' ? undefined : numberRule === 'positive' ? 0 : field.min} max={field.max} value={String(value ?? '')} onChange={changeValue} />
+    else control = <span className="num"><Input className={FIELD + ' pr-7!'} ref={ref} type="number" aria-label={field.label} aria-invalid={invalidCount || invalidNumber || undefined} aria-describedby={rangeId} data-key={field.key} data-kind={field.kind} step={field.kind === 'count' ? 1 : 'any'} min={numberRule === 'nonzero' ? undefined : bounds.min ?? field.min} max={bounds.max ?? field.max} value={String(value ?? '')} onChange={changeValue} />
       {field.kind === 'mm' && <em>mm</em>}{field.kind === 'deg' && <em>°</em>}{field.kind === 'ratio' && <em>×</em>}</span>;
     return <label key={field.key} className="field"><span>{field.label}</span>
       {range ? <span className="min-w-0">{control}<span id={rangeId} className="muted small block">{range}</span></span> : control}</label>;

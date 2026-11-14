@@ -1,0 +1,198 @@
+{
+  "decision": "D1240",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "4aa604d0877a816786bb0eb740add5aa30880f91",
+  "commands": [
+    "gate.sh acquire heavy 600 D1240-<run>",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --floor-gap --floor-baseline",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/narrow --floor-gap",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/wide --floor-gap --wide",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/face-control --target-names --waiting-state",
+    "pnpm --filter @barocss/cad-model test align",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/alignCommand.ts apps/cad-studio/src/{app/featureNumberInput.ts,state/useCommandPreview.ts,ui/Hud.tsx}",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check",
+    "Repeat the narrow, wide and named face control commands after the Model VALUE type correction."
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "dc21927202154a5a32faeedf509446287cf3c8b2669a0f5cabe2010a97776d7a",
+      "sourceManifestSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "sourceAfterCleanupSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "narrow": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "floor-gap-recovered",
+          "volume": 720.0000000000002,
+          "centroid": [
+            5.999999999999999,
+            4.999999999999998,
+            3.0000000000000036
+          ],
+          "z": [
+            0,
+            6
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "18a3c6fb1d919f29387caf235fc7587fd72d6475720377790343d7c3e1d5c31a",
+      "sourceManifestSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "sourceAfterCleanupSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "savedSHA256": [
+        "796e90739602374372a80d6be2da9c75c16d33cd87a75c91075e9275b3285356"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "floor-gap-recovered",
+          "volume": 720.0000000000002,
+          "centroid": [
+            5.999999999999999,
+            4.999999999999998,
+            3.0000000000000036
+          ],
+          "z": [
+            0,
+            6
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "4aa0286dd374d04b3f4d2b416bdee028058d17ef923264a70547d00b1e7aa808",
+      "sourceManifestSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "sourceAfterCleanupSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "savedSHA256": [
+        "796e90739602374372a80d6be2da9c75c16d33cd87a75c91075e9275b3285356"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "face-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "7bb704cb82d2440e6eb8c8ec116c99127c88d6fca61c05080aa7974ed496e3c5",
+      "sourceManifestSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "sourceAfterCleanupSHA256": "d842d6f882a26b01798d74db85aa8efcef560adaf7f5887327a5813dee8e819d",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified-narrow": {
+      "status": "PASS",
+      "frozenFiles": 883,
+      "receiptSHA256": "6bc63be2eedc5876cb3eb4481186fb5a84176c6869373a6f9a27e78ce310c175",
+      "sourceManifestSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "sourceAfterCleanupSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "savedSHA256": [
+        "796e90739602374372a80d6be2da9c75c16d33cd87a75c91075e9275b3285356"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified-wide": {
+      "status": "PASS",
+      "frozenFiles": 883,
+      "receiptSHA256": "fb74ebca81899cda7340721bb49d0852d9623d00500e158a2a86e6c6460bf5b4",
+      "sourceManifestSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "sourceAfterCleanupSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "savedSHA256": [
+        "796e90739602374372a80d6be2da9c75c16d33cd87a75c91075e9275b3285356"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified-face": {
+      "status": "PASS",
+      "frozenFiles": 883,
+      "receiptSHA256": "580026536ad98b65bf69124eac67ac0f03d3bb3b2e7f6aa7094cd18470250008",
+      "sourceManifestSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "sourceAfterCleanupSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

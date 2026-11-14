@@ -13,6 +13,7 @@ const r6 = (x: number) => Math.round(x * 1e6) / 1e6 || 0;
 import { refOf } from './bodyRef';
 import { featureId } from '../engine/ids';
 import { refusal } from '../engine/refusal';
+import { CadPartLimits } from '@barocss/cad';
 
 /** v turned right-handed about coordinate axis k by deg (multiples of 90° come out exact). */
 export function turnAbout(v: readonly number[], k: 0 | 1 | 2, deg: number): V3 {
@@ -61,7 +62,7 @@ export const alignCommand: Command = {
   fields: ctx => [
     { key: 'target', label: 'Onto', kind: 'choice', options: [...(source(ctx) ? [{ value: 'face', label: 'A face' }] : []), { value: 'floor', label: 'The floor (Z 0)' }] },
     { key: 'align', label: 'Line up', kind: 'choice', options: [{ value: 'touch', label: 'Touch only' }, { value: 'centre', label: 'Touch, middles lined up' }], when: v => v.target === 'face' },
-    { key: 'gap', label: 'Gap', kind: 'mm', min: 0 },
+    { key: 'gap', label: 'Gap', kind: 'mm', min: 0, max: CadPartLimits.length },
   ],
   defaults: ctx => ({ target: source(ctx) ? 'face' : 'floor', align: 'centre', gap: 0 }),
   steps: (ctx, v) => {
@@ -79,7 +80,9 @@ export const alignCommand: Command = {
   },
   build: (ctx, v) => {
     const s = source(ctx), body = s?.body ?? wholeBody(ctx); if (!body) throw refusal('ALIGN_PICK', 'Pick the face of the body to move.');
-    const gap = Number(v.gap) || 0;
+    const gap = Number(v.gap ?? 0);
+    if (!Number.isFinite(gap) || gap < 0 || gap > CadPartLimits.length)
+      throw refusal('VALUE', `Align: enter a Gap from 0 to ${CadPartLimits.length} mm.`);
     const targetPick = { body: Number(v.targetBody), face: Number(v.targetFace) };
     const sourceBinding = s && alignFaceBinding(ctx, ctx.selection.faces[0]);
     const targetBinding = v.target === 'face' && alignFaceBinding(ctx, targetPick);
