@@ -231,10 +231,12 @@ async function verifyObliqueRelink(original) {
   const before = await f.snapshot('03-oblique-selected');
   await button(f.editor(), 'Replace inset source').click();
   const panel = f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
-  await panel.getByText('n1.top → ' + face, { exact: true }).waitFor();
-  await panel.getByText('Target · n1', { exact: true }).waitFor();
+  await panel.getByText(/ · n1\.top$/).waitFor();
+  await panel.locator('.field').filter({ hasText: 'Candidate source' }).getByText(new RegExp(' · ' + face.replace('.', '\\.') + '$')).waitFor();
+  await panel.locator('.field').filter({ hasText: 'Target' }).getByText(/ · n1$/).waitFor();
+  await panel.getByText('Plane details', { exact: true }).click();
   await panel.getByText('Normal · ' + normal.join(', '), { exact: true }).waitFor();
-  await panel.getByText('Extrude · 1280 mm³', { exact: true }).waitFor();
+  await panel.getByText('Extrude volume · 1280 mm³', { exact: true }).waitFor();
   unchanged(await f.snapshot('04-oblique-preview'), before);
   await button(panel, 'Apply source').click();
   await verifyNative('05-oblique-applied', candidate, 60);
@@ -396,11 +398,13 @@ async function replaceSource(original) {
   f.phase = 'preview the new source and cancel without writing the model';
   await replace.click();
   await waitApply();
-  await review.getByText('n1.top → n3.top', { exact: true }).waitFor();
-  await review.getByText('Target · n1', { exact: true }).waitFor();
-  await review.getByText(/Plane origin \(mm\) · .*, 8$/).waitFor();
+  await review.getByText(/ · n1\.top$/).waitFor();
+  await review.getByText(/ · n3\.top$/).waitFor();
+  await review.locator('.field').filter({ hasText: 'Target' }).getByText(/ · n1$/).waitFor();
+  await review.getByText('Plane details', { exact: true }).click();
+  await review.getByText(/Origin \(mm\) · .*, 8$/).waitFor();
   await review.getByText('Normal · 0, 0, 1', { exact: true }).waitFor();
-  await review.getByText('Extrude · 1280 mm³', { exact: true }).waitFor();
+  await review.getByText('Extrude volume · 1280 mm³', { exact: true }).waitFor();
   const painted = await review.getByRole('img', { name: 'Resolved ring preview', exact: true }).evaluate(canvas => {
     const { width, height } = canvas, context = canvas.getContext('2d');
     const rgba = context.getImageData(0, 0, width, height).data;

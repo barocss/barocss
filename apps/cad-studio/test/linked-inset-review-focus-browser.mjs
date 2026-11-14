@@ -13,6 +13,7 @@ const collapsedHistory = process.argv.includes('--collapsed-history');
 const startZ = process.argv.includes('--start-z');
 const laterMove = process.argv.includes('--later-move');
 const appliedDistance = process.argv.includes('--applied-distance');
+const reviewNames = process.argv.includes('--review-names');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -62,6 +63,7 @@ if (collapsedHistory) {
   seed.nextId = 34;
 }
 if (startZ) seed.nodes[5].from = 1;
+if (reviewNames) seed.bodies = { b1: { name: 'Original stock' }, b3: { name: 'Replacement stock' } };
 if (laterMove) {
   seed.nodes.push({ kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [0, 35, 0], id: 'n6' });
   delete seed.outputs.b5;
@@ -313,7 +315,7 @@ await f.run(async () => {
     await f.page.mouse.click(...pixel);
     await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
     await replace().press('Enter');
-    await review().getByText('Extrude · 1024 mm³', { exact: true }).waitFor();
+    await review().getByText('Extrude volume · 1024 mm³', { exact: true }).waitFor();
     await waitFocus(button('Cancel', review()));
     await f.page.keyboard.press('Tab');
     await waitFocus(button('Apply source', review()));
@@ -442,10 +444,48 @@ await f.run(async () => {
     return;
   }
   const before = await f.snapshot('source-picked');
+  if (reviewNames) {
+    f.phase = 'review identifies source, candidate and target by Browser name';
+    await replace().press('Enter');
+    await review().getByText(baseline ? 'Extrude · 1024 mm³' : 'Extrude volume · 1024 mm³', { exact: true }).waitFor();
+    if (baseline) {
+      await review().getByText('n1.top → n3.side0', { exact: true }).waitFor();
+      await review().getByText('Target · n1', { exact: true }).waitFor();
+      await f.snapshot('review-shows-only-native-ids');
+      throw new Error('Review did not use either Browser body name.');
+    }
+    for (const [label, value] of [['Current source', 'Original stock · n1.top'],
+      ['Candidate source', 'Replacement stock · n3.side0'], ['Target', 'Original stock · n1']]) {
+      const row = review().locator('.field').filter({ has: f.page.getByText(label, { exact: true }) });
+      await row.getByText(value, { exact: true }).waitFor();
+    }
+    const detail = review().locator('details');
+    assert.equal(await detail.getAttribute('open'), null);
+    await detail.getByText('Plane details', { exact: true }).click();
+    await detail.getByText('Normal · 0, -1, 0', { exact: true }).waitFor();
+    await detail.getByText('Plane details', { exact: true }).click();
+    await button('Cancel', review()).focus();
+    await f.snapshot('review-names-before-apply');
+    await f.page.keyboard.press('Tab');
+    await waitFocus(button('Apply source', review()));
+    await f.page.keyboard.press('Enter');
+    await waitFocus(historyStep(5));
+    const expected = structuredClone(seed);
+    Object.assign(expected.nodes[4].association, { source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0' });
+    await f.same(expected);
+    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    assert.ok(Math.abs(volume - 1024) < 1e-7);
+    f.report.observations.push({ label: 'named-source-applied', volume });
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(expected);
+    return;
+  }
   for (const key of ['Enter', 'Escape']) {
     f.phase = 'keyboard Cancel with ' + key;
     await replace().press('Enter');
-    await review().getByText('Extrude · 1024 mm³', { exact: true }).waitFor();
+    await review().getByText('Extrude volume · 1024 mm³', { exact: true }).waitFor();
     if (baseline) await button('Cancel', review()).focus();
     else await waitFocus(button('Cancel', review()));
     await f.page.keyboard.press(key);
@@ -462,7 +502,7 @@ await f.run(async () => {
   }
   f.phase = 'another History step takes focus';
   await replace().press('Enter');
-  await review().getByText('Extrude · 1024 mm³', { exact: true }).waitFor();
+  await review().getByText('Extrude volume · 1024 mm³', { exact: true }).waitFor();
   await historyStep(3).click();
   await review().waitFor({ state: 'hidden' });
   await waitFocus(historyStep(3));
@@ -471,7 +511,7 @@ await f.run(async () => {
 
   f.phase = 'keyboard Apply';
   await replace().press('Enter');
-  await review().getByText('Extrude · 1024 mm³', { exact: true }).waitFor();
+  await review().getByText('Extrude volume · 1024 mm³', { exact: true }).waitFor();
   await waitFocus(button('Cancel', review()));
   await f.page.keyboard.press('Tab');
   await waitFocus(button('Apply source', review()));

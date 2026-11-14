@@ -43,13 +43,16 @@ export function InsetSourceReview({ review, apply, cancel }: { review: InsetReli
   const format = (value: number) => Number(value.toPrecision(12));
   return <aside className="card props" aria-label="Inset source replacement" aria-busy={!preview}>
     <div className="card-title">INSET SOURCE</div>
-    <p>{labels.before} → {labels.after}</p>
-    <p>Target · {labels.target}</p>
+    <div className="field"><span>Current source</span><span className="break-all">{labels.before}</span></div>
+    <div className="field"><span>Candidate source</span><span className="break-all">{labels.after}</span></div>
+    <div className="field"><span>Target</span><span className="break-all">{labels.target}</span></div>
     {preview ? <>
       <RingThumbnail rings={preview.rings} />
-      <p>Plane origin (mm) · {preview.plane.origin.map(format).join(', ')}</p>
-      <p>Normal · {preview.plane.normal.map(format).join(', ')}</p>
-      <p>Extrude · {format(preview.volume)} mm³</p>
+      <p>Extrude volume · {format(preview.volume)} mm³</p>
+      <details><summary>Plane details</summary>
+        <p>Origin (mm) · {preview.plane.origin.map(format).join(', ')}</p>
+        <p>Normal · {preview.plane.normal.map(format).join(', ')}</p>
+      </details>
     </> : <p role="status">Checking the replacement face…</p>}
     <div className="row-actions">
       <Button ref={cancelButton} type="button" variant="ghost" onClick={cancel}>Cancel</Button>

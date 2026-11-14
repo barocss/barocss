@@ -1,0 +1,1164 @@
+{
+  "decision": "D1223",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "630031dd3d767b5e51c2944515de10d257626326",
+  "commands": [
+    "gate.sh acquire heavy 600 D1223-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --review-names --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --review-names",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/narrow --narrow-dock",
+    "D924_SOURCE_FROZEN=1 node apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs <external-evidence>/opposite --opposite",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/InsetSourceReview.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "node --check apps/cad-studio/test/associative-inset-relink-baseline-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "source-picked",
+        "review-shows-only-native-ids",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "606663034d02a81da84db535453fd70746063bec8eb2fb569727f89460eff8ba",
+      "sourceManifestSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "sourceAfterCleanupSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "source-picked",
+        "review-names-before-apply"
+      ],
+      "observations": [
+        {
+          "label": "named-source-applied",
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "6dd88bda7920322ba023dfde44b64d2204c208171b3ff9998b106a0d73135d64",
+      "sourceManifestSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "sourceAfterCleanupSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "narrow": {
+      "status": "PASS",
+      "states": [
+        "narrow-review-first-focus",
+        "narrow-review-cancelled"
+      ],
+      "observations": [
+        {
+          "label": "initial-focus",
+          "scrollTop": 533,
+          "y": 385,
+          "bottom": 403,
+          "dockTop": 36,
+          "dockBottom": 800,
+          "visible": true
+        },
+        {
+          "label": "focus-return",
+          "y": 407,
+          "bottom": 435,
+          "dockTop": 36,
+          "dockBottom": 800,
+          "visible": true
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "09cd03b880b6203ebd2065740a8bd0c659e78eee05c8d3d424c5c9acb9f7c52f",
+      "sourceManifestSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "sourceAfterCleanupSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "opposite": {
+      "status": "PASS",
+      "states": [
+        "01-linked-original",
+        "02-original-ring-extruded",
+        "03-oblique-selected",
+        "04-oblique-preview",
+        "05-oblique-applied",
+        "06-oblique-redo",
+        "07-oblique-fresh-open",
+        "08-oblique-source-width-64",
+        "09-oblique-fresh-edit"
+      ],
+      "observations": [
+        {
+          "label": "fixture",
+          "sha256": "a9db2597f860035884bbd0fb54f62c06ea2c70aa0509fac7c9b29cbc6f3834a4"
+        },
+        {
+          "label": "02-original-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 8Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "native-original",
+          "area": 240,
+          "stage": "accepted",
+          "sketch": {
+            "kind": "sketch",
+            "profile": "polygon",
+            "points": [
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                24
+              ]
+            ],
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2,
+                    22
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2,
+                    2
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    38,
+                    2
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    38,
+                    22
+                  ]
+                }
+              ]
+            ],
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4"
+              ],
+              "holes": [
+                [
+                  "e5",
+                  "e6",
+                  "e7",
+                  "e8"
+                ]
+              ]
+            },
+            "id": "n4",
+            "plane": {
+              "origin": [
+                0,
+                0,
+                8
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "on": {
+              "node": 1,
+              "side": "solid"
+            },
+            "association": {
+              "kind": "planar-face-outline-inset",
+              "version": 1,
+              "source": {
+                "node": 1,
+                "side": "solid"
+              },
+              "sourceFeature": "n1",
+              "face": "n1.top",
+              "insetMM": 2
+            }
+          },
+          "sketchRefs": [],
+          "outputs": [
+            {
+              "id": "n1",
+              "valid": true,
+              "volume": 7680.000000000003,
+              "corners": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  40,
+                  0,
+                  0
+                ],
+                [
+                  40,
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  8
+                ],
+                [
+                  40,
+                  24,
+                  0
+                ],
+                [
+                  40,
+                  24,
+                  8
+                ],
+                [
+                  0,
+                  24,
+                  0
+                ],
+                [
+                  0,
+                  24,
+                  8
+                ]
+              ]
+            },
+            {
+              "id": "n3",
+              "valid": true,
+              "volume": 11520,
+              "corners": [
+                [
+                  100,
+                  20,
+                  6
+                ],
+                [
+                  160,
+                  20,
+                  6
+                ],
+                [
+                  160,
+                  15.2,
+                  12.4
+                ],
+                [
+                  100,
+                  15.2,
+                  12.4
+                ],
+                [
+                  160,
+                  39.2,
+                  20.4
+                ],
+                [
+                  160,
+                  34.400000000000006,
+                  26.799999999999997
+                ],
+                [
+                  100,
+                  39.2,
+                  20.4
+                ],
+                [
+                  100,
+                  34.400000000000006,
+                  26.799999999999997
+                ]
+              ]
+            },
+            {
+              "id": "n5",
+              "valid": true,
+              "volume": 960.0000000000016,
+              "corners": [
+                [
+                  0,
+                  24,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  12
+                ],
+                [
+                  0,
+                  24,
+                  12
+                ],
+                [
+                  40,
+                  0,
+                  8
+                ],
+                [
+                  40,
+                  0,
+                  12
+                ],
+                [
+                  40,
+                  24,
+                  8
+                ],
+                [
+                  40,
+                  24,
+                  12
+                ],
+                [
+                  2,
+                  2,
+                  8
+                ],
+                [
+                  2,
+                  22,
+                  8
+                ],
+                [
+                  2,
+                  22,
+                  12
+                ],
+                [
+                  2,
+                  2,
+                  12
+                ],
+                [
+                  38,
+                  22,
+                  8
+                ],
+                [
+                  38,
+                  22,
+                  12
+                ],
+                [
+                  38,
+                  2,
+                  8
+                ],
+                [
+                  38,
+                  2,
+                  12
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "label": "05-oblique-applied",
+          "plane": {
+            "origin": [
+              0,
+              4.319999999999997,
+              -5.759999999999998
+            ],
+            "normal": [
+              0,
+              0.5999999999999999,
+              -0.8000000000000002
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          },
+          "volume": 1280.0000000000032,
+          "expectedVolume": 1280,
+          "stockVolume": 11520,
+          "target": {
+            "node": 1,
+            "side": "solid"
+          },
+          "corners": [
+            [
+              160,
+              20,
+              6
+            ],
+            [
+              100,
+              20,
+              6
+            ],
+            [
+              100,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              160,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              100,
+              39.2,
+              20.4
+            ],
+            [
+              100,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              160,
+              39.2,
+              20.4
+            ],
+            [
+              160,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              102,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              24,
+              3.9999999999999982
+            ],
+            [
+              102,
+              24,
+              3.9999999999999982
+            ],
+            [
+              158,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              158,
+              40,
+              15.999999999999996
+            ],
+            [
+              102,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              102,
+              40,
+              15.999999999999996
+            ]
+          ]
+        },
+        {
+          "label": "native-oblique-undo",
+          "area": 240,
+          "stage": "accepted",
+          "sketch": {
+            "kind": "sketch",
+            "profile": "polygon",
+            "points": [
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                24
+              ]
+            ],
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2,
+                    22
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2,
+                    2
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    38,
+                    2
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    38,
+                    22
+                  ]
+                }
+              ]
+            ],
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4"
+              ],
+              "holes": [
+                [
+                  "e5",
+                  "e6",
+                  "e7",
+                  "e8"
+                ]
+              ]
+            },
+            "id": "n4",
+            "plane": {
+              "origin": [
+                0,
+                0,
+                8
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "on": {
+              "node": 1,
+              "side": "solid"
+            },
+            "association": {
+              "kind": "planar-face-outline-inset",
+              "version": 1,
+              "source": {
+                "node": 1,
+                "side": "solid"
+              },
+              "sourceFeature": "n1",
+              "face": "n1.top",
+              "insetMM": 2
+            }
+          },
+          "sketchRefs": [],
+          "outputs": [
+            {
+              "id": "n1",
+              "valid": true,
+              "volume": 7680.000000000003,
+              "corners": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  40,
+                  0,
+                  0
+                ],
+                [
+                  40,
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  8
+                ],
+                [
+                  40,
+                  24,
+                  0
+                ],
+                [
+                  40,
+                  24,
+                  8
+                ],
+                [
+                  0,
+                  24,
+                  0
+                ],
+                [
+                  0,
+                  24,
+                  8
+                ]
+              ]
+            },
+            {
+              "id": "n3",
+              "valid": true,
+              "volume": 11520,
+              "corners": [
+                [
+                  100,
+                  20,
+                  6
+                ],
+                [
+                  160,
+                  20,
+                  6
+                ],
+                [
+                  160,
+                  15.2,
+                  12.4
+                ],
+                [
+                  100,
+                  15.2,
+                  12.4
+                ],
+                [
+                  160,
+                  39.2,
+                  20.4
+                ],
+                [
+                  160,
+                  34.400000000000006,
+                  26.799999999999997
+                ],
+                [
+                  100,
+                  39.2,
+                  20.4
+                ],
+                [
+                  100,
+                  34.400000000000006,
+                  26.799999999999997
+                ]
+              ]
+            },
+            {
+              "id": "n5",
+              "valid": true,
+              "volume": 960.0000000000016,
+              "corners": [
+                [
+                  0,
+                  24,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0,
+                  12
+                ],
+                [
+                  0,
+                  24,
+                  12
+                ],
+                [
+                  40,
+                  0,
+                  8
+                ],
+                [
+                  40,
+                  0,
+                  12
+                ],
+                [
+                  40,
+                  24,
+                  8
+                ],
+                [
+                  40,
+                  24,
+                  12
+                ],
+                [
+                  2,
+                  2,
+                  8
+                ],
+                [
+                  2,
+                  22,
+                  8
+                ],
+                [
+                  2,
+                  22,
+                  12
+                ],
+                [
+                  2,
+                  2,
+                  12
+                ],
+                [
+                  38,
+                  22,
+                  8
+                ],
+                [
+                  38,
+                  22,
+                  12
+                ],
+                [
+                  38,
+                  2,
+                  8
+                ],
+                [
+                  38,
+                  2,
+                  12
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "label": "06-oblique-redo",
+          "plane": {
+            "origin": [
+              0,
+              4.319999999999997,
+              -5.759999999999998
+            ],
+            "normal": [
+              0,
+              0.5999999999999999,
+              -0.8000000000000002
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          },
+          "volume": 1280.0000000000032,
+          "expectedVolume": 1280,
+          "stockVolume": 11520,
+          "target": {
+            "node": 1,
+            "side": "solid"
+          },
+          "corners": [
+            [
+              160,
+              20,
+              6
+            ],
+            [
+              100,
+              20,
+              6
+            ],
+            [
+              100,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              160,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              100,
+              39.2,
+              20.4
+            ],
+            [
+              100,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              160,
+              39.2,
+              20.4
+            ],
+            [
+              160,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              102,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              24,
+              3.9999999999999982
+            ],
+            [
+              102,
+              24,
+              3.9999999999999982
+            ],
+            [
+              158,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              158,
+              40,
+              15.999999999999996
+            ],
+            [
+              102,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              102,
+              40,
+              15.999999999999996
+            ]
+          ]
+        },
+        {
+          "label": "oblique-save",
+          "bytes": 2820,
+          "sha256": "3985002ea58da9a799d226034ce712c6946de802ea4b514c7e7016a7712b8fd2"
+        },
+        {
+          "label": "07-oblique-fresh-open",
+          "plane": {
+            "origin": [
+              0,
+              4.319999999999997,
+              -5.759999999999998
+            ],
+            "normal": [
+              0,
+              0.5999999999999999,
+              -0.8000000000000002
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          },
+          "volume": 1280.0000000000032,
+          "expectedVolume": 1280,
+          "stockVolume": 11520,
+          "target": {
+            "node": 1,
+            "side": "solid"
+          },
+          "corners": [
+            [
+              160,
+              20,
+              6
+            ],
+            [
+              100,
+              20,
+              6
+            ],
+            [
+              100,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              160,
+              22.400000000000002,
+              2.799999999999999
+            ],
+            [
+              100,
+              39.2,
+              20.4
+            ],
+            [
+              100,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              160,
+              39.2,
+              20.4
+            ],
+            [
+              160,
+              41.60000000000001,
+              17.2
+            ],
+            [
+              102,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              21.6,
+              7.199999999999999
+            ],
+            [
+              158,
+              24,
+              3.9999999999999982
+            ],
+            [
+              102,
+              24,
+              3.9999999999999982
+            ],
+            [
+              158,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              158,
+              40,
+              15.999999999999996
+            ],
+            [
+              102,
+              37.60000000000001,
+              19.199999999999996
+            ],
+            [
+              102,
+              40,
+              15.999999999999996
+            ]
+          ]
+        },
+        {
+          "label": "09-oblique-fresh-edit",
+          "plane": {
+            "origin": [
+              0,
+              4.3199999999999985,
+              -5.759999999999999
+            ],
+            "normal": [
+              0,
+              0.6,
+              -0.8000000000000002
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          },
+          "volume": 1344.0000000000027,
+          "expectedVolume": 1344,
+          "stockVolume": 12288,
+          "target": {
+            "node": 1,
+            "side": "solid"
+          },
+          "corners": [
+            [
+              164,
+              20.000000000000004,
+              6.000000000000001
+            ],
+            [
+              100,
+              20.000000000000004,
+              6.000000000000001
+            ],
+            [
+              100,
+              22.400000000000006,
+              2.8
+            ],
+            [
+              164,
+              22.400000000000006,
+              2.8
+            ],
+            [
+              100,
+              39.20000000000001,
+              20.400000000000002
+            ],
+            [
+              100,
+              41.60000000000001,
+              17.200000000000003
+            ],
+            [
+              164,
+              39.20000000000001,
+              20.400000000000002
+            ],
+            [
+              164,
+              41.60000000000001,
+              17.200000000000003
+            ],
+            [
+              102,
+              21.6,
+              7.200000000000002
+            ],
+            [
+              162,
+              21.6,
+              7.200000000000002
+            ],
+            [
+              162,
+              24,
+              4.000000000000001
+            ],
+            [
+              102,
+              24,
+              4.000000000000001
+            ],
+            [
+              162,
+              37.60000000000001,
+              19.200000000000003
+            ],
+            [
+              162,
+              40.00000000000001,
+              16.000000000000004
+            ],
+            [
+              102,
+              37.60000000000001,
+              19.200000000000003
+            ],
+            [
+              102,
+              40.00000000000001,
+              16.000000000000004
+            ]
+          ]
+        }
+      ],
+      "frozenFiles": 886,
+      "receiptSHA256": "b20c281769dec9234e0d0179c5dac77350e2d45db127e38f4f6f9bbb85954b23",
+      "sourceManifestSHA256": "5b6f543f8f52614f02c0e51be14eee65677a458b0aefd2cc12ab8d33bb9bf7de",
+      "sourceAfterCleanupSHA256": "5b6f543f8f52614f02c0e51be14eee65677a458b0aefd2cc12ab8d33bb9bf7de",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1223 — identify linked inset review bodies by Browser name](notes/linked-inset-review-browser-names-2026-11-14/README.md).
 - [D1222 — distinguish applied and draft Linked Inset distances](notes/linked-inset-applied-and-draft-distance-2026-11-14/README.md).
 - [D1221 — show the linked distance beside ordinary Offset](notes/linked-inset-distance-visible-by-offset-2026-11-14/README.md).
 - [D1220 — explain what blocks Linked Inset source replacement](notes/linked-inset-replacement-constraints-2026-11-14/README.md).

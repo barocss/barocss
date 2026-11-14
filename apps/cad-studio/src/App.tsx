@@ -3116,9 +3116,18 @@ export function App() {
       && workOwnership.current.generation === work.generation && workOwnership.current.scope === work.scope
       && docNow.current === doc && evaluatedRef.current === evaluated && footprintState.current.selection === selection
       && footprintState.current.editor === editNode && footprintState.current.insetReady && !activeStore.get();
+    const faceLabel = (key: string, id: string) => {
+      const body = bodies.find(candidate => candidate.key === key);
+      return body ? `${bodyName(doc, body)} · ${id}` : id;
+    };
+    const source = insetSketch.association.source, target = insetSketch.on;
     cancelNativeReview();
     insetRelink.start({
-      labels: { before: insetSketch.association.face, after: pick.face.name, target: featureId(doc.nodes, insetSketch.on.node) },
+      labels: {
+        before: faceLabel(bodyKeyFor(doc.nodes, source.node, source.side), insetSketch.association.face),
+        after: faceLabel(pick.bodyKey, pick.face.name),
+        target: faceLabel(bodyKeyFor(doc.nodes, target.node, target.side), featureId(doc.nodes, target.node)),
+      },
       current,
       read: () => engine.previewInsetRelink(doc, insetSketchIndex,
         { bodyKey: pick.bodyKey, faceId: pick.face.id, faceName: pick.face.name }, revision.current++),
