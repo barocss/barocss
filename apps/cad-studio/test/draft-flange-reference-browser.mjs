@@ -158,7 +158,7 @@ await f.run(async () => {
   assert.equal(held.doc.nodes[5].suppressed, true);
   volumes(held, { b5: 5250 });
 
-  await button('Use candidate 1', refs()).click();
+  await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).click();
   await refs().waitFor({ state: 'hidden' });
   await f.ready();
   const confirmed = await f.snapshot('flange-candidate-confirmed');

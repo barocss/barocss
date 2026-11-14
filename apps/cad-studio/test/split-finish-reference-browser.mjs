@@ -4,6 +4,8 @@ import { createFlow } from './flow-helper.mjs';
 
 const [output, mode, ...options] = process.argv.slice(2);
 const nativeSave = options.includes('--native-save');
+const reviewUi = options.includes('--review-ui'), reviewBaseline = options.includes('--review-baseline');
+assert.ok(!reviewUi || mode === '--repick-fixed' && nativeSave);
 assert.ok(!nativeSave || ['--fixed', '--repick-fixed'].includes(mode));
 assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live', '--repick-baseline', '--repick-fixed', '--non-split'].includes(mode));
 const nonSplit = mode === '--non-split';
@@ -187,7 +189,7 @@ await f.run(async () => {
       assert.ok((await details.textContent()).includes(stored));
       assert.ok((await details.textContent()).includes('Candidate 1: ' + replacement));
       f.report.observations.push({ kind, referenceDetails: await referenceDetails() });
-      await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+      await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).click();
       await refs().waitFor({ state: 'hidden' });
       await f.ready();
       const applied = await f.snapshot(kind + '-ordinary-confirmed');
@@ -216,7 +218,7 @@ await f.run(async () => {
     const choices = await referenceDetails();
     const history = () => Promise.all(['Undo', 'Redo'].map(name => button(name).isEnabled()));
     const beforeHistory = await history();
-    await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+    await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).click();
     const refusal = await f.waitToast(/too large|Reference not applied/);
     assert.ok(refusal.includes(badEdge));
     const after = await f.snapshot('narrow-corner-refused');
@@ -279,6 +281,71 @@ await f.run(async () => {
     for (const body of bodies) volumeNear(body.volume, 9000);
     if (historyMode) f.report.observations.push({ kind, referenceDetails: await referenceDetails() });
 
+    if (reviewUi && twoHeld) {
+      for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 800 }]) {
+        await f.page.setViewportSize(viewport);
+        if (await button('Open the dock').isVisible()) await button('Open the dock').click();
+        f.phase = 'two visibly distinct held finish references';
+        const panel = refs();
+        const choose = feature => panel.getByRole('button', { name: 'Use candidate 1 for ' + feature, exact: true });
+        const preview = feature => panel.getByRole('button', { name: 'Preview candidate 1 for ' + feature + ' in model', exact: true });
+        const capture = label => f.snapshot(label + '-' + viewport.width, () => ({
+          references: document.querySelector('[aria-label="References"]')?.textContent,
+          focused: document.activeElement?.getAttribute('aria-label') || document.activeElement?.nodeName,
+        }));
+        if (reviewBaseline) {
+          const initial = await capture('both-generic');
+          assert.equal(initial.references.match(/Feature reference/g)?.length, 2);
+          assert.match(initial.references, /0 affected dimension/);
+          assert.equal(await panel.getByRole('button', { name: 'Preview in model', exact: true }).count(), 2);
+          const accept = panel.getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).first();
+          await accept.focus();
+          await f.page.keyboard.press('Enter');
+          await f.changed(opened.doc);
+          assert.equal((await capture('focus-after-confirm')).focused, 'BODY');
+        } else {
+          assert.equal(await panel.getByRole('group', { name: 'Chamfer 1 (n3)', exact: true }).count(), 1);
+          assert.equal(await panel.getByRole('group', { name: 'Fillet R1 (n4)', exact: true }).count(), 1);
+          assert.doesNotMatch(await panel.textContent(), /affected dimension/);
+          assert.equal(await panel.getByRole('button', { name: /Preview candidate 1 .* in model/ }).count(), 2);
+          assert.equal(await panel.getByRole('button', { name: 'Preview in model', exact: true }).count(), 0);
+          const seen = [];
+          for (const feature of ['Chamfer 1 (n3)', 'Fillet R1 (n4)']) {
+            await preview(feature).click();
+            const state = await capture('preview-' + (feature.startsWith('Chamfer') ? 'chamfer' : 'fillet'));
+            assert.deepEqual(state.doc, opened.doc);
+            assert.deepEqual(state.bodies.bodies, opened.bodies.bodies);
+            assert.equal(state.selection.selection.edges.length, 1);
+            seen.push(state.selection.selection.edges[0]);
+          }
+          assert.notDeepEqual(seen[0], seen[1]);
+          await choose('Chamfer 1 (n3)').focus();
+          await f.page.keyboard.press('Enter');
+          await f.changed(opened.doc);
+          await preview('Fillet R1 (n4)').evaluate(button => {
+            if (document.activeElement !== button) throw Error('Focus did not reach the remaining candidate preview.');
+          });
+        }
+        const accepted = await capture('only-chamfer-confirmed');
+        assert.deepEqual(accepted.doc.nodes[3].edges, [replacement]);
+        assert.deepEqual(accepted.doc.nodes[4], opened.doc.nodes[4]);
+        volumeNear(accepted.bodies.bodies.find(body => body.key === 'b3').volume, 8995);
+        volumeNear(accepted.bodies.bodies.find(body => body.key === 'b4').volume, 9000);
+        await f.undo();
+        await f.same(opened.doc);
+        if (viewport.width === 1024) {
+          await f.redo();
+          await f.same(accepted.doc);
+          if (!reviewBaseline) {
+            await f.page.setViewportSize({ width: 1440, height: 900 });
+            await reopenNativeSave(kind, accepted, 1);
+          }
+        }
+      }
+      if (reviewBaseline) throw Error('Held rows repeat generic labels and lose keyboard focus.');
+      continue;
+    }
+
     if (repickMode) {
       f.phase = 'use History to replace the held ' + kind + ' edge';
       await f.openFeatureEditor(3, kind);
@@ -326,7 +393,7 @@ await f.run(async () => {
       continue;
     }
     f.phase = 'explicitly confirm the new Split edge for ' + kind;
-    await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+    await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).click();
     await f.page.waitForFunction(name => window.__studioDoc?.nodes?.[3]?.edges?.[0] === name, replacement);
     await f.ready();
     const applied = await f.snapshot(kind + '-explicitly-confirmed');

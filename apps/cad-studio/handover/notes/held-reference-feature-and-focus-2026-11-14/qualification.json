@@ -1,0 +1,120 @@
+{
+  "decision": "D1247",
+  "tier": "SMALL",
+  "parent": "e89b8ee1c9570d851d4bd80afe8945e9613d7f05",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1247-<run>",
+    "D998_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence> --repick-fixed --native-save --review-ui [--review-baseline]",
+    "D757_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-reference-candidate-browser.mjs <external-evidence> --fixed",
+    "pnpm --filter @barocss/cad-model test references rematch",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/ReferenceDecisions.tsx",
+    "node --check <four changed browser drivers>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "frozenFiles": 396,
+      "states": 12,
+      "receiptSHA256": "3ef7a734da88ba87a288f9f297962fc99dd10274fb4c2a18a04d6911c371e6e3",
+      "sourceManifestSHA256": "6428abbbe5169ba2c5d0b8eace16b6ded0dcb50c0ccd4a04ac0a637e24d5b796",
+      "sourceAfterCleanupSHA256": "6428abbbe5169ba2c5d0b8eace16b6ded0dcb50c0ccd4a04ac0a637e24d5b796",
+      "focus": [
+        {
+          "state": "both-generic-1440",
+          "control": "Open"
+        },
+        {
+          "state": "focus-after-confirm-1440",
+          "control": "BODY"
+        },
+        {
+          "state": "only-chamfer-confirmed-1440",
+          "control": "BODY"
+        },
+        {
+          "state": "both-generic-1024",
+          "control": "Undo"
+        },
+        {
+          "state": "focus-after-confirm-1024",
+          "control": "BODY"
+        },
+        {
+          "state": "only-chamfer-confirmed-1024",
+          "control": "BODY"
+        }
+      ],
+      "saveHashes": [
+        "6a40ff9c12b2e38620895b2f76cd55dc3d076703ec5605bdd7abfccdad5b6023"
+      ]
+    },
+    "fixed2": {
+      "status": "PASS",
+      "frozenFiles": 396,
+      "states": 12,
+      "receiptSHA256": "272fa5b6714f918f714c007318b9306e98e64d661bc6e156768cee6fabf46145",
+      "sourceManifestSHA256": "ea2c4fc5de99dae63be211b0852138c3217d5a7316a8df6345599c4ed2583039",
+      "sourceAfterCleanupSHA256": "ea2c4fc5de99dae63be211b0852138c3217d5a7316a8df6345599c4ed2583039",
+      "focus": [
+        {
+          "state": "preview-chamfer-1440",
+          "control": "Preview candidate 1 for Chamfer 1 (n3) in model"
+        },
+        {
+          "state": "preview-fillet-1440",
+          "control": "Preview candidate 1 for Fillet R1 (n4) in model"
+        },
+        {
+          "state": "only-chamfer-confirmed-1440",
+          "control": "Preview candidate 1 for Fillet R1 (n4) in model"
+        },
+        {
+          "state": "preview-chamfer-1024",
+          "control": "Preview candidate 1 for Chamfer 1 (n3) in model"
+        },
+        {
+          "state": "preview-fillet-1024",
+          "control": "Preview candidate 1 for Fillet R1 (n4) in model"
+        },
+        {
+          "state": "only-chamfer-confirmed-1024",
+          "control": "Preview candidate 1 for Fillet R1 (n4) in model"
+        }
+      ],
+      "saveHashes": [
+        "6a40ff9c12b2e38620895b2f76cd55dc3d076703ec5605bdd7abfccdad5b6023",
+        "2f875e32dcd2226d1606459ddd960953a442ef43ede5a399a94d00510142c4a7"
+      ]
+    },
+    "drawing": {
+      "status": "PASS",
+      "frozenFiles": 966,
+      "states": 6,
+      "receiptSHA256": "900f9399ba06548231d3c5d6a1f440525cd2862db18d2e0492d1ddf920fd0b1a",
+      "sourceManifestSHA256": "76dbd966ceb4007b31941de4ecd96ec1271a754c150d979ab8e120c9b3ff7200",
+      "sourceAfterCleanupSHA256": "76dbd966ceb4007b31941de4ecd96ec1271a754c150d979ab8e120c9b3ff7200",
+      "focus": [],
+      "saveHashes": []
+    }
+  },
+  "checks": {
+    "focusedModel": {
+      "status": "PASS",
+      "tests": 48
+    },
+    "studioTypeCheck": "PASS",
+    "panelLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN",
+    "strictBrep": "NOT_RUN",
+    "assistiveTechnology": "NOT_RUN"
+  }
+}

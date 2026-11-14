@@ -2469,20 +2469,21 @@ export function App() {
     const heldFinish = held?.held && (held.kind === 'fillet' || held.kind === 'chamfer') ? held : undefined;
     if (heldFinish && to !== undefined && to !== problem?.name && heldFinish.edges.includes(to)) {
       setToast({ title: 'Reference not applied', hint: 'This feature already uses that edge.', detail: to });
-      return;
+      return false;
     }
     const remaining = refProblems.filter(p => p.index !== index);
     const pending = heldFinish && problem ? remaining.find(p => p.node === problem.node) : undefined;
     const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to, undefined, pending);
-    if (!current() || next === doc) return;
+    if (!current() || next === doc) return false;
     if (heldFinish && !pending) {
       const result = await engine.part(prefixDoc(next, next.nodes.length), revision.current++, 'refs');
-      if (!current()) return;
-      if (!result.ok) { setToast({ ...result.error, title: 'Reference not applied' }); return; }
+      if (!current()) return false;
+      if (!result.ok) { setToast({ ...result.error, title: 'Reference not applied' }); return false; }
     }
-    pushUndo(); if (!setDoc(next)) return;
+    pushUndo(); if (!setDoc(next)) return false;
     referenceProblems.current.set(next, remaining);
     setRefChoices(null); setDirty(true);
+    return true;
   };
   const showRefChoices = async (index: number) => {
     const scope = currentOpenScope(), dispatch = saveDocumentToken.current;

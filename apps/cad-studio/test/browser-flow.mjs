@@ -3085,7 +3085,7 @@ try {
     let d = await doc();
     assert.equal(d.nodes[2].suppressed, true);
     assert.deepEqual(d.nodes[2].edges, ['n1.side0|n1.side1']);
-    await page.getByRole('region', { name: 'References' }).getByRole('button', { name: 'Use candidate 1', exact: true }).click();
+    await page.getByRole('region', { name: 'References' }).getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).click();
     await page.waitForFunction(() => !window.__studioDoc.nodes[2].held && window.__studioDoc.nodes[2].edges[0] === 'n1.side1|n1.side2', null, { timeout: 15000 });
     assert.equal(await page.locator('[aria-label="References"]').count(), 0, 'nothing left to settle');
     // Gone: nothing alike left (a curved edge on a box): the file opens, the fillet held, the box built.

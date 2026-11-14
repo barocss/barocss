@@ -150,7 +150,7 @@ await f.run(async () => {
     }
     await f.undo();
     await f.same(opened.doc);
-    await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).waitFor();
+    await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).waitFor();
     await f.redo();
     await f.same(confirmed.doc);
     await f.newPage();
@@ -195,7 +195,7 @@ await f.run(async () => {
     assert.deepEqual(opened.doc.nodes[2].edges, [edge, secondEdge]);
     assert.equal(opened.doc.nodes[2].suppressed, true);
     volume(opened, 630);
-    const pending = () => refs().getByRole('button', { name: 'Use candidate 1', exact: true });
+    const pending = () => refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ });
     assert.equal(await pending().count(), 2);
     await pending().first().click();
     await f.page.waitForFunction(name => window.__studioDoc?.nodes?.[2]?.edges?.[0] === name, replacement);
@@ -267,7 +267,7 @@ await f.run(async () => {
   volume(confirmed, 630 - 6 * (4 - Math.PI));
   await f.undo();
   await f.same(held.doc);
-  await refs().getByRole('button', { name: 'Use candidate 1', exact: true }).waitFor();
+  await refs().getByRole('button', { name: /^Use candidate 1(?: for |$)/ }).waitFor();
   await f.redo();
   await f.same(confirmed.doc);
 
