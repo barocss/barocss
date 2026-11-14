@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepMassProperties, checkBrep, type Brep } from '@barocss/cad';
+import { brepMassProperties, checkBrep, exportStep, type Brep } from '@barocss/cad';
 import { offsetFaceCommand } from '../src/app/profileCommands';
 import { editSavedOffsetFaceCommand } from '../src/app/offsetFaceEdit';
 import { deleteFeature, duplicateBody } from '../src/chat/features';
@@ -67,6 +67,32 @@ function assertBoxNative(doc: StudioDoc, target: ReturnType<typeof boxOracle>, a
   }
 }
 const translated = (): StudioDoc => withNode(rectanglePart(20.00003, 10.00007, 5.00009), { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [0.1234567, -0.2345678, 0.3456789] });
+
+test('Offset admits a STEP box with padded supports but still refuses drafted STEP walls', () => {
+  const importBrep = (brep: Brep): StudioDoc => withNode(emptyDoc(), {
+    kind: 'import', name: 'cap.step', step: exportStep(brep),
+  });
+  const source = rectanglePart(20, 10, 5);
+  const imported = importBrep(bodyOf(source)), native = bodyOf(imported);
+  const top = bounds(native).max[2], side = native.faces.find(face => face.name?.endsWith('.side0'));
+  assert.ok(side?.surface.kind === 'surface');
+  assert.ok(side.surface.controlPoints.flat().some(point => point[2] > top), 'STEP plane is larger than its trim');
+  const initial = offsetFaceCommand.build!(context(imported), { d: -2 });
+  const end = initial.nodes.length - 1;
+  const edit = editSavedOffsetFaceCommand(initial, end);
+  assert.ok(edit?.build);
+  const outward = edit.build(context(initial), { d: 3 });
+  assert.deepEqual(outward.nodes[0], imported.nodes[0]);
+  assert.deepEqual(outward.outputs, initial.outputs);
+  assertBoxNative(initial, boxOracle(bounds(native), 2, 1, -2), 2, top);
+  assertBoxNative(outward, boxOracle(bounds(native), 2, 1, 3), 2, top);
+
+  const drafted = { ...source, nodes: source.nodes.map(node =>
+    node.kind === 'extrude' ? { ...node, draft: 5 } : node) };
+  const unsupported = importBrep(bodyOf(drafted));
+  assert.throws(() => offsetFaceCommand.build!(context(unsupported), { d: 2 }),
+    /not a congruent native right-prism cap/);
+});
 
 for (const axis of [0, 1, 2]) for (const sign of [-1, 1]) for (const distance of [-1.25, 2.125]) {
   test(`Offset native box cap axis${axis}/sign${sign}/distance${distance}: exact footprint, plane and one closed solid`, t => {

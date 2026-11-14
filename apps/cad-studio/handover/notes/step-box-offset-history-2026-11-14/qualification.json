@@ -1,0 +1,196 @@
+{
+  "decision": "D1174",
+  "tier": "FEATURE",
+  "parent": "88a5191d4faff486a094b523c8068a5ff46afb60",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1174-<run>",
+    "D1174_SOURCE_FROZEN=1 node apps/cad-studio/test/step-box-offset-history-browser.mjs <external-evidence>/<run>",
+    "D1173_SOURCE_FROZEN=1 node apps/cad-studio/test/offset-face-history-browser.mjs <external-evidence>/cylinder-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset-face-native engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/nativeOffsetFace.ts",
+    "node --check apps/cad-studio/test/step-box-offset-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "desktop": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "8c63c7b86e0d90af0dbae5fbb19cf72fee057bc933340ec1471449f6862bca5e",
+      "sourceManifestSHA256": "5e95ff710a99fb96c82a485441c4446f06b9ead17c0cfd7693eb5b4dccae28e7"
+    },
+    "qualifying": {
+      "status": "PASS",
+      "states": [
+        "imported-offset-inward",
+        "imported-offset-thickness-refused",
+        "imported-offset-outward-preview",
+        "imported-offset-outward",
+        "imported-offset-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "3af13fc20d67c02363554ce604a8be24c4d6cfde5ce9a8806e86600e6f008c3f",
+      "sourceManifestSHA256": "d90aa7499ec96920b91c46d1cb9a9c4be157b404dc24653da1bc9631c457a176"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "imported-offset-inward",
+        "imported-offset-thickness-refused",
+        "imported-offset-outward-preview",
+        "imported-offset-outward",
+        "imported-offset-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "e62aee225fb71dcb684c465fb772f0fd2cb5eaacc16dfea173ecff47b21738ba",
+      "sourceManifestSHA256": "d90aa7499ec96920b91c46d1cb9a9c4be157b404dc24653da1bc9631c457a176",
+      "observations": [
+        {
+          "label": "step-source",
+          "hash": "538374bf02748e54ae4298527a135ed91a8ece268cfbd25bafbc4e7b67147abf"
+        },
+        {
+          "label": "opened-step",
+          "distance": 0,
+          "bounds": [
+            [
+              4,
+              -3,
+              6
+            ],
+            [
+              24,
+              7,
+              11
+            ]
+          ],
+          "volume": 999.9999999999999,
+          "expectedVolume": 1000,
+          "centroid": [
+            14,
+            2,
+            8.5
+          ],
+          "top": "n0.box.top"
+        },
+        {
+          "label": "imported-offset-inward",
+          "distance": -2,
+          "bounds": [
+            [
+              4,
+              -3,
+              6
+            ],
+            [
+              24,
+              7,
+              9
+            ]
+          ],
+          "volume": 600,
+          "expectedVolume": 600,
+          "centroid": [
+            14,
+            2,
+            7.5
+          ],
+          "top": "n2.bottom"
+        },
+        {
+          "label": "imported-offset-outward",
+          "distance": 3,
+          "bounds": [
+            [
+              4,
+              -3,
+              6
+            ],
+            [
+              24,
+              7,
+              14
+            ]
+          ],
+          "volume": 1600.0000000000002,
+          "expectedVolume": 1600,
+          "centroid": [
+            14,
+            2,
+            10
+          ],
+          "top": "n2.top"
+        },
+        {
+          "label": "imported-offset-undo",
+          "distance": -2,
+          "bounds": [
+            [
+              4,
+              -3,
+              6
+            ],
+            [
+              24,
+              7,
+              9
+            ]
+          ],
+          "volume": 600,
+          "expectedVolume": 600,
+          "centroid": [
+            14,
+            2,
+            7.5
+          ],
+          "top": "n2.bottom"
+        },
+        {
+          "label": "imported-offset-reopened",
+          "distance": 3,
+          "bounds": [
+            [
+              4,
+              -3,
+              6
+            ],
+            [
+              24,
+              7,
+              14
+            ]
+          ],
+          "volume": 1600.0000000000002,
+          "expectedVolume": 1600,
+          "centroid": [
+            14,
+            2,
+            10
+          ],
+          "top": "n2.top"
+        }
+      ]
+    },
+    "cylinder-regression": {
+      "status": "PASS",
+      "states": [
+        "offset-out-two",
+        "offset-edit-preview",
+        "offset-out-three",
+        "zero-thickness-refused",
+        "offset-in-two",
+        "offset-history-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "d0be2bd9cb2e25c5abc3665d5f0a77d0513dcec53e636a4c207caeb8d8731703",
+      "sourceManifestSHA256": "1072eac25018b4c19b4f9230aaa9ecf576c26ef4b1d9ab35ec994e1e921536d4"
+    }
+  }
+}

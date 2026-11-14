@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1174 — offset and edit the top of an imported STEP box](notes/step-box-offset-history-2026-11-14/README.md).
 - [D1173 — edit the original signed face Offset in History](notes/offset-face-signed-history-2026-11-14/README.md).
 - [D1172 — replace one copied Loft section in History](notes/loft-history-section-replacement-2026-11-14/README.md).
 - [D1171 — replace a copied Loft guide in History](notes/loft-history-guide-replacement-2026-11-14/README.md).

@@ -95,6 +95,26 @@ function topology(brep: Brep): void {
   for (const vertex of brep.vertices) for (const value of vertex.point) if (!finite(value)) return unsupported('native coordinates exceed the current modeling range.');
   for (const face of brep.faces) if (face.surface.kind !== 'surface') return unsupported('faceted faces are not supported.');
 }
+
+/** STEP PLANE uses a padded support. Prove that it covers the exact cardinal
+ * rectangle trimmed by the two cap levels and two distinct side endpoints. */
+function stepSideSupport(surface: Surface, boundary: readonly XYZ[], axis: Axis, cap: number, opposite: number): boolean {
+  const normal = ([0, 1, 2] as const).find(k => k !== axis && constantLevel(boundary, k));
+  if (normal === undefined) return false;
+  const tangent = 3 - normal - axis;
+  const levels = new Set(boundary.map(point => point[axis]));
+  const ends = new Set(boundary.map(point => point[tangent]));
+  if (levels.size !== 2 || !levels.has(cap) || !levels.has(opposite) || ends.size !== 2) return false;
+
+  const poles = surface.controlPoints.flat();
+  const heights = new Set(poles.map(point => point[axis]));
+  const widths = new Set(poles.map(point => point[tangent]));
+  if (heights.size !== 2 || widths.size !== 2 || new Set(poles.map(pointKey)).size !== 4
+    || !poles.every(point => point[normal] === boundary[0][normal])) return false;
+  return Math.min(...heights) <= Math.min(cap, opposite) && Math.max(...heights) >= Math.max(cap, opposite)
+    && Math.min(...widths) <= Math.min(...ends) && Math.max(...widths) >= Math.max(...ends);
+}
+
 function polygon(brep: Brep, selected: BrepFace, axis: Axis, sign: 1 | -1, coordinate: number, opposite: number): XY[] {
   const points = ring(brep, selected), n = points.length;
   if (n < 3 || n > 16 || brep.vertices.length !== 2 * n || brep.edges.length !== 3 * n || brep.faces.length !== n + 2 || brep.loops.length !== n + 2) return unsupported('a simple native right prism with 3 to 16 cap corners is required; partitioned faces are unsupported.');
@@ -127,9 +147,10 @@ function polygon(brep: Brep, selected: BrepFace, axis: Axis, sign: 1 | -1, coord
       if (boundary.length !== 4) return unsupported('a right-prism side must have four native corners.');
       const corners = new Set(boundary.map(pointKey));
       if (corners.size !== 4) return unsupported('the native side repeats a corner.');
-      const poles = new Set<string>();
-      for (const row of face.surface.controlPoints) for (const p of row) { if (!corners.has(pointKey(p))) return unsupported('a side support is not the native ruled rectangle.'); poles.add(pointKey(p)); }
-      if (poles.size !== 4) return unsupported('a native side support cannot repeat or collapse its corners.');
+      const poles = new Set(face.surface.controlPoints.flat().map(pointKey));
+      const exactNet = poles.size === 4 && [...poles].every(point => corners.has(point));
+      if (!exactNet && !(brep.source.family === 'step' && stepSideSupport(face.surface, boundary, axis, coordinate, opposite)))
+        return unsupported('the native side support does not cover the exact ruled rectangle.');
     }
   }
   if (caps !== 2) return unsupported('exactly two native prism caps are required.');
