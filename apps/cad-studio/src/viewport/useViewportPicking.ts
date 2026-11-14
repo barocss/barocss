@@ -1,3 +1,4 @@
+import type { RevolveAxisHit } from '../app/revolveAxisPick';
 import { useCallback, type Dispatch, type SetStateAction, type RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -30,8 +31,9 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, scene }: {
+  setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
+  onRevolveAxisPick(hit: RevolveAxisHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   sectionPickRef: RefObject<SectionPick>;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
@@ -56,9 +58,10 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     setMenu(menu: ViewportMenu): void;
   };
 }) {
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
+  const onPick = useCallback((hit: RevolveAxisHit & { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     if (modelUnavailable) return;
-    if (onExtrudeTargetPick(hit, !!sectionRef.current || halvesShownRef.current)) return;
+    const blocked = !!sectionRef.current || halvesShownRef.current;
+    if (onExtrudeTargetPick(hit, blocked) || onRevolveAxisPick(hit, blocked)) return;
     // Family attempts retire queued Apply even when an instance was removed or hidden.
     if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -156,7 +159,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick]);
+  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean, region?: number) => {

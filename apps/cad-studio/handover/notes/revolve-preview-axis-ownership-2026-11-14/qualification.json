@@ -1,0 +1,343 @@
+{
+  "decision": "D1162",
+  "tier": "FEATURE",
+  "parent": "6ded415bc9b5ab40b75e284e6331ce5b85d4536a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1162-<run>",
+    "D1162_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-preview-axis-ownership-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1161_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-direction-browser.mjs <external-evidence>/final-end-face",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/final-build",
+    "pnpm exec eslint apps/cad-studio/src/app/revolveAxisPick.ts apps/cad-studio/src/viewport/useViewportPicking.ts",
+    "node --check apps/cad-studio/test/revolve-preview-axis-ownership-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 869,
+      "receiptSHA256": "93ecdb4eb8cc9246f9809a4c0c60706a8eff2bd692931a3aecfdeff48faa92fe",
+      "sourceManifestSHA256": "c1009db3cc1f182c8cc89695ecd5da12331715929f05b33656dce64a0a2672e6",
+      "observations": [
+        {
+          "label": "displayed-source-and-generated-edges",
+          "newA": {
+            "body": 0,
+            "edge": 2,
+            "segments": [
+              [
+                0,
+                0,
+                20,
+                40,
+                0,
+                20
+              ]
+            ]
+          },
+          "joinedA": {
+            "body": 1,
+            "edge": 23,
+            "segments": [
+              [
+                40,
+                0,
+                20,
+                0,
+                0,
+                20
+              ]
+            ]
+          },
+          "joinedB": {
+            "body": 1,
+            "edge": 6,
+            "segments": [
+              [
+                40,
+                20,
+                20,
+                0,
+                20,
+                20
+              ]
+            ]
+          },
+          "generated": {
+            "body": 1,
+            "edge": 18,
+            "segments": [
+              [
+                20,
+                8.999999999999998,
+                20,
+                10,
+                9.000000000000002,
+                19.999999999999996
+              ]
+            ]
+          }
+        },
+        {
+          "label": "original-y20",
+          "before": "Axis\nedge n1.side0|n1.top",
+          "after": "Axis\nedge n3.side1|n3.top"
+        }
+      ]
+    },
+    "first": {
+      "status": "FAIL",
+      "states": 1,
+      "frozenFiles": 870,
+      "receiptSHA256": "41fc4fcd2089faed88042fd68067ee6887f6e64d825bce96ff7ae48c37d0f02f",
+      "sourceManifestSHA256": "d4a3d407c0795644fb235acfaed4d329386dbc7229972d1c4b6cb4801f1752b5"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 870,
+      "receiptSHA256": "7a451467f0b2856ee4cd11ff5e668946f4dd596a8eae6028809390b49efc5c6d",
+      "sourceManifestSHA256": "aef9e7d6c05bfd70693d0cba84ea31fb4f371e21e16660ac74a6a21515868e00"
+    },
+    "final": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 870,
+      "receiptSHA256": "b6d048891d0e64a52d55fb95d49b0d750e28382203f4c02440b1e68f47e1d3d7",
+      "sourceManifestSHA256": "65f8b02ff42ef1a8710a831d9bb1414ef07a30aeb15c068042d9e4d8a7c64859",
+      "observations": [
+        {
+          "label": "new",
+          "axis": {
+            "kind": "revolve",
+            "sketch": 4,
+            "axis": "x",
+            "origin": [
+              0,
+              0
+            ],
+            "dir": [
+              1,
+              0
+            ],
+            "angle": 360,
+            "id": "n5"
+          },
+          "native": [
+            {
+              "id": "n1",
+              "valid": true,
+              "count": 1,
+              "method": "closed-form",
+              "volume": 16000.000000000002,
+              "cylinders": []
+            },
+            {
+              "id": "n3",
+              "valid": true,
+              "count": 1,
+              "method": "closed-form",
+              "volume": 15999.999999999996,
+              "cylinders": []
+            },
+            {
+              "id": "n5",
+              "valid": true,
+              "count": 1,
+              "method": "closed-form",
+              "volume": 1413.7166941154067,
+              "cylinders": [
+                {
+                  "radius": 6.000000000000001,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    10,
+                    0,
+                    20
+                  ]
+                },
+                {
+                  "radius": 6,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    10,
+                    8.881784197001252e-16,
+                    20
+                  ]
+                },
+                {
+                  "radius": 9.000000000000002,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    20,
+                    0,
+                    20
+                  ]
+                },
+                {
+                  "radius": 9,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    20,
+                    0,
+                    20
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "displayed-source-and-generated-edges",
+          "newA": {
+            "body": 0,
+            "edge": 2,
+            "segments": [
+              [
+                0,
+                0,
+                20,
+                40,
+                0,
+                20
+              ]
+            ]
+          },
+          "joinedA": {
+            "body": 1,
+            "edge": 23,
+            "segments": [
+              [
+                40,
+                0,
+                20,
+                0,
+                0,
+                20
+              ]
+            ]
+          },
+          "joinedB": {
+            "body": 1,
+            "edge": 6,
+            "segments": [
+              [
+                40,
+                20,
+                20,
+                0,
+                20,
+                20
+              ]
+            ]
+          },
+          "generated": {
+            "body": 1,
+            "edge": 18,
+            "segments": [
+              [
+                20,
+                8.999999999999998,
+                20,
+                10,
+                9.000000000000002,
+                19.999999999999996
+              ]
+            ]
+          }
+        },
+        {
+          "label": "join",
+          "axis": {
+            "kind": "revolve",
+            "sketch": 4,
+            "axis": "x",
+            "origin": [
+              40,
+              20
+            ],
+            "dir": [
+              -1,
+              0
+            ],
+            "angle": 360,
+            "id": "n5"
+          },
+          "native": [
+            {
+              "id": "n3",
+              "valid": true,
+              "count": 1,
+              "method": "closed-form",
+              "volume": 15999.999999999996,
+              "cylinders": []
+            },
+            {
+              "id": "n6",
+              "valid": true,
+              "count": 1,
+              "method": "quadrature",
+              "volume": 17767.145867644263,
+              "cylinders": [
+                {
+                  "radius": 14.000000000000005,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    10,
+                    19.999999999999996,
+                    20.000000000000007
+                  ]
+                },
+                {
+                  "radius": 10.999999999999996,
+                  "axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "centre": [
+                    10,
+                    20,
+                    19.999999999999993
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "final-end-face": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 870,
+      "receiptSHA256": "6cbfa2b67e7519650aa377727b0df7f9b24ab39da5b3f2625ea993ba798284eb",
+      "sourceManifestSHA256": "289606dc5585bcf8ed39c31cec92a1176bd3d55a68524b0e7b60a021175e50c0"
+    }
+  }
+}

@@ -57,6 +57,7 @@ import { LINKED_INSET_EXTRUDE } from './app/roundedInsetCommand';
 import { ReferenceDecisions, type ReferencePreviewOptions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
+import { sourceRevolveAxis, type RevolveAxisHit } from './app/revolveAxisPick';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
@@ -1790,7 +1791,7 @@ export function App() {
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const sectionPickRef = useRef<SectionPick>(() => ({ face: null, edge: null, cap: false }));
-  const extrudeTargetScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
+  const commandPickScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
   const pickExtrudeEndFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
     if (!current || !isExtrudeToFace(current.cmd.id, current.values)) return false;
@@ -1801,13 +1802,37 @@ export function App() {
       setActive(null);
       return true;
     }
-    const scope = extrudeTargetScope.current;
+    const scope = commandPickScope.current;
     const face = !blocked && scope && hit.face && !scope.hidden.has(hit.face.body)
       ? sourceExtrudeEndFace(current, scope.bodies, hit) : null;
     const picked = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
     if (!picked || typeof picked.error === 'string') {
       const hint = typeof picked?.error === 'string' ? picked.error : 'Pick one original planar face of a current solid.';
       setToast({ title: 'End face not selected', hint, detail: '' });
+      return true;
+    }
+    commandPreview.retire();
+    setActive({ ...current, values: picked, preview: 'busy', error: undefined });
+    return true;
+  };
+  const pickRevolveAxis = (hit: RevolveAxisHit, blocked: boolean): boolean => {
+    const current = activeStore.get();
+    if (current?.cmd.id !== 'revolve') return false;
+    if (!hit.edge && !hit.instance && !hit.direct) return true;
+    applyWhenReady.current = null;
+    again.current = null;
+    if (docNow.current !== doc || evaluatedRef.current !== evaluated || current.ctx.doc !== commandDoc) {
+      commandPreview.retire();
+      setActive(null);
+      return true;
+    }
+    const scope = commandPickScope.current;
+    const ownsPreview = current.preview === 'ok' && previewFor.current === JSON.stringify(current.values);
+    const edge = !blocked && scope && hit.edge && !scope.hidden.has(hit.edge.body)
+      ? sourceRevolveAxis(current, scope.bodies, hit, ownsPreview) : null;
+    const picked = edge && current.cmd.onPick?.(current.ctx, current.values, { face: null, edge });
+    if (!picked || typeof picked.error === 'string') {
+      setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '' });
       return true;
     }
     commandPreview.retire();
@@ -1847,7 +1872,7 @@ export function App() {
   const placedMeasureContextReady = () => placedMeasureContext && docNow.current === doc
     && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
     && !activeStore.get() && !halvesShownRef.current;
-  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -2530,10 +2555,10 @@ export function App() {
   const sectionFrom = nextSerial(evaluated);
   // (The Band surface command highlights what it has picked — A and B — while it runs, also when its preview hides the selection.)
   const bandShown = active?.cmd.id === 'band-surface' ? bandHighlight(bodies, bandPicksOf(active.values)) : null;
-  extrudeTargetScope.current = fresh && !busy && !section && !sketch && !inPlace && !cageEd.session && !routePreviewBodies
+  commandPickScope.current = fresh && !busy && !section && !sketch && !inPlace && !cageEd.session && !routePreviewBodies
     && !ghost && !rendering && !drawing && !bodyDrag && previewMode === 'none' && (shownBodies === drawnBodies || shownBodies === previewBodies)
     ? { bodies: shownBodies, hidden: hiddenBodies } : null;
-  const shownEndFace = active && extrudeTargetScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
+  const shownEndFace = active && commandPickScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
     ? shownExtrudeEndFace(active, shownBodies) : null;
   const sectionEdgeSources = useMemo(() => {
     if (!sectionExactShown || shownBodies !== sectionBodies || section?.mode !== 'plane' || section.planes.length !== 1) return [];
