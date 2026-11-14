@@ -8,7 +8,7 @@ import { copyLoftGuide } from '../src/app/loftGuides';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { framedLoftSections, loftSections, profileMiddle, profileRings } from '../src/app/profiles';
 import { resolveSketchDims } from '../src/sketch/reopen';
-import { extrudeCommand, loftCommand, revolveCommand, sweepCurveCommand, sweepPath } from '../src/app/profileCommands';
+import { extrudeCommand, loftCommand, revolveCommand, retargetSweep, sweepCurveCommand, sweepPath } from '../src/app/profileCommands';
 import { editCommand } from '../src/app/editCommand';
 import type { Ctx } from '../src/app/commands';
 
@@ -163,4 +163,32 @@ test('Sweep resolves exactly one visible path and uses the explicitly picked old
     assert.match(String(sweepPath(invalid, [object.id])), /visible and unambiguous/);
     assert.equal(sweepCurveCommand.available({ ...ctx, doc: invalid }).ok, false);
   }
+});
+
+test('Sweep active input replacement keeps its other captured input', async () => {
+  await loadDirect();
+  const direct = importSource(emptyDirect(), `@model rails {
+    version: 0; length-unit: mm;
+    @curve #a { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[0,0,0],[0,0,32]]; weights: [1,1]; }
+    @curve #b { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[30,0,0],[30,0,22]]; weights: [1,1]; }
+  }`, 'Sweep rail');
+  const [a, b] = direct.objects;
+  const doc = { ...docOf(sk({ profile: 'circle', center: [0, 0], radius: 3 }), sk({ profile: 'circle', center: [30, 0], radius: 6 })), direct };
+  const ctx = { ...ctxOf(doc, [0]), direct: [a.id] };
+  const repath = retargetSweep(ctx, { path: b.id });
+  assert.ok(!('error' in repath));
+  assert.equal(repath.selection, ctx.selection);
+  assert.deepEqual(repath.direct, [b.id]);
+  const reprofile = retargetSweep(repath, { profile: 1 });
+  assert.ok(!('error' in reprofile));
+  assert.equal(reprofile.direct, repath.direct);
+  assert.deepEqual(reprofile.selection.sketches, [1]);
+  const swept = sweepCurveCommand.build!(reprofile, {}).nodes.at(-1);
+  assert.ok(swept?.kind === 'sweep-curve');
+  assert.equal(swept.sketch, 1);
+  assert.deepEqual(swept.path.controlPoints, [[30, 0, 0], [30, 0, 22]]);
+  assert.ok('error' in retargetSweep(reprofile, { profile: 20 }));
+  assert.ok('error' in retargetSweep(reprofile, { path: 'unknown' }));
+  assert.deepEqual(ctx.direct, [a.id]);
+  assert.deepEqual(ctx.selection.sketches, [0]);
 });

@@ -417,10 +417,31 @@ export function sweepPath(doc: StudioDoc, ids: readonly string[]): { name: strin
 
 const pickedPath = (ctx: Ctx) => sweepPath(ctx.doc, ctx.direct ?? []);
 
+export const SWEEP_CURVE = 'sweep-curve';
+
+/** Resolve one replacement without changing the other input in the captured command context. */
+export function retargetSweep(ctx: Ctx, input: { profile: number } | { path: string }): Ctx | { error: string } {
+  if ('profile' in input) {
+    const node = ctx.doc.nodes[input.profile];
+    if (!node || node.suppressed || (node.kind !== 'sketch' && node.kind !== 'driven-sketch'))
+      return { error: 'Choose a current finished sketch as the profile.' };
+    const next = { ...ctx, selection: { faces: [], edges: [], bodies: [], sketches: [input.profile] } };
+    return oneProfile(next) ? next : { error: 'That sketch cannot supply the profile.' };
+  }
+  const direct = [input.path], path = sweepPath(ctx.doc, direct);
+  return typeof path === 'string' ? { error: path } : { ...ctx, direct };
+}
+
 export const sweepCurveCommand: Command = {
-  id: 'sweep-curve', label: 'Sweep', icon: 'cad-sweep', group: 'create', keywords: 'sweep path rail curve along tube wire spring pipe route',
+  id: SWEEP_CURVE, label: 'Sweep', icon: 'cad-sweep', group: 'create', keywords: 'sweep path rail curve along tube wire spring pipe route',
   hint: 'Carry a finished sketch along a curve: its middle starts at the curve’s start, square to it, and follows it without twisting',
-  available: ctx => { if (!oneProfile(ctx)) return needProfile(ctx); const p = pickedPath(ctx); return typeof p === 'string' ? no(p) : ok; },
+  available: ctx => {
+    const profile = oneProfile(ctx);
+    if (!profile) return needProfile(ctx);
+    if (ctx.doc.nodes[profile.index].suppressed) return no('Choose a current finished sketch as the profile.');
+    const path = pickedPath(ctx);
+    return typeof path === 'string' ? no(path) : ok;
+  },
   fields: ctx => { const p = oneProfile(ctx); return [...opFields(!!(p && baseOf(ctx, p.node)))]; },
   defaults: (ctx): Values => { const p = oneProfile(ctx); return p && baseOf(ctx, p.node) ? { op: 'new' } : {}; },
   steps: ctx => {
@@ -431,7 +452,8 @@ export const sweepCurveCommand: Command = {
     ];
   },
   build: (ctx, v) => {
-    const p = oneProfile(ctx)!, path = pickedPath(ctx);
+    const p = oneProfile(ctx), path = pickedPath(ctx);
+    if (!p || ctx.doc.nodes[p.index].suppressed) throw refusal('BAD_REFERENCE', 'Choose a current finished sketch as the profile.');
     if (typeof path === 'string') throw refusal('SWEEP_PATH', path);
     return combine(withNode(ctx.doc, { kind: 'sweep-curve', sketch: p.index, name: path.name, path: path.path }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },

@@ -32,7 +32,8 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, scene }: {
+  directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, retargetSweep, scene }: {
+  retargetSweep(input: { profile: number } | { path: string }): boolean;
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onRevolveAxisPick(hit: RevolveAxisHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
@@ -63,6 +64,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   const onPick = useCallback((hit: RevolveAxisHit & { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     if (modelUnavailable) return;
     const blocked = !!sectionRef.current || halvesShownRef.current;
+    if (!blocked && hit.direct && retargetSweep({ path: hit.direct })) return;
     if (onExtrudeTargetPick(hit, blocked) || onRevolveAxisPick(hit, blocked)) return;
     // Family attempts retire queued Apply even when an instance was removed or hidden.
     if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
@@ -164,11 +166,11 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick]);
+  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, retargetSweep]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean, region?: number) => {
-    if (id === null) return;
+    if (id === null || retargetSweep({ profile: id })) return;
     if (region !== undefined || typeof sweepPath(doc, directSel) === 'string') setDirectSel([]);
     setInstanceSel([]);
     setSelection(prev => {
@@ -180,7 +182,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
     });
-  }, [doc, directSel]);
+  }, [doc, directSel, retargetSweep]);
 
   const picking = {
     onPick,

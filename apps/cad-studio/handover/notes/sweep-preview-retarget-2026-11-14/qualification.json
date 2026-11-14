@@ -1,0 +1,289 @@
+{
+  "decision": "D1168",
+  "tier": "FEATURE",
+  "parent": "42aa5ed59829ca565ea4a22abae11310ba08f390",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1168-<run>",
+    "D1168_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-preview-retarget-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1167_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-input-order-browser.mjs <external-evidence>/order-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters revolve-axis engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/viewport/useViewportPicking.ts packages/barocss-cad-model/src/app/profileCommands.ts packages/barocss-cad-model/test/profiles-parameters.test.ts",
+    "node --check apps/cad-studio/test/sweep-preview-retarget-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "initial-sweep-preview",
+        "sweep-highlight-changed-without-preview",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "c9d860fbff000b1f36205ef9115c6aa609c0155d4947554d06adb6d8b9dbcbd6",
+      "sourceManifestSHA256": "086d7f0f8c502cde316ba5a9d4f0d37748e821dd86bd724c2da924bace645b6c",
+      "observations": [
+        {
+          "label": "initial-sweep-preview",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail A"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail A \u00b7 FacetedCancelApply",
+          "visibleVolume": 898.9762038503005,
+          "expectedVolume": 898.9762038503189
+        },
+        {
+          "label": "baseline-stale-path",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail B"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail A \u00b7 FacetedCancelApply",
+          "visibleVolume": 898.9762038503005
+        }
+      ]
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "initial-sweep-preview",
+        "rail-b-keeps-profile",
+        "new-profile-keeps-rail-b",
+        "earlier-profile-keeps-rail-b",
+        "sweep-retarget-applied",
+        "sweep-retarget-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "6f0bb72925800159ecf7b64e0a3ac472576047ad7d07fc8cebd888d16e784d28",
+      "sourceManifestSHA256": "e09be0a3cad655c1ee5bce38e7966356fb2450dc5075e3d37d2582459e3430d9"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "initial-sweep-preview",
+        "rail-b-keeps-profile",
+        "surface-refusal-keeps-both",
+        "new-profile-keeps-rail-b",
+        "earlier-profile-keeps-rail-b",
+        "sweep-retarget-applied",
+        "sweep-retarget-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "6c7e411ddd984789453fed607efb69f93932455d97fdc66aea99ba3fd8e0fd8b",
+      "sourceManifestSHA256": "6fcf557185fa0a8003b552b4bae7446add977534d70da7e3c4b5b55ee3e93efe",
+      "observations": [
+        {
+          "label": "initial-sweep-preview",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail A"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail A \u00b7 FacetedCancelApply",
+          "visibleVolume": 898.9762038503005,
+          "expectedVolume": 898.9762038503189
+        },
+        {
+          "label": "rail-b-keeps-profile",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail B"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail B \u00b7 FacetedCancelApply",
+          "visibleVolume": 618.0461401470961,
+          "expectedVolume": 618.0461401470943
+        },
+        {
+          "label": "surface-refusal-keeps-both",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail B"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail B \u00b7 FacetedCancelApply",
+          "visibleVolume": 618.0461401470961,
+          "expectedVolume": 618.0461401470943
+        },
+        {
+          "label": "new-profile-keeps-rail-b",
+          "sketches": [
+            1
+          ],
+          "paths": [
+            "Rail B"
+          ],
+          "hud": "SweeppreviewProfileSketch 2PathRail B \u00b7 FacetedCancelApply",
+          "visibleVolume": 2472.184560588395,
+          "expectedVolume": 2472.1845605883773
+        },
+        {
+          "label": "earlier-profile-keeps-rail-b",
+          "sketches": [
+            0
+          ],
+          "paths": [
+            "Rail B"
+          ],
+          "hud": "SweeppreviewProfileSketch 1PathRail B \u00b7 FacetedCancelApply",
+          "visibleVolume": 618.0461401470961,
+          "expectedVolume": 618.0461401470943
+        },
+        {
+          "label": "retarget-result",
+          "node": {
+            "kind": "sweep-curve",
+            "sketch": 0,
+            "name": "Rail B",
+            "path": {
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  30,
+                  0,
+                  0
+                ],
+                [
+                  30,
+                  0,
+                  22
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "id": "n4"
+          },
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ],
+            "rings": [
+              {
+                "count": 32,
+                "min": 2.999999999999998,
+                "max": 3.0000000000000027
+              },
+              {
+                "count": 32,
+                "min": 2.999999999999998,
+                "max": 3.0000000000000027
+              }
+            ]
+          }
+        },
+        {
+          "label": "reopened-native",
+          "node": {
+            "kind": "sweep-curve",
+            "sketch": 0,
+            "name": "Rail B",
+            "path": {
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  30,
+                  0,
+                  0
+                ],
+                [
+                  30,
+                  0,
+                  22
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "id": "n4"
+          },
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ],
+            "rings": [
+              {
+                "count": 32,
+                "min": 2.999999999999998,
+                "max": 3.0000000000000027
+              },
+              {
+                "count": 32,
+                "min": 2.999999999999998,
+                "max": 3.0000000000000027
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "order-regression": {
+      "status": "PASS",
+      "states": [
+        "sweep-preview-profile-first",
+        "sweep-applied-profile-first",
+        "sweep-preview-path-first",
+        "sweep-applied-path-first",
+        "sweep-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "4e6f948c944d4b49ae1d8ab4e1da1edd85a5619cdfa0ce13d3afa039948949bd",
+      "sourceManifestSHA256": "6fcf557185fa0a8003b552b4bae7446add977534d70da7e3c4b5b55ee3e93efe"
+    }
+  }
+}

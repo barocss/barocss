@@ -227,7 +227,7 @@ import { ReferencesPanel } from './ui/ReferencesPanel';
 import { placeReference, readReferences } from '@barocss/cad-model/chat/references';
 import { confirmDimension, liveDrafts } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
-import { sweepPath, extrudeProfile } from '@barocss/cad-model/app/profileCommands';
+import { retargetSweep, sweepPath, SWEEP_CURVE, extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { failedFeatureText } from './app/failedFeature';
 import { useHeldFinishEdge } from './state/useHeldFinishEdge';
@@ -558,7 +558,7 @@ export function App() {
   const [notice, setToast] = useState<(FriendlyError & {
     action?: { label: string; run(): void };
     bodyCopy?: true;
-    axisPick?: Command;
+    inputPick?: Command;
     documentSource?: { doc: StudioDoc; name?: string; evaluated?: StudioDoc; placed?: { view: StudioDoc; workerSession: number } };
   }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
@@ -1427,7 +1427,7 @@ export function App() {
 
   const cancel = useCallback(() => {
     const command = activeStore.get()?.cmd;
-    if (command) setToast(current => current?.axisPick === command ? null : current);
+    if (command) setToast(current => current?.inputPick === command ? null : current);
     discardDirectCandidateRef.current(); discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null);
   }, [activeStore, setSketch]);
 
@@ -1464,7 +1464,8 @@ export function App() {
     const toFace = isExtrudeToFace(active.cmd.id, active.values);
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
-    if ((active.fillet || toFace || region || replaceAxis) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    const sweep = active.cmd.id === SWEEP_CURVE;
+    if ((active.fillet || toFace || region || replaceAxis || sweep) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1477,7 +1478,7 @@ export function App() {
     }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
-    if (active.preview !== 'ok') { if (toFace || replaceAxis) again.current = null; return; }
+    if (active.preview !== 'ok') { if (toFace || replaceAxis || sweep) again.current = null; return; }
     // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
     // while the committed document evaluates).
     const next = active.cmd.build(active.ctx, active.values);
@@ -1841,12 +1842,35 @@ export function App() {
       ? sourceRevolveAxis(current, scope.bodies, hit, ownsPreview, scope.preview) : null;
     const picked = edge && current.cmd.onPick?.(current.ctx, current.values, { face: null, edge });
     if (!picked || typeof picked.error === 'string') {
-      setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '', axisPick: current.cmd });
+      setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '', inputPick: current.cmd });
       return true;
     }
-    setToast(notice => notice?.axisPick === current.cmd ? null : notice);
+    setToast(notice => notice?.inputPick === current.cmd ? null : notice);
     commandPreview.retire();
     setActive({ ...current, values: picked, preview: 'busy', error: undefined });
+    return true;
+  };
+  const retargetActiveSweep = (input: { profile: number } | { path: string }): boolean => {
+    const current = activeStore.get();
+    if (current?.cmd.id !== SWEEP_CURVE) return false;
+    applyWhenReady.current = null;
+    again.current = null;
+    if (current.ctx.doc !== commandDoc || !ownsEvaluatedSource()) {
+      commandPreview.retire(); setActive(null);
+      return true;
+    }
+    const next = retargetSweep(current.ctx, input);
+    if ('error' in next) {
+      setToast({ title: 'Sweep input not changed', hint: next.error, detail: '', inputPick: current.cmd });
+      return true;
+    }
+    setToast(notice => notice?.inputPick === current.cmd ? null : notice);
+    const operation = current.cmd.fields?.(next).find(field => field.key === 'op');
+    const values = operation ? { ...current.values, op: current.values.op ?? 'new' } : {};
+    commandPreview.retire();
+    setSelection(next.selection);
+    setDirectSel(next.direct ?? []);
+    setActive({ ...current, ctx: next, values, preview: 'busy', error: undefined });
     return true;
   };
   const replaceRevolveAxis = editNode === null ? null : editSavedRevolveAxisCommand(commandDoc, editNode);
@@ -1914,7 +1938,7 @@ export function App() {
   const placedMeasureContextReady = () => placedMeasureContext && docNow.current === doc
     && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
     && !activeStore.get() && !halvesShownRef.current;
-  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, retargetSweep: retargetActiveSweep, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -2951,6 +2975,7 @@ export function App() {
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}
           onClick={e => {
+            if (retargetActiveSweep({ path: o.id })) return;
             if (o.hidden) { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(x => x.id === o.id ? { ...x, hidden: false } : x) }, [o.id]); return; }
             const keepProfile = !e.shiftKey && typeof sweepPath(doc, [o.id]) !== 'string';
             setSelection(previous => keepProfile && previous.sketches?.length === 1 && !previous.profileRegions?.indices.length
@@ -3255,6 +3280,7 @@ export function App() {
     const current = activeStore.get();
     if (!current || !filletApplyCurrent(owner, current)) return;
     if (owner !== current && (owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
+      || owner.cmd.id === SWEEP_CURVE || current.cmd.id === SWEEP_CURVE
       || isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
       || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();
