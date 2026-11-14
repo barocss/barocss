@@ -6,7 +6,7 @@ import { refusal } from '../../engine/refusal';
 import { profileOf } from '../loops';
 import { arcOf, type P2 } from '../profile';
 import { loopShape } from '../reopen';
-import { planRoundedRectangleInset } from './roundedRectangleInset';
+import { planRoundedRectangleInset, roundedInsetMinimumSpan } from './roundedRectangleInset';
 
 const recipeKind = 'rounded-rectangle-inset';
 const envelopeKeys = ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs', 'nextId'];
@@ -120,12 +120,17 @@ export function resizeRoundedInsetSource(source: SketchNode, width: number): Ske
   const x = (slot: number) => shape.points[(at + slot) % 8][0];
   const left = x(7), radius = x(0) - left, right = left + width;
   if (right === x(2)) return source;
+  const tangent = right - radius;
+  if (Math.min(right - left - 2 * radius, tangent - x(0), tangent - x(5)) <= roundedInsetMinimumSpan) {
+    return badRecipe('the source width leaves too little straight span between its corner arcs.',
+      { roundedInsetSourceRadius: radius });
+  }
   const mapped = segments.map((segment, i): LoopSegment => {
     const slot = (i - at + 8) % 8;
     if (slot < 1 || slot > 4) return segment;
-    const start: P2 = [slot === 1 || slot === 4 ? right - radius : right, segment.start[1] as number];
+    const start: P2 = [slot === 1 || slot === 4 ? tangent : right, segment.start[1] as number];
     return segment.kind === 'line' ? { ...segment, start }
-      : { ...segment, start, center: [right - radius, segment.center[1]] };
+      : { ...segment, start, center: [tangent, segment.center[1]] };
   });
   const outline = source.outline && { ...source.outline, points: mapped.map(segment => segment.start as P2) };
   return { ...source, segments: mapped, ...(outline ? { outline } : {}) };

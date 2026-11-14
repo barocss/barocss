@@ -83,6 +83,7 @@ import { bandHighlight } from './app/bandHighlight';
 import { activateDraftOutline, draftShapeOrder, sketchCutInputs, TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { detachRoundedInsetRecipe, resizeRoundedInsetSource, roundedInsetSourceWidth, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
+import { roundedInsetMinimumSpan } from '@barocss/cad-model/sketch/internal/roundedRectangleInset';
 import { awaitingMirrorPlane, activeKey, type Active } from './app/commandState';
 import { canUseHolePresets } from './app/holePresets';
 import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
@@ -1180,7 +1181,13 @@ export function App() {
       }
       stageFeatureCandidate({ next, input: prefixDoc(next, next.nodes.length), failureTitle, roundedInset: nodes ? 'edit' : 'detach' });
     } catch (error) {
-      setToast({ title: failureTitle, hint: error instanceof Error ? error.message : String(error), detail: '' });
+      const radius = isRefusal(error, 'BAD_REFERENCE') && error.details?.roundedInsetSourceRadius;
+      if (typeof radius === 'number') {
+        const display = (value: number) => Number(value.toPrecision(12));
+        setToast({ title: failureTitle,
+          hint: `With a ${display(radius)} mm corner radius, the straight span must exceed ${roundedInsetMinimumSpan} mm. Increase Source width above ${display(2 * radius + roundedInsetMinimumSpan)} mm.`,
+          detail: '' });
+      } else setToast({ title: failureTitle, hint: error instanceof Error ? error.message : String(error), detail: '' });
     }
   };
   /** One undoable change of the direct geometry (the model stays as evaluated). */

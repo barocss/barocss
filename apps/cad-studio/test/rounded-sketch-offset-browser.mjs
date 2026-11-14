@@ -12,6 +12,7 @@ const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const detachedChamfer = process.argv.includes('--chamfer');
 const widthInset = process.argv[3] === '--width-inset';
 const widthGuidance = process.argv.includes('--width-guidance');
+const sourceSpanGuidance = process.argv.includes('--source-span-guidance');
 const widthBaseline = process.argv.includes('--baseline');
 const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
@@ -1163,6 +1164,64 @@ async function verifySourceWidth(original) {
     f.report.observations.push({ label, width, volume: native.volume, expectedVolume: volume });
     await f.snapshot(label);
   };
+  if (sourceSpanGuidance) {
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    await f.openFeatureEditor(2);
+    const insetDistance = f.editor().getByRole('spinbutton', { name: 'Inset distance', exact: true });
+    const before = await f.snapshot('before-width-refusals');
+    const unchanged = async label => {
+      const after = await f.snapshot(label);
+      for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title'])
+        assert.deepEqual(after[key], before[key], key);
+    };
+    await editor().fill('5');
+    await button(f.editor(), 'Apply').click();
+    await f.page.locator('.toast-hint').getByText('A 2.5 mm inset closes the opening. Increase Source width or reduce Inset distance.', { exact: true }).waitFor();
+    await unchanged('opening-closed-at-width-5');
+    await f.dismissToasts();
+    await insetDistance.fill('1.5');
+    for (const width of ['4', '4.01']) {
+      f.phase = 'refuse source width ' + width + ' with R2 corners';
+      await editor().fill(width);
+      await button(f.editor(), 'Apply').click();
+      await f.page.locator('.toast-hint').getByText(widthBaseline
+        ? 'The accepted part and its references are unchanged.'
+        : 'With a 2 mm corner radius, the straight span must exceed 0.01 mm. Increase Source width above 4.01 mm.',
+      { exact: true }).waitFor();
+      assert.equal(await editor().inputValue(), width);
+      assert.equal(await insetDistance.inputValue(), '1.5');
+      await unchanged('source-span-refused-' + width);
+      if (widthBaseline) throw new Error('Width refusal omits the source corner radius and the straight span limit.');
+      await f.dismissToasts();
+    }
+    await editor().fill('4.1');
+    await button(f.editor(), 'Apply').click();
+    await f.changed(original);
+    const recovered = await f.doc(), [source, recipe] = recovered.nodes;
+    assert.equal(recipe.insetMM, 1.5);
+    assert.deepEqual(recipe, { ...original.nodes[1], insetMM: 1.5 });
+    assert.deepEqual(recovered.nodes[2], original.nodes[2]);
+    assert.deepEqual(source.sideTags, original.nodes[0].sideTags);
+    assert.equal(Math.max(...source.segments.map(segment => segment.start[0])), 4.1);
+    const native = await f.inspect('source-width-recovery', recovered);
+    const expectedVolume = 10 * (area(4.1, 10, 2) - area(1.1, 7, 0.5));
+    close(native.volume, expectedVolume);
+    close((await f.bodies()).bodies[0].volume, expectedVolume);
+    assert.equal(native.cylinders.length, 8);
+    const outer = native.cylinders.filter(face => source.sideTags.outer.some(tag => face.name === `n2.side[${tag}]`));
+    assert.equal(outer.length, 4);
+    for (const cylinder of native.cylinders) close(cylinder.r, outer.includes(cylinder) ? 2 : 0.5);
+    f.report.observations.push({ label: 'source-span-recovered', width: 4.1, inset: 1.5, volume: native.volume, expectedVolume });
+    await f.undo();
+    await f.same(original);
+    await f.redo();
+    await f.same(recovered);
+    const saved = await save(recovered);
+    await f.newPage();
+    await open(recovered, saved);
+    await f.snapshot('source-width-reopened');
+    return;
+  }
   const wider = structuredClone(original), [source] = wider.nodes;
   for (const [i, x] of [[2, 22], [3, 24], [4, 24], [5, 22]]) source.segments[i].start[0] = source.outline.points[i][0] = x;
   for (const i of [2, 4]) source.segments[i].center[0] = 22;

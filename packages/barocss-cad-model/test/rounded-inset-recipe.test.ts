@@ -3,6 +3,7 @@ import test from 'node:test';
 import { checkBrep, massPropertiesOf } from '@barocss/cad';
 import { emptyDoc, prefixDoc, type LoopSegment, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
+import { isRefusal } from '../src/engine/refusal';
 import { partSnapshot, toPartDocument } from '../src/engine/part';
 import { evaluatePreview } from '../src/engine/evaluate';
 import { editFields } from '../src/app/editFields';
@@ -183,6 +184,11 @@ test('a source width edit keeps the recipe and exact tangencies and refuses a cl
   ]);
   assert.deepEqual(resizeRoundedInsetSource(wider, 20), source);
   assert.throws(() => resizeRoundedInsetSource(source, 0), /positive finite width/);
+  for (const width of [4, 4.01]) assert.throws(() => resizeRoundedInsetSource(source, width),
+    error => isRefusal(error, 'BAD_REFERENCE') && error.details?.roundedInsetSourceRadius === 2);
+  const rounded = fixture(1.5);
+  const barelyWide = resizeRoundedInsetSource(source, 4.010000000000001);
+  assert.doesNotThrow(() => validateRoundedInsetDocument({ ...rounded, nodes: [barelyWide, ...rounded.nodes.slice(1)] }, true));
   const closed = { ...doc, nodes: [resizeRoundedInsetSource(source, 5), ...doc.nodes.slice(1)] };
   assert.throws(() => validateRoundedInsetDocument(closed, true), /closes the rectangle/);
 });

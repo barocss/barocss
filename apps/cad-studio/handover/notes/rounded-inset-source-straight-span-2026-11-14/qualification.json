@@ -1,0 +1,62 @@
+{
+  "decision": "D1229",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "a57241a40699f9b9602f1e8a81d354acffc4e7de",
+  "commands": [
+    "gate.sh acquire heavy 600 D1229-baseline",
+    "D917_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/baseline --width-inset --source-span-guidance --baseline",
+    "gate.sh acquire heavy 600 D1229-studio",
+    "D917_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/fixed --width-inset --source-span-guidance",
+    "gate.sh acquire heavy 600 D1229-feature",
+    "pnpm --filter @barocss/cad-model test rounded-inset rounded-rectangle-inset",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/sketch/internal/{roundedInsetRecipe,roundedRectangleInset}.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx (known parent failure)",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 884,
+      "receiptSHA256": "b3820a8036885d6532abe6925fd408cdde3b7f2cea233f71ba9f3c9c256b5090",
+      "sourceManifestSHA256": "9da14901127b84ab0009df3e753f2875aa08c74bbeedfc1fe9f1f2dd5db1c4fe",
+      "sourceAfterCleanupSHA256": "9da14901127b84ab0009df3e753f2875aa08c74bbeedfc1fe9f1f2dd5db1c4fe",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "source-span-recovered",
+          "width": 4.1,
+          "inset": 1.5,
+          "volume": 300.80972450961724,
+          "expectedVolume": 300.80972450961724
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "ea9e815b89c70808b9b459cf1dedf1bd8e53735b4e19c5a7b1d73d4ae6273164",
+      "sourceManifestSHA256": "1c314e6af88867025218825575415b002317b79a77119b6c3bef1e8b340269ce",
+      "sourceAfterCleanupSHA256": "1c314e6af88867025218825575415b002317b79a77119b6c3bef1e8b340269ce",
+      "savedSHA256": [
+        "aba173a7bddf096ed91307fd4427a3954bc1eee7d2c0722591dcbb79ec6444ff"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

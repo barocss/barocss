@@ -7,7 +7,7 @@ type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 type Plan = { shape: Polygon; retiredIds: string[] } | { error: string; openingClosed?: true };
 
 const minimumRadius = 0.01; // The current circular-arc offset floor.
-const minimumSpan = 0.01; // The current rectangle offset floor.
+export const roundedInsetMinimumSpan = 0.01;
 const angularTolerance = 1e-9;
 const tolerance = CadNumericPolicy.linearTolerance;
 const tangentDirections: P2[] = [[1, 0], [0, 1], [-1, 0], [0, -1]];
@@ -25,7 +25,7 @@ function rectangleOf(s: Polygon) {
   const [a, b, c, d, e, f, g, h] = s.points;
   const left = h[0], right = c[0], bottom = a[1], top = e[1];
   const radius = a[0] - left;
-  if (!(radius > minimumRadius && right - left - 2 * radius > minimumSpan && top - bottom - 2 * radius > minimumSpan)
+  if (!(radius > minimumRadius && right - left - 2 * radius > roundedInsetMinimumSpan && top - bottom - 2 * radius > roundedInsetMinimumSpan)
     || b[1] !== bottom || d[0] !== right || f[1] !== top || g[0] !== left) return null;
 
   const centers: P2[] = [[right - radius, bottom + radius], [right - radius, top - radius],
@@ -36,7 +36,7 @@ function rectangleOf(s: Polygon) {
     const [tx, ty] = tangentDirections[i], [ux, uy] = tangentDirections[(i + 1) % 4];
     const bulge = s.bulges[edge + 1];
     if (s.bulges[edge] !== 0 || !(bulge > 0)
-      || (start[0] - lineStart[0]) * tx + (start[1] - lineStart[1]) * ty <= minimumSpan) return null;
+      || (start[0] - lineStart[0]) * tx + (start[1] - lineStart[1]) * ty <= roundedInsetMinimumSpan) return null;
     const arc = arcOf(start, end, bulge);
     if (!at(arc.center, center) || !(Math.abs(arc.radius - radius) <= tolerance)
       || !(Math.abs(arc.sweep - Math.PI / 2) <= angularTolerance)) return null;
@@ -73,7 +73,7 @@ export function planRoundedRectangleInset(source: SketchShape, inset: number, de
 
   const { left, right, bottom, top, radius } = rectangle;
   const loX = left + inset, hiX = right - inset, loY = bottom + inset, hiY = top - inset;
-  if (!(hiX - loX > minimumSpan && hiY - loY > minimumSpan)) return { error: 'That inset closes the rectangle up.', openingClosed: true };
+  if (!(hiX - loX > roundedInsetMinimumSpan && hiY - loY > roundedInsetMinimumSpan)) return { error: 'That inset closes the rectangle up.', openingClosed: true };
 
   if (inset < radius) {
     if (inset >= radius - minimumRadius) return { error: 'That inset leaves an arc at or below the minimum offset radius.' };
