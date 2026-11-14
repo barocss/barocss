@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1207 — show the current Linked Inset binding in History](notes/linked-inset-history-binding-2026-11-14/README.md).
 - [D1206 — recover from an oversized Linked Inset distance](notes/linked-inset-distance-recovery-2026-11-14/README.md).
 - [D1205 — offer Linked Inset on eligible planar outlines](notes/linked-inset-face-eligibility-2026-11-14/README.md).
 - [D1204 — return focus after Linked Inset source review](notes/linked-inset-review-focus-2026-11-14/README.md).

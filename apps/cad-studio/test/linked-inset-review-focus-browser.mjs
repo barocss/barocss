@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const baseline = process.argv.includes('--baseline');
+const historySummary = process.argv.includes('--history-summary');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx'];
 const f = await createFlow({
@@ -36,6 +37,19 @@ async function waitFocus(locator) {
   assert.ok(element);
   await f.page.waitForFunction(el => el === document.activeElement, element, { timeout: 5000 });
 }
+async function checkHistorySummary(face) {
+  const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
+  if (baseline) {
+    await replace().waitFor();
+    assert.equal(await summary.count(), 0);
+    await f.snapshot('source-missing-from-editor');
+    throw new Error('History exposes replacement without showing the current Linked Inset binding.');
+  }
+  await summary.getByText(face, { exact: true }).waitFor();
+  await summary.getByText('Extrude 8 (n1)', { exact: true }).waitFor();
+  await summary.getByText('2 mm', { exact: true }).waitFor();
+  await summary.getByText('Replace the source with an earlier planar face. Shape edits in Edit sketch detach the link.', { exact: true }).waitFor();
+}
 await f.run(async () => {
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
@@ -45,6 +59,11 @@ await f.run(async () => {
   await button('Front', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   await f.openFeatureEditor(5);
+  if (historySummary) {
+    f.phase = 'read original Linked Inset binding';
+    await checkHistorySummary('n1.top');
+    await f.snapshot('linked-history-original');
+  }
   const pixel = await f.page.evaluate(() => window.__studioScreenOf([130, 0, 4]));
   assert.ok(pixel?.length === 2);
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel));
@@ -98,4 +117,14 @@ await f.run(async () => {
   await f.same(seed);
   await f.redo();
   await f.same(accepted);
+  if (historySummary) {
+    await f.openFeatureEditor(5);
+    await checkHistorySummary('n3.side0');
+    await f.snapshot('linked-history-replacement');
+    await f.undo();
+    await f.same(seed);
+    await f.openFeatureEditor(5);
+    await checkHistorySummary('n1.top');
+    await f.snapshot('linked-history-restored');
+  }
 });

@@ -1,7 +1,8 @@
 import { nodeFilletType } from '../app/filletFamily';
 import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { AlignNode, ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import { featureLabel, type AlignNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { featureId } from '@barocss/cad-model/engine/ids';
 import { detachFaceEndExtrude } from '@barocss/cad-model/engine/faceEndExtrude';
 import type { FaceEndDistanceReply } from '../engine/client';
 import { convertLinearPatternDistance, type LinearPatternDistanceMode } from '@barocss/cad-model/engine/linearSpanPattern';
@@ -114,6 +115,10 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const sourceWidth = typed.sourceWidth === undefined ? insetSourceWidth : Number(typed.sourceWidth);
   const changed = draft !== nodes || sourceWidth !== insetSourceWidth;
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
+  const insetSketch = original?.kind === 'extrude' ? nodes[original.sketch] : original;
+  const insetBinding = insetSketch?.kind === 'sketch' ? insetSketch.association : undefined;
+  const insetTarget = insetSketch?.kind === 'sketch' ? insetSketch.on?.node : undefined;
+  const insetTargetNode = insetTarget === undefined ? undefined : nodes[insetTarget];
   const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
   const missingNumbers = fields.flatMap(field => field.kind === 'number' && typed[field.key]?.trim() === '' ? [field] : []);
   const hasMissingNumber = missingNumbers.length > 0;
@@ -166,6 +171,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {node?.kind === 'extrude' && node.cutDepth === 'through' && <div className="field"><span>Depth</span><span>Through all</span></div>}
       {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={() => { retireEvaluation(); onEditSketch(); }}><Icon name="draw" small /> Edit sketch</button>}
+      {insetBinding && insetTarget !== undefined && insetTargetNode && <div role="group" aria-label="Linked inset">
+        <div className="field"><span>Inset source face</span><span className="break-all">{insetBinding.face}</span></div>
+        <div className="field"><span>Sketch target</span><span>{featureLabel(insetTargetNode, insetTarget, nodes)} ({featureId(nodes, insetTarget)})</span></div>
+        <div className="field"><span>Linked inset distance</span><span>{insetBinding.insetMM} mm</span></div>
+        {onRelinkInset && <p className="small muted">Replace the source with an earlier planar face. Shape edits in Edit sketch detach the link.</p>}
+      </div>}
       {onRelinkInset && <button className="ghost" type="button" disabled={pending || changed || hasInsetDraft || onRelinkInset.reviewing}
         onClick={event => { retireEvaluation(); onRelinkInset.start(event.currentTarget); }}>Replace inset source</button>}
       {onDetachInset && <button className="ghost" type="button" disabled={pending || changed || incompleteInset}

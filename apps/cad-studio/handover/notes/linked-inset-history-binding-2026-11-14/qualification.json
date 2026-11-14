@@ -1,0 +1,83 @@
+{
+  "decision": "D1207",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "97fed22d85023460c7781dcc78bd1ebddbe2e433",
+  "commands": [
+    "gate.sh acquire heavy 600 D1207-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --history-summary --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --history-summary",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "source-missing-from-editor",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 392,
+      "receiptSHA256": "737f22e0f5df256f3b90970dbb646c535a9755d5c56c9b5bff1889489513628e",
+      "sourceManifestSHA256": "d5f77f37b8fb1866a527203f1ff031e4423d74c51d71ca685410cac8c07fad4e",
+      "sourceAfterCleanupSHA256": "d5f77f37b8fb1866a527203f1ff031e4423d74c51d71ca685410cac8c07fad4e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "af776f2408b92255310dcd0f0826edd76d68319494904243d307903fcfe95013",
+      "sourceManifestSHA256": "94a2fc817c31ad015b9738eb83b928b0cd46c7b136aa21792bcc0c224c5f9bf2",
+      "sourceAfterCleanupSHA256": "94a2fc817c31ad015b9738eb83b928b0cd46c7b136aa21792bcc0c224c5f9bf2",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
