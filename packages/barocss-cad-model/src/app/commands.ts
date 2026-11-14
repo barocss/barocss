@@ -922,7 +922,16 @@ const allCommands: Command[] = [
       const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
       const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
       const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
-      return [{ key: 'spacing', at: at(c[k] + s), dir, ...(v.result === 'separate' ? {} : { min: 1 }) }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
+      if (!(max[k] > min[k] - 1)) return [];
+      const separate = v.result === 'separate';
+      const spacing: HandleSpec = { key: 'spacing', at: at(c[k] + s), dir, ...(separate ? {} : { min: 1 }) };
+      if (separate && s === 0) return [spacing];
+      const countDir: HandleSpec['dir'] = [...dir];
+      const countEnd = separate && s < 0 ? min[k] : max[k];
+      if (separate && s < 0) countDir[k] = -1;
+      const interval = separate ? Math.abs(s) : Math.max(1, s);
+      return [spacing, { key: 'count', at: at(countEnd + s * (n - 1)), dir: countDir,
+        scale: 1 / interval, ...LINEAR_PATTERN_COUNT, unit: '' }];
     },
     build: (ctx, v) => {
       const body = refOf(oneBody(ctx)!), k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count);

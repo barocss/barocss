@@ -32,6 +32,17 @@ test('Linear pattern: spacing at the second copy, count past the last, made and 
   assert.match(refused.error.detail, /count must be an integer from 1 to 64/i);
 });
 
+test('Separate Linear Pattern Count uses the signed trailing edge and the actual interval', () => {
+  const ctx = picked(rectanglePart(10, 10, 10)), linear = cmd('linear-pattern');
+  const values = { ...linear.defaults!(ctx), result: 'separate', count: 3 };
+  const [negativeSpacing, negative] = linear.handles!(ctx, { ...values, spacing: -16 });
+  assert.deepEqual([negativeSpacing.min, negative.at, negative.dir, negative.scale],
+    [undefined, [-32, 5, 5], [-1, 0, 0], 1 / 16]);
+  const [, fraction] = linear.handles!(ctx, { ...values, spacing: 0.25 });
+  assert.deepEqual([fraction.at, fraction.dir, fraction.scale], [[10.5, 5, 5], [1, 0, 0], 4]);
+  assert.deepEqual(linear.handles!(ctx, { ...values, spacing: 0 }).map(handle => handle.key), ['spacing']);
+});
+
 test('Circular pattern about a moved axis: copies spread over an angle; a puck and an arc', () => {
   const ctx = picked(rectanglePart(10, 10, 10)), cp = cmd('circular-pattern'), v = { ...cp.defaults!(ctx), count: 3, span: 180, px: 30, py: 5 };
   const hs = cp.handles!(ctx, v);

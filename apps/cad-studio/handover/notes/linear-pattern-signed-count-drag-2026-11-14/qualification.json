@@ -1,0 +1,165 @@
+{
+  "decision": "D1194",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "f22492ee30300bc2221ba2f5c2a02aa108c09bf6",
+  "commands": [
+    "gate.sh acquire heavy 600 D1194-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/test/feature-handles.test.ts",
+    "node --check apps/cad-studio/test/linear-signed-spacing-browser.mjs",
+    "D1194_SOURCE_FROZEN=1 node apps/cad-studio/test/linear-signed-spacing-browser.mjs <external-evidence>/<run> --count",
+    "D1193_SOURCE_FROZEN=1 node apps/cad-studio/test/linear-signed-spacing-browser.mjs <external-evidence>/signed-spacing-regression",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 14
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "minus-16-start",
+        "count-2-drag",
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "f53ce3cc50d2142bf9313ba91d13c4464bec4d7542a8801cb4342bdd38d40b2e",
+      "sourceManifestSHA256": "6b08cadcefb3ff6dc476b783ec755855c8925c08954cd113ca09147a61ab4eac",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Inward drag of 16 mm changed Count from 3 to 19"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "minus-16-start",
+        "count-2-drag",
+        "count-4-drag",
+        "signed-spacing-applied"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "cfaa4608787f792fd9f7d574a59e516dee3f7a7d70f548d0f09b569da44b3257",
+      "sourceManifestSHA256": "d1c68a4d85d3fa3101bb90b80d6a007902aa0292e502de7be541c33d28165dd8",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "head": [
+            303.1000061035156,
+            502.5
+          ],
+          "pixelsPerMM": 6.5318462904542685
+        },
+        {
+          "native": [
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                4.000000000000078,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                20.000000000000078,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                36.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                52.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "signed-spacing-regression": {
+      "status": "PASS",
+      "states": [
+        "minus-16-start",
+        "minus-24-drag",
+        "zero-spacing-refused",
+        "plus-8-recovered",
+        "minus-20-recovered",
+        "signed-spacing-applied"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "cf240465701ea631da0bbe7425a81c8fdf701eeb9894165dd9b2ce27afb84407",
+      "sourceManifestSHA256": "d1c68a4d85d3fa3101bb90b80d6a007902aa0292e502de7be541c33d28165dd8",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "head": [
+            524.7999877929688,
+            502.5
+          ],
+          "pixelsPerMM": 6.5318462904542685
+        },
+        {
+          "native": [
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                12.000000000000078,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                32.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                52.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

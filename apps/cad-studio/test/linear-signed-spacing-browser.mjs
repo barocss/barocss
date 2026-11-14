@@ -4,10 +4,12 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const pins = ['apps/cad-studio/src/viewport/useCommandGizmos.ts', 'apps/cad-studio/src/state/useCommandPreview.ts',
   'apps/cad-studio/src/viewport/viewportPointerInput.ts', 'packages/barocss-cad-model/src/app/commands.ts'];
+const countDrag = process.argv[3] === '--count';
 const f = await createFlow({
-  name: 'linear-signed-spacing', output: process.argv[2], envFrozen: 'D1193_SOURCE_FROZEN',
+  name: 'linear-signed-spacing', output: process.argv[2], envFrozen: countDrag ? 'D1194_SOURCE_FROZEN' : 'D1193_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Drag a signed Linear Pattern spacing through zero and check the separate bodies.',
+  qualification: countDrag ? 'One signed spacing interval on the Count arrow adds one separate body.'
+    : 'Drag a signed Linear Pattern spacing through zero and check the separate bodies.',
   limits: ['Desktop WebGPU, X direction with separate bodies, one dragged handle.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -83,51 +85,69 @@ await f.run(async () => {
     return (b[0] - a[0]);
   });
   assert.ok(px > 1 && px < 120);
-  const head = await handleTip('spacing');
+  const head = await handleTip(countDrag ? 'count' : 'spacing');
   assert.ok(head);
   assert.ok(await f.page.evaluate(point => Boolean(document.elementFromPoint(...point)?.closest('canvas.vp-canvas')), head), JSON.stringify({ head, px }));
-  f.report.observations.push({ spacingHead: head, pixelsPerMM: px });
+  f.report.observations.push({ head, pixelsPerMM: px });
   await f.page.mouse.move(...head);
   await f.page.mouse.down();
   const move = async delta => { await f.page.mouse.move(head[0] + delta * px, head[1]); };
-  try {
-    f.phase = 'Drag negative spacing further negative';
-    await move(-8);
-    await f.page.waitForFunction(() => Number(document.querySelector('.hud [aria-label="Spacing"]').value) !== -16);
+  if (countDrag) {
+    const count = hud.getByLabel('Count', { exact: true });
+    try {
+      f.phase = 'Move inward and outward by one signed copy interval';
+      for (const [delta, wanted] of [[16, 2], [-16, 4]]) {
+        await move(delta);
+        await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+        await f.snapshot(`count-${wanted}-drag`);
+        assert.equal(Number(await count.inputValue()), wanted, 'A signed interval must change Count by exactly one');
+        assert.equal(Number(await spacing.inputValue()), -16);
+        await f.same(seed);
+      }
+    } finally { await f.page.mouse.up(); }
     await hud.locator('.status.ok').waitFor();
-    await f.snapshot('minus-24-drag');
-    assert.equal(Number(await spacing.inputValue()), -24, 'A left drag from -16 must not flip spacing');
+    assert.equal(Number(await count.inputValue()), 4);
+  } else {
+    try {
+      f.phase = 'Drag negative spacing further negative';
+      await move(-8);
+      await f.page.waitForFunction(() => Number(document.querySelector('.hud [aria-label="Spacing"]').value) !== -16);
+      await hud.locator('.status.ok').waitFor();
+      await f.snapshot('minus-24-drag');
+      assert.equal(Number(await spacing.inputValue()), -24, 'A left drag from -16 must not flip spacing');
 
-    f.phase = 'Hit zero and recover across it without releasing';
-    await move(16);
-    await hud.locator('.status.error').waitFor();
-    assert.match(await hud.getByRole('status').innerText(), /nonzero/i);
-    assert.equal(await button('Apply', hud).isEnabled(), false);
-    await f.same(seed);
-    await f.snapshot('zero-spacing-refused');
+      f.phase = 'Hit zero and recover across it without releasing';
+      await move(16);
+      await hud.locator('.status.error').waitFor();
+      assert.match(await hud.getByRole('status').innerText(), /nonzero/i);
+      assert.equal(await button('Apply', hud).isEnabled(), false);
+      await f.same(seed);
+      await f.snapshot('zero-spacing-refused');
 
-    await move(24);
-    await hud.locator('.status.ok').waitFor();
-    assert.equal(Number(await spacing.inputValue()), 8);
-    await f.snapshot('plus-8-recovered');
-    await move(-4);
+      await move(24);
+      await hud.locator('.status.ok').waitFor();
+      assert.equal(Number(await spacing.inputValue()), 8);
+      await f.snapshot('plus-8-recovered');
+      await move(-4);
+      await hud.locator('.status.ok').waitFor();
+      assert.equal(Number(await spacing.inputValue()), -20);
+      await f.same(seed);
+      await f.snapshot('minus-20-recovered');
+    } finally { await f.page.mouse.up(); }
     await hud.locator('.status.ok').waitFor();
     assert.equal(Number(await spacing.inputValue()), -20);
-    await f.same(seed);
-    await f.snapshot('minus-20-recovered');
-  } finally { await f.page.mouse.up(); }
-  await hud.locator('.status.ok').waitFor();
-  assert.equal(Number(await spacing.inputValue()), -20);
+  }
   await button('Apply', hud).click();
   await f.changed(seed);
   const accepted = (await f.snapshot('signed-spacing-applied')).doc;
   const native = await f.inspect('signed-native', accepted);
-  assert.equal(native.length, 3);
+  const centers = countDrag ? [4, 20, 36, 52] : [12, 32, 52];
+  assert.equal(native.length, centers.length);
   const sorted = native.toSorted((a,b) => a.centroid[0] - b.centroid[0]);
   for (const [i, body] of sorted.entries()) {
     assert.ok(body.valid);
     near(body.volume, 192);
-    near(body.centroid[0], [12, 32, 52][i]);
+    near(body.centroid[0], centers[i]);
     near(body.centroid[1], 13);
     near(body.centroid[2], 4);
   }
