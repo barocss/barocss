@@ -9,6 +9,7 @@ const beforeExtrude = process.argv.includes('--before-extrude');
 const sourceDimension = process.argv.includes('--source-dimension');
 const editInsetDistance = process.argv.includes('--edit-inset-distance');
 const delayRefusal = process.argv.includes('--delay-refusal');
+const collapsedHistory = process.argv.includes('--collapsed-history');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -43,6 +44,19 @@ if (beforeExtrude) {
   seed.nodes.pop();
   delete seed.outputs.b5;
   seed.nextId = 5;
+}
+if (collapsedHistory) {
+  const earlier = Array.from({ length: 28 }, (_, i) => ({
+    kind: 'extrude', id: 'n' + (i + 6), sketch: 0, height: 1, suppressed: true,
+  }));
+  seed.nodes.splice(2, 0, ...earlier);
+  seed.nodes[31].sketch = 30;
+  seed.nodes[33].sketch = 32;
+  seed.outputs = { b1: seed.outputs.b1,
+    ...Object.fromEntries(earlier.map((_, i) => ['b' + (i + 6), { node: i + 2, side: 'solid' }])),
+    b3: { node: 31, side: 'solid' }, b5: { node: 33, side: 'solid' },
+  };
+  seed.nextId = 34;
 }
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
 const review = () => f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
@@ -205,6 +219,53 @@ await f.run(async () => {
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await button('Front', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  if (collapsedHistory) {
+    f.phase = 'return Apply focus to collapsed History';
+    const step = historyStep(33);
+    const more = f.page.getByRole('button', { name: /\d+ more history steps/ });
+    await button('Show history step names').click();
+    await more.waitFor();
+    assert.equal(await step.isVisible(), false);
+    await more.click();
+    await step.click();
+    await f.editor().waitFor();
+    await button('Fewer history steps').click();
+    await step.waitFor({ state: 'hidden' });
+    const pixel = await f.page.evaluate(() => window.__studioScreenOf([130, 0, 4]));
+    assert.ok(pixel?.length === 2);
+    assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel));
+    await f.page.mouse.click(...pixel);
+    await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
+    await replace().press('Enter');
+    await review().getByText('Extrude · 1024 mm³', { exact: true }).waitFor();
+    await waitFocus(button('Cancel', review()));
+    await f.page.keyboard.press('Tab');
+    await waitFocus(button('Apply source', review()));
+    await f.page.keyboard.press('Enter');
+    await review().waitFor({ state: 'hidden' });
+    await waitFocus(more);
+    assert.ok(await more.evaluate(element => {
+      const r = element.getBoundingClientRect();
+      return element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+    }));
+    assert.equal(await step.isVisible(), false);
+    const expected = structuredClone(seed);
+    Object.assign(expected.nodes[32].association, { source: { node: 31, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0' });
+    await f.same(expected);
+    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    assert.ok(Math.abs(volume - 1024) < 1e-7);
+    f.report.observations.push({ label: 'collapsed-history-focus', focused: await focused(), volume });
+    await f.snapshot('collapsed-history-return');
+    await f.page.keyboard.press('Enter');
+    await step.waitFor();
+    await step.click();
+    await checkHistorySummary('n3.side0');
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(expected);
+    return;
+  }
   if (beforeExtrude) {
     f.phase = 'open free Linked Inset in History';
     await button('Sketch · polygon', f.page.getByRole('group', { name: 'History', exact: true })).click();
