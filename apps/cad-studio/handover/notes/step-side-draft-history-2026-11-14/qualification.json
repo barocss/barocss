@@ -1,0 +1,129 @@
+{
+  "decision": "D1175",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "3a4c072abf71cb372865822fb77c9323d9c8f2be",
+  "commands": [
+    "gate.sh acquire heavy 600 D1175-<run>",
+    "D1175_SOURCE_FROZEN=1 node apps/cad-studio/test/step-side-draft-history-browser.mjs <external-evidence>/<run>",
+    "D1174_SOURCE_FROZEN=1 node apps/cad-studio/test/step-box-offset-history-browser.mjs <external-evidence>/offset-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs draft-command-pull api-draft-pull feature-handles errors",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/{app/commands,app/draftEdit,app/draftInputs,engine/errors}.ts",
+    "node --check apps/cad-studio/test/step-side-draft-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "draft-positive-preview",
+        "draft-positive",
+        "failure"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "990087c84669a6e0357ee0a40446ee657ff0dc23711b1294c4f4fcb193e3167d",
+      "sourceManifestSHA256": "42e86be2dc984fbe476f8a0efe4d88828638c75f95f70da1965935775a66c08a"
+    },
+    "first": {
+      "status": "FAIL",
+      "states": [
+        "draft-positive-preview",
+        "draft-positive",
+        "draft-parallel-refused",
+        "draft-negative-preview",
+        "draft-negative",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "76b89973d0216304573175dbe346bf2ef4d4470003ee9b3e14fba801c874a5bb",
+      "sourceManifestSHA256": "d76656e546cd81b433b9469ebcac9e8129e2b9fdc745e06ce2c7b2c5ba9754fb"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "draft-positive-preview",
+        "draft-positive",
+        "draft-parallel-refused",
+        "draft-negative-preview",
+        "draft-negative",
+        "draft-neutral-refused",
+        "draft-explicit",
+        "draft-reopened"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "c50cb9b3aede91066c9bf97a134f881f0404634bf961d568c810d06cb02bd9ec",
+      "sourceManifestSHA256": "806d36f600f5d710023d7f9e607d7ebe891754063c729568e26e6b3425091d64",
+      "observations": [
+        {
+          "label": "step-source",
+          "hash": "538374bf02748e54ae4298527a135ed91a8ece268cfbd25bafbc4e7b67147abf"
+        },
+        {
+          "label": "draft-positive",
+          "dir": 1,
+          "neutral": 4,
+          "angle": 5,
+          "cornersY": [
+            -3,
+            -1.25022672948152
+          ],
+          "volume": 912.5113364740758,
+          "expected": 912.511336474076
+        },
+        {
+          "label": "draft-negative",
+          "dir": -1,
+          "neutral": 24,
+          "angle": 5,
+          "cornersY": [
+            -1.25022672948152,
+            -3
+          ],
+          "volume": 912.5113364740758,
+          "expected": 912.511336474076
+        },
+        {
+          "label": "draft-explicit",
+          "dir": -1,
+          "neutral": 26,
+          "angle": 5,
+          "cornersY": [
+            -1.075249402429672,
+            -2.825022672948152
+          ],
+          "volume": 895.013603768891,
+          "expected": 895.0136037688912
+        },
+        {
+          "label": "draft-reopened",
+          "dir": -1,
+          "neutral": 26,
+          "angle": 5,
+          "cornersY": [
+            -1.075249402429672,
+            -2.825022672948152
+          ],
+          "volume": 895.013603768891,
+          "expected": 895.0136037688912
+        }
+      ]
+    },
+    "offset-regression": {
+      "status": "PASS",
+      "states": [
+        "imported-offset-inward",
+        "imported-offset-thickness-refused",
+        "imported-offset-outward-preview",
+        "imported-offset-outward",
+        "imported-offset-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "8f9bdf01d93986a938680b5a1fd4d6cef8884d90e7aa954c36c419e7b7211db3",
+      "sourceManifestSHA256": "747a429efcfbc9b9cd3fc11faa48c78917f6aec43c283d6dcb3ce34fffc3db6e"
+    }
+  }
+}

@@ -43,6 +43,7 @@ import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
 import { coded, refusal } from '../engine/refusal';
 import { mirrorReplacementPlane } from '../engine/mirrorReplacement';
+import { draftBodyEnd, draftInputs, draftNeutral, draftNeutralDefault, draftNeutralStep, draftPulls, readDraftPull, type DraftPull } from './draftInputs';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -349,10 +350,15 @@ function draftOf(ctx: Ctx, pull: 'x' | 'y' | 'z' | '-x' | '-y' | '-z' = 'z', leg
   return { body, faces: names, extrude: null };
 }
 
-/** The pull axes a Studio draft offers, +Z first (the default and the old command's only one). */
-const DRAFT_PULLS = ['z', '-z', 'x', '-x', 'y', '-y'] as const;
-type DraftPull = typeof DRAFT_PULLS[number];
-const draftPullOf = (v: Values): DraftPull => (DRAFT_PULLS as readonly string[]).includes(String(v.pull)) ? v.pull as DraftPull : 'z';
+const draftEnds = new WeakMap<StudioDoc, Map<string, number | undefined>>();
+function selectedDraftEnd(ctx: Ctx, pull: DraftPull): number | undefined {
+  const body = ctx.bodies[ctx.selection.faces[0]?.body];
+  if (!body) return undefined;
+  const key = body.key + '/' + pull, entries = draftEnds.get(ctx.doc) ?? new Map<string, number | undefined>();
+  if (!entries.has(key)) entries.set(key, draftBodyEnd(ctx.doc, body.key, pull));
+  draftEnds.set(ctx.doc, entries);
+  return entries.get(key);
+}
 
 /** The real draft builder shared by the legacy Z command and explicit public draft options. */
 export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
@@ -587,16 +593,20 @@ const allCommands: Command[] = [
   {
     id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along an axis (+Z unless you choose another): each turns about the body\'s end facing away from the pull (every side of an extrusion, pulled along +Z: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
     // (A face square to some pull axis can be drafted; +Z, the default, keeps the extrusion's own draft and the old node.)
-    available: ctx => { const d = draftOf(ctx); return typeof d !== 'string' || DRAFT_PULLS.some(p => typeof draftOf(ctx, p, false) !== 'string') ? ok : no(d); },
-    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 },
-      { key: 'pull', label: 'Pull', kind: 'choice', options: DRAFT_PULLS.map(p => ({ value: p, label: p.startsWith('-') ? `−${p.slice(1).toUpperCase()}` : `+${p.toUpperCase()}` })) }],
-    defaults: ctx => ({ deg: 5, pull: DRAFT_PULLS.find(p => typeof draftOf(ctx, p, false) !== 'string') ?? 'z' }),
+    available: ctx => { const d = draftOf(ctx); return typeof d !== 'string' || draftPulls.some(p => typeof draftOf(ctx, p, false) !== 'string') ? ok : no(d); },
+    fields: draftInputs,
+    defaults: ctx => ({ deg: 5, pull: draftPulls.find(p => typeof draftOf(ctx, p, false) !== 'string') ?? 'z', neutralMode: 'auto' }),
+    derive: (ctx, values, changed) => draftNeutralDefault(values, changed, pull => selectedDraftEnd(ctx, pull)),
     steps: (ctx, v) => {
-      const pull = draftPullOf(v), d = draftOf(ctx, pull, pull === 'z');
-      return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's ${pull.startsWith('-') ? 'top' : 'bottom'} along the pull`, done: true }];
+      const pull = readDraftPull(v.pull), d = draftOf(ctx, pull, pull === 'z' && v.neutralMode !== 'fixed');
+      if (typeof d === 'string') return [{ label: 'Faces', text: d, done: false }];
+      if (d.extrude !== null) return [{ label: 'Faces', text: "Every side of the extrusion", done: true }];
+      return [{ label: 'Faces', text: d.faces.join(', '), done: true }, draftNeutralStep(v, axis => selectedDraftEnd(ctx, axis))];
     },
-    // (+Z is built as before, without a pull on the node.)
-    build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
+    build: (ctx, v) => {
+      const pull = readDraftPull(v.pull), neutral = draftNeutral(v);
+      return buildDraft(ctx, { deg: v.deg, ...(pull !== 'z' ? { pull } : {}), ...(neutral !== undefined ? { neutral } : {}) });
+    },
   },
   {
     id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), two parallel round ones, cones, spheres and tori about one axis (a tapered boss, a countersink, a ball on a stem, a dome, a bead), or round faces at an angle (a pipe tee, a tilted pin or hole, by the rolling ball): a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',

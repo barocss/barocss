@@ -62,6 +62,7 @@ import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from '.
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { canEditSavedOffsetFace, editSavedOffsetFaceCommand, OFFSET_FACE_EDIT } from '@barocss/cad-model/app/offsetFaceEdit';
+import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftEdit';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
@@ -1466,7 +1467,7 @@ export function App() {
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
     const sweep = active.cmd.id === SWEEP_CURVE;
-    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === OFFSET_FACE_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -2541,7 +2542,7 @@ export function App() {
       if (e.key === 'Escape') { footprintRequest.current++; if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
-      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT && active.cmd.id !== REVOLVE_AXIS_EDIT && active.cmd.id !== OFFSET_FACE_EDIT) again.current = active.cmd; apply(); } return; }
+      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT && active.cmd.id !== REVOLVE_AXIS_EDIT && active.cmd.id !== OFFSET_FACE_EDIT && active.cmd.id !== DRAFT_EDIT) again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
@@ -3211,6 +3212,14 @@ export function App() {
             editSketch(s);
           };
         })()} onReplaceAxis={replaceRevolveAxis ? () => void startRevolveAxisReplacement() : undefined}
+          onEditDraft={editSavedDraftCommand(commandDoc, editNode) ? () => {
+            if (!ownsEvaluatedSource() || markerNow.current !== null || shownVariant.current || !fresh || busy || !canChangeDocument()) return;
+            const cmd = editSavedDraftCommand(commandDoc, editNode);
+            if (!cmd) return;
+            discardFeatureDraft();
+            setEditNode(null);
+            setActive({ cmd, ctx, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy' });
+          } : undefined}
           onEditOffset={canEditSavedOffsetFace(commandDoc, editNode) ? () => {
             if (!ownsEvaluatedSource() || markerNow.current !== null || shownVariant.current || !fresh || busy || !canChangeDocument()) return;
             const cmd = editSavedOffsetFaceCommand(commandDoc, editNode);
@@ -3306,6 +3315,7 @@ export function App() {
     if (owner !== current && (owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
       || owner.cmd.id === SWEEP_CURVE || current.cmd.id === SWEEP_CURVE
       || owner.cmd.id === OFFSET_FACE_EDIT || current.cmd.id === OFFSET_FACE_EDIT
+      || owner.cmd.id === DRAFT_EDIT || current.cmd.id === DRAFT_EDIT
       || isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
       || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();

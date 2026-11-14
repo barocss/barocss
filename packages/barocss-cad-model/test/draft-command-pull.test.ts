@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { commands, type Ctx } from '../src/app/commands';
+import { commands, patchValues, type Ctx } from '../src/app/commands';
+import { editSavedDraftCommand } from '../src/app/draftEdit';
 import { part, type BodyQuery } from '../src/api';
 
 // The Studio Draft command's Pull choice (K05 in Studio). +Z keeps the old command's documents byte for byte;
@@ -47,4 +48,30 @@ test('Studio draft: a pull the picked face is not square to is refused, naming t
   const doc = rectanglePart(40, 30, 10), top = ctxOn(doc, [[0, 0, 1]]);
   assert.throws(() => draft.build!(top, { deg: 5, pull: 'z' }), /square to Z/);
   const steps = draft.steps!(top, { deg: 5, pull: 'z' }); assert.equal(steps[0].done, false);
+});
+
+test('Studio Draft creates a fixed neutral coordinate and preserves its binding when editing the angle', () => {
+  const source = rectanglePart(40, 30, 10), ctx = ctxOn(source, [[0, -1, 0]]);
+  const automatic = { ...draft.defaults!(ctx), pull: '-x' };
+  const fixed = patchValues(draft, ctx, automatic, { neutralMode: 'fixed' });
+  assert.equal(fixed.neutral, 40);
+  const created = draft.build!(ctx, { ...fixed, neutral: 42 });
+  const index = created.nodes.length - 1, made = created.nodes[index];
+  assert.ok(made.kind === 'draft');
+  assert.equal(made.pull, '-x');
+  assert.equal(made.neutral, 42);
+  const bound = { ...created, parameters: { Neutral: 42 }, nodes: created.nodes.map((node, i) =>
+    i === index ? { ...made, neutral: { parameter: 'Neutral' } } : node) };
+  const command = editSavedDraftCommand(bound, index);
+  assert.ok(command?.build && command.defaults);
+  const editContext = { doc: bound, bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  const values = command.defaults(editContext);
+  assert.deepEqual(values, { deg: 5, pull: '-x', neutralMode: 'fixed', neutral: 42 });
+  assert.equal(command.build(editContext, values), bound);
+  const next = command.build(editContext, { ...values, deg: 6 });
+  assert.deepEqual(next.nodes[index], { ...made, angle: 6, neutral: { parameter: 'Neutral' } });
+  const restored = command.build(editContext, { ...values, neutralMode: 'auto' }).nodes[index];
+  assert.ok(restored.kind === 'draft');
+  assert.equal(restored.neutral, undefined);
+  assert.throws(() => command.build!({ ...editContext, doc: { ...bound } }, values), /Open the current Draft in History again/);
 });
