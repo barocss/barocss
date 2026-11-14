@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1250 — expose focused Sketch and Drawing tool help](notes/keyboard-tool-help-2026-11-14/README.md).
 - [D1249 — return focus after closing Hole](notes/hole-close-focus-2026-11-14/README.md).
 - [D1248 — pick geometry beneath an idle dimension handle](notes/shift-pick-idle-dimension-handle-2026-11-14/README.md).
 - [D1247 — identify held references and move focus to the next decision](notes/held-reference-feature-and-focus-2026-11-14/README.md).

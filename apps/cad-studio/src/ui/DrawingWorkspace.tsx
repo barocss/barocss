@@ -49,6 +49,7 @@ import { Button } from '@/components/ui/button';
 import { BreaksList } from './drawing/BreaksList';
 import { VIEW_IDS, annotatedDetailLetters, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, reservedDetailLetters, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
+import { ShortcutHelp } from './ShortcutHelp';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { Icon, Kbd } from './atoms';
@@ -74,7 +75,7 @@ type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note' | 'de
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
   { tool: 'linear', label: 'Linear dimension', icon: 'straighten', key: 'D', hint: 'Click two points (edge ends, circle centres) or one straight edge, then where the dimension goes' },
-  { tool: 'diameter', label: 'Diameter', icon: 'radio_button_unchecked', key: 'Ø', hint: 'Click a circle, then where its diameter goes' },
+  { tool: 'diameter', label: 'Diameter', icon: 'radio_button_unchecked', key: 'O', hint: 'Click a circle, then where its diameter goes' },
   { tool: 'radius', label: 'Radius', icon: 'line_end_circle', key: 'R', hint: 'Click a circle or an arc, then where its radius goes' },
   { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
   { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
@@ -146,6 +147,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const onChange = (next: DrawingSettings) => commitWhole(mergeSheet(wholeSettings, current, next));
   const [dxfSection, setDxfSection] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('select');
+  const [shortcutHelp, setShortcutHelp] = useState(false);
+  const shortcutOpener = useRef<HTMLElement | null>(null);
+  const shortcutButton = useRef<HTMLButtonElement>(null);
+  const openShortcutHelp = () => {
+    shortcutOpener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+      ? document.activeElement : shortcutButton.current;
+    setShortcutHelp(true);
+  };
   const [pending, setPending] = useState<Pending | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<SheetAnnotationSelection | null>(null);
@@ -831,7 +840,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
+      if (shortcutHelp || e.defaultPrevented || e.isComposing || e.target instanceof HTMLInputElement
+        || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
+      if (e.key === '?') { e.preventDefault(); openShortcutHelp(); return; }
       if (e.key === 'Escape') {
         setDrag(null);
         onClearReferencePreview();
@@ -852,8 +863,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         return;
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); removeAnnotation(selected); return; }
-      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note', e: 'detail', t: 'datum-target' } as Record<string, Tool>)[e.key.toLowerCase()];
-      if (t) { setTool(t); cancel(); }
+      const next = TOOLS.find(item => item.key.toLowerCase() === e.key.toLowerCase());
+      if (next) { setTool(next.tool); cancel(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1070,7 +1081,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (currentReattachment ? `Select a rim in the ${viewLabel(currentReattachment.original.view)} · Esc cancels` : null) ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : pending.kind === 'diameter' && pending.owner ? `${pending.owner} · Click where the dimension goes · Esc cancels` : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (currentReattachment ? `Select a rim in the ${viewLabel(currentReattachment.original.view)} · Esc cancels` : null) ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail-center' ? `Select the centre of Detail ${pending.moving.detail.id} on the ${viewLabel(pending.view)} · Esc cancels` : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : pending.kind === 'diameter' && pending.owner ? `${pending.owner} · Click where the dimension goes · Esc cancels` : 'Click where the dimension goes · Esc cancels') : tool === 'select' ? null : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected?.kind === 'dimension' ? settings.dimensions.find(d => d.id === selected.id) : undefined;
   const selNote = selected?.kind === 'note' ? settings.notes?.find(n => n.id === selected.id) : undefined;
   const changeFrame = (next: DrawingSettings) => {
@@ -1086,11 +1097,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   return (
     <div className="dw" aria-label="Drawing">
       <nav className="card dw-tools" aria-label="Drawing tools">
-        {TOOLS.map(t => <button key={t.tool} className={'tool' + (tool === t.tool ? ' on' : '')} aria-label={t.label} title={`${t.label} (${t.key === 'Ø' ? 'O' : t.key})`}
+        {TOOLS.map(t => <button key={t.tool} className={'tool' + (tool === t.tool ? ' on' : '')} aria-label={t.label} aria-pressed={tool === t.tool}
+          data-tip={t.label} data-tip-key={t.key} data-tip-desc={t.hint} data-tip-focus
           onClick={() => { setTool(t.tool); cancel(); }}><Icon name={t.icon} /></button>)}
+        <button ref={shortcutButton} className="tool" aria-label="Drawing keyboard shortcuts"
+          data-tip="Drawing keyboard shortcuts" data-tip-key="?" data-tip-focus onClick={openShortcutHelp}>?</button>
         <div className="sep" />
         <button className="tool" aria-label="Fit sheet" title="Fit the sheet" onClick={() => setBox(null)}><Icon name="fit_screen" /></button>
       </nav>
+      {shortcutHelp && <ShortcutHelp drawingTools={TOOLS} returnFocus={shortcutOpener.current} onClose={() => setShortcutHelp(false)} />}
 
       <div className="dw-canvas">
         <div className="dw-paper">
@@ -1110,6 +1125,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           {lostOccurrences.map(loss => <span key={loss.id}>{occurrenceLossText(loss)}</span>)}
         </div>}
         <SheetTabs whole={wholeSettings} current={current} onSelect={selectSheet} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); selectSheet(sheetTotal); }} />
+        {(currentReattachment?.candidate || currentRimChoice || bomError || hint || selected || selectedTarget || selectedFrame) &&
         <div className={'card dw-hint' + (bomError || message ? ' warn' : '')} role="status">
           {currentReattachment?.candidate
             ? <div className="dw-rim-choice" role="group" aria-label="Confirm diameter reattachment">
@@ -1124,8 +1140,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
             </div>
             : <span>{bomError ?? hint}</span>}
           {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
-          <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
-        </div>
+        </div>}
       </div>
 
       <aside className="card dw-panel" aria-label="Drawing settings">

@@ -1,0 +1,75 @@
+{
+  "decision": "D1250",
+  "tier": "SMALL",
+  "parent": "40de5b1f96b1ad3b0a8e2285926598c4cfea5fc7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1250-<run>",
+    "D1250_SOURCE_FROZEN=1 node apps/cad-studio/test/keyboard-tool-help-browser.mjs <external-evidence> [--baseline]",
+    "D978_SOURCE_FROZEN=1 node apps/cad-studio/test/top-toolbar-overflow-browser.mjs <external-evidence> --tooltip-escape-fixed",
+    "pnpm --filter @barocss/cad-studio-app test model-rail",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/{Tooltip,ShortcutHelp,ModelTools}.tsx",
+    "pnpm exec eslint apps/cad-studio/src/ui/DrawingWorkspace.tsx",
+    "node --check apps/cad-studio/test/keyboard-tool-help-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline2": {
+      "status": "FAIL",
+      "frozenFiles": 393,
+      "states": [
+        "sketch-focus-1440",
+        "drawing-without-help-1440",
+        "sketch-focus-1024",
+        "drawing-without-help-1024",
+        "failure"
+      ],
+      "receiptSHA256": "5877a130e26689761f7db075f3bfaffc7e40f099ce86869368d9aba1f444fd32",
+      "sourceManifestSHA256": "27ee84af46c5c3ebabba7f5695e261c369e7226ebe3462f3784d0b086ba54b2c",
+      "sourceAfterCleanupSHA256": "27ee84af46c5c3ebabba7f5695e261c369e7226ebe3462f3784d0b086ba54b2c"
+    },
+    "fixed2": {
+      "status": "PASS",
+      "frozenFiles": 393,
+      "states": [
+        "sketch-focus-1440",
+        "drawing-help-1440",
+        "sketch-focus-1024",
+        "drawing-help-1024"
+      ],
+      "receiptSHA256": "913b1922190b31d3205a8797f8ce19e1722e48a60d2e5d664a86b3856bd05a6a",
+      "sourceManifestSHA256": "da15ddf3b58209c51df742477c3ea84ae80639a407d8864bb096ed68d677f5ea",
+      "sourceAfterCleanupSHA256": "da15ddf3b58209c51df742477c3ea84ae80639a407d8864bb096ed68d677f5ea"
+    },
+    "hover": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": [
+        "chat-closed-undo-tooltip-and-menu",
+        "chat-closed-after-escape",
+        "chat-open-undo-tooltip-and-menu",
+        "chat-open-after-escape"
+      ],
+      "receiptSHA256": "b2858c407a67ff4f0b287feef14b1d98c108234f20a2cb1f7ae467c2fccc73bf",
+      "sourceManifestSHA256": "41a96f7800a8ff7c1a8e2303dde26dd884e4e5be3856b469927d7b1fa72b1714",
+      "sourceAfterCleanupSHA256": "41a96f7800a8ff7c1a8e2303dde26dd884e4e5be3856b469927d7b1fa72b1714"
+    }
+  },
+  "checks": {
+    "focusedStudio": {
+      "status": "PASS",
+      "tests": 2
+    },
+    "studioTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "drawingWholeFileLint": "FAIL_FIVE_EXISTING_UNUSED",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "assistiveTechnology": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

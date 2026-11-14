@@ -14,25 +14,43 @@ const GENERAL: [string, string][] = [['Space', 'Find a command'], ['Enter', 'App
 const MOUSE: [string, string][] = [['Click', 'Pick a face or an edge'], ['Shift-click', 'Add to the pick'], ['Drag', 'Window select (left to right: inside; right to left: touching)'],
   ['Right-drag / Alt-drag', 'Orbit'], ['Middle-drag / Shift-right-drag', 'Pan'], ['Wheel', 'Zoom'], ['Right-click', 'What can be done here'], ['Double-click a face', 'Pick the whole body'], ['Double-click an edge', 'Pick its tangent chain'], ['Double-click a name', 'Rename a body']];
 
-export function ShortcutHelp({ onClose }: { onClose(): void }) {
+export function ShortcutHelp({ onClose, drawingTools, returnFocus }: {
+  onClose(): void;
+  drawingTools?: readonly { label: string; key: string; hint: string }[];
+  returnFocus?: HTMLElement | null;
+}) {
   useEffect(() => {
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === '?') { e.preventDefault(); onClose(); } };
+    const key = (e: KeyboardEvent) => { if (!e.isComposing && (e.key === 'Escape' || e.key === '?')) {
+      e.preventDefault(); e.stopImmediatePropagation(); onClose();
+    } };
     window.addEventListener('keydown', key, true);
     return () => window.removeEventListener('keydown', key, true);
   }, [onClose]);
   return (
     // (G12f: shadcn's Dialog — its overlay, focus kept inside, a click outside closing it.)
     <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
-      <DialogContent className="card help" overlayClassName="help-scrim bg-black/35" aria-label="Keyboard and mouse" aria-describedby={undefined}>
-        <DialogTitle className="card-title">KEYBOARD AND MOUSE <ToolIconButton size="tiny" aria-label="Close" onClick={onClose}><Icon name="close" small /></ToolIconButton></DialogTitle>
-        <div className="help-cols">
+      <DialogContent className="card help" overlayClassName="help-scrim bg-black/35" aria-label={drawingTools ? 'Drawing keyboard shortcuts' : 'Keyboard and mouse'} aria-describedby={undefined}
+        onCloseAutoFocus={event => {
+          if (!returnFocus?.isConnected) return;
+          event.preventDefault();
+          returnFocus.focus();
+        }}>
+        <div className="card-title">
+          <DialogTitle>{drawingTools ? 'Drawing keyboard shortcuts' : 'Keyboard and mouse'}</DialogTitle>
+          <ToolIconButton size="tiny" aria-label="Close" onClick={onClose}><Icon name="close" small /></ToolIconButton>
+        </div>
+        {drawingTools ? <div className="help-cols"><section>
+          {drawingTools.map(tool => <div key={tool.key} className="help-row" style={{ height: 'auto', minHeight: 24, alignItems: 'start', marginBlock: 6 }}><span>{tool.label}<small className="muted block">{tool.hint}</small></span><Kbd>{tool.key}</Kbd></div>)}
+        </section><section><h4>Drawing</h4><div className="help-row"><span>Cancel a placement or return to Select</span><Kbd>Esc</Kbd></div>
+          <div className="help-row"><span>Remove the selected annotation</span><Kbd>Del</Kbd></div></section></div>
+        : <div className="help-cols">
           <section>{GROUPS.map(([g, name]) => {
             const list = commands.filter(c => c.group === g && c.shortcut);
             return list.length ? <div key={g}><h4>{name}</h4>{list.map(c => <div key={c.id} className="help-row"><Icon name={commandIconName(c.id, c.icon)} small /><span>{c.label}</span><Kbd>{c.shortcut}</Kbd></div>)}</div> : null;
           })}</section>
           <section><h4>General</h4>{GENERAL.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><Kbd>{k}</Kbd></div>)}
             <h4>Mouse</h4>{MOUSE.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><span className="muted">{k}</span></div>)}</section>
-        </div>
+        </div>}
       </DialogContent>
     </Dialog>
   );
