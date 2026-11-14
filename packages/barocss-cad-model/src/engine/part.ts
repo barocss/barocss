@@ -38,6 +38,7 @@ import { coded, isRefusal, refusal } from './refusal';
 import { mirrorReplacementProblem } from './mirrorReplacement';
 import { assertRouteBundleDocument } from './routeBundle';
 import { bodyMesh } from './mesh';
+import { insetOutlineProblem } from './insetOutline';
 import { faceProfile } from '../app/faceProfile';
 import { sketchShapes } from '../sketch/reopen';
 import { offsetShape } from '../sketch/offset';
@@ -499,13 +500,9 @@ function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadP
   if (brep.bodies[0].kind !== 'solid') throw associationError('the source is not a solid.');
   const named = brep.faces.filter(f => f.name === a.face);
   if (named.length !== 1) throw associationError('the named source face is missing or ambiguous.');
-  const loops = named[0].loops.map(id => brep.loops.find(l => l.id === id));
-  if (loops.length !== 1 || !loops[0] || loops[0].kind !== 'outer' || loops[0].coedges.length < 3) throw associationError('the source face must have one closed outer loop without holes.');
-  // Check native edge curves before display fitting: a short curved edge must not become a line by fitting.
-  for (const id of loops[0].coedges) {
-    const coedge = brep.coedges.find(c => c.id === id), edge = coedge && brep.edges.find(e => e.id === coedge.edge), curve = edge?.curve;
-    if (!curve || curve.degree !== 1 || curve.controlPoints.length !== 2 || !curve.controlPoints.every(p => p.every(Number.isFinite)) || curve.weights.length !== 2 || !curve.weights.every(w => Number.isFinite(w) && w > 0)) throw associationError('only native straight boundary edges are supported.');
-  }
+  const problem = insetOutlineProblem(named[0], new Map(brep.loops.map(loop => [loop.id, loop])),
+    new Map(brep.coedges.map(use => [use.id, use])), new Map(brep.edges.map(edge => [edge.id, edge])));
+  if (problem) throw associationError(problem);
   const mesh = bodyMesh(brep, 0), faces = mesh.faces.filter(f => f.name === a.face);
   if (faces.length !== 1 || faces[0].kind !== 'plane') throw associationError('the named source face must be one planar face.');
   const fp = faceProfile(mesh, faces[0].index);

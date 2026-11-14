@@ -205,6 +205,7 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
       {onBand && (sketch.tool === 'band' || sketch.band) && <BandSection sketch={sketch} {...onBand} />}
       {onUseOutline && <>
         <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
+        {sketch.anchor?.face?.linkSourceHint && <p>{sketch.anchor.face.linkSourceHint}</p>}
         <div className="sk-offset">
           <Button variant="ghost" aria-label="Use the face outline" data-tip="Use its outline" data-tip-desc="The face's edges (outline and holes) as shapes of this sketch" onClick={() => onUseOutline(false)}>Use its outline</Button>
           <Button variant="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</Button>

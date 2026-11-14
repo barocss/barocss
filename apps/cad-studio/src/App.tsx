@@ -1674,7 +1674,15 @@ export function App() {
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
       const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
-      const linkSource = face && base && base.side === 'solid' && !doc.instances?.length ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.name } : undefined;
+      const canLinkFace = face && base?.side === 'solid' && !doc.instances?.length;
+      const straightOutline = face?.nativeInsetOutline && fp?.profile === 'loop' && !fp.holes?.length
+        && fp.segments.length >= 3 && fp.segments.every(segment => segment.kind === 'line');
+      const linkSource = canLinkFace && base && straightOutline && face.nativePlaneName
+        ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.nativePlaneName } : undefined;
+      const linkSourceHint = canLinkFace && !linkSource && outline?.length
+        ? face.curvedBoundary ? 'This outline has curved edges. Use the face outline to copy it.'
+          : 'Linked inset needs one native straight outline without holes. Use the face outline to copy this outline.'
+        : undefined;
       const nativeFloor = cmd.id === 'sketch' && f && base && !doc.instances?.length && currentNativePlanePick(ctx, f, doc);
       let pocketFloor: PocketFloorBinding | undefined;
       if (nativeFloor && base && canBindPocketFloor(doc, base, plane, nativeFloor.face.name)) {
@@ -1684,7 +1692,7 @@ export function App() {
           // An unsupported native floor remains an ordinary fixed face sketch.
         }
       }
-      const anchor: SketchAnchor = vertexPlane ? { kind: 'vertices', offset: 0, vertexPlane } : face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}), ...(pocketFloor ? { pocketFloor } : {}) } } : { kind: 'xy', offset: 0 };
+      const anchor: SketchAnchor = vertexPlane ? { kind: 'vertices', offset: 0, vertexPlane } : face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}), ...(linkSourceHint ? { linkSourceHint } : {}), ...(pocketFloor ? { pocketFloor } : {}) } } : { kind: 'xy', offset: 0 };
       discardFeatureDraft();
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);

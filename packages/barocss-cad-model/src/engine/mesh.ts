@@ -9,6 +9,7 @@ import { sub, cross, dot, len, unit as norm } from './vec3';
 import { nativeStraightEdgeMatches } from './nativeStraightEdge';
 import { nativeCircleOf, sameNativeCircle, type NativeCircle } from './nativeCircle';
 import { nativeCylinderAreaReader } from './nativeCylinderArea';
+import { insetOutlineProblem } from './insetOutline';
 
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from './vec3';
@@ -25,6 +26,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   nativeAxisPlane?: { axis: Axis; at: number };
   /** A single exact rectangular native trim on an unmerged axis plane. */
   nativeAlignFace?: { axis: Axis; sign: 1 | -1 };
+  /** One native straight outer loop without holes, on one original planar face of a solid. */
+  nativeInsetOutline?: true;
   /** A non-linear B-rep boundary of this planar face, including hidden tangent joints. */
   curvedBoundary?: true;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
@@ -41,8 +44,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   chordDepth?: number }
 /** Native member coordinates belong only to the original unplaced body. */
 export function withoutNativeFaces(face: DisplayFace): DisplayFace {
-  const { nativeFaces, nativePlaneName, nativeAxisPlane, nativeAlignFace, ...display } = face;
-  return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane || nativeAlignFace ? display : face;
+  const { nativeFaces, nativePlaneName, nativeAxisPlane, nativeAlignFace, nativeInsetOutline, ...display } = face;
+  return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane || nativeAlignFace || nativeInsetOutline ? display : face;
 }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
@@ -145,9 +148,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
   const groups = new Map<string, string[]>();
   for (const f of brep.faces) { const r = find(f.id), l = groups.get(r); if (l) l.push(f.id); else groups.set(r, [f.id]); }
   const faceById = new Map(brep.faces.map(f => [f.id, f]));
-  const alignLoops = new Map(brep.loops.map(loop => [loop.id, loop]));
-  const alignUses = new Map(brep.coedges.map(use => [use.id, use]));
-  const alignEdges = new Map(brep.edges.map(edge => [edge.id, edge]));
+  const loopsById = new Map(brep.loops.map(loop => [loop.id, loop]));
+  const coedgesById = new Map(brep.coedges.map(use => [use.id, use]));
+  const edgesById = new Map(brep.edges.map(edge => [edge.id, edge]));
 
   // (O8: a body of two or more lumps — the kernel's D204, lumps touching along a line or at a point as lumps apart — each
   // display face on its lump; a face group never spans two, their edges are their own.)
@@ -178,6 +181,8 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
       // normal of the widest triangle of them, turned out of the face as the display normal is.)
       const nativeFace = faceById.get(root)!, sf = nativeFace.surface, df = b.faces[b.faces.length - 1];
       if (members.length === 1 && nativeFace.name && !nativeFace.name.includes('+')) df.nativePlaneName = nativeFace.name;
+      if (df.nativePlaneName && brep.bodies.length === 1 && brep.bodies[0].kind === 'solid'
+        && !insetOutlineProblem(nativeFace, loopsById, coedgesById, edgesById)) df.nativeInsetOutline = true;
       if (sf.kind === 'surface') {
         const pl = planeOfPoints(sf.controlPoints);
         if (pl) {
@@ -189,11 +194,11 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
             if (axis) {
               const k = 'xyz'.indexOf(axis);
               df.nativeAxisPlane = { axis, at: pl.o[k] };
-              const loop = nativeFace.loops.length === 1 ? alignLoops.get(nativeFace.loops[0]) : undefined;
+              const loop = nativeFace.loops.length === 1 ? loopsById.get(nativeFace.loops[0]) : undefined;
               if (brep.bodies.length === 1 && brep.bodies[0].kind === 'solid' && !nativeFace.name?.includes('#')
                 && sf.degreeU === 1 && sf.degreeV === 1 && sf.controlPoints.length === 2 && sf.controlPoints.every(row => row.length === 2)
                 && loop?.kind === 'outer' && loop.coedges.length === 4 && loop.coedges.every(id => {
-                  const use = alignUses.get(id), edge = use && alignEdges.get(use.edge), curve = edge?.curve;
+                  const use = coedgesById.get(id), edge = use && edgesById.get(use.edge), curve = edge?.curve;
                   return curve?.degree === 1 && curve.controlPoints.length === 2 && curve.weights.length === 2
                     && curve.weights[0] > 0 && curve.weights[0] === curve.weights[1]
                     && curve.controlPoints[0].filter((value, i) => value !== curve.controlPoints[1][i]).length === 1;

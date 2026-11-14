@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1205 — offer Linked Inset on eligible planar outlines](notes/linked-inset-face-eligibility-2026-11-14/README.md).
 - [D1204 — return focus after Linked Inset source review](notes/linked-inset-review-focus-2026-11-14/README.md).
 - [D1203 — replace the Align target from the preceding model](notes/align-history-target-replacement-2026-11-14/README.md).
 - [D1202 — keep Align faces, Gap and Line up in History](notes/align-history-gap-line-up-2026-11-14/README.md).
