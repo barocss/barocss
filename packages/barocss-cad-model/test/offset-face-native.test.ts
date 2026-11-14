@@ -12,7 +12,7 @@ import { cylinderPart, emptyDoc, offsetFaceGroup, rectanglePart, shapeLabel, wit
 import { evaluateDoc, partBreps } from '../src/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { isRefusal } from '../src/engine/refusal';
-import { part } from '../src/api/index';
+import { part, sketch } from '../src/api/index';
 
 function near(a: number, b: number, tolerance = 1e-7): void { assert.ok(Math.abs(a - b) <= tolerance, `${a} != ${b}`); }
 function bodyOf(doc: StudioDoc): Brep { const native = partBreps(doc); assert.equal(native.length, 1); return native[0].brep; }
@@ -143,7 +143,9 @@ test('Offset native face: distance and unsupported draft refusals are atomic, th
   assert.deepEqual(doc, before); assert.deepEqual(ctx.selection, selection);
   const exactCollapse = context(rectanglePart(20, 10, 5));
   assert.throws(() => offsetFaceCommand.build!(exactCollapse, { d: -5 }), e => isRefusal(e, 'FACE_DISTANCE'));
-  const draft = rectanglePart(20, 10, 5); draft.nodes[1] = { ...draft.nodes[1], draft: 5 } as typeof draft.nodes[number]; const drafted = context(draft), draftBefore = structuredClone(draft); freezeDoc(draft);
+  const draft = part('Tapered triangle').extrude(sketch().polygon([[0, 0], [20, 0], [0, 20]]), { h: 5, draft: 5 }).doc;
+  const drafted = context(draft), draftBefore = structuredClone(draft);
+  freezeDoc(draft);
   assert.throws(() => offsetFaceCommand.build!(drafted, { d: 2 }), e => isRefusal(e, 'VALUE')); assert.deepEqual(offsetFaceCommand.handles!(drafted, { d: 2 }), []); assert.deepEqual(draft, draftBefore);
   assertBoxNative(offsetFaceCommand.build!(ctx, { d: 2 }), boxOracle(bounds(bodyOf(doc)), 2, 1, 2), 2, bounds(bodyOf(doc)).max[2]);
 });
@@ -282,4 +284,69 @@ test('Offset History retains a later body reference and preserves private group 
   if (terminal.kind === 'union') delete terminal.made;
   assert.equal(editSavedOffsetFaceCommand(unmarked, 4), null);
   assert.equal(shapeLabel({ command: 'offset-face', nodes: 3 } as Parameters<typeof shapeLabel>[0]), 'Offset face');
+});
+
+
+test('Offset extends the existing walls of authored rectangular taper and edits one native recipe', async () => {
+  const origin = rectanglePart(20, 10, 12);
+  const source = { ...origin, nodes: origin.nodes.map(node => node.kind === 'extrude' ? { ...node, draft: 15 } : node) };
+  const ctx = context(source);
+  const original = structuredClone(source);
+  freezeDoc(source);
+  const index = source.nodes.length, slope = Math.tan(Math.PI / 12);
+  const volumeAt = (height: number) => 200 * height - 30 * slope * height ** 2 + 4 / 3 * slope ** 2 * height ** 3;
+  const applied = offsetFaceCommand.build!(ctx, { d: 2 });
+  const node = applied.nodes[index];
+  assert.ok(node.kind === 'offset-face');
+  assert.deepEqual(node.parent, { node: 1, side: 'solid' });
+  assert.deepEqual(node.faces, ['n1.top']);
+  assert.equal(node.distance, 2);
+  assert.ok(node.sigs?.['n1.top']);
+  assert.deepEqual(applied.nodes.slice(0, index), source.nodes);
+  assert.equal(applied.nodes.length, index + 1);
+  const extended = bodyOf(applied);
+  closed(extended);
+  near(brepMassProperties(extended, 1).volume, volumeAt(14));
+  assert.deepEqual(extended.faces.map(face => face.name), bodyOf(source).faces.map(face => face.name));
+  const saved = await readStudioFile(encodeStudioFile(applied));
+  assert.ok('doc' in saved, JSON.stringify(saved));
+  assert.deepEqual(saved.doc, applied);
+  const missing = { ...node };
+  delete missing.sigs;
+  for (const [invalid, expected] of [
+    [missing, /signature/i],
+    [{ ...node, parent: { node: 0, side: 'solid' } }, /source|parent/i],
+    [{ ...node, faces: ['n1.top+n1.bottom'] }, /face name/i],
+  ] as const) {
+    const candidate = { ...applied, nodes: [...applied.nodes.slice(0, index), invalid] } as StudioDoc;
+    const opened = await readStudioFile(encodeStudioFile(candidate));
+    assert.ok('error' in opened && expected.test(opened.error), JSON.stringify(opened));
+  }
+  const repeated = { ...applied, nodes: applied.nodes.map((feature, i) => i === index ? { ...node, rematched: {} } : feature) };
+  assert.ok(editSavedOffsetFaceCommand(repeated, index));
+  const edit = editSavedOffsetFaceCommand(saved.doc, index);
+  assert.ok(edit?.build);
+  const historyCtx = context(saved.doc);
+  assert.throws(() => edit.build!({ ...historyCtx, doc: { ...saved.doc } }, { d: -2 }), /open the current Offset face/i);
+  assert.throws(() => edit.build!(historyCtx, { d: 0 }), /nonzero signed distance/);
+  const collapse = edit.build(historyCtx, { d: 8 });
+  const refused = evaluateDoc(collapse, 1);
+  assert.ok(!refused.ok && /close a wall/.test(refused.error.detail));
+  const reduced = edit.build(historyCtx, { d: -2 });
+  assert.deepEqual(reduced.nodes[index], { ...node, distance: -2 });
+  assert.deepEqual(reduced.nodes.slice(0, index), source.nodes);
+  const shrunk = bodyOf(reduced);
+  closed(shrunk);
+  near(brepMassProperties(shrunk, 1).volume, volumeAt(10));
+  const duplicated = duplicateBody(reduced, { node: index, side: 'solid' }, [40, 0, 0]).doc;
+  const placed = addPart(rectanglePart(4, 4, 4), { name: 'Tapered part', doc: reduced, position: [40, 0, 0], rotation: [0, 0, 0] }).doc;
+  for (const candidate of [duplicated, flattenAssembly(placed)]) {
+    const output = partBreps(candidate);
+    assert.equal(output.length, 2);
+    assert.ok(output.some(({ brep }) => Math.abs(brepMassProperties(brep, 1).volume - volumeAt(10)) < 1e-7));
+    const moved = candidate.nodes.filter(feature => feature.kind === 'offset-face').at(-1);
+    assert.ok(moved?.sigs?.[moved.faces[0]]);
+    assert.notEqual(moved.faces[0], node.faces[0]);
+  }
+  assert.deepEqual(source, original);
 });

@@ -28,12 +28,18 @@ export const SAME_DIRECTION = Math.cos(Math.PI / 180);
 export const CLEARLY_NEARER = 2;
 
 const named = (n: ModelNode): { key: 'edges' | 'open' | 'faces'; edge: boolean } | null =>
-  n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? { key: 'edges', edge: true } : n.kind === 'shell' ? { key: 'open', edge: false } : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' || n.kind === 'cylindrical-wrap' ? { key: 'faces', edge: false } : null;
+  n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? { key: 'edges', edge: true } : n.kind === 'shell' ? { key: 'open', edge: false } : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' || n.kind === 'cylindrical-wrap' || n.kind === 'offset-face' ? { key: 'faces', edge: false } : null;
 
-/** Every face's and edge's signature on a body, by name (a merged face under each of its names). */
-export function signaturesOf(body: BodyResult, nativeFaces = false): { faces: Map<string, Signature>; edges: Map<string, Signature> } {
+/** Face and edge signatures by name. The planar mode keeps only unmerged native faces. */
+export function signaturesOf(body: BodyResult, nativeFaces: boolean | 'plane' = false): { faces: Map<string, Signature>; edges: Map<string, Signature> } {
   const faces = new Map<string, Signature>(), edges = new Map<string, Signature>();
   for (const f of body.mesh.faces) {
+    if (nativeFaces === 'plane') {
+      if (f.nativePlaneName && f.exact?.kind === 'plane') {
+        faces.set(f.nativePlaneName, { kind: 'plane', at: f.centroid, dir: f.exact.n, size: f.area });
+      }
+      continue;
+    }
     for (const member of nativeFaces ? f.nativeFaces ?? [] : []) faces.set(member.name, { kind: member.kind, at: member.centroid, dir: member.kind === 'plane' ? member.normal : null, size: member.area, ...(member.radius ? { radius: member.radius } : {}) });
     const names = f.name.split('+'), sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.area, ...(f.radius ? { radius: f.radius } : {}), ...(names.length > 1 ? { shared: names.length } : {}) };
     for (const name of names) faces.set(name, sig);
@@ -138,10 +144,20 @@ export async function rematchNames(prev: StudioDoc, next: StudioDoc, evaluate: (
     if (!a?.ok || !b?.ok) continue;
     const before = a.bodies.find(x => x.key === bodyKeyFor(prev.nodes, parentBefore.node, parentBefore.side)), after = b.bodies.find(x => x.key === bodyKeyFor(nodes, node.parent.node, node.parent.side));
     if (!before || !after) continue;
-    const sa = signaturesOf(before, node.kind === 'cylindrical-wrap'), sb = signaturesOf(after, node.kind === 'cylindrical-wrap'), old = what.edge ? sa.edges : sa.faces, now = what.edge ? sb.edges : sb.faces;
+    const nativeFaces = node.kind === 'offset-face' ? 'plane' : node.kind === 'cylindrical-wrap';
+    const sa = signaturesOf(before, nativeFaces), sb = signaturesOf(after, nativeFaces);
+    const old = what.edge ? sa.edges : sa.faces, now = what.edge ? sb.edges : sb.faces;
     const stableNames = sameNames(old, now, what.edge);
     const list = (node as Record<string, unknown>)[what.key] as string[], out: string[] = [], rematched: Record<string, string> = { ...(node as { rematched?: Record<string, string> }).rematched };
     for (const name of list) {
+      if (node.kind === 'offset-face') {
+        const sig = old.get(name);
+        if (!sig || matchSignature(sig, now, false) !== name) {
+          return { error: `[BAD_REFERENCE] Offset face: the original selected cap ${name} is no longer available. Select it again.` };
+        }
+        out.push(name);
+        continue;
+      }
       if (!what.edge && isSplitCapFace(prev.nodes, name)) {
         if (hasSplitShellCapAmbiguity(nodes, node, after, name)) return { error: `[BAD_REFERENCE] Feature ${k}: the Split cap "${name}" is ambiguous on its body after this edit.` };
         if (!now.has(name)) return { error: `[BAD_REFERENCE] Feature ${k}: the Split cap "${name}" is gone from its body after this edit.` };

@@ -253,6 +253,66 @@ export function cylindricalWrapNodeProblem(input: unknown, parameters: Readonly<
   }
   return null;
 }
+/** Signed offset of one exact cap on an existing solid. */
+export interface OffsetFaceNode { kind: 'offset-face'; parent: BodyRef; faces: [string]; distance: number }
+
+/** Check the authored recipe before capture or geometry evaluation. */
+export function offsetFaceNodeProblem(input: unknown, index: number): string | null {
+  if (!textRecord(input) || input.kind !== 'offset-face') return 'Offset face: an offset recipe is required.';
+  const allowed = new Set(['kind', 'parent', 'faces', 'distance', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Offset face: unknown field ${key}.`;
+  const parent = input.parent;
+  if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || parent.side !== 'solid' ||
+      typeof parent.node !== 'number' || !Number.isSafeInteger(parent.node) || parent.node < 0 || parent.node >= index) {
+    return 'Offset face: a preceding solid parent is required.';
+  }
+  const face = Array.isArray(input.faces) && input.faces.length === 1 ? input.faces[0] : undefined;
+  if (typeof face !== 'string' || !face.trim() || face.includes('+') || face.includes('\0')) return 'Offset face: one exact individual face name is required.';
+  if (typeof input.distance !== 'number' || !Number.isFinite(input.distance) || input.distance === 0 || Math.abs(input.distance) > CadPartLimits.length) {
+    return 'Offset face: distance must be a finite nonzero native length.';
+  }
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Offset face: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Offset face: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Offset face: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Offset face: held must be a string.';
+  if (input.rematched !== undefined && (!textRecord(input.rematched) || Object.keys(input.rematched).length)) return 'Offset face: the original face name is required.';
+  if (input.sigs !== undefined) {
+    const sigs = input.sigs;
+    if (!textRecord(sigs) || Object.keys(sigs).length !== 1 || !Object.hasOwn(sigs, face)) return 'Offset face: the signature must describe the selected face.';
+    const sig = sigs[face];
+    if (!textRecord(sig) || Object.keys(sig).some(key => !['k', 'p', 'd', 's', 'n'].includes(key)) ||
+        sig.k !== 'plane' || !textVector(sig.p, true) || !textVector(sig.d, false) ||
+        Math.abs(Math.hypot(...sig.d) - 1) > 1e-8 ||
+        typeof sig.s !== 'number' || !Number.isFinite(sig.s) || sig.s <= 0 || sig.n !== undefined && sig.n !== 1) {
+      return 'Offset face: an individual planar face signature is required.';
+    }
+  }
+  return null;
+}
+
+/** Check raw recipes in the root model and its placed or pending part definitions. */
+export function offsetFaceDocumentProblem(input: unknown): string | null {
+  const stack: unknown[] = [input], seen = new Set<object>();
+  while (stack.length) {
+    const value = stack.pop();
+    if (!textRecord(value) || seen.has(value)) continue;
+    seen.add(value);
+    if (Array.isArray(value.nodes)) for (const [index, node] of value.nodes.entries()) {
+      if (!textRecord(node) || node.kind !== 'offset-face') continue;
+      const problem = offsetFaceNodeProblem(node, index);
+      if (problem) return problem;
+      if (node.sigs === undefined) return 'Offset face: the selected cap needs its stored individual signature.';
+      const parent = value.nodes[(node.parent as BodyRef).node];
+      if (!textRecord(parent) || parent.kind !== 'draft' && parent.kind !== 'offset-face' &&
+          (parent.kind !== 'extrude' || typeof parent.draft !== 'number' || !Number.isFinite(parent.draft) || parent.draft === 0)) {
+        return 'Offset face: the parent must be Draft, a drafted extrusion, or an offset of a drafted cap.';
+      }
+    }
+    if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
+    if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
+  }
+  return null;
+}
 /** Validate text recipes in saved part trees without loading fonts or evaluating geometry. */
 export function textDocumentProblem(input: unknown): string | null {
   const stack: unknown[] = [input], seen = new Set<object>();
@@ -439,7 +499,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
-type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
+type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode | OffsetFaceNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | RegionExtrudeNode
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made; cutDepth?: 'through' }
@@ -1247,6 +1307,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   switch (node.kind) {
     case 'text': return `Text · ${node.text}`;
     case 'cylindrical-wrap': return 'Cylindrical wrap';
+    case 'offset-face': return `Offset face ${node.distance > 0 ? '+' : ''}${fmt(node.distance)} mm`;
     case 'band-surface': return 'Band surface';
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'driven-sketch': return 'Sketch · driven outline';

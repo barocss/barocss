@@ -4,7 +4,7 @@ import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
-import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
+import { offsetFaceDocumentProblem, placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { nextSerial, renameFeatureIds, withIds } from './ids';
 import { cutsOf } from './assemblyCut';
 import { refusal } from './refusal';
@@ -20,6 +20,8 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(
  * `n<d + serial>` in the folded document (occurrences.ts reads names back through this, so it cannot drift).
  */
 export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
+  const offsetProblem = offsetFaceDocumentProblem(doc);
+  if (offsetProblem) throw refusal('BAD_VALUE', offsetProblem);
   assertPocketFloorBindings(doc);
   assertRevolveAxisBindings(doc);
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
@@ -91,7 +93,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };
     case 'sheet-flange': case 'sheet-corner-relief': return { ...node, parent: ref(node.parent), edges: [name(node.edges[0])] };
     case 'draft': case 'full-round': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
-    case 'cylindrical-wrap': case 'text-relief': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0])] };
+    case 'offset-face': case 'cylindrical-wrap': case 'text-relief': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0])] };
     case 'face-fillet': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0]), name(node.faces[1])] };
     case 'face-thread': return { ...node, parent: ref(node.parent), face: name(node.face) };
     case 'shell': return { ...node, parent: ref(node.parent), open: node.open.map(name) };

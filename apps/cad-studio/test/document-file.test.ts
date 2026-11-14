@@ -178,3 +178,27 @@ test('project admission prepares a held signed finish and retires a superseded r
     sigs: { [edge]: { k: 'line', p: [10, 0, 3], d: [0, 0, 1], s: 6 } } });
   assert.equal(await prepareSignedFinishOpen(valid, evaluate, () => true), undefined);
 });
+
+test('native Open checks active tapered offsets before adopting root or nested parts', async () => {
+  const base = rectanglePart(20, 10, 12);
+  const stock: StudioDoc = { ...base, nodes: base.nodes.map(node => node.kind === 'extrude' ? { ...node, draft: 15 } : node) };
+  const cap = 'n1.top', node = {
+    kind: 'offset-face' as const, parent: { node: 1, side: 'solid' as const }, faces: [cap] as [string], distance: 8,
+    sigs: { [cap]: { k: 'plane', p: [10, 5, 12] as [number, number, number], d: [0, 0, 1] as [number, number, number], s: 48 } },
+  };
+  const refused = withNode(stock, node);
+  const before = structuredClone(refused);
+  const insets = async () => assert.fail('this model has no inset');
+  const rootCheck = verifyStoredNativeOpen(refused, evaluate, insets, () => true);
+  assert.ok(rootCheck);
+  await assert.rejects(rootCheck, /Offset face:.*close a wall.*unchanged/);
+  const accepted = withNode(stock, { ...node, distance: 2 });
+  await verifyStoredNativeOpen(accepted, evaluate, insets, () => true);
+  const pending: StudioDoc = { ...emptyDoc(), pendingParts: { taper: { doc: refused, rev: 'test', name: 'Taper' } } };
+  const nestedCheck = verifyStoredNativeOpen(pending, evaluate, insets, () => true);
+  assert.ok(nestedCheck);
+  await assert.rejects(nestedCheck, /Offset face:.*close a wall.*unchanged/);
+  let current = true;
+  await verifyStoredNativeOpen(refused, async candidate => { current = false; return evaluate(candidate); }, insets, () => current);
+  assert.deepEqual(refused, before);
+});

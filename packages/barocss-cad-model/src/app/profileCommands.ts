@@ -1,6 +1,7 @@
 import { CadNumericPolicy } from '@barocss/cad';
 import { revolveAxisReference } from '../engine/revolveAxis';
 import { featureId } from '../engine/ids';
+import { captureSignatures } from '../engine/references';
 // The commands that make a solid from finished sketches, each on its own as CAD tools have them: Extrude
 // (a picked profile pulled along its normal), Revolve (turned about a sketch axis), Pipe (carried along
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
@@ -12,7 +13,7 @@ import { boundParameters, framedLoftSections, loftSections, pickedSketches, plan
 import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
 import { nativeExtrudeFace } from './nativeExtrudeFace';
-import { resolveNativeOffsetFace, validateNativeOffsetDistance, validateNativeOffsetResult } from './nativeOffsetFace';
+import { resolveDraftedOffsetFace, resolveNativeOffsetFace, validateNativeOffsetDistance, validateNativeOffsetResult } from './nativeOffsetFace';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
@@ -229,24 +230,36 @@ export function buildNativeOffsetFace(ctx: Ctx, distance: number, ids?: readonly
   return candidate;
 }
 
-/** Move an admitted native right-prism cap along its signed normal. */
+/** The direct recipe uses a signed modeling distance and never emits an unchanged feature. */
+export function checkDraftedOffsetDistance(distance: number): void {
+  if (!Number.isFinite(distance) || distance === 0 || Math.abs(distance) > CadNumericPolicy.coordinateAbs)
+    throw refusal('VALUE', 'Offset face needs a nonzero signed distance within ±10000 mm.');
+}
+
+/** Move an admitted native cap along its signed normal. */
 export const offsetFaceCommand: Command = {
   id: 'offset-face', label: 'Offset face', icon: 'cad-extrude', group: 'modify', keywords: 'move face push pull offset direct edit press',
-  hint: 'Move a cap of a straight right prism or cylinder: out adds material, in removes it. Drag the arrow or type the distance.',
+  hint: 'Move a prism or cylinder cap, or the upper cap of a rectangular taper. Drag the arrow or enter a signed distance.',
   available: ctx => {
     const selection = ctx.selection;
-    if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return no('Pick one flat cap of a straight right prism or cylinder.');
+    if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return no('Pick one flat cap of a prism, cylinder or rectangular taper.');
     const picked = selection.faces[0], body = ctx.bodies[picked.body], face = body?.mesh.faces[picked.face];
-    if (!Number.isInteger(picked.body) || !Number.isInteger(picked.face) || !body || !face || face.kind !== 'plane' || face.facet || !face.name) return no('Pick one flat cap of a straight right prism or cylinder.');
+    if (!Number.isInteger(picked.body) || !Number.isInteger(picked.face) || !body || !face || face.kind !== 'plane' || face.facet || !face.name) return no('Pick one flat cap of a prism, cylinder or rectangular taper.');
     let matches = 0;
     for (const candidate of ctx.bodies) if (candidate.key === body.key) matches++;
-    return matches === 1 ? ok : no('Pick one flat cap of a straight right prism or cylinder.');
+    return matches === 1 ? ok : no('Pick one flat cap of a prism, cylinder or rectangular taper.');
   },
   fields: () => [{ key: 'd', label: 'Offset', kind: 'mm' }],
   defaults: () => ({ d: 2 }),
   steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
   build: (ctx, v) => {
-    const d = Number(v.d), candidate = buildNativeOffsetFace(ctx, d);
+    const d = Number(v.d), taper = resolveDraftedOffsetFace(ctx);
+    if (taper) {
+      checkDraftedOffsetDistance(d);
+      const candidate = withNode(ctx.doc, { kind: 'offset-face', parent: taper.parent, faces: [taper.face], distance: d });
+      return captureSignatures(candidate, ctx.bodies);
+    }
+    const candidate = buildNativeOffsetFace(ctx, d);
     const selected = ctx.selection.faces[0], face = ctx.bodies[selected.body].mesh.faces[selected.face].name;
     const terminal = candidate.nodes.at(-1);
     if (terminal?.kind !== 'union' && terminal?.kind !== 'difference') throw refusal('FACE_DISTANCE', 'The accepted Offset has no terminal operation.');
@@ -255,6 +268,8 @@ export const offsetFaceCommand: Command = {
   },
   handles: ctx => {
     try {
+      const taper = resolveDraftedOffsetFace(ctx);
+      if (taper) return [{ key: 'd', at: taper.anchor, dir: [0, 0, 1], step: 0.5 }];
       const profile = resolveNativeOffsetFace(ctx), plane = planeOf(profile.sketch), c = toWorld(plane, profileMiddle(profile.sketch, ctx.doc.parameters));
       return [{ key: 'd', at: [...c] as [number, number, number], dir: [...plane.normal] as [number, number, number], step: 0.5 }];
     } catch { return []; }

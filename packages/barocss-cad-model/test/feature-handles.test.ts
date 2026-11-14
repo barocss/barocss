@@ -168,7 +168,7 @@ test('Split across any plane: a mitre x + y = at through the middle, its arrow a
   assert.throws(() => split.build!(ctx, { ...v, nx: 0, ny: 0 }), /must not be zero/);
 });
 
-test('Draft: one side face turned about its bottom; every side of an extrusion is its own draft; faces that meet are refused', async () => {
+test('Draft: one side face turned about its bottom; two adjacent box sides meet; all four sides edit the extrusion', async () => {
   const { featureLabel } = await import('../src/engine/doc');
   const draft = cmd('draft'), doc = rectanglePart(20, 20, 10), bodies = bodiesOf(doc), mesh = bodies[0].mesh;
   const faceOf = (name: string) => ({ body: 0, face: mesh.faces.find(f => f.name === name)!.index });
@@ -184,7 +184,9 @@ test('Draft: one side face turned about its bottom; every side of an extrusion i
   const all = draft.build!(ctx(['n1.side0', 'n1.side1', 'n1.side2', 'n1.side3']), { deg: 10 });
   assert.equal(all.nodes.length, doc.nodes.length); assert.equal((all.nodes[1] as { draft?: number }).draft, 10);
   assert.ok(Math.abs(bodiesOf(all)[0].volume! - (4000 - 40 * t * 100 + 4 / 3 * t * t * 1000)) < 1e-3);
-  const r = evaluateDoc(draft.build!(ctx(['n1.side0', 'n1.side1']), { deg: 10 }), 1);
+  const adjacent = draft.build!(ctx(['n1.side0', 'n1.side1']), { deg: 10 });
+  assert.ok(Math.abs(bodiesOf(adjacent)[0].volume! - (4000 - 20 * t * 100 + t * t * 1000 / 3)) < 1e-7);
+  const r = evaluateDoc(draft.build!(ctx(['n1.side0', 'n1.side1', 'n1.side2']), { deg: 10 }), 1);
   assert.ok(!r.ok && /meet along an edge/.test(r.error.detail + r.error.hint), r.ok ? '' : r.error.detail);
 });
 

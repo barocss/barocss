@@ -97,10 +97,17 @@ export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: Studio
   const regionParts = [opened];
   const checked = new Set<StudioDoc>();
   const activeRegionParts: StudioDoc[] = [];
+  const activeOffsets: StudioDoc[] = [];
   while (regionParts.length) {
     const part = regionParts.pop()!;
     if (checked.has(part)) continue;
     checked.add(part);
+    for (let index = part.nodes.length - 1; index >= 0; index--) {
+      const node = part.nodes[index];
+      if (node.kind !== 'offset-face' || node.suppressed) continue;
+      activeOffsets.push(prefixDoc({ ...part, instances: undefined }, index + 1));
+      break;
+    }
     const regionNodes = part.nodes.filter(node => node.kind === 'region-extrude').filter(node => !node.suppressed);
     if (regionNodes.length && part === opened) activeRegionParts.push(part);
     else for (const node of regionNodes) {
@@ -120,10 +127,19 @@ export function verifyStoredNativeOpen(opened: StudioDoc, readPart: (doc: Studio
       if (!result.ok) throw new Error(`Extrude region: ${result.error.detail} Your part is unchanged.`);
     }
   };
+  const checkOffsets = async () => {
+    for (const part of activeOffsets) {
+      if (!current()) return;
+      const result = await readPart(part);
+      if (!current()) return;
+      if (!result.ok) throw new Error(`Offset face: ${result.error.detail || result.error.title} Your part is unchanged.`);
+    }
+  };
   const checkSources = () => {
     const cavities = verifyStoredStepCavities(opened, readPart, current);
     const earlier = cavities ? cavities.then(checkPart) : checkPart();
-    return activeRegionParts.length ? Promise.resolve(earlier).then(checkRegions) : earlier;
+    const regions = activeRegionParts.length ? Promise.resolve(earlier).then(checkRegions) : earlier;
+    return activeOffsets.length ? Promise.resolve(regions).then(checkOffsets) : regions;
   };
   const hasInsets = opened.nodes.some(node => node.kind === 'rounded-rectangle-inset' ||
     (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined));

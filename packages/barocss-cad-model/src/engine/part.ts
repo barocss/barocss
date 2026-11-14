@@ -26,7 +26,7 @@ import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
-import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
+import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, offsetFaceDocumentProblem, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyKeyFor, bodyNodeOf, featureId, isAssemblyCut, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
@@ -150,6 +150,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const name = node.faces[0], signature = node.sigs?.[name];
       if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Cylindrical wrap: the selected face needs its stored individual signature.');
       return { ...at, kind: 'cylindrical-wrap', target: ref(node.parent), faces: [name], rectangle: structuredClone(node.rectangle), height: structuredClone(node.height), ...expectOf(node, node.faces) };
+    }
+    case 'offset-face': {
+      const face = node.faces[0];
+      if (!Object.hasOwn(node.sigs ?? {}, face)) throw refusal('BAD_REFERENCE', 'Offset face: the selected cap needs its stored individual signature.');
+      return { ...at, kind: 'offset-face', target: ref(node.parent), face, distance: node.distance, ...expectOf(node, node.faces) };
     }
     // (B2: both sides' targets are read, not consumed; the stored signatures of both sides' names go as the kernel's `expect`.)
     case 'band-surface': return { ...at, kind: 'band-surface', a: { target: ref(node.a.parent), edges: [...node.a.edges] }, b: { target: ref(node.b.parent), edges: [...node.b.edges] }, ...(node.flip ? { flip: true } : {}), ...expectOf(node, [...node.a.edges, ...node.b.edges]) };
@@ -580,6 +585,8 @@ export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
 }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  const offsetProblem = offsetFaceDocumentProblem(doc);
+  if (offsetProblem) throw refusal('BAD_VALUE', offsetProblem);
   validateRoundedInsetDocument(doc, false);
   assertPocketFloorBindings(doc);
   assertRevolveAxisBindings(doc);

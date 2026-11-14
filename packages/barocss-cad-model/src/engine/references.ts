@@ -49,8 +49,8 @@ type Tables = (part: string) => FaceTable | undefined;
 /** One stored reference: what it names, and where its geometry is. */
 export interface Ref {
   where: string; edge: boolean; name: string; sig?: Sig; rematched: boolean;
+  nativeFace?: true | 'plane';
   /** Datum targets keep their exact edge name and require an explicitly selected endpoint. */
-  nativeFace?: true;
   datumTarget?: true; targetEndpoint?: 'min' | 'max';
   /** `node`: that feature's parent body; `part`: that part's face table (a mate); neither: the part's bodies. */
   node: number | null; parent?: { node: number; side: string }; part?: string;
@@ -68,7 +68,7 @@ type Pointed = { sig?: Sig; was?: string };
 
 /** The list of names a feature references (its key), or null. */
 function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
-  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' ? 'faces' : null;
+  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'offset-face' ? 'faces' : null;
   return key && 'parent' in node ? key : null;
 }
 /** A band surface's two edge lists, each on its own parent body (B2); other nodes have one list under `refKey`. */
@@ -111,8 +111,9 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
     const key = refKey(node), groups = bandGroups(node) ?? (key && 'parent' in node ? [{ parent: node.parent, list: (node as unknown as Record<string, string[]>)[key] }] : null);
     if (!groups) return;
     const n = node as unknown as Record<string, unknown> & Named;
+    const nativeFace = node.kind === 'offset-face' ? 'plane' : node.kind === 'cylindrical-wrap' ? true : undefined;
     for (const { parent, list } of groups) list.forEach((name, i) => refs.push({
-      where: `feature ${k}`, ...(node.kind === 'cylindrical-wrap' ? { nativeFace: true as const } : {}), edge: key === 'edges' || node.kind === 'band-surface', node: k, parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
+      where: `feature ${k}`, nativeFace, edge: key === 'edges' || node.kind === 'band-surface', node: k, parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
       rename(to, mark) {
         const from = list[i], sig = n.sigs?.[from]; list[i] = to;
         if (sig) { n.sigs = { ...n.sigs }; delete n.sigs[from]; n.sigs[to] = sig; }
@@ -168,7 +169,7 @@ function pointed(where: string, edge: boolean, at: Pointed, get: () => string, s
 function unsigned(doc: StudioDoc): boolean {
   for (const n of doc.nodes) {
     if (n.kind === 'band-surface') { if ([...n.a.edges, ...n.b.edges].some(name => !n.sigs?.[name])) return true; continue; }
-    const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' || n.kind === 'cylindrical-wrap' ? n.faces : null;
+    const key = refKey(n), list = key && (n as unknown as Record<string, string[]>)[key];
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
   for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !frameFace(side.face) && !side.sig) return true;
@@ -290,13 +291,13 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     }
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
-    const splitCap = ref.node !== null && !ref.edge && isSplitCapFace(out.nodes, ref.name);
+    const splitCap = ref.nativeFace !== 'plane' && ref.node !== null && !ref.edge && isSplitCapFace(out.nodes, ref.name);
     const parent = splitCap && ref.parent ? parents.get(parentKey(ref.node!, ref.parent)) : undefined;
     const ambiguous = parent !== undefined && hasSplitShellCapAmbiguity(out.nodes, out.nodes[ref.node!], parent, ref.name);
     let m = splitCap ? (cands.has(ref.name) && !ambiguous ? ref.name : []) : matchSignature(fromSig(ref.sig), cands, ref.edge);
-    // The bounded wrap requires its exact original wall; another match cannot replace it.
-    if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
     const node = ref.node === null ? undefined : out.nodes[ref.node];
+    // The bounded wrap and offset use their original named faces.
+    if ((node?.kind === 'cylindrical-wrap' || node?.kind === 'offset-face') && m !== ref.name) m = [];
     const finish = ref.edge && (node?.kind === 'fillet' || node?.kind === 'chamfer') ? node : undefined;
     const splitFinish = finish && (finish.parent.side === 'negative' || finish.parent.side === 'positive') &&
       ref.name.split('|').some(face => face.startsWith(featureId(out.nodes, finish.parent.node) + '.cut.') && isSplitCapFace(out.nodes, face));

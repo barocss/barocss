@@ -12,7 +12,7 @@ import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { offsetFaceGroup, rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, bandSurfaceNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { offsetFaceGroup, offsetFaceNodeProblem, rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, bandSurfaceNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -46,6 +46,7 @@ const SPECS: Record<string, Spec> = {
   difference: { parent: 'ref', tool: 'ref' },
   rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
   'rectangular-relief': { parent: 'ref', min: 'dim2', max: 'dim2', depth: 'dim', mode: 'enum:emboss|engrave' },
+  'offset-face': { parent: 'ref', faces: 'names1', distance: 'num' },
   'cylindrical-wrap': { parent: 'ref', faces: 'names1', rectangle: 'any', height: 'dim' },
   // (B2: thickness and side are listed only so their refusal names exact thicken, #2258.)
   'band-surface': { 'version?': 'any', a: 'any', b: 'any', 'flip?': 'bool', 'thickness?': 'any', 'side?': 'any' },
@@ -200,6 +201,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if (kind === 'sew') return sewNodeProblem(node);
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
   if (kind === 'text') return textNodeProblem(node, parameters);
+  if (kind === 'offset-face') return offsetFaceNodeProblem(node, nodes.length);
   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
   if (kind === 'band-surface') return bandSurfaceNodeProblem(node, nodes, parameters);
   if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
@@ -482,6 +484,10 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
+  if (node.kind === 'offset-face') return {
+    ...node, faces: [r(node.faces[0])],
+    ...(node.sigs && { sigs: Object.fromEntries(Object.entries(node.sigs).map(([name, sig]) => [r(name), sig])) }),
+  };
   if (node.kind === 'draft' || node.kind === 'full-round') return { ...node, faces: node.faces.map(r) };
   if (node.kind === 'face-fillet') return { ...node, faces: [r(node.faces[0]), r(node.faces[1])] };
   if (node.kind === 'band-surface') return { ...node, a: { ...node.a, edges: node.a.edges.map(r) }, b: { ...node.b, edges: node.b.edges.map(r) } };
@@ -489,7 +495,7 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'band-surface' ? [...n.a.edges, ...n.b.edges] : n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'band-surface' ? [...n.a.edges, ...n.b.edges] : n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'offset-face' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

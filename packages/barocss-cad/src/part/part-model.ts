@@ -64,6 +64,7 @@ import { frameOperation, planEndpointBeads, endpointContext, isEndpointBead } fr
 import type { EndpointBead } from './part-frame.js';
 import { checkExpected, expectOf } from './part-expect.js';
 import { KernelError } from '../core/barocss-error.js';
+import { offsetDraftedCap } from '../features/drafted-cap-offset.js';
 import { boundaryBindingRefusal } from './part-boundary-refusal-internal.js';
 import { refusalCodeOf, type CadRefusalCode } from '../core/error-codes.js';
 
@@ -606,6 +607,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => ({ kind: 'solid', parts: [cylindricalWrapFeature(owned, face, bounds, height, at, fail)] });
     }
     case 'full-round': case 'face-thread': case 'draft': return faceFinishOperation(f, t, FACE_FINISH_HELPERS);
+    case 'offset-face': {
+      const target = solids(f.target, 'target'), face = f.face, distance = f.distance;
+      if (target.length !== 1) return fail('REFERENCE', 'Offset face takes one closed solid.');
+      if (typeof face !== 'string' || !face.trim() || face.includes('+'))
+        return fail('INPUT', 'Offset face needs one exact native cap name.');
+      if (typeof distance !== 'number' || !Number.isFinite(distance) || distance === 0 || Math.abs(distance) > CadPartLimits.length)
+        return fail('PARAMETER', 'Offset face needs a nonzero signed distance within the modeling range.');
+      return () => one({ kind: 'brep', brep: offsetDraftedCap(brepOf(target[0], at), face, distance) });
+    }
 
     case 'face-fillet': return faceFilletOperation(f, t);
     case 'hole': {

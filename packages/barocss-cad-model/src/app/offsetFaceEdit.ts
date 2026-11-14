@@ -4,7 +4,7 @@ import { bodyKeyFor, featureId } from '../engine/ids';
 import { refusal } from '../engine/refusal';
 import { canonical } from '../util/revision';
 import type { Command, Ctx } from './commands';
-import { buildNativeOffsetFace, offsetFaceCommand } from './profileCommands';
+import { buildNativeOffsetFace, checkDraftedOffsetDistance, offsetFaceCommand } from './profileCommands';
 
 export const OFFSET_FACE_EDIT = 'offset-face-edit';
 
@@ -20,8 +20,14 @@ function offsetHistory(doc: StudioDoc, index: number) {
   return group;
 }
 
+function directOffsetAt(doc: StudioDoc, index: number) {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'offset-face' || node.suppressed || node.held || Object.keys(node.rematched ?? {}).length) return;
+  return node;
+}
+
 export function canEditSavedOffsetFace(doc: StudioDoc, index: number): boolean {
-  return !!offsetHistory(doc, index);
+  return !!(directOffsetAt(doc, index) ?? offsetHistory(doc, index));
 }
 
 const rejected = (hint: string): never => { throw refusal('BAD_REFERENCE', `Offset face: ${hint}`); };
@@ -38,8 +44,25 @@ function capContext(doc: StudioDoc, parent: BodyRef, face: string): Ctx {
   return { doc, bodies, selection: { faces: [{ body, face: faces[0].index }], edges: [], bodies: [] } };
 }
 
-/** Rebuild the proven offset composition at the original History slot. */
+/** Edit the direct native operation or rebuild the legacy cap recipe at its original History slot. */
 export function editSavedOffsetFaceCommand(doc: StudioDoc, index: number): Command | null {
+  const direct = directOffsetAt(doc, index);
+  if (direct) return {
+    id: OFFSET_FACE_EDIT, label: 'Edit Offset face', icon: 'cad-extrude', group: 'modify',
+    available: ctx => ctx.doc === doc ? { ok: true } : { ok: false, reason: 'Open the current Offset face in History again.' },
+    fields: offsetFaceCommand.fields,
+    defaults: () => ({ d: direct.distance }),
+    steps: (ctx, values) => [{ label: 'Face', text: direct.faces[0], done: true }, ...(offsetFaceCommand.steps?.(ctx, values) ?? [])],
+    build: (ctx, values) => {
+      if (ctx.doc !== doc || ctx.doc.nodes[index] !== direct) return rejected('open the current Offset face in History again.');
+      const distance = Number(values.d);
+      checkDraftedOffsetDistance(distance);
+      if (distance === direct.distance) return doc;
+      const nodes = [...doc.nodes];
+      nodes[index] = { ...direct, distance };
+      return { ...doc, nodes };
+    },
+  };
   const saved = offsetHistory(doc, index);
   if (!saved) return null;
   const { start, target } = saved, key = featureId(doc.nodes, index);

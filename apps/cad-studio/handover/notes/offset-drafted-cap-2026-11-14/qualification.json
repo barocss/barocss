@@ -1,0 +1,223 @@
+{
+  "decision": "D1254",
+  "tier": "FULL",
+  "parent": "b1946a72c628700b10e351b9df13085d91cd5519",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1254-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node ../../node_modules/eslint/bin/eslint.js src/features/drafted-cap-offset.ts",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/drafted-cap-offset.test.mjs test/drafted-extrusion.test.mjs test/draft-neutral-plane.test.mjs",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 --test-name-pattern=draft test/part-model.test.mjs",
+    "D1254_SOURCE_FROZEN=1 node apps/cad-studio/test/offset-drafted-cap-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-model test offset-face-native feature-handles",
+    "pnpm --filter @barocss/cad-studio-app test document-file",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/files/documentFile.ts apps/cad-studio/src/ui/featureIcon.ts packages/barocss-cad-model/src/app/{nativeOffsetFace,offsetFaceEdit,profileCommands}.ts",
+    "node --check apps/cad-studio/test/offset-drafted-cap-browser.mjs",
+    "node --check apps/cad-studio/test/offset-face-native-browser.mjs",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "kernel": {
+      "status": "PASS",
+      "tests": 42
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 42
+    },
+    "studioDocumentFile": {
+      "status": "PASS",
+      "tests": 16
+    },
+    "kernelTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "selectedLint": "PASS",
+    "codeShape": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "newNavigationLinks": "PASS",
+    "fullSuites": "NOT_RUN",
+    "generalFuzz": "NOT_RUN",
+    "stepExchange": "NOT_RUN",
+    "actualProjectOpen": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  },
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "8d1bfa7c5fbcb55636c8afe746db21e23ce460d4af1bea2045edf377c7533c86",
+    "evidenceSHA256": "7a8b304dd7863c89c33caec56e160299979c894e1b9a1bf89e03ae67359460b3",
+    "exitByVariant": {
+      "current": 0,
+      "straight-side-extension": 1
+    }
+  },
+  "studio": {
+    "studio1": {
+      "status": "FAIL",
+      "frozenFiles": 889,
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "failure"
+      ],
+      "receiptSHA256": "313605ab07a28e7a4dc00be7297b41498df18c6ba73707ec91bbc820f125d68b",
+      "sourceManifestSHA256": "77cec475e0a4804a9e80271a9090c27eba8b26f4e3cb6e4104387480f5531773",
+      "sourceAfterCleanupSHA256": "77cec475e0a4804a9e80271a9090c27eba8b26f4e3cb6e4104387480f5531773",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "studio2": {
+      "status": "PASS",
+      "frozenFiles": 889,
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "legacy-offset-applied"
+      ],
+      "receiptSHA256": "dcb6375e9914303265c48aba147438a818e91c4eda0afff55cec04aef85d5fc9",
+      "sourceManifestSHA256": "77cec475e0a4804a9e80271a9090c27eba8b26f4e3cb6e4104387480f5531773",
+      "sourceAfterCleanupSHA256": "77cec475e0a4804a9e80271a9090c27eba8b26f4e3cb6e4104387480f5531773",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "studio-final": {
+      "status": "PASS",
+      "frozenFiles": 889,
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "invalid-file-retains-part",
+        "legacy-offset-applied"
+      ],
+      "receiptSHA256": "c216caf5fa1db8d41ff10cacb4c3beee93ac646e73740a44de06fedbb332e716",
+      "sourceManifestSHA256": "f6f94f7f01add4b412f101f9c62558cc96ac42d7ae81e85c5bcafc490146b3ee",
+      "sourceAfterCleanupSHA256": "f6f94f7f01add4b412f101f9c62558cc96ac42d7ae81e85c5bcafc490146b3ee",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "studio-final2": {
+      "status": "PASS",
+      "frozenFiles": 889,
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "invalid-file-retains-part",
+        "legacy-offset-applied"
+      ],
+      "receiptSHA256": "9b005fe6330967852430797fda7b60a08bb79cb0ce144f268c93d3b7a184b73f",
+      "sourceManifestSHA256": "25910fd1143302c5e5449e888f46e8ad9ced58111a8ea46c4d3eb250818cb858",
+      "sourceAfterCleanupSHA256": "25910fd1143302c5e5449e888f46e8ad9ced58111a8ea46c4d3eb250818cb858",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "source-shape",
+          "height": 12,
+          "expected": 1407.8792461427768,
+          "native": 1407.879246142777,
+          "studio": 1407.879246142777,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 0
+        },
+        {
+          "label": "outward-shape",
+          "height": 14,
+          "expected": 1487.1391966703354,
+          "native": 1487.1391966703357,
+          "studio": 1487.1391966703357,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 1.7763568394002505e-15
+        },
+        {
+          "label": "inward-shape",
+          "height": 10,
+          "expected": 1291.8814490059528,
+          "native": 1291.881449005953,
+          "studio": 1291.881449005953,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 3.552713678800501e-15
+        },
+        {
+          "label": "reopened-shape",
+          "height": 10,
+          "expected": 1291.8814490059528,
+          "native": 1291.881449005953,
+          "studio": 1291.881449005953,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 3.552713678800501e-15
+        }
+      ],
+      "savedNativeFileSHA256": "b7d4b109385f49474d92d370f0d81d46b446f630c094921357a7408c297baa43"
+    }
+  }
+}

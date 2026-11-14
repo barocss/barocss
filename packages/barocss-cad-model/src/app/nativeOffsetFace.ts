@@ -1,5 +1,6 @@
 // Offset face owns a native cap snapshot. Display data identifies the pick only; it never authors a profile.
 import { CadNumericPolicy, CadPartLimits, brepFromPrismatic, checkBrep, prismaticFromProfile, prismaticMassProperties, transformBrep, type Brep, type BrepFace, type Curve, type Surface } from '@barocss/cad';
+import { draftedCapOffsetAnchor } from '@barocss/cad/internal/drafted-cap-offset';
 import { fillFeaturePatternSpec } from '@barocss/cad/api';
 import { finiteBinary64Integer } from '../engine/binary64';
 import { leafBodies, type SketchNode, type StudioDoc } from '../engine/doc';
@@ -304,8 +305,8 @@ function owned(profile: NativeOffsetFaceProfile, bound: bigint, target: TargetWi
   const copy = structuredClone(profile); freezeOwned(copy); proofs.set(copy, { bound, snapshot: canonical(copy), target, source }); return copy;
 }
 const cache = new WeakMap<StudioDoc, Cached>();
-/** Current native semantic identity is resolved before qualification; every returned snapshot is owned. */
-export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
+/** Require one exact display pick bound to the current body reference. */
+function offsetPick(ctx: Ctx) {
   const selection = ctx.selection;
   if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return missing('pick exactly one current cap face.');
   const picked = selection.faces[0];
@@ -316,6 +317,41 @@ export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
   if (sameKeys !== 1) return missing('the selected body identity is ambiguous.');
   const ref = refOf(body);
   if (!Number.isSafeInteger(ref.node) || ref.node < 0 || ref.node >= ctx.doc.nodes.length || bodyKeyFor(ctx.doc.nodes, ref.node, ref.side) !== body.key) return missing('the selected body reference is not current.');
+  return { body, display, ref };
+}
+
+function currentOffsetBody(ctx: Ctx, body: BodyResult) {
+  const evaluated = evaluateDoc(ctx.doc, 0, body.mesh.quality ?? 8);
+  if (!evaluated.ok) return missing('the current document cannot resolve the selected native body.');
+  const current = evaluated.bodies.find(candidate => candidate.key === body.key);
+  if (!current || !consistent(body, current)) return missing('the picked display no longer agrees with the current document.');
+  return current;
+}
+
+function nativeOffsetBody(ctx: Ctx, body: BodyResult, display: ReturnType<typeof offsetPick>['display']) {
+  const matches = partBreps(ctx.doc).filter(candidate => candidate.key === body.key);
+  if (matches.length !== 1) return missing('the selected native body is missing or ambiguous.');
+  const { brep } = matches[0];
+  const faces = brep.faces.filter(face => face.id === display.id && face.name === display.name);
+  if (faces.length !== 1) return missing('the selected native face is missing, merged, or ambiguous.');
+  return { brep, selected: faces[0] };
+}
+
+/** Check the same native profile the direct offset evaluates. The old snapshot recipe remains separate. */
+export function resolveDraftedOffsetFace(ctx: Ctx): { parent: ReturnType<typeof refOf>; face: string; anchor: XYZ } | undefined {
+  const { body, display, ref } = offsetPick(ctx);
+  if (display.nativeAxisPlane?.axis !== 'z' || display.exact?.kind !== 'plane' || display.exact.n[2] !== 1) return undefined;
+  const node = ctx.doc.nodes[ref.node];
+  if (ref.side !== 'solid' || (node.kind !== 'draft' && node.kind !== 'offset-face' && (node.kind !== 'extrude' || !node.draft))) return undefined;
+  currentOffsetBody(ctx, body);
+  const { brep } = nativeOffsetBody(ctx, body, display);
+  const anchor = draftedCapOffsetAnchor(brep, display.name);
+  return anchor ? { parent: ref, face: display.name, anchor } : undefined;
+}
+
+/** Current native semantic identity is resolved before qualification; every returned snapshot is owned. */
+export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
+  const { body, display, ref } = offsetPick(ctx);
   const content = canonical(modelContent(ctx.doc));
   let saved = cache.get(ctx.doc);
   if (!saved || saved.content !== content) { saved = { content, profiles: new Map() }; cache.set(ctx.doc, saved); }
@@ -324,17 +360,9 @@ export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
     if (!consistent(body, have.body)) return missing('the picked display no longer agrees with the current document.');
     return owned(have.profile, have.bound, have.target, content);
   }
-  const evaluated = evaluateDoc(ctx.doc, 0, body.mesh.quality ?? 8);
-  if (!evaluated.ok) return missing('the current document cannot resolve the selected native body.');
-  let current: BodyResult | undefined; for (const candidate of evaluated.bodies) if (candidate.key === body.key) { current = candidate; break; }
-  if (!current || !consistent(body, current)) return missing('the picked display no longer agrees with the current document.');
-  const bodies = partBreps(ctx.doc), matches: ReturnType<typeof partBreps> = [];
-  for (const candidate of bodies) if (candidate.key === body.key) matches.push(candidate);
-  if (matches.length !== 1) return missing('the selected native body is missing or ambiguous.');
-  const brep = matches[0].brep, faces: BrepFace[] = [];
-  for (const face of brep.faces) if (face.id === display.id && face.name === display.name) faces.push(face);
-  if (faces.length !== 1) return missing('the selected native face is missing, merged, or ambiguous.');
-  const selected = faces[0], axis = capAxis(selected), coordinate = (selected.surface as Surface).controlPoints[0][0][axis];
+  const current = currentOffsetBody(ctx, body);
+  const { brep, selected } = nativeOffsetBody(ctx, body, display);
+  const axis = capAxis(selected), coordinate = (selected.surface as Surface).controlPoints[0][0][axis];
   let lo = Infinity, hi = -Infinity;
   for (const vertex of brep.vertices) { lo = Math.min(lo, vertex.point[axis]); hi = Math.max(hi, vertex.point[axis]); }
   if (!(hi > lo) || coordinate !== lo && coordinate !== hi) return unsupported('the selected plane is not an extreme native prism cap.');
