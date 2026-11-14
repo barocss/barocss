@@ -1,6 +1,6 @@
 import type { Command } from './commands';
 import { withNode } from '../engine/doc';
-import { sewNode, sewSnapshot } from '../engine/sew';
+import { SEW_TOLERANCE_LABEL, sewNode, sewSnapshot } from '../engine/sew';
 
 export const sewCommand: Command = {
   id: 'sew', label: 'Sew', icon: 'cad-shell', group: 'create', keywords: 'surfaces join solid snapshot',
@@ -9,7 +9,7 @@ export const sewCommand: Command = {
     try { sewSnapshot(ctx); return { ok: true }; }
     catch (error) { return { ok: false, reason: error instanceof Error ? error.message : String(error) }; }
   },
-  fields: () => [{ key: 'tol', label: 'Tolerance (0: automatic)', kind: 'mm', min: 0, max: 1 }],
+  fields: () => [{ key: 'tol', label: SEW_TOLERANCE_LABEL, kind: 'mm', min: 0, max: 1 }],
   defaults: () => ({ tol: 0 }),
   steps: ctx => [{ label: 'Copied sources', text: sewSnapshot(ctx).names.join(', '), done: true }],
   build(ctx, values) {

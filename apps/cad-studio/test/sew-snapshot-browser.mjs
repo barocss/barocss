@@ -106,7 +106,7 @@ async function save(label) {
 const ids=['obj_1','obj_2','obj_3','obj_4','obj_5','obj_6'];
 async function selectOrdered(selected=ids){for(let i=0;i<selected.length;i++)await select(selected[i],i>0);}
 async function openSew(selected=ids,tol=.01){
- await selectOrdered(selected);await panel().getByLabel('Gap',{exact:true}).fill(String(tol));
+ await selectOrdered(selected);await panel().getByLabel('Tolerance (0: automatic)',{exact:true}).fill(String(tol));
  await panel().getByRole('button',{name:'Sew into a body',exact:true}).click();await hud().waitFor();
  assert.equal(await hud().getByLabel('Tolerance (0: automatic)',{exact:true}).inputValue(),String(tol));
 }
@@ -153,7 +153,7 @@ async function geometry(label,expectedNames=null){
 async function editTolerance(index,value){
  await page.locator(`.history .hs[data-node-index="${index}"]`).click();await editor().waitFor();
  assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0,'Sew tolerance has no parameter binding');
- await editor().getByLabel('Tolerance',{exact:true}).fill(String(value));const before=await doc();
+ await editor().getByLabel('Tolerance (0: automatic)',{exact:true}).fill(String(value));const before=await doc();
  await editor().getByRole('button',{name:'Apply',exact:true}).click();await changed(before);await editor().waitFor({state:'hidden'});
  const after=await doc(),old=before.nodes[index],next=after.nodes[index];
  assert.deepEqual(next.surfaces,old.surfaces);assert.deepEqual(next.names,old.names);assert.equal(next.id,old.id);
@@ -212,7 +212,7 @@ try{
  phase='history tolerance auto';const auto=await editTolerance(index,0);await geometry('09-tolerance-auto',names);await snapshot('09-tolerance-auto');
  const saved=await save('ui-accepted');await freshOpen(saved,'10-ui-fresh-open');await geometry('10-ui-fresh-open',names);
  assert.deepEqual((await doc()).nodes[index],auto.nodes[index]);await page.locator(`.history .hs[data-node-index="${index}"]`).click();
- assert.equal(await editor().getByLabel('Tolerance',{exact:true}).inputValue(),'0');assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0);await snapshot('11-reeditable-auto');await editor().getByRole('button',{name:'Close editor',exact:true}).click();
+ assert.equal(await editor().getByLabel('Tolerance (0: automatic)',{exact:true}).inputValue(),'0');assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0);await snapshot('11-reeditable-auto');await editor().getByRole('button',{name:'Close editor',exact:true}).click();
  phase='show original source';const beforeShow=await doc(),object=byId(beforeShow,'obj_1');await page.locator('.ol.direct.hidden-obj').filter({hasText:new RegExp(`${object.name}$`)}).click();await changed(beforeShow);
  assert.equal(byId(await doc(),'obj_1').hidden,false);assert.deepEqual((await doc()).nodes,beforeShow.nodes);await geometry('12-source-shown',names);await snapshot('12-source-shown');
  phase='move original source';await select('obj_1');await panel().getByLabel('ΔX',{exact:true}).fill('7');await panel().getByLabel('ΔZ',{exact:true}).fill('5');const beforeMove=await doc();
@@ -245,7 +245,7 @@ try{
  await directDisplayProbe('raw-facade-explicit-user-hide',null);await snapshot('23a-facade-explicit-hide');
  await undo(apiSeed.doc,'23b-facade-undo-explicit-hide');await redo(apiHidden,'23c-facade-redo-explicit-hide');
  const apiSaved=await save('facade-accepted');await freshOpen(apiSaved,'24-facade-fresh-open');await geometry('24-facade-fresh-open',apiNames);
- await page.locator(`.history .hs[data-node-index="${apiIndex}"]`).click();assert.equal(await editor().getByLabel('Tolerance',{exact:true}).inputValue(),'0.01');assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0);await snapshot('25-facade-reeditable');
+ await page.locator(`.history .hs[data-node-index="${apiIndex}"]`).click();assert.equal(await editor().getByLabel('Tolerance (0: automatic)',{exact:true}).inputValue(),'0.01');assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0);await snapshot('25-facade-reeditable');
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.consoleErrors,[]);assert.deepEqual(report.changes,[]);
  report.sourceAfter=await capsule('after-browser',frozenFiles);report.sourceAfterCount=Object.keys(report.sourceAfter).length;assert.deepEqual(report.sourceAfter,report.sourceFrozen);report.status='PASS';
 }catch(error){report.status='FAIL';report.failure=error.stack??String(error);process.exitCode=1;if(page)try{await snapshot('failure');}catch(e){report.captureFailure=e.stack??String(e);}}

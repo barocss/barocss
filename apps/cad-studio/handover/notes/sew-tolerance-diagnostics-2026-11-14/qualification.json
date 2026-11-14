@@ -1,0 +1,98 @@
+{
+  "decision": "D1191",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "c8d7156dcc51a4d857310e57f2b429a3a7a9cb23",
+  "fixture": {
+    "name": "gapped-lid.bcad",
+    "sha256": "fa52cc2f0413a6440606be2ca7ffc2862ce691c348f434bccc606870c908aeac",
+    "source": "Exact model state after the 0.02 mm dome move in the local historical Sew receipt"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1191-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs api-sew measure",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/DirectPanel.tsx packages/barocss-cad-model/src/{engine/errors,engine/sew,app/editFields,app/sewCommand}.ts packages/barocss-cad-model/test/measure.test.ts",
+    "node --check apps/cad-studio/test/sew-gap-diagnostics-browser.mjs",
+    "node --check apps/cad-studio/test/sew-snapshot-browser.mjs",
+    "D1191_SOURCE_FROZEN=1 node apps/cad-studio/test/sew-gap-diagnostics-browser.mjs <external-evidence>/<run> <external-fixture>/gapped-lid.bcad",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "model": 20
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "5474b392a7582b6858fb43b022e101a77e963381a6bc106fba1da803b431bb61",
+      "sourceManifestSHA256": "46d2ec94c1f44b8c523929c121a656802022b86cb566ed3071a7ef9d23a7e87f",
+      "firstFailure": "Fixture preceded the applied dome move"
+    },
+    "repro": {
+      "status": "FAIL",
+      "states": [
+        "below-gap-refused",
+        "automatic-preview",
+        "explicit-sew-applied",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "589b0952b1bae45b4621a4a30d5c58a1d7021b8aa8fc4f0145fe9c069ea57d44",
+      "sourceManifestSHA256": "46d2ec94c1f44b8c523929c121a656802022b86cb566ed3071a7ef9d23a7e87f",
+      "firstFailure": "Roof oracle used the B\u00e9zier control hull"
+    },
+    "confirmed-baseline": {
+      "status": "FAIL",
+      "states": [
+        "below-gap-refused",
+        "automatic-preview",
+        "explicit-sew-applied",
+        "history-below-gap-refused",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "129b10fd8098481b59c01806365f1426f8ab086adc95a3ca9ea1574ce77c5832",
+      "sourceManifestSHA256": "46d2ec94c1f44b8c523929c121a656802022b86cb566ed3071a7ef9d23a7e87f",
+      "firstFailure": "Automatic tooltip and History differed; unmatched-edge details were collapsed"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "below-gap-refused",
+        "automatic-preview",
+        "explicit-sew-applied",
+        "history-below-gap-refused",
+        "history-automatic-applied"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "45458753300e998548083152e37cadec2f4d7247939226b7ae41def263d9748e",
+      "sourceManifestSHA256": "66dfa56b4f78da0575c83734ad0a61181ff69384cd77856816799b2c53892b94",
+      "native": {
+        "valid": true,
+        "volume": 1199.9999999999995,
+        "gap": 0.019999999999997797,
+        "faces": 6,
+        "solids": 1,
+        "edges": 12,
+        "vertices": 8,
+        "roof": 13.02
+      },
+      "nativeAutomatic": {
+        "valid": true,
+        "volume": 1199.9999999999995,
+        "gap": 0.019999999999997797,
+        "faces": 6,
+        "solids": 1,
+        "edges": 12,
+        "vertices": 8,
+        "roof": 13.02
+      }
+    }
+  }
+}

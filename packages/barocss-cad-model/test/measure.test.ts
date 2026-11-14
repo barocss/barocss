@@ -116,6 +116,19 @@ test('Shell refusals report the sharp boundary or failed wall, with raw diagnost
     'Shell could not form a closed wall');
 });
 
+test('Sew keeps unmatched-edge count and ordered source indices visible', async () => {
+  const { friendly } = await import('../src/engine/errors');
+  const one = 'the surfaces do not close: 1 edge meet no other surface (surface 2)';
+  assert.deepEqual(friendly('n0: ' + one, 'GEOMETRY'), {
+    code: 'GEOMETRY', title: 'Sew leaves unmatched edges',
+    hint: '1 edge could not be matched on surface 2 in the listed source order. Check the gap and the tolerance.',
+    detail: one,
+  });
+  const many = 'the surfaces do not close: 8 edges meet no other surface (surfaces 1, 3, 4, 5, 6)';
+  assert.match(friendly(many).hint, /8 edges.*surfaces 1, 3, 4, 5, 6/);
+  assert.notEqual(friendly('the surfaces cannot all face one way').title, 'Sew leaves unmatched edges');
+});
+
 test('measure: between two bodies, the closest points span the gap', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] });
   doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 10 });

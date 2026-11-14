@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directOps, domainsOf, geometryOf, surfaceIntersection, type DirectGeometry } from '@barocss/cad-model/engine/direct';
+import { SEW_TOLERANCE_LABEL } from '@barocss/cad-model/engine/sew';
 import { CONTROL, FIELD } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,8 +63,8 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
       })()}
       {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>SEW</div>
-        <NumberField label="Gap" value={gap} onChange={setGap} />
-        <Button variant="ghost" aria-label="Sew into a body" title="Join the surfaces along their edges into one closed solid (edges closer than the gap meet; 0 keeps it tight)" onClick={() => onSew(selected, gap)}>Sew into a body</Button>
+        <NumberField label={SEW_TOLERANCE_LABEL} value={gap} onChange={setGap} />
+        <Button variant="ghost" aria-label="Sew into a body" title="Join the surfaces along matching edges. Use 0 for automatic tolerance." onClick={() => onSew(selected, gap)}>Sew into a body</Button>
       </div>}
       {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>

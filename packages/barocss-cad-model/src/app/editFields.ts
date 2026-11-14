@@ -1,6 +1,6 @@
 import { loftSectionSourceFields } from './loftSectionEdit';
 import { copyLoftGuide } from './loftGuides';
-import { sewTolerance } from '../engine/sew';
+import { SEW_TOLERANCE_LABEL, sewTolerance } from '../engine/sew';
 import { circularPatternCountRange, circularPatternStep } from '../engine/circularPatternSpan';
 import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
 import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
@@ -690,7 +690,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
           return replace(ns, i, next);
         } });
       break;
-    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; sewTolerance(next.surfaces, v); if (v > 0) next.tolerance = v; else delete next.tolerance; return next; }); break;
+    case 'sew': number('tol', SEW_TOLERANCE_LABEL, 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; sewTolerance(next.surfaces, v); if (v > 0) next.tolerance = v; else delete next.tolerance; return next; }); break;
     case 'draft':
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       if (node.neutral !== undefined) number('neutral', 'Neutral coordinate', 'mm', n => num((n as typeof node).neutral!), (n, v) => ({ ...(n as typeof node), neutral: v }));

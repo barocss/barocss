@@ -265,6 +265,10 @@ export function friendly(message: string, kind?: string): FriendlyError {
   const bracketed = FIRST_CODE.exec(detail)?.[1], code = bracketed ?? kind;
   if (bracketed && !detail.startsWith(`[${bracketed}]`)) detail = `[${bracketed}] ${detail.replace(`[${bracketed}] `, '').replace(`[${bracketed}]`, '').trim()}`;
   const extra = code ? { code } : {};
+  const unmatched = /^the surfaces do not close: (\d+ edges?) meet no other surface \((surfaces? [\d, ]+)\)$/.exec(detail);
+  if (unmatched) return { title: 'Sew leaves unmatched edges',
+    hint: `${unmatched[1]} could not be matched on ${unmatched[2]} in the listed source order. Check the gap and the tolerance.`,
+    detail, ...extra };
   if (codes.has('SHELL_REGIONS_SHARP')) {
     const location = /\(at ((?:-?\d+(?:\.\d+)?(?:e[+-]?\d+)?)(?:, -?\d+(?:\.\d+)?(?:e[+-]?\d+)?){2})\): shelling there is not supported yet/i.exec(detail)?.[1];
     return { title: 'Shell cannot cross this sharp edge',

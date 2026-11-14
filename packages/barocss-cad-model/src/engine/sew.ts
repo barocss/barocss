@@ -4,6 +4,8 @@ import type { ModelNode } from './doc';
 import { directNow } from './directModule';
 import { refusal } from './refusal';
 
+export const SEW_TOLERANCE_LABEL = 'Tolerance (0: automatic)';
+
 export interface SewSnapshot { surfaces: readonly RawNurbsSurface[]; names: readonly string[] }
 const fail = (message: string): never => { throw refusal('VALUE', `Sew: ${message}`); };
 
