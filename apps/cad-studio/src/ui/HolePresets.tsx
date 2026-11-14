@@ -67,16 +67,27 @@ export function HolePresets({ values, onUse, onReset }: Props) {
     }
     setMessage(onUse(current.options) ? '' : 'Start Hole again on the current face.');
   };
+  const selectPreset = (value: string) => {
+    setSelection(value);
+    setName(value);
+    setMessage('');
+  };
 
   return <details className="m-0! text-xs text-[var(--text-2)]"
       onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') event.stopPropagation(); }}>
     <summary className="cursor-pointer">Hole presets</summary>
     <fieldset className="m-0 mt-2 grid min-w-0 gap-1.5 border-0 p-0" aria-label="Manage hole presets" disabled={!allowed || !stored.ok}>
       <div className="flex items-center gap-1.5">
-        <NativeSelect aria-label="Hole preset" className={FIELD} value={selected?.name ?? ''} onChange={event => {
-          const value = event.currentTarget.value;
-          setSelection(value); setName(value); setMessage('');
-        }}>
+        <NativeSelect aria-label="Hole preset" className={FIELD} value={selected?.name ?? ''}
+          onChange={event => selectPreset(event.currentTarget.value)}
+          onKeyDown={event => {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown'
+              || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            event.preventDefault();
+            const list = event.currentTarget;
+            const index = Math.max(0, Math.min(list.options.length - 1, list.selectedIndex + (event.key === 'ArrowUp' ? -1 : 1)));
+            selectPreset(list.options[index].value);
+          }}>
           <option value="">Choose a preset</option>
           {presets.map(preset => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
         </NativeSelect>

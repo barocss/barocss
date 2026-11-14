@@ -1,0 +1,74 @@
+{
+  "decision": "D1178",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "715a70afb86afef9ee7e1d2f30e5e21600838564",
+  "commands": [
+    "gate.sh acquire heavy 600 D1178-<run>",
+    "D1178_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence>/<run> --keyboard",
+    "D826_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence>/preset-regression",
+    "cd apps/cad-studio && node scripts/test.mjs hole-presets",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/HolePresets.tsx",
+    "node --check apps/cad-studio/test/hole-presets-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "desktop": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "38eba297b9cd15ec6c3427375ff4908a2f4d56bd7afc6cfb78bd07c946ddfd25",
+      "sourceManifestSHA256": "8885441b87ff4f1483dcf73398840053be6908e52e10caf24d7f1bf84030b2f2"
+    },
+    "native-select": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "3e092088bdee2987697d6252c0f5c00d7286e81b3996a0930476b4cfb2eb995e",
+      "sourceManifestSHA256": "1505292cd3b70d37b710af58dd7c32a52b39e4041c860688039b539093d0474d"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": [
+        "keyboard-use-preview-only",
+        "keyboard-explicit-apply"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "07a8befb15d2650aa2a4ed8987797aafc18df4949677d214ed3e0211a008e0a0",
+      "sourceManifestSHA256": "d63bb80a2bfe6274b19c767060b21de2160a95451586ebb7ecb7d67465695db0",
+      "observations": [
+        {
+          "label": "keyboard-right-hole",
+          "depth": 5,
+          "face": "n1.side1",
+          "axis": "x",
+          "center": [
+            25,
+            6
+          ],
+          "volume": 14258.628330588454,
+          "centroid": [
+            69.82649072846687,
+            24.999999999999996,
+            5.999999999999999
+          ]
+        }
+      ]
+    },
+    "preset-regression": {
+      "status": "PASS",
+      "states": [
+        "01-latest-preset-on-right",
+        "02-reopened-depth-four"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "485229c5ba09fe2755f66f352413fe5327ed7af53b967d4193df20f1adfce8bf",
+      "sourceManifestSHA256": "d63bb80a2bfe6274b19c767060b21de2160a95451586ebb7ecb7d67465695db0"
+    }
+  }
+}

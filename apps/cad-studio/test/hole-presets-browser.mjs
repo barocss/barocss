@@ -4,6 +4,7 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { runOtherHolePresets } from './hole-presets-other-types.mjs';
 
 const otherTypes = process.argv[3] === '--other-types';
+const keyboardOnly = process.argv[3] === '--keyboard';
 const pins = [
   'apps/cad-studio/test/hole-presets-browser.mjs',
   'apps/cad-studio/test/hole-presets-other-types.mjs',
@@ -15,8 +16,10 @@ const pins = [
   'packages/barocss-cad-model/src/app/commands.ts',
 ];
 const f = await createFlow({
-  name: 'hole-presets', output: process.argv[2], envFrozen: otherTypes ? 'D827_SOURCE_FROZEN' : 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
-  qualification: otherTypes ? 'Apply through, counterbore and countersink presets to fresh right faces and recover from corrupt settings.'
+  name: 'hole-presets', output: process.argv[2],
+  envFrozen: keyboardOnly ? 'D1178_SOURCE_FROZEN' : otherTypes ? 'D827_SOURCE_FROZEN' : 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  qualification: keyboardOnly ? 'Choose and use a Hole preset with real keyboard input in desktop Studio.'
+    : otherTypes ? 'Apply through, counterbore and countersink presets to fresh right faces and recover from corrupt settings.'
     : 'Save hole options from the top of one part and explicitly apply them to the right face of another part.',
   limits: [otherTypes ? 'Two ordinary rectangular stock parts and right-face holes.'
     : 'Two ordinary rectangular stock parts, blind and counterbore presets in desktop; all four modes in codec checks.'],
@@ -118,6 +121,52 @@ async function savePreset(name) {
   await button(hud(), 'Save preset').click();
 }
 
+async function runKeyboardPreset() {
+  await f.newPage();
+  await open(name, second);
+  await pick('Right', [90, 25, 6]);
+  const before = await editState();
+  await startHole();
+  await type().selectOption('blind');
+  await field(hud(), 'Diameter').fill('6');
+  await field(hud(), 'Depth').fill('5');
+  await savePreset('Blind 6 at 5');
+  await field(hud(), 'Depth').fill('4');
+  await savePreset('Blind 6 at 4');
+  await preset().focus();
+  assert.equal(await preset().inputValue(), 'Blind 6 at 4');
+  await f.page.keyboard.press('ArrowUp');
+  assert.equal(await preset().inputValue(), 'Blind 6 at 5');
+  await f.page.keyboard.press('ArrowDown');
+  assert.equal(await preset().inputValue(), 'Blind 6 at 4');
+  await f.page.keyboard.press('ArrowUp');
+  assert.equal(await preset().inputValue(), 'Blind 6 at 5');
+  await f.same(second);
+  assert.deepEqual(await editState(), before);
+  await f.page.keyboard.press('Tab');
+  const use = button(hud(), 'Use preset');
+  assert.equal(await use.evaluate(element => element === document.activeElement), true);
+  await f.page.keyboard.press('Enter');
+  await preview();
+  assert.equal(await field(hud(), 'Depth').inputValue(), '5');
+  assert.equal(await field(hud(), 'Centre Y').inputValue(), '25');
+  assert.equal(await field(hud(), 'Centre Z').inputValue(), '6');
+  await f.same(second);
+  assert.deepEqual(await editState(), before);
+  await f.snapshot('keyboard-use-preview-only');
+  await button(hud(), 'Apply').focus();
+  await f.page.keyboard.press('Enter');
+  await f.changed(second);
+  await hud().waitFor({ state: 'hidden' });
+  const committed = (await f.snapshot('keyboard-explicit-apply')).doc;
+  await checkNative('keyboard-right-hole', committed, 5);
+  await f.undo();
+  await f.same(second);
+  await f.redo();
+  await f.same(committed);
+  assert.deepEqual(f.report.downloads, []);
+}
+
 async function openProject() {
   if (!(await versionPanel().isVisible())) await button(f.page, 'Project and versions').click();
   if (await field(versionPanel(), 'Project').isVisible()) return;
@@ -191,6 +240,10 @@ await f.run(async () => {
     });
     return context;
   };
+  if (keyboardOnly) {
+    await runKeyboardPreset();
+    return;
+  }
   if (otherTypes) {
     await runOtherHolePresets({ f, key, first, second, open, pick, startHole, savePreset, saveAndReopen, editState });
     return;
