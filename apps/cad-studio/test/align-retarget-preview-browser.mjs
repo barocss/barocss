@@ -2,12 +2,16 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const targetNames = process.argv.includes('--target-names');
+const namesBaseline = process.argv.includes('--names-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
+  'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'packages/barocss-cad-model/src/app/alignCommand.ts'];
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Align uses the original face the pointer hits after results reorder in preview.',
+  qualification: targetNames ? 'Align History identifies each target body and exact native face.'
+    : 'Align uses the original face the pointer hits after results reorder in preview.',
   limits: ['Desktop WebGPU, top faces of three root native boxes, fixed Gap 2 mm.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -37,6 +41,9 @@ const seed = {
   ],
   outputs: { b1: ref(1), b3: ref(3), b5: ref(5) }, nextId: 6,
 };
+if (targetNames) seed.bodies = { b1: { name: 'Moving block' }, b3: { name: 'Stock' }, b5: { name: 'Stock' } };
+const targetLabel = face => namesBaseline ? face
+  : `${targetNames ? 'Stock' : face.startsWith('n3.') ? 'Extrude 8' : 'Extrude 12'} · ${face}`;
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
 const hud = () => f.page.getByRole('dialog', { name: 'Align', exact: true });
 async function clickAt(point) {
@@ -122,7 +129,9 @@ await f.run(async () => {
   const historyState = await f.snapshot('history-bound-faces');
   assert.match(historyState.editor, /Source facen1[.]topTarget face/);
   const targetField = f.editor().getByLabel('Target face', { exact: true });
-  if (await targetField.count()) assert.equal(await targetField.locator('option:checked').innerText(), 'n5.top');
+  if (await targetField.count()) {
+    await targetField.locator('option:checked').filter({ hasText: targetLabel('n5.top') }).waitFor({ state: 'attached' });
+  }
   else assert.match(historyState.editor, /Target facen5[.]top/);
   const gap = f.editor().getByLabel('Gap', { exact: true }), lineup = f.editor().getByLabel('Line up', { exact: true });
   assert.equal(await gap.inputValue(), '2');
@@ -130,10 +139,22 @@ await f.run(async () => {
   const expected = structuredClone(applied);
   if (retarget) {
     const chooser = f.editor().getByLabel('Target face', { exact: true });
-    await chooser.locator('option').filter({ hasText: /^n3[.]top$/ }).waitFor({ state: 'attached' });
-    assert.equal(await chooser.locator('option').filter({ hasText: /^n1[.]/ }).count(), 0);
-    await chooser.selectOption({ label: 'n3.top' });
-    assert.equal(await chooser.locator('option:checked').innerText(), 'n3.top');
+    await chooser.getByText(targetLabel('n3.top'), { exact: true }).waitFor({ state: 'attached' });
+    assert.equal(await chooser.locator('option').filter({ hasText: /n1[.]/ }).count(), 0);
+    if (namesBaseline) {
+      assert.ok((await chooser.locator('option').allTextContents()).every(label => !label.includes('Stock')));
+      await f.snapshot('history-target-body-names-missing');
+      throw new Error('Align History target options omit the Browser body names.');
+    }
+    await chooser.selectOption({ label: targetLabel('n3.top') });
+    assert.equal(await chooser.locator('option:checked').innerText(), targetLabel('n3.top'));
+    if (targetNames) {
+      assert.equal(await chooser.locator('option').filter({ hasText: /^Stock · n[35][.]top$/ }).count(), 2);
+      await button('Reset', f.editor()).click();
+      assert.equal(await chooser.locator('option:checked').innerText(), targetLabel('n5.top'));
+      await f.same(applied);
+      await chooser.selectOption({ label: targetLabel('n3.top') });
+    }
     await f.same(applied);
     await f.snapshot('history-target-before-apply');
     Object.assign(expected.nodes.at(-1), { target: { feature: 'n3', face: 'n3.top', axis: 'z', sign: 1, body: ref(3) } });
@@ -150,14 +171,23 @@ await f.run(async () => {
   await f.redo();
   await f.same(expected);
 
-  await f.newPage();
-  const [reopen] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
-  await reopen.setFiles({ name: 'align-history.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(expected)) });
-  await f.same(expected);
+  if (targetNames) {
+    const { file } = await f.save('align-history-named-target');
+    await f.freshOpen(file, expected, 'align-history-named-target-reopened');
+  } else {
+    await f.newPage();
+    const [reopen] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await reopen.setFiles({ name: 'align-history.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(expected)) });
+    await f.same(expected);
+  }
   await verify('reopened-native', expected, retarget ? 'n3.top' : 'n5.top', retarget ? 2 : 4, retarget ? 'centre' : 'touch');
   await f.openFeatureEditor(6);
   assert.equal(await f.editor().getByLabel('Gap', { exact: true }).inputValue(), retarget ? '2' : '4');
   assert.equal(await f.editor().getByLabel('Line up', { exact: true }).inputValue(), retarget ? 'centre' : 'touch');
-  if (retarget) assert.equal(await f.editor().getByLabel('Target face', { exact: true }).locator('option:checked').innerText(), 'n3.top');
+  if (retarget) {
+    const selection = f.editor().getByLabel('Target face', { exact: true }).locator('option:checked');
+    await selection.filter({ hasText: targetLabel('n3.top') }).waitFor({ state: 'attached' });
+    assert.equal(await selection.innerText(), targetLabel('n3.top'));
+  }
   await f.snapshot('reopened-align-history');
 });

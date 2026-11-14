@@ -1962,9 +1962,10 @@ export function App() {
     const source = { doc: prefix, bodies: result.bodies };
     return result.bodies.flatMap((body, index) => {
       if (!body.ref || body.ref.node === node.parent.node || lookOf(doc, body).hidden) return [];
+      const name = bodyName(doc, body);
       return body.mesh.faces.flatMap(face => {
         const binding = alignFaceBinding(source, { body: index, face: face.index });
-        return binding ? [{ ...binding, body: refOf(body) }] : [];
+        return binding ? [{ target: { ...binding, body: refOf(body) }, bodyName: name }] : [];
       });
     });
   }, [doc, editNode, engine, marker, ownsEvaluatedSource]);

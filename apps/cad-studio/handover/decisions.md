@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1231 — identify the body in each Align History target](notes/align-history-target-body-labels-2026-11-14/README.md).
 - [D1230 — show the picked and tangent Chamfer edges](notes/chamfer-native-tangent-scope-2026-11-14/README.md).
 - [D1229 — explain the minimum straight span of a rounded inset source](notes/rounded-inset-source-straight-span-2026-11-14/README.md).
 - [D1228 — identify historical references in Linked Inset review](notes/linked-inset-historical-reference-labels-2026-11-14/README.md).
