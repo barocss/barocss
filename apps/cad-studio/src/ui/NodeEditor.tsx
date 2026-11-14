@@ -221,7 +221,20 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
                 } catch (error) { onRefuse(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error)); }
               }}>
               <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
-            : f.kind === 'choice' ? <select disabled={ordinaryLocked} aria-label={f.label} value={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.value)); }}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            : f.kind === 'choice' ? <select disabled={ordinaryLocked} aria-label={f.label} value={f.get(draft)} onChange={e => {
+                retireEvaluation();
+                try {
+                  const next = f.set(draft, e.target.value);
+                  if (f.key.startsWith('loftSource')) {
+                    const section = 'Section ' + (Number(f.key.slice('loftSource'.length)) + 1) + ' · ';
+                    const keys = new Set(fields.filter(field => field.label.startsWith(section)).map(field => field.key));
+                    setTyped(values => Object.fromEntries(Object.entries(values).filter(([key]) => !keys.has(key))));
+                  }
+                  setDraft(next);
+                } catch (error) {
+                  onRefuse(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error));
+                }
+              }}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" disabled={ordinaryLocked} aria-label={f.label} checked={f.get(draft)} onChange={e => { retireEvaluation(); setDraft(d => f.set(d, e.target.checked)); }} />}
           {range && <span id={rangeId} className="muted small col-span-2">{range}</span>}
         </div>

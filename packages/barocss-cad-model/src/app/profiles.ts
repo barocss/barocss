@@ -81,6 +81,28 @@ export function profileMiddle(stored: SketchNode | DrivenSketchNode, params: Par
   return [pts.reduce((s, p) => s + p[0], 0) / (pts.length || 1), pts.reduce((s, p) => s + p[1], 0) / (pts.length || 1)];
 }
 
+/** Copy the current outline onto the saved Loft frame without moving its world geometry. */
+export function copyLoftSection(node: SketchNode | DrivenSketchNode, source: number, base: SketchPlane, params: Params): { segments: LoopSegment[]; z: number } | { error: string } {
+  return projectLoftSection(valued(node, params, source), source, base);
+}
+
+function projectLoftSection(sketch: SketchNode, source: number, base: SketchPlane): ReturnType<typeof copyLoftSection> {
+  const p = planeOf(sketch);
+  if (sketch.regions?.length || sketch.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
+  const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  if (dot(p.normal, base.normal) < 1 - 1e-9) return { error: `Sketch ${source + 1} is not on a plane parallel to the first section's (facing the same way).` };
+  const z = dot([p.origin[0] - base.origin[0], p.origin[1] - base.origin[1], p.origin[2] - base.origin[2]], base.normal);
+  const snap = (value: number) => Math.round(value * 1e9) / 1e9;
+  const carry = (q: readonly unknown[]): [number, number] => {
+    const l = toLocal(base, toWorld(p, [num(q[0]), num(q[1])]));
+    return [snap(l[0]), snap(l[1])];
+  };
+  const segments: LoopSegment[] = loopOf(sketch).map(s => s.kind === 'arc'
+    ? { kind: 'arc', start: carry(s.start), center: carry(s.center), direction: s.direction }
+    : { kind: 'line', start: carry(s.start) });
+  return { segments, z: snap(z) };
+}
+
 /**
  * Loft sections: the picked sketches ordered along the first one's normal, each as a loop sketch on the
  * first one's plane (its points carried across) with its distance along the normal. Null with a reason
@@ -91,16 +113,12 @@ export function profileMiddle(stored: SketchNode | DrivenSketchNode, params: Par
 export function loftSections(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number }[] } | { error: string } {
   if (picked.length < 2) return { error: 'Pick two or more sketches (Shift-click) to loft through.' };
   const sketches = picked.map(i => ({ i, n: valued(nodes[i] as SketchNode | DrivenSketchNode, params, i) })), base = planeOf(sketches[0].n);
-  const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const out: { node: SketchNode; z: number; source: number }[] = [];
   for (const { i, n } of sketches) {
-    if (n.regions?.length || n.holes?.length) return { error: `Sketch ${i + 1} has holes or several shapes: a loft section is one closed shape.` };
-    const p = planeOf(n);
-    if (dot(p.normal, base.normal) < 1 - 1e-9) return { error: `Sketch ${i + 1} is not on a plane parallel to the first section's (facing the same way).` };
-    const z = dot([p.origin[0] - base.origin[0], p.origin[1] - base.origin[1], p.origin[2] - base.origin[2]], base.normal);
-    const carry = (q: readonly unknown[]): [number, number] => { const l = toLocal(base, toWorld(p, [num(q[0]), num(q[1])])); return [Math.round(l[0] * 1e9) / 1e9, Math.round(l[1] * 1e9) / 1e9]; };
-    const segments: LoopSegment[] = loopOf(n).map(s => s.kind === 'arc' ? { kind: 'arc', start: carry(s.start), center: carry(s.center), direction: s.direction } : { kind: 'line', start: carry(s.start) });
-    out.push({ node: { kind: 'sketch', profile: 'loop', segments, ...(sketches[0].n.plane ? { plane: { origin: [...base.origin] as [number, number, number], normal: [...base.normal] as [number, number, number], xAxis: [...base.xAxis] as [number, number, number] } } : {}) }, z: Math.round(z * 1e9) / 1e9, source: i });
+    const section = projectLoftSection(n, i, base);
+    if ('error' in section) return section;
+    const { segments, z } = section;
+    out.push({ node: { kind: 'sketch', profile: 'loop', segments, ...(sketches[0].n.plane ? { plane: { origin: [...base.origin] as Vec3, normal: [...base.normal] as Vec3, xAxis: [...base.xAxis] as Vec3 } } : {}) }, z, source: i });
   }
   out.sort((a, b) => a.z - b.z);
   // Measured from the lowest section's plane (the first height 0).

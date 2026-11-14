@@ -1,0 +1,204 @@
+{
+  "decision": "D1172",
+  "tier": "FEATURE",
+  "parent": "8d761294dff497cfb58af5cfe3d1da4191f1f3cd",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1172-<run>",
+    "D1172_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-history-section-replacement-browser.mjs <external-evidence>/<run>",
+    "D1171_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-history-guide-replacement-browser.mjs <external-evidence>/guide-final",
+    "D1170_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-two-section-mode-browser.mjs <external-evidence>/mode-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs loft-guide-command profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/{editFields,profiles,loftSectionEdit}.ts",
+    "node --check apps/cad-studio/test/loft-history-section-replacement-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-final"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "0f24bcc730a25781a782eadb23c55562e557343c2f2c90a92b8f7f911759deea",
+      "sourceManifestSHA256": "812eb2e184f9275cce291441ba494b5bfd2248478265934207014ca7f569807b"
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "section-breaks-guide-refused",
+        "loft-section-replaced",
+        "loft-section-reopened",
+        "loft-section-history"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "3766f36d2ff4bc0c6b5ed9d39cd4aee93d3d5102b5114fcf37e8aaa1d78a11b0",
+      "sourceManifestSHA256": "783f126601ad4751c57f1cabc91dc1197d07eaa0c7871585b189dd4490b51803"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "section-breaks-guide-refused",
+        "loft-section-replaced",
+        "loft-section-reopened",
+        "loft-section-history"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "ea49b993978b29aea16b067c3999a2ebf49d5fe631c97a887a12568932466c5f",
+      "sourceManifestSHA256": "93ef960d17668f1d4036b42dc5c8096d0e1b170851a092fc6fd01b1ef969ad8c"
+    },
+    "guide-regression": {
+      "status": "PASS",
+      "states": [
+        "guide-end-refused",
+        "guide-replaced",
+        "guide-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "0db6b9ad4ad7bd03f900462a3305f6612e1a070e36a610182b3ce31cc9b27742",
+      "sourceManifestSHA256": "3371e816c23a628f427a530d1d9b480cf1d92cdc0ce55aa35eb5811880a3c279"
+    },
+    "mode-regression": {
+      "status": "PASS",
+      "states": [
+        "ruled-two-section-preview",
+        "ruled-two-section-applied",
+        "history-ruled",
+        "loft-reopened",
+        "legacy-effective-ruled",
+        "three-section-smooth-control"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "de413dac9de9037a1d0608f740545e6a8fc357a40fac9f19ce35b87634507fee",
+      "sourceManifestSHA256": "c05109fa7075b840ef308e5c1c163f8b42eab5b6d485990ea41dcbd7425d9937"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "section-breaks-guide-refused",
+        "loft-section-replaced",
+        "loft-section-reopened",
+        "loft-section-history"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "840e8df1e5419cc3ea04ec18180cd42fe5d5b8112b5e69d9fc2eed2830cecdf0",
+      "sourceManifestSHA256": "a34184e25e6e275ce40c655e54ce75557b5c7b0961fdcb21b4339fff0ca7b414",
+      "observations": [
+        {
+          "label": "original-loft",
+          "valid": true,
+          "count": 1,
+          "volume": 2000.0000000000007,
+          "centroid": [
+            4.999999999999998,
+            4.999999999999998,
+            10
+          ],
+          "middleRing": [
+            [
+              0,
+              0,
+              10
+            ],
+            [
+              10,
+              0,
+              10
+            ],
+            [
+              10,
+              10,
+              10
+            ],
+            [
+              0,
+              10,
+              10
+            ]
+          ]
+        },
+        {
+          "label": "replaced-loft",
+          "valid": true,
+          "count": 1,
+          "volume": 2400.0000000000005,
+          "centroid": [
+            6.055555555555556,
+            4.999999999999999,
+            10
+          ],
+          "middleRing": [
+            [
+              0,
+              0,
+              10
+            ],
+            [
+              14,
+              0,
+              10
+            ],
+            [
+              14,
+              10,
+              10
+            ],
+            [
+              0,
+              10,
+              10
+            ]
+          ]
+        },
+        {
+          "label": "reopened-loft",
+          "valid": true,
+          "count": 1,
+          "volume": 2400.0000000000005,
+          "centroid": [
+            6.055555555555556,
+            4.999999999999999,
+            10
+          ],
+          "middleRing": [
+            [
+              0,
+              0,
+              10
+            ],
+            [
+              14,
+              0,
+              10
+            ],
+            [
+              14,
+              10,
+              10
+            ],
+            [
+              0,
+              10,
+              10
+            ]
+          ]
+        }
+      ]
+    },
+    "guide-final": {
+      "status": "PASS",
+      "states": [
+        "guide-end-refused",
+        "guide-replaced",
+        "guide-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "8c78cbc496ecc75420249267214a2feda57f176c8d64e1f4ab42940e0f89ea5c",
+      "sourceManifestSHA256": "83dc144737e7b0a393e745e86628ba656bc4de9d7bfeeacdc1b4d5d156313880"
+    }
+  }
+}
