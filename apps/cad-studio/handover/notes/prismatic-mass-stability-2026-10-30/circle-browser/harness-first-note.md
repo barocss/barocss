@@ -1,1 +1,0 @@
-The first focused launch ran before the new test file was created because its shell path was relative to the package directory. Existing 23 tests passed, types passed, and lint failed with no matching new test file. These logs do not cover the new regression. The second launch includes the new file.

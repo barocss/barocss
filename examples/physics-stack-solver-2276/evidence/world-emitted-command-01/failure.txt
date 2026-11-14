@@ -1,1 +1,0 @@
-Error: trajectory failed; first attempt retained

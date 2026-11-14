@@ -13,9 +13,7 @@
     "test:shadow-parity": "node scripts/shadow-parity/run.mjs",
     "check": "pnpm type-check && pnpm lint && pnpm build:library && pnpm test",
     "changeset:version": "pnpm changeset version && pnpm install --lockfile-only",
-    "changeset:publish": "pnpm changeset publish",
-    "dev:cad": "pnpm --filter @barocss/cad-studio-app dev",
-    "dev:gpu": "node examples/gpu-scene/source-server.mjs"
+    "changeset:publish": "pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

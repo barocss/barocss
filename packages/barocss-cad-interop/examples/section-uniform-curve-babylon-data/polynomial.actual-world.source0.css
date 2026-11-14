@@ -1,1 +1,0 @@
-@model profile { version:0; length-unit:mm; @curve #poly_world { type:nurbs; degree:4; knots:[0,0,0,0,0,1,1,1,1,1]; control-points:[[0,2,10],[2.5,2.5,10],[5,3,10.133333333333333],[7.5,3.5,10.6],[10,4,11.6]]; weights:[24000,24000,24000,24000,24000]; } }

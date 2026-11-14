@@ -1,2 +1,0 @@
-import type { XYCircularNumericalSketchDocumentV0, XYCircularNumericalSketchPoint, XYCircularNumericalSketchRadius, XYCircularNumericalSketchSuccess } from './xy-circular-numerical-sketch.js';
-export declare function native(document: XYCircularNumericalSketchDocumentV0, points: XYCircularNumericalSketchPoint[], radii: XYCircularNumericalSketchRadius[]): Omit<XYCircularNumericalSketchSuccess['solution'], 'points' | 'radii'>;
