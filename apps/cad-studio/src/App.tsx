@@ -40,6 +40,7 @@ import { useProposalPreview } from './state/useProposalPreview';
 import { ProposalBrowser } from './ui/ProposalBrowser';
 import { DeleteDependentsDialog } from './ui/DeleteDependentsDialog';
 import { useFeatureHistory } from './state/useFeatureHistory';
+import { useAlignHistoryPreview } from './app/useAlignHistoryPreview';
 import { carrySketchSelection } from './state/profileSelection';
 import { BodyBrowserRows } from './ui/BodyBrowserRows';
 import { RequirementsBrowser } from './ui/RequirementsBrowser';
@@ -2689,7 +2690,14 @@ export function App() {
     ...selection.edges.flatMap(e => { const n = bodies[e.body]?.mesh.edges[e.edge]?.names[0]; return n ? [{ kind: 'edge' as const, name: n }] : []; }),
     ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
   ].slice(0, 12).filter(() => fresh), [selection, bodies, fresh]);
-  const appearance = useModelAppearance({ model: { doc, evaluated, bodies }, preview: { active, previewBodies, routePreviewBodies, ghost, proposalOverlay, compareOverlay },
+  const evaluateHistoryAlign = useCallback((candidate: StudioDoc) => engine.preview(candidate, revision.current++), [engine]);
+  const historyAlign = useAlignHistoryPreview({ doc, index: editNode, workerSession, enabled: fresh && !busy && marker === null
+    && !variants.showing && !active && !sketch && !section && !ghost && !compareOverlay && !rendering && !drawing
+    && !measure && !routePanelOpen && !inPlace && !cageEd.session && !skel.session && !assembly.draft && !exploded && !bodyDrag
+    && previewMode === 'none' }, evaluateHistoryAlign);
+  const alignPreviewBodies = historyAlign.result?.kind === 'ready' ? historyAlign.result.bodies : null;
+  const shownPreviewBodies = previewBodies ?? alignPreviewBodies;
+  const appearance = useModelAppearance({ model: { doc, evaluated, bodies }, preview: { active, previewBodies: shownPreviewBodies, routePreviewBodies, ghost, proposalOverlay, compareOverlay },
     display: { bodyDrag: !!bodyDrag, section: !!section, sketch: !!sketch, sectionBodies, sectionExactShown, sectionExact, animatedAt } });
   const { drawnBodies, shownBodies, animatedOffsets, bodyColors, hiddenBodies, faceColors, proposalTint, placeSkip } = appearance;
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
@@ -2707,7 +2715,9 @@ export function App() {
     // (G19: the mode and planes, and the exact section's kept volume once it is shown.)
     w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, hatch: sectionHatchOn ? { spacing: hatchStep, lines: sectionHatchLines?.map(h => ({ body: h.body, segments: h.segments.length / 6 })) ?? null } : null, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null, shownVolume: shownBodies.reduce((v, b) => v + meshVolume(b.mesh), 0),
       // (G19.5: each shown body's own body, and the Render workspace's offsets on them, by shown body's key.)
-      shownKeys: shownBodies.map(b => b.key), sources: shownBodies.map(b => (shownBodies === sectionBodies && sectionExactShown ? sectionExact!.from.get(b.key) : null) ?? b.key), offsets: animatedOffsets ? [...animatedOffsets].map(([i, o]) => [shownBodies[i]?.key, o]) : null });
+      shownKeys: shownBodies.map(b => b.key), sources: shownBodies.map(b => (shownBodies === sectionBodies && sectionExactShown ? sectionExact!.from.get(b.key) : null) ?? b.key), offsets: animatedOffsets ? [...animatedOffsets].map(([i, o]) => [shownBodies[i]?.key, o]) : null,
+      historyAlignBounds: alignPreviewBodies === shownBodies && editNode !== null
+        ? shownBodies.find(body => body.ref?.node === editNode)?.mesh.bounds : null });
     w.__studioSectionDebug = setSectionDebug;
     // (The axis form as before, or a section of planes, G19.)
     (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);
@@ -2773,7 +2783,7 @@ export function App() {
   const shownSelection = modelUnavailable ? emptySel : sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: shownSectionEdges, bodies: [] }
     : shownEndFace ? { ...emptySel, faces: [shownEndFace] }
     : bandShown ? bandShown
-    : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : liveMeasurePicks ? { faces: liveMeasurePicks.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: liveMeasurePicks.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+    : routePreviewBodies || routePanelOpen || shownPreviewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : liveMeasurePicks ? { faces: liveMeasurePicks.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: liveMeasurePicks.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const [measureFrom, measureTo] = measurementItems ?? [];
   const measured = measureFrom && measureTo ? measureBetween(measureFrom.mesh, measureFrom.pick, measureTo.mesh, measureTo.pick) : null;
   const approximateMeasure = !!measureFrom && !!measureTo && (usesCurvedMeshDistance(measureFrom) || usesCurvedMeshDistance(measureTo));
@@ -2947,7 +2957,9 @@ export function App() {
   const meshBoxCrossing = !modelUnavailable && viewBodies === drawnBodies && viewportInstances.length === 0 && previewMode === 'none'
     && !active && !sketch && !drawing && !section && !measure && !inPlace && !assembly.draft
     && !cageEd.session && !skel.session && !ghost && !compareOverlay && !bodyDrag && !animatedOffsets?.size;
-  const viewportPicking = finishEdgePicking ?? (placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
+  const viewportPicking = alignPreviewBodies ? { ...picking, onPick: () => {}, onPickBody: () => {},
+    onPickChain: () => {}, onBoxSelect: () => {}, onContextMenu: () => {} }
+    : finishEdgePicking ?? (placedProposal ? { ...picking, onPick: (...args: Parameters<typeof picking.onPick>) => {
     const id = args[0].instance;
     if (id && placedProposal.has(id)) return;
     picking.onPick(...args);
@@ -3332,7 +3344,7 @@ export function App() {
       {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor readAlignTargets={doc.nodes[editNode]?.kind === 'align' ? readAlignHistoryTargets : undefined} edgeReplacement={finishEdgeEditor.available ? {
+        {editNode !== null && <NodeEditor alignPreview={historyAlign} readAlignTargets={doc.nodes[editNode]?.kind === 'align' ? readAlignHistoryTargets : undefined} edgeReplacement={finishEdgeEditor.available ? {
           start: finishEdgeEditor.start, cancel: finishEdgeEditor.cancel, apply: finishEdgeEditor.apply,
           draft: finishEdgeEditor.current,
         } : undefined} onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
@@ -3554,8 +3566,8 @@ export function App() {
         mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay}
         instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : measuredInstanceFaces}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
-        bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
-        snapStep={snapStep} pickFilter={finishEdgePicking || (active?.fillet?.type === 'edge' && pickFilter === 'edge') ? 'edge' : active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable || alignPreviewBodies ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
+        snapStep={snapStep} pickFilter={finishEdgePicking || (active?.fillet?.type === 'edge' && pickFilter === 'edge') ? 'edge' : active ? 'all' : pickFilter} hoverBody={shownPreviewBodies ? null : rowHover}
         picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, placed: placedSketchSnaps, objectKinds: objectSnapKinds }} onCursor={onCursor}
         boundsBox={fresh && showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;

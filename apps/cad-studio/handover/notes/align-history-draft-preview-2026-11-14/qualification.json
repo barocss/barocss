@@ -1,0 +1,294 @@
+{
+  "decision": "D1232",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "faa8839c7db8663eab3fd99b858785af913630f6",
+  "commands": [
+    "gate.sh acquire heavy 600 D1232-<run>",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --retarget --target-names --history-preview --preview-baseline",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/final --retarget --target-names --history-preview --delay-history-preview",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/control --retarget --target-names",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature fillet-family",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx apps/cad-studio/src/app/useAlignHistoryPreview.ts",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx (known parent failure)",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check",
+    "Repeat the final and control D1203_SOURCE_FROZEN Studio commands to verified and verified-control after the fallback type correction."
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 882,
+      "receiptSHA256": "fe8b92585b1a124b7824f570ef2dc05173e35e8d810d790c9f15544fdf474ef7",
+      "sourceManifestSHA256": "176bbf3e91aad3567218fba13851c49e8f82f731176ac0686fe1710936d4aa29",
+      "sourceAfterCleanupSHA256": "176bbf3e91aad3567218fba13851c49e8f82f731176ac0686fe1710936d4aa29",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "history-preview",
+          "movedBounds": {
+            "min": [
+              0,
+              0,
+              12
+            ],
+            "max": [
+              12,
+              10,
+              18
+            ]
+          },
+          "obsoleteReplyExercised": true,
+          "refusedGap": -1
+        },
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "b45d108382e7aa6b8d70dd923441db22c016010dca34de3a9f573dcb18d3f740",
+      "sourceManifestSHA256": "ad5d650b806f88cdd6f483411d423e33199d3db059f82c3ecee0292063da4e5b",
+      "sourceAfterCleanupSHA256": "ad5d650b806f88cdd6f483411d423e33199d3db059f82c3ecee0292063da4e5b",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "25997c57acb0bf53639482e39afc22f189445e5d8a557ee0f0c99482b5a50c7a",
+      "sourceManifestSHA256": "ad5d650b806f88cdd6f483411d423e33199d3db059f82c3ecee0292063da4e5b",
+      "sourceAfterCleanupSHA256": "ad5d650b806f88cdd6f483411d423e33199d3db059f82c3ecee0292063da4e5b",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "history-preview",
+          "movedBounds": {
+            "min": [
+              0,
+              0,
+              12
+            ],
+            "max": [
+              12,
+              10,
+              18
+            ]
+          },
+          "obsoleteReplyExercised": true,
+          "refusedGap": -1
+        },
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "d160d48116c4d56be8681ee5057f1018dfed199ea451c4a4d9addee38f30eb99",
+      "sourceManifestSHA256": "3d9168501c89fede07985046153938b471aabb93d440d33ec0412a81d40d914f",
+      "sourceAfterCleanupSHA256": "3d9168501c89fede07985046153938b471aabb93d440d33ec0412a81d40d914f",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "448cb9bde064b58afa08590335d439f2834bbb6495a292f5fd45dc6427cb979c",
+      "sourceManifestSHA256": "3d9168501c89fede07985046153938b471aabb93d440d33ec0412a81d40d914f",
+      "sourceAfterCleanupSHA256": "3d9168501c89fede07985046153938b471aabb93d440d33ec0412a81d40d914f",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

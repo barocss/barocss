@@ -14,6 +14,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { savedCutPatternSource } from '../app/cutPatternSource';
 import { AlignHistoryTarget, type AlignTargetOption } from './AlignHistoryTarget';
+import type { useAlignHistoryPreview } from '../app/useAlignHistoryPreview';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import { SweepHistoryInputs } from './SweepHistoryInputs';
 import { HoleHistoryInputs } from './HoleHistoryInputs';
@@ -24,7 +25,7 @@ function invalidInteger(value: number, range: { min: number; max: number }): boo
   return !Number.isInteger(value) || value < range.min || value > range.max;
 }
 
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, insetRelinkProblem, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, onReplaceAxis, onEditOffset, onEditDraft, readAlignTargets, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(opener: HTMLButtonElement): void; cancel(): void; reviewing: boolean }; insetRelinkProblem?: string; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; onReplaceAxis?(): void; onEditOffset?(): void; onEditDraft?(): void; readAlignTargets?(): Promise<AlignTargetOption[]>; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: StudioDoc; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, insetRelinkProblem, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, onReplaceAxis, onEditOffset, onEditDraft, readAlignTargets, alignPreview, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(opener: HTMLButtonElement): void; cancel(): void; reviewing: boolean }; insetRelinkProblem?: string; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; onReplaceAxis?(): void; onEditOffset?(): void; onEditDraft?(): void; readAlignTargets?(): Promise<AlignTargetOption[]>; alignPreview?: ReturnType<typeof useAlignHistoryPreview>; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: StudioDoc; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -35,8 +36,11 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const [readingEnd, setReadingEnd] = useState(false);
   const ordinaryLocked = pending || !!edgeReplacement?.draft;
   const request = useRef<object | null>(null);
+  const draftScope = useRef({ nodes, index });
+  const sameDraftScope = draftScope.current.nodes === nodes && draftScope.current.index === index;
   const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure } | null>(null);
   useLayoutEffect(() => {
+    draftScope.current = { nodes, index };
     recoveredLengths.current = new WeakSet();
     return () => { request.current = null; };
   }, [nodes, index]);
@@ -137,6 +141,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     onDraft({});
     return () => onDraft(null);
   }, [onDraft, changed, draft, typed, nodes, index]);
+  const readAlignPreview = alignPreview?.read;
+  const previewAlignDraft = sameDraftScope && node?.kind === 'align' && !node.suppressed && nodes !== draft && !ordinaryLocked && !hasInvalidNumber;
+  useLayoutEffect(() => {
+    if (previewAlignDraft && draft[index]?.kind === 'align' && nodes[index]?.kind === 'align') return readAlignPreview?.(draft);
+  }, [readAlignPreview, previewAlignDraft, draft, nodes, index]);
+  const alignResult = previewAlignDraft ? alignPreview?.result : null;
   const apply = () => {
     if (!changed || pending || edgeReplacement?.draft || incompleteInset || hasInvalidNumber || lengthProblem || request.current) return;
     setModeProblem(null);
@@ -276,6 +286,9 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
       {onDelete && <button className="ghost danger" disabled={ordinaryLocked} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={event => remove(event.currentTarget)}><Icon name="delete" small /> Delete feature</button>}
       {pending && <div className="empty" role="status">{pendingLabel}</div>}
+      {!current && alignResult?.kind === 'pending' && <div className="empty" role="status">Checking Align preview…</div>}
+      {!current && alignResult?.kind === 'ready' && <div className="small" role="status">Align preview</div>}
+      {!current && alignResult?.kind === 'error' && <FeatureFailureNotice error={alignResult.error} />}
       {current?.error && <FeatureFailureNotice error={current.error} />}
       {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasInvalidNumber || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasInvalidNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
     </div>

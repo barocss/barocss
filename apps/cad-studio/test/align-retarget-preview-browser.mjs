@@ -4,13 +4,18 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const targetNames = process.argv.includes('--target-names');
 const namesBaseline = process.argv.includes('--names-baseline');
+const historyPreview = process.argv.includes('--history-preview');
+const previewBaseline = process.argv.includes('--preview-baseline');
+const delayHistoryPreview = process.argv.includes('--delay-history-preview');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
+  ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
   'packages/barocss-cad-model/src/app/alignCommand.ts'];
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: targetNames ? 'Align History identifies each target body and exact native face.'
+  qualification: historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
+    : targetNames ? 'Align History identifies each target body and exact native face.'
     : 'Align uses the original face the pointer hits after results reorder in preview.',
   limits: ['Desktop WebGPU, top faces of three root native boxes, fixed Gap 2 mm.'],
   inspectorSource: `
@@ -80,6 +85,35 @@ async function verify(label, doc, target, gap = 2, lineUp = 'centre') {
   f.report.observations.push({ label, target, offset, bodies: result.map(({ key, volume, centroid }) => ({ key, volume, centroid })) });
 }
 await f.run(async () => {
+  if (delayHistoryPreview) {
+    const newContext = f.browser.newContext.bind(f.browser);
+    f.browser.newContext = async options => {
+      const context = await newContext(options);
+      await context.addInitScript(() => {
+        const descriptor = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
+        let deliver;
+        window.__alignPreviewDelay = { armed: false, held: () => !!deliver, release: () => {
+          const reply = deliver;
+          deliver = undefined;
+          reply?.();
+        } };
+        Object.defineProperty(Worker.prototype, 'onmessage', {
+          ...descriptor,
+          set(listener) {
+            descriptor.set.call(this, listener && (event => {
+              if (window.__alignPreviewDelay.armed && event.data?.result?.ok && event.data.result.bodies?.some(body => body.key === 'b6')) {
+                window.__alignPreviewDelay.armed = false;
+                deliver = () => listener.call(this, event);
+                return;
+              }
+              listener.call(this, event);
+            }));
+          },
+        });
+      });
+      return context;
+    };
+  }
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'align-targets.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
@@ -158,6 +192,59 @@ await f.run(async () => {
     await f.same(applied);
     await f.snapshot('history-target-before-apply');
     Object.assign(expected.nodes.at(-1), { target: { feature: 'n3', face: 'n3.top', axis: 'z', sign: 1, body: ref(3) } });
+    if (historyPreview) {
+      const notice = f.editor().getByRole('status').filter({ hasText: 'Align preview' });
+      if (previewBaseline) {
+        assert.equal(await notice.count(), 0);
+        await f.snapshot('history-preview-missing');
+        throw new Error('Align History changes the target input but displays only the accepted shape.');
+      }
+      const shown = (min, max) => f.page.waitForFunction(([min, max]) => {
+        const bounds = window.__studioSection().historyAlignBounds;
+        return bounds && bounds.min.every((value, i) => Math.abs(value - min[i]) < 1e-7)
+          && bounds.max.every((value, i) => Math.abs(value - max[i]) < 1e-7);
+      }, [min, max]);
+      await notice.getByText('Align preview', { exact: true }).waitFor();
+      await shown([44, 3, 10], [56, 13, 16]);
+      if (delayHistoryPreview) {
+        await f.page.evaluate(() => { window.__alignPreviewDelay.armed = true; });
+        await gap.fill('3');
+        await f.page.waitForFunction(() => window.__alignPreviewDelay.held());
+      }
+      await gap.fill('4');
+      await shown([44, 3, 12], [56, 13, 18]);
+      if (delayHistoryPreview) {
+        await f.page.evaluate(() => window.__alignPreviewDelay.release());
+        await shown([44, 3, 12], [56, 13, 18]);
+      }
+      await lineup.selectOption('touch');
+      await shown([0, 0, 12], [12, 10, 18]);
+      await f.same(applied);
+      const draft = await f.snapshot('history-align-gap-and-line-up-preview', () => ({
+        bounds: window.__studioSection().historyAlignBounds,
+      }));
+      await clickAt([6, 5, 18]);
+      assert.deepEqual(await f.page.evaluate(() => window.__studioSelection), draft.selection);
+      await gap.fill('-1');
+      await f.editor().getByText('Change the Align settings or reset this edit.', { exact: true }).waitFor();
+      assert.equal(await f.page.evaluate(() => window.__studioSection().historyAlignBounds), null);
+      await f.same(applied);
+      if (delayHistoryPreview) {
+        await f.page.evaluate(() => { window.__alignPreviewDelay.armed = true; });
+        await gap.fill('7');
+        await f.page.waitForFunction(() => window.__alignPreviewDelay.held());
+      }
+      await button('Reset', f.editor()).click();
+      if (delayHistoryPreview) await f.page.evaluate(() => window.__alignPreviewDelay.release());
+      await notice.waitFor({ state: 'hidden' });
+      assert.equal(await f.page.evaluate(() => window.__studioSection().historyAlignBounds), null);
+      assert.equal(await chooser.locator('option:checked').innerText(), targetLabel('n5.top'));
+      await f.same(applied);
+      await chooser.selectOption({ label: targetLabel('n3.top') });
+      await shown([44, 3, 10], [56, 13, 16]);
+      f.report.observations.push({ label: 'history-preview', movedBounds: draft.bounds,
+        obsoleteReplyExercised: delayHistoryPreview, refusedGap: -1 });
+    }
   } else {
     await gap.fill('4');
     await lineup.selectOption('touch');
