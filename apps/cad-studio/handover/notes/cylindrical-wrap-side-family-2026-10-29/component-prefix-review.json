@@ -1,6 +1,0 @@
-{
-  "status": "PASS",
-  "cases": 4,
-  "fullSelectedReceiptsEqual": true,
-  "scope": "selected D300 component results/counters; not all-input equivalence or timing result"
-}

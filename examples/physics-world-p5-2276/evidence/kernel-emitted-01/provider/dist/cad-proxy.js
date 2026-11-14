@@ -1,2 +1,0 @@
-export { admitCadSurfaceProxy, assertCadProxyCurrent } from './cad-proxy-admission.js';
-export { cadProxyPose } from './cad-proxy-pose.js';

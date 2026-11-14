@@ -1,1 +1,0 @@
-{"nodesBeforeNewPart":0,"stillSketchingAfterNewPart":true,"fileName":"Untitled","afterFinish":["sketch:rectangle","extrude"],"errors":[]}

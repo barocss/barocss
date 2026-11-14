@@ -1,6 +1,0 @@
-{
-  "name": "AssertionError",
-  "message": "strict emission failed; first failure retained\n\n2 !== 0\n",
-  "code": "ERR_ASSERTION",
-  "reports": []
-}

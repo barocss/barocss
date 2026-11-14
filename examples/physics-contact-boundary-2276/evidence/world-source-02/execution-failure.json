@@ -1,4 +1,0 @@
-{
-  "name": "AssertionError",
-  "message": "world-consumer failed; attempt retained\n\nnull !== 0\n"
-}

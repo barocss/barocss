@@ -1,3 +1,0 @@
-holder: none
-slots: 0 of 3
-load: { 6.56 6.87 6.98 }

@@ -1,3 +1,0 @@
-# Preserve original assertion output, including indentation-only lines.
-original-failures.txt -whitespace
-shape-final.txt -whitespace

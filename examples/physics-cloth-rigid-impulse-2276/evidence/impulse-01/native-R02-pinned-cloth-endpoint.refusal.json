@@ -1,6 +1,0 @@
-{
-  "status": "PASS_EXPECTED_REFUSAL",
-  "code": "INVALID_INPUT",
-  "reason": "PINNED_ENDPOINT",
-  "inputUnchanged": true
-}

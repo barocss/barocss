@@ -48,11 +48,6 @@ function packageScript(name, directory, command, expected) {
   if (manifest.name !== name || typeof manifest.scripts?.[command] !== 'string' || (expected !== undefined && manifest.scripts[command] !== expected)) throw new Error('selected script missing or changed');
   run('pnpm', ['--filter', name, 'run', command]);
 }
-function viewer() {
-  // Real-browser WebGPU tests: they skip without CHROME and PW_DIR.
-  for (const name of ['viewer-browser', 'viewer-native-browser']) run(process.execPath, ['--test', '--test-concurrency=1', `packages/barocss-viewer/tests/${name}.test.mjs`]);
-  run(process.execPath, ['--test', 'examples/viewer-native-scene-replacement/surface-curvature-contract.test.mjs']);
-}
 function rootChecks() {
   const tests = readdirSync('.github/scripts').filter((name) => name.endsWith('.test.mjs')).sort().map((name) => `.github/scripts/${name}`);
   if (!tests.length) throw new Error('missing release tests');
@@ -154,7 +149,6 @@ async function main() {
     if (plan.mode !== 'full') throw new Error('wrong route');
     const regression = action === 'regression';
     if (regression && !['workflow_dispatch', 'workflow_call'].includes(process.env.GITHUB_EVENT_NAME)) throw new Error('regression requires a manual/pre-release caller');
-    if (regression) viewer();
     for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')), regression)) {
       run('pnpm', args);
       if (args.length === 1 && args[0] === 'lint') await appLint(plan, undefined, regression);

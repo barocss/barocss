@@ -441,3 +441,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **BaroCSS** - Where Tailwind meets realtime. Style anything, anywhere, instantly.
 
 *No build step. No waiting. Just pure, instant CSS magic.* ✨
+
+## CAD
+
+CAD Studio, Viewer, and the CAD libraries are maintained in [barocss/cad](https://github.com/barocss/cad).
