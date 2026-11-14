@@ -1,0 +1,162 @@
+{
+  "decision": "D1160",
+  "tier": "FEATURE",
+  "parent": "4491fc7418cd78f4d3fd2988eeef0bf3d22b56a3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1160-<run>",
+    "D1160_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-empty-planar-cut-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1154_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-empty-cut-browser.mjs <external-evidence>/upright-regression",
+    "D1159_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-cut-workplanes-browser.mjs <external-evidence>/workplanes-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs engine.test profiles-parameters union-touch pocketFloor",
+    "cd apps/cad-studio && node scripts/test.mjs failed-feature",
+    "node --test packages/barocss-cad/test/polyhedral-boolean.test.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/evaluate.ts",
+    "node --check apps/cad-studio/test/extrude-empty-planar-cut-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 5,
+      "frozenFiles": 869,
+      "receiptSHA256": "27979d4d510616563c8a9b841fa6728475c18075c08ce348b0f172fcef230327",
+      "sourceManifestSHA256": "d76bc2a5e88b29e36dd6f1561b3504ad8ad7147fba735fe3089db531f041ea18",
+      "observations": [
+        {
+          "label": "side-gap",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 12000,
+            "floors": [
+              40
+            ]
+          },
+          "actualRemovedVolume": 0
+        },
+        {
+          "label": "side-contact",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 12000,
+            "floors": [
+              40
+            ]
+          },
+          "actualRemovedVolume": 0
+        },
+        {
+          "label": "drafted-gap",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 12000,
+            "floors": [
+              10
+            ]
+          },
+          "actualRemovedVolume": 0
+        },
+        {
+          "label": "drafted-contact",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 12000,
+            "floors": [
+              10
+            ]
+          },
+          "actualRemovedVolume": 0
+        }
+      ]
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 7,
+      "frozenFiles": 869,
+      "receiptSHA256": "9db6f570c92facf6035a36d2dc12d0895f4be0e1c6a878cdc8955f7810294c58",
+      "sourceManifestSHA256": "f4fed9aaaf4dabaa1c2029f4f557a306360d8e832942633031ec429ccabd1789",
+      "observations": [
+        {
+          "label": "side-gap",
+          "acceptedVolume": 12000,
+          "refused": true
+        },
+        {
+          "label": "side-contact",
+          "acceptedVolume": 12000,
+          "refused": true
+        },
+        {
+          "label": "drafted-gap",
+          "acceptedVolume": 12000,
+          "refused": true
+        },
+        {
+          "label": "drafted-contact",
+          "acceptedVolume": 12000,
+          "refused": true
+        },
+        {
+          "label": "side-positive",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 11936.000000000002,
+            "floors": [
+              40,
+              38
+            ]
+          },
+          "actualRemovedVolume": 63.99999999999818
+        },
+        {
+          "label": "side-thin-positive",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 11999.968000000003,
+            "floors": [
+              40,
+              39.999
+            ]
+          },
+          "actualRemovedVolume": 0.03199999999742431
+        },
+        {
+          "label": "drafted-positive",
+          "native": {
+            "count": 1,
+            "valid": true,
+            "volume": 11821.774518946002,
+            "floors": [
+              10,
+              8
+            ]
+          },
+          "actualRemovedVolume": 178.225481053998
+        }
+      ]
+    },
+    "upright-regression": {
+      "status": "PASS",
+      "states": 4,
+      "frozenFiles": 869,
+      "receiptSHA256": "39eab50f82328aac22ea19f603344ce10413adcab6e2fc652c6e2be380ac9580",
+      "sourceManifestSHA256": "39581422af08a9196bffb08c62e2d5aa78e415d710661b7b1fd12d4dde8392ff"
+    },
+    "workplanes-regression": {
+      "status": "PASS",
+      "states": 12,
+      "frozenFiles": 870,
+      "receiptSHA256": "d2b73741f77fc44b47d949aa3cddfc06e8f4efd36d764b8e4f06f6a84db57594",
+      "sourceManifestSHA256": "65561f86721a58a777b7df5056bbd7ddee224c9e79174b6df1758345e6a8b461"
+    }
+  }
+}

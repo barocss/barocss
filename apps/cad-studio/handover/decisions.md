@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1160 — refuse empty side and drafted rectangular Cuts](notes/extrude-empty-planar-cut-2026-11-14/README.md).
 - [D1159 — qualify Cut on side and oblique work planes](notes/extrude-cut-workplane-history-2026-11-14/README.md).
 - [D1158 — preserve positive drafted Cut Distance in History](notes/drafted-cut-distance-history-2026-11-14/README.md).
 - [D1157 — follow the native pocket floor after a placement edit](notes/face-sketch-pocket-floor-placement-2026-11-14/README.md).

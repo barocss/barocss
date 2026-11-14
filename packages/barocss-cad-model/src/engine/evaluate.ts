@@ -327,7 +327,7 @@ const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { pre
 function emptyExtrudeCut(snapshot: CadPartSnapshot, doc: StudioDoc, cutFeature: string): boolean {
   const cut = doc.nodes.at(-1);
   const tool = cut?.kind === 'difference' ? doc.nodes[cut.tool.node] : undefined;
-  if (cut?.kind !== 'difference' || cut.id !== cutFeature || tool?.kind !== 'extrude' || tool.draft) return false;
+  if (cut?.kind !== 'difference' || cut.id !== cutFeature || tool?.kind !== 'extrude') return false;
   const stock = doc.nodes[cut.parent.node];
   const profile = doc.nodes[tool.sketch];
   if (cut.parent.side !== 'solid' || cut.tool.side !== 'solid' || !stock?.id || profile?.kind !== 'sketch') return false;
@@ -335,11 +335,20 @@ function emptyExtrudeCut(snapshot: CadPartSnapshot, doc: StudioDoc, cutFeature: 
   if (native?.kind !== 'difference' || native.id !== cutFeature || native.target !== stock.id || native.tool !== tool.id) return false;
   // A whole-stock cut has no Difference body and can still have a positive intersection.
   const result = snapshot.outputs.find(output => output.feature === cutFeature);
-  if (result?.representation !== 'upright') return false;
+  const upright = !tool.draft && result?.representation === 'upright';
+  const stockProfile = stock.kind === 'extrude' ? doc.nodes[stock.sketch] : undefined;
+  const planarRectangle = result?.representation === 'planar' && result.bodyCount === 1
+    && result.brep.bodies[0].kind === 'solid'
+    && stock.kind === 'extrude' && stockProfile?.kind === 'sketch'
+    && [stockProfile, profile].every(sketch => sketch.profile === 'rectangle'
+      && !sketch.regions?.length && !sketch.holes?.length && !sketch.association);
+  if (!upright && !planarRectangle) return false;
   try {
     const intersection = reevaluate(snapshot, { document: { ...snapshot.document,
       features: [...snapshot.document.features.slice(0, -1), { ...native, kind: 'intersect' }] } });
-    return !intersection.outputs.some(output => output.feature === cutFeature);
+    const verified = intersection.features.at(-1);
+    return verified?.id === cutFeature && verified.kind === 'intersect'
+      && !intersection.outputs.some(output => output.feature === cutFeature);
   } catch {
     // An unqualified probe does not certify an empty cut.
     return false;
