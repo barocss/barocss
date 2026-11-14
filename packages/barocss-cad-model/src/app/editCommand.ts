@@ -22,6 +22,7 @@ import { textReliefEditCommand } from './textReliefCommand';
 import { linearSpanHandles } from './linearSpanHandles';
 import { namedHoleEntry } from './holeEntry';
 import { splitPlaneHandle } from './splitPlaneHandle';
+import { holeRowEditProblem } from './holePatternInput';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -219,7 +220,10 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
     build: (ctx, v) => {
       if (isSketchAnchoredCut(ctx.doc.nodes, index) && 'h' in v && (!Number.isFinite(Number(v.h)) || Number(v.h) <= 0))
         throw refusal('VALUE', 'Cut Distance must be greater than 0 mm.');
-      return { ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) };
+      const next = edited(ctx.doc.nodes, index, v, ctx.doc.parameters);
+      const holeProblem = holeRowEditProblem(ctx.doc.nodes[index], next[index], ctx.doc.parameters);
+      if (holeProblem) throw refusal('HOLE_PATTERN', holeProblem);
+      return { ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, next) };
     },
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];

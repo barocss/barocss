@@ -45,6 +45,7 @@ import { coded, refusal } from '../engine/refusal';
 import { mirrorReplacementPlane } from '../engine/mirrorReplacement';
 import { draftBodyEnd, draftInputs, draftNeutral, draftNeutralDefault, draftNeutralStep, draftPulls, readDraftPull, type DraftPull } from './draftInputs';
 import { splitPlaneHandle } from './splitPlaneHandle';
+import { holeRowSpacingProblem } from './holePatternInput';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -592,7 +593,8 @@ const allCommands: Command[] = [
       const count = Math.round(Number(v.pn));
       if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw refusal('HOLE_PATTERN', 'A hole pattern has 2 to 64 holes.');
       const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
-      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw refusal('HOLE_PATTERN', 'The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
+      const rowProblem = pattern && 'step' in pattern && holeRowSpacingProblem(pattern.step, Number(v.d));
+      if (rowProblem) throw refusal('HOLE_PATTERN', rowProblem);
       if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw refusal('HOLE_PATTERN', 'Put the first hole away from the circle’s centre: the copies turn round it.');
       const pat = pattern ? { pattern } : {};
       const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { countersink: Number(v.csd) } : {}), ...pat });

@@ -136,7 +136,8 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
   }
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params || nodes[i]?.kind === 'linear-span-pattern') return raw;
-  return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {
+  return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol')
+    || (nodes[i]?.kind === 'hole' && (f.key === 'step0' || f.key === 'step1')) ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,
@@ -294,7 +295,18 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number('c' + k, 'Centre ' + axis.toUpperCase(), 'mm', n => num((n as typeof node).center[k]), (n, v) => { const c = [...(n as typeof node).center] as [Dim, Dim]; c[k] = v; return { ...(n as typeof node), center: c }; }));
       if (node.depth !== undefined) number('depth', 'Depth', 'mm', n => num((n as typeof node).depth), (n, v) => ({ ...(n as typeof node), depth: v }));
       if (node.countersink !== undefined) number('csk', 'Countersink Ø', 'mm', n => (n as typeof node).countersink ?? 0, (n, v) => ({ ...(n as typeof node), countersink: v }));
-      if (node.pattern) number('count', 'Copies', undefined, n => (n as typeof node).pattern?.count ?? 1, (n, v) => ({ ...(n as typeof node), pattern: { ...(n as typeof node).pattern!, count: Math.max(1, Math.round(v)) } }));
+      if (node.pattern) {
+        number('count', 'Copies', undefined, n => (n as typeof node).pattern?.count ?? 1, (n, v) => ({ ...(n as typeof node), pattern: { ...(n as typeof node).pattern!, count: Math.max(1, Math.round(v)) } }));
+        if ('step' in node.pattern) HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number('step' + k, 'Step ' + axis.toUpperCase(), 'mm',
+          n => { const pattern = (n as typeof node).pattern; return pattern && 'step' in pattern ? pattern.step[k] : NaN; },
+          (n, value) => {
+            const hole = n as typeof node, pattern = hole.pattern;
+            if (!pattern || !('step' in pattern) || !Number.isFinite(value)) return hole;
+            const step = [...pattern.step] as [number, number];
+            step[k] = value;
+            return { ...hole, pattern: { ...pattern, step } };
+          }));
+      }
       break;
     case 'fillet':
       // (A varying radius: its two ends' radii, D100.)

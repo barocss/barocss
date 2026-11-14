@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1181 — edit signed Hole row spacing in History](notes/hole-row-history-step-2026-11-14/README.md).
 - [D1180 — use Hole Type from the keyboard without applying](notes/hole-type-keyboard-2026-11-14/README.md).
 - [D1179 — keep the picked Hole centre when grid snap is off](notes/hole-picked-centre-snap-2026-11-14/README.md).
 - [D1178 — select and use a Hole preset with the keyboard](notes/hole-preset-keyboard-2026-11-14/README.md).

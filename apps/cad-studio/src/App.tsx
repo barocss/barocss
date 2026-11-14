@@ -63,6 +63,7 @@ import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
 import { canEditSavedOffsetFace, editSavedOffsetFaceCommand, OFFSET_FACE_EDIT } from '@barocss/cad-model/app/offsetFaceEdit';
 import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftEdit';
+import { holeRowEditProblem } from '@barocss/cad-model/app/holePatternInput';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
@@ -3258,6 +3259,8 @@ export function App() {
           if ('error' in patternEdit) return Promise.resolve(patternEdit.error);
           const cutProblem = rectangularCutEditProblem(doc, patternEdit.nodes, editNode);
           if (cutProblem) return Promise.resolve(cutProblem);
+          const hint = holeRowEditProblem(doc.nodes[editNode], patternEdit.nodes[editNode], doc.parameters);
+          if (hint) return Promise.resolve({ title: 'The Hole row step is invalid', hint, detail: '' });
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, patternEdit.nodes) };
           const candidate = preparePatternNodeCandidate(doc, next, editNode);
           if (candidate) { stageFeatureCandidate(candidate); return; }

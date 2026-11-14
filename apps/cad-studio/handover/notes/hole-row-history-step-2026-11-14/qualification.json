@@ -1,0 +1,136 @@
+{
+  "decision": "D1181",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "caf8206f80757046d2c654c20e2f64378e28666e",
+  "commands": [
+    "gate.sh acquire heavy 600 D1181-<run>",
+    "D1181_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-row-history-browser.mjs <external-evidence>/<run>",
+    "D1180_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-pick-position-browser.mjs <external-evidence>/type-regression --type-keyboard",
+    "cd packages/barocss-cad-model && node scripts/test.mjs hole-types feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/{commands,editFields,editCommand,holePatternInput}.ts",
+    "node --check apps/cad-studio/test/hole-row-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "hole-row-created",
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "88feb107c686b8223cb644ebfe4c0ad44294d65278dcc526087344e741e7c0ef",
+      "sourceManifestSHA256": "cc21a52bb71d46d1e02df3274af4b445fa3de1ed2bb8cd70b2d2a4e10faae9d9"
+    },
+    "first": {
+      "status": "FAIL",
+      "states": [
+        "hole-row-created",
+        "short-row-step-refused",
+        "hole-row-revised",
+        "hole-row-reopened",
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "5e3e857221ed3f771d3bb46a84fce47a9c1d6945ff8c318a10b2ffe3a535b8a2",
+      "sourceManifestSHA256": "04631cee4aaa79c2c177e01d28cb2227378d25a9903b1d84746aa9a372efeab8"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "hole-row-created",
+        "short-row-step-refused",
+        "hole-row-revised",
+        "hole-row-reopened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "91d9db7e4b64c8d534c9f4dfb4f35d7f9d159963982cf58f1d12d899147a38dc",
+      "sourceManifestSHA256": "04631cee4aaa79c2c177e01d28cb2227378d25a9903b1d84746aa9a372efeab8",
+      "observations": [
+        {
+          "label": "hole-row-created",
+          "centres": [
+            [
+              8,
+              12
+            ],
+            [
+              16,
+              13
+            ],
+            [
+              24,
+              14
+            ]
+          ],
+          "volume": 18747.61065788305,
+          "centroid": [
+            20.096522026272527,
+            20.16891354597696,
+            6
+          ]
+        },
+        {
+          "label": "hole-row-revised",
+          "centres": [
+            [
+              8,
+              12
+            ],
+            [
+              19,
+              10
+            ],
+            [
+              30,
+              8
+            ]
+          ],
+          "volume": 18747.61065788305,
+          "centroid": [
+            20.0241305065681,
+            20.241305065681377,
+            5.999999999999999
+          ]
+        },
+        {
+          "label": "hole-row-reopened",
+          "centres": [
+            [
+              8,
+              12
+            ],
+            [
+              19,
+              10
+            ],
+            [
+              30,
+              8
+            ]
+          ],
+          "volume": 18747.61065788305,
+          "centroid": [
+            20.0241305065681,
+            20.241305065681377,
+            5.999999999999999
+          ]
+        }
+      ]
+    },
+    "type-regression": {
+      "status": "PASS",
+      "states": [
+        "type-keyboard-preview",
+        "type-keyboard-apply"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "3694498f841b1479c168be6e5271dadba7b8ade0a878c0c2bd6565c009898716",
+      "sourceManifestSHA256": "011a47ce1c4e05dd4f1ee26f5b6290bec24d14360a015a35742fb48779036ab5"
+    }
+  }
+}
