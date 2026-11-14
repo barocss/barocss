@@ -239,7 +239,7 @@ export function checkDraftedOffsetDistance(distance: number): void {
 /** Move an admitted native cap along its signed normal. */
 export const offsetFaceCommand: Command = {
   id: 'offset-face', label: 'Offset face', icon: 'cad-extrude', group: 'modify', keywords: 'move face push pull offset direct edit press',
-  hint: 'Move a prism or cylinder cap, or the upper cap of a rectangular taper. Drag the arrow or enter a signed distance.',
+  hint: 'Move a prism or cylinder cap, or an end cap of a rectangular taper. Drag the arrow or enter a signed distance.',
   available: ctx => {
     const selection = ctx.selection;
     if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return no('Pick one flat cap of a prism, cylinder or rectangular taper.');
@@ -269,7 +269,7 @@ export const offsetFaceCommand: Command = {
   handles: ctx => {
     try {
       const taper = resolveDraftedOffsetFace(ctx);
-      if (taper) return [{ key: 'd', at: taper.anchor, dir: [0, 0, 1], step: 0.5 }];
+      if (taper) return [{ key: 'd', at: taper.anchor, dir: taper.normal, step: 0.5 }];
       const profile = resolveNativeOffsetFace(ctx), plane = planeOf(profile.sketch), c = toWorld(plane, profileMiddle(profile.sketch, ctx.doc.parameters));
       return [{ key: 'd', at: [...c] as [number, number, number], dir: [...plane.normal] as [number, number, number], step: 0.5 }];
     } catch { return []; }

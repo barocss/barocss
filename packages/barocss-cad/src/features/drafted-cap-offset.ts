@@ -13,8 +13,8 @@ type FaceRole = { readonly axis: Axis | 2; readonly end: End };
 type Plane = Extract<ReturnType<typeof faceGeometry>, { kind: 'plane' }>;
 type Wall = { readonly axis: Axis; readonly end: End; readonly plane: Plane; readonly slope: number };
 type DraftedCap = {
-  readonly base: Section;
-  readonly top: Section;
+  readonly sections: readonly [Section, Section];
+  readonly end: End;
   readonly named: BrepFace;
   readonly opposite: BrepFace;
   readonly walls: ReadonlyMap<string, Wall>;
@@ -101,7 +101,7 @@ function admittedCap(brep: Brep, named: BrepFace): DraftedCap | undefined {
   }
 
   const walls = new Map<string, Wall>(), occupied = new Set<string>();
-  let cap: BrepFace | undefined, opposite: BrepFace | undefined;
+  const caps: [BrepFace?, BrepFace?] = [];
   for (const face of faces) {
     const loop = face.loops.length === 1 ? loopById.get(face.loops[0]) : undefined;
     if (loop?.kind !== 'outer' || loop.coedges.length !== 4) return undefined;
@@ -123,8 +123,7 @@ function admittedCap(brep: Brep, named: BrepFace): DraftedCap | undefined {
     const poles = face.surface.controlPoints.flat();
     if (axis === 2) {
       if (!poles.every(p => p[2] === (end === 0 ? base.z : top.z))) return undefined;
-      if (end === 0) opposite = face;
-      else cap = face;
+      caps[end] = face;
       continue;
     }
     const wall = { axis, end, plane, slope: -plane.n[2] / plane.n[axis] };
@@ -132,8 +131,9 @@ function admittedCap(brep: Brep, named: BrepFace): DraftedCap | undefined {
     if (![...poles, ...corners].every(p => Math.abs(p[axis] - wallAt(wall, p[2])) <= roundoff)) return undefined;
     walls.set(face.id, wall);
   }
-  if (cap !== named || !opposite || !checkBrep(brep, { strict: true }).valid) return undefined;
-  return { base, top, named, opposite, walls };
+  const end = caps[0] === named ? 0 : caps[1] === named ? 1 : undefined;
+  if (end === undefined || !caps[0] || !caps[1] || !checkBrep(brep, { strict: true }).valid) return undefined;
+  return { sections: [base, top], end, named, opposite: caps[1 - end]!, walls };
 }
 
 function namedCap(brep: Brep, faceName: string): BrepFace | undefined {
@@ -141,15 +141,15 @@ function namedCap(brep: Brep, faceName: string): BrepFace | undefined {
   return faces.length === 1 ? faces[0] : undefined;
 }
 
-/** The supported cap's anchor for command admission and handles. */
-export function draftedCapOffsetAnchor(brep: Brep, faceName: string): Point | undefined {
+/** Locate the exact named end and its signed outward normal. */
+export function draftedCapOffsetFrame(brep: Brep, faceName: string): { anchor: Point; normal: Point } | undefined {
   const face = namedCap(brep, faceName);
   if (!face) return undefined;
   try {
     const cap = admittedCap(brep, face);
     if (!cap) return undefined;
-    const { z, ranges: [[x0, x1], [y0, y1]] } = cap.top;
-    return [(x0 + x1) / 2, (y0 + y1) / 2, z];
+    const { z, ranges: [[x0, x1], [y0, y1]] } = cap.sections[cap.end];
+    return { anchor: [(x0 + x1) / 2, (y0 + y1) / 2, z], normal: [0, 0, cap.end === 0 ? -1 : 1] };
   } catch { return undefined; }
 }
 
@@ -169,69 +169,71 @@ function polesFit(surface: Surface): boolean {
 }
 
 /** A wall chart spanning both sections can remain in place as the trim moves over it. */
-function chartCovers(surface: Surface, wall: Wall, base: Section, far: Section): boolean {
+function chartCovers(surface: Surface, wall: Wall, base: Section, top: Section): boolean {
   const poles = surface.controlPoints.flat(), across: Axis = wall.axis === 0 ? 1 : 0;
   const lo = Math.min(...poles.map(p => p[2])), hi = Math.max(...poles.map(p => p[2]));
-  if (!(hi > lo) || base.z < lo || far.z > hi) return false;
+  if (!(hi > lo) || base.z < lo || top.z > hi) return false;
   const atLo = poles.filter(p => p[2] === lo).map(p => p[across]).sort((a, b) => a - b);
   const atHi = poles.filter(p => p[2] === hi).map(p => p[across]).sort((a, b) => a - b);
   if (atLo.length !== 2 || atHi.length !== 2 || !(atLo[0] < atLo[1] && atHi[0] < atHi[1])) return false;
   // Two horizontal boundary edges enclosing the two sections also enclose their connecting lines.
   const at = (z: number, end: End) => atLo[end] + (atHi[end] - atLo[end]) * ((z - lo) / (hi - lo));
   const roundoff = roundoffAt(poles);
-  return [base, far].every(({ z, ranges }) => ranges[across][0] >= at(z, 0) - roundoff && ranges[across][1] <= at(z, 1) + roundoff);
+  return [base, top].every(({ z, ranges }) => ranges[across][0] >= at(z, 0) - roundoff && ranges[across][1] <= at(z, 1) + roundoff);
 }
 
 function fail(code: BrepError['code'], detail: string): never {
   throw new BrepError(code, 'drafted cap offset: ' + detail);
 }
 
-/** Move the named +Z cap to another cross-section of its existing planar supports. */
+/** Move the named Z-facing cap outwards by a signed distance along its existing planar supports. */
 export function offsetDraftedCap(brep: Brep, faceName: string, distance: number): Brep {
   if (typeof distance !== 'number' || !Number.isFinite(distance)) fail('INPUT', 'distance must be finite');
   const face = namedCap(brep, faceName);
   if (!face) fail('INPUT', 'the selected face name is missing or ambiguous');
   const cap = admittedCap(brep, face);
-  if (!cap) fail('GEOMETRY', 'pick the +Z cap of one solid with tapered planar walls and rectangular sections');
+  if (!cap) fail('GEOMETRY', 'pick a Z-facing cap of one solid with tapered planar walls and rectangular sections');
   if (distance === 0) return brep;
-  const { base, top, named, opposite, walls } = cap, z = top.z + distance;
-  if (z === top.z) fail('GEOMETRY', 'distance is too small to move the cap');
+  const { sections, end, named, opposite, walls } = cap, outward = end === 0 ? -1 : 1;
+  const selected = sections[end], fixed = sections[1 - end], z = selected.z + outward * distance;
+  if (z === selected.z) fail('GEOMETRY', 'distance is too small to move the cap');
   const far: Section = { z, ranges: [[0, 0], [0, 0]] };
   for (const wall of walls.values()) far.ranges[wall.axis][wall.end] = wallAt(wall, z);
-  const extent = Math.max(Math.abs(base.z), Math.abs(z), ...base.ranges.flat().map(Math.abs), ...far.ranges.flat().map(Math.abs));
-  // The retained lower chart can be padded beyond its four trim corners.
-  const baseFits = opposite.surface.kind === 'surface' && polesFit(opposite.surface);
-  if (!Number.isFinite(extent) || extent > CadNumericPolicy.coordinateAbs || !baseFits)
+  const extent = Math.max(Math.abs(fixed.z), Math.abs(z), ...fixed.ranges.flat().map(Math.abs), ...far.ranges.flat().map(Math.abs));
+  // The retained cap's chart can be padded beyond its four trim corners.
+  const fixedFits = opposite.surface.kind === 'surface' && polesFit(opposite.surface);
+  if (!Number.isFinite(extent) || extent > CadNumericPolicy.coordinateAbs || !fixedFits)
     fail('GEOMETRY', 'the offset exceeds the modeling coordinate range');
   const linear = linearToleranceMM(extent);
-  if (z - base.z <= linear || far.ranges.some(([lo, hi]) => hi - lo <= linear))
+  if ((z - fixed.z) * outward <= linear || far.ranges.some(([lo, hi]) => hi - lo <= linear))
     fail('GEOMETRY', 'the offset would close a wall or cross the opposite cap');
+  const [base, top] = end === 0 ? [far, fixed] : [fixed, far];
 
   const vertices = brep.vertices.map(vertex => {
     const p = vertex.point;
-    if (p[2] === base.z) return vertex;
-    const point: Point = [far.ranges[0][endOf(top, p, 0)], far.ranges[1][endOf(top, p, 1)], z];
+    if (p[2] === fixed.z) return vertex;
+    const point: Point = [far.ranges[0][endOf(selected, p, 0)], far.ranges[1][endOf(selected, p, 1)], z];
     return { ...vertex, point };
   });
   const point = new Map(vertices.map(vertex => [vertex.id, vertex.point]));
   const edges = brep.edges.map(edge => {
     const [a, b] = edge.vertices.map(id => point.get(id)!);
-    if (a[2] === base.z && b[2] === base.z) return edge;
+    if (a[2] === fixed.z && b[2] === fixed.z) return edge;
     return { ...edge, curve: { ...edge.curve, controlPoints: [a, b] } };
   });
   const faces = brep.faces.map(face => {
     if (face === named) {
       const [[x0, x1], [y0, y1]] = far.ranges;
-      return { ...face, sense: 'forward' as const, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, face.surface.id, true) };
+      return { ...face, sense: 'forward' as const, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, face.surface.id, end === 1) };
     }
     const wall = walls.get(face.id);
     if (!wall) return face; // The opposite cap and its own trim are unchanged.
-    if (face.surface.kind === 'surface' && polesFit(face.surface) && chartCovers(face.surface, wall, base, far)) return face;
-    const { axis, end } = wall;
-    const sense = (axis === 1 ? end === 0 : end === 1) ? 'forward' as const : 'reversed' as const;
-    const adjusted = { ...face, sense, surface: sideSurface(face.surface.id, axis, end, base, far) };
+    if (face.surface.kind === 'surface' && polesFit(face.surface) && chartCovers(face.surface, wall, base, top)) return face;
+    const { axis, end: wallEnd } = wall;
+    const sense = (axis === 1 ? wallEnd === 0 : wallEnd === 1) ? 'forward' as const : 'reversed' as const;
+    const adjusted = { ...face, sense, surface: sideSurface(face.surface.id, axis, wallEnd, base, top) };
     const plane = planeOf(adjusted), normalError = plane ? Math.hypot(...plane.n.map((n, i) => n - wall.plane.n[i])) : Infinity;
-    const span = Math.max(1, ...base.ranges.map(([lo, hi]) => hi - lo), ...far.ranges.map(([lo, hi]) => hi - lo), far.z - base.z);
+    const span = Math.max(1, ...base.ranges.map(([lo, hi]) => hi - lo), ...top.ranges.map(([lo, hi]) => hi - lo), top.z - base.z);
     if (normalError * span > linear) fail('GEOMETRY', 'the offset cannot preserve the side wall planes at this distance');
     return adjusted;
   });

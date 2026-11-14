@@ -1,0 +1,268 @@
+{
+  "decision": "D1255",
+  "tier": "FULL",
+  "parent": "db12483debf3a7e61e407e9454c03af0fd5ef103",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1255-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node ../../node_modules/eslint/bin/eslint.js src/features/drafted-cap-offset.ts",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/drafted-cap-offset.test.mjs test/drafted-extrusion.test.mjs test/draft-neutral-plane.test.mjs",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 --test-name-pattern=draft test/part-model.test.mjs",
+    "D1255_SOURCE_FROZEN=1 node apps/cad-studio/test/offset-drafted-cap-browser.mjs <external-evidence>/lower --lower",
+    "D1254_SOURCE_FROZEN=1 node apps/cad-studio/test/offset-drafted-cap-browser.mjs <external-evidence>/upper",
+    "pnpm --filter @barocss/cad-model test offset-face-native feature-handles",
+    "pnpm --filter @barocss/cad-studio-app test document-file",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/nativeOffsetFace.ts packages/barocss-cad-model/src/app/profileCommands.ts",
+    "node --check apps/cad-studio/test/offset-drafted-cap-browser.mjs",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "kernel": {
+      "status": "PASS",
+      "tests": 45
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 43
+    },
+    "studioDocumentFile": {
+      "status": "PASS",
+      "tests": 16
+    },
+    "kernelTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "selectedLint": "PASS",
+    "codeShape": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReviewLowerCap": "PASS",
+    "newNavigationLinks": "PASS",
+    "fullSuites": "NOT_RUN",
+    "generalFuzz": "NOT_RUN",
+    "actualProjectOpen": "NOT_RUN",
+    "stepExchange": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  },
+  "intermediateFailures": [
+    "Kernel type-check: shadowed cap selector",
+    "Model focused test: signed zeros in a planar direction",
+    "Model type-check: optional signature direction and test document type"
+  ],
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "38235ad790359c8722d3217e5c2783d4211239918ce97f0f3a4b40bbece09821",
+    "evidenceSHA256": "b35754ef4d4cd0a743def48c8cd249647648d99480336a86c4240273a65f1fde",
+    "exitByVariant": {
+      "current": 0,
+      "unsigned-distance": 1
+    }
+  },
+  "studio": {
+    "lower": {
+      "status": "PASS",
+      "frozenFiles": 889,
+      "sourceManifestSHA256": "ce6142e2a7d7b603a7c2622ebe98fed8c0dbdafb4778d6b46a7c76fd4eb5376d",
+      "sourceAfterCleanupSHA256": "ce6142e2a7d7b603a7c2622ebe98fed8c0dbdafb4778d6b46a7c76fd4eb5376d",
+      "receiptSHA256": "f058558b2314d6efeda789fa2809c23d9004d7e3425ac581f3bbecb93eca0cba",
+      "savedNativeFileSHA256": "02465b178d8b435603132540e4ac1d8cf79e351bba5adf88d8bbf983dc2670bc",
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "invalid-file-retains-part",
+        "legacy-offset-applied"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "source-shape",
+          "start": 0,
+          "end": 12,
+          "expected": 1407.8792461427768,
+          "native": 1407.879246142777,
+          "studio": 1407.879246142777,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 0
+        },
+        {
+          "label": "lower-cap-drag",
+          "startDistance": 2,
+          "endDistance": 3,
+          "dragCssPx": [
+            0,
+            26.647624633764394
+          ]
+        },
+        {
+          "label": "outward-shape",
+          "start": -2,
+          "end": 12,
+          "expected": 1840.798981444906,
+          "native": 1840.798981444906,
+          "studio": 1840.798981444906,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 1.7763568394002505e-15
+        },
+        {
+          "label": "inward-shape",
+          "start": 2,
+          "end": 12,
+          "expected": 1039.267317024117,
+          "native": 1039.267317024117,
+          "studio": 1039.267317024117,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 1.7763568394002505e-15
+        },
+        {
+          "label": "reopened-shape",
+          "start": 2,
+          "end": 12,
+          "expected": 1039.267317024117,
+          "native": 1039.267317024117,
+          "studio": 1039.267317024117,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 1.7763568394002505e-15
+        }
+      ]
+    },
+    "upperControl": {
+      "status": "PASS",
+      "frozenFiles": 889,
+      "sourceManifestSHA256": "ce6142e2a7d7b603a7c2622ebe98fed8c0dbdafb4778d6b46a7c76fd4eb5376d",
+      "sourceAfterCleanupSHA256": "ce6142e2a7d7b603a7c2622ebe98fed8c0dbdafb4778d6b46a7c76fd4eb5376d",
+      "receiptSHA256": "1bad0325abcbea0772ffb604459165e166ff462bad28070ce84cf0096c4d2fee",
+      "savedNativeFileSHA256": "b7d4b109385f49474d92d370f0d81d46b446f630c094921357a7408c297baa43",
+      "states": [
+        "taper-outward-preview",
+        "taper-outward-applied",
+        "taper-collapse-refused",
+        "taper-inward-applied",
+        "taper-file-opened",
+        "invalid-file-retains-part",
+        "legacy-offset-applied"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "source-shape",
+          "start": 0,
+          "end": 12,
+          "expected": 1407.8792461427768,
+          "native": 1407.879246142777,
+          "studio": 1407.879246142777,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 0
+        },
+        {
+          "label": "outward-shape",
+          "start": 0,
+          "end": 14,
+          "expected": 1487.1391966703354,
+          "native": 1487.1391966703357,
+          "studio": 1487.1391966703357,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 1.7763568394002505e-15
+        },
+        {
+          "label": "inward-shape",
+          "start": 0,
+          "end": 10,
+          "expected": 1291.8814490059528,
+          "native": 1291.881449005953,
+          "studio": 1291.881449005953,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 3.552713678800501e-15
+        },
+        {
+          "label": "reopened-shape",
+          "start": 0,
+          "end": 10,
+          "expected": 1291.8814490059528,
+          "native": 1291.881449005953,
+          "studio": 1291.881449005953,
+          "sourceFaceNames": [
+            "n1.side0",
+            "n1.side1",
+            "n1.side2",
+            "n1.side3",
+            "n1.bottom",
+            "n1.top"
+          ],
+          "maximumEdgeSurfaceGap": 3.552713678800501e-15
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 // Offset face owns a native cap snapshot. Display data identifies the pick only; it never authors a profile.
 import { CadNumericPolicy, CadPartLimits, brepFromPrismatic, checkBrep, prismaticFromProfile, prismaticMassProperties, transformBrep, type Brep, type BrepFace, type Curve, type Surface } from '@barocss/cad';
-import { draftedCapOffsetAnchor } from '@barocss/cad/internal/drafted-cap-offset';
+import { draftedCapOffsetFrame } from '@barocss/cad/internal/drafted-cap-offset';
 import { fillFeaturePatternSpec } from '@barocss/cad/api';
 import { finiteBinary64Integer } from '../engine/binary64';
 import { leafBodies, type SketchNode, type StudioDoc } from '../engine/doc';
@@ -338,15 +338,15 @@ function nativeOffsetBody(ctx: Ctx, body: BodyResult, display: ReturnType<typeof
 }
 
 /** Check the same native profile the direct offset evaluates. The old snapshot recipe remains separate. */
-export function resolveDraftedOffsetFace(ctx: Ctx): { parent: ReturnType<typeof refOf>; face: string; anchor: XYZ } | undefined {
+export function resolveDraftedOffsetFace(ctx: Ctx): { parent: ReturnType<typeof refOf>; face: string; anchor: XYZ; normal: XYZ } | undefined {
   const { body, display, ref } = offsetPick(ctx);
-  if (display.nativeAxisPlane?.axis !== 'z' || display.exact?.kind !== 'plane' || display.exact.n[2] !== 1) return undefined;
+  if (display.nativeAxisPlane?.axis !== 'z' || display.exact?.kind !== 'plane' || Math.abs(display.exact.n[2]) !== 1) return undefined;
   const node = ctx.doc.nodes[ref.node];
   if (ref.side !== 'solid' || (node.kind !== 'draft' && node.kind !== 'offset-face' && (node.kind !== 'extrude' || !node.draft))) return undefined;
   currentOffsetBody(ctx, body);
   const { brep } = nativeOffsetBody(ctx, body, display);
-  const anchor = draftedCapOffsetAnchor(brep, display.name);
-  return anchor ? { parent: ref, face: display.name, anchor } : undefined;
+  const frame = draftedCapOffsetFrame(brep, display.name);
+  return frame ? { parent: ref, face: display.name, ...frame } : undefined;
 }
 
 /** Current native semantic identity is resolved before qualification; every returned snapshot is owned. */

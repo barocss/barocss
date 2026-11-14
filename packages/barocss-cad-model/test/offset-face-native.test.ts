@@ -4,6 +4,7 @@ import { brepMassProperties, checkBrep, exportStep, type Brep } from '@barocss/c
 import { offsetFaceCommand } from '../src/app/profileCommands';
 import { editSavedOffsetFaceCommand } from '../src/app/offsetFaceEdit';
 import { deleteFeature, duplicateBody } from '../src/chat/features';
+import { dispatchTool } from '../src/chat/tools';
 import { addPart } from '../src/assembly/edit';
 import { flattenAssembly } from '../src/engine/flatten';
 import { editCommand } from '../src/app/editCommand';
@@ -349,4 +350,54 @@ test('Offset extends the existing walls of authored rectangular taper and edits 
     assert.notEqual(moved.faces[0], node.faces[0]);
   }
   assert.deepEqual(source, original);
+});
+
+test('Offset on a tapered lower cap moves in its outward direction and retains the upper cap', async () => {
+  const base = rectanglePart(20, 10, 12);
+  const source: StudioDoc = { ...base, nodes: base.nodes.map(node => node.kind === 'extrude' ? { ...node, draft: 15 } : node) };
+  const original = bodyOf(source);
+  const ctx = context(source, 2, -1);
+  const [handle] = offsetFaceCommand.handles!(ctx, { d: 2 });
+  assert.deepEqual({ ...handle, dir: handle.dir.map(n => n + 0) },
+    { key: 'd', at: [10, 5, 0], dir: [0, 0, -1], step: 0.5 });
+  const created = offsetFaceCommand.build!(ctx, { d: 2 });
+  const state = { doc: source, bodies: ctx.bodies };
+  const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
+  const tool = (d: number) => dispatchTool(state, 'run_command', { command: 'offset-face', faces: ['n1.bottom'], values: { d } }, evaluate);
+  const accepted = await tool(2);
+  assert.ok(!accepted.isError && accepted.changed, accepted.content);
+  assert.deepEqual(accepted.state.doc, created);
+  const rejected = await tool(-12);
+  assert.ok(rejected.isError && !rejected.changed, rejected.content);
+  assert.match(rejected.content, /cross the opposite cap/);
+  assert.deepEqual(rejected.state.doc, source);
+  const index = source.nodes.length, node = created.nodes[index];
+  assert.ok(node.kind === 'offset-face');
+  assert.deepEqual(node.faces, ['n1.bottom']);
+  const signature = node.sigs?.['n1.bottom'];
+  assert.ok(signature?.k === 'plane' && signature.d);
+  assert.deepEqual(signature.d.map(n => n + 0), [0, 0, -1]);
+  const edit = editSavedOffsetFaceCommand(created, index);
+  assert.ok(edit?.build);
+  const editCtx = context(created, 2, -1);
+  const s = Math.tan(Math.PI / 12);
+  const sectionVolume = (z: number) => 200 * z - 30 * s * z ** 2 + 4 * s ** 2 * z ** 3 / 3;
+  for (const distance of [2, -2]) {
+    const doc: StudioDoc = edit.build(editCtx, { d: distance });
+    assert.deepEqual(doc.nodes[index], { ...node, distance });
+    assert.deepEqual(doc.nodes.slice(0, index), source.nodes);
+    const brep = bodyOf(doc);
+    closed(brep);
+    near(bounds(brep).min[2], -distance);
+    near(bounds(brep).max[2], 12);
+    assert.deepEqual(brep.faces.find(face => face.name === 'n1.top'), original.faces.find(face => face.name === 'n1.top'));
+    near(brepMassProperties(brep, 1).volume, sectionVolume(12) - sectionVolume(-distance));
+    const saved = await readStudioFile(encodeStudioFile(doc));
+    assert.ok('doc' in saved);
+    assert.deepEqual(saved.doc, JSON.parse(JSON.stringify(doc)));
+  }
+  const collapse = evaluateDoc(edit.build(editCtx, { d: -12 }), 1);
+  assert.ok(!collapse.ok && /cross the opposite cap/.test(collapse.error.detail));
+  assert.deepEqual(created.nodes[index], node);
+  assert.deepEqual(source.nodes.slice(0, 1), base.nodes.slice(0, 1));
 });

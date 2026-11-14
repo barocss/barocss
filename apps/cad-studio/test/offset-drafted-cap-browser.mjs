@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
+const lower = process.argv.includes('--lower');
+const cap = lower ? 'n1.bottom' : 'n1.top';
 const pins = [
   'apps/cad-studio/src/App.tsx',
   'apps/cad-studio/src/ui/NodeEditor.tsx',
@@ -13,7 +15,7 @@ const pins = [
   'packages/barocss-cad/src/features/drafted-cap-offset.ts',
 ];
 const f = await createFlow({
-  name: 'offset-drafted-cap', output: process.argv[2], envFrozen: 'D1254_SOURCE_FROZEN',
+  name: 'offset-drafted-cap', output: process.argv[2], envFrozen: lower ? 'D1255_SOURCE_FROZEN' : 'D1254_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Move a tapered cap and retain its wall planes, references, History and native file.',
   limits: ['One authored rectangular Draft Extrude and one straight rectangular legacy control. Desktop Chrome WebGPU.'],
@@ -53,15 +55,20 @@ async function open(doc, label) {
   await f.same(doc);
 }
 
-async function pickCap() {
-  await button('Top', f.page.locator('.views')).click();
+async function pickCap(bottom = false) {
+  if (bottom) {
+    await button('View cube directions').click();
+    await f.page.getByRole('menuitem', { name: 'Bottom', exact: true }).click();
+  } else {
+    await button('Top', f.page.locator('.views')).click();
+  }
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   const filter = button('Selection filter');
   for (let i = 0; i < 5 && !(await filter.innerText()).includes('Faces'); i++) await filter.click();
   assert.match(await filter.innerText(), /Faces/);
   await f.page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
-  const pixel = await f.page.evaluate(point => window.__studioScreenOf(point), [width / 2, depth / 2, height]);
+  const pixel = await f.page.evaluate(point => window.__studioScreenOf(point), [width / 2, depth / 2, bottom ? 0 : height]);
   assert.ok(await f.page.evaluate(pixel => document.elementFromPoint(...pixel)?.matches('canvas.vp-canvas'), pixel), pixel);
   await f.page.mouse.click(...pixel);
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
@@ -70,8 +77,10 @@ async function pickCap() {
 function sectionVolume(z) {
   return width * depth * z - (width + depth) * slope * z ** 2 + 4 / 3 * slope ** 2 * z ** 3;
 }
-async function native(label, doc, z, original) {
-  const read = await f.inspect(label, doc), volume = sectionVolume(z);
+async function native(label, doc, distance, original) {
+  const start = lower ? -distance : 0, end = lower ? height : height + distance;
+  const moved = lower ? start : end;
+  const read = await f.inspect(label, doc), volume = sectionVolume(end) - sectionVolume(start);
   assert.equal(read.outputs, 1);
   assert.equal(read.count, 1);
   assert.ok(read.check.valid, read.check.issues.join('\n'));
@@ -80,7 +89,7 @@ async function native(label, doc, z, original) {
   const worker = (await f.bodies()).bodies;
   assert.equal(worker.length, 1);
   assert.ok(near(worker[0].volume, volume, 1e-7));
-  for (const level of [0, z]) {
+  for (const level of [start, end]) {
     const lo = level * slope;
     for (const x of [lo, width - lo]) for (const y of [lo, depth - lo])
       assert.ok(read.point.some(point => samePoint(point, [x, y, level])), JSON.stringify({ label, point: [x, y, level] }));
@@ -92,12 +101,12 @@ async function native(label, doc, z, original) {
       assert.equal(geometry.kind, 'plane');
       const before = original.faces.find(face => face.name === name).geometry;
       assert.ok(samePoint(geometry.n, before.n), JSON.stringify({ label, name, geometry, before }));
-      if (name !== 'n1.top')
+      if (name !== cap)
         assert.ok(near(geometry.o.reduce((d, v, i) => d + geometry.n[i] * (v - before.o[i]), 0), 0));
-      else assert.ok(near(geometry.o[2], z));
+      else assert.ok(near(geometry.o[2], moved));
     }
   }
-  f.report.observations.push({ label, height: z, expected: volume, native: read.volume, studio: worker[0].volume,
+  f.report.observations.push({ label, start, end, expected: volume, native: read.volume, studio: worker[0].volume,
     sourceFaceNames: read.faces.map(face => face.name), maximumEdgeSurfaceGap: read.check.maximumEdgeSurfaceGap });
   return read;
 }
@@ -111,12 +120,35 @@ async function edit(index) {
 }
 
 await f.run(async () => {
-  f.phase = 'Open tapered rectangular stock and pick its upper cap';
+  f.phase = `Open tapered rectangular stock and pick its ${lower ? 'lower' : 'upper'} cap`;
   await open(seed, 'tapered-box');
-  const original = await native('source-shape', seed, height);
-  await pickCap();
+  const original = await native('source-shape', seed, 0);
+  await pickCap(lower);
+  if (lower) await button('Iso', f.page.locator('.views')).click();
+  await f.page.evaluate(() => document.activeElement?.blur());
   await f.command('Offset face');
   const panel = hud('Offset face');
+  await status(panel, 'preview');
+  if (lower) {
+    const handle = f.page.locator('g.gizmo-handle[data-handle="d"]');
+    const head = await handle.locator('polygon').evaluate(polygon => {
+      const box = polygon.getBoundingClientRect();
+      return [box.x + box.width / 2, box.y + box.height / 2];
+    });
+    const [from, to] = await f.page.evaluate(() => [
+      window.__studioScreenOf([10, 5, 0]), window.__studioScreenOf([10, 5, -1]),
+    ]);
+    const delta = to.map((value, i) => value - from[i]);
+    assert.ok(Math.hypot(...delta) > 8);
+    await f.page.mouse.move(...head);
+    await f.page.mouse.down();
+    await f.page.mouse.move(...head.map((value, i) => value + delta[i]), { steps: 6 });
+    await f.page.mouse.up();
+    assert.equal(await offsetField(panel).inputValue(), '3');
+    await status(panel, 'preview');
+    await f.same(seed);
+    f.report.observations.push({ label: 'lower-cap-drag', startDistance: 2, endDistance: 3, dragCssPx: delta });
+  }
   await offsetField(panel).fill('2');
   await status(panel, 'preview');
   await f.same(seed);
@@ -127,18 +159,19 @@ await f.run(async () => {
   assert.equal(outward.nodes.length, index + 1);
   assert.deepEqual(outward.nodes.slice(0, index), seed.nodes);
   assert.equal(node.kind, 'offset-face');
-  assert.deepEqual(node.faces, ['n1.top']);
+  assert.deepEqual(node.faces, [cap]);
   assert.deepEqual(node.parent, { node: 1, side: 'solid' });
   assert.equal(node.distance, 2);
-  assert.ok(node.sigs?.['n1.top']);
+  assert.ok(node.sigs?.[cap]);
   await button('Iso', f.page.locator('.views')).click();
   await f.snapshot('taper-outward-applied');
-  await native('outward-shape', outward, height + 2, original);
+  await native('outward-shape', outward, 2, original);
 
   f.phase = 'Refuse a collapse in History, then move the same cap inwards';
   const history = await edit(index);
   assert.equal(await offsetField(history).inputValue(), '2');
-  await offsetField(history).fill('8');
+  const collapse = lower ? -height : 8;
+  await offsetField(history).fill(String(collapse));
   await status(history, 'refused');
   assert.equal(await button('Apply', history).isDisabled(), true);
   await history.getByText('Kernel detail', { exact: true }).click();
@@ -152,21 +185,21 @@ await f.run(async () => {
   const inward = (await f.snapshot('taper-inward-applied')).doc;
   assert.deepEqual(inward.nodes[index], { ...node, distance: -2 });
   assert.deepEqual(inward.nodes.slice(0, index), seed.nodes);
-  await native('inward-shape', inward, height - 2, original);
+  await native('inward-shape', inward, -2, original);
   await f.undo();
   await f.same(outward);
   await f.redo();
   await f.same(inward);
   const file = await f.save('offset-drafted-cap');
   await f.freshOpen(file.file, inward, 'taper-file-opened');
-  await native('reopened-shape', inward, height - 2, original);
+  await native('reopened-shape', inward, -2, original);
   const reopened = await edit(index);
   assert.equal(await offsetField(reopened).inputValue(), '-2');
   await button('Cancel', reopened).click();
   await f.same(inward);
 
   f.phase = 'Refuse an invalid signed native file before replacing the current part';
-  const impossible = { ...inward, nodes: inward.nodes.map((feature, i) => i === index ? { ...feature, distance: 8 } : feature) };
+  const impossible = { ...inward, nodes: inward.nodes.map((feature, i) => i === index ? { ...feature, distance: collapse } : feature) };
   const [invalid] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await invalid.setFiles({ name: 'invalid-taper.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(impossible)) });
   await f.waitToast(/Offset face:.*close a wall.*Your part is unchanged/i);
@@ -179,6 +212,7 @@ await f.run(async () => {
   const straight = { ...seed, nodes: [seed.nodes[0], extrude] };
   await open(straight, 'straight-box');
   await pickCap();
+  await f.page.evaluate(() => document.activeElement?.blur());
   await f.command('Offset face');
   const legacyPanel = hud('Offset face');
   await offsetField(legacyPanel).fill('2');
