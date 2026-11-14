@@ -1,3 +1,4 @@
+import type { ContinuityReply, ContinuityRequest } from '@barocss/cad-model/engine/edgeContinuity';
 import { rememberFaceTable } from '@barocss/cad-model/assembly/faces';
 import type { EvalResult, PartSlot, VolumeEvaluation } from '@barocss/cad-model/engine/evaluate';
 import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWire';
@@ -227,6 +228,14 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve(data as FaceEndDistanceReply));
       this.post(id, () => ({ type: 'faceEndDistance', id, doc: this.wire!.pack(doc), index }));
+    });
+  }
+
+  edgeContinuity(doc: StudioDoc, key: string, input: ContinuityRequest): Promise<ContinuityReply> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve(data as ContinuityReply));
+      this.post(id, () => ({ type: 'edgeContinuity', id, doc: this.wire!.pack(doc), key, input }));
     });
   }
 

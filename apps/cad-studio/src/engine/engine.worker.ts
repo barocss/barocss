@@ -8,6 +8,7 @@ import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetR
 import { isRefusal } from '@barocss/cad-model/engine/refusal';
 import { planeOf, profileRings } from '@barocss/cad-model/app/profiles';
 import { toLocal } from '@barocss/cad-model/sketch/plane';
+import { readEdgeContinuity, type ContinuityRequest } from '@barocss/cad-model/engine/edgeContinuity';
 import { nativeMidpointPlane, type NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
 import { projectMaterialFootprint } from '@barocss/cad-model/engine/materialFootprint';
 import { projectViews } from '@barocss/cad-model/drawing/project';
@@ -35,6 +36,7 @@ export type WorkerRequest =
   | { type: 'insetRelink'; id: number; doc: WireDoc; index: number; pick: Parameters<typeof relinkAssociativeInset>[2]; revision: number }
   | { type: 'verifyStoredInsets'; id: number; doc: WireDoc }
   | { type: 'faceEndDistance'; id: number; doc: WireDoc; index: number }
+  | { type: 'edgeContinuity'; id: number; doc: WireDoc; key: string; input: ContinuityRequest }
   | { type: 'midpointPlane'; id: number; doc: WireDoc; key: string; faces: readonly [NativeMidpointFace, NativeMidpointFace] }
   | { type: 'projectFootprint'; id: number; doc: WireDoc; key: string }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
@@ -162,6 +164,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   if (request.type === 'faceEndDistance') {
     try { post({ id: request.id, distance: currentFaceEndDistance(doc, request.index) }); }
+    catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    return;
+  }
+  if (request.type === 'edgeContinuity') {
+    try { post({ id: request.id, ...readEdgeContinuity(doc, request.key, request.input) }); }
     catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
     return;
   }

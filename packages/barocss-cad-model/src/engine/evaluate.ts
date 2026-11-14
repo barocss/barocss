@@ -523,6 +523,7 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
     const circle = e.nativeCircle;
     const placed = { ...e, a, b: z, axis, ...(circle ? { nativeCircle: { centre: move(m, t, circle.centre), normal: turn(m, circle.normal), radius: circle.radius } } : {}) };
     delete placed.nativeLine;
+    delete placed.nativeJoint;
     return placed;
   });
   const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };

@@ -1,0 +1,105 @@
+{
+  "decision": "D1258",
+  "tier": "FULL",
+  "parent": "fa7b49ae68d3e90b4ae23eab897a2f832cccb3de",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1258-<run>",
+    "D1258_SOURCE_FROZEN=1 node apps/cad-studio/test/edge-continuity-browser.mjs <external-evidence>/studio-final2",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/edge-continuity.test.mjs test/derivatives.test.mjs test/edge-finish.test.mjs",
+    "pnpm --filter @barocss/cad-model test edge-continuity native-display-precision native-midpoint-plane measure.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/edgeContinuitySelection.ts apps/cad-studio/src/ui/EdgeContinuity.tsx packages/barocss-cad/src/brep/edge-continuity.ts packages/barocss-cad-model/src/engine/edgeContinuity.ts packages/barocss-cad-model/test/edge-continuity.test.ts",
+    "node --check apps/cad-studio/test/edge-continuity-browser.mjs",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "kernel": {
+      "status": "PASS",
+      "tests": 26
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 30
+    },
+    "kernelTypeCheck": "PASS",
+    "kernelBuild": "PASS",
+    "kernelCodeShape": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "scopedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "links": "PASS",
+    "visualReview": "PASS",
+    "fullSuites": "NOT_RUN",
+    "mobile": "NOT_RUN",
+    "delayedWorkerReply": "NOT_RUN",
+    "assemblyOccurrence": "NOT_RUN",
+    "generalFullEdgeContinuity": "NOT_RUN",
+    "g2g3": "NOT_RUN"
+  },
+  "intermediateFailures": [
+    "Kernel code-shape flagged two spread extrema.",
+    "Studio type-check found a profile-region wrapper accessed as an array."
+  ],
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "7700f6bd8ec09e8a2a7c97d43c967947b0964c67a42f3d8f160659bedcf265b2",
+    "evidenceSHA256": "896cfd134c87db497f0f2499b869a8dee03279b5affd85a08dbac7de91dec80e",
+    "exitByVariant": {
+      "current": 0,
+      "unsigned-normals": 1
+    }
+  },
+  "studio": {
+    "status": "PASS",
+    "sourceFrozenCount": 892,
+    "receiptSHA256": "0f9db8ef790454abd15f48d236f254f2fc117b0750f7cbb0d2e8db1b31fec405",
+    "sourceManifestSHA256": "72de764746c941e24cd8c7e4cd9c48256931a538d969bb1eb99640db07cbb852",
+    "sourceAfterCleanupSHA256": "72de764746c941e24cd8c7e4cd9c48256931a538d969bb1eb99640db07cbb852",
+    "states": [
+      "01-sharp-rim",
+      "02-tangent-joint",
+      "03-new-document"
+    ],
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "oracleSHA256": "de73926421f0eccfddca53556d5dabef503e78a74209b5f29468bd0860a94123",
+    "oracle": {
+      "status": "PASS",
+      "anglesDegrees": {
+        "n1.side0|n1.top": 90,
+        "n1.side0|n1.side1": 0
+      },
+      "samplesPerEdge": 8
+    },
+    "numericWitnesses": [
+      {
+        "label": "angles",
+        "measured": {
+          "n1.side0|n1.top": [
+            90,
+            90
+          ],
+          "n1.side0|n1.side1": [
+            8.995967e-15,
+            2.248992e-14
+          ]
+        },
+        "bothDocumentsUnchanged": true
+      }
+    ],
+    "absoluteAngleToleranceDegrees": 1e-07
+  }
+}

@@ -1,0 +1,16 @@
+# D1258 — Inspect native face-normal angles at a shared edge
+
+2026-11-14 · FULL · P5, row 24 · [#537 SURF-06](https://github.com/barocss/barocss/issues/537), [#2043 reference](https://github.com/barocss/barocss/issues/2043)
+
+In Model, select one edge and choose **Inspect edge continuity**. A unique native edge ID and its two face IDs bind the viewport pick to the evaluated body. Select a body and choose **Inspect native joints** to use the same measurement on a joint that does not draw an edge. Measurement runs in the existing worker. The result gives the range of oriented face-normal angles at eight interior samples. It uses native first derivatives. A zero angle indicates alignment at the sampled points.
+
+The kernel requires a shared topological edge between distinct faces in one shell, with matched coedge uses and native parameter curves. It checks position and tangent compatibility against the 3D edge at each sample. It refuses faceted sources, a same-face seam, absent or incompatible parameter curves and unavailable derivatives. Studio accepts active original base geometry. The inspector retires on a change of selection, document or worker. Changing the selected native joint clears the prior numeric result.
+
+- **PASS, actual desktop Studio.** Opened a capsule extrusion with straight walls, circular ends and height 6 mm. Clicked its top rim and measured 90° across all eight samples. Selected the tangent plane–cylinder joint from the same body's native list and measured 8.996e−15° to 2.249e−14°. The independent vectors give 90° and 0°. Both analytic cases agree within 1e−7° and strict B-rep validation passes. Selecting another joint clears the old result. Replacing the file with an 8 mm extrusion that reuses native IDs clears the previous result. Both documents remain unchanged.
+- **PASS, focused verification.** 26 kernel and 30 Model tests. The skew planar fixture also checks 53.13010235415599° and 126.86989764584402°. Independent review found an identity risk in name-only matching and a preview ownership gap. Exact IDs and current viewport ownership address both. A mutation that discards the oriented dot sign fails the obtuse-angle test. Type checks, code shape, scoped lint, browser syntax, production build and links pass.
+- **FAIL, intermediate check.** The first code-shape check flagged spread-based extrema in the new kernel module. The final sampler accumulates the extrema in its sample loop. Studio type-check also caught a profile-region guard that used the wrapper instead of its index list.
+- **NOT_RUN.** Full suites, delayed worker reply injection, assembly occurrence joints, general G1 proof along the full edge, G2/G3, and mobile. The current native box fillet producer can omit parameter curves. The kernel probe refuses those fillet joints with `missing-pcurve`. The broader #537 stays open and the #2043 design remains a reference.
+
+D1259 continues P5 row 24 with native fillet continuity. Recover trustworthy face parameter bindings for one straight constant-radius box fillet using its analytic planes and cylinder. Verify both blend interfaces in Studio, preserve the native shape, and refuse unsupported bindings.
+
+[Commands and receipt hashes](qualification.json).

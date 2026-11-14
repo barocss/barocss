@@ -49,6 +49,8 @@ import { MeasurementInspector, PinnedMeasurement, InterferenceInspector } from '
 import { useInterferenceCheck } from './state/useInterferenceCheck';
 import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
+import { EdgeContinuity } from './ui/EdgeContinuity';
+import { continuitySelection } from './app/edgeContinuitySelection';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
 import { cutPatternSourceLabel, isCutPattern, selectedCutPatternSource } from './app/cutPatternSource';
@@ -3032,7 +3034,11 @@ export function App() {
   const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, historyLabels, bottomRow.stacked, bottomRow.cramped]);
   useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
-
+  const continuityPick = fresh && !busy && shownDoc === doc && marker === null && !workerFailure
+    && !drawing && !rendering && !section && !inPlace && !active && !bodyDrag && !ghost && !workingComparison
+    && !routePanelOpen && !halvesShownRef.current && viewBodies === drawnBodies && sameMeshes(drawnBodies, bodies)
+    ? continuitySelection(selection, bodies) : null;
+  const continuityOpen = openIntent.current;
   const { clearanceReason, clearanceDisplay, clearanceLabels } = useClearancePreview({
     model: { doc, bodies, marker, fresh, instanceBodies, instanceSources }, editing: { rendering, drawing, sketch, active, previewBodies, ghost, assembly, cageEd, skel },
     display: { viewAnalysis, scalarMaps, mouldShown, directShown, section, instancePreview },
@@ -3370,6 +3376,16 @@ export function App() {
       {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
+        {continuityPick && !lookOf(doc, continuityPick.body).hidden && <EdgeContinuity
+          key={JSON.stringify([docGeneration, workerSession, continuityPick.body.key, continuityPick.edge, continuityPick.picked])}
+          picked={continuityPick.picked} source={evaluated}
+          read={async input => {
+            const current = () => continuityOpen === openIntent.current && ownsEvaluatedSource() && shownDocNow.current === doc;
+            const unavailable = { error: 'The source changed. Select the edge again.' };
+            if (!current()) return unavailable;
+            const reply = await engine.edgeContinuity(evaluated, continuityPick.body.key, input);
+            return current() ? reply : unavailable;
+          }} />}
         {editNode !== null && <NodeEditor alignPreview={historyAlign} readAlignTargets={doc.nodes[editNode]?.kind === 'align' ? readAlignHistoryTargets : undefined} edgeReplacement={finishEdgeEditor.available ? {
           start: finishEdgeEditor.start, cancel: finishEdgeEditor.cancel, apply: finishEdgeEditor.apply,
           draft: finishEdgeEditor.current,

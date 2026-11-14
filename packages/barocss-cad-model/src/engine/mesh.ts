@@ -48,6 +48,8 @@ export function withoutNativeFaces(face: DisplayFace): DisplayFace {
   return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane || nativeAlignFace || nativeInsetOutline ? display : face;
 }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
+  /** One ungrouped edge of the unplaced native body, with its two native face uses. */
+  nativeJoint?: { edgeId: string; faces: readonly [string, string] };
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
   nativeVertices?: readonly [string, string];
   /** Both display endpoints are exact native line poles and vertices on one unmerged prism edge. */
@@ -293,6 +295,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
       }
       delete mate.nativeVertices;
       delete mate.nativeLine;
+      delete mate.nativeJoint;
       if (!nativeCircle || !mate.nativeCircle || !sameNativeCircle(mate.nativeCircle, nativeCircle)) delete mate.nativeCircle;
       mate.names.push(name);
       for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
@@ -301,6 +304,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
     const index = edges.length;
     const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [name], ...(nativeCircle ? { nativeCircle } : {}) };
+    if (brep.source.family !== 'mesh' && fs.every(face => faceById.get(face)?.surface.kind === 'surface')) {
+      made.nativeJoint = { edgeId: source.id, faces: [fs[0], fs[1]] };
+    }
     // The tessellator replaces its first and last samples with the two native vertices in this order.
     if (nativePrism && straight && source.vertices[0] !== source.vertices[1] && dir.some(Boolean)) {
       made.nativeVertices = [...source.vertices];
