@@ -96,13 +96,6 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
   return (
     <aside className="card props sk-panel" aria-label="Sketch">
       <div className="card-title">SKETCH · {toolLabel} · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
-      {sketch.association && <>
-        <p role="status">Linked face outline and inset · {sketch.association.insetMM} mm</p>
-        <p>{sketch.editNode === undefined
-          ? 'To change the linked distance, finish the sketch and edit it in History.'
-          : 'To change the linked distance, return to its History editor.'}</p>
-        <p>Geometry or plane edits detach this link.</p>
-      </>}
       {sketch.associationDetached && <p role="status">Link detached by a geometry or plane edit. This profile is now a snapshot.</p>}
       {onPlace && (() => {
         const anchor = sketch.anchor ?? { kind: 'xy' as const, offset: 0 };
@@ -229,6 +222,13 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
       {canLinkInset && <><Button type="button" variant="ghost" data-sketch-action onClick={linkInset}>Link face outline + inset</Button><p>Uses Offset distance below as the inward inset (mm).</p></>}
       {onOffset && <>
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
+        {sketch.association && <>
+          <p role="status">Linked face outline and inset · {sketch.association.insetMM} mm</p>
+          <p>{sketch.editNode === undefined
+            ? 'To change the linked distance, finish the sketch and edit it in History.'
+            : 'To change the linked distance, return to its History editor.'}</p>
+          <p>Geometry or plane edits detach this link.</p>
+        </>}
         <div className="sk-offset">
           <span className="num"><Input ref={offsetInput} aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy}
             data-sketch-action

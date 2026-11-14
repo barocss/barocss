@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1221 — show the linked distance beside ordinary Offset](notes/linked-inset-distance-visible-by-offset-2026-11-14/README.md).
 - [D1220 — explain what blocks Linked Inset source replacement](notes/linked-inset-replacement-constraints-2026-11-14/README.md).
 - [D1219 — explain why a rounded Linked Inset source width is refused](notes/rounded-inset-width-recovery-2026-11-14/README.md).
 - [D1218 — verify Linked Inset Apply focus with collapsed History](notes/linked-inset-collapsed-history-focus-2026-11-14/README.md).

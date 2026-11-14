@@ -1,0 +1,186 @@
+{
+  "decision": "D1221",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "497c26e0c802ab35d7ff23bf8b031246d18bf2bf",
+  "commands": [
+    "gate.sh acquire heavy 600 D1221-<run>",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/baseline-retry --oversize --active-link --field-enter --narrow --baseline",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/final --oversize --active-link --field-enter --narrow",
+    "D1070_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-linked-plane-draft-history-browser.mjs <external-evidence>/plane",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx",
+    "node --check apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "5e3b8c814833adc574ba6debd465368047d73479c333b42410aeaf448264f828",
+      "sourceManifestSHA256": "810db827c91cb5b33396211621c7a2e216042dfc77c985898f0b36813852d4c1",
+      "sourceAfterCleanupSHA256": "810db827c91cb5b33396211621c7a2e216042dfc77c985898f0b36813852d4c1",
+      "cleanup": [
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "baseline-retry": {
+      "status": "FAIL",
+      "states": [
+        "before-oversize",
+        "oversize-refused",
+        "failure"
+      ],
+      "observations": [
+        {
+          "label": "distance-in-scrolled-dock",
+          "value": {
+            "top": -51,
+            "bottom": -36,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": false
+          },
+          "path": {
+            "top": -24,
+            "bottom": 6,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": false
+          },
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": false
+          }
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "d2d22cf341a8a6d45025cf9ace55cb7f3d4c886438750e93debc558aadb14277",
+      "sourceManifestSHA256": "810db827c91cb5b33396211621c7a2e216042dfc77c985898f0b36813852d4c1",
+      "sourceAfterCleanupSHA256": "810db827c91cb5b33396211621c7a2e216042dfc77c985898f0b36813852d4c1",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "before-oversize",
+        "oversize-refused",
+        "linked-distance-distinct-from-offset",
+        "straight-linked-outline",
+        "straight-linked-ring-extruded"
+      ],
+      "observations": [
+        {
+          "label": "distance-in-scrolled-dock",
+          "value": {
+            "top": 688,
+            "bottom": 703,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": true
+          },
+          "path": {
+            "top": 715,
+            "bottom": 745,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": true
+          },
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockTop": 36,
+            "dockBottom": 800,
+            "visible": false
+          }
+        },
+        {
+          "label": "straight-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "straight-linked-ring",
+          "volume": 416.0000000000003,
+          "association": {
+            "kind": "planar-face-outline-inset",
+            "version": 1,
+            "source": {
+              "node": 3,
+              "side": "solid"
+            },
+            "sourceFeature": "n3",
+            "face": "n3.top",
+            "insetMM": 2
+          }
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "e410f3260b1abd48ab327b213ed25dbda410871f7ec31eee0c50c18478f07ece",
+      "sourceManifestSHA256": "43ee6830ed3e8221fae451d265e7ae99c7a656c03933203cbfe63d1b1b9adf24",
+      "sourceAfterCleanupSHA256": "43ee6830ed3e8221fae451d265e7ae99c7a656c03933203cbfe63d1b1b9adf24",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "plane": {
+      "status": "PASS",
+      "states": [
+        "01-shifted-detached",
+        "02-after-keyboard-undo",
+        "03-linked-finish",
+        "04-linked-ring-extruded",
+        "05-regenerated"
+      ],
+      "observations": [
+        {
+          "offsetAfterUndo": 0,
+          "linkedAfterUndo": true
+        },
+        {
+          "label": "04-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 3TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        }
+      ],
+      "frozenFiles": 393,
+      "receiptSHA256": "9e99955ef025c43f6b3e0d83b1992b0305ada1d1f8fe6d30df8e22749d6a4d08",
+      "sourceManifestSHA256": "09a8d54d0c1c1ade23d1000f893bdb5bc540541969b57946319f3ec3b1e51d41",
+      "sourceAfterCleanupSHA256": "09a8d54d0c1c1ade23d1000f893bdb5bc540541969b57946319f3ec3b1e51d41",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

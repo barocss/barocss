@@ -7,6 +7,7 @@ const fieldEnter = process.argv.includes('--field-enter');
 const perforated = process.argv.includes('--perforated');
 const activeLink = process.argv.includes('--active-link');
 const ordinaryOffset = process.argv.includes('--ordinary-offset');
+const narrow = process.argv.includes('--narrow');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -51,6 +52,7 @@ async function startSketchOnTop(x) {
   await f.page.mouse.click(...pixel);
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
   await button(f.page.locator('.mode'), 'Sketch').click();
+  if (narrow && await button(f.page, 'Open the dock').isVisible()) await button(f.page, 'Open the dock').click();
   await f.sketchPanel().waitFor();
 }
 
@@ -60,6 +62,12 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: 'inset-faces.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (narrow) {
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    await f.page.getByRole('button', { name: 'Chat', exact: true }).first().click();
+    await f.page.locator('.chat-col.open').waitFor();
+    if (await button(f.page, 'Close the dock').isVisible()) await button(f.page, 'Close the dock').click();
+  }
   if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
 
   if (ordinaryOffset) {
@@ -200,7 +208,7 @@ await f.run(async () => {
   if (activeLink) {
     f.phase = 'read the active linked inset and keep the ordinary Offset separate';
     const panel = f.sketchPanel();
-    if (baseline) {
+    if (baseline && !narrow) {
       assert.equal(await linked().isEnabled(), true);
       await distance.fill('3');
       await distance.press('Enter');
@@ -212,7 +220,27 @@ await f.run(async () => {
     assert.equal(await linked().count(), 0);
     await distance.fill('3');
     await distance.press('Enter');
-    await panel.getByText('Linked face outline and inset · 2 mm', { exact: true }).waitFor();
+    const linkedValue = panel.getByText('Linked face outline and inset · 2 mm', { exact: true });
+    const historyPath = panel.getByText('To change the linked distance, finish the sketch and edit it in History.', { exact: true });
+    await linkedValue.waitFor();
+    if (narrow) {
+      const visibleInDock = element => {
+        const rect = element.getBoundingClientRect(), dock = element.closest('.dock-scroll').getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, dockTop: dock.top, dockBottom: dock.bottom,
+          visible: rect.top >= dock.top && rect.bottom <= dock.bottom };
+      };
+      const value = await linkedValue.evaluate(visibleInDock), path = await historyPath.evaluate(visibleInDock), entry = await distance.evaluate(visibleInDock);
+      f.report.observations.push({ label: 'distance-in-scrolled-dock', value, path, entry });
+      if (baseline) {
+        assert.ok(entry.top < entry.dockBottom);
+        assert.equal(value.visible, false);
+        await f.snapshot('linked-distance-above-dock');
+        throw new Error('Linked distance is outside the Dock when editing ordinary Offset.');
+      }
+      assert.ok(entry.top < entry.dockBottom);
+      assert.equal(value.visible, true);
+      assert.equal(path.visible, true);
+    }
     await f.same(seed);
     await f.snapshot('linked-distance-distinct-from-offset');
   }
