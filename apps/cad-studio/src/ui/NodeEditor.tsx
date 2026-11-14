@@ -242,7 +242,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {readingEnd && <div className="empty" role="status">Reading exact distance…</div>}
       {hasMissingNumber && <div className="hud-error" role="status">Enter a number for {missingNumbers.map(field => field.label).join(', ')}.</div>}
       {invalidCounts.map(field => <div key={field.key} className="hud-error" role="status">{field.label} must be a whole number from {field.integerRange!.min} to {field.integerRange!.max}.</div>)}
-      {invalidDimensions.map(({ field, rule }) => <div key={field.key} className="hud-error" role="status">{field.label} · {featureNumberRange(rule)}.</div>)}
+      {invalidDimensions.map(({ field, rule }) => <div key={field.key} id={`history-invalid-${field.key}`} className="hud-error" role="status">{field.label} · {featureNumberRange(rule)}.</div>)}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {node?.kind === 'align' && <>
@@ -257,11 +257,13 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {fields.length ? fields.map(f => {
         const rule = f.kind === 'number' ? historyNumberRule(draft, index, f.key) : undefined;
         const numberBounds = featureNumberBounds(rule);
-        const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule ? featureNumberRange(rule) : null;
-        const rangeId = range ? `history-range-${f.key}` : undefined;
+        const invalidDimension = invalidDimensions.some(item => item.field === f);
+        const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f)
+          ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule && !invalidDimension ? featureNumberRange(rule) : null;
+        const rangeId = invalidDimension ? `history-invalid-${f.key}` : range ? `history-range-${f.key}` : undefined;
         return (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min ?? numberBounds.min} max={f.integerRange?.max ?? numberBounds.max} aria-label={f.label} aria-describedby={rangeId} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || invalidDimensions.some(item => item.field === f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min ?? numberBounds.min} max={f.integerRange?.max ?? numberBounds.max} aria-label={f.label} aria-describedby={rangeId} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || invalidDimension || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();

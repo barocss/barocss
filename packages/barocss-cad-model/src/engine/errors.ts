@@ -17,6 +17,9 @@ export interface FriendlyError {
 // messages without a code, and rows naming a code unbracketed (messages carry it bare), so they stay regexes. Order
 // matters: the first row that matches wins.
 const rules: { code?: string | readonly string[]; text?: RegExp; title: string; hint: string }[] = [
+  { text: /^\[VALUE\] Align: the resulting placement is outside the native coordinate range or cannot preserve the gap\.$/,
+    title: 'Align exceeds the placement limit',
+    hint: 'This placement exceeds the coordinate range or cannot keep the requested gap. Reduce Gap or reset this edit.' },
   { text: /\[BAD_REFERENCE\] Rounded rectangle inset: only one direct Extrude may consume the recipe\.$/,
     title: 'The linked inset only supports its Extrude',
     hint: 'Keep the link by canceling this operation. To use the inset as a regular sketch, open Extrude in History and choose Detach inset. This removes the link to the source sketch.' },

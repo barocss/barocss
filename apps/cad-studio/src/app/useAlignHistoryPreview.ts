@@ -22,11 +22,9 @@ export function useAlignHistoryPreview({ doc, index, enabled, workerSession }: S
     setState({ scope: owner, result: { kind: 'pending' } });
     const timer = window.setTimeout(() => {
       const candidate = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
-      const refuse = (error: Omit<FeatureFailure, 'hint'>) => {
+      const refuse = (error: FeatureFailure) => {
         if (current && scope.current === owner) {
-          setState({ scope: owner, result: { kind: 'error', error: {
-            ...error, hint: 'Change the Align settings or reset this edit.',
-          } } });
+          setState({ scope: owner, result: { kind: 'error', error } });
         }
       };
       void evaluate(candidate).then(reply => {
@@ -35,9 +33,11 @@ export function useAlignHistoryPreview({ doc, index, enabled, workerSession }: S
           setState({ scope: owner, result: { kind: 'ready', bodies: reply.bodies } });
         } else {
           const failedFeature = failedFeatureText(reply.error.feature, candidate.nodes, doc.nodes);
-          refuse({ ...reply.error, failedFeature });
+          const error = reply.error.title === 'The kernel could not build this'
+            ? { ...reply.error, hint: 'Change the Align settings or reset this edit.' } : reply.error;
+          refuse({ ...error, failedFeature });
         }
-      }, () => refuse({ title: 'Align preview could not finish', detail: '' }));
+      }, () => refuse({ title: 'Align preview could not finish', hint: 'Change the Align settings or reset this edit.', detail: '' }));
     }, 150);
     return () => {
       current = false;

@@ -1,0 +1,123 @@
+{
+  "decision": "D1239",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "6bb254717a645880fefebb262b97fc6574eb51a7",
+  "commands": [
+    "gate.sh acquire heavy 600 D1239-<run>",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --history --placement-bounds --placement-baseline",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/fixed --history --placement-bounds",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/input-control --history --gap-bounds",
+    "pnpm --filter @barocss/cad-model test align",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/errors.ts apps/cad-studio/src/{app/useAlignHistoryPreview.ts,ui/NodeEditor.tsx}",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "0af1393fd1475c12d9394cc98d35831ad250f553aff47a40de4219504b7e896e",
+      "sourceManifestSHA256": "06b3f0d2f1ae2d3dc775927fac41ea7e31b436350644f88037e69e4551f9f1d9",
+      "sourceAfterCleanupSHA256": "06b3f0d2f1ae2d3dc775927fac41ea7e31b436350644f88037e69e4551f9f1d9",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "gap-at-placement-limit",
+          "boundsX": [
+            9990,
+            9996
+          ],
+          "centroid": [
+            9993,
+            9.999999999999998,
+            6
+          ],
+          "volume": 720.0000000000002
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "df799857edb63467bd3fbc67dba845401e658606de922dab83a82dd085c5eb06",
+      "sourceManifestSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "sourceAfterCleanupSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "savedSHA256": [
+        "224634c7064d11617686587d0dc2a5ab35a0e2f5d9da9ead847ca52af02d7ea1"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "input-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "zero-gap-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -8
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                14.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "0a981e1ea3167bf50f262a1ebe184e0ab4dcf6a6aed2af3dfc490faabda63b9c",
+      "sourceManifestSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "sourceAfterCleanupSHA256": "2925ab7a2f9815c76ed5b47bb0b95f0ef17287e35e7d5350b3bcdeacd96b558b",
+      "savedSHA256": [
+        "5237281bac180c22052560f5d861800f9e96b062b96ba71cfa396c4396676972"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

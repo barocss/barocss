@@ -11,6 +11,8 @@ const alignWaiting = process.argv.includes('--waiting-state');
 const waitingBaseline = process.argv.includes('--waiting-baseline');
 const gapBounds = process.argv.includes('--gap-bounds');
 const gapBaseline = process.argv.includes('--gap-baseline');
+const placementBounds = process.argv.includes('--placement-bounds');
+const placementBaseline = process.argv.includes('--placement-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
@@ -18,7 +20,8 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useVi
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: gapBounds ? 'Align History refuses out-of-range Gap before Apply.'
+  qualification: placementBounds ? 'Distinguish the Gap field range from the native placement limit.'
+    : gapBounds ? 'Align History refuses out-of-range Gap before Apply.'
     : alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
     : historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
     : targetNames ? 'Align History identifies each target body and exact native face.'
@@ -207,6 +210,64 @@ await f.run(async () => {
   const gap = f.editor().getByLabel('Gap', { exact: true }), lineup = f.editor().getByLabel('Line up', { exact: true });
   assert.equal(await gap.inputValue(), '2');
   assert.equal(await lineup.inputValue(), 'centre');
+  if (placementBounds) {
+    const apply = button('Apply', f.editor());
+    const reset = button('Reset', f.editor());
+    const outOfRange = f.editor().getByText('Gap · From 0 to 10000 mm.', { exact: true });
+    await gap.fill('-1');
+    await outOfRange.waitFor();
+    const description = await gap.getAttribute('aria-describedby');
+    assert.ok(description);
+    assert.equal(await f.page.locator(`[id="${description}"]`).textContent(),
+      placementBaseline ? 'From 0 to 10000 mm' : 'Gap · From 0 to 10000 mm.');
+    assert.ok(await apply.isDisabled());
+    await reset.click();
+    const onto = f.editor().getByLabel('Target face', { exact: true });
+    await onto.selectOption({ label: targetLabel('n5.side1') });
+    await gap.fill('10000');
+    const notice = f.editor().getByRole('status').filter({ hasText: placementBaseline
+      ? 'The kernel could not build this' : 'Align exceeds the placement limit' });
+    await notice.waitFor();
+    assert.equal(await gap.getAttribute('aria-invalid'), null);
+    if (placementBaseline) {
+      await f.snapshot('in-range-gap-gets-generic-refusal');
+      throw new Error('Align repeats the numeric range and hides the actual placement limit.');
+    }
+    await notice.getByText('This placement exceeds the coordinate range or cannot keep the requested gap. Reduce Gap or reset this edit.', { exact: true }).waitFor();
+    await gap.press('Enter');
+    await notice.getByText('Align exceeds the placement limit', { exact: true }).waitFor();
+    await f.same(applied);
+    await reset.click();
+    assert.equal(await gap.inputValue(), '2');
+    const fitting = structuredClone(applied);
+    fitting.nodes[4].min[0] = -40;
+    fitting.nodes[4].max[0] = -10;
+    fitting.nodes[6].target = { body: ref(5), feature: 'n5', face: 'n5.side1', axis: 'x', sign: 1 };
+    const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await chooser.setFiles({ name: 'align-fits-at-limit.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(fitting)) });
+    await f.same(fitting);
+    await f.openFeatureEditor(6);
+    await gap.fill('10000');
+    await f.editor().getByText('Align preview', { exact: true }).waitFor();
+    const accepted = structuredClone(fitting);
+    accepted.nodes[6].gap = 10000;
+    const appliedLimit = await f.applyEditor(fitting, 'align-valid-at-limit');
+    assert.deepEqual(appliedLimit.doc, accepted);
+    const native = (await f.inspect('align-limit-native', accepted)).find(body => body.key === 'b6');
+    assert.ok(native.valid);
+    near(native.volume, 720);
+    native.centroid.forEach((value, i) => near(value, [9993, 10, 6][i]));
+    near(Math.min(...native.vertices.map(point => point[0])), 9990);
+    near(Math.max(...native.vertices.map(point => point[0])), 9996);
+    f.report.observations.push({ label: 'gap-at-placement-limit', boundsX: [9990, 9996], centroid: native.centroid, volume: native.volume });
+    await f.undo();
+    await f.same(fitting);
+    await f.redo();
+    await f.same(accepted);
+    const { file } = await f.save('align-valid-at-limit');
+    await f.freshOpen(file, accepted, 'align-limit-reopened');
+    return;
+  }
   if (gapBounds) {
     const apply = button('Apply', f.editor());
     const hint = f.editor().getByRole('status').getByText('Gap · From 0 to 10000 mm.', { exact: true });
@@ -225,7 +286,7 @@ await f.run(async () => {
       assert.ok(await apply.isDisabled());
       assert.equal(await gap.getAttribute('aria-invalid'), 'true');
       const description = await gap.getAttribute('aria-describedby');
-      assert.equal(await f.page.locator(`[id="${description}"]`).textContent(), 'From 0 to 10000 mm');
+      assert.equal(await f.page.locator(`[id="${description}"]`).textContent(), 'Gap · From 0 to 10000 mm.');
       await gap.press('Enter');
       await f.same(applied);
     }
