@@ -1,0 +1,119 @@
+{
+  "decision": "D1211",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "b85099ffd40ae7a02339dc467969ed82f5692153",
+  "commands": [
+    "gate.sh acquire heavy 600 D1211-<run>",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/baseline --perforated --baseline",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/final --perforated",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/rounded",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "incorrect-perforated-guidance",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "d4891be692bf89ca307f61df4d46abef534d161aa48b51bc5911ab9b934694c7",
+      "sourceManifestSHA256": "580ad006b86f4bda4df5687b144c9bb07bcb65ba971103aa1939624fd1770f2d",
+      "sourceAfterCleanupSHA256": "580ad006b86f4bda4df5687b144c9bb07bcb65ba971103aa1939624fd1770f2d",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "perforated-guidance",
+        "perforated-copy",
+        "perforated-copy-consumer-extruded"
+      ],
+      "observations": [
+        {
+          "label": "perforated-copy-consumer-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 7TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "perforated-copy",
+          "volume": 749.7345175425619
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "b201533fc63edb7116a86a90ab88dad57b51f8a5e16f3dc34645033ac54b2ef4",
+      "sourceManifestSHA256": "0a4cc0b424292b436975cf1b3f2842c8901fa44f4d6d2e3b57dade9e0ff7d5ac",
+      "sourceAfterCleanupSHA256": "0a4cc0b424292b436975cf1b3f2842c8901fa44f4d6d2e3b57dade9e0ff7d5ac",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "rounded": {
+      "status": "PASS",
+      "states": [
+        "rounded-recovery-guidance",
+        "independent-rounded-outline",
+        "straight-linked-outline",
+        "straight-linked-ring-extruded"
+      ],
+      "observations": [
+        {
+          "label": "straight-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "straight-linked-ring",
+          "volume": 416.0000000000003,
+          "association": {
+            "kind": "planar-face-outline-inset",
+            "version": 1,
+            "source": {
+              "node": 3,
+              "side": "solid"
+            },
+            "sourceFeature": "n3",
+            "face": "n3.top",
+            "insetMM": 2
+          }
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "617686ba89bfa7c3036f449322b9f0b85e23114b5ce27f7cb9860cbce50cc1f0",
+      "sourceManifestSHA256": "0a4cc0b424292b436975cf1b3f2842c8901fa44f4d6d2e3b57dade9e0ff7d5ac",
+      "sourceAfterCleanupSHA256": "0a4cc0b424292b436975cf1b3f2842c8901fa44f4d6d2e3b57dade9e0ff7d5ac",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

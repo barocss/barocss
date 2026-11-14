@@ -1680,8 +1680,9 @@ export function App() {
       const linkSource = canLinkFace && base && straightOutline && face.nativePlaneName
         ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.nativePlaneName } : undefined;
       const linkSourceHint = canLinkFace && !linkSource && outline?.length
-        ? face.curvedBoundary ? 'This outline has curved edges. Use the face outline to copy it.'
-          : 'Linked inset needs one native straight outline without holes. Use the face outline to copy this outline.'
+        ? fp?.profile === 'loop' && fp.holes?.length ? 'Linked inset needs a face without holes.'
+          : face.curvedBoundary ? 'Linked inset needs a straight outer boundary.'
+          : 'Linked inset needs one native straight outline without holes.'
         : undefined;
       const nativeFloor = cmd.id === 'sketch' && f && base && !doc.instances?.length && currentNativePlanePick(ctx, f, doc);
       let pocketFloor: PocketFloorBinding | undefined;

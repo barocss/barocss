@@ -4,6 +4,7 @@ import { createFlow } from './flow-helper.mjs';
 const baseline = process.argv.includes('--baseline');
 const oversize = process.argv.includes('--oversize');
 const fieldEnter = process.argv.includes('--field-enter');
+const perforated = process.argv.includes('--perforated');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -21,7 +22,19 @@ const rounded = profileOf([{ kind: 'polygon', closed: true, points, ids: points.
 assert.ok('node' in rounded);
 const first = withNode(withNode(emptyDoc(), rounded.node), { kind: 'extrude', sketch: 0, height: 10 });
 const stock = withNode(first, { kind: 'sketch', profile: 'rectangle', min: [40, 0], max: [60, 10] });
-console.log(JSON.stringify(withNode(stock, { kind: 'extrude', sketch: 2, height: 10 })));
+const straight = withNode(stock, { kind: 'extrude', sketch: 2, height: 10 });
+const mode = JSON.parse(process.argv[3] ?? 'null');
+if (mode !== 'perforated') console.log(JSON.stringify(straight));
+else {
+  const caps = [
+    { kind: 'polygon', closed: true, points: [[0, 0], [20, 0], [20, 10], [0, 10]] },
+    { kind: 'circle', c: [10, 5], r: 2 },
+  ] as const;
+  const bored = profileOf(caps.map(shape => structuredClone(shape)) as Parameters<typeof profileOf>[0]);
+  assert.ok('node' in bored);
+  console.log(JSON.stringify(withNode(withNode(straight, { ...bored.node,
+    plane: { origin: [80, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }), { kind: 'extrude', sketch: 4, height: 10 })));
+}
 `,
 });
 
@@ -40,12 +53,44 @@ async function startSketchOnTop(x) {
 }
 
 await f.run(async () => {
-  const seed = await f.inspect('seed', {});
+  const seed = await f.inspect('seed', {}, perforated ? 'perforated' : 'default');
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: 'inset-faces.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
   if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
+
+  if (perforated) {
+    f.phase = 'a straight outer cap with one circular hole';
+    await startSketchOnTop(86);
+    const panel = f.sketchPanel(), copy = button(panel, 'Use the face outline');
+    await copy.waitFor();
+    await button(panel, 'Face outline as references').waitFor();
+    assert.equal(await linked().count(), 0);
+    if (baseline) {
+      await panel.getByText('This outline has curved edges. Use the face outline to copy it.', { exact: true }).waitFor();
+      await f.snapshot('incorrect-perforated-guidance');
+      throw new Error('The planar cap has a straight outer loop, but guidance mentions only curved edges.');
+    }
+    await panel.getByText('Linked inset needs a face without holes.', { exact: true }).waitFor();
+    await f.snapshot('perforated-guidance');
+    await copy.click();
+    const copied = (await f.finishSketch('perforated-copy')).doc;
+    assert.equal(copied.nodes[6].holes?.length, 1);
+    assert.equal(copied.nodes[6].association, undefined);
+    assert.deepEqual(copied.nodes[6].on, { node: 5, side: 'solid' });
+    await f.openExtrudeHud();
+    const accepted = (await f.applyExtrude({ distance: 4, previous: copied, label: 'perforated-copy-consumer' })).doc;
+    const key = Object.keys(accepted.outputs).find(key => accepted.outputs[key].node === 7);
+    const volume = (await f.bodies()).bodies.find(body => body.key === key)?.volume;
+    assert.ok(Math.abs(volume - 4 * (20 * 10 - 4 * Math.PI)) < 1e-7);
+    f.report.observations.push({ label: 'perforated-copy', volume });
+    await f.undo();
+    await f.same(copied);
+    await f.undo();
+    await f.same(seed);
+    return;
+  }
 
   if (!oversize) {
     f.phase = 'rounded top face sketch';
@@ -54,7 +99,7 @@ await f.run(async () => {
     await outline.waitFor();
     assert.deepEqual(await f.doc(), seed);
     assert.equal(await linked().count(), 0);
-    await f.sketchPanel().getByText('This outline has curved edges. Use the face outline to copy it.', { exact: true }).waitFor();
+    await f.sketchPanel().getByText('Linked inset needs a straight outer boundary.', { exact: true }).waitFor();
     await f.snapshot('rounded-recovery-guidance');
     await outline.click();
     const copied = (await f.finishSketch('independent-rounded-outline')).doc;
