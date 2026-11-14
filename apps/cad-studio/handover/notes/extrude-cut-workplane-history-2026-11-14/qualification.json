@@ -1,0 +1,208 @@
+{
+  "decision": "D1159",
+  "tier": "SMALL",
+  "parent": "e083b30943cfbd5daa9718b441ae86ba1abd7ed4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1159-<run>",
+    "D1159_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-cut-workplanes-browser.mjs <external-evidence>/<run>",
+    "node --check apps/cad-studio/test/extrude-cut-workplanes-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "trial": {
+      "status": "FAIL",
+      "states": 3,
+      "frozenFiles": 870,
+      "receiptSHA256": "0728b04fc277b2be2d1352fefca9ef06a7db8dcd1427c6a0b017ffc65ab1e532",
+      "sourceManifestSHA256": "7c52cd84248ca6736fa413a4e098402de68d2177a7bf03e09e998c04c0e32e9b"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 870,
+      "receiptSHA256": "46c845a57b63ac19802f37431362ad3ea7a90f5fa7ff11f6f07d921c7983cc8c",
+      "sourceManifestSHA256": "7a460b5dfd3f3e8387afd325b12ed7117b4b53dc47a75c00bc2da1ae565eedaa"
+    },
+    "combined": {
+      "status": "PASS",
+      "states": 12,
+      "frozenFiles": 870,
+      "receiptSHA256": "a1d67dadeb9b1f3fc56e50e8a57d2f8b7cc7cdac89df3c52e0ab89bd08e617de",
+      "sourceManifestSHA256": "52c71374a246754c918a6fe2bb4bebf10cefb435109bf8cc77313024fbfaa71d",
+      "observations": [
+        {
+          "label": "right-depth-2",
+          "depth": 2,
+          "draft": 0,
+          "expectedVolume": 11936,
+          "actualVolume": 11936.000000000002,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.side1",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -2
+            }
+          ]
+        },
+        {
+          "label": "right-depth-4",
+          "depth": 4,
+          "draft": 0,
+          "expectedVolume": 11872,
+          "actualVolume": 11871.999999999996,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.side1",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -4
+            }
+          ]
+        },
+        {
+          "label": "right-reopened",
+          "depth": 4,
+          "draft": 0,
+          "expectedVolume": 11872,
+          "actualVolume": 11871.999999999996,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.side1",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -4
+            }
+          ]
+        },
+        {
+          "label": "tilted-depth-2",
+          "depth": 2,
+          "draft": 0,
+          "expectedVolume": 11808,
+          "actualVolume": 11807.999999999998,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -1.9999999999999991
+            }
+          ]
+        },
+        {
+          "label": "tilted-depth-4",
+          "depth": 4,
+          "draft": 0,
+          "expectedVolume": 11616,
+          "actualVolume": 11615.999999999998,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -3.999999999999999
+            }
+          ]
+        },
+        {
+          "label": "tilted-reopened",
+          "depth": 4,
+          "draft": 0,
+          "expectedVolume": 11616,
+          "actualVolume": 11615.999999999998,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": 0
+            },
+            {
+              "name": "n3.bottom",
+              "level": -3.999999999999999
+            }
+          ]
+        },
+        {
+          "label": "tilted-draft-depth-2",
+          "depth": 2,
+          "draft": 10,
+          "expectedVolume": 11821.774518946002,
+          "actualVolume": 11821.774518946,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": -5.293955920339377e-23
+            },
+            {
+              "name": "n3.top",
+              "level": -2
+            }
+          ]
+        },
+        {
+          "label": "tilted-draft-depth-4",
+          "depth": 4,
+          "draft": 10,
+          "expectedVolume": 11669.77151774131,
+          "actualVolume": 11669.771517741307,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": -5.293955920339377e-23
+            },
+            {
+              "name": "n3.top",
+              "level": -3.999999999999999
+            }
+          ]
+        },
+        {
+          "label": "tilted-draft-reopened",
+          "depth": 4,
+          "draft": 10,
+          "expectedVolume": 11669.77151774131,
+          "actualVolume": 11669.771517741307,
+          "pieces": 1,
+          "valid": true,
+          "floorPlanes": [
+            {
+              "name": "n1.top",
+              "level": -5.293955920339377e-23
+            },
+            {
+              "name": "n3.top",
+              "level": -3.999999999999999
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
