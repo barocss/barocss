@@ -6,6 +6,7 @@ const oversize = process.argv.includes('--oversize');
 const fieldEnter = process.argv.includes('--field-enter');
 const perforated = process.argv.includes('--perforated');
 const activeLink = process.argv.includes('--active-link');
+const ordinaryOffset = process.argv.includes('--ordinary-offset');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -54,12 +55,55 @@ async function startSketchOnTop(x) {
 }
 
 await f.run(async () => {
-  const seed = await f.inspect('seed', {}, perforated ? 'perforated' : 'default');
+  const seed = await f.inspect('seed', {}, perforated || ordinaryOffset ? 'perforated' : 'default');
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button(f.page, 'Open').click()]);
   await chooser.setFiles({ name: 'inset-faces.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
   if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
+
+  if (ordinaryOffset) {
+    const panel = f.sketchPanel();
+    const distance = panel.getByLabel('Offset distance', { exact: true });
+    const copy = button(panel, 'Use the face outline');
+    const draftOutlineCount = () => f.page.locator('.vp-overlay .sk-shape').count();
+    for (const [label, x, useOutline] of [['empty', 86, false], ['single', 50, true], ['hole', 86, true]]) {
+      f.phase = 'ordinary Offset Enter on ' + label;
+      await startSketchOnTop(x);
+      if (useOutline) await copy.click();
+      await distance.fill('1');
+      const count = await draftOutlineCount();
+      await distance.press('Enter');
+      if (baseline) {
+        await panel.waitFor({ state: 'hidden' });
+        await f.same(seed);
+        await f.snapshot('ordinary-offset-premature-finish');
+        throw new Error('Ordinary Offset distance Enter finished the sketch.');
+      }
+      assert.ok(await panel.isVisible());
+      assert.equal(await draftOutlineCount(), count);
+      assert.ok(await distance.evaluate(element => element === document.activeElement));
+      await f.same(seed);
+      await f.snapshot('ordinary-offset-' + label);
+      if (label === 'single') {
+        await button(panel, 'Offset outward').press('Enter');
+        assert.ok(await draftOutlineCount() > count);
+        await f.same(seed);
+        await f.snapshot('offset-out-draft');
+      } else if (label === 'hole') {
+        await button(panel, 'Offset inward').press('Enter');
+        await f.waitToast(/A shape inside a hole is not supported/);
+        assert.equal(await draftOutlineCount(), count);
+        await f.same(seed);
+        await f.snapshot('offset-in-existing-refusal');
+        await f.dismissToasts();
+      }
+      await f.page.keyboard.press('Escape');
+      await panel.waitFor({ state: 'hidden' });
+      await f.same(seed);
+    }
+    return;
+  }
 
   if (perforated) {
     f.phase = 'a straight outer cap with one circular hole';

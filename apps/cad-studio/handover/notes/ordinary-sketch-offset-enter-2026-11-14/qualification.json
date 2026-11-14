@@ -1,0 +1,131 @@
+{
+  "decision": "D1216",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "b18c36d1d41b2c20885657b6f085f3167bcbec38",
+  "commands": [
+    "gate.sh acquire heavy 600 D1216-<run>",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/baseline --ordinary-offset --baseline",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/verified --ordinary-offset",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence>/linked --oversize --active-link --field-enter",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx",
+    "node --check apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "ordinary-offset-premature-finish",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "bdf94cf5cdf3c41d10374d5c83418b683207f39d930773dfef95adb03d94d525",
+      "sourceManifestSHA256": "6b870eea1ef983c981473a0373b35fe13703063350882d19e406fef5d1e4d3a4",
+      "sourceAfterCleanupSHA256": "6b870eea1ef983c981473a0373b35fe13703063350882d19e406fef5d1e4d3a4",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "ordinary-offset-empty",
+        "ordinary-offset-single",
+        "offset-out-draft",
+        "ordinary-offset-hole",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "bd8344508786c1d3b4de58d72287e647c342d30410d51424d329f321991c9029",
+      "sourceManifestSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "sourceAfterCleanupSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "states": [
+        "ordinary-offset-empty",
+        "ordinary-offset-single",
+        "offset-out-draft",
+        "ordinary-offset-hole",
+        "offset-in-existing-refusal"
+      ],
+      "observations": [],
+      "frozenFiles": 881,
+      "receiptSHA256": "08900f8e35073da64b5f709048ffe13222ee772c64230ece43934daec1a488e3",
+      "sourceManifestSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "sourceAfterCleanupSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "linked": {
+      "status": "PASS",
+      "states": [
+        "before-oversize",
+        "oversize-refused",
+        "linked-distance-distinct-from-offset",
+        "straight-linked-outline",
+        "straight-linked-ring-extruded"
+      ],
+      "observations": [
+        {
+          "label": "straight-linked-ring-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 10Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "straight-linked-ring",
+          "volume": 416.0000000000003,
+          "association": {
+            "kind": "planar-face-outline-inset",
+            "version": 1,
+            "source": {
+              "node": 3,
+              "side": "solid"
+            },
+            "sourceFeature": "n3",
+            "face": "n3.top",
+            "insetMM": 2
+          }
+        }
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "fe3a33388ccd27d21e3a7c0b93420e29550450aa786a50e8421e716aac9ba0df",
+      "sourceManifestSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "sourceAfterCleanupSHA256": "8f32ea944d3588daf5b3a069d5878c29ae7ddd8f8c8238eef2e64a0bfb5f7f49",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "desktopIndex": {
+    "issue": 2492,
+    "updatedAt": "2026-11-14T06:25:38Z",
+    "checked": 29,
+    "total": 81
+  }
+}

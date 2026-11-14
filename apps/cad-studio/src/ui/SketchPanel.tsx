@@ -231,14 +231,14 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
         <div className="sk-offset">
           <span className="num"><Input ref={offsetInput} aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy}
-            data-sketch-action={canLinkInset || sketch.association ? true : undefined}
+            data-sketch-action
             aria-invalid={insetError ? true : undefined} aria-describedby={insetError ? insetErrorId : undefined}
-            onKeyDown={canLinkInset || sketch.association ? event => {
+            onKeyDown={event => {
               if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
               event.preventDefault();
               event.stopPropagation();
               if (canLinkInset && !event.repeat) linkInset();
-            } : undefined}
+            }}
             onChange={e => { setOffsetBy(Number(e.target.value)); setInsetRefusal(null); }} /><em>mm</em></span>
           <Button variant="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</Button>
           <Button variant="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</Button>
