@@ -20,6 +20,7 @@ import { textEditCommand } from './textCommand';
 import { cylindricalWrapEditCommand } from './cylindricalWrapCommand';
 import { textReliefEditCommand } from './textReliefCommand';
 import { linearSpanHandles } from './linearSpanHandles';
+import { namedHoleEntry } from './holeEntry';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -114,18 +115,22 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
   const h = nodes[index] as Extract<ModelNode, { kind: 'hole' }>, axis = h.axis ?? 'z', k = 'xyz'.indexOf(axis);
   const [a, b] = ({ z: [0, 1], x: [1, 2], y: [0, 2] } as const)[axis], c = h.center.map(num), r = num(h.radius);
   if (![...c, r].every(Number.isFinite)) return [];
-  // The entry face's level: the end of the bore on the hole's side (its wall's vertices).
-  const mesh = ctx.bodies.find(x => x.key === bodyKeyFor(nodes, index))?.mesh; if (!mesh) return [];
-  const fid = `${featureId(nodes, index)}.`, own = new Set(mesh.faces.flatMap(f => f.name.split('+').some(s => s.startsWith(fid)) ? [f.index] : []));
-  let level = h.side === 'min' ? Infinity : -Infinity;
-  for (let v = 0; v < mesh.faceOfVertex.length; v++) if (own.has(mesh.faceOfVertex[v])) level = h.side === 'min' ? Math.min(level, mesh.positions[v * 3 + k]) : Math.max(level, mesh.positions[v * 3 + k]);
+  const entry = h.face ? namedHoleEntry(ctx.doc, index) : undefined;
+  if (h.face && !h.side && !entry) return [];
+  const side = h.side ?? entry?.side ?? 'max';
+  let level = entry?.coordinate ?? (side === 'min' ? Infinity : -Infinity);
+  if (!entry) {
+    const mesh = ctx.bodies.find(x => x.key === bodyKeyFor(nodes, index))?.mesh; if (!mesh) return [];
+    const fid = `${featureId(nodes, index)}.`, own = new Set(mesh.faces.flatMap(f => f.name.split('+').some(s => s.startsWith(fid)) ? [f.index] : []));
+    for (let v = 0; v < mesh.faceOfVertex.length; v++) if (own.has(mesh.faceOfVertex[v])) level = side === 'min' ? Math.min(level, mesh.positions[v * 3 + k]) : Math.max(level, mesh.positions[v * 3 + k]);
+  }
   if (!Number.isFinite(level)) return [];
   const point = (u: number, w: number): V3 => { const p: V3 = [0, 0, 0]; p[a] = u; p[b] = w; p[k] = level; return p; };
   const unit = (i: number): V3 => { const d: V3 = [0, 0, 0]; d[i] = 1; return d; };
   const out: HandleSpec[] = [{ key: 'c0', at: point(c[0], c[1]), dir: unit(a), pair: { key: 'c1', dir: unit(b) } }, { key: 'dia', at: point(c[0] + r, c[1]), dir: unit(a), scale: 2, min: 0.5, step: 0.5 }];
   // A blind hole's depth: an arrow down the bore from where it goes in; deeper is further in.
   if (h.depth !== undefined) {
-    const depth = num(h.depth), was = ctx.doc.nodes[index], d0 = was?.kind === 'hole' ? num(was.depth ?? NaN) : NaN, inward = h.side === 'min' ? 1 : -1, down: V3 = [0, 0, 0]; down[k] = inward;
+    const depth = num(h.depth), was = ctx.doc.nodes[index], d0 = was?.kind === 'hole' ? num(was.depth ?? NaN) : NaN, inward = side === 'min' ? 1 : -1, down: V3 = [0, 0, 0]; down[k] = inward;
     // (The bore's end now is the start level plus the depth it has; the arrow sits at the depth being dragged.)
     if (Number.isFinite(depth + d0)) { const p = point(c[0], c[1]); p[k] = level + inward * depth; out.push({ key: 'depth', at: p, dir: down, min: 0.5, step: 0.5 }); }
   }

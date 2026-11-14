@@ -1,0 +1,316 @@
+{
+  "decision": "D1176",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "9f14349218e088cf98042b929fe5391967790c8a",
+  "commands": [
+    "gate.sh acquire heavy 600 D1176-<run>",
+    "D1176_SOURCE_FROZEN=1 node apps/cad-studio/test/legacy-tapped-hole-history-browser.mjs <external-evidence>/<run>",
+    "D1000_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-history-centre-browser.mjs <external-evidence>/centre-qualified",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles o7-legacy",
+    "Rebundle o7-legacy.test.ts with an esbuild onLoad setting app/editCommand.ts to git show HEAD:packages/barocss-cad-model/src/app/editCommand.ts, then run node --test on the external bundle.",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/{NodeEditor,HoleHistoryInputs}.tsx packages/barocss-cad-model/src/app/{editCommand,holeEntry}.ts",
+    "node --check apps/cad-studio/test/legacy-tapped-hole-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "existingModelFailures": {
+    "names": [
+      "die-casting-zinc.bcad",
+      "drawing-holes.bcad",
+      "sand-casting-a356.bcad"
+    ],
+    "combinedLogSHA256": "ad9ee7876723084eaccb3a1d5bc2d9f7997d79243a2af0822b3d0d7a9c7b1f9e",
+    "parentO7LogSHA256": "ecd3c8658d7d35b51a2fd39efe26dea17aad3d42410f935c3f41016e8f08477a"
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "legacy-hole-history",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "96924182ebfd7c4113e30fba0ddc798e16fde1a1a6ad3be3e91e5ecd734fb10d",
+      "sourceManifestSHA256": "8137162ca5de13f1f7bdde5832c9c011c8a88a74c5f42d724a45e7d145eee67b"
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "legacy-hole-history",
+        "legacy-hole-edited",
+        "legacy-hole-reopened",
+        "legacy-through-hole-history"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "de1bf7398700356f9a02208ec23797b42c3e2d1ed4209fa4e617c48f5f90c600",
+      "sourceManifestSHA256": "1477c061053e4a169a2e278405be99579bd85fa3827bdfd2e78900e0dbc171f9"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "legacy-hole-history",
+        "legacy-hole-edited",
+        "legacy-hole-reopened",
+        "legacy-through-hole-history",
+        "legacy-underside-direction"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "045785223b5773ac3ccda64d1c3a69e6bc4671518798b8113e402e98688b917d",
+      "sourceManifestSHA256": "940f5f8b32c81c2fe878f28dda794202ed3fabe5b7d48a84031e04e25a522fc2"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "legacy-hole-history",
+        "legacy-hole-edited",
+        "legacy-hole-reopened",
+        "legacy-through-hole-history",
+        "legacy-underside-direction"
+      ],
+      "frozenFiles": 879,
+      "receiptSHA256": "9975774a0c037c57136b17e9d9442c3cf7a3fd362285e658d37becddcfb3638a",
+      "sourceManifestSHA256": "dedd6e5ffcb9b60026b165d358798e2631ecb9043590d3e96b769cb080a99a79",
+      "observations": [
+        {
+          "label": "legacy-source",
+          "hash": "3e3d1704e2a87a0f685f48100e8f55db6ac87631ac853fdffd1043c025c7ddc1"
+        },
+        {
+          "label": "original-hole",
+          "expectedVolume": 46815.0305209741,
+          "outputCount": 1,
+          "solids": 1,
+          "valid": true,
+          "threads": [
+            "n2",
+            "n3",
+            "n4"
+          ],
+          "thread": {
+            "d": 6,
+            "pitch": 1,
+            "radius": 2.5,
+            "internal": true
+          },
+          "ringSegments": 384,
+          "volume": 46815.030520973996,
+          "walls": [
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  15,
+                  20,
+                  8
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                8,
+                20
+              ]
+            },
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  15,
+                  20,
+                  8
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                8,
+                20
+              ]
+            }
+          ]
+        },
+        {
+          "label": "legacy-hole-edited",
+          "expectedVolume": 46873.935383228905,
+          "outputCount": 1,
+          "solids": 1,
+          "valid": true,
+          "threads": [
+            "n2",
+            "n3",
+            "n4"
+          ],
+          "thread": {
+            "d": 6,
+            "pitch": 1,
+            "radius": 2.5,
+            "internal": true
+          },
+          "ringSegments": 288,
+          "volume": 46873.9353832288,
+          "walls": [
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  17,
+                  20,
+                  11
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                11,
+                20
+              ]
+            },
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  17,
+                  20,
+                  11
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                11,
+                20
+              ]
+            }
+          ]
+        },
+        {
+          "label": "legacy-hole-reopened",
+          "expectedVolume": 46873.935383228905,
+          "outputCount": 1,
+          "solids": 1,
+          "valid": true,
+          "threads": [
+            "n2",
+            "n3",
+            "n4"
+          ],
+          "thread": {
+            "d": 6,
+            "pitch": 1,
+            "radius": 2.5,
+            "internal": true
+          },
+          "ringSegments": 288,
+          "volume": 46873.9353832288,
+          "walls": [
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  17,
+                  20,
+                  11
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                11,
+                20
+              ]
+            },
+            {
+              "geometry": {
+                "kind": "cylinder",
+                "c": [
+                  17,
+                  20,
+                  11
+                ],
+                "a": [
+                  0,
+                  0,
+                  1
+                ],
+                "r": 2.5000000000000004,
+                "out": -1
+              },
+              "ends": [
+                11,
+                20
+              ]
+            }
+          ]
+        },
+        {
+          "label": "underside-depth-handle",
+          "root": [
+            516.3641357421875,
+            460.5047607421875
+          ],
+          "tip": [
+            515.5999908447266,
+            420.5500030517578
+          ],
+          "expectedRoot": [
+            516.3641655761585,
+            460.50474788372884
+          ],
+          "projectedPositiveZ": [
+            516.1681629039626,
+            451.5900181574904
+          ]
+        }
+      ]
+    },
+    "centre-qualified": {
+      "status": "PASS",
+      "states": [
+        "x-editor",
+        "x-edited",
+        "x-undo",
+        "x-redo",
+        "y-editor",
+        "y-edited",
+        "y-undo",
+        "y-redo",
+        "legacy-z-editor",
+        "legacy-z-edited",
+        "legacy-z-undo",
+        "legacy-z-redo"
+      ],
+      "frozenFiles": 390,
+      "receiptSHA256": "d7d55bcda92fba556bbf457de90c6db6bab27ecc5201502d01d6e5eae992738c",
+      "sourceManifestSHA256": "f43c992b4413192af9d4692633e3e6ade71aaf5d1187b96278211802aeafaef0"
+    }
+  }
+}

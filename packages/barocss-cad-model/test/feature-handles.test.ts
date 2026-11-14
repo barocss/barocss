@@ -116,6 +116,19 @@ test('Hole types: to a depth, and counterbored (a wider hole to its depth on the
   assert.throws(() => hole.build!(ctx, { ...v, type: 'counterbore', cd: 5, ch: 3 }), /wider/);
 });
 
+test('Hole History handles use the actual named underside when a legacy file omits side', () => {
+  const doc = withNode(rectanglePart(40, 20, 10), {
+    kind: 'hole', parent: { node: 1, side: 'solid' }, face: 'n1.bottom',
+    center: [16, 8], radius: 3, depth: 4,
+  });
+  const ctx = picked(doc), edit = editCommand(2, doc.nodes)!;
+  const handles = edit.handles!(ctx, edit.defaults!(ctx));
+  assert.deepEqual(handles.map(handle => [handle.key, handle.at, handle.dir]), [
+    ['c0', [16, 8, 0], [1, 0, 0]], ['dia', [19, 8, 0], [1, 0, 0]],
+    ['depth', [16, 8, 4], [0, 0, 1]],
+  ]);
+});
+
 test('Split across any plane: a mitre x + y = at through the middle, its arrow along the normal, two bodies', async () => {
   const { featureLabel, planeText } = await import('../src/engine/doc');
   const ctx = picked(rectanglePart(40, 20, 10)), split = cmd('split');
