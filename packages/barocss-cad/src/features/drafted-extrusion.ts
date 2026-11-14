@@ -2,13 +2,14 @@
 // wall leans into the material by the draft angle (the section shrinks by (z1 − z0)·tan θ, a hole
 // grows). A straight wall becomes a sloping plane, an arc a cone patch about the arc's centre. Tangent
 // joints stay tangent; two straight walls meet in a sloping edge through their offset lines' meeting
-// point. Joints between a line and an arc (or two arcs) that are not tangent are refused (yet), as is
-// a draft steep enough to collapse a wall.
+// point. An inward half-disk has two exact parabolic joints. Other non-tangent curved joints and
+// drafts steep enough to collapse a wall are refused.
 import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep } from '../brep/brep-core.js';
 import { sideName } from '../document/side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { dot } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { draftHalfDisk } from './drafted-half-disk.js';
 
 export interface DraftedExtrusionInput {
   readonly profile: readonly ProfileSegmentInput[];
@@ -61,6 +62,11 @@ export function draftedExtrusion(input: DraftedExtrusionInput): Brep {
   if (!(Math.abs(input.draft) < 89)) fail('the draft angle must be below 89°');
   if (!(z1 > z0)) fail('the extrusion needs a positive height');
   const loop0 = buildProfileLoop(input.profile, { maximumSegments: 1024 }), built = loop0.segments;
+  if (theta > 0 && built.length === 2) {
+    const names = built.map((_, i) => input.sideTags ? sideName(tag, loop0.reversed ? 1 - i : i, input.sideTags) : `${tag}.side${i}`);
+    const halfDisk = draftHalfDisk(built, names, z0, z1, Math.tan(theta), id, tag, fail);
+    if (halfDisk) return halfDisk;
+  }
   // A single circle becomes two halves, so every edge has two vertices.
   const bottom: ProfileSegment[] = built.length > 1 ? [...built] : (() => {
     const arc = built[0]; if (arc.kind !== 'arc') fail('a profile needs at least two segments');

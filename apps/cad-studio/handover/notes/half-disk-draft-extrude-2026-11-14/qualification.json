@@ -1,0 +1,151 @@
+{
+  "decision": "D1253",
+  "tier": "FULL",
+  "parent": "4c819a8deddb82b5462780f303e5266bcacdbb60",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1253-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node ../../node_modules/eslint/bin/eslint.js src/features/drafted-half-disk.ts src/features/drafted-extrusion.ts",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/drafted-extrusion.test.mjs test/draft-neutral-plane.test.mjs",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 --test-name-pattern=draft test/part-model.test.mjs",
+    "D1253_SOURCE_FROZEN=1 node apps/cad-studio/test/half-disk-draft-extrude-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-model test engine.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "node --check apps/cad-studio/test/half-disk-draft-extrude-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "kernel": {
+      "status": "PASS",
+      "tests": 35
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 44
+    },
+    "kernelTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "kernelLint": "PASS",
+    "codeShape": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "newNavigationLinks": "PASS",
+    "fullSuites": "NOT_RUN",
+    "generalRBAndFuzz": "NOT_RUN",
+    "exchange": "NOT_RUN",
+    "nearCollapseDisplayAndVolume": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  },
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "377874ad1e16d1fb756f2cc25052b6f7f4cc17499c1adeaeaf271d2fba10ce75",
+    "evidenceSHA256": "722dff5b0a085ef2a01989928c701b35372022b3bc26552e7139d7fe36d51837",
+    "exitByVariant": {
+      "current": 0,
+      "non-parabolic": 1
+    }
+  },
+  "studio": {
+    "studio1": {
+      "status": "FAIL",
+      "frozenFiles": 886,
+      "states": [
+        "failure"
+      ],
+      "receiptSHA256": "75af52134ca3526013bf44b2649d262034628f0fad189b262094d4350c5bed52",
+      "sourceManifestSHA256": "772d386e6f16872204108d76fb1289057ff4a6e4fafd236872a61bbd730cc64f",
+      "sourceAfterCleanupSHA256": "772d386e6f16872204108d76fb1289057ff4a6e4fafd236872a61bbd730cc64f",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "studio2": {
+      "status": "PASS",
+      "frozenFiles": 886,
+      "states": [
+        "half-disk-collapse-refused",
+        "half-disk-preview",
+        "half-disk-extruded",
+        "half-disk-edited",
+        "half-disk-reopened"
+      ],
+      "receiptSHA256": "a3de524919d1c17574b4bbadf07e5bcd18edb88e0f910da3068db54f7fb248b8",
+      "sourceManifestSHA256": "1c224e9b63748052809342a9e5d97582fc451f0402bede490b8a75a2bff273e2",
+      "sourceAfterCleanupSHA256": "1c224e9b63748052809342a9e5d97582fc451f0402bede490b8a75a2bff273e2",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "initial-native",
+          "angle": 10,
+          "volume": 1155.037175905234,
+          "nativeVolume": 1155.0371759174996,
+          "workerVolume": 1155.0371759167504,
+          "method": "quadrature",
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 5,
+            "loops": 5,
+            "coedges": 18,
+            "edges": 9,
+            "vertices": 6
+          },
+          "gap": 2.2232198742534223e-15
+        },
+        {
+          "label": "edited-native",
+          "angle": 14,
+          "volume": 1005.4515839447032,
+          "nativeVolume": 1005.4515839534121,
+          "workerVolume": 1005.4515839534428,
+          "method": "quadrature",
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 5,
+            "loops": 5,
+            "coedges": 18,
+            "edges": 9,
+            "vertices": 6
+          },
+          "gap": 1.9860273225978185e-15
+        },
+        {
+          "label": "reopened-native",
+          "angle": 14,
+          "volume": 1005.4515839447032,
+          "nativeVolume": 1005.4515839534121,
+          "workerVolume": 1005.4515839534428,
+          "method": "quadrature",
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 5,
+            "loops": 5,
+            "coedges": 18,
+            "edges": 9,
+            "vertices": 6
+          },
+          "gap": 1.9860273225978185e-15
+        }
+      ],
+      "savedNativeFileSHA256": "ef4d79b7f6345627008ecb6631c0bb40b9bd587c8b903f16cb1093d32a5a14f5"
+    }
+  }
+}
