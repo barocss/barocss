@@ -7,6 +7,7 @@ const narrowDock = process.argv.includes('--narrow-dock');
 const automaticRefusal = process.argv.includes('--automatic-refusal');
 const beforeExtrude = process.argv.includes('--before-extrude');
 const sourceDimension = process.argv.includes('--source-dimension');
+const editInsetDistance = process.argv.includes('--edit-inset-distance');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -78,6 +79,50 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (editInsetDistance) {
+    await f.openFeatureEditor(5);
+    f.phase = 'edit stored linked inset distance in History';
+    const inset = f.editor().getByLabel('Linked inset distance', { exact: true });
+    const extrusion = f.editor().getByLabel('Distance', { exact: true });
+    assert.equal(await extrusion.inputValue(), '4');
+    if (baseline) {
+      assert.equal(await inset.count(), 0);
+      await f.snapshot('stored-inset-read-only');
+      throw new Error('The stored linked inset distance was visible but read-only.');
+    }
+    assert.equal(await inset.inputValue(), '2');
+    const before = await f.snapshot('inset-distance-before');
+    await inset.fill('0');
+    assert.ok(await button('Apply', f.editor()).isDisabled());
+    await inset.fill('12');
+    await button('Apply', f.editor()).click();
+    await f.editor().getByRole('status').filter({ hasText: 'Linked inset distance is too large' }).getByText(/Enter a smaller Linked inset distance/).waitFor();
+    const rejected = await f.snapshot('inset-distance-refused');
+    for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(rejected[field], before[field], field);
+    await inset.fill('3');
+    await button('Apply', f.editor()).click();
+    await f.changed(seed);
+    const accepted = (await f.snapshot('inset-distance-applied')).doc;
+    const expected = structuredClone(seed);
+    expected.nodes[4].association.insetMM = 3;
+    assert.deepEqual(accepted, expected);
+    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    assert.ok(Math.abs(volume - 4 * (40 * 24 - 34 * 18)) < 1e-7);
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(accepted);
+    await f.newPage();
+    const [newChooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+    await newChooser.setFiles({ name: 'updated-inset.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(accepted)) });
+    await f.same(accepted);
+    await f.openFeatureEditor(5);
+    assert.equal(await f.editor().getByLabel('Linked inset distance', { exact: true }).inputValue(), '3');
+    assert.equal(await f.editor().getByLabel('Distance', { exact: true }).inputValue(), '4');
+    f.report.observations.push({ label: 'inset-distance-recovered', source: 'n1.top', insetMM: 3, distance: 4, volume });
+    await f.snapshot('inset-distance-reopened');
+    return;
+  }
   if (sourceDimension) {
     f.phase = 'upstream Extrude distance closes the linked opening';
     await f.openFeatureEditor(3);

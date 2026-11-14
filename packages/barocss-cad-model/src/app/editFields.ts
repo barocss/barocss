@@ -89,6 +89,15 @@ function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<st
   if (nodes[s]?.kind === 'driven-sketch') return outlineFields(nodes, s, prefix, params);
   if (!sk || sk.kind !== 'sketch') return out;
   const at = (n: Nodes) => n[s] as SketchNode;
+  if (sk.association) return [{
+    kind: 'number', key: prefix + 'linkedInsetMM', label: prefix + 'Linked inset distance', unit: 'mm',
+    get: n => at(n).association?.insetMM ?? NaN,
+    set: (n, insetMM) => {
+      const sketch = at(n), association = sketch.association;
+      return association && Number.isFinite(insetMM) && insetMM > 0
+        ? replace(n, s, { ...sketch, association: { ...association, insetMM } }) : [...n];
+    },
+  }];
   if (sk.profile === 'rectangle') {
     const rect = (n: Nodes) => at(n) as Extract<SketchNode, { profile: 'rectangle' }>;
     const put = (n: Nodes, min: Dim[], max: Dim[]) => {
@@ -137,7 +146,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params || nodes[i]?.kind === 'linear-span-pattern' || nodes[i]?.kind === 'align') return raw;
   return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol')
-    || (nodes[i]?.kind === 'hole' && /^(step|about)[01]$/.test(f.key)) ? f : {
+    || f.key.endsWith('linkedInsetMM') || (nodes[i]?.kind === 'hole' && /^(step|about)[01]$/.test(f.key)) ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,

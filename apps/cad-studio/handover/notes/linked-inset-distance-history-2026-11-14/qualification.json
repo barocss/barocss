@@ -1,0 +1,170 @@
+{
+  "decision": "D1214",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "f3e0ebbfb52e462f96ca33f05c1ca29b0efdef59",
+  "commands": [
+    "gate.sh acquire heavy 600 D1214-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --edit-inset-distance --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/verified --edit-inset-distance",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/source --source-dimension",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/wide --history-summary",
+    "pnpm --filter @barocss/cad-model test associative-inset-relink sketch-associative-inset editFields",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/{failedFeature,featureNumberInput}.ts packages/barocss-cad-model/src/app/editFields.ts",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "stored-inset-read-only",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "4b391aeef113494a0155487c9e7a69fa8ef7066a345dc944acf117a2514d0a4d",
+      "sourceManifestSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "sourceAfterCleanupSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "inset-distance-before",
+        "inset-distance-refused",
+        "inset-distance-applied",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "b0627a3c258cab02fb68c7a6ccd49844aa3316a89d3a3c80fa5ca1e8d7cbbd2b",
+      "sourceManifestSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "sourceAfterCleanupSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "states": [
+        "inset-distance-before",
+        "inset-distance-refused",
+        "inset-distance-applied",
+        "inset-distance-reopened"
+      ],
+      "observations": [
+        {
+          "label": "inset-distance-recovered",
+          "source": "n1.top",
+          "insetMM": 3,
+          "distance": 4,
+          "volume": 1392.0000000000016
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "ff9bf5d1da3ea5cc069d7ee386da96fe8eaf42d8c5d044c1f54c36f436381a8e",
+      "sourceManifestSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "sourceAfterCleanupSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "source": {
+      "status": "PASS",
+      "states": [
+        "source-height-before",
+        "source-height-refused"
+      ],
+      "observations": [
+        {
+          "label": "source-dimension-recovered",
+          "height": 12,
+          "volume": 2268,
+          "expected": 2268
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "54d689d823f08c3a25e606f8a2e935edff3f57c3207443396fb3457174832356",
+      "sourceManifestSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "sourceAfterCleanupSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "88006f009812d16744009a5b6e0911ed84b0aeae0450f51901cbbe292e385134",
+      "sourceManifestSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "sourceAfterCleanupSHA256": "de0948e5268c18065a4d51191ef68bed934a0cd3cf40be36656c542b9123b677",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 25,
+    "failed": 0
+  },
+  "focusedStudio": {
+    "status": "PASS",
+    "passed": 4,
+    "failed": 0
+  }
+}

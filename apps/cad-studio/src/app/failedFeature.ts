@@ -4,14 +4,21 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 
 export type FeatureFailure = FriendlyError & { failedFeature?: string };
 
-export function linkedInsetSourceFailure(error: FriendlyError, nodes: readonly ModelNode[], sourceIndex: number): FeatureFailure | undefined {
+export function linkedInsetHistoryFailure(error: FriendlyError, accepted: readonly ModelNode[], candidate: readonly ModelNode[], editIndex: number): FeatureFailure | undefined {
   const id = error.linkedInsetFeature;
-  const sketch = id && nodes[nodeIndexOf(nodes, id)];
-  if (!sketch || sketch.kind !== 'sketch' || sketch.association?.source.node !== sourceIndex) return;
+  if (!id) return;
+  const index = nodeIndexOf(accepted, id), sketch = accepted[index], next = candidate[index];
+  if (sketch?.kind !== 'sketch' || !sketch.association || next?.kind !== 'sketch' || !next.association) return;
+  const failedFeature = failedFeatureText(id, candidate, accepted);
+  if (next.association.insetMM !== sketch.association.insetMM) {
+    return { ...error, title: 'Linked inset distance is too large',
+      hint: `Enter a smaller Linked inset distance for ${next.association.face} or reset this edit.`, failedFeature };
+  }
   const { face, insetMM } = sketch.association;
+  if (sketch.association.source.node !== editIndex) return;
   return { ...error, title: 'The linked inset opening closes',
     hint: `The ${insetMM} mm inset on ${face} fails with the new source size. Increase the source dimension or reset this edit.`,
-    failedFeature: failedFeatureText(id, nodes, nodes) };
+    failedFeature };
 }
 
 /** Resolve a reported feature in the evaluated input and the command's accepted history. */

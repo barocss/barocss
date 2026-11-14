@@ -12,6 +12,7 @@ export function commandNumberRule(command: string, key: string, operation?: unkn
 
 export function historyNumberRule(nodes: readonly ModelNode[], index: number, key: string): FeatureNumberRule | undefined {
   const node = nodes[index];
+  if (key.endsWith('linkedInsetMM')) return 'positive';
   if (node?.kind === 'extrude' && key === 'h') return isSketchAnchoredCut(nodes, index) ? 'positive' : commandNumberRule('extrude', key);
   if (node?.kind === 'extrude' && node.made?.command === 'box') return commandNumberRule('box', key);
   if (node?.kind === 'fillet' && !node.radii?.length && key === 'r') return commandNumberRule('fillet', 'radius');
