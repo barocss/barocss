@@ -7,6 +7,8 @@ const namesBaseline = process.argv.includes('--names-baseline');
 const historyPreview = process.argv.includes('--history-preview');
 const previewBaseline = process.argv.includes('--preview-baseline');
 const delayHistoryPreview = process.argv.includes('--delay-history-preview');
+const alignWaiting = process.argv.includes('--waiting-state');
+const waitingBaseline = process.argv.includes('--waiting-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
@@ -14,7 +16,8 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useVi
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
+  qualification: alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
+    : historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
     : targetNames ? 'Align History identifies each target body and exact native face.'
     : 'Align uses the original face the pointer hits after results reorder in preview.',
   limits: ['Desktop WebGPU, top faces of three root native boxes, fixed Gap 2 mm.'],
@@ -118,6 +121,8 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'align-targets.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (alignWaiting) await f.page.setViewportSize({ width: process.argv.includes('--wide') ? 1440 : 1024,
+    height: process.argv.includes('--wide') ? 900 : 800 });
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await button('Top', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
@@ -125,6 +130,22 @@ await f.run(async () => {
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 0);
   await clickModelCommand(f.page, 'Modify', 'Align');
   await hud().getByLabel('Gap', { exact: true }).fill('2');
+  if (alignWaiting) {
+    if (waitingBaseline) {
+      await hud().getByText('Invalid input', { exact: true }).waitFor();
+      assert.ok(await button('Apply', hud()).isDisabled());
+      await f.snapshot('align-waiting-shows-error');
+      throw new Error('Initial Align target selection is presented as an invalid input.');
+    }
+    assert.equal(await hud().locator('.status.input').innerText(), 'pick face');
+    assert.equal(await hud().getByText('Invalid input', { exact: true }).count(), 0);
+    assert.equal(await hud().getByText('click a flat face of another body', { exact: true }).count(), 1);
+    assert.ok(await button('Apply', hud()).isDisabled());
+    await clickAt([6, 5, 26]);
+    await f.waitToast(/Pick a face of another body to put it on/);
+    await hud().locator('.status.input').waitFor();
+    assert.ok(await button('Apply', hud()).isDisabled());
+  }
   await clickAt([50, 8, 8]);
   await hud().locator('.status.ok').waitFor();
   assert.match((await f.snapshot('b-preview')).hud, /Onto.*n3[.]top/);
@@ -139,9 +160,22 @@ await f.run(async () => {
 
   await clickAt([95, 10, 12]);
   if (baseline) await f.page.waitForTimeout(350);
-  else await hud().getByText('face n5.top', { exact: true }).waitFor();
+  else if (alignWaiting) await hud().getByLabel('Onto', { exact: true }).locator('option:checked').filter({ hasText: /^Stock · n5[.]top$/ }).waitFor({ state: 'attached' });
+  else await hud().getByLabel('Onto', { exact: true }).locator('option:checked').filter({ hasText: /n5[.]top/ }).waitFor({ state: 'attached' });
   await hud().locator('.status.ok').waitFor();
-  const target = (await f.snapshot('c-click-during-b-preview')).hud.match(/Onto(face n[35][.]top)/)?.[1].slice(5);
+  if (alignWaiting) {
+    const onto = hud().getByLabel('Onto', { exact: true });
+    await onto.selectOption('floor');
+    await hud().locator('.status.ok').waitFor();
+    assert.equal(await hud().getByText('the floor', { exact: true }).count(), 0);
+    assert.equal(await onto.locator('option:checked').innerText(), 'The floor (Z 0)');
+    await onto.selectOption('face');
+    await hud().locator('.status.ok').waitFor();
+    assert.equal(await onto.locator('option:checked').innerText(), 'Stock · n5.top');
+    assert.equal(await hud().getByText('click a flat face of another body', { exact: true }).count(), 0);
+    await f.snapshot('align-floor-face-restored');
+  }
+  const target = (await f.snapshot('c-click-during-b-preview')).hud.match(/(n[35][.]top)/)?.[1];
   assert.equal(target, baseline ? 'n3.top' : 'n5.top');
   await button('Apply', hud()).click();
   await f.changed(seed);

@@ -50,20 +50,24 @@ const wholeBody = (ctx: Ctx) => ctx.selection.bodies.length === 1 && !ctx.select
 const target = (v: Values): { normal: V3; centroid: V3 } | null =>
   v.target === 'face' && v.tnx !== undefined ? { normal: [Number(v.tnx), Number(v.tny), Number(v.tnz)], centroid: [Number(v.tcx), Number(v.tcy), Number(v.tcz)] } : null;
 
+export function awaitingAlignTarget(values: Values): boolean {
+  return values.target === 'face' && !target(values);
+}
+
 export const alignCommand: Command = {
   id: 'align', label: 'Align', icon: 'cad-align', group: 'modify', shortcut: 'A', keywords: 'place on put mate snap floor ground drop touch stack flush',
   hint: 'Put a picked face on another body’s face (click it), or a body down on the floor',
   available: ctx => source(ctx) || wholeBody(ctx) ? ok : no('Pick the flat face of the body to move (it goes face to face), or a body to put on the floor.'),
   fields: ctx => [
-    { key: 'target', label: 'Onto', kind: 'choice', options: [...(source(ctx) ? [{ value: 'face', label: 'A face (click it)' }] : []), { value: 'floor', label: 'The floor (Z 0)' }] },
+    { key: 'target', label: 'Onto', kind: 'choice', options: [...(source(ctx) ? [{ value: 'face', label: 'A face' }] : []), { value: 'floor', label: 'The floor (Z 0)' }] },
     { key: 'align', label: 'Line up', kind: 'choice', options: [{ value: 'touch', label: 'Touch only' }, { value: 'centre', label: 'Touch, middles lined up' }], when: v => v.target === 'face' },
     { key: 'gap', label: 'Gap', kind: 'mm', min: 0 },
   ],
   defaults: ctx => ({ target: source(ctx) ? 'face' : 'floor', align: 'centre', gap: 0 }),
   steps: (ctx, v) => {
-    const s = source(ctx), b = wholeBody(ctx), t = target(v);
+    const s = source(ctx), b = wholeBody(ctx);
     return [{ label: 'Move', text: s ? `face ${s.name}` : b ? 'the body (its lowest point)' : 'pick a face or a body', done: !!(s || b) },
-      { label: 'Onto', text: v.target === 'floor' ? 'the floor' : t ? `face ${String(v.tname ?? '')}` : 'click a flat face of another body', done: v.target === 'floor' || !!t }];
+      ...(awaitingAlignTarget(v) ? [{ label: 'Target', text: 'click a flat face of another body', done: false }] : [])];
   },
   onPick: (ctx, v, hit) => {
     const s = source(ctx); if (!s || !hit.face) return null;

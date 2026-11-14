@@ -3,6 +3,7 @@ import { FilletPickedEdges } from './FilletPickedEdges';
 import type { FilletType, RadiusMode } from '../app/filletFamily';
 import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
+import { bodyName } from '@barocss/cad-model/app/bodies';
 import { isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
@@ -33,7 +34,6 @@ interface Props {
   onFile?(key: string, file: File): void;
   onHoleOptions(owner: Active, patch: Values): boolean;
 }
-function renderOption(option: { value: string; label: string }) { return <option key={option.value} value={option.value}>{option.label}</option>; }
 
 /** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. (G12f: its fields, choices and
  * actions shadcn's Input, NativeSelect and Button, at the HUD's 26 px in the studio's mono type.) */
@@ -46,6 +46,11 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   const edgeScope = active.preview === 'ok' ? active.filletScope ?? active.chamferScope : undefined;
   const replacingAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
   const pickingMirrorPlane = awaitingMirrorPlane(active.cmd.id, active.values);
+  const alignTargetBody = active.cmd.id === 'align' ? active.ctx.bodies[Number(active.values.targetBody)] : undefined;
+  const alignTargetFace = active.cmd.id === 'align' ? active.values.tname : undefined;
+  const alignTargetName = typeof alignTargetFace === 'string' && alignTargetFace
+    ? alignTargetBody ? `${bodyName(active.ctx.doc, alignTargetBody)} · ${alignTargetFace}` : alignTargetFace
+    : null;
   const cutSource = isCutPattern(active.cmd.id) ? cutPatternSourceLabel(active.ctx.doc.nodes, selectedCutPatternSource(active.ctx)) : null;
   const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).filter(f => !(active.fillet?.type === 'edge' && active.fillet.radiusMode === 'constant' && f.key === 'endRadius'));
   const captureFirst = (element: HTMLInputElement | HTMLSelectElement | null) => { first.current = element; };
@@ -70,7 +75,9 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
     let control: ReactNode;
     if (field.kind === 'choice') control = <NativeSelect className={FIELD} ref={ref} aria-label={field.label} data-key={field.key} data-kind="choice" value={String(value)} onChange={changeValue}
       onKeyDown={active.cmd.id === 'hole' && field.key === 'type' ? event => stepNativeSelect(event, next => onChange(field.key, next)) : undefined}>
-      {field.options.map(renderOption)}
+      {field.options.map(option => <option key={option.value} value={option.value}>
+        {alignTargetName && field.key === 'target' && option.value === 'face' ? alignTargetName : option.label}
+      </option>)}
     </NativeSelect>;
     else if (field.kind === 'text') control = <Input className={FIELD} ref={ref} type="text" aria-label={field.label} data-key={field.key} data-kind="text" maxLength={field.maxLength} value={String(value ?? '')} onChange={changeValue} />;
     else if (field.kind === 'file') control = <span className="min-w-0"><Input className={FIELD} ref={ref} type="file" aria-label={field.label} data-key={field.key} accept={field.accept} disabled={!onFile} onChange={chooseFile} /><span className="muted small">{field.filename(value ?? '') ?? 'No file prepared'}</span></span>;

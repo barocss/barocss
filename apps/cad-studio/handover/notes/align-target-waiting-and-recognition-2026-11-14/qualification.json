@@ -1,0 +1,255 @@
+{
+  "decision": "D1234",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "e7443622e3cb1c39c7e680f64ff86e7f19b9ae85",
+  "commands": [
+    "gate.sh acquire heavy 600 D1234-<run>",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --target-names --waiting-state --waiting-baseline",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/narrow --target-names --waiting-state",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/wide --target-names --waiting-state --wide",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/history-control --retarget --target-names --history-preview",
+    "pnpm --filter @barocss/cad-model test align",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/alignCommand.ts apps/cad-studio/src/state/useCommandPreview.ts apps/cad-studio/src/ui/Hud.tsx",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "6d0f92c8a4220e406323826d90dbbe7f89e8484059c8fc276082a0411883d99b",
+      "sourceManifestSHA256": "93718c2423f5875bba26e19763da330c070c5d4e80cb327239c0ee77db2c8fe0",
+      "sourceAfterCleanupSHA256": "93718c2423f5875bba26e19763da330c070c5d4e80cb327239c0ee77db2c8fe0",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "narrow": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "d52e11456b33b43e90be86ac26513ae171633bcbc2733def3fd8d12d77e4a1e2",
+      "sourceManifestSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "sourceAfterCleanupSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "d52e11456b33b43e90be86ac26513ae171633bcbc2733def3fd8d12d77e4a1e2",
+      "sourceManifestSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "sourceAfterCleanupSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "history-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-preview",
+          "movedBounds": {
+            "min": [
+              0,
+              0,
+              12
+            ],
+            "max": [
+              12,
+              10,
+              18
+            ]
+          },
+          "obsoleteReplyExercised": false,
+          "refusedGap": -1
+        },
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "b6e817b63ff525376f7ea0e87180d25a6ba329ef0143dc14df5816fc5d60e468",
+      "sourceManifestSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "sourceAfterCleanupSHA256": "b5dd89d2ded38038a65822e16578e85ad52bc45382f6e479dc86e6163ed37ba4",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "postStudioCleanup": "Removed a blank final line from alignCommand.ts. No executable source changed."
+}
