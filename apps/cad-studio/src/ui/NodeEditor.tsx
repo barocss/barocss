@@ -11,6 +11,7 @@ import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
+import { savedCutPatternSource } from '../app/cutPatternSource';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import { SweepHistoryInputs } from './SweepHistoryInputs';
 import { HoleHistoryInputs } from './HoleHistoryInputs';
@@ -74,6 +75,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     }
   };
   const node = draft[index];
+  const cutSource = node ? savedCutPatternSource(node, draft) : null;
   const linearPattern = node?.kind === 'linear-pattern' || node?.kind === 'linear-span-pattern' ? node : null;
   const changeDistanceMode = (mode: LinearPatternDistanceMode) => {
     if (!linearPattern) return;
@@ -205,6 +207,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {invalidDimensions.map(({ field, rule }) => <div key={field.key} className="hud-error" role="status">{field.label} · {featureNumberRange(rule)}.</div>)}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
+      {cutSource && <div className="field"><span>Cut source</span><span>{cutSource}</span></div>}
       {fields.length ? fields.map(f => {
         const rule = f.kind === 'number' ? historyNumberRule(draft, index, f.key) : undefined;
         const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule ? featureNumberRange(rule) : null;

@@ -18,6 +18,7 @@ import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { HolePresets } from './HolePresets';
 import { stepNativeSelect } from './stepNativeSelect';
+import { cutPatternSourceLabel, isCutPattern, selectedCutPatternSource } from '../app/cutPatternSource';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
@@ -43,6 +44,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   // (Ended before the App unmounts it.)
   if (!active) return null;
   const replacingAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
+  const cutSource = isCutPattern(active.cmd.id) ? cutPatternSourceLabel(active.ctx.doc.nodes, selectedCutPatternSource(active.ctx)) : null;
   const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).filter(f => !(active.fillet?.type === 'edge' && active.fillet.radiusMode === 'constant' && f.key === 'endRadius'));
   const captureFirst = (element: HTMLInputElement | HTMLSelectElement | null) => { first.current = element; };
   const changeValue = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -107,6 +109,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
         <div className="field"><span>Result</span><span>{active.extrudeResult.pieces}{active.extrudeResult.solid ? ' solid' : ''} piece{active.extrudeResult.pieces === 1 ? '' : 's'}</span></div>
       </div>}
       <div className="hud-fields">
+        {cutSource && <div className="field"><span>Cut source</span><span>{cutSource}</span></div>}
         {active.fillet && <FilletTypeFields type={active.fillet.type} mode={active.fillet.radiusMode} onType={onFilletType} onMode={onRadiusMode} />}
         {fields.map(renderField)}
         {((active.cmd.id === 'linear-pattern' && active.values.result !== 'separate' && active.values.distanceMode === 'span')

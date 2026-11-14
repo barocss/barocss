@@ -1,0 +1,150 @@
+{
+  "decision": "D1195",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "af9b4dea6b3171075f5e912b5972131412e91b08",
+  "commands": [
+    "gate.sh acquire heavy 600 D1195-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs linear-feature-pattern-command rectangular-feature-pattern-command",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/cutPatternSource.ts apps/cad-studio/src/ui/Hud.tsx apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/linear-cut-pattern-source-browser.mjs",
+    "D1195_SOURCE_FROZEN=1 node apps/cad-studio/test/linear-cut-pattern-source-browser.mjs <external-evidence>/baseline --baseline",
+    "D1195_SOURCE_FROZEN=1 node apps/cad-studio/test/linear-cut-pattern-source-browser.mjs <external-evidence>/verified",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 4
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "older-subtract-inspected",
+        "preview-current-source",
+        "current-source-applied",
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "95bdddcc0fff11b86adffc03c4e501e6c85e97c878d213bc9901db9fe2d356bc",
+      "sourceManifestSHA256": "d1c68a4d85d3fa3101bb90b80d6a007902aa0292e502de7be541c33d28165dd8",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "After inspecting n4, the command repeated n7."
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "older-subtract-inspected",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "f15fc334b13de85e9281688729b73c5e6335c98bd1c67ddcbd1715ae22cf4fca",
+      "sourceManifestSHA256": "b834cd890705bf2b14a21e3000f7ed031d93b33cc1a8f4f6738752ef2ba01d0e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Driver assumed Undo after Open was disabled."
+    },
+    "verified": {
+      "status": "PASS",
+      "states": [
+        "older-subtract-inspected",
+        "earlier-source-refused",
+        "preview-current-source",
+        "current-source-applied",
+        "history-current-source",
+        "history-spacing-18"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "af6724a4979c7c98d081cc5b2cc95b5f3f513551777f17f0362eeabd0110b4fa",
+      "sourceManifestSHA256": "8a6486525e98a453ca6e8f53c1f2080b1cf79353d2a28b455ecdb3e0ce60cf89",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "initial-native",
+          "expected": {
+            "volume": 23800,
+            "centroid": [
+              30.163025210084033,
+              20.001680672268908,
+              5
+            ]
+          },
+          "native": {
+            "valid": true,
+            "volume": 23800,
+            "centroid": [
+              30.16302521008406,
+              20.00168067226891,
+              5
+            ],
+            "walls": []
+          }
+        },
+        {
+          "label": "current-source-native",
+          "expected": {
+            "volume": 23680,
+            "centroid": [
+              30.179054054054053,
+              19.966216216216218,
+              5
+            ]
+          },
+          "native": {
+            "valid": true,
+            "volume": 23680,
+            "centroid": [
+              30.179054054054074,
+              19.966216216216218,
+              5
+            ],
+            "walls": [
+              "n6.side0@1",
+              "n6.side3@1",
+              "n6.side2@1",
+              "n6.side1@1"
+            ]
+          }
+        },
+        {
+          "label": "history-native",
+          "expected": {
+            "volume": 23680,
+            "centroid": [
+              30.16891891891892,
+              19.966216216216218,
+              5
+            ]
+          },
+          "native": {
+            "valid": true,
+            "volume": 23680,
+            "centroid": [
+              30.168918918918948,
+              19.966216216216218,
+              5
+            ],
+            "walls": [
+              "n6.side0@1",
+              "n6.side3@1",
+              "n6.side2@1",
+              "n6.side1@1"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

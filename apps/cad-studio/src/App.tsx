@@ -50,6 +50,7 @@ import { measureQuantityText } from './ui/quantityText';
 import { SelectionInspector } from './ui/SelectionInspector';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
+import { cutPatternSourceLabel, isCutPattern, selectedCutPatternSource } from './app/cutPatternSource';
 import { rectangularCutEditProblem } from './app/rectangularCutEdit';
 import { prepareLinearPatternHoleEdit } from './app/patternHoleSpacing';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
@@ -395,6 +396,7 @@ export function App() {
   const claimBodies = useRef(false);
   const [busy, setBusy] = useState(true);
   const [selection, setSelection] = useState<Selection>(emptySel);
+  const browserSubtract = useRef<{ doc: StudioDoc; selection: Selection; index: number } | null>(null);
   const [pick, setPick] = useState<Vec3 | null>(null);
   // (R1d: the running command outside React state — see activeKey. The HUD subscribes to all of it.)
   const activeStore = useMemo(() => createValueStore<Active | null>(null), []), setActive = activeStore.set;
@@ -1638,6 +1640,16 @@ export function App() {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const family = filletType(cmd.id);
     if (family && (!fresh || busy)) { setToast({ title: 'Fillet not started', hint: 'Wait for the current part to finish evaluating.', detail: '' }); return; }
+    const sourceIntent = browserSubtract.current;
+    if (isCutPattern(cmd.id) && sourceIntent?.doc === doc && sourceIntent.selection === selection) {
+      const source = selectedCutPatternSource(ctx);
+      if (source !== sourceIntent.index) {
+        const earlier = cutPatternSourceLabel(doc.nodes, sourceIntent.index);
+        const current = cutPatternSourceLabel(ctx.doc.nodes, source);
+        setToast({ title: `${cmd.label} can’t repeat ${earlier}`, hint: current ? `Select the body to repeat ${current}.` : 'Select a current Subtract result.', detail: '' });
+        return;
+      }
+    }
     const avail = family ? filletLaunchAvailability(ctx, family) : cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (variants.showing) { setToast({ title: `${cmd.label} can’t run here`, hint: `Showing ${variants.showing}: show the master to edit.`, detail: '' }); return; }
@@ -2974,8 +2986,10 @@ export function App() {
           rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setRowHover }} changes={{ commit, commitVisibility: commitBodyVisibility, setSelection, setDirectSel, setInstanceSel,
             rememberFocus: workspaceModeExit.rememberFocus,
             editFeature: (index, body, event) => workspaceModeExit.switchWhenReady(() => {
+              const picked: Selection = { faces: [], edges: [], bodies: [body] };
+              browserSubtract.current = doc.nodes[index]?.kind === 'difference' ? { doc, selection: picked, index } : null;
               setEditNode(index);
-              setSelection({ faces: [], edges: [], bodies: [body] });
+              setSelection(picked);
             }, { event, readFeature: readFeatureTransitionDraft }),
           }} meshBadges={meshBadges} />
         {freeSketches.length > 0 && <div className="ol-head">Sketches</div>}
