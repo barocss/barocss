@@ -15,6 +15,9 @@ export interface FriendlyError {
 // messages without a code, and rows naming a code unbracketed (messages carry it bare), so they stay regexes. Order
 // matters: the first row that matches wins.
 const rules: { code?: string | readonly string[]; text?: RegExp; title: string; hint: string }[] = [
+  { text: /\[BAD_REFERENCE\] Rounded rectangle inset: only one direct Extrude may consume the recipe\.$/,
+    title: 'The linked inset only supports its Extrude',
+    hint: 'Keep the link by canceling this operation. To use the inset as a regular sketch, open Extrude in History and choose Detach inset. This removes the link to the source sketch.' },
   { text: /Extrude to face: the target must be ahead of the source in the positive extrusion direction/i,
     title: 'End face is behind the sketch', hint: 'Pick a parallel face ahead of the sketch along its extrusion direction.' },
   { text: /cylindrical wrap.*(?:height|radius)|height.*source radius/i,

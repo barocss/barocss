@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkBrep, massPropertiesOf } from '@barocss/cad';
-import { emptyDoc, prefixDoc, type LoopSegment, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, prefixDoc, type LoopSegment, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { partSnapshot, toPartDocument } from '../src/engine/part';
+import { evaluatePreview } from '../src/engine/evaluate';
 import { editFields } from '../src/app/editFields';
 import { createRoundedInsetExtrusion, detachRoundedInsetRecipe, resizeRoundedInsetSource, resolveRoundedInsetRecipe, roundedInsetSourceWidth, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
@@ -240,4 +241,24 @@ test('a direct retired inset edge has a typed loss before generic matching', () 
   for (const edge of ['n19.side[e2]|n19.top', 'n7.side[e10]|n19.top', 'n19.side[e100]|n19.top']) {
     assert.throws(() => validateRoundedInsetDocument(documentWithFillet(edge), false), /only one direct Extrude/);
   }
+});
+
+test('the current preview explains further features on a linked inset without reclassifying a retired edge', () => {
+  const linked = fixture();
+  const fillet: Extract<ModelNode, { kind: 'fillet' }> = {
+    kind: 'fillet', id: 'n20', parent: { node: 2, side: 'solid' }, edges: ['n19.side[e9]|n19.top'], radius: 0.1,
+  };
+  const attempted = { ...linked, nodes: [...linked.nodes, fillet] };
+  const refused = evaluatePreview(attempted, 301);
+  assert.ok(!refused.ok);
+  assert.equal(refused.error.code, 'BAD_REFERENCE');
+  assert.equal(refused.error.title, 'The linked inset only supports its Extrude');
+  assert.match(refused.error.hint, /Detach inset.*removes the link/);
+  assert.match(refused.error.detail, /only one direct Extrude/);
+
+  const closedCorner = fixture(2.5);
+  const retired = evaluatePreview({ ...closedCorner, nodes: [...closedCorner.nodes, { ...fillet, edges: ['n19.side[e10]|n19.top'] }] }, 302);
+  assert.ok(!retired.ok);
+  assert.match(retired.error.detail, /retired inset side/);
+  assert.notEqual(retired.error.title, refused.error.title);
 });

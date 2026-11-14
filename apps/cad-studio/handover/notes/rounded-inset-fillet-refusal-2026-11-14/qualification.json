@@ -1,0 +1,62 @@
+{
+  "decision": "D1186",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "a952a73ad8a26cf66e2e3e73c49bdd47eb5dc56d",
+  "fixture": {
+    "name": "stored-inset.bcad",
+    "sha256": "5d4e6f0c7b96301afe534e78424e06155d657ae7214b915dda3a16963105a6b0",
+    "source": "CAD document serialized from the November desktop QA snapshot"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1186-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs rounded-inset-recipe measure",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/errors.ts packages/barocss-cad-model/test/rounded-inset-recipe.test.ts",
+    "node --check apps/cad-studio/test/rounded-inset-fillet-refusal-browser.mjs",
+    "D1186_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-inset-fillet-refusal-browser.mjs <external-evidence>/<run> <external-fixture>/stored-inset.bcad",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "model": 21
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "5781ac249011cb8ef585d7c1f1a7aba426f9dbbde7bd9f3eaccf4403d5781e4a",
+      "sourceManifestSHA256": "923f9ed25e5c599150cf1d8c9d64b7112d1a57fd2cb32453de0a0e2b9cd84f90",
+      "firstFailure": "Browser oracle used the wrong ring area"
+    },
+    "repro": {
+      "status": "FAIL",
+      "states": [
+        "straight-refused",
+        "arc-refused",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "8fab20bbd475f89fa6d84b1ceaf43c9aa00ef9c51becb0e034a3c1d56aad1608",
+      "sourceManifestSHA256": "923f9ed25e5c599150cf1d8c9d64b7112d1a57fd2cb32453de0a0e2b9cd84f90",
+      "firstFailure": "Both picked edges returned generic failure copy"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "straight-refused",
+        "arc-refused",
+        "inset-detached"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "ee040bcc2c26ce8e93117bf416d46b517cb71ec9735cf61570ae23be8986898b",
+      "sourceManifestSHA256": "45b2c72f19b56c85fb1efff5820a43ca33c427151985ee92bcb98050560674d9",
+      "volumeBefore": 534.247779607693,
+      "volumeAfter": 534.247779607693
+    }
+  }
+}
