@@ -1,0 +1,603 @@
+{
+  "decision": "D1219",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "463ebd717857fab7d2dabc6c80f76808242e6226",
+  "commands": [
+    "gate.sh acquire heavy 600 D1219-<run>",
+    "D917_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/baseline --width-inset --width-guidance --baseline",
+    "D917_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/final --width-inset --width-guidance",
+    "pnpm --filter @barocss/cad-model test rounded-inset-recipe rounded-rectangle-inset sketch-associative-inset",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/engine/{client,engine.worker}.ts packages/barocss-cad-model/src/sketch/internal/{roundedInsetRecipe,roundedRectangleInset}.ts",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "round-1",
+        "round-2",
+        "round-3",
+        "round-4",
+        "drawn-source",
+        "drawn-linked-rounded",
+        "drawn-linked-sharp",
+        "width-24",
+        "width-undo-20",
+        "width-before-refusal",
+        "width-5-refused",
+        "failure"
+      ],
+      "observations": [
+        {
+          "label": "framing",
+          "tries": [
+            {
+              "canvas": [
+                0,
+                0,
+                1140,
+                1000
+              ],
+              "px": [
+                [
+                  337.7718767361666,
+                  641.1146884042063
+                ],
+                [
+                  478.8877318792958,
+                  570.5564472788958
+                ]
+              ],
+              "pxPerMm": 7.055734845575785,
+              "allOnCanvas": true
+            }
+          ]
+        },
+        {
+          "label": "tool-Select",
+          "buttons": 1
+        },
+        {
+          "label": "framing",
+          "tries": [
+            {
+              "canvas": [
+                0,
+                0,
+                1140,
+                1000
+              ],
+              "px": [
+                [
+                  402.21130932687316,
+                  806.1230125843077
+                ],
+                [
+                  870.7435469192302,
+                  571.8475284192681
+                ]
+              ],
+              "pxPerMm": 23.427246572861577,
+              "allOnCanvas": true
+            }
+          ]
+        },
+        {
+          "label": "drawn-rounded-source",
+          "source": {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "arc",
+                "start": [
+                  0,
+                  2
+                ],
+                "center": [
+                  2,
+                  2
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  18,
+                  0
+                ],
+                "center": [
+                  18,
+                  2
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  20,
+                  2
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  20,
+                  8
+                ],
+                "center": [
+                  18,
+                  8
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  18,
+                  10
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  2,
+                  10
+                ],
+                "center": [
+                  2,
+                  8
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  8
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  18,
+                  0
+                ],
+                [
+                  20,
+                  2
+                ],
+                [
+                  20,
+                  8
+                ],
+                [
+                  18,
+                  10
+                ],
+                [
+                  2,
+                  10
+                ],
+                [
+                  0,
+                  8
+                ]
+              ],
+              "bulges": [
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0
+              ],
+              "radii": {
+                "0": 2,
+                "2": 2,
+                "4": 2,
+                "6": 2
+              },
+              "tangents": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "hv": {
+                "h": [
+                  1,
+                  5
+                ],
+                "v": [
+                  3,
+                  7
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6",
+                "e7",
+                "e8"
+              ]
+            },
+            "id": "n0"
+          }
+        },
+        {
+          "label": "drawn-linked-rounded",
+          "distance": 1,
+          "volume": 534.2477796076936,
+          "expectedVolume": 534.2477796076939
+        },
+        {
+          "label": "drawn-linked-sharp",
+          "distance": 2.5,
+          "volume": 1215.6637061435915,
+          "expectedVolume": 1215.6637061435918
+        },
+        {
+          "label": "width-24",
+          "width": 24,
+          "volume": 1415.6637061435924,
+          "expectedVolume": 1415.6637061435918
+        },
+        {
+          "label": "width-undo-20",
+          "width": 20,
+          "volume": 1215.6637061435915,
+          "expectedVolume": 1215.6637061435918
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "04d5f70d38c8fba319ed55e91d7b8c88fb1dd95b2b6d1fb1f77c6e43a9a1b312",
+      "sourceManifestSHA256": "d35cf4c26483cd271e53416010c67875d2929c18a50f4798f2edd52ff1b2390a",
+      "sourceAfterCleanupSHA256": "d35cf4c26483cd271e53416010c67875d2929c18a50f4798f2edd52ff1b2390a",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "round-1",
+        "round-2",
+        "round-3",
+        "round-4",
+        "drawn-source",
+        "drawn-linked-rounded",
+        "drawn-linked-sharp",
+        "width-24",
+        "width-undo-20",
+        "width-before-refusal",
+        "width-5-refused",
+        "width-recovered-24",
+        "width-recovery-undo-20",
+        "width-recovery-redo-24"
+      ],
+      "observations": [
+        {
+          "label": "framing",
+          "tries": [
+            {
+              "canvas": [
+                0,
+                0,
+                1140,
+                1000
+              ],
+              "px": [
+                [
+                  337.7718767361666,
+                  641.1146884042063
+                ],
+                [
+                  478.8877318792958,
+                  570.5564472788958
+                ]
+              ],
+              "pxPerMm": 7.055734845575785,
+              "allOnCanvas": true
+            }
+          ]
+        },
+        {
+          "label": "tool-Select",
+          "buttons": 1
+        },
+        {
+          "label": "framing",
+          "tries": [
+            {
+              "canvas": [
+                0,
+                0,
+                1140,
+                1000
+              ],
+              "px": [
+                [
+                  402.21130932687316,
+                  806.1230125843077
+                ],
+                [
+                  870.7435469192302,
+                  571.8475284192681
+                ]
+              ],
+              "pxPerMm": 23.427246572861577,
+              "allOnCanvas": true
+            }
+          ]
+        },
+        {
+          "label": "drawn-rounded-source",
+          "source": {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "arc",
+                "start": [
+                  0,
+                  2
+                ],
+                "center": [
+                  2,
+                  2
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  18,
+                  0
+                ],
+                "center": [
+                  18,
+                  2
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  20,
+                  2
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  20,
+                  8
+                ],
+                "center": [
+                  18,
+                  8
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  18,
+                  10
+                ]
+              },
+              {
+                "kind": "arc",
+                "start": [
+                  2,
+                  10
+                ],
+                "center": [
+                  2,
+                  8
+                ],
+                "direction": "ccw"
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  8
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  18,
+                  0
+                ],
+                [
+                  20,
+                  2
+                ],
+                [
+                  20,
+                  8
+                ],
+                [
+                  18,
+                  10
+                ],
+                [
+                  2,
+                  10
+                ],
+                [
+                  0,
+                  8
+                ]
+              ],
+              "bulges": [
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0,
+                0.41421356237309503,
+                0
+              ],
+              "radii": {
+                "0": 2,
+                "2": 2,
+                "4": 2,
+                "6": 2
+              },
+              "tangents": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "hv": {
+                "h": [
+                  1,
+                  5
+                ],
+                "v": [
+                  3,
+                  7
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6",
+                "e7",
+                "e8"
+              ]
+            },
+            "id": "n0"
+          }
+        },
+        {
+          "label": "drawn-linked-rounded",
+          "distance": 1,
+          "volume": 534.2477796076936,
+          "expectedVolume": 534.2477796076939
+        },
+        {
+          "label": "drawn-linked-sharp",
+          "distance": 2.5,
+          "volume": 1215.6637061435915,
+          "expectedVolume": 1215.6637061435918
+        },
+        {
+          "label": "width-24",
+          "width": 24,
+          "volume": 1415.6637061435924,
+          "expectedVolume": 1415.6637061435918
+        },
+        {
+          "label": "width-undo-20",
+          "width": 20,
+          "volume": 1215.6637061435915,
+          "expectedVolume": 1215.6637061435918
+        },
+        {
+          "label": "width-recovered-24",
+          "width": 24,
+          "volume": 1415.6637061435924,
+          "expectedVolume": 1415.6637061435918
+        },
+        {
+          "label": "width-recovery-undo-20",
+          "width": 20,
+          "volume": 1215.6637061435915,
+          "expectedVolume": 1215.6637061435918
+        },
+        {
+          "label": "width-recovery-redo-24",
+          "width": 24,
+          "volume": 1415.6637061435924,
+          "expectedVolume": 1415.6637061435918
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "3c098a9af7769f3fbe4227cacac388bd7dc9d28665fb82c75285b73f4f6c0a3a",
+      "sourceManifestSHA256": "85acba1510c6a98d18ec10e2b11ea373910fb65d14fb90dc733fa48b8d1f8134",
+      "sourceAfterCleanupSHA256": "85acba1510c6a98d18ec10e2b11ea373910fb65d14fb90dc733fa48b8d1f8134",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "desktopIndex": {
+    "issue": 2492,
+    "updatedAt": "2026-11-14T06:31:47Z",
+    "checked": 30,
+    "total": 81
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 27,
+    "failed": 0
+  }
+}

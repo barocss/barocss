@@ -923,14 +923,14 @@ export function App() {
     workOwnership.current = started;
     const work = started.run!;
     const current = () => live && workOwnership.current.run?.token === work.token && (!edit || (parameterRequest.current === edit.request && docNow.current === edit.base && evaluatedRef.current === evaluated && !shownVariant.current));
-    const refuse = (detail: string) => {
+    const refuse = (detail: string, hint = 'The accepted part and its references are unchanged.') => {
       if (!edit || !current()) return;
       const accepted = acceptedEvaluation.current;
       if (accepted) parameterHandoff.current = { target: edit.base, ...accepted, result: { ...accepted.result, bodies: bodiesRef.current } };
       if (parameterMass.current?.request === edit?.request && !parameterMass.current?.target) parameterMass.current = null;
       if (edit.kind === 'direct') parameterEditNow.current = null;
       setParameterEdit(null); setBusy(false);
-      setToast({ title: edit.failureTitle ?? (edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed'), hint: 'The accepted part and its references are unchanged.', detail });
+      setToast({ title: edit.failureTitle ?? (edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed'), hint, detail });
     };
     setBusy(true);
     const run = async () => {
@@ -938,7 +938,13 @@ export function App() {
         // Detach stores the exact profile used to build the linked base.
         const verified = await engine.verifyStoredInsets(edit.roundedInset === 'detach' ? edit.base : edit.next);
         if (!current()) return;
-        if (!('ok' in verified)) { refuse(verified.error); return; }
+        if (!('ok' in verified)) {
+          const recipe = edit.next.nodes[1];
+          const hint = edit.roundedInset === 'edit' && verified.roundedInsetOpeningClosed && recipe?.kind === 'rounded-rectangle-inset'
+            ? `A ${recipe.insetMM} mm inset closes the opening. Increase Source width or reduce Inset distance.` : undefined;
+          refuse(verified.error, hint);
+          return;
+        }
       }
       const key = evaluationKey(input), handoff = !edit ? parameterHandoff.current : null;
       const routeHandoff = !edit ? routeAcceptedHandoff.current : null;

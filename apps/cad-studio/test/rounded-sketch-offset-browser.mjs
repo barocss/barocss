@@ -9,6 +9,8 @@ const reopenedTarget = process.argv[3] === '--reopened-target';
 const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
 const widthInset = process.argv[3] === '--width-inset';
+const widthGuidance = process.argv.includes('--width-guidance');
+const widthBaseline = process.argv.includes('--baseline');
 const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
@@ -1052,6 +1054,23 @@ async function verifySourceWidth(original) {
   await f.ready();
   const after = await f.snapshot('width-5-refused');
   for (const key of ['doc', 'bodies', 'history', 'historyControls', 'dirty', 'selection', 'title']) assert.deepEqual(after[key], before[key], key);
+  if (widthGuidance) {
+    const hint = f.page.locator('.toast-hint');
+    if (widthBaseline) {
+      await hint.getByText('The accepted part and its references are unchanged.', { exact: true }).waitFor();
+      throw new Error('The closing-opening reason is only in Details and the visible hint has no recovery.');
+    }
+    assert.match(await hint.innerText(), /A 2\.5 mm inset closes the opening\. Increase Source width or reduce Inset distance\./);
+    await f.dismissToasts();
+    await editor().fill('24');
+    await button(f.editor(), 'Apply').click();
+    await expectGeometry('width-recovered-24', wider, 24);
+    await f.undo();
+    await expectGeometry('width-recovery-undo-20', original, 20);
+    await f.redo();
+    await expectGeometry('width-recovery-redo-24', wider, 24);
+    return;
+  }
   await f.dismissToasts();
   await f.closeEditor();
   await f.redo();

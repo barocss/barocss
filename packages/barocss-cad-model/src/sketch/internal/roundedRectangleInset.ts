@@ -4,7 +4,7 @@ import { arcOf, type P2 } from '../profile';
 import type { SketchShape } from '../types';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
-type Plan = { shape: Polygon; retiredIds: string[] } | { error: string };
+type Plan = { shape: Polygon; retiredIds: string[] } | { error: string; openingClosed?: true };
 
 const minimumRadius = 0.01; // The current circular-arc offset floor.
 const minimumSpan = 0.01; // The current rectangle offset floor.
@@ -73,7 +73,7 @@ export function planRoundedRectangleInset(source: SketchShape, inset: number, de
 
   const { left, right, bottom, top, radius } = rectangle;
   const loX = left + inset, hiX = right - inset, loY = bottom + inset, hiY = top - inset;
-  if (!(hiX - loX > minimumSpan && hiY - loY > minimumSpan)) return { error: 'That inset closes the rectangle up.' };
+  if (!(hiX - loX > minimumSpan && hiY - loY > minimumSpan)) return { error: 'That inset closes the rectangle up.', openingClosed: true };
 
   if (inset < radius) {
     if (inset >= radius - minimumRadius) return { error: 'That inset leaves an arc at or below the minimum offset radius.' };

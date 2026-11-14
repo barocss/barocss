@@ -31,7 +31,7 @@ export interface InsetRelinkPreview {
   volume: number;
 }
 export type InsetRelinkReply = { preview: InsetRelinkPreview } | { error: string; field?: 'insetMM' };
-export type StoredInsetReply = { ok: true } | { error: string };
+export type StoredInsetReply = { ok: true } | { error: string; roundedInsetOpeningClosed?: true };
 export type FaceEndDistanceReply = { distance: number } | { error: string };
 export type MidpointPlaneReply = { plane: SketchPlane } | { error: string };
 export type FootprintReply = { sketch: SketchNode } | { error: string };

@@ -23,7 +23,9 @@ const featureId = (value: unknown): value is string => typeof value === 'string'
 const finitePoint = (value: unknown): value is P2 => Array.isArray(value) && value.length === 2
   && value.every(v => typeof v === 'number' && Number.isFinite(v));
 const distance = (a: P2, b: P2) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-const badRecipe = (message: string): never => { throw refusal('BAD_REFERENCE', `Rounded rectangle inset: ${message}`); };
+const badRecipe = (message: string, details?: Record<string, unknown>): never => {
+  throw refusal('BAD_REFERENCE', `Rounded rectangle inset: ${message}`, details);
+};
 
 function isDefaultPlane(value: unknown): boolean {
   if (!record(value) || !only(value, ['origin', 'normal', 'xAxis'])) return false;
@@ -148,7 +150,7 @@ function plannedRecipe(doc: StudioDoc, index: number) {
   const rotate = <T>(values: T[]) => [...values.slice(at), ...values.slice(0, at)];
   const canonical = at ? { ...shape, points: rotate(shape.points), bulges: rotate(shape.bulges), ids: rotate(shape.ids) } : shape;
   const inset = planRoundedRectangleInset(canonical, recipe.insetMM, new Map(Object.entries(recipe.sideMap)));
-  if ('error' in inset) return badRecipe(inset.error);
+  if ('error' in inset) return badRecipe(inset.error, inset.openingClosed ? { roundedInsetOpeningClosed: true } : undefined);
   const result = profileOf([shape, inset.shape]);
   if ('error' in result) return badRecipe(result.error);
   if (result.node.profile !== 'loop' || result.node.regions?.length || result.node.holes?.length !== 1) {

@@ -154,7 +154,10 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         if (node.kind === 'sketch' && node.profile !== 'band' && node.association !== undefined) resolveAssociativeSketch(doc, index);
       }
       post({ id: request.id, ok: true });
-    } catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    } catch (error) {
+      post({ id: request.id, error: error instanceof Error ? error.message : String(error),
+        ...(isRefusal(error, 'BAD_REFERENCE') && error.details?.roundedInsetOpeningClosed === true ? { roundedInsetOpeningClosed: true } : {}) });
+    }
     return;
   }
   if (request.type === 'faceEndDistance') {
