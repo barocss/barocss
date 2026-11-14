@@ -717,7 +717,16 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options, get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
     }
-    case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
+    case 'scale':
+      number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, factor) => ({ ...(n as typeof node), factor }));
+      [0, 1, 2].forEach(k => number('p' + k, 'Pivot ' + 'XYZ'[k], 'mm',
+        n => num((n as typeof node).pivot?.[k] ?? 0), (n, v) => {
+          const scale = n as typeof node;
+          const pivot: [Dim, Dim, Dim] = scale.pivot ? [...scale.pivot] : [0, 0, 0];
+          pivot[k] = v;
+          return { ...scale, pivot };
+        }));
+      break;
     case 'fill-feature-pattern':
       out.push({ kind: 'choice', key: 'region', label: 'Region snapshot', options: [{ value: '', label: 'Current region snapshot' }, ...eligibleFillPatternRegions({ nodes: [...nodes], parameters })], get: () => '', set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), region: fillRegionSnapshot({ nodes: [...n], parameters }, Number(v)) }) });
       [0, 1].forEach(k => number('anchor' + 'XY'[k], 'Reference ' + 'XY'[k], undefined, n => (n as typeof node).anchor[k], (n, v) => { const anchor = [...(n as typeof node).anchor] as [number, number]; anchor[k] = v; return { ...(n as typeof node), anchor }; }));

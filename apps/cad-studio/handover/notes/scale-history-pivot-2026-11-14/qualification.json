@@ -1,0 +1,183 @@
+{
+  "decision": "D1201",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "700c8cbf5c51ebf0d03503cc232a63df4883dd54",
+  "fixtureSHA256": "0d08faa0a66bfb51d330ec05b1507d5897924d038debc392e8c38b434f0ff4f2",
+  "commands": [
+    "gate.sh acquire heavy 600 D1201-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs editFields api-verbs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/editFields.ts",
+    "node --check apps/cad-studio/test/scale-history-pivot-browser.mjs",
+    "D1201_SOURCE_FROZEN=1 node apps/cad-studio/test/scale-history-pivot-browser.mjs <external-evidence>/repro <retained-local-fixture> --baseline",
+    "D1201_SOURCE_FROZEN=1 node apps/cad-studio/test/scale-history-pivot-browser.mjs <external-evidence>/final <retained-local-fixture>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 24
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "scaled-at-original-pivot",
+        "failure"
+      ],
+      "frozenFiles": 879,
+      "receiptSHA256": "064eac831b195e594a08b8d76ced7b7b7bbb82c0680cade015b8c2b89f2e9339",
+      "sourceManifestSHA256": "80a4d084759cdd78a318fa3113fc918a36872ed7d2e0ce682ceb26f584efede0",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Driver incorrectly assumed a rectangular lid volume.",
+      "observations": []
+    },
+    "repro": {
+      "status": "FAIL",
+      "states": [
+        "scaled-at-original-pivot",
+        "history-pivot-missing",
+        "failure"
+      ],
+      "frozenFiles": 879,
+      "receiptSHA256": "39a95ffc45482f4365f920679ce66ed21a9f623c4532f6cd6f6294a7a1be5b5e",
+      "sourceManifestSHA256": "80a4d084759cdd78a318fa3113fc918a36872ed7d2e0ce682ceb26f584efede0",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "History exposes Factor but omits all pivot coordinates.",
+      "observations": [
+        {
+          "label": "original-pivot-native",
+          "pivot": [
+            45,
+            5,
+            0
+          ],
+          "bounds": [
+            [
+              35,
+              -5,
+              0
+            ],
+            [
+              55,
+              15,
+              24.920000000004386
+            ]
+          ],
+          "boreCentreXY": [
+            45,
+            5
+          ],
+          "radius": 6,
+          "volume": 6720.5418374342735
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "scaled-at-original-pivot",
+        "history-pivot-edited",
+        "reopened-history-pivot"
+      ],
+      "frozenFiles": 879,
+      "receiptSHA256": "1ca813a7f5344dc43fd2cb807cf05e82c6d1ef5a1c74587b9a76d10423bbfb6b",
+      "sourceManifestSHA256": "ec5b7155fee0804229598b9f23eb1917484086da912828c7f24e8cae4f964546",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "original-pivot-native",
+          "pivot": [
+            45,
+            5,
+            0
+          ],
+          "bounds": [
+            [
+              35,
+              -5,
+              0
+            ],
+            [
+              55,
+              15,
+              24.920000000004386
+            ]
+          ],
+          "boreCentreXY": [
+            45,
+            5
+          ],
+          "radius": 6,
+          "volume": 6720.5418374342735
+        },
+        {
+          "label": "new-pivot-native",
+          "pivot": [
+            48,
+            7,
+            2
+          ],
+          "bounds": [
+            [
+              32,
+              -7,
+              -2
+            ],
+            [
+              52,
+              13,
+              22.920000000004386
+            ]
+          ],
+          "boreCentreXY": [
+            42,
+            3
+          ],
+          "radius": 6,
+          "volume": 6720.541837431733
+        },
+        {
+          "label": "reopened-pivot-native",
+          "pivot": [
+            48,
+            7,
+            2
+          ],
+          "bounds": [
+            [
+              32,
+              -7,
+              -2
+            ],
+            [
+              52,
+              13,
+              22.920000000004386
+            ]
+          ],
+          "boreCentreXY": [
+            42,
+            3
+          ],
+          "radius": 6,
+          "volume": 6720.541837431733
+        }
+      ]
+    }
+  }
+}
