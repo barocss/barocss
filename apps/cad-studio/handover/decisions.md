@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1248 — pick geometry beneath an idle dimension handle](notes/shift-pick-idle-dimension-handle-2026-11-14/README.md).
 - [D1247 — identify held references and move focus to the next decision](notes/held-reference-feature-and-focus-2026-11-14/README.md).
 - [D1246 — show the current evaluation in Rebuild](notes/current-rebuild-report-2026-11-14/README.md).
 - [D1245 — withhold pitch annotations that carry an earlier hole pattern count](notes/tapped-pattern-drawing-spacing-2026-11-14/README.md).

@@ -53,7 +53,10 @@ export interface FeatureHandle {
    * Roadmap 20 ④ ⑥: the value's unit ('mm', '°' or a count's own), the command it belongs to (`owner`, compared by identity),
    * and while that command runs (`editing`) a typed value for it.
    */
-  unit?: string; owner?: unknown; editing?: boolean; onType?(value: number): void;
+  unit?: string; owner?: unknown; editing?: boolean;
+  /** A Shift click can select geometry below this idle feature handle. */
+  shiftPick?: true;
+  onType?(value: number): void;
 }
 export type GizmoHit = { kind: 'move' | 'turn'; axis: Axis3 } | { kind: 'plane'; axes: [Axis3, Axis3] } | { kind: 'handle'; index: number } | { kind: 'scale'; axis: Axis3 | null };
 /** Screen projection, the camera's forward direction, and `size`: world mm that make the gizmo's full size on screen there. */

@@ -1,0 +1,78 @@
+{
+  "decision": "D1248",
+  "tier": "SMALL",
+  "parent": "b556ca1fe53b6504bef38cc42714a10b6eadfe1f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1248-<run>",
+    "D1248_SOURCE_FROZEN=1 node apps/cad-studio/test/shift-pick-dimension-handle-browser.mjs <external-evidence> [--baseline]",
+    "D1048_SOURCE_FROZEN=1 node apps/cad-studio/test/mixed-shift-pick-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-studio-app test gizmo handle-value-box command-drag-wall",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/viewport/{gizmo,useCommandGizmos,viewportPointerInput}.ts",
+    "node --check apps/cad-studio/test/shift-pick-dimension-handle-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline2": {
+      "status": "FAIL",
+      "frozenFiles": 394,
+      "states": [
+        "faces-click-opens-editor-1440",
+        "edges-click-opens-editor-1440",
+        "faces-click-opens-editor-1024",
+        "edges-click-opens-editor-1024",
+        "failure"
+      ],
+      "receiptSHA256": "c0e2c310e8581668af23f586ba6132834f34f61b2b0cb4d9a13b76ab6879cdfc",
+      "sourceManifestSHA256": "43cbab1238f1558d6f0e33b963213e879db3fd99be5a59e7956881ecbe9bd373",
+      "sourceAfterCleanupSHA256": "43cbab1238f1558d6f0e33b963213e879db3fd99be5a59e7956881ecbe9bd373"
+    },
+    "fixed2": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": [
+        "faces-toggle-1440",
+        "edges-toggle-1440",
+        "width-drag-applied-1440",
+        "move-shift-precision-1440",
+        "faces-toggle-1024",
+        "edges-toggle-1024",
+        "width-drag-applied-1024",
+        "move-shift-precision-1024"
+      ],
+      "receiptSHA256": "eedaec66187bb598eee9f78cb58bdaf6d5cad68ff512a924621acd48c8f2fcfc",
+      "sourceManifestSHA256": "6820b5584f5a9619f1497ec1a204ad36e72cad885bdb950650fa34349beaffc5",
+      "sourceAfterCleanupSHA256": "6820b5584f5a9619f1497ec1a204ad36e72cad885bdb950650fa34349beaffc5"
+    },
+    "mixed-selection": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": [
+        "same-body-face-edge",
+        "same-body-edge-face",
+        "different-body-face-edge",
+        "different-body-edge-face"
+      ],
+      "receiptSHA256": "b93283f329dc23e42e90c67d176e4d85c2ac73696fc9366eb195c0ff1b14beb8",
+      "sourceManifestSHA256": "65d4b0c7441e77bb28e25e76517cb980af3c02da21c33170f2b9a78d32d5ffc5",
+      "sourceAfterCleanupSHA256": "65d4b0c7441e77bb28e25e76517cb980af3c02da21c33170f2b9a78d32d5ffc5"
+    }
+  },
+  "checks": {
+    "focusedStudio": {
+      "status": "PASS",
+      "tests": 33
+    },
+    "studioTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "nativeSave": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

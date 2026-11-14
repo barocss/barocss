@@ -172,6 +172,7 @@ interface PointerDrag {
   start2?: number;
   origin?: Vec3;
   handleAt?: Vec3;
+  shiftPickHandle?: FeatureHandle;
   handleToValue?: FeatureHandle['toValue'];
   factor?: number;
   gizmo?: TransformGizmo;
@@ -796,7 +797,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
       const g = hit.kind === 'handle' ? undefined : propsRef.current.gizmo ?? undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2,
+      const filter = propsRef.current.pickFilter;
+      const shiftPickHandle = e.shiftKey && e.pointerType === 'mouse' && hd?.shiftPick && (filter === 'face' || filter === 'edge') ? hd : undefined;
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, shiftPickHandle, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2,
         handleAt: hd ? [...hd.at] as Vec3 : undefined, handleToValue: hd?.toValue,
         origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
       g?.onStart?.(e.pointerId);
@@ -837,7 +840,14 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     }
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
-    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
+    if (d.mode === 'gizmo') {
+      if (d.shiftPickHandle && !d.moved && Math.hypot(x - d.x, y - d.y) <= 5) return;
+      if (d.shiftPickHandle && !d.moved) {
+        const current = d.hit?.kind === 'handle' ? propsRef.current.handles?.[d.hit.index] : null;
+        if (current?.id !== d.shiftPickHandle.id || current.owner !== d.shiftPickHandle.owner) { cancelGizmo('lostpointercapture', e.pointerId); return; }
+      }
+      gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return;
+    }
     if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
     if (focusPick.current && !d.mode) { if (e.buttons === 1 && Math.hypot(x - d.x, y - d.y) > 5) d.moved = true; canvas.current!.style.cursor = 'crosshair'; return; }
     if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
@@ -962,7 +972,9 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       request();
       return;
     }
-    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
+    const shiftPick = d.mode === 'gizmo' && d.shiftPickHandle && !d.moved;
+    if (d.mode === 'gizmo' && !shiftPick) { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
+    if (shiftPick && Math.hypot(x - d.x, y - d.y) > 5) return;
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
     if (d.mode === 'spline') {
       // One history step for the whole drag (only when the definition changed, and the sketch is still the one dragged), never also a pick click.
@@ -993,7 +1005,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
       if (isBandRail(edge)) return;
       props.onContextMenu(at, { face, edge, point: surfacePoint(x, y, w, h, face) }); return;
     }
-    if (d.mode || d.moved || e.button !== 0) return;
+    if ((d.mode && !shiftPick) || d.moved || e.button !== 0) return;
     if (focusPick.current) {
       const point = propsRef.current.render && !propsRef.current.sketch ? renderer.current?.pickSurfacePoint?.(x, y, camera.current) ?? null : null;
       finishFocusPick(point ? renderFocusDistance(camera.current, point) : null);
@@ -1154,7 +1166,7 @@ export function useViewportPointerInput({ canvas, camera, propsRef, rendering, f
     if (selectBandRail(edge)) return;
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     const edgeMesh = edge ? rendererBodies.current[edge.body]?.mesh : undefined;
-    propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
+    propsRef.current.onPick({ face, edge, edgeMesh, point: surfacePoint(x, y, w, h, face) }, e.shiftKey || !!shiftPick);
   };
 
   /** Window selection left→right (fully inside), crossing right→left (touching). */
