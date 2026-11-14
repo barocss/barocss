@@ -1003,10 +1003,11 @@ export function App() {
         return;
       }
       setBusy(false); setLastMs(lastEvalMs.current = result.wallTime * 1000);
+      rebuildStore.set({ doc: evaluated, result });
       if (result.ok) {
         acceptedEvaluation.current = { key, result };
         const prev = bodiesRef.current;
-        setBodies(result.bodies); setBodiesFor(evaluated); claimBodies.current = false; rebuildStore.set({ doc: evaluated, result });
+        setBodies(result.bodies); setBodiesFor(evaluated); claimBodies.current = false;
         if (handoff && parameterMass.current?.result === result && parameterMass.current.target === docNow.current) parameterMass.current.installedFor = evaluated;
         if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else setSelection(sel => carrySelection(sel, prev, result.bodies));
         if (again.current) { setRestart(again.current); again.current = null; }
@@ -3202,7 +3203,7 @@ export function App() {
         conflictIds={!sketchFinishError && sketchIssue?.conflict?.doc === doc && sketchIssue.conflict.source === sketch.shape ? sketchIssue?.conflict?.ids : undefined} onShape={shape => updateShape(shape, false, 'panel')} onDrivingLength={sketchViewportActions.recoverPanelLength} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onBand={{ make: makeSketchBand, edit: editSketchBand, remove: removeSketchBand }} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? useFaceOutline : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '', documentSource: { doc, name: fileName } })} />}
-      {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
+      {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} evaluated={evaluated} busy={busy} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsVisible && <VersionsPanel project={project} projectOpenFocus={{ remember: workspaceModeExit.rememberFocus, take: workspaceModeExit.takeFocus }} doc={doc} onMakeVersion={makeVersion} comparing={compareBase} onCompare={setCompareBase} evaluate={evaluateVersion} checkpointReview={checkpointReview}
         onPrepareFaceRepair={marker === null && shownDoc === doc && !cutDraft ? async (working, repair) => {
           const scope = openIntent.current;

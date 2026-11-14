@@ -1,0 +1,81 @@
+{
+  "decision": "D1246",
+  "tier": "SMALL",
+  "parent": "4f45118808f0fad327af6acc3ccbf660e8f1933a",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1246-<run>",
+    "D1246_SOURCE_FROZEN=1 node apps/cad-studio/test/rebuild-current-evaluation-browser.mjs <external-evidence> [--baseline]",
+    "D992_SOURCE_FROZEN=1 node apps/cad-studio/test/stale-model-consumers-browser.mjs <external-evidence> --fixed",
+    "pnpm --filter @barocss/cad-model test rebuild",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/RebuildPanel.tsx",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx",
+    "node --check apps/cad-studio/test/rebuild-current-evaluation-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "frozenFiles": 394,
+      "states": 9,
+      "receiptSHA256": "cf85e79d03b78a7124931d07215f58d07858c390d2c070f7573e692e0f40025b",
+      "sourceManifestSHA256": "9cba29378ae1d476a7a00ba6b18fd5b76b246486aec656b86d8afefd94e7e721",
+      "sourceAfterCleanupSHA256": "9cba29378ae1d476a7a00ba6b18fd5b76b246486aec656b86d8afefd94e7e721",
+      "bodyVolumes": [
+        6303.999999999998,
+        6303.999999999998,
+        6303.999999999998,
+        16384,
+        6303.999999999998,
+        6303.999999999998,
+        6303.999999999998,
+        16384
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": 8,
+      "receiptSHA256": "38860885ba78a518034ba9267d8841de05b1686764dd68db78e6fcab3ab111f9",
+      "sourceManifestSHA256": "d38d86e646ac82e1f77ea9d8d6cfd2482f42ad4f1159df017563dbc9c5d560e0",
+      "sourceAfterCleanupSHA256": "d38d86e646ac82e1f77ea9d8d6cfd2482f42ad4f1159df017563dbc9c5d560e0",
+      "bodyVolumes": [
+        6303.999999999998,
+        6303.999999999998,
+        6303.999999999998,
+        16384,
+        6303.999999999998,
+        6303.999999999998,
+        6303.999999999998,
+        16384
+      ]
+    },
+    "stale-consumers": {
+      "status": "PASS",
+      "frozenFiles": 394,
+      "states": 4,
+      "receiptSHA256": "dae41a7bc2dc594d17b565ec5b59fea5c16cb2b9fdb335e120759ccc2780da33",
+      "sourceManifestSHA256": "dd3da289ded89d259a75184291318c7d7c35efbc8b3464202edfdcfb0d0371ea",
+      "sourceAfterCleanupSHA256": "dd3da289ded89d259a75184291318c7d7c35efbc8b3464202edfdcfb0d0371ea",
+      "bodyVolumes": []
+    }
+  },
+  "checks": {
+    "focusedModel": {
+      "status": "PASS",
+      "tests": 6
+    },
+    "studioTypeCheck": "PASS",
+    "panelLint": "PASS",
+    "appLint": "FAIL_EXISTING_UNUSED_K",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "assistiveTechnology": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

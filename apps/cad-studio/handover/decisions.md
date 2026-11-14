@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1246 — show the current evaluation in Rebuild](notes/current-rebuild-report-2026-11-14/README.md).
 - [D1245 — withhold pitch annotations that carry an earlier hole pattern count](notes/tapped-pattern-drawing-spacing-2026-11-14/README.md).
 - [D1244 — verify the quantity of current counterbore locations](notes/counterbore-pattern-drawing-count-2026-11-14/README.md).
 - [D1243 — persist an explicitly confirmed Split finish in a standalone file](notes/split-finish-native-save-2026-11-14/README.md).

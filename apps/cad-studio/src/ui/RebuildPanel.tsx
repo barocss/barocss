@@ -1,4 +1,4 @@
-// The Rebuild panel (O10 step C): what the last evaluation of the part cost — each feature built again, reused or an
+// The Rebuild panel (O10 step C): what the current evaluation of the part cost — each feature built again, reused or an
 // input (a sketch), its own wall time and kernel calls, the slowest marked; the mates that cannot be met and their
 // loops; and each body's draws in the frames now shown, by its key (the GPU lane's tally, this renderer's only).
 // Read only: it changes neither geometry nor history. O16: its contents on shadcn's Table and Button, the columns fixed
@@ -33,11 +33,16 @@ function callsText(c: RebuildFeature['calls']): string {
 /** What a frame cost shows, without its frame number and time (which change every frame): read again only when it differs. */
 const costKey = (c: FrameCost | null) => c ? JSON.stringify([c.renderer, c.mode, c.bodies, c.scene]) : '';
 
-export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
-  store: RebuildStore; problems: readonly Problem[]; mode: DisplayMode; viewport: RefObject<ViewportHandle | null>; onClose(): void;
+export function RebuildPanel({ store, evaluated, busy, problems, mode, viewport, onClose }: {
+  store: RebuildStore; evaluated: StudioDoc; busy: boolean; problems: readonly Problem[]; mode: DisplayMode; viewport: RefObject<ViewportHandle | null>; onClose(): void;
 }) {
-  const last = useStoreValue(store), doc = last?.doc;
-  const report = useMemo(() => last && rebuildReport(last.doc, last.result, { problems }), [last, problems]);
+  const last = useStoreValue(store);
+  const current = last?.doc === evaluated ? last : null;
+  const report = useMemo(() => current && rebuildReport(current.doc, current.result, { problems }), [current, problems]);
+  const status = current?.result.ok === false ? 'Current model evaluation failed.'
+    : busy ? 'Evaluating the current model…'
+    : current ? 'No rebuild profile is available for the current model.'
+    : 'No rebuild report is available for the current model.';
   // (The frames' tally runs while the panel is open, read every POLL_MS and shown again only when its counts change.)
   const [cost, setCost] = useState<FrameCost | null>(null);
   useEffect(() => {
@@ -48,7 +53,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
   }, [viewport, mode]);
   return <aside className="card props bom-panel" aria-label="Rebuild panel">
     <div className="card-title">REBUILD <button className="tool tiny" aria-label="Close Rebuild" onClick={onClose}><Icon name="close" small /></button></div>
-    {!report && <div className="empty" role="status">{last ? 'The part did not evaluate, so there is no rebuild to show.' : 'Not evaluated yet.'}</div>}
+    {!report && <div className="empty" role="status">{status}</div>}
     {report && <>
       <div className="muted small" aria-label="Rebuild totals">
         Evaluation {report.evaluation} ({report.basis}), revision <span className="mono">{report.revision}</span> · {report.built} built in {ms(report.builtTime * 1000)} ms · {report.reused} reused · {ms(report.evaluationTime * 1000)} ms in all
@@ -62,7 +67,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
         </TableRow>)}</TableBody>
       </Table>
       <div className="card-title" style={{ marginTop: 8 }}>MATES</div>
-      {!report.mates.length && <div className="muted small" aria-label="Rebuild mates">{doc?.mates?.length ? 'Every mate is met.' : 'No mates.'}</div>}
+      {!report.mates.length && <div className="muted small" aria-label="Rebuild mates">{evaluated.mates?.length ? 'Every mate is met.' : 'No mates.'}</div>}
       {!!report.mates.length && <ul className="small" aria-label="Rebuild mates">{report.mates.map(p => <li key={p.mate}><span className="mono">{p.mate}</span>: {p.reason}</li>)}</ul>}
       {report.loops.map((l, k) => <div key={k} className="warn small" aria-label={`Rebuild loop ${k + 1}`}>Loop: {l.parts.join(' → ')} ({l.mates.join(', ')})</div>)}
       <div className="card-title" style={{ marginTop: 8 }}>FRAME COSTS <Button variant="ghost" size="xs" aria-label="Refresh frame costs" onClick={() => setCost(viewport.current?.frameCosts()[mode] ?? null)}><Icon name="refresh" small /></Button></div>
