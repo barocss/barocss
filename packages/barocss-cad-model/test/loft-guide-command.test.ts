@@ -187,7 +187,11 @@ test('Guide choice lists only supported snapshots and its steps describe the cho
   assert.equal(field.label, 'Guide (copied)');
   assert.deepEqual(field.options.map(option => option.value), ['', objectId(doc, 'quadratic'), objectId(doc, 'cubic'), objectId(doc, 'affine'), objectId(doc, 'line'), objectId(doc, 'multi')]);
   assert.match(field.options[0].label, /None/i);
-  assert.ok(fields.some(value => value.key === 'smooth'));
+  assert.ok(fields.every(value => value.key !== 'smooth'));
+  const three = context(circle(doc, 2, { origin: [0, 0, 1], normal: [0, 0, 1], xAxis: [1, 0, 0] }), [1, 0, 2]);
+  assert.ok(loftCommand.fields?.(three, { smooth: 'no', guide: '' }).some(value => value.key === 'smooth'));
+  assert.deepEqual(loft(build(three, { smooth: 'yes', guide: '' })).from, [0, 2, 1]);
+  assert.equal(loft(build(ctx, { smooth: 'yes', guide: '' })).smooth, undefined);
   const noneSteps = loftCommand.steps?.(ctx, { smooth: 'no', guide: '' }) ?? [];
   for (const geometry of ['rational', 'panel']) {
     const name = doc.direct!.objects.find(value => value.id === objectId(doc, geometry))!.name;

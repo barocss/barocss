@@ -1,0 +1,109 @@
+{
+  "decision": "D1170",
+  "tier": "FEATURE",
+  "parent": "075a262d9d4fea6d2cc5ea87c3151217d5ded1ef",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1170-<run>",
+    "D1170_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-two-section-mode-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1169_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-history-inputs-browser.mjs <external-evidence>/sweep-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs loft-guide-command profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/profileCommands.ts packages/barocss-cad-model/test/loft-guide-command.test.ts",
+    "node --check apps/cad-studio/test/loft-two-section-mode-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "smooth-offered-for-two",
+        "smooth-choice-lost",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "c9bb54b7d6b0ad6c64ace94b499b6272ed58d4228db8e1eb7f713163c91a1930",
+      "sourceManifestSHA256": "d6db2d0d98b311f08429bcd1c5e75d03272f9d3c8b318ecafb94672f91a78948",
+      "observations": [
+        {
+          "label": "baseline-still-ruled",
+          "valid": true,
+          "count": 1,
+          "volume": 1319.4689145077127,
+          "method": "quadrature",
+          "expected": 1319.4689145077132
+        }
+      ]
+    },
+    "first": {
+      "status": "FAIL",
+      "states": [
+        "ruled-two-section-preview",
+        "ruled-two-section-applied",
+        "history-ruled",
+        "loft-reopened",
+        "legacy-effective-ruled",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "58da4c472beca2cc6909f57a7b1edc5da445b58ad327a6e2290bd6b392db38b0",
+      "sourceManifestSHA256": "17fe5d21234268ed5d2108ea49bc4fb171f6575715017ea0585d0872a0a4a456"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "ruled-two-section-preview",
+        "ruled-two-section-applied",
+        "history-ruled",
+        "loft-reopened",
+        "legacy-effective-ruled",
+        "three-section-smooth-control"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "f40244cbb833fd5e5f1feefb5822d45e0b2325fc9c1aa9b6123544f3f3bd2c0d",
+      "sourceManifestSHA256": "17fe5d21234268ed5d2108ea49bc4fb171f6575715017ea0585d0872a0a4a456",
+      "observations": [
+        {
+          "label": "applied-conical-frustum",
+          "valid": true,
+          "count": 1,
+          "volume": 1319.4689145077127,
+          "method": "quadrature",
+          "expected": 1319.4689145077132
+        },
+        {
+          "label": "reopened-conical-frustum",
+          "valid": true,
+          "count": 1,
+          "volume": 1319.4689145077127,
+          "method": "quadrature",
+          "expected": 1319.4689145077132
+        },
+        {
+          "label": "legacy-flag-effective-ruled",
+          "valid": true,
+          "count": 1,
+          "volume": 1319.4689145077127,
+          "method": "quadrature",
+          "expected": 1319.4689145077132
+        }
+      ]
+    },
+    "sweep-regression": {
+      "status": "PASS",
+      "states": [
+        "history-after-apply",
+        "history-after-redo",
+        "history-uses-saved-copy",
+        "sweep-history-reopened",
+        "history-after-fresh-open"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "c15ab0d6467a5279f68d5a7bf14e33b45a62b1d707c3be4da97ba11fb8208afe",
+      "sourceManifestSHA256": "89dcd0e0de145f9472d4be56e6dd5a2652a9d9ca771548092d4a86de3f486bd6"
+    }
+  }
+}

@@ -353,7 +353,7 @@ export const loftCommand: Command = {
     { value: '', label: 'None' },
     ...(ctx.doc.direct?.objects ?? []).flatMap(object => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [{ value: object.id, label: guide.name }] : []; }),
   ], unknown: value => { const guide = copyLoftGuide(ctx.doc, value); return guide.ok ? 'Choose an available guide or None.' : guide.reason; } },
-  ...(!values?.guide ? [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice' as const, options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }] : [])],
+  ...(!values?.guide && (ctx.selection.sketches?.length ?? 0) >= 3 ? [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice' as const, options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }] : [])],
   defaults: () => ({ smooth: 'no', guide: '' }),
   steps: (ctx, values) => {
     if (values.guide !== undefined && values.guide !== '') {
@@ -366,8 +366,12 @@ export const loftCommand: Command = {
         { label: 'Guide', text: guide.ok ? `${guide.name}. Copied world-mm values; later curve edits do not update this loft.${general ? ' The guide must pass through a vertex of each section.' : ''}` : guide.reason, done: guide.ok },
       ];
     }
+    const sections = attempt(() => loftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters));
+    const order = 'error' in sections ? [] : sections.sections.map(section => `Sketch ${section.source + 1}`);
     return [
       ...boundStep(ctx),
+      { label: 'Sections', text: 'error' in sections ? sections.error : order.join(' → ') + ' (height order)', done: !('error' in sections) },
+      { label: 'Mode', text: `${order.length >= 3 && values.smooth === 'yes' ? 'Smooth' : 'Ruled'} · ${order.length} sections`, done: order.length >= 2 },
       { label: 'Guide', text: 'None. Use the existing section heights.', done: true },
       ...(ctx.doc.direct?.objects ?? []).flatMap((object, index) => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [] : [{ label: `Unavailable guide ${index + 1}`, text: `${object.name}: ${guide.reason}`, done: false }]; }),
     ];

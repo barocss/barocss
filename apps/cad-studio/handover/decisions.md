@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1170 — show the effective Loft mode for two sections](notes/loft-two-section-mode-2026-11-14/README.md).
 - [D1169 — show the committed Sweep inputs in History](notes/sweep-history-inputs-2026-11-14/README.md).
 - [D1168 — replace one active Sweep input during preview](notes/sweep-preview-retarget-2026-11-14/README.md).
 - [D1167 — keep Sweep inputs in either selection order](notes/sweep-input-order-2026-11-14/README.md).
