@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1233 — explain unavailable tangent scope in mixed Chamfer](notes/mixed-chamfer-scope-unavailable-2026-11-14/README.md).
 - [D1232 — preview the Align draft in History](notes/align-history-draft-preview-2026-11-14/README.md).
 - [D1231 — identify the body in each Align History target](notes/align-history-target-body-labels-2026-11-14/README.md).
 - [D1230 — show the picked and tangent Chamfer edges](notes/chamfer-native-tangent-scope-2026-11-14/README.md).

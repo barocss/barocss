@@ -153,7 +153,9 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
             const body = result.bodies.find(body => body.ref?.node === candidate.nodes.length - 1 && body.ref.side === 'solid');
             const targets = terminal.kind === 'chamfer' ? body?.chamferTargets : body?.filletTargets;
             const picked = [...new Set(terminal.edges)];
-            if (targets && picked.every(edge => targets.includes(edge))) {
+            if (terminal.kind === 'chamfer' && body && targets === undefined) {
+              chamferScope = { picked };
+            } else if (targets && picked.every(edge => targets.includes(edge))) {
               const added = targets.filter(edge => !picked.includes(edge));
               if (terminal.kind === 'chamfer') chamferScope = { picked, added };
               else if (typeof terminal.radius === 'number' && !terminal.section) {

@@ -1,0 +1,157 @@
+{
+  "decision": "D1233",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "003fd2579abaefc26a54260bbc14b85b274b58cd",
+  "commands": [
+    "gate.sh acquire heavy 600 D1233-<run>",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/baseline-retry --edit-inset --mixed-chamfer-scope --baseline",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/fixed --edit-inset --mixed-chamfer-scope",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/single-control --edit-inset --chamfer-scope",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature fillet-family",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/{app/commandState,state/useCommandPreview}.ts apps/cad-studio/src/ui/Hud.tsx",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 886,
+      "receiptSHA256": "58584299d40cb83ce4064b2658ae7dbd3dad7276855c5b6f7ef3d273e3533a28",
+      "sourceManifestSHA256": "02a9154fd55dba56d388114745d3961c6751d194469f5104711e2f00b6a15336",
+      "sourceAfterCleanupSHA256": "02a9154fd55dba56d388114745d3961c6751d194469f5104711e2f00b6a15336",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "baseline-retry": {
+      "status": "FAIL",
+      "observations": [
+        {
+          "label": "straight-arc",
+          "picked": [
+            "n2.side[e9]|n2.top",
+            "n2.side[e10]|n2.top"
+          ],
+          "faces": 10,
+          "volume": 533.9952841677082,
+          "expected": 533.9952841677
+        },
+        {
+          "label": "arc-straight",
+          "picked": [
+            "n2.side[e10]|n2.top",
+            "n2.side[e9]|n2.top"
+          ],
+          "faces": 10,
+          "volume": 533.9952841677082,
+          "expected": 533.9952841677
+        }
+      ],
+      "frozenFiles": 886,
+      "receiptSHA256": "b672d9a5aee7541e2065c7955fd35108b19a8d712fa2fb4ce5c175f2cc67a880",
+      "sourceManifestSHA256": "1fffd5bd27a9bc1c5c555a5f7be15519754c987aefdbf4568f99337109240330",
+      "sourceAfterCleanupSHA256": "1fffd5bd27a9bc1c5c555a5f7be15519754c987aefdbf4568f99337109240330",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "straight-arc",
+          "picked": [
+            "n2.side[e9]|n2.top",
+            "n2.side[e10]|n2.top"
+          ],
+          "faces": 10,
+          "volume": 533.9952841677082,
+          "expected": 533.9952841677
+        },
+        {
+          "label": "arc-straight",
+          "picked": [
+            "n2.side[e10]|n2.top",
+            "n2.side[e9]|n2.top"
+          ],
+          "faces": 10,
+          "volume": 533.9952841677082,
+          "expected": 533.9952841677
+        }
+      ],
+      "frozenFiles": 886,
+      "receiptSHA256": "0e1593688eb04368c7101bd3581ea167665add176afe7457a696f4c0d3e29f73",
+      "sourceManifestSHA256": "ac847284df948c84cdc7e2ca3e6f1380b2c8d6bfdf8889c80911ffcc1213063e",
+      "sourceAfterCleanupSHA256": "ac847284df948c84cdc7e2ca3e6f1380b2c8d6bfdf8889c80911ffcc1213063e",
+      "savedSHA256": [
+        "d5d63518e4bffc97f08aa4ef84c4ef9c900fe0521d65545c1daee0c515bca2dc",
+        "0e61d9a32922abe450c0300d29c57e5a19b44fada35e672f07f23ff2f5f66b84"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "single-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "straight",
+          "picked": [
+            "n2.side[e9]|n2.top"
+          ],
+          "tangent": [],
+          "faces": 3,
+          "volume": 534.1667457223912,
+          "expected": 534.1667457223867
+        },
+        {
+          "label": "arc",
+          "picked": [
+            "n2.side[e10]|n2.top"
+          ],
+          "tangent": [
+            "n2.side[e9]|n2.top",
+            "n2.side[e11]|n2.top",
+            "n2.side[e12]|n2.top",
+            "n2.side[e13]|n2.top",
+            "n2.side[e14]|n2.top",
+            "n2.side[e15]|n2.top",
+            "n2.side[e16]|n2.top"
+          ],
+          "faces": 8,
+          "volume": 533.9953164836115,
+          "expected": 533.9953164836069
+        }
+      ],
+      "frozenFiles": 886,
+      "receiptSHA256": "18601e44f0aca3fee1cb9b58ee9f00661074ace5a8ca8320ebc49db4907759f1",
+      "sourceManifestSHA256": "ac847284df948c84cdc7e2ca3e6f1380b2c8d6bfdf8889c80911ffcc1213063e",
+      "sourceAfterCleanupSHA256": "ac847284df948c84cdc7e2ca3e6f1380b2c8d6bfdf8889c80911ffcc1213063e",
+      "savedSHA256": [
+        "7ab52a166f92d69ad0b5ab9c39c65bf31871273dce832505ce3ec73d912c1765",
+        "f3757ccf2af0dfbe2097b5f1e04e9ed442a1fc899ae988ba6a9c560df5815a95"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

@@ -98,7 +98,9 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       </div>}
       {edgeScope && <div className="hud-steps" role="group" aria-label={active.filletScope ? 'Fillet scope' : 'Chamfer scope'}>
         <div className="field"><span>Picked native edges</span><span title={edgeScope.picked.join('\n')}>{edgeScope.picked.length}</span></div>
-        <div className="field"><span>Tangent edges added</span><span title={edgeScope.added.join('\n')}>{edgeScope.added.length}</span></div>
+        {edgeScope.added
+          ? <div className="field"><span>Tangent edges added</span><span title={edgeScope.added.join('\n')}>{edgeScope.added.length}</span></div>
+          : <p className="small muted">Exact tangent scope unavailable</p>}
         {active.filletScope && (active.filletScope.pickedRadii ? <>
           <div className="field"><span>Picked start radius</span><span>{active.filletScope.pickedRadii[0]} mm</span></div>
           <div className="field"><span>Picked end radius</span><span>{active.filletScope.pickedRadii[1]} mm</span></div>
