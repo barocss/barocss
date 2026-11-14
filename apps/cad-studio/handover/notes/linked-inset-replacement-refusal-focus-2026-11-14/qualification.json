@@ -1,0 +1,128 @@
+{
+  "decision": "D1209",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "9354d69e98853e044a337f86200f361b0998344a",
+  "commands": [
+    "gate.sh acquire heavy 600 D1209-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --narrow-dock --automatic-refusal --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --narrow-dock --automatic-refusal",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/wide --history-summary",
+    "pnpm --filter @barocss/cad-model test associative-inset-relink sketch-associative-inset",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/engine/{client.ts,engine.worker.ts} apps/cad-studio/src/sketch/useInsetRelink.ts",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "before-automatic-refusal",
+        "automatic-refusal",
+        "failure"
+      ],
+      "observations": [
+        {
+          "label": "automatic-refusal",
+          "focused": [
+            "BODY"
+          ],
+          "volume": 960.0000000000016,
+          "hint": "[BAD_REFERENCE] Associative sketch: That offset turns the outline inside out: use a smaller one."
+        }
+      ],
+      "frozenFiles": 393,
+      "receiptSHA256": "a9a21ca94c2ebb0a8bf387d197a609d0f7934431f203c3ce54de2b14023fa667",
+      "sourceManifestSHA256": "a537d547d0653ff7a87c26bde76aa529da4946e591746b98a7177cbb6c55e74b",
+      "sourceAfterCleanupSHA256": "a537d547d0653ff7a87c26bde76aa529da4946e591746b98a7177cbb6c55e74b",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "before-automatic-refusal",
+        "automatic-refusal"
+      ],
+      "observations": [
+        {
+          "label": "automatic-refusal",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ],
+          "volume": 960.0000000000016,
+          "hint": "The inset closes on this face. Select a wider planar face and retry."
+        }
+      ],
+      "frozenFiles": 393,
+      "receiptSHA256": "0488ca16a3b4b3566e017ff1f67a80d1b7579889aefe481930e77ed78768088b",
+      "sourceManifestSHA256": "21ec8017fa74c57fc415c70a0a249f15552bec84b8a0ea29118e10c6ded130d5",
+      "sourceAfterCleanupSHA256": "21ec8017fa74c57fc415c70a0a249f15552bec84b8a0ea29118e10c6ded130d5",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 393,
+      "receiptSHA256": "76d6d6eb26decec6168da497b892b12aaaf3aa26bbe951a09c36c0fcef6b6264",
+      "sourceManifestSHA256": "21ec8017fa74c57fc415c70a0a249f15552bec84b8a0ea29118e10c6ded130d5",
+      "sourceAfterCleanupSHA256": "21ec8017fa74c57fc415c70a0a249f15552bec84b8a0ea29118e10c6ded130d5",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0
+  }
+}

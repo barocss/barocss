@@ -30,7 +30,7 @@ export interface InsetRelinkPreview {
   rings: [number, number][][];
   volume: number;
 }
-export type InsetRelinkReply = { preview: InsetRelinkPreview } | { error: string };
+export type InsetRelinkReply = { preview: InsetRelinkPreview } | { error: string; field?: 'insetMM' };
 export type StoredInsetReply = { ok: true } | { error: string };
 export type FaceEndDistanceReply = { distance: number } | { error: string };
 export type MidpointPlaneReply = { plane: SketchPlane } | { error: string };

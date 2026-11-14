@@ -4,8 +4,11 @@ import { createFlow } from './flow-helper.mjs';
 const baseline = process.argv.includes('--baseline');
 const historySummary = process.argv.includes('--history-summary');
 const narrowDock = process.argv.includes('--narrow-dock');
+const automaticRefusal = process.argv.includes('--automatic-refusal');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
-  'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx'];
+  'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
+  'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
+  'packages/barocss-cad-model/src/engine/part.ts'];
 const f = await createFlow({
   name: 'linked-inset-review-focus', output: process.argv[2], envFrozen: 'D1204_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins, qualification: 'Linked Inset returns keyboard focus on Cancel and Apply.',
@@ -17,7 +20,7 @@ const seed = {
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 24], id: 'n0' },
     { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
     { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [160, 24], id: 'n2' },
-    { kind: 'extrude', sketch: 2, height: 8, id: 'n3' },
+    { kind: 'extrude', sketch: 2, height: automaticRefusal ? 3 : 8, id: 'n3' },
     { kind: 'sketch', profile: 'polygon', points: [[0, 24], [0, 0], [40, 0], [40, 24]],
       holes: [[[2, 22], [2, 2], [38, 2], [38, 22]].map(start => ({ kind: 'line', start }))],
       sideTags: { outer: ['e1', 'e2', 'e3', 'e4'], holes: [['e5', 'e6', 'e7', 'e8']] },
@@ -80,7 +83,7 @@ await f.run(async () => {
     await checkHistorySummary('n1.top');
     await f.snapshot('linked-history-original');
   }
-  const pixel = await f.page.evaluate(() => window.__studioScreenOf([130, 0, 4]));
+  const pixel = await f.page.evaluate(z => window.__studioScreenOf([130, 0, z]), automaticRefusal ? 1.5 : 4);
   assert.ok(pixel?.length === 2);
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel));
   await f.page.mouse.click(...pixel);
@@ -94,6 +97,27 @@ await f.run(async () => {
     const scrollTop = await f.page.locator('.dock-scroll').evaluate(dock => dock.scrollTop);
     assert.ok(scrollTop > 0);
     assert.ok((await buttonVisibility(replace())).visible);
+    if (automaticRefusal) {
+      f.phase = 'automatic refusal on a 3 mm candidate face';
+      const before = await f.snapshot('before-automatic-refusal');
+      await replace().press('Enter');
+      const notice = f.page.getByRole('alert').filter({ hasText: 'Inset source not replaced' });
+      await notice.waitFor();
+      await review().waitFor({ state: 'hidden' });
+      if (!baseline) await waitFocus(replace());
+      const after = await f.snapshot('automatic-refusal');
+      for (const key of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(after[key], before[key], key);
+      const current = await focused();
+      f.report.observations.push({ label: 'automatic-refusal', focused: current[0] === 'BODY' ? ['BODY'] : current,
+        volume: after.bodies.bodies.find(body => body.key === 'b5').volume, hint: await notice.locator('.toast-hint').innerText() });
+      if (baseline) {
+        assert.equal(current[0], 'BODY');
+        throw new Error('Automatic replacement refusal lost focus to the document body.');
+      }
+      assert.ok((await buttonVisibility(replace())).visible);
+      await notice.getByText('The inset closes on this face. Select a wider planar face and retry.', { exact: true }).waitFor();
+      return;
+    }
     await replace().press('Enter');
     const cancel = button('Cancel', review());
     await waitFocus(cancel);

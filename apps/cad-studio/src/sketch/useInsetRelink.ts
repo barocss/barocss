@@ -6,7 +6,7 @@ type Request = {
   labels: SourceLabels;
   current(): boolean;
   read(): Promise<InsetRelinkReply>;
-  refuse(message: string): void;
+  refuse(reply: Extract<InsetRelinkReply, { error: string }>): void;
   returnFocus(): void;
   apply(preview: InsetRelinkPreview): void;
 };
@@ -37,7 +37,7 @@ export function useInsetRelink() {
     void request.read().then(reply => {
       if (owner.current !== request) return;
       if (!request.current()) { cancel(); return; }
-      if ('error' in reply) { cancel(); request.refuse(reply.error); return; }
+      if ('error' in reply) { cancel(true); request.refuse(reply); return; }
       setState({ owner: request, labels: request.labels, preview: reply.preview });
     });
   }, [cancel]);

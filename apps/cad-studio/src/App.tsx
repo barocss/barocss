@@ -3112,7 +3112,11 @@ export function App() {
       current,
       read: () => engine.previewInsetRelink(doc, insetSketchIndex,
         { bodyKey: pick.bodyKey, faceId: pick.face.id, faceName: pick.face.name }, revision.current++),
-      refuse,
+      refuse: reply => {
+        if (reply.field === 'insetMM') {
+          setToast({ title: 'Inset source not replaced', hint: 'The inset closes on this face. Select a wider planar face and retry.', detail: reply.error });
+        } else refuse(reply.error);
+      },
       returnFocus: () => requestAnimationFrame(() => {
         if (current() && opener.isConnected && !opener.disabled && document.activeElement === document.body)
           opener.focus();

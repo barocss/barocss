@@ -5,6 +5,7 @@ import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { bodyKeyOf, currentFaceEndDistance, partSnapshot, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
 import { relinkAssociativeInset } from '@barocss/cad-model/app/associativeInsetRelink';
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 import { planeOf, profileRings } from '@barocss/cad-model/app/profiles';
 import { toLocal } from '@barocss/cad-model/sketch/plane';
 import { nativeMidpointPlane, type NativeMidpointFace } from '@barocss/cad-model/app/nativeMidpointPlane';
@@ -127,7 +128,10 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       const plane = planeOf(candidate.resolved);
       const rings = profileRings(candidate.resolved, candidate.doc.parameters).map(ring => ring.map(point => toLocal(plane, point)));
       post({ id: request.id, preview: { association, plane, rings, volume } });
-    } catch (error) { post({ id: request.id, error: error instanceof Error ? error.message : String(error) }); }
+    } catch (error) {
+      post({ id: request.id, error: error instanceof Error ? error.message : String(error),
+        ...(isRefusal(error, 'BAD_REFERENCE') && error.details?.field === 'insetMM' ? { field: 'insetMM' } : {}) });
+    }
     return;
   }
   if (request.type === 'verifyStoredInsets') {
