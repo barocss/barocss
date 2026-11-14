@@ -4,6 +4,7 @@ import { add, cross, dist, dot, len, scale, unit } from '../core/vec3.js';
 import { CadNumericPolicy, geometryScaleMM, linearToleranceMM } from '../numeric-policy.js';
 import type { Curve, Point, Surface } from '../types.js';
 import type { Brep, BrepCoedge, BrepFace } from './brep-core.js';
+import { recoverBoxFilletBindings } from './box-fillet-bindings.js';
 
 export type BrepEdgeContinuityRefusal =
   | 'edge-not-found'
@@ -83,7 +84,7 @@ function orientedNormal(du: Point, dv: Point, orientation: number): Point | unde
 
 /**
  * Sample the angle between the two oriented native face normals, in degrees.
- * Each interior sample needs two native pcurve point and derivative bindings.
+ * Each sample checks both parameter bindings against the native edge.
  * Extrema describe the samples only. This is a local inspection of the selected edge.
  */
 export function measureBrepEdgeContinuity(brep: Brep, edgeId: string): BrepEdgeContinuityResult {
@@ -106,12 +107,18 @@ export function measureBrepEdgeContinuity(brep: Brep, edgeId: string): BrepEdgeC
   if (brep.source.family === 'mesh' || firstFace.surface.kind === 'facets' || secondFace.surface.kind === 'facets') {
     return refuse('faceted-geometry');
   }
-  if (!first.pcurve || !second.pcurve) return refuse('missing-pcurve');
+  let firstBinding = first.pcurve, secondBinding = second.pcurve;
+  if (!firstBinding || !secondBinding) {
+    const recovered = recoverBoxFilletBindings(brep, edge, firstFace, secondFace);
+    if (!recovered) return refuse('missing-pcurve');
+    firstBinding ??= recovered[0];
+    secondBinding ??= recovered[1];
+  }
   if (!Number.isFinite(edge.tolerance) || edge.tolerance < 0) return refuse('binding-mismatch');
 
   try {
     const [start, end] = curveDomain(edge.curve);
-    for (const pcurve of [first.pcurve, second.pcurve]) {
+    for (const pcurve of [firstBinding, secondBinding]) {
       const [pStart, pEnd] = curveDomain(pcurve);
       if (pStart !== start || pEnd !== end || pcurve.controlPoints.some(point => point[2] !== 0)) {
         return refuse('binding-mismatch');
@@ -119,8 +126,8 @@ export function measureBrepEdgeContinuity(brep: Brep, edgeId: string): BrepEdgeC
     }
     const edgeAt = curveD1Evaluator(edge.curve);
     const sides = [
-      prepareSide(first.pcurve, firstFace.surface, firstFace.sense),
-      prepareSide(second.pcurve, secondFace.surface, secondFace.sense),
+      prepareSide(firstBinding, firstFace.surface, firstFace.sense),
+      prepareSide(secondBinding, secondFace.surface, secondFace.sense),
     ];
     const tolerance = Math.min(edge.tolerance, linearToleranceMM(geometryScaleMM(edge.curve.controlPoints)));
     const samples: { parameter: number; angleDegrees: number }[] = [];

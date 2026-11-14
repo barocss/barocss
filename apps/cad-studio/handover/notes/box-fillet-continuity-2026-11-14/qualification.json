@@ -1,0 +1,163 @@
+{
+  "decision": "D1259",
+  "tier": "FULL",
+  "parent": "97d265f63a97d7d7979a607dc26dc600a121e1d7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1259-<run>",
+    "D1259_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-continuity-browser.mjs <external-evidence>/baseline --baseline",
+    "D1259_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-continuity-browser.mjs <external-evidence>/studio-final",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/edge-continuity.test.mjs test/edge-finish.test.mjs test/derivatives.test.mjs",
+    "pnpm --filter @barocss/cad-model test edge-continuity native-display-precision",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/brep/{box-fillet-bindings,edge-continuity}.ts",
+    "node --check apps/cad-studio/test/fillet-continuity-browser.mjs",
+    "node <external-evidence>/mutation.mjs <external-evidence> 'recovers both straight tangent bindings' 'recoverBoxFilletBindings(brep, edge, firstFace, secondFace)'",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "nativeContinuityBefore": "FAIL",
+    "actualStudio": "PASS",
+    "kernel": {
+      "status": "PASS",
+      "tests": 28
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 15
+    },
+    "kernelTypeCheck": "PASS",
+    "kernelBuild": "PASS",
+    "kernelCodeShape": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "scopedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "links": "PASS",
+    "visualReview": "PASS",
+    "fullSuites": "NOT_RUN",
+    "generalFilletContinuity": "NOT_RUN",
+    "fullEdgeCertification": "NOT_RUN",
+    "g2g3": "NOT_RUN",
+    "liveAi": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  },
+  "intermediateFailures": [
+    "Both pre-change straight connections refused missing-pcurve.",
+    "Independent review identified reversed normals in the initial generator candidate."
+  ],
+  "studio": {
+    "baseline": {
+      "runnerStatus": "PASS",
+      "receiptSHA256": "7d336591545afbe82df80864b13a2e09a99bbe2f09cff834b25be5b37300e1cb",
+      "sourceManifestSHA256": "bb739573d99d60c1f6cfbba0fd17130e988cfcba2e5a9e6523893763d5fab490",
+      "sourceAfterCleanupSHA256": "bb739573d99d60c1f6cfbba0fd17130e988cfcba2e5a9e6523893763d5fab490",
+      "frozenFiles": 892,
+      "states": [
+        "joint-n1.side0",
+        "joint-n1.top"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "fillet",
+          "sourceSHA256": "12ff52104e6d5ff5b4235b3e5a267aaf168a563285aed2b132137e9d9030fc2f",
+          "recordCount": 4,
+          "volume": 7174.247779607695,
+          "topology": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 7,
+            "loops": 7,
+            "coedges": 30,
+            "edges": 15,
+            "vertices": 10
+          },
+          "originalDocumentRetained": true,
+          "studio": {}
+        }
+      ]
+    },
+    "final": {
+      "runnerStatus": "PASS",
+      "receiptSHA256": "2486b7d33e28046f7779d70ae3927556c8c767fd9bb4a96128b66da5de183846",
+      "sourceManifestSHA256": "6824325e3f35d4eb41b8ca59f52f29dd6215b5face0e354c093ebd947493d236",
+      "sourceAfterCleanupSHA256": "6824325e3f35d4eb41b8ca59f52f29dd6215b5face0e354c093ebd947493d236",
+      "frozenFiles": 893,
+      "states": [
+        "joint-n1.side0",
+        "joint-n1.top",
+        "unsupported-end"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "fillet",
+          "sourceSHA256": "12ff52104e6d5ff5b4235b3e5a267aaf168a563285aed2b132137e9d9030fc2f",
+          "recordCount": 4,
+          "volume": 7174.247779607695,
+          "topology": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 7,
+            "loops": 7,
+            "coedges": 30,
+            "edges": 15,
+            "vertices": 10
+          },
+          "originalDocumentRetained": true,
+          "baselineRefusals": 0,
+          "studio": {
+            "n1.side0": [
+              5.088887e-14,
+              5.088887e-14
+            ],
+            "n1.top": [
+              7.196774e-14,
+              1.439355e-13
+            ]
+          }
+        }
+      ],
+      "oracle": {
+        "status": "PASS",
+        "radiusMM": 2,
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "expectedVolumeMM3": 7174.247779607694,
+        "anglesDegrees": {
+          "n1.side0": 0,
+          "n1.top": 0
+        }
+      },
+      "oracleSHA256": "48eedaf641324f9e6a0559d68b38582356f88e797ae718e01ee539e4da8eb0b6"
+    }
+  },
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "eda36e0ac305ef69251be809218ed87ca01f0a8fb5a96da6c6c91589d1c6f964",
+    "evidenceSHA256": "6fefcca0bf13290e2783670a6b32a461cdbee20f4f4a976efb0d8656b03e9c3d",
+    "exitByVariant": {
+      "current": 0,
+      "recovery-disabled": 1
+    }
+  }
+}

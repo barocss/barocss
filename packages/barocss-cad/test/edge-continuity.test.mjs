@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { brepFromPrismatic, brepFromTriangles, checkBrep, measureBrepEdgeContinuity, prismaticFromProfile } from '../dist/index.js';
+import {
+  brepFromPrismatic, brepFromTriangles, brepMassProperties, checkBrep, evaluateCurveD1,
+  evaluateSurfaceD1, finishBrepEdges, lineCurve, measureBrepEdgeContinuity, prismaticFromProfile,
+} from '../dist/index.js';
 
 const capsule = [
   { kind: 'line', start: [0, -4] },
@@ -105,5 +108,83 @@ test('bounds inspection to a native shared edge with valid pcurve binding and av
     curve.knots = [0, 0, firstSample, 1, 1];
     curve.weights = [1, 1, 1];
     assert.deepEqual(checkBrep(brep).issues, []);
+  });
+});
+
+function boxFillet() {
+  const outer = [[0, 0], [30, 0], [30, 20], [0, 20]].map(start => ({ kind: 'line', start }));
+  const stock = prism(outer, 12);
+  return finishBrepEdges(stock, ['stock.side0|stock.top'], 2, 'fillet', 'round');
+}
+
+test('recovers both straight tangent bindings of a constant-radius box edge fillet', () => {
+  const brep = boxFillet();
+  const before = structuredClone(brep);
+  assert.deepEqual(checkBrep(brep, { strict: true }).issues, []);
+  assert.deepEqual([brep.vertices.length, brep.edges.length, brep.faces.length], [10, 15, 7]);
+  const volume = 30 * (20 * 12 - 2 ** 2 * (1 - Math.PI / 4));
+  const beforeMass = brepMassProperties(brep, 1);
+  assert.ok(Math.abs(beforeMass.volume - volume) <= 1e-9);
+
+  const blend = brep.faces.find(face => face.name === 'round.face');
+  for (const [adjacent, u, startX, endX, y, z, normal] of [
+    ['stock.side0', 1, 30, 0, 0, 10, [0, -1, 0]],
+    ['stock.top', 0, 0, 30, 2, 12, [0, 0, 1]],
+  ]) {
+    const name = `round.face|${adjacent}`;
+    const edge = edgeNamed(brep, name);
+    const uses = brep.coedges.filter(use => use.edge === edge.id);
+    assert.deepEqual(uses.map(use => use.pcurve), [null, null]);
+    assertMeasured(brep, name, 0);
+    for (let i = 0; i < 8; i++) {
+      const t = (i + 0.5) / 8;
+      const x = startX + (endX - startX) * t;
+      const world = evaluateCurveD1(edge.curve, t);
+      assert.ok(Math.hypot(world.point[0] - x, world.point[1] - y, world.point[2] - z) <= 1e-12);
+      assert.ok(Math.hypot(world.derivative[0] - (endX - startX), world.derivative[1], world.derivative[2]) <= 1e-12);
+      const { point, du, dv } = evaluateSurfaceD1(blend.surface, u, x / 30);
+      assert.ok(Math.hypot(point[0] - x, point[1] - y, point[2] - z) <= 1e-12);
+      const nativeNormal = [du[1] * dv[2] - du[2] * dv[1], du[2] * dv[0] - du[0] * dv[2], du[0] * dv[1] - du[1] * dv[0]];
+      const length = Math.hypot(...nativeNormal);
+      // The quadrant is centered at (y,z)=(2,10), so its radial and the authored plane normal coincide.
+      assert.deepEqual([0, (y - 2) / 2, (z - 10) / 2], normal);
+      assert.ok(Math.hypot(...nativeNormal.map((component, axis) => component / length - normal[axis])) <= 1e-12);
+    }
+  }
+  assert.deepEqual(brep, before);
+  assert.deepEqual(brepMassProperties(brep, 1), beforeMass);
+});
+
+test('refuses other missing bindings and never replaces an invalid stored fillet binding', () => {
+  const brep = boxFillet();
+  for (const name of ['round.face|stock.side1', 'round.face|stock.side3', 'stock.bottom|stock.side0']) {
+    const edge = edgeNamed(brep, name);
+    assert.deepEqual(measureBrepEdgeContinuity(brep, edge.id), { status: 'unsupported', edgeId: edge.id, reason: 'missing-pcurve' });
+  }
+
+  const original = edgeNamed(brep, 'round.face|stock.top');
+  const refused = (reason, change) => {
+    const copy = structuredClone(brep);
+    const edge = copy.edges.find(edge => edge.id === original.id);
+    const blend = copy.faces.find(face => face.name === 'round.face');
+    change(copy, edge, blend.surface);
+    assert.deepEqual(measureBrepEdgeContinuity(copy, edge.id), { status: 'unsupported', edgeId: edge.id, reason });
+  };
+  refused('missing-pcurve', (_copy, _edge, surface) => {
+    // A translated noncircular profile retains both boundary generators.
+    for (const pole of surface.controlPoints[1]) pole[1] += 1e-6;
+  });
+  refused('missing-pcurve', (_copy, _edge, surface) => {
+    // Unequal axial weights retain a line but change the chart's speed along it.
+    surface.weights[0][1] *= 1.01;
+  });
+  refused('missing-pcurve', (_copy, edge) => { edge.curve.weights[1] *= 1.01; });
+  refused('missing-pcurve', (_copy, edge) => { edge.curve.controlPoints[0][2] += 1e-8; });
+  refused('missing-pcurve', (copy, _edge, _surface) => {
+    const plane = copy.faces.find(face => face.name === 'stock.top').surface;
+    plane.controlPoints[1][1][0] += 1e-6;
+  });
+  refused('binding-mismatch', (copy, edge) => {
+    copy.coedges.find(use => use.edge === edge.id).pcurve = lineCurve('invalid', [0, 0, 0], [0, 1, 0]);
   });
 });
