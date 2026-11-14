@@ -56,6 +56,8 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: r.node + k });
   const id = (x: string) => x.replace(/^n(\d+)/, (_, d: string) => `n${Number(d) + s}`), name = (x: string) => renameFeatureIds(x, id);
   if (node.id !== undefined) node = { ...node, id: id(node.id) };
+  if ((node.kind === 'union' || node.kind === 'difference') && node.made?.command === 'offset-face'
+    && typeof node.made.values?.face === 'string') node = { ...node, made: { ...node.made, values: { ...node.made.values, face: name(node.made.values.face) } } };
   // (What the studio keeps by name — references' signatures, re-match marks — renamed alike.)
   if (node.sigs) node = { ...node, sigs: Object.fromEntries(Object.entries(node.sigs).map(([n, v]) => [name(n), v])) };
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };

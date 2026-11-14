@@ -1175,10 +1175,32 @@ export function dropStaleMade(before: readonly ModelNode[], after: ModelNode[]):
   };
   return after.map((n, i) => 'made' in n && stale(n, i) ? (({ made: _made, ...rest }) => rest as ModelNode)(n as ModelNode & { made?: Made }) : n);
 }
+/** The internal sketch and extrusion of an explicitly authored Offset History group. */
+export function offsetFaceGroup(nodes: readonly ModelNode[], index: number) {
+  const operation = nodes[index], sketch = nodes[index - 2], tool = nodes[index - 1];
+  if ((operation?.kind !== 'union' && operation?.kind !== 'difference') || operation.made?.command !== 'offset-face'
+    || operation.made.nodes !== 3 || sketch?.kind !== 'sketch' || sketch.profile !== 'loop' || !sketch.on
+    || tool?.kind !== 'extrude' || tool.sketch !== index - 2) return;
+  const { d, face } = operation.made.values ?? {};
+  if (typeof d !== 'number' || !Number.isFinite(d) || d === 0 || typeof face !== 'string' || !face || face.includes('+')
+    || (operation.kind === 'union') !== (d > 0) || tool.height !== Math.abs(d)
+    || (d > 0 ? tool.from !== undefined : tool.from !== d)) return;
+  const target = operation.kind === 'union' ? operation.left : operation.parent;
+  const operand = operation.kind === 'union' ? operation.right : operation.tool;
+  if (target?.side !== 'solid' || target.node < 0 || target.node >= index - 2 || sketch.on.node !== target.node
+    || sketch.on.side !== target.side || operand?.node !== index - 1 || operand.side !== 'solid') return;
+  return { d, face, target, operation, sketch, tool, start: index - 2 };
+}
+
 /** A shape command's solid by its shape and main sizes: Box 32×32×16, Cylinder Ø16×24, Sphere Ø20 … */
 export function shapeLabel(made: Made): string {
   const v = (k: string) => fmt(Number(made.values[k])), d = (k: string) => fmt(Number(made.values[k]) * 2);
   switch (made.command) {
+    case 'offset-face': {
+      const distance = made.values?.d;
+      return typeof distance === 'number' && Number.isFinite(distance)
+        ? `Offset face ${distance > 0 ? '+' : ''}${fmt(distance)} mm` : 'Offset face';
+    }
     case 'box': return `Box ${v('w')}×${v('d')}×${v('h')}`;
     case 'cylinder': return `Cylinder Ø${d('r')}×${v('h')}`;
     case 'sphere': return `Sphere Ø${d('r')}`;

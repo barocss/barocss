@@ -11,7 +11,7 @@ import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, bandSurfaceNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { offsetFaceGroup, rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, bandSurfaceNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -462,6 +462,8 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
 function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
   if (node.kind === 'region-extrude') return { ...node, sourceFeature: rename(node.sourceFeature) };
   const r = (name: string) => renameFeatureIds(name, rename);
+  if ((node.kind === 'union' || node.kind === 'difference') && node.made?.command === 'offset-face'
+    && typeof node.made.values?.face === 'string') return { ...node, made: { ...node.made, values: { ...node.made.values, face: r(node.made.values.face) } } };
   if (node.kind === 'revolve' && node.axisRef) return {
     ...node, axisRef: { ...node.axisRef, sourceFeature: rename(node.axisRef.sourceFeature), edge: r(node.axisRef.edge) },
   };
@@ -514,6 +516,11 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
   const users = (i: number) => nodes.flatMap((n, k) => usesOf(n, nodes).includes(i) ? [k] : []);
   const removed = new Set([index]);
+  const offset = offsetFaceGroup(nodes, index);
+  if (offset) {
+    removed.add(offset.start);
+    removed.add(offset.start + 1);
+  }
   if (nodes.some(node => node.kind === 'rounded-rectangle-inset')) {
     return { error: 'Rounded inset: deleting a feature in this stored recipe document is not supported.' };
   }
@@ -577,11 +584,13 @@ export function bodyNodes(nodes: readonly ModelNode[], top: number): number[] {
  */
 export function featureDependents(doc: StudioDoc, index: number): number[] {
   const nodes = doc.nodes, gone = new Set([index]);
+  const offset = offsetFaceGroup(nodes, index);
+  if (offset) { gone.add(offset.start); gone.add(offset.start + 1); }
   for (let k = index + 1; k < nodes.length; k++) {
     const n = nodes[k];
     if (usesOf(n, nodes).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
   }
-  return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch' && nodes[k].kind !== 'driven-sketch').sort((a, b) => a - b);
+  return [...gone].filter(k => k > index && nodes[k].kind !== 'sketch' && nodes[k].kind !== 'driven-sketch').sort((a, b) => a - b);
 }
 
 /**
@@ -594,7 +603,9 @@ function steps(nodes: readonly ModelNode[]): [number, number][] {
   while (i >= 0) {
     const n = nodes[i];
     if (n.kind === 'sketch' || n.kind === 'driven-sketch') { out.unshift([i, i]); i--; continue; }
-    let first = i - (('made' in n && n.made?.nodes) ? n.made.nodes - 1 : 0);
+    const groupStart = 'made' in n && n.made?.command === 'offset-face' ? offsetFaceGroup(nodes, i)?.start
+      : 'made' in n && n.made?.nodes ? i - n.made.nodes + 1 : undefined;
+    let first = groupStart ?? i;
     // Its own sketches just before it.
     while (first > 0 && (nodes[first - 1].kind === 'sketch' || nodes[first - 1].kind === 'driven-sketch') && users(first - 1).length && users(first - 1).every(k => k >= first && k <= i)) first--;
     out.unshift([first, i]); i = first - 1;

@@ -1,0 +1,175 @@
+{
+  "decision": "D1173",
+  "tier": "FEATURE",
+  "parent": "b29b80968924b5c1eb25f09666153c5fc9e45bb4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1173-<run>",
+    "D1173_SOURCE_FROZEN=1 node apps/cad-studio/test/offset-face-history-browser.mjs <external-evidence>/<run>",
+    "D1172_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-history-section-replacement-browser.mjs <external-evidence>/loft-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs offset-face-native engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/{app/offsetFaceEdit,app/profileCommands,chat/features,engine/doc,engine/flatten}.ts",
+    "node --check apps/cad-studio/test/offset-face-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-signed"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "offset-out-two",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "dd3b6c5f8d4ae8c7da746a45b7066b46b59ff4a6bebf1a67b1c6c0a617b6a5a1",
+      "sourceManifestSHA256": "25a9644fe48cad9ad0de8d9855876168de4d11aff50721698b374527092b82bc"
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "offset-out-two",
+        "offset-edit-preview",
+        "offset-out-three",
+        "offset-history-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "de58a3fafef21cd89626057702b868d4787d852f6884b3660a2150db7e6324f3",
+      "sourceManifestSHA256": "0f8c7df9d8da8580a1389fd0a9d4a1185096b17b44a59d35be45a62a9793e875"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "offset-out-two",
+        "offset-edit-preview",
+        "offset-out-three",
+        "offset-history-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "293b82ff461a235eb2054b6ac6c89226c93dec196d41ac556a5b9263414db92a",
+      "sourceManifestSHA256": "354da04b6bc17f7636d931cb9f4baab7d80cfbfadf64d7f48f372bc701d3a34e"
+    },
+    "signed": {
+      "status": "PASS",
+      "states": [
+        "offset-out-two",
+        "offset-edit-preview",
+        "offset-out-three",
+        "zero-thickness-refused",
+        "offset-in-two",
+        "offset-history-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "d26a62ffe5a911dfc14ae02c2c4301603f573ef2e00c576e367407a6d0222785",
+      "sourceManifestSHA256": "05ab26b715bb3d0f3ab22b1746d32774916f83cd39c4af39d51c602058030d11",
+      "observations": [
+        {
+          "label": "offset-out-two",
+          "id": "n4",
+          "valid": true,
+          "solids": 1,
+          "volume": 942.4777960769375,
+          "centroid": [
+            -7.435430055332492e-16,
+            -9.827409090736786e-16,
+            4
+          ],
+          "caps": [
+            [
+              "n3.top",
+              -2
+            ],
+            [
+              "n1.top",
+              10
+            ]
+          ],
+          "expected": 942.4777960769379
+        },
+        {
+          "label": "offset-out-three",
+          "id": "n4",
+          "valid": true,
+          "solids": 1,
+          "volume": 1021.0176124166823,
+          "centroid": [
+            -7.435430055332492e-16,
+            -9.827409090736786e-16,
+            3.5
+          ],
+          "caps": [
+            [
+              "n3.top",
+              -3
+            ],
+            [
+              "n1.top",
+              10
+            ]
+          ],
+          "expected": 1021.0176124166828
+        },
+        {
+          "label": "offset-in-two",
+          "id": "n4",
+          "valid": true,
+          "solids": 1,
+          "volume": 628.3185307179583,
+          "centroid": [
+            5.937035405398568e-16,
+            2.3690371175670305e-16,
+            6
+          ],
+          "caps": [
+            [
+              "n3.bottom",
+              2
+            ],
+            [
+              "n1.top",
+              10
+            ]
+          ],
+          "expected": 628.3185307179587
+        },
+        {
+          "label": "offset-history-reopened",
+          "id": "n4",
+          "valid": true,
+          "solids": 1,
+          "volume": 628.3185307179583,
+          "centroid": [
+            5.937035405398568e-16,
+            2.3690371175670305e-16,
+            6
+          ],
+          "caps": [
+            [
+              "n3.bottom",
+              2
+            ],
+            [
+              "n1.top",
+              10
+            ]
+          ],
+          "expected": 628.3185307179587
+        }
+      ]
+    },
+    "loft-regression": {
+      "status": "PASS",
+      "states": [
+        "section-breaks-guide-refused",
+        "loft-section-replaced",
+        "loft-section-reopened",
+        "loft-section-history"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "7294c9df4ed8bfb020834c58ad11f8ec41f49af0d043db43848df8f2c31421bd",
+      "sourceManifestSHA256": "d8d3008d5e9cc08aa58e528034a9cd469e8972459532a6e725103041cacab3b4"
+    }
+  }
+}

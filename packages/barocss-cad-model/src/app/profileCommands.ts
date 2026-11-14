@@ -5,7 +5,7 @@ import { featureId } from '../engine/ids';
 // (a picked profile pulled along its normal), Revolve (turned about a sketch axis), Pipe (carried along
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
 // that body by default; Operation can make a new body or cut it instead.
-import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
+import { prefixDoc, withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import type { Vec3 } from '../engine/mesh';
 import { toLocal, toWorld } from '../sketch/plane';
 import { boundParameters, framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
@@ -213,6 +213,22 @@ export const extrudeCommand: Command = {
   },
 };
 
+/** Build the exact shared composition, optionally retaining the IDs of an existing history step. */
+export function buildNativeOffsetFace(ctx: Ctx, distance: number, ids?: readonly string[]): StudioDoc {
+  const profile = resolveNativeOffsetFace(ctx);
+  validateNativeOffsetDistance(profile, distance);
+  const doc = withNode(ctx.doc, structuredClone(profile.sketch)), index = doc.nodes.length - 1;
+  let candidate = extrudeCommand.build!({ ...ctx, doc, selection: { sketches: [index], faces: [], edges: [], bodies: [] }, direct: [] },
+    { h: Math.abs(distance), draft: 0, op: distance > 0 ? 'join' : 'cut', depth: 'distance' });
+  if (ids) {
+    const base = ctx.doc.nodes.length;
+    const nodes = candidate.nodes.map((node, i) => i < base ? node : { ...node, id: ids[i - base] });
+    candidate = prefixDoc({ ...candidate, nodes, nextId: ctx.doc.nextId }, nodes.length);
+  }
+  validateNativeOffsetResult(ctx, candidate, profile, distance);
+  return candidate;
+}
+
 /** Move an admitted native right-prism cap along its signed normal. */
 export const offsetFaceCommand: Command = {
   id: 'offset-face', label: 'Offset face', icon: 'cad-extrude', group: 'modify', keywords: 'move face push pull offset direct edit press',
@@ -230,13 +246,12 @@ export const offsetFaceCommand: Command = {
   defaults: () => ({ d: 2 }),
   steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
   build: (ctx, v) => {
-    const d = Number(v.d), profile = resolveNativeOffsetFace(ctx);
-    validateNativeOffsetDistance(profile, d);
-    const doc = withNode(ctx.doc, structuredClone(profile.sketch)), index = doc.nodes.length - 1;
-    const candidate = extrudeCommand.build!({ ...ctx, doc, selection: { sketches: [index], faces: [], edges: [], bodies: [], vertices: [] }, direct: [] },
-      { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
-    validateNativeOffsetResult(ctx, candidate, profile, d);
-    return candidate;
+    const d = Number(v.d), candidate = buildNativeOffsetFace(ctx, d);
+    const selected = ctx.selection.faces[0], face = ctx.bodies[selected.body].mesh.faces[selected.face].name;
+    const terminal = candidate.nodes.at(-1);
+    if (terminal?.kind !== 'union' && terminal?.kind !== 'difference') throw refusal('FACE_DISTANCE', 'The accepted Offset has no terminal operation.');
+    return { ...candidate, nodes: [...candidate.nodes.slice(0, -1),
+      { ...terminal, made: { command: 'offset-face', nodes: 3, values: { d, face } } }] };
   },
   handles: ctx => {
     try {

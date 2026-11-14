@@ -61,6 +61,7 @@ import { sourceRevolveAxis, type RevolveAxisHit } from './app/revolveAxisPick';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
+import { canEditSavedOffsetFace, editSavedOffsetFaceCommand, OFFSET_FACE_EDIT } from '@barocss/cad-model/app/offsetFaceEdit';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
@@ -101,7 +102,7 @@ import { supportsPlacedBoxSnapRotation } from './viewport/placedBoxSnap';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
-import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { offsetFaceGroup, carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { modelHash } from '@barocss/cad-model/chat/spec';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
@@ -1465,7 +1466,7 @@ export function App() {
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
     const sweep = active.cmd.id === SWEEP_CURVE;
-    if ((active.fillet || toFace || region || replaceAxis || sweep) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === OFFSET_FACE_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1493,7 +1494,7 @@ export function App() {
     }
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
-    const clearSelection = active.cmd.id === 'offset-face' || active.cmd.id === 'fill-feature-pattern' || active.cmd.id === 'curve-feature-pattern';
+    const clearSelection = active.cmd.id === 'offset-face' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === 'fill-feature-pattern' || active.cmd.id === 'curve-feature-pattern';
     if (clearSelection) setSelection(emptySel);
     if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);
     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) {
@@ -1951,7 +1952,11 @@ export function App() {
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes, true), [evaluated.nodes]);
   // The steps inside a part made in several (a bolt's head, shank and their union): one history entry, the last.
-  const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => 'made' in n && n.made?.nodes ? Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k) : [])), [doc.nodes]);
+  const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => {
+    if (!('made' in n) || !n.made?.nodes) return [];
+    if (n.made.command === 'offset-face' && !offsetFaceGroup(doc.nodes, i)) return [];
+    return Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k);
+  })), [doc.nodes]);
   const retainedProfiles = useMemo(() => new Set(evaluated.nodes.flatMap(node =>
     node.kind === 'region-extrude' ? [node.sketch] : [])), [evaluated.nodes]);
   const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => {
@@ -2536,7 +2541,7 @@ export function App() {
       if (e.key === 'Escape') { footprintRequest.current++; if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
-      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT && active.cmd.id !== REVOLVE_AXIS_EDIT) again.current = active.cmd; apply(); } return; }
+      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT && active.cmd.id !== REVOLVE_AXIS_EDIT && active.cmd.id !== OFFSET_FACE_EDIT) again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
@@ -3205,7 +3210,15 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onReplaceAxis={replaceRevolveAxis ? () => void startRevolveAxisReplacement() : undefined} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
+        })()} onReplaceAxis={replaceRevolveAxis ? () => void startRevolveAxisReplacement() : undefined}
+          onEditOffset={canEditSavedOffsetFace(commandDoc, editNode) ? () => {
+            if (!ownsEvaluatedSource() || markerNow.current !== null || shownVariant.current || !fresh || busy || !canChangeDocument()) return;
+            const cmd = editSavedOffsetFaceCommand(commandDoc, editNode);
+            if (!cmd) return;
+            discardFeatureDraft();
+            setEditNode(null);
+            setActive({ cmd, ctx, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy' });
+          } : undefined} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
           if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
             || !fresh || busy || !canChangeDocument()) {
             setToast({ title: 'End face not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
@@ -3292,6 +3305,7 @@ export function App() {
     if (!current || !filletApplyCurrent(owner, current)) return;
     if (owner !== current && (owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
       || owner.cmd.id === SWEEP_CURVE || current.cmd.id === SWEEP_CURVE
+      || owner.cmd.id === OFFSET_FACE_EDIT || current.cmd.id === OFFSET_FACE_EDIT
       || isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
       || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();
