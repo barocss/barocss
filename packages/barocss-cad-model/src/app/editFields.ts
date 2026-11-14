@@ -142,6 +142,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
     bind: (n: Nodes, name: string) => {
       if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || ((n[i]?.kind === 'rectangular-feature-pattern' || n[i]?.kind === 'fill-feature-pattern') && (f.key === 'count' || f.key === 'count2'))) return null;
       if (n[i]?.kind === 'fill-feature-pattern' && (f.key === 'anchorX' || f.key === 'anchorY')) return null;
+      if (n[i]?.kind === 'extrude' && f.key === 'draft' && isSketchAnchoredCut(n, i)) return null;
       if (!Object.hasOwn(params, name)) return null;
       const next = within(params, () => f.set(n, params[name])).value;
       // (The value must land as it is in one place: then that place holds the reference.)
@@ -166,15 +167,33 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
 };
 
-/** Legacy attached Cut encoded as a positive, untapered tool ending on its sketch. */
+/** A fixed-distance Cut whose adjacent Difference uses the sketch's attached body. */
 export function isSketchAnchoredCut(nodes: Nodes, index: number): boolean {
   const tool = nodes[index], cut = nodes[index + 1];
-  if (tool?.kind !== 'extrude' || tool.cutDepth || tool.made || tool.draft || typeof tool.height !== 'number'
-    || !Number.isFinite(tool.height) || tool.height <= 0 || tool.from !== -tool.height
+  if (tool?.kind !== 'extrude' || tool.cutDepth || tool.made || typeof tool.height !== 'number'
+    || !Number.isFinite(tool.height) || (tool.draft !== undefined && !Number.isFinite(tool.draft))
     || cut?.kind !== 'difference' || cut.tool.node !== index || cut.tool.side !== 'solid') return false;
+  // A tapered tool starts at the sketch. The ordinary upright tool ends there.
+  const fromSketch = tool.height < 0 && (tool.from === undefined || tool.from === 0);
+  const toSketch = !tool.draft && tool.height > 0 && tool.from === -tool.height;
+  if (!fromSketch && !toSketch) return false;
   const sketch = nodes[tool.sketch];
   return sketch?.kind === 'sketch' && !!sketch.on && cut.parent.node === sketch.on.node && cut.parent.side === sketch.on.side;
 }
+
+function anchoredCut(tool: Extract<ModelNode, { kind: 'extrude' }>, depth: number, draft: number): typeof tool {
+  const next = { ...tool, height: depth };
+  if (draft === 0) {
+    delete next.draft;
+    next.from = -depth;
+  } else {
+    next.draft = draft;
+    next.height = -depth;
+    delete next.from;
+  }
+  return next;
+}
+
 function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope, parameters: Record<string, number> = {}): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
@@ -192,16 +211,27 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
       if (node.cutDepth === 'through') break;
-      out.push({ kind: 'number', key: 'h', label: 'Distance', unit: 'mm', get: n => num(self<typeof node>(n).height),
+      out.push({ kind: 'number', key: 'h', label: 'Distance', unit: 'mm', get: n => {
+        const height = num(self<typeof node>(n).height);
+        return isSketchAnchoredCut(n, i) ? Math.abs(height) : height;
+      },
         set: (n, height) => {
           const current = self<typeof node>(n);
           if (isSketchAnchoredCut(n, i)) {
-            return Number.isFinite(height) && height > 0 ? replace(n, i, { ...current, height, from: -height }) : [...n];
+            return Number.isFinite(height) && height > 0 ? replace(n, i, anchoredCut(current, height, current.draft ?? 0)) : [...n];
           }
           return replace(n, i, withExtrusionHeight(current, n[current.sketch], height));
         } });
       number('from', 'Start Z', 'mm', n => num((n as typeof node).from ?? 0), (n, v) => ({ ...(n as typeof node), from: v }));
-      number('draft', 'Draft', '°', n => (n as typeof node).draft ?? 0, (n, v) => ({ ...(n as typeof node), draft: v }));
+      out.push({
+        kind: 'number', key: 'draft', label: 'Draft', unit: '°',
+        get: n => self<typeof node>(n).draft ?? 0,
+        set: (n, draft) => {
+          const tool = self<typeof node>(n);
+          if (!Number.isFinite(draft)) return [...n];
+          return replace(n, i, isSketchAnchoredCut(n, i) ? anchoredCut(tool, Math.abs(Number(tool.height)), draft) : { ...tool, draft });
+        },
+      });
       break;
     case 'revolve':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));

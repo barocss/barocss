@@ -184,6 +184,7 @@ export const extrudeCommand: Command = {
     const selected = extrudeProfile(ctx)!, p = selected.fresh ? { ...selected, node: nativeExtrudeFace(ctx, selected.node) } : selected;
     const cut = v.op === 'cut', through = cut && v.depth === 'through';
     const base = baseOf(ctx, p.node), height = through ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
+    if (cut && (!Number.isFinite(height) || height <= 0)) throw refusal('VALUE', 'Cut Distance must be greater than 0 mm.');
     const persistentThrough = through && persistThroughCut(ctx, p.node, draft);
     const doc = p.fresh ? withNode(ctx.doc, p.node) : ctx.doc;
     // A cut goes down from the face (with a draft its walls lean in away from the opening); join/new go up.

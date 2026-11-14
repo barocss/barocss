@@ -54,7 +54,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
     const value = active.values[field.key], ref = index === 0 ? captureFirst : undefined;
     const showCircularCount = active.cmd.id === 'circular-pattern' && field.key === 'count' && field.kind === 'count';
     const invalidCount = showCircularCount && (!Number.isInteger(Number(value)) || Number(value) < (field.min ?? -Infinity) || Number(value) > (field.max ?? Infinity));
-    const numberRule = commandNumberRule(active.cmd.id, field.key);
+    const numberRule = commandNumberRule(active.cmd.id, field.key, active.values.op);
     const range = showCircularCount ? `Whole number from ${field.min} to ${field.max}` : numberRule ? featureNumberRange(numberRule) : null;
     const rangeId = range ? `hud-number-range-${field.key}` : undefined;
     const invalidNumber = numberRule && featureNumberInvalid(value, numberRule);

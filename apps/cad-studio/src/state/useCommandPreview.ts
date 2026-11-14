@@ -79,7 +79,7 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
       const missing = missingCommandField(fields, active.values);
       if (missing) { setPreviewBodies(null); setActive(a => a === active ? { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } } : a); return; }
       for (const field of fields) {
-        const rule = commandNumberRule(active.cmd.id, field.key);
+        const rule = commandNumberRule(active.cmd.id, field.key, active.values.op);
         if (!rule || !featureNumberInvalid(active.values[field.key], rule)) continue;
         setPreviewBodies(null);
         setActive(a => a === active ? { ...a, preview: 'error', error: { title: `Enter a valid ${field.label}`, hint: featureNumberRange(rule) + '.', detail: '' } } : a);

@@ -6,7 +6,8 @@ import { resolveDrivenSketch } from '../sketch/driven';
 import { bandSurfaceEditCommand } from './bandSurfaceCommand';
 import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
-import { editFields } from './editFields';
+import { refusal } from '../engine/refusal';
+import { editFields, isSketchAnchoredCut } from './editFields';
 import { planeOf, profileMiddle } from './profiles';
 import { replaceRange } from '../chat/features';
 import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
@@ -29,7 +30,11 @@ function edited(nodes: readonly ModelNode[], index: number, v: Values, params?: 
   let out = [...nodes];
   for (const f of editFields(nodes, index, params)) {
     if (!(f.key in v) || f.kind === 'toggle') continue;
-    if (f.kind === 'number') { const x = Number(v[f.key]); if (Number.isFinite(x) && x !== f.get(out)) out = f.set(out, x); }
+    if (f.kind === 'number') {
+      const x = Number(v[f.key]);
+      const unchangedStart = f.key === 'from' && isSketchAnchoredCut(nodes, index) && x === f.get(nodes);
+      if (Number.isFinite(x) && !unchangedStart && x !== f.get(out)) out = f.set(out, x);
+    }
     else if (String(v[f.key]) !== f.get(out)) out = f.set(out, String(v[f.key]));
   }
   return out;
@@ -44,7 +49,9 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number, params: Read
   if (!Number.isFinite(h)) return [];
   const at = (u: number, v: number, z: number): V3 => { const p = toWorld(plane, [u, v]); return [p[0] + n[0] * z, p[1] + n[1] * z, p[2] + n[2] * z]; };
   const x = plane.xAxis, y: V3 = [n[1] * x[2] - n[2] * x[1], n[2] * x[0] - n[0] * x[2], n[0] * x[1] - n[1] * x[0]];
-  const top = from + h, mid = from + h / 2, sign = Math.sign(h) || 1, out: HandleSpec[] = [];
+  const cut = isSketchAnchoredCut(nodes, index);
+  const top = cut ? -Math.abs(h) : from + h, mid = from + h / 2;
+  const sign = cut ? -1 : Math.sign(h) || 1, scale = cut ? 1 : sign, out: HandleSpec[] = [];
   let c: [number, number] | null = null;
   if (sk.profile === 'rectangle') {
     const [x0, y0] = sk.min.map(num), [x1, y1] = sk.max.map(num);
@@ -56,7 +63,7 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number, params: Read
     const [cx, cy] = sk.center.map(num), r = num(sk.radius);
     if ([cx, cy, r].every(Number.isFinite)) { out.push({ key: 'dia', at: at(cx + r, cy, mid), dir: [...x] as V3, scale: 2, min: 0.5, step: 0.5 }); c = [cx, cy]; }
   }
-  if (c) out.push({ key: 'h', at: at(c[0], c[1], top), dir: [n[0] * sign, n[1] * sign, n[2] * sign], scale: sign, min: sign > 0 ? 0.1 : -Infinity, ...(sign < 0 ? { max: -0.1 } : {}) });
+  if (c) out.push({ key: 'h', at: at(c[0], c[1], top), dir: [n[0] * sign, n[1] * sign, n[2] * sign], scale, min: scale > 0 ? 0.1 : -Infinity, ...(scale < 0 ? { max: -0.1 } : {}) });
   return out;
 }
 
@@ -195,7 +202,11 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
     available: () => ok,
     fields: (): Field[] => fields.map(f => f.kind === 'choice' ? { key: f.key, label: f.label, kind: 'choice' as const, options: f.options } : { key: f.key, label: f.label, kind: (f.kind === 'number' && f.unit === '°' ? 'deg' : 'mm') as 'deg' | 'mm' }),
     defaults: (ctx: Ctx) => Object.fromEntries(fields.map(f => [f.key, f.get(ctx.doc.nodes) as number | string])),
-    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) }),
+    build: (ctx, v) => {
+      if (isSketchAnchoredCut(ctx.doc.nodes, index) && 'h' in v && (!Number.isFinite(Number(v.h)) || Number(v.h) <= 0))
+        throw refusal('VALUE', 'Cut Distance must be greater than 0 mm.');
+      return { ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) };
+    },
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
       if (n.kind === 'extrude' || n.kind === 'revolve') {

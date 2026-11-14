@@ -1,0 +1,379 @@
+{
+  "decision": "D1158",
+  "tier": "FEATURE",
+  "parent": "41b3c4178866caa36b56b4f7887340cfd66726e4",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1158-<run>",
+    "D1158_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-draft-cut-history-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1151_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-cut-distance-browser.mjs <external-evidence>/zero-draft-regression",
+    "D847_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-legacy-modes-browser.mjs <external-evidence>/ordinary-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs editFields profiles-parameters throughCut pocketFloor",
+    "cd apps/cad-studio && node scripts/test.mjs failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files>",
+    "node --check apps/cad-studio/test/extrude-draft-cut-history-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 1,
+      "frozenFiles": 870,
+      "receiptSHA256": "c109b2b965a24e8d54e533bbd91b6e0e407200473538bf2226f16479cd78071c",
+      "sourceManifestSHA256": "91483860f3eb7f56645150d388c95b6b1be396544dda5808f889953c5d1ccca4"
+    },
+    "baseline-corrected": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 870,
+      "receiptSHA256": "3dcb42baefa1f8097de95980ecfa458ef94fc98bf43067bab62d5bf1fdb6cbf3",
+      "sourceManifestSHA256": "5c8331ccb3880a6dc0c1237cc107c7686b848a1fc5056233d7638d22708339c9",
+      "observations": [
+        {
+          "label": "native-depth-2",
+          "native": {
+            "valid": true,
+            "volume": 11821.774518946002,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": [
+                  11.29469207716614,
+                  7.29469207716614
+                ]
+              },
+              {
+                "z": 6,
+                "xy": []
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top",
+                "z": 10
+              },
+              {
+                "name": "n3.top",
+                "z": 8
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": -2,
+              "draft": 10
+            }
+          }
+        },
+        {
+          "label": "history-distance",
+          "value": -2
+        },
+        {
+          "label": "outward-native",
+          "native": {
+            "valid": true,
+            "volume": 12000,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": []
+              },
+              {
+                "z": 6,
+                "xy": []
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top#1",
+                "z": 10
+              },
+              {
+                "name": "n1.top#2",
+                "z": 10
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 4,
+              "draft": 10
+            }
+          }
+        }
+      ]
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 871,
+      "receiptSHA256": "dc3ae134d6a06721960268cba3f45a90b0c002266340d5879aa510d931af92d1",
+      "sourceManifestSHA256": "32b228bebc9d5d9f932db544b6e78b43826420abde1774a3c5d538961f557f9f",
+      "observations": [
+        {
+          "label": "native-depth-2",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "volume": 11821.774518946002,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": [
+                  11.29469207716614,
+                  7.29469207716614
+                ]
+              },
+              {
+                "z": 6,
+                "xy": []
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top",
+                "z": 10
+              },
+              {
+                "name": "n3.top",
+                "z": 8
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": -2,
+              "draft": 10
+            }
+          }
+        },
+        {
+          "label": "history-distance",
+          "value": 2
+        },
+        {
+          "label": "native-depth-4",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "volume": 11669.771517741308,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": []
+              },
+              {
+                "z": 6,
+                "xy": [
+                  10.58938415433228,
+                  6.589384154332279
+                ]
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top",
+                "z": 10
+              },
+              {
+                "name": "n3.top",
+                "z": 6
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": -4,
+              "draft": 10
+            }
+          }
+        },
+        {
+          "label": "native-zero-draft",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "volume": 11616,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": []
+              },
+              {
+                "z": 6,
+                "xy": [
+                  12,
+                  8
+                ]
+              }
+            ],
+            "floors": [
+              {
+                "name": "n3.bottom",
+                "z": 6
+              },
+              {
+                "name": "n1.top",
+                "z": 10
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": 4,
+              "from": -4
+            }
+          }
+        },
+        {
+          "label": "native-restored-draft",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "volume": 11669.771517741308,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": []
+              },
+              {
+                "z": 6,
+                "xy": [
+                  10.58938415433228,
+                  6.589384154332279
+                ]
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top",
+                "z": 10
+              },
+              {
+                "name": "n3.top",
+                "z": 6
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": -4,
+              "draft": 10
+            }
+          }
+        },
+        {
+          "label": "native-reopened",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "volume": 11669.771517741308,
+            "sections": [
+              {
+                "z": 10,
+                "xy": [
+                  12,
+                  8
+                ]
+              },
+              {
+                "z": 8,
+                "xy": []
+              },
+              {
+                "z": 6,
+                "xy": [
+                  10.58938415433228,
+                  6.589384154332279
+                ]
+              }
+            ],
+            "floors": [
+              {
+                "name": "n1.top",
+                "z": 10
+              },
+              {
+                "name": "n3.top",
+                "z": 6
+              }
+            ],
+            "tool": {
+              "id": "n3",
+              "kind": "extrude",
+              "sketch": "n2",
+              "height": -4,
+              "draft": 10
+            }
+          }
+        }
+      ]
+    },
+    "zero-draft-regression": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 870,
+      "receiptSHA256": "7df6eb7ffc8b1eb85999f2c920537c26050a15892631a752eb6411464f9a2e0c",
+      "sourceManifestSHA256": "e4282025c821559d4933df2fe03bfa7c9b81f4590be63455cfd995cfdc7bbb88"
+    },
+    "ordinary-regression": {
+      "status": "PASS",
+      "states": 2,
+      "frozenFiles": 870,
+      "receiptSHA256": "ccd51101bb6bfedbfbcbea962b98c4edd7d426de77303e2690fdd309f01228f5",
+      "sourceManifestSHA256": "84789b0b1c8482fd0e282a368abf6978aecb8b624146a5b23b444deb4176a253"
+    }
+  }
+}

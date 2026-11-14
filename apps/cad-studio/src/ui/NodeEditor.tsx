@@ -59,13 +59,14 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     }
     const rule = historyNumberRule(draft, index, field.key);
     if (Number.isFinite(value) && (!rule || !featureNumberInvalid(value, rule)) && (!field.integerRange || !invalidInteger(value, field.integerRange))) {
-      if (field.key === 'h' && isSketchAnchoredCut(draft, index)) {
-        setTyped(values => {
-          const next = { ...values };
-          delete next.from;
-          return next;
-        });
-      }
+      const anchored = isSketchAnchoredCut(draft, index);
+      const clear = anchored && (field.key === 'h' || field.key === 'draft') ? 'from'
+        : field.key === 'from' && anchored !== isSketchAnchoredCut(field.set(draft, value), index) ? 'h' : null;
+      if (clear) setTyped(values => {
+        const next = { ...values };
+        delete next[clear];
+        return next;
+      });
       setDraft(current => field.set(current, value));
     }
   };

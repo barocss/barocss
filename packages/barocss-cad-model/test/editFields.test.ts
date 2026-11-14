@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { editCommand } from '../src/app/editCommand';
 import { editFields, type BindableField, type EditField } from '../src/app/editFields';
 
 const field = (nodes: readonly ModelNode[], i: number, key: string): EditField => {
@@ -58,6 +59,46 @@ test('an attached Cut Distance moves its start with the end held on the sketch',
   const shifted = field(cut.nodes, 3, 'from') as BindableField;
   assert.deepEqual(distance.set(shifted.set(cut.nodes, -1), 4)[3], { ...cut.nodes[3], height: 4, from: -1 });
   assert.deepEqual(distance.set(tool.nodes, 4)[3], { ...tool.nodes[3], height: 4 });
+});
+
+test('drafted anchored Cut edits positive depth and converts both draft transitions around the same sketch', () => {
+  const base = rectanglePart(40, 30, 10), target = { node: 1, side: 'solid' } as const;
+  const profile = withNode(base, { kind: 'sketch', profile: 'rectangle', min: [14, 11], max: [26, 19], on: target,
+    plane: { origin: [0, 0, 10], xAxis: [1, 0, 0], normal: [0, 0, 1] } });
+  const tool = withNode(profile, { kind: 'extrude', sketch: 2, height: -2, draft: 10 });
+  const cut = withNode(tool, { kind: 'difference', parent: target, tool: { node: 3, side: 'solid' } });
+  const distance = editFields(cut.nodes, 3, { D: 4 }).find(f => f.key === 'h') as BindableField;
+  const draft = editFields(cut.nodes, 3, { D: 4 }).find(f => f.key === 'draft') as BindableField;
+  assert.equal(distance.get(cut.nodes), 2);
+  assert.equal(distance.bind(cut.nodes, 'D'), null);
+  assert.equal(draft.bind(cut.nodes, 'D'), null);
+  assert.deepEqual(distance.set(cut.nodes, -4), cut.nodes);
+  const deeper = distance.set(cut.nodes, 4);
+  assert.deepEqual(deeper[3], { ...cut.nodes[3], height: -4 });
+  const straight = draft.set(deeper, 0);
+  assert.deepEqual(straight[3], { id: 'n3', kind: 'extrude', sketch: 2, height: 4, from: -4 });
+  assert.deepEqual(draft.set(straight, 10), deeper);
+  assert.deepEqual(draft.set(straight, -10)[3], { ...deeper[3], draft: -10 });
+  assert.equal(distance.get(tool.nodes), -2, 'standalone extrusion uses its signed distance');
+  const start = field(cut.nodes, 3, 'from') as BindableField;
+  const shifted = start.set(cut.nodes, -1);
+  assert.equal(distance.get(shifted), -2, 'explicit movement retains the signed edit');
+  assert.deepEqual(distance.set(shifted, -4)[3], { ...deeper[3], from: -1 });
+  assert.equal(distance.get([{ ...cut.nodes[0] }, ...cut.nodes.slice(1, 3), { ...tool.nodes[3], draft: 0 } as ModelNode, cut.nodes[4]]), 2);
+  const ctx = { doc: { ...cut, nodes: deeper }, selection: { bodies: [], edges: [], faces: [] }, bodies: [] };
+  const command = editCommand(3, deeper)!;
+  const values = command.defaults!(ctx);
+  assert.equal(values.h, 4);
+  assert.throws(() => command.build!(ctx, { ...values, h: -4 }), /Cut Distance/);
+  const noDraft = command.build!(ctx, { ...values, draft: 0 });
+  const straightContext = { ...ctx, doc: noDraft };
+  const straightValues = command.defaults!(straightContext);
+  assert.equal(straightValues.from, -4);
+  assert.deepEqual(command.build!(straightContext, { ...straightValues, h: 5 }).nodes[3], { ...straight[3], height: 5, from: -5 });
+  const handle = command.handles!(straightContext, straightValues).find(handle => handle.key === 'h');
+  assert.deepEqual(handle?.at, [20, 15, 6]);
+  assert.equal(handle?.dir[2], -1);
+  assert.equal(handle?.scale, 1);
 });
 
 test('edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts', () => {
