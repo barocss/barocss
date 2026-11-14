@@ -1,0 +1,173 @@
+{
+  "decision": "D1179",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "4ec58f3ce1226dfcf65315371d8886a0cea07878",
+  "commands": [
+    "gate.sh acquire heavy 600 D1179-<run>",
+    "D1179_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-pick-position-browser.mjs <external-evidence>/<run>",
+    "D1178_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence>/preset-regression --keyboard",
+    "cd packages/barocss-cad-model && node scripts/test.mjs hole-types feature-handles",
+    "cd apps/cad-studio && node scripts/test.mjs hole-presets",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts",
+    "node --check apps/cad-studio/test/hole-pick-position-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "right-click-defaults",
+        "hole-history-n2",
+        "snap-off-defaults",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "590ee63b6c9ac509ca42565d17a121078610e5498cc2a0399b52035b86f71e8f",
+      "sourceManifestSHA256": "886262af9bbb53590a361723854cd3d6cc136701597b193e1637b8bbb26f02e9",
+      "observations": [
+        {
+          "label": "right-click-defaults",
+          "centre": [
+            24,
+            24
+          ]
+        },
+        {
+          "label": "snap-off-defaults",
+          "centre": [
+            47,
+            4
+          ]
+        }
+      ]
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "right-click-defaults",
+        "hole-history-n2",
+        "snap-off-defaults",
+        "hole-history-n1"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "aada84c4ccdea6c2a91d0c3418bcf59d291f3f4b2046003f18dc1cb6cd35b53f",
+      "sourceManifestSHA256": "d03802750272fbc46cc1256b707ddba73aa384436275cd744257987754784440"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "right-click-defaults",
+        "hole-history-n2",
+        "snap-off-defaults",
+        "hole-history-n1"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "5ae6edeb5b2bdda195dd834c181efee050ed8e214ecef1e8bb2aeea3aed95f7b",
+      "sourceManifestSHA256": "876ec893eca1cb4065bb0acb91f2fe9cb73cf14f4df7452b3c66fc59814dd6bc",
+      "observations": [
+        {
+          "label": "right-click-defaults",
+          "centre": [
+            24,
+            24
+          ]
+        },
+        {
+          "label": "snap-off-defaults",
+          "centre": [
+            46.5,
+            3.9999990823386313
+          ]
+        }
+      ],
+      "native": [
+        {
+          "walls": [
+            {
+              "kind": "cylinder",
+              "c": [
+                24,
+                24,
+                0
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            },
+            {
+              "kind": "cylinder",
+              "c": [
+                24,
+                24,
+                0
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            }
+          ],
+          "volume": 19049.20355262768,
+          "valid": true
+        },
+        {
+          "walls": [
+            {
+              "kind": "cylinder",
+              "c": [
+                46.5,
+                3.9999990823386313,
+                -12
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            },
+            {
+              "kind": "cylinder",
+              "c": [
+                46.5,
+                3.9999990823386318,
+                -12
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            }
+          ],
+          "volume": 7049.203552627709,
+          "valid": true
+        }
+      ]
+    },
+    "preset-regression": {
+      "status": "PASS",
+      "states": [
+        "keyboard-use-preview-only",
+        "keyboard-explicit-apply"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "f0ca11238a0d6406c5a2977bae84ee39af942a62667be0f299c4207fc5d7b64d",
+      "sourceManifestSHA256": "92ccb2ce1720ce9823978045017e6e7864bbd3f135ffe3df0925259f6e963ca1"
+    }
+  }
+}

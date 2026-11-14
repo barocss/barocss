@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1179 — keep the picked Hole centre when grid snap is off](notes/hole-picked-centre-snap-2026-11-14/README.md).
 - [D1178 — select and use a Hole preset with the keyboard](notes/hole-preset-keyboard-2026-11-14/README.md).
 - [D1177 — align the angled Split History handle to the native plane](notes/oblique-split-history-handle-2026-11-14/README.md).
 - [D1176 — show the saved Hole entry, direction, ends and cosmetic thread](notes/legacy-tapped-hole-history-2026-11-14/README.md).

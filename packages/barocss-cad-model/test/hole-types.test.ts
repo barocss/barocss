@@ -31,7 +31,20 @@ test('tapped hole: the tap drill of its thread, the thread noted on the feature'
   assert.ok(Math.abs(bodiesOf(doc)[0].volume! - (32 * 32 * 8 - Math.PI * 3.4 * 3.4 * 8)) < 2);
   const blind = hole.build!(ctx, { ...v, tend: 'blind', depth: 5 }).nodes.at(-1) as { depth?: number };
   assert.equal(blind.depth, 5);
-  assert.equal(hole.steps!(ctx, { ...v, d: 7 })[0].done, false, 'not its tap drill');
+  assert.equal(hole.steps!(ctx, { ...v, d: 7 }).find(step => step.label === 'Thread')?.done, false, 'not its tap drill');
+});
+
+test('Hole keeps raw picked coordinates with Snap off and uses the active grid on either face axis', () => {
+  const top: Ctx = { ...faceCtx('n1.top'), pick: [10.47, 12.22, 8] };
+  const defaults = (ctx: Ctx) => {
+    const { x, y } = hole.defaults!(ctx);
+    return [x, y];
+  };
+  assert.deepEqual(defaults(top), [10, 12]);
+  assert.deepEqual(defaults({ ...top, holeSnapStep: 0 }), [10.47, 12.22]);
+  assert.deepEqual(defaults({ ...top, holeSnapStep: 0.5 }), [10.5, 12]);
+  const side: Ctx = { ...faceCtx('n1.side0'), pick: [10.47, 0, 4.22], holeSnapStep: 0 };
+  assert.deepEqual(defaults(side), [10.47, 4.22]);
 });
 
 test('hole patterns: a row and a bolt circle, one history step each; the count edits later', async () => {

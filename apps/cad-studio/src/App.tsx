@@ -1704,11 +1704,12 @@ export function App() {
     // Loft also captures the shown document's current curves without changing its evaluated prefix.
     const startCtx: Ctx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } }
+      : cmd.id === 'hole' ? { ...ctx, holeSnapStep: snapStep }
       : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true }
       : cmd === LINKED_INSET_EXTRUDE ? { ...ctx, doc } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, doc, selection, instanceSel, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview]);
+  }, [ctx, doc, selection, instanceSel, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview, snapStep]);
 
   const readFeatureTransitionDraft = () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current;
   const openHistoryFeature = (event: React.MouseEvent<HTMLButtonElement>) => {

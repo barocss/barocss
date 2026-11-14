@@ -52,7 +52,7 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; profileRegions?: { sketch: number; indices: number[] }; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { viewportEndFace?: true; sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { viewportEndFace?: true; sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; holeSnapStep?: number; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
@@ -544,13 +544,22 @@ const allCommands: Command[] = [
     defaults: ctx => {
       const f = ctx.selection.faces[0]; const face = ctx.bodies[f.body].mesh.faces[f.face];
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
+      const snap = ctx.pick && typeof ctx.holeSnapStep === 'number' && Number.isFinite(ctx.holeSnapStep) && ctx.holeSnapStep >= 0
+        ? ctx.holeSnapStep : 1;
+      const coordinate = (value: number) => snap === 0 ? value : Math.round(value / snap) * snap;
       // (A bolt circle about the face's middle, a row along its first axis.)
-      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]), pat: 'one', pn: 4, pa: 10, pb: 0, qa: r1(face.centroid[a]), qb: r1(face.centroid[b]) };
+      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: coordinate(p[a]), y: coordinate(p[b]), pat: 'one', pn: 4, pa: 10, pb: 0, qa: r1(face.centroid[a]), qb: r1(face.centroid[b]) };
     },
     // Tapped: the diameter is the thread's tap drill.
     derive: (ctx, v, changed) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && size ? { ...v, d: size.tap } : v; },
-    steps: (ctx, v) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && !size ? [{ label: 'Thread', text: noSizeRow(String(v.thread)), done: false }] : v.type === 'tapped' && size ? [{ label: 'Thread', text: `${v.thread}×${size.pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== size.tap ? ` (the tap drill is Ø${size.tap})` : ''}`, done: Number(v.d) === size.tap }]
-      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : []; },
+    steps: (ctx, v) => {
+      const pick = ctx.selection.faces[0], face = ctx.bodies[pick.body].mesh.faces[pick.face];
+      const size = fastenerSizesOf(ctx.doc)[String(v.thread)];
+      const details = v.type === 'tapped' && !size ? [{ label: 'Thread', text: noSizeRow(String(v.thread)), done: false }]
+        : v.type === 'tapped' && size ? [{ label: 'Thread', text: `${v.thread}×${size.pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== size.tap ? ` (the tap drill is Ø${size.tap})` : ''}`, done: Number(v.d) === size.tap }]
+        : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : [];
+      return [{ label: 'Entry face', text: face.name.split('+')[0], done: true }, ...details];
+    },
     // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
