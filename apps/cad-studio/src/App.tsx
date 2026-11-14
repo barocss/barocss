@@ -1962,11 +1962,14 @@ export function App() {
     if (!result.ok) throw new Error(result.error.hint);
     const source = { doc: prefix, bodies: result.bodies };
     return result.bodies.flatMap((body, index) => {
-      if (!body.ref || body.ref.node === node.parent.node || lookOf(doc, body).hidden) return [];
+      if (!body.ref || body.ref.node === node.parent.node) return [];
+      const hidden = !!lookOf(doc, body).hidden;
+      if (hidden && (node.target.body.node !== body.ref.node || node.target.body.side !== body.ref.side)) return [];
       const name = bodyName(doc, body);
       return body.mesh.faces.flatMap(face => {
         const binding = alignFaceBinding(source, { body: index, face: face.index });
-        return binding ? [{ target: { ...binding, body: refOf(body) }, bodyName: name }] : [];
+        if (!binding || (hidden && binding.face !== node.target.face)) return [];
+        return [{ target: { ...binding, body: refOf(body) }, bodyName: name, ...(hidden ? { hidden: true as const } : {}) }];
       });
     });
   }, [doc, editNode, engine, marker, ownsEvaluatedSource]);

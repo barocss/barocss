@@ -15,6 +15,9 @@ const placementBounds = process.argv.includes('--placement-bounds');
 const placementBaseline = process.argv.includes('--placement-baseline');
 const floorGap = process.argv.includes('--floor-gap');
 const floorBaseline = process.argv.includes('--floor-baseline');
+const retainedTarget = process.argv.includes('--retained-target');
+const retainedBaseline = process.argv.includes('--retained-baseline');
+const stockName = 'An extended fixture name that matches its neighbour until the final word';
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
@@ -22,7 +25,8 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useVi
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: floorGap ? 'Align Floor enforces the stated Gap bounds during creation.'
+  qualification: retainedTarget ? 'Align History shows hidden and long target names without admitting hidden candidates.'
+    : floorGap ? 'Align Floor enforces the stated Gap bounds during creation.'
     : placementBounds ? 'Distinguish the Gap field range from the native placement limit.'
     : gapBounds ? 'Align History refuses out-of-range Gap before Apply.'
     : alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
@@ -58,7 +62,8 @@ const seed = {
   ],
   outputs: { b1: ref(1), b3: ref(3), b5: ref(5) }, nextId: 6,
 };
-if (targetNames || floorGap) seed.bodies = { b1: { name: 'Moving block' }, b3: { name: 'Stock' }, b5: { name: 'Stock' } };
+if (targetNames || floorGap || retainedTarget) seed.bodies = { b1: { name: 'Moving block' },
+  b3: { name: retainedTarget ? stockName + ' Bravo' : 'Stock' }, b5: { name: retainedTarget ? stockName + ' Charlie' : 'Stock' } };
 const targetLabel = face => namesBaseline ? face
   : `${targetNames ? 'Stock' : face.startsWith('n3.') ? 'Extrude 8' : 'Extrude 12'} · ${face}`;
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
@@ -130,6 +135,78 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'align-targets.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (retainedTarget) {
+    const c = { feature: 'n5', face: 'n5.side1', axis: 'x', sign: 1, body: ref(5) };
+    const normal = { ...seed, nodes: [...seed.nodes,
+      { kind: 'align', version: 1, parent: ref(1), source: { feature: 'n1', face: 'n1.top', axis: 'z', sign: 1 },
+        target: c, gap: 2, lineUp: 'centre', id: 'n6' }],
+      outputs: { b3: ref(3), b5: ref(5), b6: ref(6) }, nextId: 7 };
+    const openNamed = async doc => {
+      const [pick] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+      await pick.setFiles({ name: 'align-long-targets.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
+      await f.same(doc);
+    };
+    await openNamed(normal);
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    const browser = f.page.getByRole('complementary', { name: 'Browser', exact: true });
+    const row = browser.locator('.ol-row').filter({ has: f.page.getByRole('button', { name: stockName + ' Charlie', exact: true }) });
+    await button('Hide body', row).click();
+    const hidden = structuredClone(normal);
+    hidden.bodies.b5.hidden = true;
+    await f.same(hidden);
+    await f.openFeatureEditor(6);
+    const target = f.editor().getByLabel('Target face', { exact: true });
+    await target.getByText(stockName + ' Bravo · n3.top', { exact: true }).waitFor({ state: 'attached' });
+    const selection = target.locator('option:checked');
+    if (retainedBaseline) {
+      assert.equal(await selection.innerText(), 'n5.side1');
+      await f.snapshot('hidden-align-name-missing');
+      throw new Error('The hidden Align target shows only its face ID.');
+    }
+    const visibleLabel = async (name, face, isHidden) => {
+      const current = f.editor().getByRole('group', { name: 'Current Align target', exact: true });
+      const body = current.getByText(name, { exact: true });
+      const id = current.getByText(face, { exact: true });
+      await body.waitFor();
+      await id.scrollIntoViewIfNeeded();
+      assert.equal(await current.getByText('Hidden', { exact: true }).count(), isHidden ? 1 : 0);
+      assert.ok(await body.evaluate(element => element.scrollWidth <= element.clientWidth + 1));
+      assert.ok(await id.evaluate(element => element.scrollWidth <= element.clientWidth + 1));
+    };
+    await visibleLabel(stockName + ' Charlie', 'n5.side1', true);
+    assert.equal(await target.locator('option').filter({ hasText: /n5[.]/ }).count(), 1);
+    assert.ok(await selection.isDisabled());
+    await target.selectOption({ label: stockName + ' Bravo · n3.top' });
+    const showB = () => f.page.waitForFunction(() => window.__studioSection().historyAlignBounds?.min[0] === 44);
+    await showB();
+    await visibleLabel(stockName + ' Bravo', 'n3.top', false);
+    await f.same(hidden);
+    await button('Reset', f.editor()).click();
+    await visibleLabel(stockName + ' Charlie', 'n5.side1', true);
+    await target.selectOption({ label: stockName + ' Bravo · n3.top' });
+    await showB();
+    await button('Close editor', f.editor()).click();
+    await f.page.waitForFunction(() => window.__studioSection().historyAlignBounds === null);
+    await f.same(hidden);
+    await f.openFeatureEditor(6);
+    await target.getByText(stockName + ' Bravo · n3.top', { exact: true }).waitFor({ state: 'attached' });
+    await target.selectOption({ label: stockName + ' Bravo · n3.top' });
+    const accepted = structuredClone(hidden);
+    accepted.nodes[6].target = { feature: 'n3', face: 'n3.top', axis: 'z', sign: 1, body: ref(3) };
+    await f.applyEditor(hidden, 'retained-target-applied');
+    await f.same(accepted);
+    await verify('retained-target-native', accepted, 'n3.top');
+    await f.undo();
+    await f.same(hidden);
+    await f.redo();
+    await f.same(accepted);
+    await f.page.setViewportSize({ width: 1440, height: 1000 });
+    const { file } = await f.save('retained-target');
+    await f.freshOpen(file, accepted, 'retained-target-reopened');
+    await f.openFeatureEditor(6);
+    await visibleLabel(stockName + ' Bravo', 'n3.top', false);
+    return;
+  }
   if (floorGap) {
     const wide = process.argv.includes('--wide');
     await f.page.setViewportSize(wide ? { width: 1440, height: 900 } : { width: 1024, height: 800 });

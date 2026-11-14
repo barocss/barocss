@@ -1,0 +1,210 @@
+{
+  "decision": "D1241",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "a3b9f98b6aaf4b30bee64a813f922a7277cd40c7",
+  "commands": [
+    "gate.sh acquire heavy 600 D1241-<run>",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline-retry --retained-target --retained-baseline",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/verified --retained-target",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/control --retarget --target-names --history-preview",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/AlignHistoryTarget.tsx",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx (known parent failure)",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "5aa4760d7a6821a37dead2a37597ecf59becaea4e04082de9043bb1017dcd24f",
+      "sourceManifestSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "sourceAfterCleanupSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "baseline-retry": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "4cd4148d98b5e65d3cb4be62f77c8a57941024c62bb98de93cd1c9f48073b764",
+      "sourceManifestSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "sourceAfterCleanupSHA256": "9097b2c152448ee230309149e223d98f59c57e17f077d92285ffe4252bf3f4a1",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "6543b23d83cec047d24c2700bebf444208ecbc4431eed9672b23020978d014c1",
+      "sourceManifestSHA256": "2c051374289066e7f440043c0743a0447d56f14d6cc9eb05c9b38e8d3f23839b",
+      "sourceAfterCleanupSHA256": "2c051374289066e7f440043c0743a0447d56f14d6cc9eb05c9b38e8d3f23839b",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "observations": [
+        {
+          "label": "retained-target-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "0559c0628f0eb73a718b6952166fcf2d5ba3725e4d89db7006936b5ab0d9ebc5",
+      "sourceManifestSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "sourceAfterCleanupSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "savedSHA256": [
+        "8b1d7800c67dd44a86972fc67e4910f422da77153cf0375d8fa2fd18ddd6460e"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "retained-target-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "c99309656bd773c46e6efe4ac68b0093a64c62f8d12686773624f2cdf4647d2a",
+      "sourceManifestSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "sourceAfterCleanupSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "savedSHA256": [
+        "8b1d7800c67dd44a86972fc67e4910f422da77153cf0375d8fa2fd18ddd6460e"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "history-preview",
+          "movedBounds": {
+            "min": [
+              0,
+              0,
+              12
+            ],
+            "max": [
+              12,
+              10,
+              18
+            ]
+          },
+          "obsoleteReplyExercised": false,
+          "refusedGap": -1
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "7d6336d9f4f0244cd39d4a14a22a98262e7786ef2a0089eb113d0eb1eb8da11b",
+      "sourceManifestSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "sourceAfterCleanupSHA256": "a90c33202408621b929fbe72afb538c4bd15951156730728772ca596b55dedbc",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
