@@ -117,6 +117,9 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const hasInsetDraft = !!onRelinkInset && Object.keys(typed).length > 0;
   const insetSketch = original?.kind === 'extrude' ? nodes[original.sketch] : original;
   const insetBinding = insetSketch?.kind === 'sketch' ? insetSketch.association : undefined;
+  const insetField = fields.find(field => field.key === 'linkedInsetMM');
+  const typedInset = typed.linkedInsetMM;
+  const draftingInsetDistance = typedInset !== undefined && (!typedInset.trim() || Number(typedInset) !== insetBinding?.insetMM);
   const insetTarget = insetSketch?.kind === 'sketch' ? insetSketch.on?.node : undefined;
   const insetTargetNode = insetTarget === undefined ? undefined : nodes[insetTarget];
   const incompleteInset = typed.insetMM === '' || typed.sourceWidth === '';
@@ -174,8 +177,8 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {insetBinding && insetTarget !== undefined && insetTargetNode && <div role="group" aria-label="Linked inset">
         <div className="field"><span>Inset source face</span><span className="break-all">{insetBinding.face}</span></div>
         <div className="field"><span>Sketch target</span><span>{featureLabel(insetTargetNode, insetTarget, nodes)} ({featureId(nodes, insetTarget)})</span></div>
-        <div className="field"><span>Linked inset distance</span><span>{insetBinding.insetMM} mm</span></div>
-        {insetRelinkProblem && <p className="small muted">{insetRelinkProblem}</p>}
+        {(!insetField || draftingInsetDistance) && <div className="field"><span>Applied inset distance</span><span>{insetBinding.insetMM} mm</span></div>}
+        {insetRelinkProblem && !draftingInsetDistance && <p className="small muted">{insetRelinkProblem}</p>}
         {onRelinkInset && <p className="small muted">Replace the source with an earlier planar face. Shape edits in Edit sketch detach the link.</p>}
       </div>}
       {onRelinkInset && <button className="ghost" type="button" disabled={pending || changed || hasInsetDraft || onRelinkInset.reviewing}

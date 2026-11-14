@@ -1,0 +1,113 @@
+{
+  "decision": "D1222",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "a2497dd38bbeb13c23ae8a6d56f5b41ae6c98905",
+  "commands": [
+    "gate.sh acquire heavy 600 D1222-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --edit-inset-distance --applied-distance --later-move --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --edit-inset-distance --applied-distance --later-move",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/wide --history-summary",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "duplicate-distance-label",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "ad7af49d56438742f976a16345d16d9d310b7e1f94a45b7e7b15b52bd0de4755",
+      "sourceManifestSHA256": "dbc5be582308c4a4ba2a472ef9772674e705e84648b97a2a40ca49efb0f5eb47",
+      "sourceAfterCleanupSHA256": "dbc5be582308c4a4ba2a472ef9772674e705e84648b97a2a40ca49efb0f5eb47",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "inset-distance-before",
+        "inset-distance-refused",
+        "draft-and-applied-distance",
+        "inset-distance-applied",
+        "inset-distance-reopened"
+      ],
+      "observations": [
+        {
+          "label": "inset-distance-recovered",
+          "source": "n1.top",
+          "insetMM": 3,
+          "distance": 4,
+          "volume": 1392.0000000000016
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "405eec47225d7706416298888be269f45f1b61d23fc8fd0a2d3ee500e1a34aa6",
+      "sourceManifestSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "sourceAfterCleanupSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "d3ab393543dc2da74f099eb50a6ed85578adaf0e18cb08b6ffd80211120f92a6",
+      "sourceManifestSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "sourceAfterCleanupSHA256": "ec98b18c340cb122937bfd3491438e91e6d16db643cb8a0144887f3e0642c976",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

@@ -12,6 +12,7 @@ const delayRefusal = process.argv.includes('--delay-refusal');
 const collapsedHistory = process.argv.includes('--collapsed-history');
 const startZ = process.argv.includes('--start-z');
 const laterMove = process.argv.includes('--later-move');
+const appliedDistance = process.argv.includes('--applied-distance');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -125,7 +126,7 @@ async function checkHistorySummary(face) {
   }
   await summary.getByText(face, { exact: true }).waitFor();
   await summary.getByText('Extrude 8 (n1)', { exact: true }).waitFor();
-  await summary.getByText('2 mm', { exact: true }).waitFor();
+  assert.equal(await f.editor().getByLabel('Linked inset distance', { exact: true }).inputValue(), '2');
   await summary.getByText('Replace the source with an earlier planar face. Shape edits in Edit sketch detach the link.', { exact: true }).waitFor();
 }
 await f.run(async () => {
@@ -141,7 +142,7 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
-  if (startZ || laterMove) {
+  if (startZ || (laterMove && !appliedDistance)) {
     await f.openFeatureEditor(5);
     f.phase = startZ ? 'recover from nonzero Start Z' : 'recover from later Move';
     const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
@@ -189,12 +190,29 @@ await f.run(async () => {
     const inset = f.editor().getByLabel('Linked inset distance', { exact: true });
     const extrusion = f.editor().getByLabel('Distance', { exact: true });
     assert.equal(await extrusion.inputValue(), '4');
+    const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
+    if (appliedDistance && baseline) {
+      await summary.getByText('Linked inset distance', { exact: true }).waitFor();
+      assert.equal(await inset.inputValue(), '2');
+      await f.snapshot('duplicate-distance-label');
+      throw new Error('The summary and input both use the Linked inset distance label.');
+    }
     if (baseline) {
       assert.equal(await inset.count(), 0);
       await f.snapshot('stored-inset-read-only');
       throw new Error('The stored linked inset distance was visible but read-only.');
     }
     assert.equal(await inset.inputValue(), '2');
+    if (appliedDistance) {
+      assert.equal(await summary.getByText('2 mm', { exact: true }).count(), 0);
+      if (laterMove) {
+        await summary.getByText(/later Move blocks source replacement/).waitFor();
+        await inset.fill('3');
+        await summary.getByText('Applied inset distance', { exact: true }).waitFor();
+        assert.equal(await summary.getByText(/later Move blocks source replacement/).count(), 0);
+        await button('Reset', f.editor()).click();
+      }
+    }
     const before = await f.snapshot('inset-distance-before');
     await inset.fill('0');
     assert.ok(await button('Apply', f.editor()).isDisabled());
@@ -204,13 +222,19 @@ await f.run(async () => {
     const rejected = await f.snapshot('inset-distance-refused');
     for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(rejected[field], before[field], field);
     await inset.fill('3');
+    if (appliedDistance) {
+      await summary.getByText('Applied inset distance', { exact: true }).waitFor();
+      await summary.getByText('2 mm', { exact: true }).waitFor();
+      await f.same(seed);
+      await f.snapshot('draft-and-applied-distance');
+    }
     await button('Apply', f.editor()).click();
     await f.changed(seed);
     const accepted = (await f.snapshot('inset-distance-applied')).doc;
     const expected = structuredClone(seed);
     expected.nodes[4].association.insetMM = 3;
     assert.deepEqual(accepted, expected);
-    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    const volume = (await f.bodies()).bodies.find(body => body.key === (laterMove ? 'b6' : 'b5')).volume;
     assert.ok(Math.abs(volume - 4 * (40 * 24 - 34 * 18)) < 1e-7);
     await f.undo();
     await f.same(seed);
@@ -223,6 +247,7 @@ await f.run(async () => {
     await f.openFeatureEditor(5);
     assert.equal(await f.editor().getByLabel('Linked inset distance', { exact: true }).inputValue(), '3');
     assert.equal(await f.editor().getByLabel('Distance', { exact: true }).inputValue(), '4');
+    if (appliedDistance) assert.equal(await f.editor().getByRole('group', { name: 'Linked inset', exact: true }).getByText('3 mm', { exact: true }).count(), 0);
     f.report.observations.push({ label: 'inset-distance-recovered', source: 'n1.top', insetMM: 3, distance: 4, volume });
     await f.snapshot('inset-distance-reopened');
     return;
