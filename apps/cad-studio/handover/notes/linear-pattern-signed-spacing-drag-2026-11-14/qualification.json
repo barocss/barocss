@@ -1,0 +1,111 @@
+{
+  "decision": "D1193",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "477fab7b6c63bf4b5ad197c8e4781c4b34e8a1d4",
+  "commands": [
+    "gate.sh acquire heavy 600 D1193-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles",
+    "cd apps/cad-studio && node scripts/test.mjs command-drag-wall",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts",
+    "node --check apps/cad-studio/test/linear-signed-spacing-browser.mjs",
+    "D1193_SOURCE_FROZEN=1 node apps/cad-studio/test/linear-signed-spacing-browser.mjs <external-evidence>/<run>",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "model": 13,
+    "studio": 24
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "65883d6fb157b578eb58a5dc66c3263feefe336dfacf7d7705fe2f0c1e1df431",
+      "sourceManifestSHA256": "d1db08898e527f535063e089ef9f19d79c9268b931f824bbf624e02fc37c6a60",
+      "firstFailure": "Driver used the wrong label capitalization"
+    },
+    "repro": {
+      "status": "FAIL",
+      "states": [
+        "minus-16-start",
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "6d9df6db21f6381062e3c67a54a4ebab0d1609d4d3e460827f70751d29f84780",
+      "sourceManifestSHA256": "d1db08898e527f535063e089ef9f19d79c9268b931f824bbf624e02fc37c6a60",
+      "firstFailure": "The correctly named arrow was offscreen"
+    },
+    "confirmed-baseline": {
+      "status": "FAIL",
+      "states": [
+        "minus-16-start",
+        "minus-24-drag",
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "5a040fd89a857749300e8076131bbbe795053e2b4330ae03935f7717391bd47a",
+      "sourceManifestSHA256": "d1db08898e527f535063e089ef9f19d79c9268b931f824bbf624e02fc37c6a60",
+      "firstFailure": "Left drag from -16 mm clamped to +1 mm"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "minus-16-start",
+        "minus-24-drag",
+        "zero-spacing-refused",
+        "plus-8-recovered",
+        "minus-20-recovered",
+        "signed-spacing-applied"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "d7bbdcfe654bb750e66daf3405c41706663aa306b6ed36261e0e4254a895e8ea",
+      "sourceManifestSHA256": "2a44f283c277217ab93820a052590a8e38522b8323a1eeffaffea2bd35e38df5",
+      "observations": [
+        {
+          "spacingHead": [
+            524.7999877929688,
+            502.5
+          ],
+          "pixelsPerMM": 6.5318462904542685
+        },
+        {
+          "native": [
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                12.000000000000078,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                32.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            },
+            {
+              "valid": true,
+              "volume": 192.00000000000023,
+              "centroid": [
+                52.00000000000008,
+                12.999999999999984,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

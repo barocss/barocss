@@ -922,7 +922,7 @@ const allCommands: Command[] = [
       const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
       const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
       const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
-      return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
+      return [{ key: 'spacing', at: at(c[k] + s), dir, ...(v.result === 'separate' ? {} : { min: 1 }) }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), ...LINEAR_PATTERN_COUNT, unit: '' }].filter(() => max[k] > min[k] - 1);
     },
     build: (ctx, v) => {
       const body = refOf(oneBody(ctx)!), k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count);
