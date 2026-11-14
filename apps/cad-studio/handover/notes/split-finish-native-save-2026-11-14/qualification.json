@@ -1,0 +1,45 @@
+{
+  "decision": "D1243",
+  "tier": "SMALL",
+  "parent": "9c135215e3b5d6878317d7e148c122a3fd0201b9",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1243-reference-save",
+    "D995_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/confirm --fixed --native-save",
+    "D998_SOURCE_FROZEN=1 node apps/cad-studio/test/split-finish-reference-browser.mjs <external-evidence>/repick --repick-fixed --native-save",
+    "node --check apps/cad-studio/test/split-finish-reference-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "confirm": {
+      "status": "PASS",
+      "frozenFiles": 396,
+      "receiptSHA256": "335d154ba4fe6fde0e02244ab8fbcf32b9f135527e8f3ee4fd8ee0ffa5e9a6bb",
+      "sourceManifestSHA256": "3fceaee5be07dbb7b364cd91fa2ebf5443ae4d390ccbe32caa247f1f97c6a449",
+      "sourceAfterCleanupSHA256": "3fceaee5be07dbb7b364cd91fa2ebf5443ae4d390ccbe32caa247f1f97c6a449",
+      "savedSHA256": [
+        "69f6a70a4b1d49ccfc5e2bb062b171748f8e1045c63be4425ad42f37c0961e82",
+        "3e45e0f559b82c54b861fb6d40316b94b1f66ec90ae0801557a9dec5bc28b5e2"
+      ]
+    },
+    "repick": {
+      "status": "PASS",
+      "frozenFiles": 396,
+      "receiptSHA256": "a07edf6b1abded261b4a191b4c6b4154e44d6522fdbd7e48a205b9e876606279",
+      "sourceManifestSHA256": "3fceaee5be07dbb7b364cd91fa2ebf5443ae4d390ccbe32caa247f1f97c6a449",
+      "sourceAfterCleanupSHA256": "3fceaee5be07dbb7b364cd91fa2ebf5443ae4d390ccbe32caa247f1f97c6a449",
+      "savedSHA256": [
+        "6a40ff9c12b2e38620895b2f76cd55dc3d076703ec5605bdd7abfccdad5b6023",
+        "45bb8cb4f29e33b60d391f9c1f37d809f9c573b5e2a8b4ab7fc14860b1a5b3d7"
+      ]
+    }
+  },
+  "checks": {
+    "visualReview": "PASS",
+    "driverSyntax": "PASS",
+    "diff": "PASS",
+    "strictBrep": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

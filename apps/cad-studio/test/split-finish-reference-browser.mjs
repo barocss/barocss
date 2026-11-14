@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { basename } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
 
-const [output, mode] = process.argv.slice(2);
+const [output, mode, ...options] = process.argv.slice(2);
+const nativeSave = options.includes('--native-save');
+assert.ok(!nativeSave || ['--fixed', '--repick-fixed'].includes(mode));
 assert.ok(['--baseline', '--fixed', '--history-baseline', '--history-fixed', '--live', '--repick-baseline', '--repick-fixed', '--non-split'].includes(mode));
 const nonSplit = mode === '--non-split';
 const historyMode = mode.startsWith('--history-') || nonSplit;
@@ -52,6 +55,21 @@ const openProject = async () => {
   await versions().getByRole('button', { name: 'Project in this browser', exact: true }).click();
   await versions().getByLabel('Project', { exact: true }).waitFor();
 };
+const reopenNativeSave = async (kind, accepted, pendingChoices) => {
+  const { file } = await f.save(kind + '-confirmed');
+  f.phase = 'open the exact saved ' + kind + ' bytes in a fresh context';
+  await f.newPage();
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles(file);
+  const title = basename(file, '.bcad');
+  await f.page.waitForFunction(name => document.querySelector('.doc-tab input')?.value === name, title);
+  await f.same(accepted.doc);
+  const reopened = await f.snapshot(kind + '-native-reopened');
+  assert.deepEqual(reopened.bodies.bodies, accepted.bodies.bodies);
+  if (pendingChoices === 0) assert.equal(await refs().count(), 0);
+  else assert.match(await refs().textContent(), /0 matched again.*1 need a choice.*Feature held/);
+};
+
 const referenceDetails = async () => {
   const panel = refs();
   return { text: await panel.textContent(), buttons: await panel.getByRole('button').allTextContents() };
@@ -135,7 +153,7 @@ await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const newContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
-    const context = await newContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
+    const context = await newContext({ ...options, acceptDownloads: nativeSave, serviceWorkers: 'block' });
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -304,6 +322,7 @@ await f.run(async () => {
         assert.deepEqual(replaced.doc.nodes[4], opened.doc.nodes[4]);
         volumeNear(replaced.bodies.bodies.find(body => body.key === 'b4').volume, 9000);
       } else assert.equal(await refs().count(), 0);
+      if (nativeSave) await reopenNativeSave(kind, replaced, twoHeld ? 1 : 0);
       continue;
     }
     f.phase = 'explicitly confirm the new Split edge for ' + kind;
@@ -316,6 +335,18 @@ await f.run(async () => {
     assert.equal(applied.doc.nodes[3].suppressed, undefined);
     assert.deepEqual(applied.doc.nodes[3].sigs[replacement].p, [30, 0, 5]);
     volumeNear(applied.bodies.bodies.find(b => b.key === 'b3').volume, 9000 - removal);
+    if (nativeSave) {
+      await refs().waitFor({ state: 'hidden' });
+      await f.undo();
+      await f.same(opened.doc);
+      await refs().waitFor();
+      assert.deepEqual((await f.bodies()).bodies, opened.bodies.bodies);
+      await f.redo();
+      await f.same(applied.doc);
+      await refs().waitFor({ state: 'hidden' });
+      await reopenNativeSave(kind, applied, 0);
+      continue;
+    }
     if (historyMode) {
       await proveHistoryAndSave(kind, opened, applied);
       continue;
@@ -331,5 +362,6 @@ await f.run(async () => {
     volumeNear(reopened.bodies.bodies.find(b => b.key === 'b3').volume, 9000 - removal);
   }
   if (mode === '--baseline') assert.fail('Open built Fillet and Chamfer on a different Split edge before confirmation');
-  assert.deepEqual(f.report.downloads, []);
+  if (nativeSave) assert.equal(f.report.downloads.length, 2);
+  else assert.deepEqual(f.report.downloads, []);
 });
