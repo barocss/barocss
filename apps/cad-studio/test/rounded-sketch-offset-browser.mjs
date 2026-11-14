@@ -18,6 +18,7 @@ const authorInset = process.argv[3] === '--author-inset';
 const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
 const mixedSelection = process.argv.includes('--mixed-selection');
+const detachedTangent = process.argv.includes('--detached-tangent');
 const dependentInset = process.argv[3] === '--dependent-inset';
 const storedInset = dependentInset || insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
@@ -520,7 +521,8 @@ async function verifyStoredInset(stock) {
     return;
   }
   if (editInset) {
-    if (mixedSelection) await verifyMixedInsetEdges(candidate, check);
+    if (detachedTangent) await verifyDetachedTangent(candidate);
+    else if (mixedSelection) await verifyMixedInsetEdges(candidate, check);
     else await verifyInsetEdits(stock, candidate, check);
     return;
   }
@@ -676,6 +678,67 @@ async function verifyInsetRefusals(candidate, check) {
   await check('17-redo-after-refusals', sharp, 2.5);
   await f.undo();
   await check('18-undo-after-refusals', rounded, 1);
+}
+
+async function verifyDetachedTangent(candidate) {
+  const linked = candidate(1);
+  await open(linked);
+  await f.openFeatureEditor(2);
+  await button(f.editor(), 'Detach inset').click();
+  await f.changed(linked);
+  const detached = await f.doc();
+  assert.equal(detached.nodes[1].kind, 'sketch');
+  const edges = await f.inspect('detached-native-edges', detached, 'edge-names');
+  await button(f.page.getByRole('group', { name: 'Views', exact: true }), 'Top').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const filter = button(f.page, 'Selection filter');
+  for (let i = 0; i < 4 && !(await filter.innerText()).trim().endsWith('Edges'); i++) await filter.click();
+  assert.match((await filter.innerText()).trim(), /Edges$/);
+  const pixel = await f.page.evaluate(() => window.__studioScreenOf([10, 1, 10]));
+  assert.ok(pixel?.length === 2);
+  await f.page.mouse.click(...pixel);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.edges.length === 1);
+  const [picked] = await f.page.evaluate(() => window.__studioSelection.selection.edges);
+  const name = 'n2.side[e9]|n2.top';
+  assert.deepEqual(edges[picked.edge].names, [name]);
+  await clickModelCommand(f.page, 'Modify', 'Fillet');
+  const hud = f.page.getByRole('dialog', { name: 'Fillet', exact: true });
+  await hud.getByLabel('Radius', { exact: true }).fill('0.1');
+  await f.page.waitForFunction(() => ['preview', 'refused'].includes(document.querySelector('.hud .status')?.textContent));
+  const preview = await f.snapshot('detached-fillet-straight-pick');
+  assert.deepEqual(preview.doc, detached);
+  const scope = hud.getByRole('group', { name: 'Fillet scope', exact: true });
+  if (await scope.count()) {
+    const top = derivedIds.map(tag => `n2.side[${tag}]|n2.top`);
+    for (const [label, names] of [['Picked native edges', [name]], ['Tangent edges added', top.filter(edge => edge !== name)]]) {
+      const field = scope.locator('.field').filter({ hasText: label }).locator('span[title]');
+      assert.equal(await field.innerText(), String(names.length));
+      assert.deepEqual((await field.getAttribute('title')).split('\n').sort(), names.sort());
+    }
+    assert.deepEqual(preview.selection.selection.edges, [picked]);
+    await button(hud, 'Apply').click();
+    await f.changed(detached);
+    const applied = await f.doc(), fillet = applied.nodes[3];
+    assert.deepEqual(fillet.edges, [name]);
+    assert.equal(fillet.radius, 0.1);
+    const result = await f.inspect('detached-fillet-native', applied);
+    const r = 0.1, perimeter = 44 + 2 * Math.PI;
+    const removed = perimeter * r ** 2 * (1 - Math.PI / 4) + Math.PI * r ** 3 * (5 / 3 - Math.PI / 2);
+    const expectedVolume = ringVolume - removed;
+    close(result.volume, expectedVolume);
+    close((await f.bodies()).bodies[0].volume, expectedVolume);
+    assert.equal(result.faces.filter(face => face.startsWith('n3.face')).length, 8);
+    f.report.observations.push({ label: 'detached-fillet', picked: name, tangent: top.filter(edge => edge !== name),
+      volume: result.volume, expectedVolume, removed });
+    await f.undo();
+    await f.same(detached);
+    await f.redo();
+    await f.same(applied);
+  } else {
+    f.report.observations.push({ label: 'detached-fillet-refusal', picked: name, text: await hud.innerText() });
+    assert.ok(await button(hud, 'Apply').isDisabled());
+    throw new Error('Detached Fillet did not reach a native preview.');
+  }
 }
 
 async function verifyMixedInsetEdges(candidate, check) {

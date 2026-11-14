@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1226 — verify tangent expansion on a detached rounded inset](notes/detached-inset-tangent-scope-2026-11-14/README.md).
 - [D1225 — verify mixed edge selection through rounded inset regeneration](notes/rounded-inset-mixed-edge-selection-2026-11-14/README.md).
 - [D1224 — verify detached inset through Chamfer and source edit](notes/detached-inset-chamfer-lifecycle-2026-11-14/README.md).
 - [D1223 — identify linked inset review bodies by Browser name](notes/linked-inset-review-browser-names-2026-11-14/README.md).

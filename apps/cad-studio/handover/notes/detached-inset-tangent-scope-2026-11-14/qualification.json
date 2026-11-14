@@ -1,0 +1,91 @@
+{
+  "decision": "D1226",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "467525bf0bb2cbeae3c35fedeafea14babec083a",
+  "commands": [
+    "gate.sh acquire heavy 600 D1226-detached-tangent-retry",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/retry --edit-inset --detached-tangent",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "initial": {
+      "status": "PASS",
+      "states": [
+        "detached-fillet-straight-pick"
+      ],
+      "observations": [
+        {
+          "label": "detached-fillet",
+          "picked": "n2.side[e9]|n2.top",
+          "tangent": [
+            "n2.side[e10]|n2.top",
+            "n2.side[e11]|n2.top",
+            "n2.side[e12]|n2.top",
+            "n2.side[e13]|n2.top",
+            "n2.side[e14]|n2.top",
+            "n2.side[e15]|n2.top",
+            "n2.side[e16]|n2.top"
+          ],
+          "volume": 534.1395697829699
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "8928ab97570e55df4876c696864abe73d97ba674746ce5b80ce70bad0a19be4e",
+      "sourceManifestSHA256": "b555dce8c12d131bdc9144b3484fc697780a5f6565cdae91724bc0049223ac71",
+      "sourceAfterCleanupSHA256": "b555dce8c12d131bdc9144b3484fc697780a5f6565cdae91724bc0049223ac71",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "FAIL",
+      "states": [],
+      "observations": [],
+      "frozenFiles": 884,
+      "receiptSHA256": "1f51fe0ab50f9349dd9b4bb9123ee63071fb9835cfcc82bba9ef25519dceb78f",
+      "sourceManifestSHA256": "8d113cc387900750a086fa01854745a7982ba3e85ab58373b0b53951f76ec8ad",
+      "sourceAfterCleanupSHA256": "8d113cc387900750a086fa01854745a7982ba3e85ab58373b0b53951f76ec8ad",
+      "cleanup": [
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "retry": {
+      "status": "PASS",
+      "states": [
+        "detached-fillet-straight-pick"
+      ],
+      "observations": [
+        {
+          "label": "detached-fillet",
+          "picked": "n2.side[e9]|n2.top",
+          "tangent": [
+            "n2.side[e10]|n2.top",
+            "n2.side[e11]|n2.top",
+            "n2.side[e12]|n2.top",
+            "n2.side[e13]|n2.top",
+            "n2.side[e14]|n2.top",
+            "n2.side[e15]|n2.top",
+            "n2.side[e16]|n2.top"
+          ],
+          "volume": 534.1395697829699,
+          "expectedVolume": 534.139569782967,
+          "removed": 0.10820982472691018
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "1ff30fe2a32884847844653bf1d1fe8d7955ac57991e23778ad59e70e4a22694",
+      "sourceManifestSHA256": "8d113cc387900750a086fa01854745a7982ba3e85ab58373b0b53951f76ec8ad",
+      "sourceAfterCleanupSHA256": "8d113cc387900750a086fa01854745a7982ba3e85ab58373b0b53951f76ec8ad",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
