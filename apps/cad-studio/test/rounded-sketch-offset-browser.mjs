@@ -13,6 +13,7 @@ const detachedChamfer = process.argv.includes('--chamfer');
 const widthInset = process.argv[3] === '--width-inset';
 const widthGuidance = process.argv.includes('--width-guidance');
 const sourceSpanGuidance = process.argv.includes('--source-span-guidance');
+const translatedWidth = process.argv.includes('--translated-width');
 const widthBaseline = process.argv.includes('--baseline');
 const drawnInset = detachedSourceEdit || widthInset || process.argv[3] === '--drawn-inset';
 const authorInset = process.argv[3] === '--author-inset';
@@ -84,6 +85,7 @@ const f = await createFlow({
   name: 'rounded-sketch-offset', envFrozen: reopenedTarget ? 'D1102_SOURCE_FROZEN' : radiusFloor ? 'D1101_SOURCE_FROZEN' : outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
   qualification: mixedChamferScope ? 'Show an unresolved tangent scope for both orders of a mixed Chamfer.'
     : chamferScope ? 'Compare the exact original picked and tangent Chamfer targets on a detached rounded inset.'
+    : translatedWidth ? 'Compare the authored rounded inset width at three source positions and reopen legacy geometry.'
     : reopenedTarget ? 'Distinguish the selected R1 inner target from the R2 outer target after fresh Open.'
     : radiusFloor ? 'Verify the inward Offset radius floor and its adjacent admissible input.'
     : outwardSource ? 'Preserve the authored source radius, tangent and H/V constraints when outward Offset makes it a hole.'
@@ -503,6 +505,10 @@ async function verifyStoredInset(stock) {
     nodes: [stock.nodes[0], { ...recipe, insetMM: distance }, { kind: 'extrude', sketch: 1, height: 10, id: 'n2' }],
     outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3,
   });
+  if (translatedWidth) {
+    await verifyTranslatedInsetWidth(candidate(1));
+    return;
+  }
   const check = async (label, doc, distance) => {
     await f.same(doc);
     const body = await f.inspect(label, doc);
@@ -620,6 +626,85 @@ async function verifyStoredInset(stock) {
   await open(sharp, saved);
   await check('stored-saved-fresh-open', sharp, 2.5);
   await f.snapshot('07-stored-fresh-open');
+}
+
+async function verifyTranslatedInsetWidth(template) {
+  const custom = (x, width, r) => {
+    const doc = structuredClone(template);
+    const right = x + width, l = x + r, t = right - r;
+    const starts = [[l, 0], [t, 0], [right, r], [right, 10 - r], [t, 10], [l, 10], [x, 10 - r], [x, r]];
+    const centres = [[t, r], [t, 10 - r], [l, 10 - r], [l, r]];
+    doc.nodes[0].segments = starts.map((start, i) => i % 2
+      ? { kind: 'arc', start, center: centres[(i - 1) / 2], direction: 'ccw' } : { kind: 'line', start });
+    doc.nodes[2].height = 7;
+    return doc;
+  };
+  const result = async (tag, doc, width) => {
+    await f.same(doc);
+    const native = await f.inspect(tag, doc);
+    const expected = 7 * (area(width, 10, 1.5) - area(width - 2, 8, 0.5));
+    close(native.volume, expected);
+    close((await f.bodies()).bodies[0].volume, expected);
+    assert.equal(native.cylinders.length, 8);
+    for (const cylinder of native.cylinders) close(cylinder.r, cylinder.name.match(/\[e[2468]\]/) ? 1.5 : 0.5);
+    return { volume: native.volume, expected };
+  };
+  for (const x of [0, 25, 100]) {
+    const wide = custom(x, 20, 1.5);
+    await open(wide);
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    await f.openFeatureEditor(2);
+    const width = f.editor().getByRole('spinbutton', { name: 'Source width', exact: true });
+    const before = await f.snapshot('width-before-x' + x);
+    const input = async text => {
+      f.phase = 'rounded source x ' + x + ' width ' + text;
+      await width.fill(text);
+      await width.press('Enter');
+    };
+    const refuseWidth = async text => {
+      await input(text);
+      await f.page.locator('.toast-hint').getByText('With a 1.5 mm corner radius, the straight span must exceed 0.01 mm. Increase Source width above 3.01 mm.', { exact: true }).waitFor();
+      const after = await f.snapshot('width-refused-' + text + '-x' + x);
+      for (const key of ['doc', 'bodies', 'history', 'historyControls', 'selection'])
+        assert.deepEqual(after[key], before[key], key);
+      assert.equal(await width.inputValue(), text);
+      await f.dismissToasts();
+    };
+    await refuseWidth('3.0099');
+    if (widthBaseline && x === 100) {
+      await input('3.01');
+      await f.changed(wide);
+      const legacy = custom(x, 3.01, 1.5);
+      const native = await result('boundary-accepted-at-x100', legacy, 3.01);
+      f.report.observations.push({ label: 'position-shifted-admission', x, width: 3.01, ...native });
+      throw new Error('The same nominal rounded source width is rejected at x=0 and accepted at x=100.');
+    }
+    await refuseWidth('3.01');
+    await input('3.010001');
+    await f.changed(wide);
+    const accepted = custom(x, 3.010001, 1.5);
+    const native = await result('just-above-limit-x' + x, accepted, 3.010001);
+    f.report.observations.push({ label: 'position-independent-edit', x, width: 3.010001, ...native });
+    await f.undo();
+    await f.same(wide);
+    await f.redo();
+    await f.same(accepted);
+    if (x === 100) {
+      const bytes = await save(accepted);
+      await f.newPage();
+      await open(accepted, bytes);
+      await result('just-above-limit-reopened', accepted, 3.010001);
+    }
+  }
+  const historical = custom(100, 3.01, 1.5);
+  await f.newPage();
+  await open(historical);
+  const legacy = await result('materialized-legacy-coordinate-span', historical, 3.01);
+  const bytes = await save(historical);
+  await f.newPage();
+  await open(historical, bytes);
+  await result('materialized-legacy-reopened', historical, 3.01);
+  f.report.observations.push({ label: 'legacy-coordinates-preserved', x: 100, width: 3.01, ...legacy });
 }
 
 function smallInset(doc) {

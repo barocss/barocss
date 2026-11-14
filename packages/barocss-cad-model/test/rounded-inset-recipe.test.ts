@@ -7,6 +7,7 @@ import { isRefusal } from '../src/engine/refusal';
 import { partSnapshot, toPartDocument } from '../src/engine/part';
 import { evaluatePreview } from '../src/engine/evaluate';
 import { editFields } from '../src/app/editFields';
+import type { P2 } from '../src/sketch/profile';
 import { createRoundedInsetExtrusion, detachRoundedInsetRecipe, resizeRoundedInsetSource, resolveRoundedInsetRecipe, roundedInsetSourceWidth, validateRoundedInsetDocument } from '../src/sketch/internal/roundedInsetRecipe';
 
 const outer = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'];
@@ -191,6 +192,21 @@ test('a source width edit keeps the recipe and exact tangencies and refuses a cl
   assert.doesNotThrow(() => validateRoundedInsetDocument({ ...rounded, nodes: [barelyWide, ...rounded.nodes.slice(1)] }, true));
   const closed = { ...doc, nodes: [resizeRoundedInsetSource(source, 5), ...doc.nodes.slice(1)] };
   assert.throws(() => validateRoundedInsetDocument(closed, true), /closes the rectangle/);
+});
+
+test('source width admission checks the typed width before rounding it at the source origin', () => {
+  const source = fixture().nodes[0];
+  assert.ok(source.kind === 'sketch' && source.profile === 'loop');
+  for (const x of [0, 25, 100]) {
+    const at = ([u, v]: P2): P2 => [x + u, v];
+    const translated = { ...source, segments: source.segments.map(segment => segment.kind === 'line'
+      ? { ...segment, start: at(segment.start as P2) }
+      : { ...segment, start: at(segment.start as P2), center: at(segment.center as P2) }) };
+    assert.throws(() => resizeRoundedInsetSource(translated, 4.01),
+      error => isRefusal(error, 'BAD_REFERENCE') && error.details?.roundedInsetSourceRadius === 2);
+    const changed = resizeRoundedInsetSource(translated, 4.010001);
+    assert.ok(Math.abs(roundedInsetSourceWidth(changed) - 4.010001) < 1e-12);
+  }
 });
 
 test('stored rounded insets reject malformed geometry, ownership and consumers', () => {

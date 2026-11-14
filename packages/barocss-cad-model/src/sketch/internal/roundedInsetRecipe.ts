@@ -119,12 +119,13 @@ export function resizeRoundedInsetSource(source: SketchNode, width: number): Ske
   const at = lowerSideIndex(shape.points, shape.bulges);
   const x = (slot: number) => shape.points[(at + slot) % 8][0];
   const left = x(7), radius = x(0) - left, right = left + width;
-  if (right === x(2)) return source;
   const tangent = right - radius;
-  if (Math.min(right - left - 2 * radius, tangent - x(0), tangent - x(5)) <= roundedInsetMinimumSpan) {
+  // Adding the origin can round a borderline input up. Check both the authored width and the stored spans.
+  if (Math.min(width - 2 * radius, right - left - 2 * radius, tangent - x(0), tangent - x(5)) <= roundedInsetMinimumSpan) {
     return badRecipe('the source width leaves too little straight span between its corner arcs.',
       { roundedInsetSourceRadius: radius });
   }
+  if (right === x(2)) return source;
   const mapped = segments.map((segment, i): LoopSegment => {
     const slot = (i - at + 8) % 8;
     if (slot < 1 || slot > 4) return segment;
