@@ -14,3 +14,18 @@ export function failedFeatureText(id: string | undefined, evaluated: readonly Mo
   }
   return `${id} · no matching history step`;
 }
+
+/** Explain failures of this edge finish without applying its advice to an upstream feature. */
+export function edgeFinishFailure(error: FriendlyError, feature: ModelNode | undefined): FriendlyError {
+  if (!feature || !error.feature || error.feature !== feature.id) return error;
+  if (feature.kind === 'fillet' && error.code === 'GEOMETRY'
+    && /^B-rep: analytic Boolean: the result is not a manifold solid\b/.test(error.detail)) {
+    return { ...error, title: 'The fillet could not make a solid', hint: 'Pick another edge for this fillet.' };
+  }
+  if (feature.kind === 'chamfer' && error.code === 'CAPABILITY'
+    && /^edge .+: chamfers between general faces are not supported yet$/.test(error.detail)) {
+    return { ...error, title: 'The chamfer does not support these faces',
+      hint: 'Pick an edge between two flat faces, or a circular rim where a flat face meets a cylinder at a right angle.' };
+  }
+  return error;
+}

@@ -10,7 +10,7 @@ import { awaitingRevolveAxis } from '@barocss/cad-model/app/revolveAxisEdit';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { missingCommandField, type Active } from '../app/commandState';
 import { commandNumberRule, featureNumberInvalid, featureNumberRange } from '../app/featureNumberInput';
-import { failedFeatureText } from '../app/failedFeature';
+import { edgeFinishFailure, failedFeatureText } from '../app/failedFeature';
 import type { EngineClient } from '../engine/client';
 import type { ValueStore } from './valueStore';
 interface CommandPreviewOptions {
@@ -179,8 +179,10 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         }
         else if (live && current?.cmd === cmd && current.ctx === ctx && current.values === values) {
           const failedFeature = result.revision === revision ? failedFeatureText(result.error.feature, shown.nodes, ctx.doc.nodes) : undefined;
+          const error = shown === candidate && result.revision === revision && terminal?.kind === cmd.id
+            ? edgeFinishFailure(result.error, terminal) : result.error;
           setPreviewBodies(null);
-          setActive(a => a && { ...a, preview: 'error', error: { ...result.error, failedFeature } });
+          setActive(a => a && { ...a, preview: 'error', error: { ...error, failedFeature } });
         }
         // Still a gap between the last good value and the bound: try the step-snapped middle of it next.
         // (Release does not stop this: it goes on from the value the pointer left, and Enter waits for the preview to settle on the converged value.)

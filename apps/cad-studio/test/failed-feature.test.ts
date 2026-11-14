@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ModelNode } from '@barocss/cad-model/engine/doc';
-import { failedFeatureText } from '../src/app/failedFeature';
+import { edgeFinishFailure, failedFeatureText } from '../src/app/failedFeature';
+import { friendly } from '@barocss/cad-model/engine/errors';
 
 const sketch: ModelNode = { kind: 'sketch', id: 'n11', profile: 'rectangle', min: [0, 0], max: [40, 30] };
 const extrude: ModelNode = { kind: 'extrude', id: 'n23', sketch: 0, height: 20 };
@@ -38,4 +39,22 @@ test('D749: missing, unrelated and ambiguous feature locations cannot name an au
   assert.equal(failedFeatureText('lib0_turn0', accepted, accepted), 'lib0_turn0 · no matching history step');
   const different = [...accepted.slice(0, 2), { ...sketch, id: 'n41' }];
   assert.equal(failedFeatureText('n41', different, accepted), 'n41 · no matching history step');
+});
+
+test('edge finish failures retain kernel diagnostics and address the owned operation only', () => {
+  const raw = 'B-rep: analytic Boolean: the result is not a manifold solid (edge 0 has 1 uses; the inputs touch along an edge or at a vertex)';
+  const failure = { ...friendly(raw, 'GEOMETRY'), feature: 'n41' };
+  assert.equal(failure.title, 'These bodies could not be joined into one solid');
+  const corrected = edgeFinishFailure(failure, fillet);
+  assert.deepEqual(corrected, { ...failure, title: 'The fillet could not make a solid', hint: 'Pick another edge for this fillet.' });
+  assert.strictEqual(edgeFinishFailure(failure, { ...fillet, id: 'n42' }), failure);
+  assert.strictEqual(edgeFinishFailure(failure, { ...extrude, id: 'n41' }), failure);
+  const radius = { ...friendly('[RADIUS_EXCEEDS_FACE] edge n23.side1|n23.top: fillet 10 mm is too large', 'PARAMETER'), feature: 'n41' };
+  assert.strictEqual(edgeFinishFailure(radius, fillet), radius);
+
+  const chamfer: ModelNode = { kind: 'chamfer', id: 'n42', parent: fillet.parent, edges: fillet.edges, distance: 1 };
+  const unsupported = { ...friendly('edge n23.side1|n23.top: chamfers between general faces are not supported yet', 'CAPABILITY'), feature: 'n42' };
+  assert.equal(edgeFinishFailure(unsupported, chamfer).title, 'The chamfer does not support these faces');
+  assert.equal(edgeFinishFailure(unsupported, chamfer).detail, unsupported.detail);
+  assert.strictEqual(edgeFinishFailure({ ...unsupported, feature: undefined }, chamfer).title, unsupported.title);
 });

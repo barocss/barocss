@@ -1,0 +1,83 @@
+{
+  "decision": "D1184",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "6e0bf44169bfc831e5e180568757d6708a2c6bba",
+  "fixture": {
+    "name": "lid-no-gap.step",
+    "bytes": 7341,
+    "sha256": "417d7aa9e430ae1d9ce134b8878f1d53f917695982b9a8a9f0ade1d20c452e03",
+    "source": "Exact STEP text from the local November desktop QA snapshot"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1184-<run>",
+    "cd apps/cad-studio && node scripts/test.mjs failed-feature fillet-family",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/{app/failedFeature,state/useCommandPreview}.ts apps/cad-studio/test/failed-feature.test.ts",
+    "node --check apps/cad-studio/test/step-edge-finish-refusal-browser.mjs",
+    "D1184_SOURCE_FROZEN=1 node apps/cad-studio/test/step-edge-finish-refusal-browser.mjs <external-evidence>/<run> <external-fixture>/lid-no-gap.step",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "studio": 19
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "refused-fillet-1",
+        "refused-fillet-2",
+        "refused-chamfer-1",
+        "refused-chamfer-2",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "88c7984710223bd81d42e49825ffd7cd1cadae9316cab7f6444fe2d8666cd4fa",
+      "sourceManifestSHA256": "738f93a36782a098798103aa972a1663b5a00f62cd4bf434c03db50f8e032e5f",
+      "firstFailure": "Fillet used Boolean Join advice; Chamfer used a generic failure message"
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "refused-fillet-1",
+        "refused-fillet-2",
+        "refused-chamfer-1",
+        "refused-chamfer-2",
+        "sharp-edge-fillet-applied",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "9ae2925a788012c1f0f12701b554a73fc943db579f263fe5c77cc6edf14a6c3a",
+      "sourceManifestSHA256": "4f0b222f456a66acdb7b2a96da17dc20242dde65a16b5dfb264cab7c4d3badb4",
+      "firstFailure": "The positive control expected an analytic cylinder classification for a general blend surface"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "refused-fillet-1",
+        "refused-fillet-2",
+        "refused-chamfer-1",
+        "refused-chamfer-2",
+        "sharp-edge-fillet-applied"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "d0fb3e8be7ca384e923aab98056d6c8e8850d4b8f5ca3efc9f6f119a42f01f99",
+      "sourceManifestSHA256": "4f0b222f456a66acdb7b2a96da17dc20242dde65a16b5dfb264cab7c4d3badb4",
+      "nativeControl": {
+        "expectedVolume": 1197.8539816339744,
+        "volume": 1197.8539816486257,
+        "expectedCentroid": [
+          45,
+          5.008557587392068,
+          6.027045665826984
+        ],
+        "centroid": [
+          45.00000000000539,
+          5.00855758739598,
+          6.027045665851768
+        ]
+      }
+    }
+  }
+}
