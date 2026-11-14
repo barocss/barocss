@@ -1,0 +1,159 @@
+{
+  "decision": "D1227",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "7572e6d372d59d9d00abd420178eda2746ac295a",
+  "commands": [
+    "gate.sh acquire heavy 600 D1227-baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline-{hole,move} --source-{hole,move} --baseline (one run for each route)",
+    "gate.sh acquire heavy 600 D1227-studio",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/fixed-{hole,move,dimension} --source-{hole,move,dimension} (one run for each route)",
+    "gate.sh acquire heavy 600 D1227-feature",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/failedFeature.ts apps/cad-studio/test/failed-feature.test.ts",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline-hole": {
+      "status": "FAIL",
+      "firstFailure": "Undo guidance omitted the blocked link",
+      "observation": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "d8189db46c3eaa2487d699fa867edab925cda901211fed0392a94f69e1a0bb1f",
+      "sourceManifestSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "sourceAfterCleanupSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "baseline-move": {
+      "status": "FAIL",
+      "firstFailure": "Undo guidance omitted the blocked link",
+      "observation": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "02db92806f3db89b2c8354b177fc5f033170fdd65b5a57e83b25d3719bfd995f",
+      "sourceManifestSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "sourceAfterCleanupSHA256": "ab8c75f38a377afad83cbffa351661e95b80b66cfaf2d39873d22536444568f9",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed-hole": {
+      "status": "PASS",
+      "firstFailure": null,
+      "observation": [
+        {
+          "label": "source-dimension-recovered",
+          "sourceVia": "hole",
+          "sourceFace": "n3.side0",
+          "heights": [
+            10,
+            12
+          ],
+          "volumes": [
+            1476.0000000000016,
+            1548.0000000000018
+          ],
+          "expected": [
+            1476,
+            1548
+          ]
+        }
+      ],
+      "frozenFiles": 882,
+      "receiptSHA256": "f86e39476db0b5810102ce5707c47bc4b9fed78e36d1715550764850059abd9a",
+      "sourceManifestSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "sourceAfterCleanupSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "savedSHA256": [
+        "23a04fd5137c6d72af6a2dada92925ac0e824277a42acffab8e0ecbc4e2a6182"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed-move": {
+      "status": "PASS",
+      "firstFailure": null,
+      "observation": [
+        {
+          "label": "source-dimension-recovered",
+          "sourceVia": "move",
+          "sourceFace": "n3.side1",
+          "heights": [
+            10,
+            12
+          ],
+          "volumes": [
+            900,
+            972.0000000000009
+          ],
+          "expected": [
+            900,
+            972
+          ]
+        }
+      ],
+      "frozenFiles": 882,
+      "receiptSHA256": "99600cb91271a50befb6a64ddb3db2bc596cb83aae784e96bc1569033762ef9f",
+      "sourceManifestSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "sourceAfterCleanupSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "savedSHA256": [
+        "92655402efbc39eae20e0b8c0ecddecae8b555f203decf669bb7019609a146fc"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed-dimension": {
+      "status": "PASS",
+      "firstFailure": null,
+      "observation": [
+        {
+          "label": "source-dimension-recovered",
+          "sourceVia": null,
+          "sourceFace": "n3.side0",
+          "heights": [
+            10,
+            12
+          ],
+          "volumes": [
+            2195.999999999999,
+            2268
+          ],
+          "expected": [
+            2196,
+            2268
+          ]
+        }
+      ],
+      "frozenFiles": 882,
+      "receiptSHA256": "406541fa896997f72b5b89efabf764c21878858cdfa1f2b93ccc4289389ea094",
+      "sourceManifestSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "sourceAfterCleanupSHA256": "a45022b5b2bd77303860d55f6c79b6e76b54f97f8b09b6f5d0de4708b2b8793b",
+      "savedSHA256": [
+        "eb7cc5b5301bf6e58af2cc6981b10c2dc66ec6192cd0896609d5de28d5b90620"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

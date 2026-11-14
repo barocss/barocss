@@ -6,7 +6,9 @@ const historySummary = process.argv.includes('--history-summary');
 const narrowDock = process.argv.includes('--narrow-dock');
 const automaticRefusal = process.argv.includes('--automatic-refusal');
 const beforeExtrude = process.argv.includes('--before-extrude');
-const sourceDimension = process.argv.includes('--source-dimension');
+const sourceVia = process.argv.includes('--source-hole') ? 'hole' : process.argv.includes('--source-move') ? 'move' : null;
+const sourceDimension = process.argv.includes('--source-dimension') || sourceVia !== null;
+const sourceFace = sourceVia === 'move' ? 'n3.side1' : 'n3.side0';
 const editInsetDistance = process.argv.includes('--edit-inset-distance');
 const delayRefusal = process.argv.includes('--delay-refusal');
 const collapsedHistory = process.argv.includes('--collapsed-history');
@@ -18,11 +20,25 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInse
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
   'packages/barocss-cad-model/src/app/associativeInsetRelink.ts',
-  'packages/barocss-cad-model/src/engine/part.ts'];
+  'packages/barocss-cad-model/src/engine/part.ts', 'apps/cad-studio/src/app/failedFeature.ts'];
 const f = await createFlow({
   name: 'linked-inset-review-focus', output: process.argv[2], envFrozen: 'D1204_SOURCE_FROZEN',
-  initialFiles: pins, requiredFrozen: pins, qualification: 'Linked Inset returns keyboard focus on Cancel and Apply.',
+  initialFiles: pins, requiredFrozen: pins, qualification: sourceDimension
+    ? 'A refused source size names the Linked Inset that cannot regenerate.' : 'Linked Inset returns keyboard focus on Cancel and Apply.',
   limits: ['Desktop WebGPU, replacement with an axis-aligned native side face.'],
+  inspectorSource: sourceDimension && !baseline ? `
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { checkBrep, massPropertiesOf } from '@barocss/cad';
+import { partSnapshot } from '@barocss/cad-model/engine/part';
+const { outputs } = partSnapshot(JSON.parse(readFileSync(process.argv[2], 'utf8')));
+console.log(JSON.stringify(outputs.map(output => {
+  assert.ok(checkBrep(output.brep, { strict: true }).valid);
+  assert.equal(output.brep.shells.length, 1);
+  assert.ok(output.brep.shells[0].closed);
+  return massPropertiesOf(output).volume;
+})));
+` : undefined,
 });
 const seed = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
@@ -42,8 +58,20 @@ const seed = {
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' }, b5: { node: 5, side: 'solid' } }, nextId: 6,
 };
 if (sourceDimension) Object.assign(seed.nodes[4].association, {
-  source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0', insetMM: 4.5,
+  source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: sourceFace, insetMM: 4.5,
 });
+if (sourceVia) {
+  seed.nodes[2].max = [140, 24];
+  const parent = { node: 3, side: 'solid' };
+  const carried = sourceVia === 'hole'
+    ? { kind: 'hole', parent, center: [120, 12], radius: 3, face: 'n3.top', id: 'n6' }
+    : { kind: 'translate', parent, offset: [0, 30, 0], id: 'n6' };
+  Object.assign(seed.nodes[4].association, { source: { node: 4, side: 'solid' }, sourceFeature: 'n6' });
+  seed.nodes[5].sketch = 5;
+  seed.nodes.splice(4, 0, carried);
+  seed.outputs = { b1: seed.outputs.b1, b6: { node: 4, side: 'solid' }, b5: { node: 6, side: 'solid' } };
+  seed.nextId = 7;
+}
 if (beforeExtrude) {
   seed.nodes.pop();
   delete seed.outputs.b5;
@@ -255,6 +283,7 @@ await f.run(async () => {
     return;
   }
   if (sourceDimension) {
+    await f.page.setViewportSize({ width: 1024, height: 800 });
     f.phase = 'upstream Extrude distance closes the linked opening';
     await f.openFeatureEditor(3);
     const distance = f.editor().getByLabel('Distance', { exact: true });
@@ -269,8 +298,14 @@ await f.run(async () => {
       await notice.getByText(/Undo the last change/).waitFor();
       throw new Error('Upstream History dimension refusal suggested Undo and omitted the affected link.');
     }
-    await notice.getByText('The 4.5 mm inset on n3.side0 fails with the new source size. Increase the source dimension or reset this edit.', { exact: true }).waitFor();
+    await notice.getByText(`The 4.5 mm inset on ${sourceFace} fails with the new source size. Increase the source dimension or reset this edit.`, { exact: true }).waitFor();
     await notice.getByText(/Failed feature · Sketch · polygon \(n4\)/).waitFor();
+    assert.doesNotMatch(await notice.innerText(), /Undo the last change/);
+    await button('Reset', f.editor()).click();
+    assert.equal(await distance.inputValue(), '10');
+    await notice.waitFor({ state: 'hidden' });
+    const reset = await f.snapshot('source-height-reset');
+    for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(reset[field], orig[field], field);
     await distance.fill('12');
     await button('Apply', f.editor()).click();
     await f.changed(seed);
@@ -278,14 +313,24 @@ await f.run(async () => {
     const expected = structuredClone(seed);
     expected.nodes[3].height = 12;
     assert.deepEqual(accepted, expected);
-    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
-    const want = 4 * (60 * 12 - 51 * 3);
-    assert.ok(Math.abs(volume - want) < 1e-7);
-    f.report.observations.push({ label: 'source-dimension-recovered', height: 12, volume, expected: want });
+    const measured = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    const width = sourceVia === 'move' ? 24 : sourceVia === 'hole' ? 40 : 60;
+    const ringVolume = height => 4 * (width * height - (width - 9) * (height - 9));
+    const before = await f.inspect('before', seed);
+    const after = await f.inspect('recovered', accepted);
+    assert.equal(before.length, 3);
+    assert.equal(after.length, 3);
+    assert.ok(Math.abs(before.at(-1) - ringVolume(10)) < 1e-7);
+    assert.ok(Math.abs(after.at(-1) - ringVolume(12)) < 1e-7);
+    assert.ok(Math.abs(measured - ringVolume(12)) < 1e-7);
+    f.report.observations.push({ label: 'source-dimension-recovered', sourceVia, sourceFace,
+      heights: [10, 12], volumes: [before.at(-1), after.at(-1)], expected: [ringVolume(10), ringVolume(12)] });
     await f.undo();
     await f.same(seed);
     await f.redo();
     await f.same(accepted);
+    const { file } = await f.save('recovered-source-height');
+    await f.freshOpen(file, accepted, 'reopened-source-height');
     return;
   }
   if (narrowDock) {

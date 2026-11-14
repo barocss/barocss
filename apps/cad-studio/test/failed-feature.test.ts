@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ModelNode } from '@barocss/cad-model/engine/doc';
-import { edgeFinishFailure, failedFeatureText } from '../src/app/failedFeature';
+import { edgeFinishFailure, failedFeatureText, linkedInsetHistoryFailure } from '../src/app/failedFeature';
 import { friendly } from '@barocss/cad-model/engine/errors';
 
 const sketch: ModelNode = { kind: 'sketch', id: 'n11', profile: 'rectangle', min: [0, 0], max: [40, 30] };
@@ -57,4 +57,24 @@ test('edge finish failures retain kernel diagnostics and address the owned opera
   assert.equal(edgeFinishFailure(unsupported, chamfer).title, 'The chamfer does not support these faces');
   assert.equal(edgeFinishFailure(unsupported, chamfer).detail, unsupported.detail);
   assert.strictEqual(edgeFinishFailure({ ...unsupported, feature: undefined }, chamfer).title, unsupported.title);
+});
+
+test('History names an indirect linked inset only for edits on the source dependency path', () => {
+  const hole: ModelNode = { kind: 'hole', id: 'n45', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 2 };
+  const move: ModelNode = { kind: 'translate', id: 'n46', parent: { node: 3, side: 'solid' }, offset: [0, 30, 0] };
+  const inset: ModelNode = {
+    kind: 'sketch', id: 'n47', profile: 'polygon', points: [[0, 0], [40, 0], [40, 20], [0, 20]],
+    association: { kind: 'planar-face-outline-inset', version: 1,
+      source: { node: 4, side: 'solid' }, sourceFeature: 'n46', face: 'n23.side0', insetMM: 4.5 },
+  };
+  const unrelated: ModelNode = { ...extrude, id: 'n44' };
+  const history = [sketch, extrude, unrelated, hole, move, inset];
+  const candidate = [sketch, { ...extrude, height: 9 }, unrelated, hole, move, inset];
+  const error = { ...friendly('inset failed', 'BAD_REFERENCE'), linkedInsetFeature: 'n47' };
+  assert.deepEqual(linkedInsetHistoryFailure(error, history, candidate, 1), {
+    ...error, title: 'The linked inset opening closes',
+    hint: 'The 4.5 mm inset on n23.side0 fails with the new source size. Increase the source dimension or reset this edit.',
+    failedFeature: 'Sketch · polygon (n47)',
+  });
+  assert.equal(linkedInsetHistoryFailure(error, history, candidate, 2), undefined);
 });

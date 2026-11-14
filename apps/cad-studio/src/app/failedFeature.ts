@@ -1,4 +1,4 @@
-import { featureLabel, type ModelNode } from '@barocss/cad-model/engine/doc';
+import { featureLabel, usesOf, type ModelNode } from '@barocss/cad-model/engine/doc';
 import { featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 
@@ -15,10 +15,22 @@ export function linkedInsetHistoryFailure(error: FriendlyError, accepted: readon
       hint: `Enter a smaller Linked inset distance for ${next.association.face} or reset this edit.`, failedFeature };
   }
   const { face, insetMM } = sketch.association;
-  if (sketch.association.source.node !== editIndex) return;
+  if (!isSourceDependency(accepted, sketch.association.source.node, editIndex)) return;
   return { ...error, title: 'The linked inset opening closes',
     hint: `The ${insetMM} mm inset on ${face} fails with the new source size. Increase the source dimension or reset this edit.`,
     failedFeature };
+}
+
+function isSourceDependency(nodes: readonly ModelNode[], source: number, edited: number): boolean {
+  const pending = [source], seen = new Set<number>();
+  for (const index of pending) {
+    const node = nodes[index];
+    if (!node || index < edited || seen.has(index)) continue;
+    if (index === edited) return true;
+    seen.add(index);
+    pending.push(...usesOf(node, nodes));
+  }
+  return false;
 }
 
 /** Resolve a reported feature in the evaluated input and the command's accepted history. */
