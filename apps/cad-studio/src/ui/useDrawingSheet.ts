@@ -98,7 +98,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const calloutsFor = useCallback((projection?: DrawingViews) => {
     const holes = drawingHoleCallouts(doc, projection);
     return { callout: Object.assign(withElements(doc, withFit(doc, holes.callout), elements), {
-      holeKind: holes.holeKind, patternQuantity: holes.patternQuantity,
+      holeKind: holes.holeKind, patternQuantity: holes.patternQuantity, stalePatternSpacing: holes.stalePatternSpacing,
     }), locationOwner: holes.owner };
   }, [doc, elements]);
   const { callout, locationOwner } = useMemo(() => calloutsFor(views ?? undefined), [calloutsFor, views]);

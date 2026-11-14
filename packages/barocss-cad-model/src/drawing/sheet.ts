@@ -140,16 +140,20 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   const inViews = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => {
     const view = d.view as ViewId;
     if (layout.views[view].hidden) return { ok: false, dim: d, reason: `Its view (${view}) is not shown.` };
+    const patternProblem = (message: string): Resolved => {
+      const action = d.tol || d.basic || attachedFrames.some(frame => frame.dim === d.id)
+        ? 'Review this dimension and its attached controls before replacing it.'
+        : 'Run Auto-dimension to refresh it.';
+      return { ok: false, dim: d, reason: `${message} ${action}` };
+    };
+    if (d.auto && meta.callout?.stalePatternSpacing?.(d))
+      return patternProblem('The hole pattern spacing uses an earlier copy count.');
     const resolved = resolveDimension(views, d);
     if (!resolved.ok) return resolved;
     if (resolved.kind === 'diameter' && resolved.dim.auto) {
       const current = meta.callout?.patternQuantity?.(view, resolved.dim.edge, resolved.radius);
-      if (current !== undefined && current !== (d.count ?? 1)) {
-        const action = d.tol || d.basic || attachedFrames.some(frame => frame.dim === d.id)
-          ? 'Review this dimension and its attached controls before replacing it.'
-          : 'Run Auto-dimension to refresh its callouts.';
-        return { ok: false, dim: d, reason: `The hole pattern quantity changed or cannot be verified. ${action}` };
-      }
+      if (current !== undefined && current !== (d.count ?? 1))
+        return patternProblem('The hole pattern quantity changed or cannot be verified.');
     }
     return withShownText(resolved, meta.callout, p);
   });

@@ -1,0 +1,186 @@
+{
+  "decision": "D1245",
+  "tier": "SMALL",
+  "parent": "0c1dbe4faafc2fb6bcb23f7455de69c361f2cff7",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1245-<run>",
+    "D1245_SOURCE_FROZEN=1 node apps/cad-studio/test/tapped-pattern-drawing-browser.mjs <external-evidence> [--baseline]",
+    "D1244_SOURCE_FROZEN=1 node apps/cad-studio/test/counterbore-pattern-drawing-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-model test drawing-parameter-hole-callout auto-dimension auto-layout drawing-issues drawing-independent-locations fit-drawing chat-drawing drawing-standalone-frame-consumer drawing-thread-visibility drawing-units.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint <changed Model and Studio sources>",
+    "node --check apps/cad-studio/test/tapped-pattern-drawing-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline-reopen": {
+      "status": "FAIL",
+      "frozenFiles": 400,
+      "receiptSHA256": "8ff56d9e6d06e3d17629e73f3495df1b059971e9ff5a50990db9453da9fbb6c1",
+      "sourceManifestSHA256": "c6dbe7095b29a8e20ca6c2028c55fdea2eda26b82d3de746587c5122109fe7fb",
+      "sourceAfterCleanupSHA256": "c6dbe7095b29a8e20ca6c2028c55fdea2eda26b82d3de746587c5122109fe7fb",
+      "downloads": 32,
+      "oracles": 10,
+      "observations": [
+        {
+          "label": "circle-six-existing-drawing",
+          "texts": [
+            "\u00d830 PCD"
+          ],
+          "lost": [
+            "The hole pattern quantity changed or cannot be verified. Run Auto-dimension to refresh its callouts."
+          ],
+          "volume": 42493.14165294231,
+          "hashes": {
+            "SVG": "8878f05fc73a824f71a8744e422c39a21cf3f158c4f90dac1ba8d13473861e75",
+            "PDF": "c17eb8433a25d3f52160eb9dae367a33f1cf322d35ceaaf8dbbb501baaaf2fad",
+            "DXF": "b94a2b0f3b42b4c4c968123d34aedb4a16da3e9ddb4ec68224481e6803a1896d"
+          }
+        },
+        {
+          "label": "circle-refreshed-six",
+          "texts": [
+            "6\u00d7 M6\u00d71 \u00d7 6 DEEP",
+            "\u00d830 PCD \u00b7 6\u00d7 EQ SP"
+          ],
+          "lost": [],
+          "volume": 42493.14165294231,
+          "hashes": {
+            "SVG": "a8d435aaa33cbd490ca9098630042bdcbb65de89eeedfaa5ffacea0d01ce45e3",
+            "PDF": "b771da5ae01d206027c040e4b7aad9567c03b3721123bc25522b63d6fe1e2b84",
+            "DXF": "6af83b05eda8158373a092a25573872f4038173bb614b2782d04aaa92beb1ec9"
+          }
+        },
+        {
+          "label": "line-six-existing-drawing",
+          "texts": [
+            "3\u00d7 8"
+          ],
+          "lost": [
+            "The hole pattern quantity changed or cannot be verified. Run Auto-dimension to refresh its callouts."
+          ],
+          "volume": 42493.14165294229,
+          "hashes": {
+            "SVG": "7df9dcb24b134a7978753ad83db557fe7a9b88a02f58724e6184629ecb7ffd7f",
+            "PDF": "e4fe86535a2101871a93902137a10fabfaf1b4ab918997f61459fc095c10dd60",
+            "DXF": "6dd7bd03d7e1a594e413a5fb4148b4884a29edbd98270749fbd536111141f470"
+          }
+        },
+        {
+          "label": "line-refreshed-six",
+          "texts": [
+            "5\u00d7 8",
+            "6\u00d7 M6\u00d71 \u00d7 6 DEEP"
+          ],
+          "lost": [],
+          "volume": 42493.14165294229,
+          "hashes": {
+            "SVG": "591539c5cabdd94ba55121b35c724b90dab0585300de3093c051525b835c68f6",
+            "PDF": "a21233de25c5e26609bad0fb3ac66b863571f65f2d09fb1fe55b749592a5d70f",
+            "DXF": "80eae78a6f136cfa51aa4ac6c6f0e3791c499fd7fe0880bc0323d3ca65f6825f"
+          }
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "frozenFiles": 400,
+      "receiptSHA256": "4d078bd3f94a9856e753fcb5a63c6f4f18d622d082989778009ac5e01b8719a5",
+      "sourceManifestSHA256": "b4d7ca56b9d622b6a8c21f82b0546684184f6b1025aaedaf7d6e944ebce8c5f0",
+      "sourceAfterCleanupSHA256": "b4d7ca56b9d622b6a8c21f82b0546684184f6b1025aaedaf7d6e944ebce8c5f0",
+      "downloads": 32,
+      "oracles": 10,
+      "observations": [
+        {
+          "label": "circle-six-existing-drawing",
+          "texts": [],
+          "lost": [
+            "The hole pattern spacing uses an earlier copy count. Run Auto-dimension to refresh it.",
+            "The hole pattern spacing uses an earlier copy count. Run Auto-dimension to refresh it.",
+            "The hole pattern quantity changed or cannot be verified. Run Auto-dimension to refresh it.",
+            "The hole pattern spacing uses an earlier copy count. Run Auto-dimension to refresh it."
+          ],
+          "volume": 42493.14165294231,
+          "hashes": {
+            "SVG": "0da589fa960ad06567f536431ff0aa5b569af489b05d504d5b60eca8db564466",
+            "PDF": "e1d52644d43ddbc5fc2fa377606bc326cec0ccd6109ca87aba04590aab0094d0",
+            "DXF": "716b431b2c0f96e834dcb8d6a81f5cd52a8d60895ac7b0b1579e693f90b73e04"
+          }
+        },
+        {
+          "label": "circle-refreshed-six",
+          "texts": [
+            "6\u00d7 M6\u00d71 \u00d7 6 DEEP",
+            "\u00d830 PCD \u00b7 6\u00d7 EQ SP"
+          ],
+          "lost": [],
+          "volume": 42493.14165294231,
+          "hashes": {
+            "SVG": "a8d435aaa33cbd490ca9098630042bdcbb65de89eeedfaa5ffacea0d01ce45e3",
+            "PDF": "b771da5ae01d206027c040e4b7aad9567c03b3721123bc25522b63d6fe1e2b84",
+            "DXF": "6af83b05eda8158373a092a25573872f4038173bb614b2782d04aaa92beb1ec9"
+          }
+        },
+        {
+          "label": "line-six-existing-drawing",
+          "texts": [],
+          "lost": [
+            "The hole pattern spacing uses an earlier copy count. Run Auto-dimension to refresh it.",
+            "The hole pattern quantity changed or cannot be verified. Run Auto-dimension to refresh it."
+          ],
+          "volume": 42493.14165294229,
+          "hashes": {
+            "SVG": "f847998e2f2c45561a1c089e1c20e12b780f623dddf8b1ee662ad38b89598d59",
+            "PDF": "feb6cc08500d02c5ba82f84a45b11bb954663850d44753a29510342490d39a1a",
+            "DXF": "82c64c4be0017d79e75bdc0c1928697c31709b0330d8e19185665e1d659563ef"
+          }
+        },
+        {
+          "label": "line-refreshed-six",
+          "texts": [
+            "5\u00d7 8",
+            "6\u00d7 M6\u00d71 \u00d7 6 DEEP"
+          ],
+          "lost": [],
+          "volume": 42493.14165294229,
+          "hashes": {
+            "SVG": "591539c5cabdd94ba55121b35c724b90dab0585300de3093c051525b835c68f6",
+            "PDF": "a21233de25c5e26609bad0fb3ac66b863571f65f2d09fb1fe55b749592a5d70f",
+            "DXF": "80eae78a6f136cfa51aa4ac6c6f0e3791c499fd7fe0880bc0323d3ca65f6825f"
+          }
+        }
+      ]
+    },
+    "counterbore-regression": {
+      "status": "PASS",
+      "frozenFiles": 894,
+      "receiptSHA256": "c93d96492b4bf2135bbcc444dd4b6370acc03b28a84242d1eb46c25db8a5585c",
+      "sourceManifestSHA256": "1b5ce66287b8a3aba543f3a2867a9bb4b6cbbd59902e56f290a792d47370c141",
+      "sourceAfterCleanupSHA256": "1b5ce66287b8a3aba543f3a2867a9bb4b6cbbd59902e56f290a792d47370c141",
+      "downloads": 17,
+      "oracles": 8,
+      "observations": []
+    }
+  },
+  "checks": {
+    "focusedModel": {
+      "status": "PASS",
+      "tests": 95
+    },
+    "studioTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "externalCadDxf": "NOT_RUN",
+    "manualReattach": "NOT_RUN",
+    "asmePdfGolden": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

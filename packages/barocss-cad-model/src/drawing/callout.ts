@@ -5,7 +5,7 @@ import type { ProjectedEdge } from '@barocss/cad';
 import { placedDoc, type ModelNode, type StudioDoc } from '../engine/doc';
 import { nodeIndexOf } from '../engine/ids';
 import { holeCalloutGroups, holeCalloutKey, holesOf } from './holeCircles';
-import type { DrawingViews, ViewId } from './types';
+import type { DrawingDimension, DrawingViews, ViewId } from './types';
 import type { LengthFormat } from './standard';
 import { faceOriginOf, flatFaceOf } from '../engine/occurrences';
 
@@ -183,9 +183,11 @@ function formatHoleCallout(nodes: readonly ModelNode[], edge: string, parameters
 }
 
 export type DrawingCallout = ((edge: string, diameter?: number, f?: LengthFormat) => string | null) & {
-  /** Current number of identical patterned-hole locations in this view, when established. */
+  /** Unrounded identity for drawing groups. */
   holeKind?: (edge: string) => string | null;
+  /** Current number of identical patterned-hole locations in this view, when established. */
   patternQuantity?: (view: ViewId, edge: string, radius: number) => number | null | undefined;
+  stalePatternSpacing?: (dimension: DrawingDimension) => boolean;
 };
 
 /** Give the same verified patterned-hole classifications to the drawing, its issue list and Auto-dimension. */
@@ -203,5 +205,27 @@ export function drawingHoleCallouts(doc: StudioDoc, views?: DrawingViews) {
     const group = groups?.get(holeCalloutKey(text, radius))?.filter(hole => hole.view === view);
     return group?.some(hole => owner(hole.edge.name) === name) ? group.length : null;
   };
-  return { callout, owner, holeKind, patternQuantity };
+  const patternFor = (refs: readonly { edge: string }[], circular: boolean) => {
+    const indices = refs.map(ref => {
+      const side = ref.edge.split('|').map(face => holeSide.exec(face)).find(hit => hit && !hit[1]);
+      return side ? nodeIndexOf(doc.nodes, side[2]) : -1;
+    });
+    const node = doc.nodes[indices[0]];
+    if (node?.kind !== 'hole' || !node.pattern || indices.some(index => index !== indices[0])) return undefined;
+    return circular === ('about' in node.pattern) ? node.pattern.count : undefined;
+  };
+  const staleRing = (ring: readonly { edge: string }[]) => {
+    const count = patternFor(ring, true);
+    return count !== undefined && count !== ring.length;
+  };
+  const stalePatternSpacing: DrawingCallout['stalePatternSpacing'] = dimension => {
+    if (dimension.kind === 'pcd') return staleRing(dimension.ring);
+    if (dimension.kind !== 'linear') return false;
+    const { a, b, count } = dimension;
+    if ((a.ring && staleRing(a.ring)) || (b.ring && staleRing(b.ring))) return true;
+    if (a.at !== 'center' || b.at !== 'center' || !count) return false;
+    const copies = patternFor([a, b], false);
+    return copies !== undefined && copies !== count + 1;
+  };
+  return { callout, owner, holeKind, patternQuantity, stalePatternSpacing };
 }
