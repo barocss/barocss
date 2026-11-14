@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1210 — retry Linked Inset from Offset distance](notes/linked-inset-offset-enter-2026-11-14/README.md).
 - [D1209 — return focus after Linked Inset replacement refusal](notes/linked-inset-replacement-refusal-focus-2026-11-14/README.md).
 - [D1208 — keep Linked Inset review focus visible in the Dock](notes/linked-inset-visible-focus-2026-11-14/README.md).
 - [D1207 — show the current Linked Inset binding in History](notes/linked-inset-history-binding-2026-11-14/README.md).

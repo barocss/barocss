@@ -255,7 +255,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
     } catch (error) {
       if (isRefusal(error, 'BAD_REFERENCE') && error.details?.field === 'insetMM' && typeof error.details.reason === 'string')
-        return error.details.reason;
+        return `${error.details.reason.replace(/: use a smaller one\.$/, '.')} Enter a smaller Offset distance and try again.`;
       setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' });
     }
   };

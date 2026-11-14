@@ -43,9 +43,15 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
   /** B1: Make band from the picked shapes (offset, width mm; no width: filled), edit the band's offset / width (`width: null`: filled), remove it (the sources stay construction). */
   onBand?: { make(offset: number, width?: number): void; edit(patch: { offset?: number; width?: number | null }): void; remove(): void } }) {
   const [offsetBy, setOffsetBy] = useState(2);
-  const [insetRefusal, setInsetRefusal] = useState<{ draft: SketchState; reason: string; recovery?: string } | null>(null);
+  const [insetRefusal, setInsetRefusal] = useState<{ draft: SketchState; message: string } | null>(null);
   const offsetInput = useRef<HTMLInputElement>(null), insetErrorId = useId();
   const insetError = onLinkedInset && insetRefusal?.draft === sketch ? insetRefusal : null;
+  const canLinkInset = !!onLinkedInset && !sketch.shape && !sketch.done?.length;
+  const linkInset = () => {
+    const message = onLinkedInset?.(offsetBy);
+    setInsetRefusal(message ? { draft: sketch, message } : null);
+    if (message) offsetInput.current?.focus();
+  };
   const [splineError, setSplineError] = useState<string | null>(null);
   const s = sketch.shape;
   const outlines = onActivateOutline ? sketchCutInputs(sketch).shapes.flatMap((shape, index) =>
@@ -214,22 +220,24 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
           <Button variant="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</Button>
         </div>
       </>}
-      {onLinkedInset && <><Button type="button" variant="ghost" onClick={() => {
-        const reason = onLinkedInset(offsetBy);
-        const recovery = offsetBy > 0 && Number.isFinite(offsetBy) ? 'Enter a smaller Offset distance and try again.' : undefined;
-        setInsetRefusal(reason ? { draft: sketch, reason, recovery } : null);
-        if (reason) offsetInput.current?.focus({ preventScroll: true });
-      }}>Link face outline + inset</Button><p>Uses Offset distance below as the inward inset (mm).</p></>}
+      {onLinkedInset && <><Button type="button" variant="ghost" data-sketch-action onClick={linkInset}>Link face outline + inset</Button><p>Uses Offset distance below as the inward inset (mm).</p></>}
       {onOffset && <>
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
         <div className="sk-offset">
           <span className="num"><Input ref={offsetInput} aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy}
+            data-sketch-action={onLinkedInset ? true : undefined}
             aria-invalid={insetError ? true : undefined} aria-describedby={insetError ? insetErrorId : undefined}
+            onKeyDown={onLinkedInset ? event => {
+              if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (canLinkInset && !event.repeat) linkInset();
+            } : undefined}
             onChange={e => { setOffsetBy(Number(e.target.value)); setInsetRefusal(null); }} /><em>mm</em></span>
           <Button variant="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</Button>
           <Button variant="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</Button>
         </div>
-        {insetError && <p id={insetErrorId} className="sk-band-err" role="alert">{insetError.reason} {insetError.recovery}</p>}
+        {insetError && <p id={insetErrorId} className="sk-band-err" role="alert">{insetError.message}</p>}
       </>}
       {onToCurves && <>
         <div className="card-title" style={{ marginTop: 10 }}>CURVES</div>

@@ -3,6 +3,7 @@ import { createFlow } from './flow-helper.mjs';
 
 const baseline = process.argv.includes('--baseline');
 const oversize = process.argv.includes('--oversize');
+const fieldEnter = process.argv.includes('--field-enter');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -74,7 +75,7 @@ await f.run(async () => {
     await distance.fill('6');
     const before = await f.snapshot('before-oversize');
     await linked().press('Enter');
-    if (baseline) {
+    if (baseline && !fieldEnter) {
       await f.page.locator('.toast').getByText(/turns the outline inside out|closes the rectangle/).waitFor();
       assert.equal(await error.count(), 0);
       await f.snapshot('oversize-toast');
@@ -94,7 +95,17 @@ await f.run(async () => {
     await error.waitFor({ state: 'hidden' });
     assert.equal(await distance.getAttribute('aria-invalid'), null);
   }
-  await linked().click();
+  if (fieldEnter) {
+    f.phase = 'Enter in the corrected Offset distance';
+    assert.ok(await distance.evaluate(element => element === document.activeElement));
+    await distance.press('Enter');
+    if (baseline) {
+      await f.sketchPanel().waitFor({ state: 'hidden' });
+      await f.same(seed);
+      await f.snapshot('enter-closed-sketch');
+      throw new Error('Enter on Offset distance closed the corrected sketch before a link was made.');
+    }
+  } else await linked().click();
   await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
   const saved = (await f.finishSketch('straight-linked-outline')).doc;
   assert.deepEqual(saved.nodes[4].association, {
