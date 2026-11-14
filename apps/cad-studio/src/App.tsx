@@ -68,7 +68,7 @@ import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftE
 import { holePatternEditProblem } from '@barocss/cad-model/app/holePatternInput';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, pickedFilletSelection, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
-import { sourceSplitPlaneFace } from './app/splitPlanePick';
+import { originalTransformFace } from './app/transformFacePick';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
@@ -1472,7 +1472,7 @@ export function App() {
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
     const sweep = active.cmd.id === SWEEP_CURVE;
-    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === 'split' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === 'split' || active.cmd.id === 'align' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1848,9 +1848,11 @@ export function App() {
     setActive({ ...current, values: picked, preview: 'busy', error: undefined });
     return true;
   };
-  const pickSplitPlane = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
+  const pickTransformFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
-    if (current?.cmd.id !== 'split') return false;
+    if (current?.cmd.id !== 'split' && current?.cmd.id !== 'align') return false;
+    const split = current.cmd.id === 'split';
+    if (!split && !current.ctx.selection.faces.length) return true;
     if (!hit.face && !hit.edge && !hit.vertex && !hit.instance && !hit.direct) return true;
     applyWhenReady.current = null;
     again.current = null;
@@ -1861,10 +1863,12 @@ export function App() {
     }
     const scope = commandPickScope.current;
     const face = !blocked && scope && hit.face && !scope.hidden.has(hit.face.body)
-      ? sourceSplitPlaneFace(current.ctx, doc, scope.bodies, hit) : null;
+      ? originalTransformFace(current.ctx, doc, scope.bodies, hit, split) : null;
     const values = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
     if (!values || typeof values.error === 'string') {
-      setToast({ title: 'Split plane not selected', hint: 'Pick an original planar face normal to X, Y or Z.', detail: '', inputPick: current.cmd });
+      const hint = typeof values?.error === 'string' ? values.error
+        : split ? 'Pick an original planar face normal to X, Y or Z.' : 'Pick an original planar face on another body.';
+      setToast({ title: split ? 'Split plane not selected' : 'Align target not selected', hint, detail: '', inputPick: current.cmd });
       return true;
     }
     setToast(notice => notice?.inputPick === current.cmd ? null : notice);
@@ -1993,7 +1997,7 @@ export function App() {
   const placedMeasureContextReady = () => placedMeasureContext && docNow.current === doc
     && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
     && !activeStore.get() && !halvesShownRef.current;
-  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, onSplitPlanePick: pickSplitPlane, retargetSweep: retargetActiveSweep, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, onTransformFacePick: pickTransformFace, retargetSweep: retargetActiveSweep, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;

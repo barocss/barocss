@@ -32,11 +32,11 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, onSplitPlanePick, retargetSweep, scene }: {
+  directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, onTransformFacePick, retargetSweep, scene }: {
   retargetSweep(input: { profile: number } | { path: string }): boolean;
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onRevolveAxisPick(hit: RevolveAxisHit, blocked: boolean): boolean;
-  onSplitPlanePick(hit: ExtrudeEndHit, blocked: boolean): boolean;
+  onTransformFacePick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   sectionPickRef: RefObject<SectionPick>;
   nativePlanePickState: RefObject<{ midpointReady: boolean; insetReady: boolean }>;
@@ -66,7 +66,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     if (modelUnavailable) return;
     const blocked = !!sectionRef.current || halvesShownRef.current;
     if (!blocked && hit.direct && retargetSweep({ path: hit.direct })) return;
-    if (onExtrudeTargetPick(hit, blocked) || onRevolveAxisPick(hit, blocked) || onSplitPlanePick(hit, blocked)) return;
+    if (onExtrudeTargetPick(hit, blocked) || onRevolveAxisPick(hit, blocked) || onTransformFacePick(hit, blocked)) return;
     // Family attempts retire queued Apply even when an instance was removed or hidden.
     if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -167,7 +167,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, onSplitPlanePick, retargetSweep]);
+  }, [activeStore, measure, measureNativeReady, measureInstances, assembly, doc, modelUnavailable, nativeVertexReady, nativePlanePickState, viewBodiesRef, sectionPickRef, scene.bodies, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, onTransformFacePick, retargetSweep]);
 
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean, region?: number) => {

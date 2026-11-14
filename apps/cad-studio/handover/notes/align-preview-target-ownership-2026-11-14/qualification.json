@@ -1,0 +1,219 @@
+{
+  "decision": "D1199",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "3553eadebcbeda52984e2e01edba369f4c31f131",
+  "commands": [
+    "gate.sh acquire heavy 600 D1199-<run>",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/transformFacePick.ts apps/cad-studio/src/viewport/useViewportPicking.ts",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --baseline",
+    "D1199_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/final",
+    "D1197_SOURCE_FROZEN=1 node apps/cad-studio/test/split-picked-plane-browser.mjs <external-evidence>/split-regression",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "b-preview",
+        "c-click-during-b-preview",
+        "align-applied",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "1651c53091fe1e1dd71d516135bff7afa45bfdca5c0685aa273366f694f14ccd",
+      "sourceManifestSHA256": "a6abb9882c43e5e0a1b229b7e1f1588c4c383e1e86ee6b3876cdf520b7425bd7",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Clicking C during B preview still applied B.",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b7",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "9b56a757ae6a580a9454c9e96fd74ad995b0f9802e003aecddf8f140f91809fb",
+      "sourceManifestSHA256": "4d698aeef16bbdfa615102d4832b423e5f3fcacedb5cf45f5fc9df6485e450d3",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b7",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "split-regression": {
+      "status": "PASS",
+      "states": [
+        "stock-top-tangent",
+        "reference-top-preview",
+        "reference-top-applied",
+        "history-at-4.5"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "3eaba054ad69013e8d2115de4c05ab4df7d0ee0d0da45ff10382d77ee9c15401",
+      "sourceManifestSHA256": "d14f2c831797297b2cea843b8bf5353a5e689fc6b4923c3a5dbfe08cf35e966b",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "actual-picked-plane",
+          "at": 4.000123456789,
+          "outputs": [
+            {
+              "key": "b3",
+              "volume": 256.00790123449565,
+              "centroid": [
+                74.00000000000009,
+                4.000000000000005,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_negative",
+              "volume": 7200.2222222202,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_positive",
+              "volume": 10799.7777777798,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                7.0000617283945
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-plane",
+          "at": 4.5,
+          "outputs": [
+            {
+              "key": "b3",
+              "volume": 256.00790123449565,
+              "centroid": [
+                74.00000000000009,
+                4.000000000000005,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_negative",
+              "volume": 8100,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                2.25
+              ]
+            },
+            {
+              "key": "b4_positive",
+              "volume": 9900,
+              "centroid": [
+                30.000000000000007,
+                15.000000000000004,
+                7.25
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

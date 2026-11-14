@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1199 — resolve Align target faces after preview reorders bodies](notes/align-preview-target-ownership-2026-11-14/README.md).
 - [D1198 — keep the Render appearance of a moved Split side](notes/split-move-render-appearance-2026-11-14/README.md).
 - [D1197 — use a picked native plane for Split](notes/split-picked-native-plane-2026-11-14/README.md).
 - [D1196 — keep a straight linked Path cut through decimal Stretch](notes/path-cut-decimal-stretch-2026-11-14/README.md).
