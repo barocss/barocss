@@ -1,0 +1,153 @@
+{
+  "decision": "D1252",
+  "tier": "FULL",
+  "parent": "4324d872c638997fc42f4444f355e23af13433a3",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1252-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs type-check",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast",
+    "cd packages/barocss-cad && node ../../node_modules/eslint/bin/eslint.js src/part/part-box-draft.ts src/part/part-box-shell.ts src/part/part-face-finish.ts",
+    "cd packages/barocss-cad && node scripts/code-shape.mjs --check",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/draft-neutral-plane.test.mjs test/r11-1.test.mjs",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 --test-name-pattern=draft test/part-model.test.mjs",
+    "cd packages/barocss-cad && node --test --test-concurrency=1 test/drafted-extrusion.test.mjs",
+    "D1252_SOURCE_FROZEN=1 node apps/cad-studio/test/adjacent-planar-draft-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-model test api-draft-pull draft-command-pull face-commands",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "node --check apps/cad-studio/test/adjacent-planar-draft-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "kernel": {
+      "status": "PASS",
+      "tests": 35
+    },
+    "model": {
+      "status": "PASS",
+      "tests": 23
+    },
+    "kernelTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "kernelLint": "PASS",
+    "codeShape": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "newNavigationLinks": "PASS",
+    "legacyD418Navigation": "FAIL_EXISTING",
+    "fullSuites": "NOT_RUN",
+    "generalRBAndFuzz": "NOT_RUN",
+    "exchange": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  },
+  "independentHighAudit": {
+    "status": "PASS",
+    "accepted": 78,
+    "expectedRangeRefusals": 18,
+    "maxVolumeError": 2.547e-10,
+    "maxNormalVectorError": 7.878e-15
+  },
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "cc042edd7c319ddd11a22151b23c8e24e4087a179d16dace94819310fc37a237",
+    "evidenceSHA256": "23931a18e782f03e8becd048e9ad406b202e7d0e62461c44255d21ef6fba2636",
+    "exitByVariant": {
+      "current": 0,
+      "slope-95-percent": 1,
+      "original-adjacent-refusal": 1
+    }
+  },
+  "studio": {
+    "status": "PASS",
+    "desktop": [
+      1440,
+      1000
+    ],
+    "frozenFiles": 885,
+    "states": [
+      "adjacent-draft-preview",
+      "adjacent-draft-inward",
+      "adjacent-draft-collapse-refused",
+      "adjacent-draft-outward",
+      "adjacent-draft-reopened"
+    ],
+    "observations": [
+      {
+        "label": "inward-native",
+        "angle": 10,
+        "volume": 38788.96810167558,
+        "expectedVolume": 38788.96810167558,
+        "shared": [
+          [
+            40,
+            0,
+            0
+          ],
+          [
+            32.946920771661404,
+            7.053079228338599,
+            40
+          ]
+        ],
+        "studioVolume": 38788.96810167558,
+        "maximumEdgeSurfaceGap": 3.552713678800501e-15
+      },
+      {
+        "label": "outward-native",
+        "angle": -12,
+        "volume": 60867.01368091285,
+        "expectedVolume": 60867.01368091285,
+        "shared": [
+          [
+            40,
+            0,
+            0
+          ],
+          [
+            48.502262466800886,
+            -8.502262466800884,
+            40
+          ]
+        ],
+        "studioVolume": 60867.01368091285,
+        "maximumEdgeSurfaceGap": 0
+      },
+      {
+        "label": "reopened-native",
+        "angle": -12,
+        "volume": 60867.01368091285,
+        "expectedVolume": 60867.01368091285,
+        "shared": [
+          [
+            40,
+            0,
+            0
+          ],
+          [
+            48.502262466800886,
+            -8.502262466800884,
+            40
+          ]
+        ],
+        "studioVolume": 60867.01368091285,
+        "maximumEdgeSurfaceGap": 0
+      }
+    ],
+    "receiptSHA256": "46f9c4d534a3f1633200ae91256063b181980b60b8ed608ae5204840ac4ed9bd",
+    "sourceManifestSHA256": "4b57f3f95673683546d442ab36d0c64edfc3e0fef401e6355284243993cfb3ea",
+    "sourceAfterCleanupSHA256": "4b57f3f95673683546d442ab36d0c64edfc3e0fef401e6355284243993cfb3ea",
+    "savedNativeFileSHA256": "ae1a6a8b1c884d5fb477752e55bfcea723670421591491b5342ffeaf3e76aa48",
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  }
+}

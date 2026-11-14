@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, massPropertiesOf, checkBrep, faceGeometry } from '../dist/index.js';
+import { evaluateCadPart, reevaluate, massPropertiesOf, checkBrep, faceGeometry } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // D449: nominal drafting of an ordinary 80 x 40 x 10 box, not a lifted cutting plane.
 // This fixed-profile precision target is separate from the historical Draft Vrel1e-6 test.
 const coordinateLimit = 1e-9, volumeRelative = 1e-9;
 const right = 'n1.side[e2]';
+const back = 'n1.side[e3]';
 function document(options = {}) {
   return { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-20, -20], max: [60, 20], sideTags: { outer: ['e1', 'e2', 'e3', 'e4'] } },
@@ -123,5 +124,86 @@ test('existing Draft angle and face-admission refusals keep their typed boundary
     assert.deepEqual(input, before);
   }
   assert.throws(() => evaluateCadPart(document({ faces: ['n1.top'] })), e => e.code === 'CAPABILITY' && /square to the pull/.test(e.message));
-  assert.throws(() => evaluateCadPart(document({ faces: ['n1.side[e1]', right] })), e => e.code === 'CAPABILITY' && /meet along an edge/.test(e.message));
+});
+
+function cornerDocument(options = {}) {
+  const input = document({ faces: [right, back], ...options });
+  Object.assign(input.features[0], { min: [0, 0], max: [40, 30] });
+  return input;
+}
+
+function verifyCorner(input, [width, depth, length], ends, selected, expectedNormals) {
+  const before = structuredClone(input), base = evaluateCadPart({ ...input, features: input.features.slice(0, -1) }).outputs[0];
+  const [output] = evaluateCadPart(input).outputs;
+  assert.equal(output.id, 'n2');
+  assert.equal(output.bodyCount, 1);
+  assert.deepEqual(input, before);
+  const report = checkBrep(output.brep, { strict: true });
+  assert.equal(report.valid, true, JSON.stringify(report.issues));
+  assert.deepEqual(report.counts, { bodies: 1, shells: 1, faces: 6, loops: 6, coedges: 24, edges: 12, vertices: 8 });
+  assert.equal(report.topology[0].genus, 0);
+  assert.equal(output.brep.shells[0].closed, true);
+  assert.deepEqual(output.brep.faces.map(f => f.name).sort(), base.brep.faces.map(f => f.name).sort());
+  assert.deepEqual(output.brep.edges.map(e => e.name).sort(), base.brep.edges.map(e => e.name).sort());
+  const seeded = evaluateCadPart({ ...input, features: input.features.slice(0, -1) });
+  assert.deepEqual(reevaluate(seeded, { document: input }).outputs[0].brep, output.brep);
+
+  const radians = input.features.at(-1).angle * Math.PI / 180, t = Math.tan(radians);
+  // Integral of (width - t*s)(depth - t*s), from the neutral end to the far end.
+  const volume = width * depth * length - (width + depth) * t * length ** 2 / 2 + t ** 2 * length ** 3 / 3;
+  close(massPropertiesOf(output).volume, volume, 1e-7, 'two-side draft volume');
+  const name = [...selected].sort().join('|'), edge = output.brep.edges.find(e => e.name === name);
+  assert.ok(edge && edge.curve.degree === 1 && edge.curve.controlPoints.length === 2, 'one exact shared line');
+  for (const end of ends) assert.ok(edge.curve.controlPoints.some(p => samePoint(p, end)), JSON.stringify(edge.curve));
+  for (let i = 0; i < selected.length; i++) {
+    const geometry = faceGeometry(output.brep.faces.find(f => f.name === selected[i]));
+    assert.equal(geometry.kind, 'plane');
+    const expected = expectedNormals[i].map(x => x / Math.hypot(...expectedNormals[i]));
+    close(Math.hypot(...geometry.n.map((n, k) => n - expected[k])), 0, 1e-12, 'outward normal');
+    for (const end of ends) close(end.reduce((d, x, k) => d + (x - geometry.o[k]) * geometry.n[k], 0), 0, coordinateLimit, 'intersection on both planes');
+  }
+  return output.brep;
+}
+
+test('adjacent box Draft turns two supports and preserves their shared edge, in and out', () => {
+  for (const angle of [10, -10]) {
+    const t = Math.tan(angle * Math.PI / 180), input = cornerDocument({ angle, neutral: 0 });
+    const a = verifyCorner(input, [40, 30, 10], [[40, 30, 0], [40 - 10 * t, 30 - 10 * t, 10]], [right, back], [[1, 0, t], [0, 1, t]]);
+    const reversed = evaluateCadPart(cornerDocument({ angle, faces: [back, right] })).outputs[0].brep;
+    assert.deepEqual(reversed, a, 'pick order and explicit base neutral do not change the native body');
+  }
+});
+
+test('adjacent box Draft locates the neutral edge at the translated negative-pull base', () => {
+  const input = cornerDocument({ target: 'm', faces: [back, 'n1.top'], pull: '-x', neutral: 33 });
+  input.features.splice(2, 0, { id: 'm', kind: 'translate', target: 'n1', offset: [-7, 11, -3] });
+  const t = Math.tan(10 * Math.PI / 180);
+  verifyCorner(input, [30, 10, 40], [[33, 41, 7], [-7, 41 - 40 * t, 7 - 40 * t]], [back, 'n1.top'], [[-t, 1, 0], [-t, 0, 1]]);
+});
+
+test('adjacent box Draft keeps plane charts within the modeling bounds', () => {
+  const input = cornerDocument({ target: 'm', faces: ['n1.side[e1]', 'n1.bottom'], pull: 'x', neutral: 9970 });
+  input.features[0].max = [30, 30];
+  input.features[1].height = 30;
+  input.features.splice(2, 0, { id: 'm', kind: 'translate', target: 'n1', offset: [9970, 9970, 9970] });
+  const t = Math.tan(10 * Math.PI / 180);
+  const brep = verifyCorner(input, [30, 30, 30], [[9970, 9970, 9970], [10000, 9970 + 30 * t, 9970 + 30 * t]],
+    ['n1.side[e1]', 'n1.bottom'], [[t, -1, 0], [t, 0, -1]]);
+  assert.ok(brep.faces.every(face => face.surface.controlPoints.flat().every(point => point.every(value => Math.abs(value) <= 10000))));
+  input.features.at(-1).faces = [back, 'n1.top'];
+  input.features.at(-1).angle = -10;
+  assert.throws(() => evaluateCadPart(input), e => e.code === 'PARAMETER' && /modeling coordinate range/.test(e.message));
+});
+
+test('adjacent Draft refuses a collapsed box, unsupported neutral planes and non-box solids', () => {
+  const collapsed = cornerDocument({ angle: 20 });
+  collapsed.features[0].max = [3, 30];
+  const before = structuredClone(collapsed);
+  assert.throws(() => evaluateCadPart(collapsed), e => e.code === 'GEOMETRY' && /closes a box wall/.test(e.message));
+  assert.deepEqual(collapsed, before);
+  assert.throws(() => evaluateCadPart(cornerDocument({ neutral: -2 })), e => e.code === 'CAPABILITY' && /neutral plane at the start/.test(e.message));
+  assert.throws(() => evaluateCadPart(cornerDocument({ faces: ['n1.side[e1]', right, back] })), e => e.code === 'CAPABILITY' && /meet along an edge/.test(e.message));
+  const holed = cornerDocument({ target: 'h' });
+  holed.features.splice(2, 0, { id: 'h', kind: 'hole', target: 'n1', center: [20, 15], radius: 2 });
+  assert.throws(() => evaluateCadPart(holed), e => e.code === 'CAPABILITY' && /meet along an edge/.test(e.message));
 });

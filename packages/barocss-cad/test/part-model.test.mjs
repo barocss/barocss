@@ -684,10 +684,11 @@ test('draft: side faces turned about their line on the bottom, in (material off)
   const one = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: 10 }])), 'd');
   assert.ok(close(volume(one), 4000 - 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(one)));
   assert.deepEqual(checkBrep(one.brep).issues, []);
-  // Two opposite sides: twice the wedge. Two that meet are refused (their wedges would need a mitre).
+  // Two opposite sides remove twice the wedge. Adjacent box sides share a turned corner.
   const two = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angle: 10 }])), 'd');
   assert.ok(close(volume(two), 4000 - 2 * 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(two)));
-  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angle: 10 }]), 'CAPABILITY', /meet along an edge/);
+  const adjacent = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angle: 10 }])), 'd');
+  assert.ok(close(volume(adjacent), 4000 - 40 * t * 10 ** 2 / 2 + t ** 2 * 10 ** 3 / 3, 1e-6), String(volume(adjacent)));
   // Out: the same wedge added.
   const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: -10 }])), 'd');
   assert.ok(close(volume(out), 4000 + 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(out)));
@@ -772,12 +773,11 @@ test('draft: unsupported pull encodings retain a typed INPUT refusal', () => {
   }
 });
 
-test('draft: pull-normal faces, adjacent faces and a neutral plane above the face stay typed refusals', () => {
+test('draft: pull-normal faces and a neutral plane above the face stay typed refusals', () => {
   const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
   for (const c of draftPullCases) {
     const feature = { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle: 10, pull: c.pull };
     refused(D([...box, { ...feature, faces: [c.pull === 'x' ? 'e.side1' : 'e.side2'] }]), 'CAPABILITY', /square to the pull/);
-    refused(D([...box, { ...feature, faces: [c.face, 'e.bottom'] }]), 'CAPABILITY', /meet along an edge/);
     refused(D([...box, { ...feature, neutral: 1 }]), 'SELECTION', new RegExp(`neutral plane ${c.pull} = 1`));
   }
 });
@@ -896,7 +896,6 @@ test('draft: negative pulls preserve typed input, face, mesh and world neutral r
   for (const c of negativeDraftCases) {
     for (const pull of [null, 'X', '+x', '-X', '-w', 'w', [1, 0, 0], 0]) refused(D([...negativeDraftBox(), negativeDraftFeature(c, { pull })]), 'INPUT', /pull must be x, y or z/);
     refused(D([...negativeDraftBox(), negativeDraftFeature(c, { faces: [c.normalFace] })]), 'CAPABILITY', /square to the pull/);
-    refused(D([...negativeDraftBox(), negativeDraftFeature(c, { faces: [c.face, c.adjacentFace] })]), 'CAPABILITY', /meet along an edge/);
     refused(D([...negativeDraftBox(), negativeDraftFeature(c, { neutral: c.neutral - 1 })]), 'SELECTION', new RegExp(`neutral plane ${c.positive} = ${c.neutral - 1}`));
   }
   const box = outputOf(evaluateCadPart(D(negativeDraftBox())), 'e'), mesh = tessellateBrep(box.brep);

@@ -11,6 +11,7 @@ import type { Point } from '../types.js';
 import type { ProfileSegmentInput } from '../features/extruded-profile-solid.js';
 import type { CadPartDim, CadPartFeature, Part, Result, Solid } from './part-types.js';
 import type { Tools } from './part-model.js';
+import { draftBoxCorner } from './part-box-draft.js';
 
 // Private structural contract. Original functions retain their caches, profiling and closure state.
 interface FaceFinishHelpers {
@@ -174,8 +175,9 @@ export function faceFinishOperation(f: CadPartFeature & Record<string, unknown>,
       };
     }
     case 'draft': {
-      const target = solids(f.target, 'target'), names = f.faces as unknown, angle = f.angle as unknown;
-      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges || !names.every(x => typeof x === 'string')) fail('INPUT', 'faces must list 1 to 64 face names');
+      const target = solids(f.target, 'target'), requested = f.faces as unknown, angle = f.angle as unknown;
+      if (!Array.isArray(requested) || !requested.length || requested.length > CadPartLimits.edges || !requested.every(x => typeof x === 'string')) fail('INPUT', 'faces must list 1 to 64 face names');
+      const names = requested as string[];
       if (typeof angle !== 'number' || !Number.isFinite(angle) || angle === 0 || Math.abs(angle) >= 45) fail('INPUT', 'angle must be a number of degrees, not 0, below 45 in size');
       if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
       const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
@@ -188,13 +190,22 @@ export function faceFinishOperation(f: CadPartFeature & Record<string, unknown>,
         const toZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === 'y' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === '-x' ? [0, 1, 0, 0, 0, -1, -1, 0, 0] : pull === '-y' ? [0, 0, 1, -1, 0, 0, 0, -1, 0] : pull === '-z' ? [1, 0, 0, 0, -1, 0, 0, 0, -1] : null;
         const fromZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === 'y' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === '-x' ? [0, 0, -1, 1, 0, 0, 0, -1, 0] : pull === '-y' ? [0, -1, 0, 0, 0, -1, 1, 0, 0] : pull === '-z' ? [1, 0, 0, 0, -1, 0, 0, 0, -1] : null;
         const localSolid = toZ ? affine(target[0].solid, toZ, [0, 0, 0]) : target[0].solid;
-        const brep = brepOf(toZ ? { solid: localSolid } : target[0], at), box = bounds(localSolid), zN = negativePull && neutral !== undefined ? -neutral : neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
+        const box = bounds(localSolid), zN = negativePull && neutral !== undefined ? -neutral : neutral ?? box.min[2], a = (angle as number) * Math.PI / 180;
+        if (names.length === 2 && names[0] !== names[1]) {
+          // Materialize upright input under this feature's id regardless of the source Part's cached B-rep.
+          const corner = draftBoxCorner(brepOf({ solid: localSolid }, at), [names[0], names[1]], zN, a, at, fail);
+          if (corner) {
+            const result: Solid = { kind: 'brep', brep: corner };
+            return one(fromZ ? affine(result, fromZ, [0, 0, 0]) : result);
+          }
+        }
+        const brep = brepOf(toZ ? { solid: localSolid } : target[0], at), R = len(sub(box.max, box.min)) + 2;
         // Extend tool coverage beyond the face; keep the turn on the authored neutral plane.
         const lift = 1e-6 * R;
         const coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point]));
         // Each face's wedge, from the body as it was: the face pushed in (or out) as deep as the turn takes
         // its top, met with the half-space beyond its turned plane (through its line on the neutral plane).
-        const wedges = (names as string[]).map(name => {
+        const wedges = names.map(name => {
           const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
           if (!face) return fail('REFERENCE', `no face ${name} on the target`);
           const loop = brep.loops.find(l => l.id === face.loops[0])!;
@@ -219,10 +230,10 @@ export function faceFinishOperation(f: CadPartFeature & Record<string, unknown>,
           boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`);
           return draftWedge(prism, u0, u1, v0, v1, zN - o[2], a, m, o, `${at}.draft`);
         });
-        // Faces that meet would need their wedges mitred where they join: not yet.
+        // The wedge path still takes only disjoint faces.
         const edgesOf = (name: string) => { const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name)!; return new Set(face.loops.flatMap(l => brep.loops.find(x => x.id === l)!.coedges.map(c => coedges.get(c)!.edge))); };
-        const sets = (names as string[]).map(edgesOf);
-        sets.forEach((x, i) => sets.forEach((y, j) => { if (j > i && [...x].some(e => y.has(e))) fail('CAPABILITY', `${(names as string[])[i]} and ${(names as string[])[j]} meet along an edge: draft faces that do not touch (or every side of an extrusion with its draft)`); }));
+        const sets = names.map(edgesOf);
+        sets.forEach((x, i) => sets.forEach((y, j) => { if (j > i && [...x].some(e => y.has(e))) fail('CAPABILITY', `${names[i]} and ${names[j]} meet along an edge: draft faces that do not touch (or every side of an extrusion with its draft)`); }));
         // The wedges together, then off the body (or onto it) at once.
         const all = wedges.filter(w => !empty(w)).reduce<Solid | null>((u, w) => u ? boolean(u, w, 'union', at) : w, null);
         const result = all ? boolean(localSolid, all, a > 0 ? 'difference' : 'union', at) : localSolid;

@@ -95,3 +95,28 @@ test('public draft: unnamed focus stays ambiguous after another body, while expl
   assert.deepEqual(extra.select().faces().names(), selectedNames, 'an explicit focus follows the replacement and survives unrelated body creation');
   assert.deepEqual(multi.doc, multiBefore);
 });
+
+test('public Draft preserves both face references on adjacent rectangular stock and refuses collapse', async () => {
+  const base = part('Adjacent Draft').box({ w: 40, d: 30, h: 40 });
+  const adjacent = (body: BodyQuery) => body.faces().where(face => face.kind === 'plane'
+    && (face.normal[0] > 0.99 || face.normal[1] < -0.99));
+  const radians = 10 * Math.PI / 180, slope = Math.tan(radians), height = 40;
+  const expected = 40 * 30 * height - 70 * slope * height ** 2 / 2 + slope ** 2 * height ** 3 / 3;
+  const before = structuredClone(base.doc);
+  const tapered = base.draft(adjacent, { angle: 10, neutral: 0 });
+  const node = tapered.doc.nodes.at(-1);
+  assert.ok(node?.kind === 'draft');
+  assert.deepEqual(node.faces, adjacent(base.select()).names());
+  assert.equal(node.faces.length, 2);
+  assert.equal(node.neutral, 0);
+  nominal(tapered, expected);
+  const accepted = structuredClone(tapered.doc);
+  const reopened = await readStudioFile(encodeStudioFile(tapered.doc));
+  assert.ok('doc' in reopened);
+  assert.deepEqual(reopened.doc, accepted);
+  nominal(part('Reopened Draft', reopened.doc), expected);
+  assert.throws(() => base.draft(adjacent, { angle: 40 }),
+    error => error instanceof BarocssError && error.where === 'evaluate' && /closes a box wall|collapse|topology/i.test(error.message));
+  assert.deepEqual(base.doc, before);
+  assert.deepEqual(tapered.doc, accepted);
+});

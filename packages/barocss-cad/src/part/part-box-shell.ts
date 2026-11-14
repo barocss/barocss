@@ -1,8 +1,14 @@
 import { faceGeometry } from '../brep/analytic-boolean.js';
 import { checkBrep, type Brep } from '../brep/brep-core.js';
 
-/** The exclusive thickness limit for opening one face of a validated cardinal box. */
-export function boxShellWallLimit(brep: Brep, open: string): number | undefined {
+interface BoxSide { readonly axis: 0 | 1 | 2; readonly side: 0 | 1 }
+interface CardinalBox {
+  readonly ranges: readonly (readonly number[])[];
+  readonly sides: ReadonlyMap<string, BoxSide>;
+}
+
+/** The six outward supports and exact corner ranges of a closed cardinal box. */
+export function cardinalBoxOf(brep: Brep): CardinalBox | undefined {
   const { bodies, shells, faces, loops, coedges, edges, vertices } = brep;
   if (bodies.length !== 1 || bodies[0].kind !== 'solid' || bodies[0].shells.length !== 1
     || shells.length !== 1 || !shells[0].closed || faces.length !== 6 || loops.length !== 6
@@ -18,7 +24,7 @@ export function boxShellWallLimit(brep: Brep, open: string): number | undefined 
   const loopOf = new Map(loops.map(loop => [loop.id, loop]));
 
   const directions = new Set<string>();
-  let openAxis: number | undefined;
+  const sides = new Map<string, BoxSide>();
   for (const face of faces) {
     if (face.surface.kind !== 'surface') return undefined;
     let plane: ReturnType<typeof faceGeometry>;
@@ -48,8 +54,17 @@ export function boxShellWallLimit(brep: Brep, open: string): number | undefined 
       corners.add(edge.vertices[1]);
     }
     if (corners.size !== 4) return undefined;
-    if (face.name === open) openAxis = axis;
+    sides.set(face.id, { axis, side });
   }
-  if (openAxis === undefined || !checkBrep(brep).valid) return undefined;
-  return Math.min(...ranges.map(([low, high], axis) => (high - low) / (axis === openAxis ? 1 : 2)));
+  return checkBrep(brep).valid ? { ranges, sides } : undefined;
+}
+
+/** The exclusive thickness limit for opening one face of a validated cardinal box. */
+export function boxShellWallLimit(brep: Brep, open: string): number | undefined {
+  const box = cardinalBoxOf(brep);
+  if (!box) return undefined;
+  let openAxis: number | undefined;
+  for (const face of brep.faces) if (face.name === open) openAxis = box.sides.get(face.id)?.axis;
+  if (openAxis === undefined) return undefined;
+  return Math.min(...box.ranges.map(([low, high], axis) => (high - low) / (axis === openAxis ? 1 : 2)));
 }

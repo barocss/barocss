@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1252 — Draft two adjacent planar box sides](notes/adjacent-planar-draft-2026-11-14/README.md).
 - [D1251 — retain a command search after an unavailable result](notes/palette-no-match-refusal-2026-11-14/README.md).
 - [D1250 — expose focused Sketch and Drawing tool help](notes/keyboard-tool-help-2026-11-14/README.md).
 - [D1249 — return focus after closing Hole](notes/hole-close-focus-2026-11-14/README.md).
