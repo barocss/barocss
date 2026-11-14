@@ -8,6 +8,7 @@ const automaticRefusal = process.argv.includes('--automatic-refusal');
 const beforeExtrude = process.argv.includes('--before-extrude');
 const sourceDimension = process.argv.includes('--source-dimension');
 const editInsetDistance = process.argv.includes('--edit-inset-distance');
+const delayRefusal = process.argv.includes('--delay-refusal');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -61,6 +62,36 @@ async function buttonVisibility(locator) {
       visible: rect.top >= dock.top && rect.bottom <= dock.bottom && element.contains(center) };
   });
 }
+function holdInsetReplies() {
+  const worker = Worker.prototype;
+  const onmessage = Object.getOwnPropertyDescriptor(worker, 'onmessage');
+  const post = worker.postMessage, requests = new WeakMap();
+  let pending;
+  worker.postMessage = function (request, ...args) {
+    if (request?.type === 'insetRelink') requests.set(this, request.id);
+    return Reflect.apply(post, this, [request, ...args]);
+  };
+  Object.defineProperty(worker, 'onmessage', {
+    configurable: true, get: onmessage.get,
+    set(callback) {
+      onmessage.set.call(this, callback && function (event) {
+        if (requests.has(this) && requests.get(this) === event.data?.id && event.data.error) {
+          requests.delete(this);
+          pending = { reply: event.data, deliver: () => callback.call(this, event) };
+        } else callback.call(this, event);
+      });
+    },
+  });
+  window.__insetReplyHold = {
+    held: () => pending?.reply ?? null,
+    release() {
+      if (!pending) throw new Error('No inset refusal to deliver');
+      const { deliver } = pending;
+      pending = undefined;
+      deliver();
+    },
+  };
+}
 async function checkHistorySummary(face) {
   const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
   if (baseline) {
@@ -75,6 +106,14 @@ async function checkHistorySummary(face) {
   await summary.getByText('Replace the source with an earlier planar face. Shape edits in Edit sketch detach the link.', { exact: true }).waitFor();
 }
 await f.run(async () => {
+  if (delayRefusal) {
+    const newContext = f.browser.newContext.bind(f.browser);
+    f.browser.newContext = async options => {
+      const context = await newContext(options);
+      await context.addInitScript(holdInsetReplies);
+      return context;
+    };
+  }
   await f.newPage();
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
@@ -218,10 +257,19 @@ await f.run(async () => {
       f.phase = 'automatic refusal on a 3 mm candidate face';
       const before = await f.snapshot('before-automatic-refusal');
       await replace().press('Enter');
+      const elsewhere = button('Close editor', f.editor());
+      if (delayRefusal) {
+        await waitFocus(button('Cancel', review()));
+        await f.page.waitForFunction(() => window.__insetReplyHold.held()?.field === 'insetMM');
+        await elsewhere.focus();
+        await waitFocus(elsewhere);
+        await f.snapshot('focus-moved-before-refusal');
+        await f.page.evaluate(() => window.__insetReplyHold.release());
+      }
       const notice = f.page.getByRole('alert').filter({ hasText: 'Inset source not replaced' });
       await notice.waitFor();
       await review().waitFor({ state: 'hidden' });
-      if (!baseline) await waitFocus(replace());
+      if (!baseline) await waitFocus(delayRefusal ? elsewhere : replace());
       const after = await f.snapshot('automatic-refusal');
       for (const key of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(after[key], before[key], key);
       const current = await focused();
@@ -231,7 +279,7 @@ await f.run(async () => {
         assert.equal(current[0], 'BODY');
         throw new Error('Automatic replacement refusal lost focus to the document body.');
       }
-      assert.ok((await buttonVisibility(replace())).visible);
+      assert.ok((await buttonVisibility(delayRefusal ? elsewhere : replace())).visible);
       await notice.getByText('The inset closes on this face. Select a wider planar face and retry.', { exact: true }).waitFor();
       return;
     }

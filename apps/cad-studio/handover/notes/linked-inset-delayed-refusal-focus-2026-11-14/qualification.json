@@ -1,0 +1,72 @@
+{
+  "decision": "D1217",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "c1f638fc6adb50c49da83c6143fe6c84fc15fa64",
+  "commands": [
+    "gate.sh acquire heavy 600 D1217-delayed-refusal",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/delayed --narrow-dock --automatic-refusal --delay-refusal",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/control --narrow-dock --automatic-refusal",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "delayed": {
+      "status": "PASS",
+      "states": [
+        "before-automatic-refusal",
+        "focus-moved-before-refusal",
+        "automatic-refusal"
+      ],
+      "observations": [
+        {
+          "label": "automatic-refusal",
+          "focused": [
+            "BUTTON",
+            "Close editor",
+            ""
+          ],
+          "volume": 960.0000000000016,
+          "hint": "The inset closes on this face. Select a wider planar face and retry."
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "b2edb0d4101dbf9073d4d9e118db9c9a567069a05784d76361e0b2a5e03e54d9",
+      "sourceManifestSHA256": "da762305ff0a72c3e1290b25f16025a8fd33bf95ac9a7e8089c5e187993e0461",
+      "sourceAfterCleanupSHA256": "da762305ff0a72c3e1290b25f16025a8fd33bf95ac9a7e8089c5e187993e0461",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "control": {
+      "status": "PASS",
+      "states": [
+        "before-automatic-refusal",
+        "automatic-refusal"
+      ],
+      "observations": [
+        {
+          "label": "automatic-refusal",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ],
+          "volume": 960.0000000000016,
+          "hint": "The inset closes on this face. Select a wider planar face and retry."
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "811531fe32b6c298bb52a75956e76f0e34c39424258aa842b3e272641c64c869",
+      "sourceManifestSHA256": "da762305ff0a72c3e1290b25f16025a8fd33bf95ac9a7e8089c5e187993e0461",
+      "sourceAfterCleanupSHA256": "da762305ff0a72c3e1290b25f16025a8fd33bf95ac9a7e8089c5e187993e0461",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
